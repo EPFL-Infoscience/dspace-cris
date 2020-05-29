@@ -52,4 +52,6 @@
 	<!-- Imp factory -->
 	<bean id="impServiceFactory" class="org.dspace.batch.factory.ImpServiceFactoryImpl"/>
 
+    <bean id="deduplicationServiceFactory" class="org.dspace.deduplication.factory.DeduplicationServiceFactoryImpl"/>
+
 </beans>

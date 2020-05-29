@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.rest.builder.util.AbstractBuilderCleanupUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -34,6 +35,8 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.deduplication.factory.DeduplicationServiceFactory;
+import org.dspace.deduplication.service.DeduplicationService;
 import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -89,6 +92,8 @@ public abstract class AbstractBuilder<T, S> {
     static RelationshipTypeService relationshipTypeService;
     static EntityTypeService entityTypeService;
     static ProcessService processService;
+    static DeduplicationService deduplicationService;
+    static DedupUtils dedupUtils;
 
     protected Context context;
 
@@ -135,6 +140,9 @@ public abstract class AbstractBuilder<T, S> {
         relationshipTypeService = ContentServiceFactory.getInstance().getRelationshipTypeService();
         entityTypeService = ContentServiceFactory.getInstance().getEntityTypeService();
         processService = ScriptServiceFactory.getInstance().getProcessService();
+        deduplicationService = DeduplicationServiceFactory.getInstance().getDeduplicationService();
+        dedupUtils = DSpaceServicesFactory.getInstance().getServiceManager()
+                .getServiceByName("dedupUtils", DedupUtils.class);
 
         // Temporarily disabled
         claimedTaskService = XmlWorkflowServiceFactory.getInstance().getClaimedTaskService();
@@ -171,6 +179,8 @@ public abstract class AbstractBuilder<T, S> {
         relationshipTypeService = null;
         entityTypeService = null;
         processService = null;
+        deduplicationService = null;
+        dedupUtils = null;
 
     }
 
