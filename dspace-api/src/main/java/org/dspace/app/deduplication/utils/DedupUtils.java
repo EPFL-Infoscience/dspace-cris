@@ -682,7 +682,7 @@ public class DedupUtils {
                     for (String signatureTypeString : signatureTypeList) {
                         if (name.equals(signatureTypeString)) {
 
-                            dsi.setSignature(signatureTypeString);
+                            dsi.setGroupChecksum(signatureTypeString);
                             List<String> ids = (List<String>) solrDocument
                                     .getFieldValue(SolrDedupServiceImpl.RESOURCE_IDS_FIELD);
 
@@ -698,7 +698,7 @@ public class DedupUtils {
 
                             result.add(dsi);
                         } else {
-                            dsi.getOtherSignature().add(signatureTypeString);
+                            dsi.getOtherGroupChecksums().add(signatureTypeString);
                         }
                     }
                 }
@@ -734,7 +734,7 @@ public class DedupUtils {
 
             String signatureTypeString = (String) ((List) (solrDocument.getFieldValue(signatureType))).get(0);
 
-            dsi.setSignature(signatureTypeString);
+            dsi.setGroupChecksum(signatureTypeString);
 
             List<String> ids = (List<String>) solrDocument.getFieldValue(SolrDedupServiceImpl.RESOURCE_IDS_FIELD);
 

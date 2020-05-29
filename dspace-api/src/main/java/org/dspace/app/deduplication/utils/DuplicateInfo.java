@@ -15,8 +15,8 @@ import org.dspace.content.Item;
 public abstract class DuplicateInfo {
     private String signatureId;
     private List<Item> items;
-    private String signature;
-    private List<String> otherSignature;
+    private String groupChecksum;
+    private List<String> otherGroupChecksums;
 
     public int getNumItems() {
         return items.size();
@@ -29,8 +29,8 @@ public abstract class DuplicateInfo {
         return items;
     }
 
-    public String getSignature() {
-        return signature;
+    public String getGroupChecksum() {
+        return groupChecksum;
     }
 
     public String getSignatureId() {
@@ -45,18 +45,18 @@ public abstract class DuplicateInfo {
         this.items = items;
     }
 
-    public void setSignature(String signature) {
-        this.signature = signature;
+    public void setGroupChecksum(String groupChecksum) {
+        this.groupChecksum = groupChecksum;
     }
 
-    public List<String> getOtherSignature() {
-        if (this.otherSignature == null) {
-            this.otherSignature = new ArrayList<String>();
+    public List<String> getOtherGroupChecksums() {
+        if (this.otherGroupChecksums == null) {
+            this.otherGroupChecksums = new ArrayList<String>();
         }
-        return otherSignature;
+        return otherGroupChecksums;
     }
 
-    public void setOtherSignature(List<String> otherSignature) {
-        this.otherSignature = otherSignature;
+    public void setOtherGroupChecksums(List<String> otherGroupChecksum) {
+        this.otherGroupChecksums = otherGroupChecksum;
     }
 }
