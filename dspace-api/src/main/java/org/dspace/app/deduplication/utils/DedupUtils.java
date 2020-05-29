@@ -64,7 +64,7 @@ public class DedupUtils {
     @Autowired(required = true)
     protected ConfigurationService configurationService;
 
-    public DuplicateInfoList findSignatureWithDuplicate(Context context, String signatureType, int resourceType,
+    public List<DuplicateInfo> findSignatureWithDuplicates(Context context, String signatureType, int resourceType,
             int limit, int offset, int rule) throws SearchServiceException, SQLException {
         return findPotentialMatch(context, signatureType, resourceType, limit, offset, rule);
     }
@@ -541,10 +541,8 @@ public class DedupUtils {
         return false;
     }
 
-    private DuplicateInfoList findPotentialMatch(Context context, String signatureType, int resourceType, int start,
+    private List<DuplicateInfo> findPotentialMatch(Context context, String signatureType, int resourceType, int start,
             int rows, int rule) throws SearchServiceException, SQLException {
-
-        DuplicateInfoList dil = new DuplicateInfoList();
 
         if (StringUtils.isNotEmpty(signatureType)) {
             if (!StringUtils.contains(signatureType, "_signature")) {
@@ -648,9 +646,7 @@ public class DedupUtils {
             index++;
         }
 
-        dil.setDsi(result);
-        dil.setSize(facetField.getValues().size());
-        return dil;
+        return result;
     }
 
     private DuplicateSignatureInfo findPotentialMatchByID(Context context, String signatureType, int resourceType,
@@ -720,10 +716,8 @@ public class DedupUtils {
         return findDuplicate(context, itemID, typeID, null, null);
     }
 
-    public DuplicateInfoList findSuggestedDuplicate(Context context, int resourceType, int start, int rows)
+    public List<DuplicateInfo> findSuggestedDuplicate(Context context, int resourceType, int start, int rows)
             throws SearchServiceException, SQLException {
-
-        DuplicateInfoList dil = new DuplicateInfoList();
 
         SolrQuery solrQueryInternal = new SolrQuery();
 
@@ -768,8 +762,6 @@ public class DedupUtils {
             index++;
         }
 
-        dil.setDsi(result);
-        dil.setSize(solrDocumentList.getNumFound());
-        return dil;
+        return result;
     }
 }
