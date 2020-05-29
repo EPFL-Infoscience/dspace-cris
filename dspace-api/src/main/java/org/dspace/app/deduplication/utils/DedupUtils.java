@@ -311,7 +311,7 @@ public class DedupUtils {
         boolean found = false;
         for (DSpaceObject item : dsi.getItems()) {
             if (item != null) {
-                if (item.getID() == itemID) {
+                if (item.getID().equals(itemID)) {
                     found = true;
                     break;
                 }
@@ -320,7 +320,7 @@ public class DedupUtils {
         if (found && dsi.getNumItems() > 1) {
             for (DSpaceObject item : dsi.getItems()) {
                 if (item != null) {
-                    if (item.getID() != itemID) {
+                    if (!item.getID().equals(itemID)) {
                         rejectAdminDups(context, itemID, item.getID(), resourceType);
                     }
                 }
