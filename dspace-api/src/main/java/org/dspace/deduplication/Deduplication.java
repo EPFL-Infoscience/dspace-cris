@@ -20,6 +20,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.dspace.core.ReloadableEntity;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
@@ -32,7 +33,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
 @Table(name = "deduplication")
-public class Deduplication {
+public class Deduplication implements ReloadableEntity<Integer> {
     @Id
     @Column(name = "deduplication_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "deduplication_id_seq")
@@ -213,5 +214,10 @@ public class Deduplication {
 
     public void setRejectTime(Date rejectTime) {
         this.rejectTime = rejectTime;
+    }
+
+    @Override
+    public Integer getID() {
+        return deduplicationId;
     }
 }
