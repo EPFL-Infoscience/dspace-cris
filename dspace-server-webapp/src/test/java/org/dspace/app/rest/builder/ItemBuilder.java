@@ -65,6 +65,26 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
                                 "date", "issued", new DCDate(issueDate).toString());
     }
 
+    public ItemBuilder withIdentifierDoi(final String identifierDoi) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "doi", identifierDoi);
+    }
+
+    public ItemBuilder withIdentifierArxiv(final String identifierArxiv) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "arxiv", identifierArxiv);
+    }
+
+    public ItemBuilder withIdentifierIsi(final String identifierIsi) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "isi", identifierIsi);
+    }
+
+    public ItemBuilder withIdentifierScopus(final String identifierScopus) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "scopus", identifierScopus);
+    }
+
+    public ItemBuilder withIdentifierPmid(final String identifierPmid) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "pmid", identifierPmid);
+    }
+
     public ItemBuilder withIdentifierOther(final String identifierOther) {
         return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "other", identifierOther);
     }
