@@ -525,6 +525,24 @@ public class DedupUtils {
         }
     }
 
+    public void verifyOrRejectDups(Context context, Deduplication deduplication, String action, boolean check)
+        throws SQLException, AuthorizeException {
+        if ("verify".equals(action)) {
+            verify(context, deduplication, check);
+        } else if ("reject".equals(action)) {
+            rejectDups(context, deduplication, check);
+        } else if ("adminreject".equals(action)) {
+            rejectAdminDups(context, deduplication.getFirstItemId(), deduplication.getSecondItemId(), Constants.ITEM);
+        }
+    }
+
+    public void verify(Context context, Deduplication deduplication, boolean check)
+        throws SQLException, AuthorizeException {
+        verify(context, deduplication.getDeduplicationId(), deduplication.getFirstItemId(),
+            deduplication.getSecondItemId(), Constants.ITEM, deduplication.isTofix(),
+            deduplication.getReaderNote(), check);
+    }
+
     public void verify(Context context, int dedupId, UUID firstId, UUID secondId, int type, boolean toFix, String note,
             boolean check) throws SQLException, AuthorizeException {
         UUID[] sortedIds = new UUID[] { firstId, secondId };
@@ -680,6 +698,12 @@ public class DedupUtils {
         }
 
         return valid;
+    }
+
+    public boolean rejectDups(Context context, Deduplication deduplication, boolean check)
+        throws SQLException {
+        return rejectDups(context, deduplication.getFirstItemId(), deduplication.getSecondItemId(),
+            Constants.ITEM, deduplication.isFake(), deduplication.getNote(), check);
     }
 
     public boolean rejectDups(Context context, UUID firstId, UUID secondId, Integer type, boolean notDupl, String note,
