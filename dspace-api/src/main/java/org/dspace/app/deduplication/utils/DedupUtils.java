@@ -711,6 +711,11 @@ public class DedupUtils {
 
     private DuplicateSignatureInfo findPotentialMatchByID(Context context, String signatureType, int resourceType,
             UUID itemID) throws SearchServiceException, SQLException {
+        return findPotentialMatchByID(context, signatureType, null, resourceType, itemID);
+    }
+
+    private DuplicateSignatureInfo findPotentialMatchByID(Context context, String signatureType,
+        String groupChecksum, int resourceType, UUID itemID) throws SearchServiceException, SQLException {
         if (StringUtils.isNotEmpty(signatureType)) {
             if (!StringUtils.contains(signatureType, "_signature")) {
                 signatureType += "_signature";
@@ -718,12 +723,18 @@ public class DedupUtils {
         }
         SolrQuery solrQuery = new SolrQuery();
 
-        solrQuery.setQuery(SolrDedupServiceImpl.RESOURCE_IDS_FIELD + ":" + itemID);
+        if (itemID != null) {
+            solrQuery.setQuery(SolrDedupServiceImpl.RESOURCE_IDS_FIELD + ":" + itemID);
+        }
 
         solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_SIGNATURETYPE_FIELD + ":" + signatureType);
         solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_RESOURCETYPE_FIELD + ":" + resourceType);
         solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
                 + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription());
+
+        if (StringUtils.isNotBlank(groupChecksum)) {
+            solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_SIGNATURE_FIELD + ":" + groupChecksum);
+        }
 
         QueryResponse response = getDedupService().search(solrQuery);
 
