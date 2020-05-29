@@ -13,8 +13,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +47,7 @@ import org.dspace.deduplication.service.DeduplicationService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.ItemUtils;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -63,6 +66,58 @@ public class DedupUtils {
 
     @Autowired(required = true)
     protected ConfigurationService configurationService;
+
+    public List<DeduplicationSignature> findAllSignatures() throws SearchServiceException {
+        Set<String> signatureTypes = retrieveAllSignatures();
+        if (signatureTypes == null || signatureTypes.isEmpty()) {
+            return null;
+        }
+
+        List<DeduplicationSignature> signatures = new ArrayList<>();
+        for (String signatureType : signatureTypes) {
+            signatures.add(buildSignature(signatureType));
+        }
+        return signatures;
+    }
+
+    public DeduplicationSignature findSignature(String id) throws SearchServiceException {
+        Set<String> signatureTypes = retrieveAllSignatures();
+        if (signatureTypes == null || signatureTypes.isEmpty() || !signatureTypes.contains(id)) {
+            return null;
+        }
+
+        return buildSignature(id);
+    }
+
+    private Set<String> retrieveAllSignatures() {
+        List<Signature> signatures = new DSpace().getServiceManager().getServicesByType(Signature.class);
+        if (signatures == null || signatures.isEmpty()) {
+            return null;
+        }
+
+        Set<String> signatureTypes = new HashSet<>();
+        for (Signature signature : signatures) {
+            signatureTypes.add(signature.getSignatureType());
+        }
+        return signatureTypes;
+    }
+
+    private DeduplicationSignature buildSignature(String id) throws SearchServiceException {
+        String signatureType = id + "_signature";
+        DeduplicationSignature signature = new DeduplicationSignature();
+        signature.setId(id);
+        signature.setSignatureType(id);
+        signature.setGroupReviewerCheck(
+            countSignatureWithDuplicates(SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFYWF,
+                Constants.ITEM, signatureType));
+        signature.setGroupSubmitterCheck(
+            countSignatureWithDuplicates(SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFY,
+                Constants.ITEM, signatureType));
+        signature.setGroupAdminstratorCheck(
+            countSignatureWithDuplicates(SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED,
+                Constants.ITEM, signatureType));
+        return signature;
+    }
 
     public List<DuplicateInfo> findSignatureWithDuplicates(Context context, String signatureId, String groupChecksum,
             int resourceType, int limit, int offset, int rule) throws SearchServiceException, SQLException {
