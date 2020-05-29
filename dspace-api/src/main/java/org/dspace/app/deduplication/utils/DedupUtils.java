@@ -113,6 +113,49 @@ public class DedupUtils {
         return results;
     }
 
+    public int countSignatureWithDuplicates(String query, int resourceTypeId, String signatureType)
+        throws SearchServiceException {
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setQuery(query);
+        solrQuery.setRows(0);
+        solrQuery.setFacet(true);
+        solrQuery.setFacetMinCount(1);
+        solrQuery.addFacetField(SolrDedupServiceImpl.RESOURCE_SIGNATURETYPE_FIELD);
+        solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
+            + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription());
+        solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_RESOURCETYPE_FIELD + ":" + resourceTypeId);
+        solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_SIGNATURETYPE_FIELD + ":" + signatureType);
+        if (configurationService.getBooleanProperty("deduplication.tool.duplicatechecker.ignorewithdrawn")) {
+            solrQuery.addFilterQuery("-" + SolrDedupServiceImpl.RESOURCE_WITHDRAWN_FIELD + ":true");
+        }
+        QueryResponse response = dedupService.search(solrQuery);
+
+        FacetField facetField = response.getFacetField(SolrDedupServiceImpl.RESOURCE_SIGNATURETYPE_FIELD);
+        if (facetField != null) {
+            for (Count count : facetField.getValues()) {
+                solrQuery = new SolrQuery();
+                solrQuery.setQuery(query);
+                solrQuery.setRows(0);
+                solrQuery.setFacet(true);
+                solrQuery.setFacetMinCount(1);
+                solrQuery.addFacetField(count.getName());
+                solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
+                    + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription());
+                if (configurationService.getBooleanProperty("deduplication.tool.duplicatechecker.ignorewithdrawn")) {
+                    solrQuery.addFilterQuery("-" + SolrDedupServiceImpl.RESOURCE_WITHDRAWN_FIELD + ":true");
+                }
+                solrQuery.addFilterQuery(count.getAsFilterQuery());
+                response = dedupService.search(solrQuery);
+
+                FacetField facetField2 = response.getFacetField(count.getName());
+
+                return facetField2.getValueCount();
+            }
+        }
+
+        return 0;
+    }
+
     public Map<String, Integer> countSuggestedDuplicate(String query, int resourceTypeId)
             throws SearchServiceException {
         Map<String, Integer> results = new HashMap<String, Integer>();
