@@ -64,9 +64,9 @@ public class DedupUtils {
     @Autowired(required = true)
     protected ConfigurationService configurationService;
 
-    public List<DuplicateInfo> findSignatureWithDuplicates(Context context, String signatureType, int resourceType,
-            int limit, int offset, int rule) throws SearchServiceException, SQLException {
-        return findPotentialMatch(context, signatureType, resourceType, limit, offset, rule);
+    public List<DuplicateInfo> findSignatureWithDuplicates(Context context, String signatureId, String groupChecksum,
+            int resourceType, int limit, int offset, int rule) throws SearchServiceException, SQLException {
+        return findPotentialMatch(context, signatureId, groupChecksum, resourceType, limit, offset, rule);
     }
 
     public Map<String, Integer> countSignaturesWithDuplicates(String query, int resourceTypeId)
@@ -601,14 +601,11 @@ public class DedupUtils {
         return false;
     }
 
-    private List<DuplicateInfo> findPotentialMatch(Context context, String signatureType, int resourceType, int start,
-            int rows, int rule) throws SearchServiceException, SQLException {
+    private List<DuplicateInfo> findPotentialMatch(Context context, String signatureId,
+        String groupChecksum, int resourceType, int start, int rows, int rule)
+        throws SearchServiceException, SQLException {
 
-        if (StringUtils.isNotEmpty(signatureType)) {
-            if (!StringUtils.contains(signatureType, "_signature")) {
-                signatureType += "_signature";
-            }
-        }
+        String signatureType = signatureId + "_signature";
         SolrQuery solrQueryExternal = new SolrQuery();
 
         solrQueryExternal.setRows(0);
@@ -636,6 +633,9 @@ public class DedupUtils {
                 + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription());
         if (configurationService.getBooleanProperty("deduplication.tool.duplicatechecker.ignorewithdrawn")) {
             solrQueryExternal.addFilterQuery("-" + SolrDedupServiceImpl.RESOURCE_WITHDRAWN_FIELD + ":true");
+        }
+        if (StringUtils.isNotBlank(groupChecksum)) {
+            solrQueryExternal.addFilterQuery(signatureType + ":" + groupChecksum);
         }
         solrQueryExternal.setFacet(true);
         solrQueryExternal.setFacetMinCount(1);
@@ -674,7 +674,7 @@ public class DedupUtils {
 
                 SolrDocumentList solrDocumentList = response.getResults();
 
-                DuplicateSignatureInfo dsi = new DuplicateSignatureInfo(signatureType, name);
+                DuplicateSignatureInfo dsi = new DuplicateSignatureInfo(signatureId, name);
 
                 for (SolrDocument solrDocument : solrDocumentList) {
 
