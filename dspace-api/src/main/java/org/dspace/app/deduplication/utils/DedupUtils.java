@@ -119,6 +119,79 @@ public class DedupUtils {
         return signature;
     }
 
+    public List<DuplicateInfo> findAllGroups(Context context)
+        throws SearchServiceException, SQLException {
+        List<DuplicateInfo> results = new ArrayList<>();
+        Set<String> signatureTypes = retrieveAllSignatures();
+        if (signatureTypes != null && !signatureTypes.isEmpty()) {
+            for (String signatureType : signatureTypes) {
+                List<DuplicateInfo> duplicateInfos = findAllGroups(context, signatureType);
+                if (duplicateInfos != null && !duplicateInfos.isEmpty()) {
+                    results.addAll(duplicateInfos);
+                }
+            }
+        }
+        return results;
+    }
+
+    public List<DuplicateInfo> findAllGroups(Context context, String signatureId)
+        throws SearchServiceException, SQLException {
+        return findAllGroups(context, signatureId, "");
+    }
+
+    public List<DuplicateInfo> findAllGroups(Context context, String signatureId, String sRule)
+        throws SearchServiceException, SQLException {
+        Integer rule = -1;
+        switch (sRule) {
+            case "submitter":
+                rule = 1;
+                break;
+            case "reviewer":
+                rule = 2;
+                break;
+            default:
+                rule = -1;
+                break;
+        }
+
+        List<DuplicateInfo> results = new ArrayList<>();
+        List<DuplicateInfo> duplicateInfos = findSignatureWithDuplicates(context, signatureId, null,
+                Constants.ITEM, 0, Integer.MAX_VALUE, rule);
+        if (duplicateInfos != null && !duplicateInfos.isEmpty()) {
+            List<String> managedGroups = new ArrayList<>();
+            for (DuplicateInfo duplicateInfo : duplicateInfos) {
+                boolean found = false;
+                for (String relatedGroup : duplicateInfo.getOtherGroupChecksums()) {
+                    if (managedGroups.contains(relatedGroup)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found && !managedGroups.contains(duplicateInfo.getGroupChecksum())) {
+                    managedGroups.add(duplicateInfo.getGroupChecksum());
+                    results.add(duplicateInfo);
+                }
+            }
+        }
+        return results;
+    }
+
+    public DuplicateInfo findGroup(Context context, String id)
+        throws SearchServiceException, SQLException {
+        if (StringUtils.isBlank(id) || !StringUtils.contains(id, ":")) {
+            return null;
+        }
+
+        String signatureId = id.split(":")[0];
+        String groupChecksum = id.split(":")[1];
+        List<DuplicateInfo> duplicateInfos = findSignatureWithDuplicates(context, signatureId,
+            groupChecksum, Constants.ITEM, 0, Integer.MAX_VALUE, -1);
+        if (duplicateInfos != null && !duplicateInfos.isEmpty()) {
+            return duplicateInfos.get(0);
+        }
+        return null;
+    }
+
     public List<DuplicateInfo> findSignatureWithDuplicates(Context context, String signatureId, String groupChecksum,
             int resourceType, int limit, int offset, int rule) throws SearchServiceException, SQLException {
         return findPotentialMatch(context, signatureId, groupChecksum, resourceType, limit, offset, rule);
