@@ -350,7 +350,25 @@ public class DedupUtils {
             throws SQLException, AuthorizeException, SearchServiceException {
 
         DuplicateSignatureInfo dsi = findPotentialMatchByID(context, signatureType, resourceType, itemID);
+        return rejectAdminDups(context, dsi, itemID, resourceType);
+    }
 
+    public boolean rejectAdminDups(Context context, DuplicateInfo dsi, int type)
+        throws SearchServiceException, SQLException, AuthorizeException {
+        if (dsi.getNumItems() > 1) {
+            for (DSpaceObject item1 : dsi.getItems()) {
+                for (DSpaceObject item2 : dsi.getItems()) {
+                    if (item1 != null && item2 != null && item1.getID() != item2.getID()) {
+                        rejectAdminDups(context, item1.getID(), item2.getID(), type);
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean rejectAdminDups(Context context, DuplicateInfo dsi, UUID itemID, int type)
+        throws SearchServiceException, SQLException, AuthorizeException {
         boolean found = false;
         for (DSpaceObject item : dsi.getItems()) {
             if (item != null) {
@@ -364,13 +382,12 @@ public class DedupUtils {
             for (DSpaceObject item : dsi.getItems()) {
                 if (item != null) {
                     if (!item.getID().equals(itemID)) {
-                        rejectAdminDups(context, itemID, item.getID(), resourceType);
+                        rejectAdminDups(context, itemID, item.getID(), type);
                     }
                 }
             }
         }
         return true;
-
     }
 
     public void rejectAdminDups(Context context, List<DSpaceObject> items, String signatureID)
