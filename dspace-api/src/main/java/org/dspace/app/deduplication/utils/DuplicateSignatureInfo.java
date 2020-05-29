@@ -9,13 +9,15 @@ package org.dspace.app.deduplication.utils;
 
 public class DuplicateSignatureInfo extends DuplicateInfo {
 
+    public DuplicateSignatureInfo() {}
+
     public DuplicateSignatureInfo(String type) {
         setSignatureId(type);
     }
 
     public DuplicateSignatureInfo(String type, String signature) {
         setSignatureId(type);
-        setSignature(signature);
+        setGroupChecksum(signature);
     }
 
 }
