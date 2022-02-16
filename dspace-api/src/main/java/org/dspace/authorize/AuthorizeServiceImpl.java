@@ -11,12 +11,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
@@ -30,6 +32,13 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.indexobject.IndexableCollection;
+import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
@@ -52,6 +61,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * group 0, which is anonymous - all EPeople are members of group 0.
  */
 public class AuthorizeServiceImpl implements AuthorizeService {
+
+    private static final Logger log = LogManager.getLogger();
+
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
     @Autowired(required = true)
@@ -64,6 +76,9 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     protected WorkspaceItemService workspaceItemService;
     @Autowired(required = true)
     protected WorkflowItemService workflowItemService;
+    @Autowired(required = true)
+    private SearchService searchService;
+
 
     protected AuthorizeServiceImpl() {
 
@@ -226,9 +241,9 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         }
 
         // If authorization was given before and cached
-        Boolean cachedResult = c.getCachedAuthorizationResult(o, action, e);
+        Boolean cachedResult = c.getCachedAuthorizationResult(o, action, e, useInheritance);
         if (cachedResult != null) {
-            return cachedResult.booleanValue();
+            return cachedResult;
         }
 
         // is eperson set? if not, userToCheck = null (anonymous)
@@ -236,13 +251,18 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         if (e != null) {
             userToCheck = e;
 
+            // perform immediately isAdmin check as this is cheap
+            if (isAdmin(c, e)) {
+                return true;
+            }
+
             // perform isAdmin check to see
             // if user is an Admin on this object
             DSpaceObject adminObject = useInheritance ? serviceFactory.getDSpaceObjectService(o)
                                                                       .getAdminObject(c, o, action) : null;
 
             if (isAdmin(c, e, adminObject)) {
-                c.cacheAuthorizedAction(o, action, e, true, null);
+                c.cacheAuthorizedAction(o, action, e, useInheritance, true, null);
                 return true;
             }
         }
@@ -266,12 +286,14 @@ public class AuthorizeServiceImpl implements AuthorizeService {
             ignoreCustomPolicies = !isAnyItemInstalled(c, Arrays.asList(((Bundle) o)));
         }
         if (o instanceof Item) {
-            if (workspaceItemService.findByItem(c, (Item) o) != null ||
-                workflowItemService.findByItem(c, (Item) o) != null) {
+            // the isArchived check is fast and would exclude the possibility that the item
+            // is a workspace or workflow without further queries
+            if (!((Item) o).isArchived() &&
+                    (workspaceItemService.findByItem(c, (Item) o) != null ||
+                    workflowItemService.findByItem(c, (Item) o) != null)) {
                 ignoreCustomPolicies = true;
             }
         }
-
 
         for (ResourcePolicy rp : getPoliciesActionFilter(c, o, action)) {
 
@@ -288,15 +310,15 @@ public class AuthorizeServiceImpl implements AuthorizeService {
             // check policies for date validity
             if (resourcePolicyService.isDateValid(rp)) {
                 if (rp.getEPerson() != null && rp.getEPerson().equals(userToCheck)) {
-                    c.cacheAuthorizedAction(o, action, e, true, rp);
+                    c.cacheAuthorizedAction(o, action, e, useInheritance, true, rp);
                     return true; // match
                 }
 
                 if ((rp.getGroup() != null)
-                    && (groupService.isMember(c, e, rp.getGroup()))) {
+                    && groupService.isMember(c, e, rp.getGroup())) {
                     // group was set, and eperson is a member
                     // of that group
-                    c.cacheAuthorizedAction(o, action, e, true, rp);
+                    c.cacheAuthorizedAction(o, action, e, useInheritance, true, rp);
                     return true;
                 }
             }
@@ -308,8 +330,18 @@ public class AuthorizeServiceImpl implements AuthorizeService {
             }
         }
 
+        if (e != null) {
+            // if user is an Admin on this object
+            DSpaceObject adminObject = useInheritance ? serviceFactory.getDSpaceObjectService(o)
+                                                                      .getAdminObject(c, o, action) : null;
+
+            if (isAdmin(c, e, adminObject)) {
+                c.cacheAuthorizedAction(o, action, e, true, null);
+                return true;
+            }
+        }
         // default authorization is denial
-        c.cacheAuthorizedAction(o, action, e, false, null);
+        c.cacheAuthorizedAction(o, action, e, useInheritance, false, null);
         return false;
     }
 
@@ -351,7 +383,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
 
         Boolean cachedResult = c.getCachedAuthorizationResult(o, Constants.ADMIN, e);
         if (cachedResult != null) {
-            return cachedResult.booleanValue();
+            return cachedResult;
         }
 
         //
@@ -368,7 +400,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
                 }
 
                 if ((rp.getGroup() != null)
-                    && (groupService.isMember(c, e, rp.getGroup()))) {
+                    && groupService.isMember(c, e, rp.getGroup())) {
                     // group was set, and eperson is a member
                     // of that group
                     c.cacheAuthorizedAction(o, Constants.ADMIN, e, true, rp);
@@ -428,38 +460,6 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         }
     }
 
-    public boolean isCommunityAdmin(Context c) throws SQLException {
-        EPerson e = c.getCurrentUser();
-
-        if (e != null) {
-            List<ResourcePolicy> policies = resourcePolicyService.find(c, e,
-                                                                       groupService.allMemberGroups(c, e),
-                                                                       Constants.ADMIN, Constants.COMMUNITY);
-
-            if (CollectionUtils.isNotEmpty(policies)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public boolean isCollectionAdmin(Context c) throws SQLException {
-        EPerson e = c.getCurrentUser();
-
-        if (e != null) {
-            List<ResourcePolicy> policies = resourcePolicyService.find(c, e,
-                                                                       groupService.allMemberGroups(c, e),
-                                                                       Constants.ADMIN, Constants.COLLECTION);
-
-            if (CollectionUtils.isNotEmpty(policies)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     ///////////////////////////////////////////////
     // policy manipulation methods
     ///////////////////////////////////////////////
@@ -513,15 +513,22 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     }
 
     @Override
+    public List<ResourcePolicyOwnerVO> getValidPolicyOwnersActionFilter(Context c, List<UUID> dsoIds, int actionID)
+        throws SQLException {
+        return resourcePolicyService.findValidPolicyOwners(c, dsoIds, actionID);
+    }
+
+    @Override
     public void inheritPolicies(Context c, DSpaceObject src,
                                 DSpaceObject dest) throws SQLException, AuthorizeException {
         // find all policies for the source object
         List<ResourcePolicy> policies = getPolicies(c, src);
 
         //Only inherit non-ADMIN policies (since ADMIN policies are automatically inherited)
-        List<ResourcePolicy> nonAdminPolicies = new ArrayList<ResourcePolicy>();
+        //and non-custom policies as these are manually applied when appropriate
+        List<ResourcePolicy> nonAdminPolicies = new ArrayList<>();
         for (ResourcePolicy rp : policies) {
-            if (rp.getAction() != Constants.ADMIN) {
+            if (rp.getAction() != Constants.ADMIN && !StringUtils.equals(rp.getRpType(), ResourcePolicy.TYPE_CUSTOM)) {
                 nonAdminPolicies.add(rp);
             }
         }
@@ -542,7 +549,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     public void addPolicies(Context c, List<ResourcePolicy> policies, DSpaceObject dest)
         throws SQLException, AuthorizeException {
         // now add them to the destination object
-        List<ResourcePolicy> newPolicies = new LinkedList<>();
+        List<ResourcePolicy> newPolicies = new ArrayList<>(policies.size());
 
         for (ResourcePolicy srp : policies) {
             ResourcePolicy rp = resourcePolicyService.create(c);
@@ -607,11 +614,17 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     }
 
     @Override
+    public void removeAllEPersonPolicies(Context c, EPerson e)
+        throws SQLException, AuthorizeException {
+        resourcePolicyService.removeAllEPersonPolicies(c, e);
+    }
+
+    @Override
     public List<Group> getAuthorizedGroups(Context c, DSpaceObject o,
                                            int actionID) throws java.sql.SQLException {
         List<ResourcePolicy> policies = getPoliciesActionFilter(c, o, actionID);
 
-        List<Group> groups = new ArrayList<Group>();
+        List<Group> groups = new ArrayList<>();
         for (ResourcePolicy resourcePolicy : policies) {
             if (resourcePolicy.getGroup() != null && resourcePolicyService.isDateValid(resourcePolicy)) {
                 groups.add(resourcePolicy.getGroup());
@@ -773,4 +786,204 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         return resourcePolicyService.findExceptRpType(c, o, actionID, rpType);
     }
 
+    /**
+     * Checks that the context's current user is a community admin in the site by querying the solr database.
+     *
+     * @param context   context with the current user
+     * @return          true if the current user is a community admin in the site
+     *                  false when this is not the case, or an exception occurred
+     * @throws java.sql.SQLException passed through.
+     */
+    @Override
+    public boolean isCommunityAdmin(Context context) throws SQLException {
+        return performCheck(context, "search.resourcetype:" + IndexableCommunity.TYPE);
+    }
+
+    /**
+     * Checks that the context's current user is a collection admin in the site by querying the solr database.
+     *
+     * @param context   context with the current user
+     * @return          true if the current user is a collection admin in the site
+     *                  false when this is not the case, or an exception occurred
+     * @throws java.sql.SQLException passed through.
+     */
+    @Override
+    public boolean isCollectionAdmin(Context context) throws SQLException {
+        return performCheck(context, "search.resourcetype:" + IndexableCollection.TYPE);
+    }
+
+    /**
+     * Checks that the context's current user is a community or collection admin in the site.
+     *
+     * @param context   context with the current user
+     * @return          true if the current user is a community or collection admin in the site
+     *                  false when this is not the case, or an exception occurred
+     * @throws java.sql.SQLException passed through.
+     */
+    @Override
+    public boolean isComColAdmin(Context context) throws SQLException {
+        return performCheck(context,
+            "(search.resourcetype:" + IndexableCommunity.TYPE + " OR search.resourcetype:" +
+                IndexableCollection.TYPE + ")");
+    }
+
+    /**
+     *  Finds communities for which the logged in user has ADMIN rights.
+     *
+     * @param context   the context whose user is checked against
+     * @param query     the optional extra query
+     * @param offset    the offset for pagination
+     * @param limit     the amount of dso's to return
+     * @return          a list of communities for which the logged in user has ADMIN rights.
+     * @throws SearchServiceException
+     */
+    @Override
+    public List<Community> findAdminAuthorizedCommunity(Context context, String query, int offset, int limit)
+        throws SearchServiceException, SQLException {
+        List<Community> communities = new ArrayList<>();
+        query = formatCustomQuery(query);
+        DiscoverResult discoverResult = getDiscoverResult(context, query + "search.resourcetype:" +
+                                                              IndexableCommunity.TYPE,
+            offset, limit);
+        for (IndexableObject solrCollections : discoverResult.getIndexableObjects()) {
+            Community community = ((IndexableCommunity) solrCollections).getIndexedObject();
+            communities.add(community);
+        }
+        return communities;
+    }
+
+    /**
+     *  Finds the amount of communities for which the logged in user has ADMIN rights.
+     *
+     * @param context   the context whose user is checked against
+     * @param query     the optional extra query
+     * @return          the number of communities for which the logged in user has ADMIN rights.
+     * @throws SearchServiceException
+     */
+    @Override
+    public long countAdminAuthorizedCommunity(Context context, String query)
+        throws SearchServiceException, SQLException {
+        query = formatCustomQuery(query);
+        DiscoverResult discoverResult = getDiscoverResult(context, query + "search.resourcetype:" +
+                                                              IndexableCommunity.TYPE,
+            null, null);
+        return discoverResult.getTotalSearchResults();
+    }
+
+    /**
+     *  Finds collections for which the logged in user has ADMIN rights.
+     *
+     * @param context   the context whose user is checked against
+     * @param query     the optional extra query
+     * @param offset    the offset for pagination
+     * @param limit     the amount of dso's to return
+     * @return          a list of collections for which the logged in user has ADMIN rights.
+     * @throws SearchServiceException
+     */
+    @Override
+    public List<Collection> findAdminAuthorizedCollection(Context context, String query, int offset, int limit)
+        throws SearchServiceException, SQLException {
+        List<Collection> collections = new ArrayList<>();
+        if (context.getCurrentUser() == null) {
+            return collections;
+        }
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append(formatCustomQuery(query));
+        queryBuilder.append("search.resourcetype:").append(IndexableCollection.TYPE);
+        DiscoverResult discoverResult = getDiscoverResult(context, queryBuilder.toString(),
+                offset, limit);
+        for (IndexableObject solrCollections : discoverResult.getIndexableObjects()) {
+            Collection collection = ((IndexableCollection) solrCollections).getIndexedObject();
+            collections.add(collection);
+        }
+        return collections;
+    }
+
+    /**
+     *  Finds the amount of collections for which the logged in user has ADMIN rights.
+     *
+     * @param context   the context whose user is checked against
+     * @param query     the optional extra query
+     * @return          the number of collections for which the logged in user has ADMIN rights.
+     * @throws SearchServiceException
+     */
+    @Override
+    public long countAdminAuthorizedCollection(Context context, String query)
+        throws SearchServiceException, SQLException {
+        query = formatCustomQuery(query);
+        DiscoverResult discoverResult = getDiscoverResult(context, query + "search.resourcetype:" +
+                                                              IndexableCollection.TYPE,
+            null, null);
+        return discoverResult.getTotalSearchResults();
+    }
+
+    private boolean performCheck(Context context, String query) throws SQLException {
+        if (context.getCurrentUser() == null) {
+            return false;
+        }
+
+        try {
+            DiscoverResult discoverResult = getDiscoverResult(context, query, null, null);
+            if (discoverResult.getTotalSearchResults() > 0) {
+                return true;
+            }
+        } catch (SearchServiceException e) {
+            log.error("Failed getting getting community/collection admin status for "
+                + context.getCurrentUser().getEmail() + " The search error is: " + e.getMessage()
+                + " The search resourceType filter was: " + query);
+        }
+        return false;
+    }
+
+    private DiscoverResult getDiscoverResult(Context context, String query, Integer offset, Integer limit)
+            throws SearchServiceException, SQLException {
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        if (!this.isAdmin(context)) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("(" + "admin:e").append(context.getCurrentUser().getID()).
+                    append(getGroupToQuery(groupService.allMemberGroupsSet(context,
+                            context.getCurrentUser()))).append(")");
+            discoverQuery.addFilterQueries(stringBuilder.toString());
+        }
+        discoverQuery.setQuery(query);
+        if (offset != null) {
+            discoverQuery.setStart(offset);
+        }
+        if (limit != null) {
+            discoverQuery.setMaxResults(limit);
+        }
+
+
+        return searchService.search(context, discoverQuery);
+    }
+
+
+    private String getGroupToQuery(Set<Group> groups) {
+        StringBuilder groupQuery = new StringBuilder();
+        if (groups != null) {
+            for (Group group: groups) {
+                groupQuery.append(" OR admin:g");
+                groupQuery.append(group.getID());
+            }
+        }
+
+        return groupQuery.toString();
+    }
+
+    private String formatCustomQuery(String query) {
+        if (StringUtils.isBlank(query)) {
+            return "";
+        } else {
+            return query + " AND ";
+        }
+    }
+    @Override
+    public boolean isPartOfTheGroup(Context c, String egroup) throws SQLException {
+        EPerson e = c.getCurrentUser();
+        if (e == null) {
+            return false; // anonymous users can't be part of group
+        } else {
+            return groupService.isMember(c, egroup);
+        }
+    }
 }

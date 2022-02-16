@@ -7,7 +7,6 @@
  */
 package org.dspace.rest;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -150,8 +149,6 @@ public class FilteredItemsResource extends Resource {
             result.annotateQuery(query_field, query_op, query_val);
             result.setUnfilteredItemCount(count);
             context.complete();
-        } catch (IOException e) {
-            processException(e.getMessage(), context);
         } catch (SQLException e) {
             processException(e.getMessage(), context);
         } catch (AuthorizeException e) {

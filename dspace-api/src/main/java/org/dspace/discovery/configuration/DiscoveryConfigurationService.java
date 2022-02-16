@@ -31,6 +31,16 @@ public class DiscoveryConfigurationService {
 
     public void setMap(Map<String, DiscoveryConfiguration> map) {
         this.map = map;
+        if (map != null) {
+            // improve the configuration assigning the map key as id to any configuration
+            // that doesn't have one
+            for (Map.Entry<String, DiscoveryConfiguration> entry : map.entrySet()) {
+                DiscoveryConfiguration conf = entry.getValue();
+                if (StringUtils.isBlank(conf.getId())) {
+                    conf.setId(entry.getKey());
+                }
+            }
+        }
     }
 
     public Map<Integer, List<String>> getToIgnoreMetadataFields() {
@@ -44,20 +54,19 @@ public class DiscoveryConfigurationService {
     public DiscoveryConfiguration getDiscoveryConfiguration(IndexableObject dso) {
         String name;
         if (dso == null) {
-            name = "site";
+            name = "default";
         } else if (dso instanceof IndexableDSpaceObject) {
             name = ((IndexableDSpaceObject) dso).getIndexedObject().getHandle();
         } else {
             name = dso.getUniqueIndexID();
         }
 
-        return getDiscoveryConfiguration(name);
+        return getDiscoveryConfigurationByNameOrDefault(name);
     }
 
-    public DiscoveryConfiguration getDiscoveryConfiguration(final String name) {
-        DiscoveryConfiguration result;
+    public DiscoveryConfiguration getDiscoveryConfigurationByNameOrDefault(final String name) {
 
-        result = StringUtils.isBlank(name) ? null : getMap().get(name);
+        DiscoveryConfiguration result = getDiscoveryConfigurationByName(name);
 
         if (result == null) {
             //No specific configuration, get the default one
@@ -65,6 +74,10 @@ public class DiscoveryConfigurationService {
         }
 
         return result;
+    }
+
+    public DiscoveryConfiguration getDiscoveryConfigurationByName(String name) {
+        return StringUtils.isBlank(name) ? null : getMap().get(name);
     }
 
     public DiscoveryConfiguration getDiscoveryConfigurationByNameOrDso(final String configurationName,
@@ -138,5 +151,22 @@ public class DiscoveryConfigurationService {
                 }
             }
         }
+    }
+
+    /**
+     * Retrieves a list of all DiscoveryConfiguration objects where key starts with prefixConfigurationName
+     * @param prefixConfigurationName string as prefix key
+     */
+    public List<DiscoveryConfiguration> getDiscoveryConfigurationWithPrefixName(final String prefixConfigurationName) {
+        List<DiscoveryConfiguration> discoveryConfigurationList = new ArrayList<>();
+        if (StringUtils.isNotBlank(prefixConfigurationName)) {
+            for (String key : map.keySet()) {
+                if (key.equals(prefixConfigurationName) || key.startsWith(prefixConfigurationName)) {
+                    DiscoveryConfiguration config = map.get(key);
+                    discoveryConfigurationList.add(config);
+                }
+            }
+        }
+        return discoveryConfigurationList;
     }
 }

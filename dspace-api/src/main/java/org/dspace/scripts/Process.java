@@ -7,8 +7,10 @@
  */
 package org.dspace.scripts;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -32,6 +34,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.ProcessStatus;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 
 /**
  * This class is the DB Entity representation of the Process object to be stored in the Database
@@ -76,9 +79,20 @@ public class Process implements ReloadableEntity<Integer> {
     )
     private List<Bitstream> bitstreams;
 
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @JoinTable(
+        name = "process2group",
+        joinColumns = {@JoinColumn(name = "process_id")},
+        inverseJoinColumns = {@JoinColumn(name = "group_id")}
+    )
+    private final List<Group> groups = new ArrayList<Group>();
+
     @Column(name = "creation_time", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationTime;
+
+    public static final String BITSTREAM_TYPE_METADATAFIELD = "dspace.process.filetype";
+    public static final String OUTPUT_TYPE = "script_output";
 
     protected Process() {
     }
@@ -87,6 +101,7 @@ public class Process implements ReloadableEntity<Integer> {
      * This method returns the ID that the Process holds within the Database
      * @return  The ID that the process holds within the database
      */
+    @Override
     public Integer getID() {
         return processId;
     }
@@ -158,7 +173,8 @@ public class Process implements ReloadableEntity<Integer> {
 
     /**
      * To get the parameters, use ProcessService.getParameters() to get a parsed list of DSpaceCommandLineParameters
-     * This String representation is the parameter in an unparsed fashion. For example "-c test"
+     * This String representation is the parameter in an unparsed fashion.For example "-c test"
+     * @return the raw parameter string.
      */
     protected String getParameters() {
         return parameters;
@@ -174,6 +190,9 @@ public class Process implements ReloadableEntity<Integer> {
      * @return  The Bitstreams that are used or created by the process
      */
     public List<Bitstream> getBitstreams() {
+        if (bitstreams == null) {
+            bitstreams = new ArrayList<>();
+        }
         return bitstreams;
     }
 
@@ -200,6 +219,14 @@ public class Process implements ReloadableEntity<Integer> {
      */
     public Date getCreationTime() {
         return creationTime;
+    }
+
+    public List<Group> getGroups() {
+        return groups;
+    }
+
+    public void addGroup(Group group) {
+        this.groups.add(group);
     }
 
     /**

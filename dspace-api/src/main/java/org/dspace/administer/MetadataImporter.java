@@ -14,9 +14,9 @@ import javax.xml.transform.TransformerException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
 import org.apache.xpath.XPathAPI;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.MetadataField;
@@ -81,7 +81,7 @@ public class MetadataImporter {
      * @throws SQLException                 if database error
      * @throws IOException                  if IO error
      * @throws TransformerException         if transformer error
-     * @throws ParserConfigurationException if config error
+     * @throws ParserConfigurationException if configuration error
      * @throws AuthorizeException           if authorization error
      * @throws SAXException                 if parser error
      * @throws NonUniqueMetadataException   if duplicate metadata
@@ -91,25 +91,22 @@ public class MetadataImporter {
         throws ParseException, SQLException, IOException, TransformerException,
         ParserConfigurationException, AuthorizeException, SAXException,
         NonUniqueMetadataException, RegistryImportException {
-        boolean forceUpdate = false;
 
         // create an options object and populate it
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         Options options = new Options();
         options.addOption("f", "file", true, "source xml file for DC fields");
         options.addOption("u", "update", false, "update an existing schema");
         CommandLine line = parser.parse(options, args);
 
-        String file = null;
         if (line.hasOption('f')) {
-            file = line.getOptionValue('f');
+            String file = line.getOptionValue('f');
+            boolean forceUpdate = line.hasOption('u');
+            loadRegistry(file, forceUpdate);
         } else {
             usage();
-            System.exit(0);
+            System.exit(1);
         }
-
-        forceUpdate = line.hasOption('u');
-        loadRegistry(file, forceUpdate);
     }
 
     /**
@@ -120,7 +117,7 @@ public class MetadataImporter {
      * @throws SQLException                 if database error
      * @throws IOException                  if IO error
      * @throws TransformerException         if transformer error
-     * @throws ParserConfigurationException if config error
+     * @throws ParserConfigurationException if configuration error
      * @throws AuthorizeException           if authorization error
      * @throws SAXException                 if parser error
      * @throws NonUniqueMetadataException   if duplicate metadata
@@ -227,7 +224,7 @@ public class MetadataImporter {
     /**
      * Process a node in the metadata registry XML file. The node must
      * be a "dc-type" node.  If the type already exists, then it
-     * will not be reimported
+     * will not be re-imported.
      *
      * @param context DSpace context object
      * @param node    the node in the DOM tree

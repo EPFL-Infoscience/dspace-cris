@@ -27,10 +27,11 @@ import javax.xml.stream.XMLStreamException;
 import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -56,6 +57,7 @@ import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.SolrUtils;
+import org.dspace.utils.DSpace;
 import org.dspace.xoai.exceptions.CompilingException;
 import org.dspace.xoai.services.api.CollectionsService;
 import org.dspace.xoai.services.api.cache.XOAICacheService;
@@ -95,6 +97,8 @@ public class XOAI {
     private final static ConfigurationService configurationService = DSpaceServicesFactory
             .getInstance().getConfigurationService();
 
+    private List<XOAIExtensionItemCompilePlugin> extensionPlugins;
+
     private List<String> getFileFormats(Item item) {
         List<String> formats = new ArrayList<>();
         try {
@@ -120,6 +124,8 @@ public class XOAI {
         // Load necessary DSpace services
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.itemService = ContentServiceFactory.getInstance().getItemService();
+        this.extensionPlugins = new DSpace().getServiceManager()
+                .getServicesByType(XOAIExtensionItemCompilePlugin.class);
     }
 
     public XOAI(Context ctx, boolean hasOption) {
@@ -129,6 +135,8 @@ public class XOAI {
         // Load necessary DSpace services
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.itemService = ContentServiceFactory.getInstance().getItemService();
+        this.extensionPlugins = new DSpace().getServiceManager()
+                .getServicesByType(XOAIExtensionItemCompilePlugin.class);
     }
 
     private void println(String line) {
@@ -211,7 +219,7 @@ public class XOAI {
         try {
             SolrQuery params = new SolrQuery("item.willChangeStatus:true").addField("item.id");
             SolrDocumentList documents = DSpaceSolrSearch.query(solrServerResolver.getServer(), params);
-            List<Item> items = new LinkedList<Item>();
+            List<Item> items = new LinkedList<>();
             for (int i = 0; i < documents.getNumFound(); i++) {
                 Item item = itemService.find(context,
                         UUID.fromString((String) documents.get(i).getFieldValue("item.id")));
@@ -336,7 +344,7 @@ public class XOAI {
      * @throws SQLException
      */
     private Date getMostRecentModificationDate(Item item) throws SQLException {
-        List<Date> dates = new LinkedList<Date>();
+        List<Date> dates = new LinkedList<>();
         List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilter(context, item, Constants.READ);
         for (ResourcePolicy policy : policies) {
             if ((policy.getGroup() != null) && (policy.getGroup().getName().equals("Anonymous"))) {
@@ -455,7 +463,14 @@ public class XOAI {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
-        retrieveMetadata(context, item).write(xmlContext);
+        Metadata metadata = retrieveMetadata(context, item);
+
+        // Do any additional metadata element, depends on the plugins
+        for (XOAIExtensionItemCompilePlugin plugin : extensionPlugins) {
+            metadata = plugin.additionalMetadata(context, metadata, item);
+        }
+
+        metadata.write(xmlContext);
         xmlContext.getWriter().flush();
         xmlContext.getWriter().close();
         doc.addField("item.compile", out.toString());
@@ -553,7 +568,7 @@ public class XOAI {
         Context ctx = null;
 
         try {
-            CommandLineParser parser = new PosixParser();
+            CommandLineParser parser = new DefaultParser();
             Options options = new Options();
             options.addOption("c", "clear", false, "Clear index before indexing");
             options.addOption("o", "optimize", false,
@@ -620,8 +635,8 @@ public class XOAI {
                 }
 
                 System.out.println("OAI 2.0 manager action ended. It took "
-                                       + ((System.currentTimeMillis() - start) / 1000)
-                                       + " seconds.");
+                        + ((System.currentTimeMillis() - start) / 1000)
+                        + " seconds.");
             } else {
                 usage();
             }
@@ -698,4 +713,5 @@ public class XOAI {
             System.out.println("     -h Shows this text");
         }
     }
+
 }

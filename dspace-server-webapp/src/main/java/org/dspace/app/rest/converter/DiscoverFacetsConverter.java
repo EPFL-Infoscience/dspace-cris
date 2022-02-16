@@ -11,7 +11,8 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.SearchFacetEntryRest;
 import org.dspace.app.rest.model.SearchFacetValueRest;
 import org.dspace.app.rest.model.SearchResultsRest;
@@ -31,14 +32,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class DiscoverFacetsConverter {
 
-    private static final Logger log = Logger.getLogger(DiscoverFacetsConverter.class);
+    private static final Logger log = LogManager.getLogger(DiscoverFacetsConverter.class);
 
-    private DiscoverFacetValueConverter facetValueConverter = new DiscoverFacetValueConverter();
+    private final DiscoverFacetValueConverter facetValueConverter = new DiscoverFacetValueConverter();
 
     @Autowired
     private SearchService searchService;
 
-    public SearchResultsRest convert(Context context, String query, String dsoType, String configurationName,
+    public SearchResultsRest convert(Context context, String query, List<String> dsoTypes, String configurationName,
                                      String dsoScope, List<SearchFilter> searchFilters, final Pageable page,
                                      DiscoveryConfiguration configuration, DiscoverResult searchResult,
                                      Projection projection) {
@@ -46,7 +47,7 @@ public class DiscoverFacetsConverter {
         SearchResultsRest searchResultsRest = new SearchResultsRest();
         searchResultsRest.setProjection(projection);
 
-        setRequestInformation(context, query, dsoType, configurationName, dsoScope, searchFilters, page,
+        setRequestInformation(context, query, dsoTypes, configurationName, dsoScope, searchFilters, page,
                               searchResultsRest);
         addFacetValues(context, searchResult, searchResultsRest, configuration, projection);
 
@@ -56,7 +57,7 @@ public class DiscoverFacetsConverter {
     /**
      * Fill the facet values information in the SearchResultsRest using the information in the api DiscoverResult object
      * according to the configuration applied to the discovery query
-     * 
+     *
      * @param context
      *            The relevant DSpace context
      * @param searchResult
@@ -82,6 +83,9 @@ public class DiscoverFacetsConverter {
                 handleExposeMinMaxValues(context, field, facetEntry);
             }
             facetEntry.setExposeMinMax(field.exposeMinAndMaxValue());
+            handleExposeMore(field, facetEntry, searchResult);
+            handleExposeMissing(field, facetEntry, searchResult);
+            handleExposeTotalValues(field, facetEntry, searchResult);
             facetEntry.setFacetType(field.getType());
             for (DiscoverResult.FacetResult value : CollectionUtils.emptyIfNull(facetValues)) {
                 // The discover results contains max facetLimit + 1 values. If we reach the "+1", indicate that there
@@ -102,9 +106,41 @@ public class DiscoverFacetsConverter {
         }
     }
 
+    public void handleExposeTotalValues(DiscoverySearchFilterFacet field,
+            SearchFacetEntryRest facetEntry, DiscoverResult searchResult) {
+        if (field.exposeTotalElements()) {
+            Long totalElems = searchResult.getFacetResultTotalElements(field.getIndexFieldName());
+            if (totalElems != null) {
+                facetEntry.setTotalElements(String.valueOf(totalElems));
+            }
+        }
+    }
+
+    public void handleExposeMissing(DiscoverySearchFilterFacet field, SearchFacetEntryRest facetEntry,
+            DiscoverResult searchResult) {
+        facetEntry.setExposeMissing(field.exposeMissing());
+        if (field.exposeMissing()) {
+            Long facetResultMissing = searchResult.getFacetResultMissing(field.getIndexFieldName());
+            if (facetResultMissing != null) {
+                facetEntry.setMissing(String.valueOf(facetResultMissing));
+            }
+        }
+    }
+
+    public void handleExposeMore(DiscoverySearchFilterFacet field, SearchFacetEntryRest facetEntry,
+            DiscoverResult searchResult) {
+        facetEntry.setExposeMore(field.exposeMore());
+        if (field.exposeMore()) {
+            Long facetResultMore = searchResult.getFacetResultMore(field.getIndexFieldName());
+            if (facetResultMore != null) {
+                facetEntry.setMore(String.valueOf(facetResultMore));
+            }
+        }
+    }
+
     /**
      * This method will fill the facetEntry with the appropriate min and max values if they're not empty
-     * 
+     *
      * @param context
      *            The relevant DSpace context
      * @param field
@@ -129,13 +165,13 @@ public class DiscoverFacetsConverter {
         }
     }
 
-    private void setRequestInformation(final Context context, final String query, final String dsoType,
+    private void setRequestInformation(final Context context, final String query, final List<String> dsoTypes,
                                        final String configurationName, final String scope,
                                        final List<SearchFilter> searchFilters, final Pageable page,
                                        final SearchResultsRest resultsRest) {
         resultsRest.setQuery(query);
         resultsRest.setConfiguration(configurationName);
-        resultsRest.setDsoType(dsoType);
+        resultsRest.setDsoTypes(dsoTypes);
         resultsRest.setSort(SearchResultsRest.Sorting.fromPage(page));
 
         resultsRest.setScope(scope);

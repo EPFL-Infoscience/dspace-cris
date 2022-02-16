@@ -20,6 +20,9 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.utils.DSpace;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 
 
 /**
@@ -39,6 +42,8 @@ public class I18nUtil {
 
     // delimiters between elements of UNIX/POSIX locale spec, e.g. en_US.UTF-8
     private static final String LOCALE_DELIMITERS = " _.";
+
+    private static MessageSource messageSource;
 
     /**
      * Default constructor
@@ -217,12 +222,11 @@ public class I18nUtil {
      */
     public static String getInputFormsFileName(Locale locale) {
         /** Name of the form definition XML file */
-        String fileName = "";
         final String FORM_DEF_FILE = "submission-forms";
         final String FILE_TYPE = ".xml";
         String defsFilename = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.dir")
             + File.separator + "config" + File.separator + FORM_DEF_FILE;
-        fileName = getFilename(locale, defsFilename, FILE_TYPE);
+        String fileName = getFilename(locale, defsFilename, FILE_TYPE);
         return fileName;
     }
 
@@ -295,14 +299,13 @@ public class I18nUtil {
      */
     public static String getDefaultLicense(Context context) {
         Locale locale = context.getCurrentLocale();
-        String fileName = "";
         /** Name of the default license */
         final String DEF_LIC_FILE = "default";
         final String FILE_TYPE = ".license";
         String defsFilename = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.dir")
             + File.separator + "config" + File.separator + DEF_LIC_FILE;
 
-        fileName = getFilename(locale, defsFilename, FILE_TYPE);
+        String fileName = getFilename(locale, defsFilename, FILE_TYPE);
 
         return fileName;
     }
@@ -325,18 +328,17 @@ public class I18nUtil {
         // with Language, Country
         String fileNameLC = null;
         // with Language
-        String fileNameL = null;
-        fileNameL = fileName + "_" + locale.getLanguage();
+        String fileNameL = fileName + "_" + locale.getLanguage();
 
         if (fileType == null) {
             fileType = "";
         }
 
-        if (!("".equals(locale.getCountry()))) {
+        if (!locale.getCountry().isEmpty()) {
             fileNameLC = fileName + "_" + locale.getLanguage() + "_"
                 + locale.getCountry();
 
-            if (!("".equals(locale.getVariant()))) {
+            if (!locale.getVariant().isEmpty()) {
                 fileNameLCV = fileName + "_" + locale.getLanguage() + "_"
                     + locale.getCountry() + "_" + locale.getVariant();
             }
@@ -381,12 +383,11 @@ public class I18nUtil {
      * String - localized filename of an email template
      */
     public static String getEmailFilename(Locale locale, String name) {
-        String templateName = "";
         String templateFile = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.dir")
             + File.separator + "config" + File.separator + "emails"
             + File.separator + name;
 
-        templateName = getFilename(locale, templateFile, "");
+        String templateName = getFilename(locale, templateFile, "");
         return templateName;
     }
 
@@ -398,7 +399,7 @@ public class I18nUtil {
      * @return array of locale results, possibly empty
      */
     public static Locale[] parseLocales(String[] locales) {
-        List<Locale> resultList = new ArrayList<Locale>();
+        List<Locale> resultList = new ArrayList<>();
         for (String ls : locales) {
             Locale lc = makeLocale(ls);
             if (lc != null) {
@@ -406,5 +407,83 @@ public class I18nUtil {
             }
         }
         return resultList.toArray(new Locale[resultList.size()]);
+    }
+
+    /**
+     * Check if the input locale is in the list of supported locales
+     * @param locale
+     * @return true if locale is supported, false otherwise
+     */
+    public static boolean isSupportedLocale(Locale locale) {
+        boolean isSupported = false;
+        Locale[] supportedLocales = getSupportedLocales();
+        if (supportedLocales != null) {
+            for (Locale sLocale: supportedLocales) {
+                if (locale.getLanguage().equals(sLocale.getLanguage()) ) {
+                    isSupported = true;
+                    break;
+                }
+            }
+        }
+        return isSupported;
+    }
+
+    public static String getMessage(String key, Object[] args, Context c) throws MissingResourceException {
+        return getMessage(key.trim(), args, c.getCurrentLocale());
+    }
+
+    /**
+     * Get the appropriate localized version for the message string for a given key
+     * and parameters
+     * 
+     * @param key    String - name of the key to get the message for
+     * @param args   Object[] - arguments for substitution
+     * @param locale Locale - to get the message for
+     * 
+     * @return
+     * @throws MissingResourceException
+     */
+    public static String getMessage(String key, Object[] args, Locale locale) throws MissingResourceException {
+        return getMessage(key, args, locale, false);
+    }
+
+    /**
+     * 
+     * Get the appropriate localized version for the message string for a given key
+     * and parameters
+     * 
+     * @param key                String - name of the key to get the message for
+     * @param args               Object[] - arguments for substitution
+     * @param locale             Locale - to get the message for
+     * @param throwExcIfNotFound boolean - false if you want fail silent
+     * 
+     * @return
+     * @throws MissingResourceException
+     */
+    public static String getMessage(String key, Object[] args, Locale locale, boolean throwExcIfNotFound)
+            throws MissingResourceException {
+        String message = "";
+        if (locale == null) {
+            locale = getDefaultLocale();
+        }
+
+        try {
+            message = getMessageSource().getMessage(key.trim(), args, locale);
+        } catch (MissingResourceException | NoSuchMessageException e) {
+            if (throwExcIfNotFound) {
+                throw new MissingResourceException(e.getMessage(), messageSource.getClass().toString(), key);
+            }
+            log.error("'" + key + "' translation undefined in locale '" + locale.toString() + "'");
+            return key;
+        }
+        return message;
+    }
+
+    public static MessageSource getMessageSource() {
+        if (I18nUtil.messageSource == null) {
+            DSpace dspace = new DSpace();
+            I18nUtil.messageSource = dspace.getServiceManager().getServiceByName("messageSource", MessageSource.class);
+        }
+        return I18nUtil.messageSource;
     }
 }

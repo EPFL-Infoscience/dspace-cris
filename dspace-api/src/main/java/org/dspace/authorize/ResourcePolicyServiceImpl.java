@@ -115,6 +115,11 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     }
 
     @Override
+    public List<ResourcePolicy> find(Context context, EPerson ePerson) throws SQLException {
+        return resourcePolicyDAO.findByEPerson(context, ePerson);
+    }
+
+    @Override
     public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, DSpaceObject dso, Group group,
                                                               int action, int notPolicyID)
         throws SQLException {
@@ -244,6 +249,11 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
         contentServiceFactory.getDSpaceObjectService(dso).updateLastModified(context, dso);
         context.restoreAuthSystemState();
 
+    }
+
+    @Override
+    public void removeAllEPersonPolicies(Context context, EPerson ePerson) throws SQLException, AuthorizeException {
+        resourcePolicyDAO.deleteByEPerson(context, ePerson);
     }
 
     @Override
@@ -398,5 +408,11 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
             isMy = true;
         }
         return isMy;
+    }
+
+    @Override
+    public List<ResourcePolicyOwnerVO> findValidPolicyOwners(Context c, List<UUID> dsoIds, int actionID)
+        throws SQLException {
+        return resourcePolicyDAO.findValidPolicyOwners(c, dsoIds, actionID);
     }
 }

@@ -61,8 +61,23 @@ public interface HierarchicalAuthority extends ChoiceAuthority {
      */
     public Choices getChoicesByParent(String authorityName, String parentId, int start, int limit, String locale);
 
+    /**
+     * It returns the parent choice in the hierarchy if any
+     * 
+     * @param authorityName  authority name
+     * @param vocabularyId   user's value to match
+     * @param locale         explicit localization key if available, or null
+     * @return a Choice object
+     */
+    public Choice getParentChoice(String authorityName, String vocabularyId, String locale);
+
+    /**
+     * Provides an hint for the UI to preload some levels to improve the UX. It
+     * usually mean that these preloaded level will be shown expanded by default
+     */
     public Integer getPreloadLevel();
 
+    @Override
     default boolean isHierarchical() {
         return true;
     }

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean class="org.dspace.xmlworkflow.XmlWorkflowFactoryImpl">
         <property name="workflowMapping">
@@ -15,6 +18,11 @@
         </property>
     </bean>
 
+    <bean class='org.dspace.workflow.CurationTaskConfig'>
+        <constructor-arg name='configurationDocument'
+                         value='file:${dspace.dir}/config/workflow-curation.xml'/>
+    </bean>
+
     <!--Standard DSpace workflow-->
     <bean name="defaultWorkflow" class="org.dspace.xmlworkflow.state.Workflow">
         <property name="firstStep" ref="reviewstep"/>
@@ -23,6 +31,7 @@
                 <ref bean="reviewstep"/>
                 <ref bean="editstep"/>
                 <ref bean="finaleditstep"/>
+                <ref bean="checkcorrectionstep"/>
             </util:list>
         </property>
     </bean>
@@ -50,7 +59,6 @@
                   value="The people responsible for this step are able to edit the metadata of incoming submissions, and then accept or reject them."/>
     </bean>
 
-
     <bean name="editstep" class="org.dspace.xmlworkflow.state.Step">
         <property name="userSelectionMethod" ref="claimaction"/>
         <property name="role" ref="editor" />
@@ -77,6 +85,12 @@
     <bean name="finaleditstep" class="org.dspace.xmlworkflow.state.Step">
         <property name="userSelectionMethod" ref="claimaction"/>
         <property name="role" ref="finaleditor" />
+        <property name="outcomes">
+            <util:map>
+                <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
+                       value-ref="checkcorrectionstep"/>
+            </util:map>
+        </property>
         <property name="actions">
             <list>
                 <ref bean="finaleditaction"/>
@@ -89,6 +103,15 @@
         <property name="name" value="Final Editor"/>
         <property name="description"
                   value="The people responsible for this step are able to edit the metadata of incoming submissions, but will not be able to reject them."/>
+    </bean>
+    
+    <bean name="checkcorrectionstep" class="org.dspace.xmlworkflow.state.Step">
+        <property name="userSelectionMethod" ref="noUserSelectionAction"/>
+        <property name="actions">
+            <list>
+                <ref bean="checkcorrectionaction"/>
+            </list>
+        </property>
     </bean>
 
     <!--Workflow where a reviewManager can select a single review who will then either accept/reject the item-->
@@ -135,7 +158,8 @@
         </property>
         <property name="outcomes">
             <util:map>
-                <entry key="#{ T(org.dspace.xmlworkflow.state.actions.processingaction.SingleUserReviewAction).OUTCOME_REJECT}" value-ref="selectReviewerStep"/>
+                <entry key="#{ T(org.dspace.xmlworkflow.state.actions.processingaction.SingleUserReviewAction).OUTCOME_REJECT}"
+                       value-ref="selectReviewerStep"/>
             </util:map>
         </property>
     </bean>

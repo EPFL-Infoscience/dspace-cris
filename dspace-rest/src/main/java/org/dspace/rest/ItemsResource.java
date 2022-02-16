@@ -928,7 +928,7 @@ public class ItemsResource extends Resource {
             context = createContext();
 
             Iterator<org.dspace.content.Item> itemIterator = itemService
-                .findByMetadataField(context, metadataEntry.getSchema(),
+                .findArchivedByMetadataField(context, metadataEntry.getSchema(),
                                      metadataEntry.getElement(), metadataEntry.getQualifier(),
                                      metadataEntry.getValue());
 
@@ -950,8 +950,6 @@ public class ItemsResource extends Resource {
             processException("Context error:" + e.getMessage(), context);
         } catch (AuthorizeException e) {
             processException("Authorize error:" + e.getMessage(), context);
-        } catch (IOException e) {
-            processException("IO error:" + e.getMessage(), context);
         } finally {
             processFinally(context);
         }

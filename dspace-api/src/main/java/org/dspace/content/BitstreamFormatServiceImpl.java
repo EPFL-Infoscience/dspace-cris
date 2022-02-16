@@ -18,7 +18,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.dao.BitstreamFormatDAO;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.core.Context;
-import org.dspace.core.LogManager;
+import org.dspace.core.LogHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -68,7 +68,7 @@ public class BitstreamFormatServiceImpl implements BitstreamFormatService {
 
         if (bitstreamFormat == null) {
             if (log.isDebugEnabled()) {
-                log.debug(LogManager.getHeader(context,
+                log.debug(LogHelper.getHeader(context,
                                                "find_bitstream_format",
                                                "not_found,bitstream_format_id=" + id));
             }
@@ -78,7 +78,7 @@ public class BitstreamFormatServiceImpl implements BitstreamFormatService {
 
         // not null, return format object
         if (log.isDebugEnabled()) {
-            log.debug(LogManager.getHeader(context, "find_bitstream_format",
+            log.debug(LogHelper.getHeader(context, "find_bitstream_format",
                                            "bitstream_format_id=" + id));
         }
 
@@ -129,7 +129,7 @@ public class BitstreamFormatServiceImpl implements BitstreamFormatService {
         BitstreamFormat bitstreamFormat = bitstreamFormatDAO.create(context, new BitstreamFormat());
 
 
-        log.info(LogManager.getHeader(context, "create_bitstream_format",
+        log.info(LogHelper.getHeader(context, "create_bitstream_format",
                                       "bitstream_format_id="
                                           + bitstreamFormat.getID()));
 
@@ -153,7 +153,7 @@ public class BitstreamFormatServiceImpl implements BitstreamFormatService {
         // If the exception was thrown, unknown will == null so goahead and
         // load s. If not, check that the unknown's registry's name is not
         // being reset.
-        if (unknown == null || unknown.getID() != bitstreamFormat.getID()) {
+        if (unknown == null || !unknown.getID().equals(bitstreamFormat.getID())) {
             bitstreamFormat.setShortDescriptionInternal(shortDescription);
         }
     }
@@ -189,7 +189,7 @@ public class BitstreamFormatServiceImpl implements BitstreamFormatService {
             }
 
             for (BitstreamFormat bitstreamFormat : bitstreamFormats) {
-                log.info(LogManager.getHeader(context, "update_bitstream_format",
+                log.info(LogHelper.getHeader(context, "update_bitstream_format",
                                               "bitstream_format_id=" + bitstreamFormat.getID()));
 
                 bitstreamFormatDAO.save(context, bitstreamFormat);
@@ -208,7 +208,7 @@ public class BitstreamFormatServiceImpl implements BitstreamFormatService {
         // Find "unknown" type
         BitstreamFormat unknown = findUnknown(context);
 
-        if (unknown.getID() == bitstreamFormat.getID()) {
+        if (unknown.getID().equals(bitstreamFormat.getID())) {
             throw new IllegalArgumentException("The Unknown bitstream format may not be deleted.");
         }
 
@@ -218,7 +218,7 @@ public class BitstreamFormatServiceImpl implements BitstreamFormatService {
         // Delete this format from database
         bitstreamFormatDAO.delete(context, bitstreamFormat);
 
-        log.info(LogManager.getHeader(context, "delete_bitstream_format",
+        log.info(LogHelper.getHeader(context, "delete_bitstream_format",
                                       "bitstream_format_id=" + bitstreamFormat.getID() + ",bitstreams_changed="
                                           + numberChanged));
     }

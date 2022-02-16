@@ -7,6 +7,7 @@
  */
 package org.dspace.content;
 
+import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,7 +47,7 @@ public class MetadataValue implements ReloadableEntity<Integer> {
     @Column(name = "metadata_value_id")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "metadatavalue_seq")
     @SequenceGenerator(name = "metadatavalue_seq", sequenceName = "metadatavalue_seq", allocationSize = 1)
-    private Integer id;
+    private final Integer id;
 
     /**
      * The primary key for the metadata value
@@ -87,6 +88,13 @@ public class MetadataValue implements ReloadableEntity<Integer> {
     @Column(name = "confidence")
     private int confidence = -1;
 
+    /**
+     * Security level value
+     */
+    @Nullable
+    @Column(name = "security_level")
+    private Integer securityLevel;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "dspace_object_id")
     protected DSpaceObject dSpaceObject;
@@ -104,6 +112,7 @@ public class MetadataValue implements ReloadableEntity<Integer> {
      *
      * @return metadata value ID
      */
+    @Override
     public Integer getID() {
         return id;
     }
@@ -239,20 +248,17 @@ public class MetadataValue implements ReloadableEntity<Integer> {
             return false;
         }
         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
-        if (getClass() != objClass) {
+        if (!getClass().equals(objClass)) {
             return false;
         }
         final MetadataValue other = (MetadataValue) obj;
-        if (this.id != other.id) {
+        if (!this.id.equals(other.id)) {
             return false;
         }
-        if (this.getID() != other.getID()) {
+        if (!this.getID().equals(other.getID())) {
             return false;
         }
-        if (this.getDSpaceObject().getID() != other.getDSpaceObject().getID()) {
-            return false;
-        }
-        return true;
+        return this.getDSpaceObject().getID().equals(other.getDSpaceObject().getID());
     }
 
     @Override
@@ -276,4 +282,11 @@ public class MetadataValue implements ReloadableEntity<Integer> {
         return getMetadataField().getQualifier();
     }
 
+    public Integer getSecurityLevel() {
+        return securityLevel;
+    }
+
+    public void setSecurityLevel(Integer securityLevel) {
+        this.securityLevel = securityLevel;
+    }
 }

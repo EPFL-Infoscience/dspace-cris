@@ -13,6 +13,8 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
+import java.util.Map;
+
 import org.hamcrest.Matcher;
 
 /**
@@ -28,8 +30,8 @@ public class SubmissionFormFieldMatcher {
 
     /**
      * Shortcut for the
-     * {@link SubmissionFormFieldMatcher#matchFormFieldDefinition(String, String, String, boolean, String, String, String)}
-     * with a null style
+     * {@link SubmissionFormFieldMatcher#matchFormFieldDefinition(String, String, String, boolean, String, String, String, String)}
+     * with a null style and vocabulary name
      *
      * @param type
      *            the expected input type
@@ -53,7 +55,9 @@ public class SubmissionFormFieldMatcher {
     }
 
     /**
-     * Check the json representation of a submission form
+     * Shortcut for the
+     * {@link SubmissionFormFieldMatcher#matchFormFieldDefinition(String, String, String, boolean, String, String, String, String)}
+     * with a null controlled vocabulary
      *
      * @param type
      *            the expected input type
@@ -74,13 +78,45 @@ public class SubmissionFormFieldMatcher {
      * @return a Matcher for all the condition above
      */
     public static Matcher<? super Object> matchFormFieldDefinition(String type, String label, String mandatoryMessage,
-                                                                   boolean repeatable,
-                                                                   String hints, String style, String metadata) {
+            boolean repeatable,
+            String hints, String style, String metadata) {
+        return matchFormFieldDefinition(type, label, mandatoryMessage, repeatable, hints, style, metadata, null);
+    }
+
+    /**
+     * Check the json representation of a submission form
+     *
+     * @param type
+     *            the expected input type
+     * @param label
+     *            the expected label
+     * @param mandatoryMessage
+     *            the expected mandatoryMessage, can be null. If not empty the field is expected to be flagged as
+     *            mandatory
+     * @param repeatable
+     *            the expected repeatable flag
+     * @param hints
+     *            the expected hints message
+     * @param style
+     *            the expected style for the field, can be null. If null the corresponding json path is expected to be
+     *            missing
+     * @param metadata
+     *            the expected metadata
+     * @param controlled vocabulary
+     *            the expected controlled vocabulary, can be null. If null the corresponding json path is expected to be
+     *            missing
+     * @return a Matcher for all the condition above
+     */
+    public static Matcher<? super Object> matchFormFieldDefinition(String type, String label, String mandatoryMessage,
+                                                                   boolean repeatable, String hints, String style,
+                                                                   String metadata, String controlledVocabulary) {
         return allOf(
             // check each field definition
             hasJsonPath("$.input.type", is(type)),
             hasJsonPath("$.label", containsString(label)),
             hasJsonPath("$.selectableMetadata[0].metadata", is(metadata)),
+            controlledVocabulary != null ? hasJsonPath("$.selectableMetadata[0].controlledVocabulary",
+                    is(controlledVocabulary)) : hasNoJsonPath("$.selectableMetadata[0].controlledVocabulary"),
             mandatoryMessage != null ? hasJsonPath("$.mandatoryMessage", containsString(mandatoryMessage)) :
                 hasNoJsonPath("$.mandatoryMessage"),
             hasJsonPath("$.mandatory", is(mandatoryMessage != null)),
@@ -179,5 +215,32 @@ public class SubmissionFormFieldMatcher {
             hasJsonPath("$.hints", containsString(hints)),
             hasNoJsonPath("$.input.type"),
             hasNoJsonPath("$.selectableMetadata"));
+    }
+
+    /**
+     * Check the json representation of a submission form to verify that it has the
+     * expected label and the expected visibilities.
+     *
+     * @param  label      the label to check
+     * @param  visibility the visibilities to check
+     * @return            a Matcher for all the condition above
+     */
+    public static Matcher<? super Object> matchFormWithVisibility(String label, Map<String, String> visibility) {
+        return allOf(
+            hasJsonPath("$.label", containsString(label)),
+            hasJsonPath("$.visibility", is(visibility)));
+    }
+
+    /**
+     * Check the json representation of a submission form to verify that it has the
+     * expected label and it has not the visibility attribute.
+     *
+     * @param  label the label to check
+     * @return       a Matcher for all the condition above
+     */
+    public static Matcher<? super Object> matchFormWithoutVisibility(String label) {
+        return allOf(
+            hasJsonPath("$.label", containsString(label)),
+            hasNoJsonPath("$.visibility"));
     }
 }

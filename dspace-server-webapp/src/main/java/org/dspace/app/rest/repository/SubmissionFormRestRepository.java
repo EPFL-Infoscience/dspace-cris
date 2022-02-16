@@ -47,10 +47,8 @@ public class SubmissionFormRestRepository extends DSpaceRestRepository<Submissio
     public SubmissionFormRest findOne(Context context, String submitName)  {
         try {
             Locale currentLocale = context.getCurrentLocale();
-            DCInputsReader inputReader;
-            if (currentLocale != null) {
-                inputReader = inputReaders.get(currentLocale);
-            } else {
+            DCInputsReader inputReader = inputReaders.get(currentLocale);
+            if (inputReader == null) {
                 inputReader = defaultInputReader;
             }
             DCInputSet subConfs = inputReader.getInputsByFormName(submitName);
@@ -88,6 +86,13 @@ public class SubmissionFormRestRepository extends DSpaceRestRepository<Submissio
         return SubmissionFormRest.class;
     }
 
+    /**
+     * Reload the current Submission Form configuration based on the currently
+     * supported locales. This method can be used to force a reload if the
+     * configured supported locales change.
+     *
+     * @throws DCInputsReaderException
+     */
     public void reload() throws DCInputsReaderException {
         this.defaultInputReader = new DCInputsReader();
         Locale[] locales = I18nUtil.getSupportedLocales();

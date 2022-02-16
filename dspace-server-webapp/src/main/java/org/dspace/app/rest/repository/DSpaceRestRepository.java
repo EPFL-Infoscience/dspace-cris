@@ -32,6 +32,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -39,6 +40,8 @@ import org.springframework.web.multipart.MultipartFile;
  * normal Spring Data Repository methods signature.
  *
  * @author Andrea Bollini (andrea.bollini at 4science.it)
+ * @param <T> a REST model class (e.g. {@link ItemRest}).
+ * @param <ID> type used to identify an instance of the class (String, UUID, etc).
  */
 public abstract class DSpaceRestRepository<T extends RestAddressableModel, ID extends Serializable>
     extends AbstractDSpaceRestRepository
@@ -122,6 +125,7 @@ public abstract class DSpaceRestRepository<T extends RestAddressableModel, ID ex
      *            the rest object id
      * @return the REST object identified by its ID
      */
+    @PreAuthorize("hasAuthority('ADMIN')")
     public abstract T findOne(Context context, ID id);
 
     @Override
@@ -461,7 +465,7 @@ public abstract class DSpaceRestRepository<T extends RestAddressableModel, ID ex
      * @throws IOException
      * @throws AuthorizeException
      */
-    public Iterable<T> upload(HttpServletRequest request, MultipartFile uploadfile)
+    public Iterable<T> upload(HttpServletRequest request, List<MultipartFile> uploadfile)
         throws SQLException, FileNotFoundException, IOException, AuthorizeException {
         Context context = obtainContext();
         Iterable<T> entity = upload(context, request, uploadfile);
@@ -484,7 +488,7 @@ public abstract class DSpaceRestRepository<T extends RestAddressableModel, ID ex
      * @throws RepositoryMethodNotImplementedException
      */
     protected Iterable<T> upload(Context context, HttpServletRequest request,
-            MultipartFile uploadfile)
+            List<MultipartFile> uploadfile)
         throws SQLException, FileNotFoundException, IOException, AuthorizeException {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");
     }

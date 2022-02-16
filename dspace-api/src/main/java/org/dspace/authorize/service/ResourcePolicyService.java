@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.ResourcePolicyOwnerVO;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -38,6 +39,16 @@ public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy>
     public List<ResourcePolicy> find(Context c, DSpaceObject dso, Group group, int action) throws SQLException;
 
     public List<ResourcePolicy> find(Context context, Group group) throws SQLException;
+
+    /**
+     * Retrieve a list of ResourcePolicies by EPerson
+     *
+     * @param c         context
+     * @param ePerson   the EPerson for which to look up the resource policies
+     * @return a list of ResourcePolicies for the provided EPerson
+     * @throws SQLException if there's a database problem
+     */
+    public List<ResourcePolicy> find(Context c, EPerson ePerson) throws SQLException;
 
     public List<ResourcePolicy> find(Context c, EPerson e, List<Group> groups, int action, int type_id)
         throws SQLException;
@@ -71,6 +82,16 @@ public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy>
 
     public void removeDsoEPersonPolicies(Context context, DSpaceObject dso, EPerson ePerson)
         throws SQLException, AuthorizeException;
+
+    /**
+     *  Removes all ResourcePolicies related to an EPerson
+     *
+     * @param context   context
+     * @param ePerson   the EPerson for which the ResourcePolicies will be deleted
+     * @throws SQLException if there's a database problem
+     * @throws AuthorizeException when the current user is not authorized
+     */
+    public void removeAllEPersonPolicies(Context context, EPerson ePerson) throws SQLException, AuthorizeException;
 
     public void removeGroupPolicies(Context c, Group group) throws SQLException;
 
@@ -243,5 +264,17 @@ public interface ResourcePolicyService extends DSpaceCRUDService<ResourcePolicy>
      * @throws SQLException     if database error
      */
     public boolean isMyResourcePolicy(Context context, EPerson eperson, Integer id) throws SQLException;
+
+    /**
+     * Return a list of date valid policy owners for a list of object that match the
+     * action.
+     *
+     * @param  c            context
+     * @param  dsoIds       DSpaceObject ids policies relate to
+     * @param  actionID     action (defined in class Constants)
+     * @return              list of resource policies
+     * @throws SQLException if there's a database problem
+     */
+    List<ResourcePolicyOwnerVO> findValidPolicyOwners(Context c, List<UUID> dsoIds, int actionID) throws SQLException;
 
 }

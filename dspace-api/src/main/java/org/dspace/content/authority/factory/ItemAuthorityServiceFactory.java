@@ -11,7 +11,6 @@ package org.dspace.content.authority.factory;
 import java.util.Map;
 
 import org.dspace.content.authority.service.ItemAuthorityService;
-import org.dspace.core.ConfigurationManager;
 
 /**
  * Factory implementation to get services for the content.authority package, use
@@ -21,25 +20,19 @@ import org.dspace.core.ConfigurationManager;
  */
 public class ItemAuthorityServiceFactory {
 
-    private Map<String, ItemAuthorityService> itemAthorityRelationshipTypeMap;
+    private Map<String, ItemAuthorityService> itemAthorityEntityTypeMap;
 
-    public Map<String, ItemAuthorityService> getItemAthorityRelationshipTypeMap() {
-        return itemAthorityRelationshipTypeMap;
+    public Map<String, ItemAuthorityService> getItemAthorityEntityTypeMap() {
+        return itemAthorityEntityTypeMap;
     }
 
-    public void setItemAthorityRelationshipTypeMap(
-            Map<String, ItemAuthorityService> itemAthorityRelationshipTypeMap
-    ) {
-        this.itemAthorityRelationshipTypeMap = itemAthorityRelationshipTypeMap;
+    public void setItemAthorityEntityTypeMap(Map<String, ItemAuthorityService> itemAthorityEntityTypeMap) {
+        this.itemAthorityEntityTypeMap = itemAthorityEntityTypeMap;
     }
 
-    public ItemAuthorityService getInstance(String field) {
-        String relationshipType = ConfigurationManager.getProperty("cris", "ItemAuthority."
-            + field + ".relationshipType");
-
-        return (relationshipType != null
-                && itemAthorityRelationshipTypeMap.containsKey(relationshipType))
-                    ? itemAthorityRelationshipTypeMap.get(relationshipType) :
-                        itemAthorityRelationshipTypeMap.get("default");
+    public ItemAuthorityService getInstance(String entityType) {
+        return (entityType != null && itemAthorityEntityTypeMap.containsKey(entityType))
+            ? itemAthorityEntityTypeMap.get(entityType)
+            : itemAthorityEntityTypeMap.get("default");
     }
 }

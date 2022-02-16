@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import javax.activation.DataHandler;
@@ -48,6 +47,9 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
 import org.apache.velocity.runtime.resource.util.StringResourceRepository;
 import org.dspace.services.ConfigurationService;
@@ -131,6 +133,11 @@ public class Email {
     private final List<String> recipients;
 
     /**
+     * The CC addresses
+     */
+    private final List<String> ccAddresses;
+
+    /**
      * Reply to field, if any
      */
     private String replyTo;
@@ -169,6 +176,7 @@ public class Email {
     public Email() {
         arguments = new ArrayList<>(50);
         recipients = new ArrayList<>(50);
+        ccAddresses = new ArrayList<>();
         attachments = new ArrayList<>(10);
         moreAttachments = new ArrayList<>(10);
         subject = "";
@@ -185,6 +193,15 @@ public class Email {
      */
     public void addRecipient(String email) {
         recipients.add(email);
+    }
+
+    /**
+     * Add a CC address
+     *
+     * @param email the CC's email address
+     */
+    public void addCcAddress(String email) {
+        ccAddresses.add(email);
     }
 
     /**
@@ -265,6 +282,7 @@ public class Email {
     public void reset() {
         arguments.clear();
         recipients.clear();
+        ccAddresses.clear();
         attachments.clear();
         moreAttachments.clear();
         replyTo = null;
@@ -305,11 +323,13 @@ public class Email {
         MimeMessage message = new MimeMessage(session);
 
         // Set the recipients of the message
-        Iterator<String> i = recipients.iterator();
+        for (String recipient : recipients) {
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
+        }
 
-        while (i.hasNext()) {
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(
-                i.next()));
+        // Set the CC addresses of the message
+        for (String ccAddress : ccAddresses) {
+            message.addRecipient(Message.RecipientType.CC, new InternetAddress(ccAddress));
         }
 
         // Format the mail message body
@@ -334,7 +354,13 @@ public class Email {
         }
 
         StringWriter writer = new StringWriter();
-        template.merge(vctx, writer);
+        try {
+            template.merge(vctx, writer);
+        } catch (MethodInvocationException | ParseErrorException
+                | ResourceNotFoundException ex) {
+            LOG.error("Template not merged:  {}", ex.getMessage());
+            throw new MessagingException("Template not merged", ex);
+        }
         String fullMessage = writer.toString();
 
         // Set some message header fields
@@ -571,7 +597,7 @@ public class Email {
     /**
      * @author arnaldo
      */
-    public class InputStreamDataSource implements DataSource {
+    public static class InputStreamDataSource implements DataSource {
         private final String name;
         private final String contentType;
         private final ByteArrayOutputStream baos;
@@ -612,7 +638,7 @@ public class Email {
      * Wrap ConfigurationService to prevent templates from modifying
      * the configuration.
      */
-    public class UnmodifiableConfigurationService {
+    public static class UnmodifiableConfigurationService {
         private final ConfigurationService configurationService;
 
         /**

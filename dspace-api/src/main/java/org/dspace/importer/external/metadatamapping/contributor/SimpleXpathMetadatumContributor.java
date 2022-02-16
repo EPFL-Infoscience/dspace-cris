@@ -21,7 +21,9 @@ import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.jaxen.JaxenException;
-import org.springframework.beans.factory.annotation.Required;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Metadata contributor that takes an axiom OMElement and turns it into a metadatum
@@ -29,7 +31,9 @@ import org.springframework.beans.factory.annotation.Required;
  * @author Roeland Dillen (roeland at atmire dot com)
  */
 public class SimpleXpathMetadatumContributor implements MetadataContributor<OMElement> {
-    private MetadataFieldConfig field;
+    protected MetadataFieldConfig field;
+
+    private static final Logger log = LoggerFactory.getLogger(SimpleXpathMetadatumContributor.class);
 
     /**
      * Return prefixToNamespaceMapping
@@ -40,7 +44,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
         return prefixToNamespaceMapping;
     }
 
-    private MetadataFieldMapping<OMElement, MetadataContributor<OMElement>> metadataFieldMapping;
+    protected MetadataFieldMapping<OMElement, MetadataContributor<OMElement>> metadataFieldMapping;
 
     /**
      * Return metadataFieldMapping
@@ -56,6 +60,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
      *
      * @param metadataFieldMapping the new mapping.
      */
+    @Override
     public void setMetadataFieldMapping(
         MetadataFieldMapping<OMElement, MetadataContributor<OMElement>> metadataFieldMapping) {
         this.metadataFieldMapping = metadataFieldMapping;
@@ -71,7 +76,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
         this.prefixToNamespaceMapping = prefixToNamespaceMapping;
     }
 
-    private Map<String, String> prefixToNamespaceMapping;
+    protected Map<String, String> prefixToNamespaceMapping;
 
     /**
      * Initialize SimpleXpathMetadatumContributor with a query, prefixToNamespaceMapping and MetadataFieldConfig
@@ -79,7 +84,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
      * @param query                    query string
      * @param prefixToNamespaceMapping metadata prefix to namespace mapping
      * @param field
-     * <a href="https://github.com/DSpace/DSpace/tree/master/dspace-api/src/main/java/org/dspace/importer/external#metadata-mapping-">MetadataFieldConfig</a>
+     * <a href="https://github.com/DSpace/DSpace/tree/main/dspace-api/src/main/java/org/dspace/importer/external#metadata-mapping-">MetadataFieldConfig</a>
      */
     public SimpleXpathMetadatumContributor(String query, Map<String, String> prefixToNamespaceMapping,
                                            MetadataFieldConfig field) {
@@ -95,7 +100,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
 
     }
 
-    private String query;
+    protected String query;
 
     /**
      * Return the MetadataFieldConfig used while retrieving MetadatumDTO
@@ -111,7 +116,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
      *
      * @param field MetadataFieldConfig used while retrieving MetadatumDTO
      */
-    @Required
+    @Autowired(required = true)
     public void setField(MetadataFieldConfig field) {
         this.field = field;
     }
@@ -125,7 +130,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
         return query;
     }
 
-    @Required
+    @Autowired(required = true)
     public void setQuery(String query) {
         this.query = query;
     }
@@ -157,12 +162,12 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<OMEl
                 } else if (el instanceof OMText) {
                     values.add(metadataFieldMapping.toDCValue(field, ((OMText) el).getText()));
                 } else {
-                    System.err.println("node of type: " + el.getClass());
+                    log.error("node of type: " + el.getClass());
                 }
             }
             return values;
         } catch (JaxenException e) {
-            System.err.println(query);
+            log.error(query, e);
             throw new RuntimeException(e);
         }
 

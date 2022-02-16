@@ -7,17 +7,11 @@
  */
 package org.dspace.app.rest.repository;
 
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.dspace.app.rest.RestRepository;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.core.Context;
-import org.dspace.core.I18nUtil;
 import org.dspace.services.RequestService;
-import org.dspace.services.model.Request;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -27,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
-public abstract class AbstractDSpaceRestRepository implements RestRepository {
+public abstract class AbstractDSpaceRestRepository {
 
     @Autowired
     protected Utils utils;
@@ -38,35 +32,11 @@ public abstract class AbstractDSpaceRestRepository implements RestRepository {
     protected RequestService requestService = new DSpace().getRequestService();
 
     protected Context obtainContext() {
-        Context context = null;
-        Request currentRequest = requestService.getCurrentRequest();
-        context = ContextUtil.obtainContext(currentRequest.getServletRequest());
-        Locale currentLocale = getLocal(context, currentRequest);
-        context.setCurrentLocale(currentLocale);
-        return context;
+        return ContextUtil.obtainCurrentRequestContext();
     }
 
     public RequestService getRequestService() {
         return requestService;
     }
 
-    private Locale getLocal(Context context, Request request) {
-        Locale userLocale = null;
-        Locale supportedLocale = null;
-        if (context.getCurrentUser() != null) {
-            String userLanguage = context.getCurrentUser().getLanguage();
-            if (userLanguage != null) {
-                userLocale = new Locale(userLanguage);
-            }
-        }
-        String locale = request.getHttpServletRequest().getHeader("Accept-Language");
-        if (StringUtils.isNotBlank(locale)) {
-            userLocale = new Locale(locale);
-        }
-        if (userLocale == null) {
-            return I18nUtil.getDefaultLocale();
-        }
-        supportedLocale = I18nUtil.getSupportedLocale(userLocale);
-        return supportedLocale;
-    }
 }

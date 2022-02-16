@@ -270,11 +270,18 @@
 
     <field name="read" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true" docValues="true" />
 
+    <!-- used to track who submitted an item -->
     <field name="submitter" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true" docValues="true" />
 
     <field name="taskfor" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true" docValues="true" />
    
     <field name="has_content_in_original_bundle" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true" docValues="true" />
+
+    <!-- used to track which group(s) have submit permissions -->
+    <field name="submit" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true" docValues="true" />
+
+    <!-- used to track entity type of collections -->
+    <field name="search.entitytype" type="string" indexed="true" stored="true" required="false" />
    
     <!-- Community and collection hierarchy of the Item of interest (candidate for hierarchical facetting ) -->
     <field name="location" type="lowerCaseSort" indexed="true" stored="true" multiValued="true" required="false" omitNorms="true" />
@@ -291,8 +298,8 @@
     <field name="lastModified" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true" />
     <field name="lastModified_dt" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true" docValues="true"/>
 
-     <!-- Dynamic field used to store the relation metadata as a keywordFilter -->
-     <dynamicField name="relation.*" type="keywordFilter" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
+    <!-- Dynamic field used to store the relation metadata as a keywordFilter -->
+    <dynamicField name="relation.*" type="keywordFilter" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
 
  	<!--Dynamic field used to store metadata for projection-->
     <dynamicField name="*_stored" type="dspaceMetadataProjection" indexed="false" stored="true" multiValued="true"/>
@@ -305,6 +312,7 @@
     <dynamicField name="*_filter" type="keywordFilter" indexed="true" stored="true" multiValued="true" omitNorms="true" />
     <dynamicField name="*_authority" type="keywordFilter" indexed="true" stored="true" multiValued="true" omitNorms="true" />
     <dynamicField name="*_keyword" type="keywordFilter" indexed="true" stored="true" multiValued="true" omitNorms="true" />
+    <dynamicField name="*_statfilter" type="string" indexed="true" stored="true" multiValued="true" required="false" omitNorms="true" />
 
 	<!--Dynamic field used for SOLR browse by partial value -->
     <dynamicField name="*_partial" type="text" indexed="true" stored="true" multiValued="true" omitNorms="true" />
@@ -322,6 +330,15 @@
     <!--Date matching-->
     <dynamicField name="*.year" type="sint" indexed="true" stored="true" multiValued="true" omitNorms="true" />
     <dynamicField name="*_dt" type="date" indexed="true" stored="true" multiValued="false" omitNorms="true"  docValues="true"/>
+
+    <!--Dynamic field used for update metrics in Solr doc-->
+    <dynamicField name="metric.*" type="double" indexed="true" stored="true" multiValued="false" docValues="true"/>
+    <dynamicField name="metric.acquisitionDate.*" type="date" indexed="true" stored="true" multiValued="false"/>
+    <dynamicField name="metric.id.*" type="int" indexed="true" stored="true" multiValued="false"/>
+    <dynamicField name="metric.remark.*" type="string" indexed="true" stored="true" multiValued="false"/>
+    <dynamicField name="metric.deltaPeriod1.*" type="double" indexed="true" stored="true" multiValued="false"/>
+    <dynamicField name="metric.deltaPeriod2.*" type="double" indexed="true" stored="true" multiValued="false"/>
+    <dynamicField name="metric.rank.*" type="double" indexed="true" stored="true" multiValued="false"/>
 
     <!--Used for matching on all other fields -->
     <dynamicField name="*" type="text" multiValued="true"/>
@@ -362,5 +379,6 @@
  <copyField source="lastModified" dest="lastModified_dt"/>
  <copyField source="title" dest="itemauthoritylookup"/>
  <copyField source="title" dest="itemauthoritylookupexactmatch"/>
+ <copyField source="dspace.entity.type" dest="search.entitytype"/>
 
 </schema>

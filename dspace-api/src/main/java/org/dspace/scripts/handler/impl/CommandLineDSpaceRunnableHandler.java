@@ -7,9 +7,19 @@
  */
 package org.dspace.scripts.handler.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.core.Context;
 import org.dspace.scripts.handler.DSpaceRunnableHandler;
 
 /**
@@ -78,10 +88,37 @@ public class CommandLineDSpaceRunnableHandler implements DSpaceRunnableHandler {
     }
 
     @Override
+    public void logError(String message, Throwable throwable) {
+        System.err.println(message);
+        log.error(message, throwable);
+    }
+
+    @Override
     public void printHelp(Options options, String name) {
         if (options != null) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp(name, options);
         }
+    }
+
+    @Override
+    public Optional<InputStream> getFileStream(Context context, String fileName) throws IOException {
+        File file = new File(fileName);
+        if (!(file.exists() && file.isFile())) {
+            return Optional.empty();
+        }
+        return Optional.of(FileUtils.openInputStream(file));
+    }
+
+    @Override
+    public void writeFilestream(Context context, String fileName, InputStream inputStream, String type)
+        throws IOException {
+        File file = new File(fileName);
+        FileUtils.copyInputStreamToFile(inputStream, file);
+    }
+
+    @Override
+    public List<UUID> getSpecialGroups() {
+        return Collections.emptyList();
     }
 }

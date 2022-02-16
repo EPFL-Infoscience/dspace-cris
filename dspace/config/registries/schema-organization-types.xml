@@ -28,6 +28,11 @@
 
     <dc-type>
         <schema>organization</schema>
+        <element>endDate</element>
+    </dc-type>
+
+    <dc-type>
+        <schema>organization</schema>
         <element>address</element>
         <qualifier>addressLocality</qualifier>
         <scope_note>Physical address locality (ex. Mountain View) of the organization.</scope_note>
@@ -72,6 +77,27 @@
         <element>identifier</element>
         <qualifier>ror</qualifier>
         <scope_note>Research Organization Registry</scope_note>
+    </dc-type>
+
+    <!-- DSpace-CRIS Additions -->
+    <dc-type>
+        <schema>organization</schema>
+        <element>identifier</element>
+        <qualifier>lei</qualifier>
+        <scope_note>Legal Entity Identifier</scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>organization</schema>
+        <element>identifier</element>
+        <qualifier>crossrefid</qualifier>
+        <scope_note>CrossRef Funder Registry</scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>organization</schema>
+        <element>parentOrganization</element>
+        <scope_note>The larger organization that this organization is a subOrganization of, if any.</scope_note>
     </dc-type>
 
 </dspace-dc-types>

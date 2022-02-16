@@ -30,6 +30,7 @@ public class SubmissionStepConfig implements Serializable {
 
     public static final String INPUT_FORM_STEP_NAME = "submission-form";
     public static final String UPLOAD_STEP_NAME = "upload";
+    public static final String ACCESS_CONDITION_STEP_NAME = "accessCondition";
 
     /*
      * The identifier for the Select Collection step
@@ -48,6 +49,8 @@ public class SubmissionStepConfig implements Serializable {
     private String id = null;
 
     private boolean mandatory = true;
+
+    private boolean opened = true;
 
     /**
      * the heading for this step
@@ -104,6 +107,10 @@ public class SubmissionStepConfig implements Serializable {
         // only set if explicitly configured
         if (s != null) {
             mandatory = BooleanUtils.toBoolean(s);
+        }
+        String s2 = stepMap.get("opened");
+        if (s2 != null) {
+            opened = BooleanUtils.toBoolean(s2);
         }
         heading = stepMap.get("heading");
         processingClassName = stepMap.get("processing-class");
@@ -206,5 +213,9 @@ public class SubmissionStepConfig implements Serializable {
 
     public boolean isMandatory() {
         return mandatory;
+    }
+
+    public boolean isOpened() {
+        return opened;
     }
 }

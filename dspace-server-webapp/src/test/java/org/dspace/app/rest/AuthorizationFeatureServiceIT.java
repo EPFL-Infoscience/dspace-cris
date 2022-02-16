@@ -22,45 +22,29 @@ import org.dspace.app.rest.authorization.AlwaysTrueFeature;
 import org.dspace.app.rest.authorization.AuthorizationFeature;
 import org.dspace.app.rest.authorization.AuthorizationFeatureService;
 import org.dspace.app.rest.authorization.TrueForAdminsFeature;
-import org.dspace.app.rest.converter.ConverterService;
+import org.dspace.app.rest.converter.SiteConverter;
 import org.dspace.app.rest.model.CollectionRest;
 import org.dspace.app.rest.model.SiteRest;
 import org.dspace.app.rest.projection.DefaultProjection;
-import org.dspace.app.rest.test.AbstractIntegrationTestWithDatabase;
-import org.dspace.app.rest.utils.DSpaceConfigurationInitializer;
-import org.dspace.app.rest.utils.DSpaceKernelInitializer;
+import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.content.Site;
 import org.dspace.content.service.SiteService;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+
 
 /**
  * Test for the Authorization Feature Service
- * 
+ *
  * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
  */
-//Run tests with JUnit 4 and Spring TestContext Framework
-@RunWith(SpringRunner.class)
-//Specify main class to use to load Spring ApplicationContext
-//NOTE: By default, Spring caches and reuses ApplicationContext for each integration test (to speed up tests)
-//See: https://docs.spring.io/spring/docs/current/spring-framework-reference/testing.html#integration-testing
-@SpringBootTest(classes = Application.class)
-//Load DSpace initializers in Spring ApplicationContext (to initialize DSpace Kernel & Configuration)
-@ContextConfiguration(initializers = { DSpaceKernelInitializer.class, DSpaceConfigurationInitializer.class })
-//Tell Spring to make ApplicationContext an instance of WebApplicationContext (for web-based tests)
-@WebAppConfiguration
-public class AuthorizationFeatureServiceIT extends AbstractIntegrationTestWithDatabase {
+public class AuthorizationFeatureServiceIT extends AbstractControllerIntegrationTest {
     @Autowired
     private SiteService siteService;
 
     @Autowired
-    private ConverterService converterService;
+    private SiteConverter siteConverter;
 
     @Autowired
     private AuthorizationFeatureService authzFeatureService;
@@ -77,7 +61,7 @@ public class AuthorizationFeatureServiceIT extends AbstractIntegrationTestWithDa
         assertThat("We have at least our 7 mock features for testing",
                 authzFeatureServiceFindAll.size(), greaterThanOrEqualTo(7));
 
-        Set<String> featureNames = new HashSet<String>();
+        Set<String> featureNames = new HashSet<>();
         for (AuthorizationFeature f : authzFeatureServiceFindAll) {
             featureNames.add(f.getName());
         }
@@ -143,7 +127,7 @@ public class AuthorizationFeatureServiceIT extends AbstractIntegrationTestWithDa
      */
     public void isAuthorizedTest() throws Exception {
         Site site = siteService.findSite(context);
-        SiteRest siteRest = converterService.toRest(site, DefaultProjection.DEFAULT);
+        SiteRest siteRest = siteConverter.convert(site, DefaultProjection.DEFAULT);
 
         AuthorizationFeature alwaysTrue = authzFeatureService.find(AlwaysTrueFeature.NAME);
         AuthorizationFeature alwaysFalse = authzFeatureService.find(AlwaysFalseFeature.NAME);

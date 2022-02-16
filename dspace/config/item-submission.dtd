@@ -14,14 +14,15 @@
            collection-handle CDATA #REQUIRED
            submission-name NMTOKEN #REQUIRED>
 
- <!-- 'step-definitions' must contain at least one 'step' node -->
- <!-- (The "select collection" step *must* be here)            -->
- <!ELEMENT step-definitions (step+) >
+ <!-- 'step-definitions' must contain at least one 'step-definition' node -->
+ <!-- (The "select collection" step-definition *must* be here)            -->
+ <!ELEMENT step-definitions (step-definition+) >
  
- <!ELEMENT step (heading?, processing-class, type, scope?) >
- <!ATTLIST step 
+ <!ELEMENT step-definition (heading?, processing-class, type, scope?) >
+ <!ATTLIST step-definition
  		   id NMTOKEN #REQUIRED
- 		   mandatory NMTOKEN #IMPLIED>
+ 		   mandatory NMTOKEN #IMPLIED
+ 		   opened NMTOKEN #IMPLIED>
  
  <!ELEMENT heading (#PCDATA) >
  <!ELEMENT processing-class (#PCDATA)>
@@ -36,4 +37,6 @@
  <!ELEMENT submission-definitions (submission-process+)>
  
  <!ELEMENT submission-process (step+)>
+ <!ELEMENT step (#PCDATA)>
  <!ATTLIST submission-process name NMTOKEN #REQUIRED>
+ <!ATTLIST step id NMTOKEN #REQUIRED>

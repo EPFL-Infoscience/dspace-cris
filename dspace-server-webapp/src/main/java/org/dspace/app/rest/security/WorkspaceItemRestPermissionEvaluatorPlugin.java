@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
@@ -41,6 +42,9 @@ public class WorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermis
     @Autowired
     WorkspaceItemService wis;
 
+    @Autowired
+    private AuthorizeService authorizeService;
+
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
             DSpaceRestPermission permission) {
@@ -56,7 +60,7 @@ public class WorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermis
         }
 
         Request request = requestService.getCurrentRequest();
-        Context context = ContextUtil.obtainContext(request.getServletRequest());
+        Context context = ContextUtil.obtainContext(request.getHttpServletRequest());
 
         EPerson ePerson = null;
         WorkspaceItem witem = null;
@@ -82,6 +86,12 @@ public class WorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermis
                     return true;
                 }
             }
+
+            if (authorizeService.authorizeActionBoolean(context, witem.getItem(),
+                restPermission.getDspaceApiActionId())) {
+                return true;
+            }
+
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +47,7 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
         try {
             String entityType = getEntityTypeStringFromMetadata(item);
             if (StringUtils.isNotBlank(entityType)) {
-                List<Relationship> relationships = relationshipService.findByItem(context, item);
+                List<Relationship> relationships = relationshipService.findByItem(context, item, -1, -1, true);
                 for (Relationship relationship : relationships) {
                     fullMetadataValueList
                         .addAll(findRelationshipMetadataValueForItemRelationship(context, item, entityType,
@@ -63,11 +64,9 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
     public String getEntityTypeStringFromMetadata(Item item) {
         List<MetadataValue> list = item.getMetadata();
         for (MetadataValue mdv : list) {
-            if (StringUtils.equals(mdv.getMetadataField().getMetadataSchema().getName(),
-                "relationship")
-                && StringUtils.equals(mdv.getMetadataField().getElement(),
-                "type")) {
-
+            if (StringUtils.equals(mdv.getMetadataField().getMetadataSchema().getName(), "dspace")
+                && StringUtils.equals(mdv.getMetadataField().getElement(), "entity")
+                && StringUtils.equals(mdv.getMetadataField().getQualifier(), "type")) {
                 return mdv.getValue();
             }
         }
@@ -85,14 +84,20 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
         Item otherItem;
         int place = 0;
         boolean isLeftwards;
-        if (StringUtils.equals(relationshipType.getLeftType().getLabel(), entityType)) {
+        final boolean sameLeftType = Objects.isNull(relationshipType.getLeftType()) ||
+                                         StringUtils.equals(relationshipType.getLeftType().getLabel(), entityType);
+        final boolean sameRightType = Objects.isNull(relationshipType.getRightType()) ||
+                                          StringUtils.equals(relationshipType.getRightType().getLabel(), entityType);
+        if (sameLeftType &&
+                item.getID().equals(relationship.getLeftItem().getID())) {
             hashMaps = virtualMetadataPopulator.getMap().get(relationshipType.getLeftwardType());
             otherItem = relationship.getRightItem();
             relationName = relationship.getRelationshipType().getLeftwardType();
             place = relationship.getLeftPlace();
             isLeftwards = false; //if the current item is stored on the left,
             // the name variant is retrieved from the rightwards label
-        } else if (StringUtils.equals(relationshipType.getRightType().getLabel(), entityType)) {
+        } else if (sameRightType &&
+                item.getID().equals(relationship.getRightItem().getID())) {
             hashMaps = virtualMetadataPopulator.getMap().get(relationshipType.getRightwardType());
             otherItem = relationship.getLeftItem();
             relationName = relationship.getRelationshipType().getRightwardType();

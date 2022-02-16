@@ -12,7 +12,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.Util;
@@ -22,11 +26,16 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.dao.WorkspaceItemDAO;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.content.template.TemplateItemValueService;
+import org.dspace.content.vo.MetadataValueVO;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.LogManager;
+import org.dspace.core.LogHelper;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.event.Event;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowService;
@@ -54,7 +63,12 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
     protected ItemService itemService;
     @Autowired(required = true)
     protected WorkflowService workflowService;
-
+    @Autowired
+    private MetadataFieldService metadataFieldService;
+    @Autowired
+    private MetadataValueService metadataValueService;
+    @Autowired
+    private TemplateItemValueService templateItemValueService;
 
     protected WorkspaceItemServiceImpl() {
 
@@ -66,12 +80,12 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
         if (workspaceItem == null) {
             if (log.isDebugEnabled()) {
-                log.debug(LogManager.getHeader(context, "find_workspace_item",
+                log.debug(LogHelper.getHeader(context, "find_workspace_item",
                                                "not_found,workspace_item_id=" + id));
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug(LogManager.getHeader(context, "find_workspace_item",
+                log.debug(LogHelper.getHeader(context, "find_workspace_item",
                                                "workspace_item_id=" + id));
             }
         }
@@ -80,6 +94,12 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
     @Override
     public WorkspaceItem create(Context context, Collection collection, boolean template)
+            throws AuthorizeException, SQLException {
+        return create(context, collection, null, template);
+    }
+
+    @Override
+    public WorkspaceItem create(Context context, Collection collection, UUID uuid, boolean template)
         throws AuthorizeException, SQLException {
         // Check the user has permission to ADD to the collection
         authorizeService.authorizeAction(context, collection, Constants.ADD);
@@ -89,44 +109,70 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
 
         // Create an item
-        Item item = itemService.create(context, workspaceItem);
+        Item item;
+        if (uuid != null) {
+            item = itemService.create(context, workspaceItem, uuid);
+        } else {
+            item = itemService.create(context, workspaceItem);
+        }
         item.setSubmitter(context.getCurrentUser());
 
-        // Now create the policies for the submitter to modify item and contents
-        // contents = bitstreams, bundles
-        // read permission
-        authorizeService.addPolicy(context, item, Constants.READ, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
-        // write permission
-        authorizeService.addPolicy(context, item, Constants.WRITE, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
-        // add permission
-        authorizeService.addPolicy(context, item, Constants.ADD, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
-        // remove contents permission
-        authorizeService
-            .addPolicy(context, item, Constants.REMOVE, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
-        // delete permission
-        authorizeService
-            .addPolicy(context, item, Constants.DELETE, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
+        // Now create the policies for the submitter to modify item and contents (bitstreams, bundles)
+        int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
+        for (int actionId : actionIds) {
+            authorizeService.addPolicy(context, item, actionId, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
+        }
 
+        if (collectionService.isSharedWorkspace(context, collection)) {
+            addPoliciesToSubmitterGroup(context, item, collection, actionIds);
+        }
 
         // Copy template if appropriate
         Item templateItem = collection.getTemplateItem();
 
-        if (template && (templateItem != null)) {
-            List<MetadataValue> md = itemService.getMetadata(templateItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        Optional<MetadataValue> colEntityType = getDSpaceEntityType(collection);
+        Optional<MetadataValue> templateItemEntityType = getDSpaceEntityType(templateItem);
 
-            for (MetadataValue aMd : md) {
-                MetadataField metadataField = aMd.getMetadataField();
+        if (colEntityType.isPresent() && templateItemEntityType.isPresent() &&
+                !StringUtils.equals(colEntityType.get().getValue(), templateItemEntityType.get().getValue())) {
+            throw new IllegalStateException("The template item has entity type : (" +
+                      templateItemEntityType.get().getValue() + ") different than collection entity type : " +
+                      colEntityType.get().getValue());
+        }
+
+        if (colEntityType.isPresent() && templateItemEntityType.isEmpty()) {
+            MetadataValue original = colEntityType.get();
+            MetadataField metadataField = original.getMetadataField();
+            MetadataSchema metadataSchema = metadataField.getMetadataSchema();
+            itemService.addMetadata(context, item, metadataSchema.getName(), metadataField.getElement(),
+                                    metadataField.getQualifier(), original.getLanguage(), original.getValue());
+        }
+
+        if (template && (templateItem != null)) {
+            List<MetadataValue> templateMetadataValues = itemService.getMetadata(templateItem, Item.ANY, Item.ANY,
+                Item.ANY, Item.ANY);
+
+            for (MetadataValue templateMetadataValue : templateMetadataValues) {
+
+                MetadataField metadataField = templateMetadataValue.getMetadataField();
                 MetadataSchema metadataSchema = metadataField.getMetadataSchema();
-                itemService.addMetadata(context, item, metadataSchema.getName(), metadataField.getElement(),
-                                        metadataField.getQualifier(), aMd.getLanguage(),
-                                        aMd.getValue());
+
+                List<MetadataValueVO> metadataValueFromTemplateList = templateItemValueService.value(context, item,
+                    templateItem, templateMetadataValue);
+
+                for (MetadataValueVO metadataValueFromTemplate : metadataValueFromTemplateList) {
+                    itemService.addMetadata(context, item, metadataSchema.getName(), metadataField.getElement(),
+                        metadataField.getQualifier(), templateMetadataValue.getLanguage(),
+                        metadataValueFromTemplate.getValue(), metadataValueFromTemplate.getAuthority(),
+                        metadataValueFromTemplate.getConfidence());
+                }
             }
         }
 
         itemService.update(context, item);
         workspaceItem.setItem(item);
 
-        log.info(LogManager.getHeader(context, "create_workspace_item",
+        log.info(LogHelper.getHeader(context, "create_workspace_item",
                                       "workspace_item_id=" + workspaceItem.getID()
                                           + "item_id=" + item.getID() + "collection_id="
                                           + collection.getID()));
@@ -135,6 +181,15 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
                 itemService.getIdentifiers(context, item)));
 
         return workspaceItem;
+    }
+
+    private Optional<MetadataValue> getDSpaceEntityType(DSpaceObject dSpaceObject) {
+        return Objects.nonNull(dSpaceObject) ? dSpaceObject.getMetadata()
+                                                           .stream()
+                                                           .filter(x -> x.getMetadataField().toString('.')
+                                                                         .equalsIgnoreCase("dspace.entity.type"))
+                                                           .findFirst()
+                                             : Optional.empty();
     }
 
     @Override
@@ -191,7 +246,7 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
     public void update(Context context, WorkspaceItem workspaceItem) throws SQLException, AuthorizeException {
         // Authorisation is checked by the item.update() method below
 
-        log.info(LogManager.getHeader(context, "update_workspace_item",
+        log.info(LogHelper.getHeader(context, "update_workspace_item",
                                       "workspace_item_id=" + workspaceItem.getID()));
 
         // Update the item
@@ -204,23 +259,14 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
     @Override
     public void deleteAll(Context context, WorkspaceItem workspaceItem)
         throws SQLException, AuthorizeException, IOException {
-        /*
-         * Authorisation is a special case. The submitter won't have REMOVE
-         * permission on the collection, so our policy is this: Only the
-         * original submitter or an administrator can delete a workspace item.
 
-         */
         Item item = workspaceItem.getItem();
-        if (!authorizeService.isAdmin(context)
-            && ((context.getCurrentUser() == null) || (context
-            .getCurrentUser().getID() != item.getSubmitter()
-                                             .getID()))) {
+        if (isNotAuthorizedToDelete(context, item)) {
             // Not an admit, not the submitter
-            throw new AuthorizeException("Must be an administrator or the "
-                                             + "original submitter to delete a workspace item");
+            throw new AuthorizeException("Must be an administrator or the submitter to delete a workspace item");
         }
 
-        log.info(LogManager.getHeader(context, "delete_workspace_item",
+        log.info(LogHelper.getHeader(context, "delete_workspace_item",
                                       "workspace_item_id=" + workspaceItem.getID() + "item_id=" + item.getID()
                                           + "collection_id=" + workspaceItem.getCollection().getID()));
 
@@ -257,7 +303,7 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
         Item item = workspaceItem.getItem();
         authorizeService.authorizeAction(context, item, Constants.WRITE);
 
-        log.info(LogManager.getHeader(context, "delete_workspace_item",
+        log.info(LogHelper.getHeader(context, "delete_workspace_item",
                                       "workspace_item_id=" + workspaceItem.getID() + "item_id=" + item.getID()
                                           + "collection_id=" + workspaceItem.getCollection().getID()));
 
@@ -265,7 +311,12 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
         // Need to delete the workspaceitem row first since it refers
         // to item ID
-        workspaceItem.getSupervisorGroups().clear();
+        try {
+            workspaceItem.getSupervisorGroups().clear();
+        } catch (Exception e) {
+            log.error("failed to clear supervisor group", e);
+        }
+
         workspaceItemDAO.delete(context, workspaceItem);
 
     }
@@ -287,6 +338,28 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
         source.getItem().removeMetadata(remove);
 
+    }
+
+    private void addPoliciesToSubmitterGroup(Context context, Item item, Collection collection, int[] actionIds)
+        throws SQLException, AuthorizeException {
+
+        Group submitters = collection.getSubmitters();
+        if (submitters == null) {
+            return;
+        }
+
+        for (int actionId : actionIds) {
+            authorizeService.addPolicy(context, item, actionId, submitters, ResourcePolicy.TYPE_SUBMISSION);
+        }
+
+    }
+
+    private boolean isNotAuthorizedToDelete(Context context, Item item) throws SQLException {
+        EPerson submitter = item.getSubmitter();
+        EPerson currentUser = context.getCurrentUser();
+        return !authorizeService.isAdmin(context)
+            && (submitter == null || (currentUser == null) || (!submitter.getID().equals(currentUser.getID())))
+            && !authorizeService.authorizeActionBoolean(context, item, Constants.DELETE);
     }
 
 }

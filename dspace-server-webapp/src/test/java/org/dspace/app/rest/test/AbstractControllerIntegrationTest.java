@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.test;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -19,6 +21,7 @@ import javax.servlet.Filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.rest.Application;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.utils.DSpaceConfigurationInitializer;
@@ -35,6 +38,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -67,6 +72,11 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(initializers = { DSpaceKernelInitializer.class, DSpaceConfigurationInitializer.class })
 // Tell Spring to make ApplicationContext an instance of WebApplicationContext (for web-based tests)
 @WebAppConfiguration
+// Load our src/test/resources/application-test.properties to override some settings in default application.properties
+@TestPropertySource(locations = "classpath:application-test.properties")
+// Enable our custom Logging listener to log when each test method starts/stops
+@TestExecutionListeners(listeners = {LoggingTestExecutionListener.class},
+    mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWithDatabase {
 
     protected static final String AUTHORIZATION_HEADER = "Authorization";
@@ -102,10 +112,24 @@ public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWi
                              this.mappingJackson2HttpMessageConverter);
     }
 
+    /**
+     * Create a test web client without an authorization token (an anonymous
+     * session).
+     *
+     * @return the test client.
+     * @throws SQLException passed through.
+     */
     public MockMvc getClient() throws SQLException {
         return getClient(null);
     }
 
+    /**
+     * Create a test web client which uses a given authorization token.
+     *
+     * @param authToken a suitable Bearer token.
+     * @return the test client.
+     * @throws SQLException passed through.
+     */
     public MockMvc getClient(String authToken) throws SQLException {
         if (context != null && context.isValid()) {
             context.commit();
@@ -116,11 +140,17 @@ public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWi
             .alwaysDo(MockMvcResultHandlers.print())
             //Add all filter implementations
             .addFilters(new ErrorPageFilter())
-            .addFilters(requestFilters.toArray(new Filter[requestFilters.size()]));
+            .addFilters(requestFilters.toArray(new Filter[requestFilters.size()]))
+            // Enable/Integrate Spring Security with MockMVC
+            .apply(springSecurity());
 
+        // Make sure all MockMvc requests (in all tests) include a valid CSRF token (in header) by default.
+        // If an authToken was passed in, also make sure request sends the authToken in the "Authorization" header
         if (StringUtils.isNotBlank(authToken)) {
             mockMvcBuilder.defaultRequest(
-                get("/").header(AUTHORIZATION_HEADER, AUTHORIZATION_TYPE + authToken));
+                get("/").with(csrf().asHeader()).header(AUTHORIZATION_HEADER, AUTHORIZATION_TYPE + authToken));
+        } else {
+            mockMvcBuilder.defaultRequest(get("/").with(csrf().asHeader()));
         }
 
         return mockMvcBuilder
@@ -134,9 +164,26 @@ public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWi
                           .andReturn().getResponse();
     }
 
+    public MockHttpServletResponse getAuthResponseWithXForwardedForHeader(String user, String password,
+                                                                          String xForwardedFor) throws Exception {
+        return getClient().perform(post("/api/authn/login")
+                                       .param("user", user)
+                                       .param("password", password)
+                                       .header("X-Forwarded-For", xForwardedFor))
+                          .andReturn().getResponse();
+    }
+
+
     public String getAuthToken(String user, String password) throws Exception {
         return StringUtils.substringAfter(
             getAuthResponse(user, password).getHeader(AUTHORIZATION_HEADER),
+            AUTHORIZATION_TYPE);
+    }
+
+    public String getAuthTokenWithXForwardedForHeader(String user, String password, String xForwardedFor)
+        throws Exception {
+        return StringUtils.substringAfter(
+            getAuthResponseWithXForwardedForHeader(user, password, xForwardedFor).getHeader(AUTHORIZATION_HEADER),
             AUTHORIZATION_TYPE);
     }
 

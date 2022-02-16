@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.MissingResourceException;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -20,12 +20,13 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.Group;
 
 /**
  * Service interface class for the Collection object.
- * The implementation of this class is responsible for all business logic calls for the Collection object and is
- * autowired by spring
+ * The implementation of this class is responsible for all business logic calls
+ * for the Collection object and is autowired by Spring.
  *
  * @author kevinvandevelde at atmire.com
  */
@@ -61,6 +62,21 @@ public interface CollectionService
         AuthorizeException;
 
     /**
+     * Create a new collection with the supplied handle and ID.
+     * Once created the collection is added to the given community
+     *
+     * @param context DSpace context object
+     * @param community DSpace Community (parent)
+     * @param handle the pre-determined Handle to assign to the new collection
+     * @param uuid the pre-determined UUID to assign to the new collection
+     * @return the newly created collection
+     * @throws SQLException if database error
+     * @throws AuthorizeException if authorization error
+     */
+    public Collection create(Context context, Community community, String handle, UUID uuid) throws SQLException,
+            AuthorizeException;
+
+    /**
      * Get all collections in the system. These are alphabetically sorted by
      * collection name.
      *
@@ -90,20 +106,6 @@ public interface CollectionService
     public List<Collection> findGroup2GroupMapped(Context context, int actionID) throws SQLException;
 
     public List<Collection> findGroupMapped(Context context, int actionID) throws java.sql.SQLException;
-
-    /**
-     * Set a metadata value
-     *
-     * @param context    DSpace Context
-     * @param collection Collection
-     * @param field      the name of the metadata field to get
-     * @param value      value to set the field to
-     * @throws MissingResourceException if resource missing
-     * @throws SQLException             if database error
-     */
-    @Deprecated
-    public void setMetadata(Context context, Collection collection, String field, String value)
-        throws MissingResourceException, SQLException;
 
     /**
      * Give the collection a logo. Passing in <code>null</code> removes any
@@ -147,9 +149,12 @@ public interface CollectionService
      * <code>null</code> can be passed in if there should be no associated
      * group for that workflow step; any existing group is NOT deleted.
      *
+     * @param context    current DSpace session.
      * @param collection Collection
      * @param step       the workflow step (1-3)
      * @param group      the new workflow group, or <code>null</code>
+     * @throws SQLException passed through.
+     * @throws AuthorizeException passed through.
      */
     public void setWorkflowGroup(Context context, Collection collection, int step, Group group)
         throws SQLException, AuthorizeException;
@@ -319,7 +324,7 @@ public interface CollectionService
         throws java.sql.SQLException;
 
     /**
-     * 
+     *
      * @param context DSpace Context
      * @param group EPerson Group
      * @return the collection, if any, that has the specified group as administrators or submitters
@@ -354,4 +359,167 @@ public interface CollectionService
      */
     Group createDefaultReadGroup(Context context, Collection collection, String typeOfGroupString, int defaultRead)
         throws SQLException, AuthorizeException;
+
+    /**
+     * This method will return the name to give to the group created by the
+     * {@link #createDefaultReadGroup(Context, Collection, String, int)} method
+     *
+     * @param collection        The DSpace collection to use in the name generation
+     * @param typeOfGroupString The type of group to use in the name generation
+     * @return the name to give to the group that hold default read for the collection
+     */
+    String getDefaultReadGroupName(Collection collection, String typeOfGroupString);
+
+    /**
+     * Returns Collections for which the current user has 'submit' privileges.
+     * NOTE: for better performance, this method retrieves its results from an
+     *       index (cache) and does not query the database directly.
+     *       This means that results may be stale or outdated until https://github.com/DSpace/DSpace/issues/2853 is resolved"
+     * 
+     * @param q                limit the returned collection to those with metadata values matching the query terms.
+     *                         The terms are used to make also a prefix query on SOLR so it can be used to implement
+     *                         an autosuggest feature over the collection name
+     * @param context          DSpace Context
+     * @param community        parent community
+     * @param entityType       limit the returned collection to those related to given entity type
+     * @param offset           the position of the first result to return
+     * @param limit            paging limit
+     * @return                 discovery search result objects
+     * @throws SQLException              if something goes wrong
+     * @throws SearchServiceException    if search error
+     */
+    public List<Collection> findCollectionsWithSubmit(String q, Context context, Community community,
+            String entityType, int offset, int limit) throws SQLException, SearchServiceException;
+
+    /**
+     * Returns true if the given collection is configured so that all items are
+     * shared among all submitters of the collection itself.
+     *
+     * @param  context    the DSpace context
+     * @param  collection the collection to test
+     * @return            true if the given collection's workspace is shared, false
+     *                    otherwise
+     */
+    boolean isSharedWorkspace(Context context, Collection collection);
+
+
+    /**
+     * Retrieve the first collection in the community or its descending that support
+     * the provided entityType
+     *
+     * @param  context    the DSpace context
+     * @param  community  the root from where the search start
+     * @param  entityType the requested entity type
+     * @return            the first collection in the community or its descending
+     *                    that support the provided entityType
+     */
+    public Collection retriveCollectionByEntityType(Context context, Community community, String entityType);
+
+    /**
+     * Retrieve the close collection to the item that support the provided
+     * entityType. Close mean the collection that can be reach with the minimum
+     * steps starting from the item (owningCollection, brothers collections, etc)
+     *
+     * @param  context    the DSpace context
+     * @param  item       the item from where the search start
+     * @param  entityType the requested entity type
+     * @return            the first collection in the community or its descending
+     *                    that support the provided entityType
+     */
+    public Collection retrieveCollectionByEntityType(Context context, Item item, String entityType)
+            throws SQLException;
+
+    /**
+     * Returns the collections that are administered by the current user.
+     *
+     * @param  query                  limit the returned collection to those with
+     *                                metadata values matching the query terms. The
+     *                                terms are used to make also a prefix query on
+     *                                SOLR so it can be used to implement an
+     *                                autosuggest feature over the collection name
+     * @param  context                DSpace Context
+     * @param  offset                 the position of the first result to return
+     * @param  limit                  paging limit
+     * @return                        discovery search result objects
+     * @throws SQLException           if something goes wrong
+     * @throws SearchServiceException if search error
+     */
+    List<Collection> findCollectionsAdministered(String query, Context context, int offset, int limit)
+        throws SQLException, SearchServiceException;
+    /**
+     * Returns the collections that are administered by the current user.
+     *
+     * @param  query                  limit the returned collection to those with
+     *                                metadata values matching the query terms. The
+     *                                terms are used to make also a prefix query on
+     *                                SOLR so it can be used to implement an
+     *                                autosuggest feature over the collection name
+     * @param  entityType             entityType of the collection
+     * @param  context                DSpace Context
+     * @param  offset                 the position of the first result to return
+     * @param  limit                  paging limit
+     * @return                        discovery search result objects
+     * @throws SQLException           if something goes wrong
+     * @throws SearchServiceException if search error
+     */
+    List<Collection> findCollectionsAdministeredByEntityType(String query,String entityType,
+                                                             Context context, int offset, int limit)
+            throws SQLException, SearchServiceException;
+    /**
+     * Counts the collections that are administered by the current user.
+     *
+     * @param  query                  limit the returned collection to those with
+     *                                metadata values matching the query terms. The
+     *                                terms are used to make also a prefix query on
+     *                                SOLR so it can be used to implement an
+     *                                autosuggest feature over the collection name
+     * @param  context                DSpace Context
+     * @return                        discovery search result objects
+     * @throws SQLException           if something goes wrong
+     * @throws SearchServiceException if search error
+     */
+    int countCollectionsAdministered(String query, Context context) throws SQLException, SearchServiceException;
+
+    /**
+     * Returns the collection related to the given item. If the item is archived,
+     * this method returns the own collection of that item, otherwise returns the
+     * collection related to the current InProgressSubmission related to that item.
+     *
+     * @param  context      the DSpace context
+     * @param  item         the item from where the search start
+     * @return              the collection related to the given item
+     * @throws SQLException if an SQL error occurs
+     */
+    public Collection findByItem(Context context, Item item) throws SQLException;
+    /**
+     * Returns thenu number of collections administered by user of an entity type
+     *
+     * @param  context      the DSpace context
+     * @param  query        the query to be filtered
+     * @return entityType   the entity type of collection
+     * @throws SQLException if an SQL error occurs
+     * @throws SearchServiceException if an Solr error occurs
+     */
+    public int countCollectionsAdministeredByEntityType(String query, String entityType,
+                                                        Context context) throws SQLException, SearchServiceException;
+    /**
+     * Counts the number of Collection for which the current user has 'submit' privileges.
+     * NOTE: for better performance, this method retrieves its results from an index (cache)
+     *       and does not query the database directly.
+     *       This means that results may be stale or outdated until
+     *       https://github.com/DSpace/DSpace/issues/2853 is resolved."
+     * 
+     * @param q                limit the returned collection to those with metadata values matching the query terms.
+     *                         The terms are used to make also a prefix query on SOLR so it can be used to implement
+     *                         an autosuggest feature over the collection name
+     * @param context          DSpace Context
+     * @param community        parent community
+     * @param entityType       limit the returned collection to those related to given entity type
+     * @return                 total collections found
+     * @throws SQLException              if something goes wrong
+     * @throws SearchServiceException    if search error
+     */
+    public int countCollectionsWithSubmit(String q, Context context, Community community, String entityType)
+        throws SQLException, SearchServiceException;
+
 }

@@ -9,7 +9,7 @@
          [dspace.dir]/config/spring/api/core-hibernate.xml
         -->
 
-        <property name="hibernate.hbm2ddl.auto">validate</property>
+        <property name="hibernate.hbm2ddl.auto">none</property>
         <property name="hibernate.hbm2ddl.import_files_sql_extractor">org.hibernate.tool.hbm2ddl.SingleLineSqlCommandExtractor</property>
         <property name="hibernate.connection.autocommit">false</property>
         <property name="hibernate.jdbc.batch_size">20</property>
@@ -56,13 +56,15 @@
         <mapping class="org.dspace.content.Site"/>
         <mapping class="org.dspace.content.WorkspaceItem"/>
 
+        <mapping class="org.dspace.content.NBEventProcessed" />
+
         <mapping class="org.dspace.deduplication.Deduplication"/>
         <mapping class="org.dspace.eperson.EPerson"/>
         <mapping class="org.dspace.eperson.Group"/>
         <mapping class="org.dspace.eperson.Group2GroupCache"/>
         <mapping class="org.dspace.eperson.RegistrationData"/>
         <mapping class="org.dspace.eperson.Subscription"/>
-
+        <mapping class="org.dspace.eperson.SubscriptionParameter"/>
         <mapping class="org.dspace.handle.Handle"/>
 
         <mapping class="org.dspace.harvest.HarvestedCollection"/>
@@ -89,7 +91,24 @@
 		<mapping class="org.dspace.batch.ImpBitstream"/>
 		<mapping class="org.dspace.batch.ImpBitstreamMetadatavalue"/>
 		<mapping class="org.dspace.batch.ImpMetadatavalue"/>
-		<mapping class="org.dspace.batch.ImpRecordToItem"/>
+
+        <!-- Configurable Layout -->
+        <mapping class="org.dspace.layout.CrisLayoutTab" />
+        <mapping class="org.dspace.layout.CrisLayoutBox" />
+        <mapping class="org.dspace.layout.CrisLayoutField" />
+        <mapping class="org.dspace.layout.CrisLayoutFieldMetadata" />
+        <mapping class="org.dspace.layout.CrisLayoutFieldBitstream" />
+        <mapping class="org.dspace.layout.CrisLayoutRow" />
+        <mapping class="org.dspace.layout.CrisLayoutCell" />
+        <mapping class="org.dspace.layout.CrisLayoutMetric2Box" />
+        <mapping class="org.dspace.layout.CrisMetadataGroup" />
+
+        <mapping class="org.dspace.app.orcid.OrcidQueue" />
+        <mapping class="org.dspace.app.orcid.OrcidHistory" />
+        
+        <mapping class="org.dspace.statistics.export.OpenURLTracker"/>
+
+        <mapping class="org.dspace.app.metrics.CrisMetrics"/>
 
     </session-factory>
 </hibernate-configuration>

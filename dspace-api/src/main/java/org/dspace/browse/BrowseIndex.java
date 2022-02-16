@@ -13,7 +13,8 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.dspace.core.ConfigurationManager;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
 
@@ -85,9 +86,9 @@ public final class BrowseIndex {
     /**
      * additional 'internal' tables that are always defined
      */
-    private static BrowseIndex itemIndex = new BrowseIndex("bi_item");
-    private static BrowseIndex withdrawnIndex = new BrowseIndex("bi_withdrawn");
-    private static BrowseIndex privateIndex = new BrowseIndex("bi_private");
+    private static BrowseIndex itemIndex = new BrowseIndex("bi_item", "item");
+    private static BrowseIndex withdrawnIndex = new BrowseIndex("bi_withdrawn", "item");
+    private static BrowseIndex privateIndex = new BrowseIndex("bi_private", "item");
 
 
     /**
@@ -98,14 +99,24 @@ public final class BrowseIndex {
 
     /**
      * Constructor for creating generic / internal index objects
-     *
+     * 
      * @param baseName The base of the table name
      */
     private BrowseIndex(String baseName) {
+        this(baseName, "item");
+    }
+
+    /**
+     * Constructor for creating generic / internal index objects
+     *
+     * @param baseName The base of the table name
+     * @param type     the display type
+     */
+    private BrowseIndex(String baseName, String type) {
         try {
             number = -1;
             tableBaseName = baseName;
-            displayType = "item";
+            displayType = type;
             sortOption = SortOption.getDefaultSortOption();
         } catch (SortException se) {
             // FIXME Exception handling
@@ -202,7 +213,7 @@ public final class BrowseIndex {
                         }
                     }
 
-                    tableBaseName = getItemBrowseIndex().tableBaseName;
+                    tableBaseName = getItemBrowseIndex(displayType).tableBaseName;
                 } else if (isItemIndex()) {
                     String sortName = matcher.group(3);
 
@@ -225,7 +236,7 @@ public final class BrowseIndex {
                         }
                     }
 
-                    tableBaseName = getItemBrowseIndex().tableBaseName;
+                    tableBaseName = getItemBrowseIndex(displayType).tableBaseName;
                 } else {
                     valid = false;
                 }
@@ -414,6 +425,7 @@ public final class BrowseIndex {
      * @return the name of the table
      * @deprecated 1.5
      */
+    @Deprecated
     public static String getTableName(int number, boolean isCommunity, boolean isCollection, boolean isDistinct,
                                       boolean isMap) {
         return BrowseIndex.getTableName(makeTableBaseName(number), isCommunity, isCollection, isDistinct, isMap);
@@ -462,6 +474,7 @@ public final class BrowseIndex {
      * @return the name of the table
      * @deprecated 1.5
      */
+    @Deprecated
     public String getTableName(boolean isCommunity, boolean isCollection, boolean isDistinct, boolean isMap) {
         if (isDistinct || isMap) {
             return BrowseIndex.getTableName(number, isCommunity, isCollection, isDistinct, isMap);
@@ -482,6 +495,7 @@ public final class BrowseIndex {
      * @return the name of the table
      * @deprecated 1.5
      */
+    @Deprecated
     public String getTableName(boolean isCommunity, boolean isCollection) {
         return getTableName(isCommunity, isCollection, false, false);
     }
@@ -514,6 +528,7 @@ public final class BrowseIndex {
      * @return table name
      * @deprecated 1.5
      */
+    @Deprecated
     public String getTableName(boolean isDistinct, boolean isCommunity, boolean isCollection) {
         return getTableName(isCommunity, isCollection, isDistinct, false);
     }
@@ -619,7 +634,7 @@ public final class BrowseIndex {
      * @return true if full, false if not
      */
     public boolean isItemIndex() {
-        return "item".equals(displayType);
+        return !isMetadataIndex();
     }
 
     /**
@@ -649,6 +664,7 @@ public final class BrowseIndex {
      * @throws BrowseException if browse error
      * @deprecated
      */
+    @Deprecated
     public static String[] tables()
         throws BrowseException {
         BrowseIndex[] bis = getBrowseIndices();
@@ -670,13 +686,14 @@ public final class BrowseIndex {
         throws BrowseException {
         int idx = 1;
         String definition;
-        ArrayList<BrowseIndex> browseIndices = new ArrayList<BrowseIndex>();
+        ArrayList<BrowseIndex> browseIndices = new ArrayList<>();
 
-        while (((definition = ConfigurationManager.getProperty("webui.browse.index." + idx))) != null) {
+        ConfigurationService configurationService
+                = DSpaceServicesFactory.getInstance().getConfigurationService();
+        while (((definition = configurationService.getProperty("webui.browse.index." + idx))) != null) {
             BrowseIndex bi = new BrowseIndex(definition, idx);
-            bi.displayFrequencies = Boolean.valueOf(ConfigurationManager
-                                                        .getBooleanProperty("webui.browse.metadata.show-freq."
-                                                                                + idx, true));
+            bi.displayFrequencies = configurationService
+                    .getBooleanProperty("webui.browse.metadata.show-freq." + idx, true);
 
             browseIndices.add(bi);
             idx++;
@@ -726,11 +743,17 @@ public final class BrowseIndex {
 
     /**
      * Get the internally defined browse index for archived items.
+     * 
+     * @param displayType
      *
      * @return browse index
      */
-    public static BrowseIndex getItemBrowseIndex() {
-        return BrowseIndex.itemIndex;
+    public static BrowseIndex getItemBrowseIndex(String displayType) {
+        if ("item".equals(displayType)) {
+            return BrowseIndex.itemIndex;
+        } else {
+            return new BrowseIndex("bi_" + displayType, displayType);
+        }
     }
 
     /**
@@ -804,8 +827,8 @@ public final class BrowseIndex {
      * @return true or false
      */
     public boolean isTagCloudEnabled() {
-
-        return ConfigurationManager.getBooleanProperty("webui.browse.index.tagcloud." + number);
-
+        ConfigurationService configurationService
+                = DSpaceServicesFactory.getInstance().getConfigurationService();
+        return configurationService.getBooleanProperty("webui.browse.index.tagcloud." + number);
     }
 }

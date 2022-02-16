@@ -7,16 +7,23 @@
  */
 package org.dspace.authorize.dao.impl;
 
+import static java.util.Collections.emptyList;
+
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.ResourcePolicyOwnerVO;
 import org.dspace.authorize.ResourcePolicy_;
 import org.dspace.authorize.dao.ResourcePolicyDAO;
 import org.dspace.content.DSpaceObject;
@@ -60,6 +67,19 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
                                        criteriaBuilder.equal(resourcePolicyRoot.get(ResourcePolicy_.rptype), type)
                    )
         );
+        List<Order> orderList = new LinkedList<>();
+        orderList.add(criteriaBuilder.asc(resourcePolicyRoot.get(ResourcePolicy_.id)));
+        criteriaQuery.orderBy(orderList);
+        return list(context, criteriaQuery, false, ResourcePolicy.class, -1, -1);
+    }
+
+    @Override
+    public List<ResourcePolicy> findByEPerson(Context context, EPerson ePerson) throws SQLException {
+        CriteriaBuilder criteriaBuilder = getCriteriaBuilder(context);
+        CriteriaQuery criteriaQuery = getCriteriaQuery(criteriaBuilder, ResourcePolicy.class);
+        Root<ResourcePolicy> resourcePolicyRoot = criteriaQuery.from(ResourcePolicy.class);
+        criteriaQuery.select(resourcePolicyRoot);
+        criteriaQuery.where(criteriaBuilder.equal(resourcePolicyRoot.get(ResourcePolicy_.eperson), ePerson));
         return list(context, criteriaQuery, false, ResourcePolicy.class, -1, -1);
     }
 
@@ -195,6 +215,15 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
+    public void deleteByEPerson(Context context, EPerson ePerson) throws SQLException {
+        String queryString = "delete from ResourcePolicy where eperson= :eperson";
+        Query query = createQuery(context, queryString);
+        query.setParameter("eperson", ePerson);
+        query.executeUpdate();
+
+    }
+
+    @Override
     public void deleteByDsoAndTypeNotEqualsTo(Context context, DSpaceObject dso, String type) throws SQLException {
 
         String queryString = "delete from ResourcePolicy where dSpaceObject=:dso AND rptype <> :rptype";
@@ -247,10 +276,10 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public int countByEPerson(Context context, EPerson eperson) throws SQLException {
+    public int countByEPerson(Context context, EPerson ePerson) throws SQLException {
         Query query = createQuery(context,
                 "SELECT count(*) FROM " + ResourcePolicy.class.getSimpleName() + " WHERE eperson_id = (:epersonUuid) ");
-        query.setParameter("epersonUuid", eperson.getID());
+        query.setParameter("epersonUuid", ePerson.getID());
         return count(query);
     }
 
@@ -365,5 +394,30 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
         criteriaQuery.select(resourcePolicyRoot);
         criteriaQuery.where(criteriaBuilder.equal(resourcePolicyRoot.get(ResourcePolicy_.id), id));
         return singleResult(context, criteriaQuery);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<ResourcePolicyOwnerVO> findValidPolicyOwners(Context context, List<UUID> dsoIds, int actionID)
+        throws SQLException {
+
+        if (CollectionUtils.isEmpty(dsoIds)) {
+            return emptyList();
+        }
+
+        String sqlQuery = ""
+            + " SELECT new org.dspace.authorize.ResourcePolicyOwnerVO(policy.eperson.id, policy.epersonGroup.id)"
+            + "   FROM ResourcePolicy policy "
+            + "  WHERE policy.dSpaceObject.id in (:dsoIds) "
+            + "    AND policy.actionId = :actionId "
+            + "    AND (policy.startDate is NULL OR policy.startDate <= :date)"
+            + "    AND (policy.endDate is NULL OR policy.endDate >= :date)";
+
+        Query query = createQuery(context, sqlQuery);
+        query.setParameter("dsoIds", dsoIds);
+        query.setParameter("actionId", actionID);
+        query.setParameter("date", new Date());
+        return query.getResultList();
+
     }
 }

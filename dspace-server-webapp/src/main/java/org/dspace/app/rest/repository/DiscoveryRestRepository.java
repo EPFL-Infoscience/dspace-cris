@@ -34,6 +34,7 @@ import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationService;
+import org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -89,7 +90,7 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         return discoverConfigurationConverter.convert(discoveryConfiguration, utils.obtainProjection());
     }
 
-    public SearchResultsRest getSearchObjects(final String query, final String dsoType, final String dsoScope,
+    public SearchResultsRest getSearchObjects(final String query, final List<String> dsoTypes, final String dsoScope,
                                               final String configuration,
                                               final List<SearchFilter> searchFilters, final Pageable page,
                                               final Projection projection) {
@@ -98,13 +99,20 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         DiscoveryConfiguration discoveryConfiguration = searchConfigurationService
             .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
+        boolean isRelatedItem = discoveryConfiguration != null &&
+                discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration;
+
         DiscoverResult searchResult = null;
         DiscoverQuery discoverQuery = null;
 
         try {
             discoverQuery = queryBuilder
-                .buildQuery(context, scopeObject, discoveryConfiguration, query, searchFilters, dsoType, page);
-            searchResult = searchService.search(context, scopeObject, discoverQuery);
+                .buildQuery(context, scopeObject, discoveryConfiguration, query, searchFilters, dsoTypes, page);
+            if (isRelatedItem) {
+                searchResult = searchService.search(context, discoverQuery);
+            } else {
+                searchResult = searchService.search(context, scopeObject, discoverQuery);
+            }
 
         } catch (SearchServiceException e) {
             log.error("Error while searching with Discovery", e);
@@ -112,7 +120,7 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         }
 
         return discoverResultConverter
-            .convert(context, query, dsoType, configuration, dsoScope, searchFilters, page, searchResult,
+            .convert(context, query, dsoTypes, configuration, dsoScope, searchFilters, page, searchResult,
                      discoveryConfiguration, projection);
     }
 
@@ -130,8 +138,9 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         return discoverSearchSupportConverter.convert();
     }
 
-    public FacetResultsRest getFacetObjects(String facetName, String prefix, String query, String dsoType,
-            String dsoScope, final String configuration, List<SearchFilter> searchFilters, Pageable page) {
+    public FacetResultsRest getFacetObjects(String facetName, String prefix, String query, List<String> dsoTypes,
+            String dsoScope, final String configuration, List<SearchFilter> searchFilters, Pageable page)
+                    throws SearchServiceException {
 
         Context context = obtainContext();
 
@@ -139,25 +148,31 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         DiscoveryConfiguration discoveryConfiguration = searchConfigurationService
             .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
+        boolean isRelatedItem = discoveryConfiguration != null &&
+                discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration;
+
         DiscoverResult searchResult = null;
         DiscoverQuery discoverQuery = null;
         try {
             discoverQuery = queryBuilder.buildFacetQuery(context, scopeObject, discoveryConfiguration, prefix, query,
-                    searchFilters, dsoType, page, facetName);
-            searchResult = searchService.search(context, scopeObject, discoverQuery);
-
+                    searchFilters, dsoTypes, page, facetName);
+            if (isRelatedItem) {
+                searchResult = searchService.search(context, discoverQuery);
+            } else {
+                searchResult = searchService.search(context, scopeObject, discoverQuery);
+            }
         } catch (SearchServiceException e) {
             log.error("Error while searching with Discovery", e);
             //TODO TOM handle search exception
         }
 
         FacetResultsRest facetResultsRest = discoverFacetResultsConverter.convert(context, facetName, prefix, query,
-                dsoType, dsoScope, searchFilters, searchResult, discoveryConfiguration, page,
+                dsoTypes, dsoScope, searchFilters, searchResult, discoveryConfiguration, page,
                 utils.obtainProjection());
         return facetResultsRest;
     }
 
-    public SearchResultsRest getAllFacets(String query, String dsoType, String dsoScope, String configuration,
+    public SearchResultsRest getAllFacets(String query, List<String> dsoTypes, String dsoScope, String configuration,
                                           List<SearchFilter> searchFilters) {
 
         Context context = obtainContext();
@@ -166,19 +181,28 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         DiscoveryConfiguration discoveryConfiguration = searchConfigurationService
             .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
+        boolean isRelatedItem = discoveryConfiguration != null &&
+                discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration;
+
         DiscoverResult searchResult = null;
         DiscoverQuery discoverQuery = null;
 
         try {
             discoverQuery = queryBuilder
-                .buildQuery(context, scopeObject, discoveryConfiguration, query, searchFilters, dsoType, page);
+                .buildQuery(context, scopeObject, discoveryConfiguration, query, searchFilters, dsoTypes, page);
+
+            if (isRelatedItem) {
+                searchResult = searchService.search(context, discoverQuery);
+            } else {
+                searchResult = searchService.search(context, scopeObject, discoverQuery);
+            }
             searchResult = searchService.search(context, scopeObject, discoverQuery);
 
         } catch (SearchServiceException e) {
             log.error("Error while searching with Discovery", e);
         }
 
-        SearchResultsRest searchResultsRest = discoverFacetsConverter.convert(context, query, dsoType,
+        SearchResultsRest searchResultsRest = discoverFacetsConverter.convert(context, query, dsoTypes,
                 configuration, dsoScope, searchFilters, page, discoveryConfiguration, searchResult,
                 utils.obtainProjection());
 

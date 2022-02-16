@@ -40,6 +40,27 @@ public class SearchFilterMatcher {
         );
     }
 
+    public static Matcher<? super Object> languageFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("language")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+
+        );
+    }
+
+    public static Matcher<? super Object> typesFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("types")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("text")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
     public static Matcher<? super Object> subjectFilter() {
         return allOf(
                 hasJsonPath("$.filter", is("subject")),
@@ -154,6 +175,36 @@ public class SearchFilterMatcher {
             hasJsonPath("$.type", is("text")),
             hasJsonPath("$.openByDefault", is(false)),
             checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> typeFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("itemtype")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("hierarchical")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> pieItemtypeFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("graphitemtype")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("chart.pie")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
+        );
+    }
+
+    public static Matcher<? super Object> barDateIssuedYearFilter() {
+        return allOf(
+                hasJsonPath("$.filter", is("graphpubldate")),
+                hasJsonPath("$.hasFacets", is(true)),
+                hasJsonPath("$.type", is("chart.bar")),
+                hasJsonPath("$.openByDefault", is(false)),
+                checkOperators()
         );
     }
 }

@@ -12,9 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
-import org.dspace.app.rest.RestRepository;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.exception.MissingParameterException;
 import org.dspace.app.rest.repository.DSpaceRestRepository;
@@ -50,7 +50,7 @@ public class RestRepositoryUtils {
     private static final String NAME_NOT_FOUND = "Unable to detect parameter names for query method %s! Use @Param or" +
         " compile with -parameters on JDK 8.";
 
-    private static final Logger log = Logger.getLogger(RestRepositoryUtils.class);
+    private static final Logger log = LogManager.getLogger();
 
     @Autowired(required = true)
     @Qualifier(value = "mvcConversionService")
@@ -78,8 +78,8 @@ public class RestRepositoryUtils {
      * @param repository
      * @return the names of the search methods if any. Otherwise an empty list
      */
-    public List<String> listSearchMethods(RestRepository repository) {
-        List<String> searchMethods = new LinkedList<String>();
+    public List<String> listSearchMethods(DSpaceRestRepository repository) {
+        List<String> searchMethods = new LinkedList<>();
         for (Method method : repository.getClass().getMethods()) {
             // We need to use AnnotationUtils because the DSpaceRestRepository is possibly enhanced by a Spring AOP
             // proxy. The regular "method.getAnnotation()" method would then search the proxy instead of the
@@ -104,26 +104,6 @@ public class RestRepositoryUtils {
      * null if it is not found
      */
     public Method getSearchMethod(String searchMethodName, DSpaceRestRepository repository) {
-        return _getSearchMethod(searchMethodName, repository);
-    }
-
-    /**
-     * @param searchMethodName
-     * @param repository
-     * @return the search method in the repository with the specified name or
-     * null if it is not found
-     */
-    public Method getSearchMethod(String searchMethodName, LinkRestRepository repository) {
-        return _getSearchMethod(searchMethodName, repository);
-    }
-
-    /**
-     * @param searchMethodName
-     * @param repository
-     * @return the search method in the repository with the specified name or
-     * null if it is not found
-     */
-    private Method _getSearchMethod(String searchMethodName, Object repository) {
         Method searchMethod = null;
         // DSpaceRestRepository is possibly enhanced with a Spring AOP proxy. Therefor use ClassUtils to determine
         // the underlying implementation class.
@@ -154,10 +134,10 @@ public class RestRepositoryUtils {
      * executeQueryMethod(RepositoryInvoker, MultiValueMap<String, Object>,
      * Method, DefaultedPageable, Sort, PersistentEntityResourceAssembler)
      */
-    public Object executeQueryMethod(RestRepository repository, MultiValueMap<String, Object> parameters,
+    public Object executeQueryMethod(DSpaceRestRepository repository, MultiValueMap<String, Object> parameters,
                                      Method method, Pageable pageable, Sort sort, PagedResourcesAssembler assembler) {
 
-        MultiValueMap<String, Object> result = new LinkedMultiValueMap<String, Object>(parameters);
+        MultiValueMap<String, Object> result = new LinkedMultiValueMap<>(parameters);
         MethodParameters methodParameters = new MethodParameters(method, PARAM_ANNOTATION);
 
         for (MethodParameter parameter : methodParameters.getParameters()) {
@@ -185,7 +165,7 @@ public class RestRepositoryUtils {
      * invokeQueryMethod(Method, MultiValueMap<String, ? extends Object>,
      * Pageable, Sort)
      */
-    public Object invokeQueryMethod(RestRepository repository, Method method,
+    public Object invokeQueryMethod(DSpaceRestRepository repository, Method method,
                                     MultiValueMap<String, ? extends Object> parameters, Pageable pageable, Sort sort) {
 
         Assert.notNull(method, "Method must not be null!");

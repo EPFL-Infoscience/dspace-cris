@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.app.rest.builder.CollectionBuilder;
-import org.dspace.app.rest.builder.CommunityBuilder;
 import org.dspace.app.rest.matcher.WorkflowDefinitionMatcher;
 import org.dspace.app.rest.model.WorkflowDefinitionRest;
 import org.dspace.app.rest.repository.WorkflowDefinitionRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
@@ -41,7 +41,8 @@ import org.junit.Test;
  */
 public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegrationTest {
 
-    private XmlWorkflowFactory xmlWorkflowFactory = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory();
+    private final XmlWorkflowFactory xmlWorkflowFactory
+            = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory();
 
     private static final String WORKFLOW_DEFINITIONS_ENDPOINT
         = "/api/" + WorkflowDefinitionRest.CATEGORY + "/" + WorkflowDefinitionRest.NAME_PLURAL;
@@ -120,8 +121,8 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
         String token = "NonValidToken";
         //When we call this facets endpoint
         getClient(token).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT))
-            //We expect a 403 Forbidden status
-            .andExpect(status().isForbidden());
+            //We expect a 401 Unauthorized status
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -158,6 +159,7 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
         for (Workflow workflow : allConfiguredWorkflows) {
             if (!workflow.getID().equalsIgnoreCase(defaultWorkflow.getID())) {
                 firstNonDefaultWorkflowName = workflow.getID();
+                break;
             }
         }
         if (StringUtils.isNotBlank(firstNonDefaultWorkflowName)) {
@@ -191,8 +193,8 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
         String workflowName = defaultWorkflow.getID();
         //When we call this facets endpoint
         getClient(token).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/" + workflowName))
-            //We expect a 403 Forbidden status
-            .andExpect(status().isForbidden());
+            //We expect a 401 Unauthorized status
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -240,7 +242,7 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
         getClient(token).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/search/findByCollection?uuid=" + nonValidUUID))
             //We expect a 400 Illegal Argument Exception (Bad Request) cannot convert UUID
             .andExpect(status().isBadRequest())
-            .andExpect(status().reason(containsString("Failed to convert " + nonValidUUID)));
+            .andExpect(status().reason(containsString("A required parameter is invalid")));
     }
 
     @Test
@@ -337,18 +339,21 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
             .build();
         context.restoreAuthSystemState();
 
+        // XXX xmlWorkflowFactory.getWorkflowByName(String) might be safer than
+        // assuming that the first non-default workflow is the one designed for this test.
         Workflow defaultWorkflow = xmlWorkflowFactory.getDefaultWorkflow();
         List<Workflow> allConfiguredWorkflows = xmlWorkflowFactory.getAllConfiguredWorkflows();
         String firstNonDefaultWorkflowName = "";
         for (Workflow workflow : allConfiguredWorkflows) {
             if (!workflow.getID().equalsIgnoreCase(defaultWorkflow.getID())) {
                 firstNonDefaultWorkflowName = workflow.getID();
+                break;
             }
         }
 
         if (StringUtils.isNotBlank(firstNonDefaultWorkflowName)) {
             List<Collection> mappedCollections
-                = xmlWorkflowFactory.getCollectionHandlesMappedToWorklow(context, firstNonDefaultWorkflowName);
+                = xmlWorkflowFactory.getCollectionHandlesMappedToWorkflow(context, firstNonDefaultWorkflowName);
             //When we call this facets endpoint
             if (mappedCollections.size() > 0) {
                 //returns array of collection jsons that are mapped to given workflow
@@ -372,7 +377,7 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
                     )));
             } else {
                 //no collections mapped to this workflow
-                getClient().perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/"
+                getClient(token).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/"
                     + firstNonDefaultWorkflowName + "/collections"))
                     //We expect a 200 OK status
                     .andExpect(status().isOk())
@@ -401,8 +406,8 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
         //When we call this facets endpoint
         getClient(token).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/" + defaultWorkflow.getID()
             + "/collections"))
-            //We expect a 403 Forbidden status
-            .andExpect(status().isForbidden());
+            //We expect a 401 Unauthorized status
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -440,8 +445,8 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
         //When we call this facets endpoint
         getClient(token).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/" + defaultWorkflow.getID()
             + "/steps"))
-            //We expect a 403 Forbidden status
-            .andExpect(status().isForbidden());
+            //We expect a 401 Unauthorized status
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -455,4 +460,89 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
             //We expect a 401 Unauthorized
             .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    public void getCollectionsByWorkflowTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community").build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withWorkflow("scoreReview")
+                                           .withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withWorkflow("selectSingleReviewer")
+                                           .withName("Collection 2").build();
+        Collection col3 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withWorkflow("scoreReview")
+                                           .withName("Collection 3").build();
+        Collection col4 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/workflow-test-1")
+                                           .withName("Collection 4").build();
+        Collection col5 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 5").build();
+        context.restoreAuthSystemState();
+
+        String tokenEPerson = getAuthToken(eperson.getEmail(), password);
+
+        getClient(tokenEPerson).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/scoreReview/collections"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
+                    WorkflowDefinitionMatcher.matchCollectionEntry(col1.getName(), col1.getID(), col1.getHandle()),
+                    WorkflowDefinitionMatcher.matchCollectionEntry(col3.getName(), col3.getID(), col3.getHandle())
+                    )))
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        getClient(tokenEPerson).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/selectSingleReviewer/collections"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.collections", Matchers.containsInAnyOrder(
+                    WorkflowDefinitionMatcher.matchCollectionEntry(col2.getName(), col2.getID(), col2.getHandle()),
+                    WorkflowDefinitionMatcher.matchCollectionEntry(col4.getName(), col4.getID(), col4.getHandle())
+                    )))
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        getClient(tokenEPerson).perform(get(WORKFLOW_DEFINITIONS_ENDPOINT + "/defaultWorkflow/collections"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.collections", Matchers.contains(
+                    WorkflowDefinitionMatcher.matchCollectionEntry(col5.getName(), col5.getID(), col5.getHandle())
+                    )))
+                .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void getWorkflowByCollectionTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community").build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withWorkflow("scoreReview")
+                                           .withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/workflow-test-1")
+                                           .withName("Collection 2").build();
+        Collection col3 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 3").build();
+        context.restoreAuthSystemState();
+
+        String tokenEPerson = getAuthToken(eperson.getEmail(), password);
+
+        getClient(tokenEPerson).perform(get("/api/config/workflowdefinitions/search/findByCollection")
+                               .param("uuid", col1.getID().toString()))
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$.name", is("scoreReview")))
+                               .andExpect(jsonPath("$.isDefault", is(false)))
+                               .andExpect(jsonPath("$.type", is("workflowdefinition")));
+
+        getClient(tokenEPerson).perform(get("/api/config/workflowdefinitions/search/findByCollection")
+                               .param("uuid", col2.getID().toString()))
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$.name", is("selectSingleReviewer")))
+                               .andExpect(jsonPath("$.isDefault", is(false)))
+                               .andExpect(jsonPath("$.type", is("workflowdefinition")));
+
+        getClient(tokenEPerson).perform(get("/api/config/workflowdefinitions/search/findByCollection")
+                               .param("uuid", col3.getID().toString()))
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$.name", is("defaultWorkflow")))
+                               .andExpect(jsonPath("$.isDefault", is(true)))
+                               .andExpect(jsonPath("$.type", is("workflowdefinition")));
+    }
+
 }

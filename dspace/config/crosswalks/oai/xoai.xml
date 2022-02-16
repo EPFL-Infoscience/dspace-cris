@@ -30,7 +30,6 @@
             <Format ref="marc"/>
             <Format ref="uketd_dc"/>
             <!--<Format ref="junii2" />-->
-            <Format ref="oai_cerif"/>
             <Description>
                 This is the default context of the DSpace OAI-PMH data provider.
             </Description>
@@ -96,6 +95,7 @@
             <!-- OpenAIRE filter -->
             <Filter ref="openAIRE4Filter"/>
             <!-- Metadata Formats -->
+            <Format ref="oaidc"/>
             <Format ref="oaiopenaire"/>
             <Description>
                 This contexts complies with OpenAIRE Guidelines for Literature Repositories v4.0.
@@ -118,9 +118,24 @@
             <Set ref="openaireEquipmentsCrisSet"/>
             <Set ref="openaireFundingCrisSet"/>
             <!-- Metadata Formats -->
+            <Format ref="oaidc"/>
             <Format ref="oai_cerif"/>
             <Description>
                 This contexts complies with OpenAIRE rules for CRIS system v 1.1.1
+            </Description>
+        </Context>
+
+        <Context baseurl="openairedata" name="OpenAIRE Data Repository Context">
+            <!-- OpenAIRE DataArchive filter -->
+            <Filter ref="openaireDataFilter"/>
+            <!-- Just an alias, in fact it returns all items within the driver context -->
+            <Set ref="openaireDataSet"/>
+            <!-- Metadata Formats -->
+            <Format ref="oaidc"/>
+            <!-- set the reference at the new format called datacite41_openaire -->
+            <Format ref="datacite41_openaire"/>
+            <Description>
+                This contexts complies with Data Archive OpenAIRE rules.
             </Description>
         </Context>
 
@@ -224,6 +239,13 @@
             <XSLT>metadataFormats/oai_cerif.xsl</XSLT>
             <Namespace>https://www.openaire.eu/cerif-profile/1.1/</Namespace>
             <SchemaLocation>https://www.openaire.eu/schema/cris/1.1/openaire-cerif-profile.xsd</SchemaLocation>
+        </Format>
+        <!-- set the format that use the new XSL file called datacite41-openaire -->
+        <Format id="datacite41_openaire">
+            <Prefix>oai_datacite</Prefix>
+            <XSLT>metadataFormats/datacite41-openaire.xsl</XSLT>
+            <Namespace>http://schema.datacite.org/oai/oai-1.1/</Namespace>
+            <SchemaLocation>http://schema.datacite.org/oai/oai-1.1/oai.xsd</SchemaLocation>
         </Format>
     </Formats>
 
@@ -375,8 +397,50 @@
                 		</And>
 					</LeftCondition>
                 	<RightCondition>
-                		<Custom ref="dspaceItemCondition" />
+                		<Custom ref="dataArchiveTypeCondition" />
                 	</RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+
+        <!-- create a new filter for the openairedata Context -->
+        <Filter id="openaireDataFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <And>
+                            <LeftCondition>
+                                <And>
+                                    <LeftCondition>
+                                        <Custom ref="titleExistsCondition"/>
+                                    </LeftCondition>
+                                    <RightCondition>
+                                        <Custom ref="authorExistsCondition"/>
+                                    </RightCondition>
+                                </And>
+                            </LeftCondition>
+                            <RightCondition>
+                                <And>
+                                    <LeftCondition>
+                                        <Custom ref="identifierExistsCondition"/>
+                                    </LeftCondition>
+                                    <RightCondition>
+                                        <And>
+                                            <LeftCondition>
+                                                <Custom ref="dateExistsCondition"/> 
+                                            </LeftCondition>
+                                            <RightCondition>
+                                                <Custom ref="publisherExistsCondition"/>
+                                            </RightCondition>
+                                        </And>
+                                    </RightCondition>
+                                </And>
+                            </RightCondition>
+                        </And>
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="dataArchiveTypeCondition" />
+                    </RightCondition>
                 </And>
             </Definition>
         </Filter>
@@ -398,8 +462,8 @@
              By default, return an Item record:
                 * If it is publicly accessible
                 * * OR it has been withdrawn (in order to display a tombstone record).
-                * AND doesn't have a relationship.type field
-                * * OR the relationship.type is a Publication
+                * AND doesn't have a dspace.entity.type field
+                * * OR the dspace.entity.type is a Publication
                 * limiting the results only to Publications as expected
              This filter is used by the default context ([oai]/request).
         -->
@@ -438,8 +502,8 @@
              By default, return an Item record:
                 * If it is publicly accessible
                 * * OR it has been withdrawn (in order to display a tombstone record).
-                * AND doesn't have a relationship.type field
-                * * OR the relationship.type is a Publication
+                * AND doesn't have a dspace.entity.type field
+                * * OR the dspace.entity.type is a Publication
                 * limiting the results only to Publications as expected
              This filter is used by the default context ([oai]/request).
         -->
@@ -565,17 +629,20 @@
         <!-- This condition determines if an OAI document is of one of the types
         	 required by OpenAIRE for CRIS System. -->
         <CustomCondition id="crisObjectTypeCondition">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
                 <list name="values">
-                    <string>item</string>
-                    <string>project</string>
-                    <string>rp</string>
-                    <string>ou</string>
-                    <string>journals</string>
-                    <string>events</string>
-                    <string>equipment</string>
+                    <string>Publication</string>
+                    <string>Project</string>
+                    <string>Funding</string>
+                    <string>Product</string>
+                    <string>Patent</string>
+                    <string>Person</string>
+                    <string>OrgUnit</string>
+                    <string>Event</string>
+                    <string>Equipment</string>
                 </list>
             </Configuration>
         </CustomCondition>
@@ -619,20 +686,20 @@
             </Configuration>
         </CustomCondition>
 
-        <!-- This condition determines if an Item has a "relationship.type" -->
+        <!-- This condition determines if an Item has a "dspace.entity.type" -->
         <CustomCondition id="relationshipTypeExistsCondition">
             <Class>org.dspace.xoai.filter.DSpaceMetadataExistsFilter</Class>
             <Configuration>
-                <string name="field">relationship.type</string>
+                <string name="field">dspace.entity.type</string>
             </Configuration>
         </CustomCondition>
 
-        <!-- This condition determines if an Item has a "relationship.type" field
+        <!-- This condition determines if an Item has a "dspace.entity.type" field
              specifying one of the valid DRIVER document types. -->
         <CustomCondition id="isPublicationEntityCondition">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">relationship.type</string>
+                <string name="field">dspace.entity.type</string>
                 <string name="operator">equal</string>
                 <list name="values">
                     <string>Publication</string>
@@ -659,74 +726,96 @@
         <CustomCondition id="publicationSetFilter">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">relationship.type</string>
+                <string name="field">dspace.entity.type</string>
                 <string name="operator">equal</string>
-				<string name="value">Publications</string>
+				<string name="value">Publication</string>
 			</Configuration>
         </CustomCondition>
         <CustomCondition id="productSetFilter">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">relationship.type</string>
+                <string name="field">dspace.entity.type</string>
                 <string name="operator">equal</string>
-				<string name="value">Products</string>
+				<string name="value">Product</string>
             </Configuration>
         </CustomCondition>
         <CustomCondition id="patentSetFilter">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">relationship.type</string>
+                <string name="field">dspace.entity.type</string>
                 <string name="operator">equal</string>
-				<string name="value">Patents</string>
+				<string name="value">Patent</string>
             </Configuration>
         </CustomCondition>
         <CustomCondition id="researcherSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
-                <string name="value">rp</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>Person</string>
+                </list>
             </Configuration>
         </CustomCondition>
         <CustomCondition id="orgUnitSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
-                <string name="value">ou</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>OrgUnit</string>
+                </list>
             </Configuration>
         </CustomCondition>
+
         <CustomCondition id="projectSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
-                <string name="value">project</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>Project</string>
+                </list>
             </Configuration>
 		</CustomCondition>
         <CustomCondition id="journalSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
-                <string name="value">journals</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>Journal</string>
+                </list>
             </Configuration>
 		</CustomCondition>
         <CustomCondition id="eventSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
-                <string name="value">events</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>Event</string>
+                </list>
             </Configuration>
 		</CustomCondition>
         <CustomCondition id="equipmentSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
-                <string name="value">equipment</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>Equipment</string>
+                </list>
             </Configuration>
 		</CustomCondition>
         <CustomCondition id="fundingSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-            	<string name="relationShipType">relationship.type</string>
-                <string name="value">funding</string>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>Funding</string>
+                </list>
             </Configuration>
 		</CustomCondition>
         <!-- NOTE to use the flat metadata comment in the previous and use the follow  configuration -->
@@ -739,6 +828,22 @@
                 <string name="value">info:eu-repo/grantAgreement/</string>
             </Configuration>
         </CustomCondition> -->
+
+        <!-- This condition determines if an OAI document is of one of the types
+             required by OpenAIRE for DataArchive System. -->
+        <CustomCondition id="dataArchiveTypeCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dspace.entity.type</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>Publication</string>
+                    <string>Product</string>
+                    <string>Patent</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+
     </Filters>
 
     <Sets>
@@ -797,6 +902,12 @@
             <Spec>openaire_cris_funding</Spec>
             <Name>OpenAIRE_CRIS_funding</Name>
             <Filter ref="fundingSetFilter" />
+        </Set>
+        <!-- set the OpenAIRE Data Archive OAI Set. See: https://guidelines.openaire.eu/en/latest/data/use_of_oai_pmh.html -->
+        <Set id="openaireDataSet">
+            <Spec>openaire_data</Spec>
+            <Name>OpenAIRE</Name>
+            <!-- Just an alias or set a filter condition to expose only specific kind of items (dataset) -->
         </Set>
     </Sets>
 </Configuration>

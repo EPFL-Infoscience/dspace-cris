@@ -28,7 +28,7 @@ import org.dspace.app.rest.RestResourceController;
 public class EPersonRest extends DSpaceObjectRest {
     public static final String NAME = "eperson";
     public static final String CATEGORY = RestAddressableModel.EPERSON;
-
+    public static final String PLURAL_NAME = "epersons";
     public static final String GROUPS = "groups";
 
     private String netid;
@@ -41,7 +41,7 @@ public class EPersonRest extends DSpaceObjectRest {
 
     private boolean requireCertificate = false;
 
-    private boolean selfRegistered = false;
+    private Boolean selfRegistered;
 
     @JsonProperty(access = Access.WRITE_ONLY)
     private String password;
@@ -92,11 +92,11 @@ public class EPersonRest extends DSpaceObjectRest {
         this.requireCertificate = requireCertificate;
     }
 
-    public boolean isSelfRegistered() {
+    public Boolean isSelfRegistered() {
         return selfRegistered;
     }
 
-    public void setSelfRegistered(boolean selfRegistered) {
+    public void setSelfRegistered(Boolean selfRegistered) {
         this.selfRegistered = selfRegistered;
     }
 

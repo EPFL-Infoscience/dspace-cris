@@ -77,6 +77,7 @@ public class Version implements ReloadableEntity<Integer> {
 
     }
 
+    @Override
     public Integer getID() {
         return id;
     }
@@ -135,12 +136,12 @@ public class Version implements ReloadableEntity<Integer> {
             return true;
         }
         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(o);
-        if (getClass() != objClass) {
+        if (!getClass().equals(objClass)) {
             return false;
         }
 
         final Version that = (Version) o;
-        if (this.getID() != that.getID()) {
+        if (!this.getID().equals(that.getID())) {
             return false;
         }
 

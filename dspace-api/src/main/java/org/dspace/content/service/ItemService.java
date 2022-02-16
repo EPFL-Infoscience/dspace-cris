@@ -43,9 +43,8 @@ public interface ItemService
     public Thumbnail getThumbnail(Context context, Item item, boolean requireOriginal) throws SQLException;
 
     /**
-     * Create a new item, with a new internal ID. This method is not public,
-     * since items need to be created as workspace items. Authorisation is the
-     * responsibility of the caller.
+     * Create a new item, with a new internal ID. Authorization is done
+     * inside of this method.
      *
      * @param context       DSpace context object
      * @param workspaceItem in progress workspace item
@@ -54,6 +53,19 @@ public interface ItemService
      * @throws AuthorizeException if authorization error
      */
     public Item create(Context context, WorkspaceItem workspaceItem) throws SQLException, AuthorizeException;
+
+    /**
+     * Create a new item, with a provided ID. Authorisation is done
+     * inside of this method.
+     *
+     * @param context DSpace context object
+     * @param workspaceItem in progress workspace item
+     * @param uuid the pre-determined UUID to assign to the new item
+     * @return the newly created item
+     * @throws SQLException if database error
+     * @throws AuthorizeException if authorization error
+     */
+    public Item create(Context context, WorkspaceItem workspaceItem, UUID uuid) throws SQLException, AuthorizeException;
 
     /**
      * Create an empty template item for this collection. If one already exists,
@@ -112,6 +124,21 @@ public interface ItemService
      */
     public Iterator<Item> findBySubmitter(Context context, EPerson eperson)
         throws SQLException;
+
+    /**
+     * Find all the items by a given submitter. The order is
+     * indeterminate. All items are included.
+     *
+     * @param context DSpace context object
+     * @param eperson the submitter
+     * @param retrieveAllItems flag to determine if all items should be returned or only archived items.
+     *                         If true, all items (regardless of status) are returned.
+     *                         If false, only archived items will be returned.
+     * @return an iterator over the items submitted by eperson
+     * @throws SQLException if database error
+     */
+    public Iterator<Item> findBySubmitter(Context context, EPerson eperson, boolean retrieveAllItems)
+            throws SQLException;
 
     /**
      * Retrieve the list of items submitted by eperson, ordered by recently submitted, optionally limitable
@@ -445,10 +472,40 @@ public interface ItemService
     public void inheritCollectionDefaultPolicies(Context context, Item item, Collection collection)
         throws java.sql.SQLException, AuthorizeException;
 
+    /**
+     * Adjust the Bundle and Bitstream policies to reflect what have been defined
+     * during the submission/workflow. The temporary SUBMISSION and WORKFLOW
+     * policies are removed and the policies defined at the item and collection
+     * level are copied and inherited as appropriate. Custom selected Item policies
+     * are copied to the bundle/bitstream only if no explicit custom policies were
+     * already applied to the bundle/bitstream. Collection's policies are inherited
+     * if there are no other policies defined or if the append mode is defined by
+     * the configuration via the core.authorization.installitem.inheritance-read.append-mode property
+     * 
+     * @param context             DSpace context object
+     * @param item                Item to adjust policies on
+     * @param collection          Collection
+     * @throws SQLException       If database error
+     * @throws AuthorizeException If authorization error
+     */
     public void adjustBundleBitstreamPolicies(Context context, Item item, Collection collection)
         throws SQLException, AuthorizeException;
 
 
+    /**
+     * Adjust the Item's policies to reflect what have been defined during the
+     * submission/workflow. The temporary SUBMISSION and WORKFLOW policies are
+     * removed and the default policies defined at the collection level are
+     * inherited as appropriate. Collection's policies are inherited if there are no
+     * other policies defined or if the append mode is defined by the configuration
+     * via the core.authorization.installitem.inheritance-read.append-mode property
+     * 
+     * @param context              DSpace context object
+     * @param item                 Item to adjust policies on
+     * @param collection           Collection
+     * @throws SQLException        If database error
+     * @throws AuthorizeException  If authorization error
+     */
     public void adjustItemPolicies(Context context, Item item, Collection collection)
         throws SQLException, AuthorizeException;
 
@@ -523,7 +580,7 @@ public interface ItemService
     public boolean canCreateNewVersion(Context context, Item item) throws SQLException;
 
     /**
-     * Returns an iterator of Items possessing the passed metadata field, or only
+     * Returns an iterator of in archive items possessing the passed metadata field, or only
      * those matching the passed value, if value is not Item.ANY
      *
      * @param context   DSpace context object
@@ -534,16 +591,31 @@ public interface ItemService
      * @return an iterator over the items matching that authority value
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
-     * @throws IOException        if IO error
      */
-    public Iterator<Item> findByMetadataField(Context context,
-                                              String schema, String element, String qualifier, String value)
-        throws SQLException, AuthorizeException, IOException;
+    public Iterator<Item> findArchivedByMetadataField(Context context, String schema, String element,
+        String qualifier, String value) throws SQLException, AuthorizeException;
+
+    /**
+     * Returns an iterator of in archive items possessing the passed metadata field, or only
+     * those matching the passed value, if value is not Item.ANY
+     *
+     * @param context   DSpace context object
+     * @param metadataField    metadata
+     * @param value     field value or Item.ANY to match any value
+     * @return an iterator over the items matching that authority value
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
+     */
+    public Iterator<Item> findArchivedByMetadataField(Context context, String metadataField, String value)
+        throws SQLException, AuthorizeException;
+
+    public Iterator<Item> findUnfilteredByMetadataField(Context context, String schema, String element,
+        String qualifier, String value) throws SQLException, AuthorizeException;
 
     public Iterator<Item> findByMetadataQuery(Context context, List<List<MetadataField>> listFieldList,
                                               List<String> query_op, List<String> query_val, List<UUID> collectionUuids,
                                               String regexClause, int offset, int limit)
-        throws SQLException, AuthorizeException, IOException;
+        throws SQLException, AuthorizeException;
 
     /**
      * Find all the items in the archive with a given authority key value
@@ -557,11 +629,10 @@ public interface ItemService
      * @return an iterator over the items matching that authority value
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
-     * @throws IOException        if IO error
      */
     public Iterator<Item> findByAuthorityValue(Context context,
                                                String schema, String element, String qualifier, String value)
-        throws SQLException, AuthorizeException, IOException;
+        throws SQLException, AuthorizeException;
 
 
     public Iterator<Item> findByMetadataFieldAuthority(Context context, String mdString, String authority)
@@ -726,5 +797,37 @@ public interface ItemService
     public List<MetadataValue> getMetadata(Item item, String schema, String element, String qualifier,
                                            String lang, boolean enableVirtualMetadata);
 
+    /**
+     * Returns the item's entity type, if any.
+     *
+     * @param  item    the item
+     * @return         the entity type as string, if any
+     */
+    public String getEntityType(Item item);
+
+    /**
+     * Find all the items in the archive or not with a given authority key value in LIKE format.
+     * 
+     * @param context         DSpace context object
+     * @param likeAuthority   value that will be used with operator LIKE on field
+     *                        authority, it's possible to enter '%' to improve
+     *                        searching
+     * @param inArchive       true for archived items, null for all items (archived and not)
+     * @return
+     * @throws SQLException   if database error
+     */
+    public Iterator<Item> findByLikeAuthorityValue(Context context, String likeAuthority,
+            Boolean inArchive) throws SQLException;
+
+    /**
+     * Find all the items matching the given list of ids.
+     *
+     * @param context         DSpace context object
+     * @param ids             ids list that will be used with operator IN on field uuid
+     *
+     * @return
+     * @throws SQLException   if database error
+     */
+    Iterator<Item> findByIds(Context context, List<String> ids) throws SQLException;
 
 }

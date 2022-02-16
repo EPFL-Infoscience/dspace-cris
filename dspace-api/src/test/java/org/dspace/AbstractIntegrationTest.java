@@ -12,9 +12,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
+import org.dspace.discovery.MockSolrSearchCore;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
@@ -77,6 +80,10 @@ public class AbstractIntegrationTest extends AbstractUnitTest {
     public void destroy() {
         super.destroy();
         cleanExtraConfigurations();
+        // Clear the search core.
+        MockSolrSearchCore searchService = DSpaceServicesFactory.getInstance().getServiceManager()
+                                            .getServiceByName(null, MockSolrSearchCore.class);
+        searchService.reset();
     }
 
     /**
@@ -118,7 +125,8 @@ public class AbstractIntegrationTest extends AbstractUnitTest {
      */
     protected void appendToLocalConfiguration(String textToAppend) {
         String extraConfPath = getLocalConfigurationFilePath();
-        try (Writer output = new BufferedWriter(new FileWriter(extraConfPath, true))) {
+        try (Writer output = new BufferedWriter(
+                new FileWriter(extraConfPath, StandardCharsets.UTF_8, true))) {
             output.append("\n");
             output.append(textToAppend);
             output.flush();

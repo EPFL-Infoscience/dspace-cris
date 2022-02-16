@@ -7,10 +7,12 @@
  */
 package org.dspace.versioning;
 
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Giuseppe Digilio (giuseppe.digilio at 4science.it)
  */
+//FIXME be sure AbstractVersionProvider is not implementing ItemVersionProvider
 public class ItemCorrectionProvider extends AbstractVersionProvider {
 
     Logger log = org.apache.logging.log4j.LogManager.getLogger(ItemCorrectionProvider.class);
@@ -64,10 +67,16 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
     public XmlWorkflowItem updateNativeItemWithCorrection(Context context, XmlWorkflowItem workflowItem,
             Item correctionItem, Item nativeItem) throws AuthorizeException, IOException, SQLException {
 
+        // save entity type
+        MetadataValue entityType = itemService.getMetadata(nativeItem, "dspace", "entity", "type", Item.ANY).get(0);
         // clear all metadata entries from native item
         itemService.clearMetadata(context, nativeItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         // copy metadata from corrected item to native item
         copyMetadata(context, nativeItem, correctionItem);
+        // restore entity type
+        itemService.addMetadata(context, nativeItem, entityType.getMetadataField(), entityType.getLanguage(),
+                entityType.getValue(), entityType.getAuthority(), entityType.getConfidence());
+
         context.turnOffAuthorisationSystem();
         // copy bundles and bitstreams of native item
         updateBundlesAndBitstreams(context, correctionItem, nativeItem);
@@ -76,6 +85,12 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
 
         workflowItem.setItem(nativeItem);
         workflowItemService.update(context, workflowItem);
+
+        WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, correctionItem);
+        if (workspaceItem != null) {
+            workspaceItemService.deleteWrapper(context, workspaceItem);
+        }
+
         itemService.delete(context, correctionItem);
         log.info("Deleted correction item " + correctionItem.getID().toString());
 
@@ -91,8 +106,15 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
             throws SQLException, AuthorizeException, IOException {
 
         // Update only default bundle
-        Bundle nativeDefaultBundle = nativeItem.getBundles(Constants.DEFAULT_BUNDLE_NAME).get(0);
-        Bundle correctedDefaultBundle = itemNew.getBundles(Constants.DEFAULT_BUNDLE_NAME).get(0);;
+        List<Bundle> nativeBundles = nativeItem.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+        Bundle nativeDefaultBundle = CollectionUtils.isNotEmpty(nativeBundles) ? nativeBundles.get(0) : null;
+
+        List<Bundle> correctedBundles = itemNew.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+        Bundle correctedDefaultBundle = CollectionUtils.isNotEmpty(correctedBundles) ? correctedBundles.get(0) : null;
+
+        if (correctedDefaultBundle == null || nativeDefaultBundle == null) {
+            return;
+        }
 
         List<Bitstream> nativeBitstreams = nativeDefaultBundle.getBitstreams();
         for (Bitstream bitstreamCorrected : correctedDefaultBundle.getBitstreams()) {

@@ -10,8 +10,10 @@ package org.dspace.app.rest.model.hateoas;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dspace.app.rest.utils.URLUtils;
+import org.dspace.app.rest.utils.Utils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -61,7 +63,7 @@ public class EmbeddedPageHeader {
      * Build the "_links" element with all valid pagination links (first, next, prev, last)
      * @return Map that will be used to build the JSON of the "_links" element
      */
-    @JsonProperty(value = "_links")
+    @JsonIgnore
     public Map<String, Object> getLinks() {
         Map<String, Object> links = new HashMap<>();
         if (!page.isFirst()) {
@@ -102,9 +104,11 @@ public class EmbeddedPageHeader {
         if (page != null) {
             // replace existing page & size params (if exist), otherwise append them
             uriComp = uriComp.replaceQueryParam("page", page);
+        }
+        if (size != Utils.DEFAULT_PAGE_SIZE) {
             uriComp = uriComp.replaceQueryParam("size", size);
         }
-        return new Href(uriComp.build().toUriString());
+        return new Href(uriComp.build().toUriString().replaceAll("(%(25)+20)", "%20"));
     }
 
     /**
@@ -121,6 +125,16 @@ public class EmbeddedPageHeader {
         }
 
         public String getHref() {
+            return href;
+        }
+
+        /*
+         * FIXME This is currently required by
+         * org.dspace.app.rest.model.hateoas.HALResource#setPageHeader(EmbeddedPageHeader)
+         * that must add the links manually otherwise additional links will go in a
+         * separate json property
+         */
+        public String toString() {
             return href;
         }
     }

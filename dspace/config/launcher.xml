@@ -55,13 +55,6 @@
         </step>
     </command>
     <command>
-        <name>curate</name>
-        <description>Perform curation tasks on DSpace objects</description>
-        <step>
-            <class>org.dspace.curate.CurationCli</class>
-        </step>
-    </command>
-    <command>
         <name>database</name>
         <description>Perform database tasks like test database connection, migrate/repair database, remove database</description>
         <step>
@@ -101,13 +94,6 @@
         <description>Export items or collections</description>
         <step>
             <class>org.dspace.app.itemexport.ItemExportCLITool</class>
-        </step>
-    </command>
-    <command>
-        <name>filter-media</name>
-        <description>Perform the media filtering to extract full text from documents and to create thumbnails</description>
-        <step>
-            <class>org.dspace.app.mediafilter.MediaFilterCLITool</class>
         </step>
     </command>
     <command>
@@ -160,20 +146,6 @@
         </step>
     </command>
     <command>
-        <name>metadata-export</name>
-        <description>Export metadata for batch editing</description>
-        <step>
-            <class>org.dspace.app.bulkedit.MetadataExport</class>
-        </step>
-    </command>
-    <command>
-        <name>metadata-import</name>
-        <description>Import metadata after batch editing</description>
-        <step>
-            <class>org.dspace.app.bulkedit.MetadataImport</class>
-        </step>
-    </command>
-    <command>
         <name>migrate-embargo</name>
         <description>Embargo manager tool used to migrate old version of Embargo to the new one included in dspace3</description>
         <step>
@@ -213,6 +185,13 @@
         <description>Load entries into a registry</description>
         <step>
             <class>org.dspace.administer.RegistryLoader</class>
+        </step>
+    </command>
+    <command>
+        <name>retry-tracker</name>
+        <description>Retry all failed commits to the OpenURLTracker</description>
+        <step>
+            <class>org.dspace.statistics.export.RetryFailedOpenUrlTracker</class>
         </step>
     </command>
     <command>
@@ -378,6 +357,27 @@
         <description>Initialize the entities with a provided xml</description>
         <step>
             <class>org.dspace.app.util.InitializeEntities</class>
+        </step>
+    </command>
+        <command>
+        <name>initialize-only-entity-types</name>
+        <description>Initialize only the entity types as needed by DSpace-CRIS</description>
+        <step>
+            <class>org.dspace.app.util.InitializeEntityTypesOnly</class>
+        </step>
+    </command>
+    <command>
+        <name>anonymize-statistics</name>
+        <description>Anonymize the ip values of the solr statistics</description>
+        <step>
+            <class>org.dspace.statistics.AnonymizeStatistics</class>
+        </step>
+    </command>
+    <command>
+        <name>iiif-canvas-dimensions</name>
+        <description>Automatically add the IIIF canvas width/height metadata to Bitstreams of IIIF enabled Items.</description>
+        <step>
+            <class>org.dspace.iiif.canvasdimension.CanvasDimensionCLI</class>
         </step>
     </command>
 </commands>

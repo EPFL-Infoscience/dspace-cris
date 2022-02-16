@@ -4,30 +4,72 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-	<bean id="lookupListener" class="org.dspace.submit.listener.MetadataListener">
-		<property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
-        <property name="metadata">
+	<bean id="org.dspace.submit.listener.MetadataListener" class="org.dspace.submit.listener.SimpleMetadataListener">
+        <property name="externalDataProvidersMap">
 	        <map>
-                <entry key="dc.identifier.doi" value="doi"/>
-                <entry key="dc.identifier.isi" value="isiid"/>
-                <entry key="dc.identifier.pmid" value="pubmed"/>
-                <entry key="dc.identifier.adsbibcode" value="adsbibcode"/>
-                <entry key="dc.identifier.arxiv" value="arxiv"/>
-            </map>
+                <entry key="dc.identifier.pmid">
+                    <list>
+                        <ref bean="pubmedLiveImportDataProvider"/>
+                    </list>
+                </entry>
+                <entry key="dc.identifier.scopus">
+                    <list>
+                        <ref bean="scopusLiveImportDataProvider"/>
+                    </list>
+                </entry>
+                <entry key="dc.identifier.arxiv">
+                    <list>
+                        <ref bean="arxivLiveImportDataProvider"/>
+                    </list>
+                </entry>
+                <entry key="dc.identifier.doi">
+                    <list>
+                        <ref bean="crossRefLiveImportDataProvider"/>
+                    </list>
+                </entry>
+                <entry key="dc.identifier.adsbibcode">
+                    <list>
+                        <ref bean="adsLiveImportDataProvider" />
+                    </list>
+                </entry>
+                <entry key="dc.identifier.isi">
+                    <list>
+                        <ref bean="wosLiveImportDataProvider" />
+                    </list>
+                </entry>
+                <entry key="dc.identifier.patentno">
+                    <list>
+                        <ref bean="epoLiveImportDataProvider" />
+                    </list>
+                </entry>
+                <entry key="dc.identifier.applicationnumber">
+                    <list>
+                        <ref bean="epoLiveImportDataProvider" />
+                    </list>
+                </entry>
+                <entry key="dcterms.dateSubmitted">
+                    <list>
+                        <ref bean="epoLiveImportDataProvider" />
+                    </list>
+                </entry>
+	        </map>           
         </property>
-        <property name="dataloadersMap">
-	        <map>
-                <entry key="pubmed" value-ref="pubmedOnlineDataLoader"/>
-                <entry key="adsbibcode" value-ref="adsOnlineDataLoader"/>
-	            <entry key="crossref" value-ref="crossRefOnlineDataLoader"/>
-	            <entry key="arxiv" value-ref="arXivOnlineDataLoader"/>
-	            <entry key="cinii" value-ref="ciniiOnlineDataLoader"/>
- 	            <entry key="wos" value-ref="wosOnlineDataLoader"/>
-	            <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
-	            <entry key="scival" value-ref="scivalOnlineDataLoader"/>
-	            <entry key="pubmedEurope" value-ref="pubmedEuropeOnlineDataLoader"/>
-	        </map>
-	    </property>
+		<property name="generators">
+			<list>
+				<ref bean="org.dspace.submit.listener.EpoGeneratorExternalId" />
+				<ref bean="org.dspace.submit.listener.DefaultGeneratorExternalId" />
+				<!-- the order of the beans is significant, the last one must be DefaultGeneratorExternalId -->
+			</list>
+		</property>
     </bean>
-
+    
+    <bean id="org.dspace.submit.listener.EpoGeneratorExternalId" class="org.dspace.submit.listener.EpoGeneratorExternalId" />
+	<bean id="org.dspace.submit.listener.DefaultGeneratorExternalId" class="org.dspace.submit.listener.DefaultGeneratorExternalId">
+	    <property name="metadata2regex">
+            <map>
+                <entry key="dc.identifier.pmid" value="^[0-9]*$" />
+                <entry key="dc.identifier.doi" value="10.\d{4,9}/[-._;()/:A-Z0-9]+|10.1002/[^\s]+|10.\d{4}/\d+-\d+X?(\d+)\d+[\d\w]+:[\d\w]*>\d+.\d+.\w+;\d|10.1021/\w\w\d++|10.1207/[\w\d]+\d+_\d+" />
+            </map>           
+        </property>
+	</bean>
  </beans>

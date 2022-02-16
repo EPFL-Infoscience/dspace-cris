@@ -20,11 +20,16 @@ import javax.servlet.http.HttpServletRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.Parameter;
+import org.dspace.app.rest.SearchRestMethod;
+import org.dspace.app.rest.authorization.impl.EditMetadataFeature;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.AuthorizationRest;
 import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.patch.Patch;
@@ -49,6 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -61,11 +67,11 @@ import org.springframework.stereotype.Component;
 @Component(ItemRest.CATEGORY + "." + ItemRest.NAME)
 public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRest> {
 
-    private static final Logger log = Logger.getLogger(ItemRestRepository.class);
+    private static final Logger log = LogManager.getLogger(ItemRestRepository.class);
 
-    private static final String[] COPYVIRTUAL_ALL = {"all"};
-    private static final String[] COPYVIRTUAL_CONFIGURED = {"configured"};
-    private static final String REQUESTPARAMETER_COPYVIRTUALMETADATA = "copyVirtualMetadata";
+    public static final String[] COPYVIRTUAL_ALL = {"all"};
+    public static final String[] COPYVIRTUAL_CONFIGURED = {"configured"};
+    public static final String REQUESTPARAMETER_COPYVIRTUALMETADATA = "copyVirtualMetadata";
 
     @Autowired
     MetadataConverter metadataConverter;
@@ -92,6 +98,9 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     RelationshipTypeService relationshipTypeService;
 
     @Autowired
+    EditMetadataFeature editMetadataFeature;
+
+    @Autowired
     private UriListHandlerService uriListHandlerService;
 
     public ItemRestRepository(ItemService dsoService) {
@@ -99,7 +108,7 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     }
 
     @Override
-    @PreAuthorize("hasPermission(#id, 'ITEM', 'READ')")
+    @PreAuthorize("hasPermission(#id, 'ITEM', 'READ') || hasPermission(#id, 'ITEM', 'STATUS')")
     public ItemRest findOne(Context context, UUID id) {
         Item item = null;
         try {
@@ -120,7 +129,8 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     @PreAuthorize("hasAuthority('ADMIN')")
     public Page<ItemRest> findAll(Context context, Pageable pageable) {
         try {
-            long total = itemService.countTotal(context);
+            // This endpoint only returns archived items
+            long total = itemService.countArchivedItems(context);
             Iterator<Item> it = itemService.findAll(context, pageable.getPageSize(),
                 Math.toIntExact(pageable.getOffset()));
             List<Item> items = new ArrayList<>();
@@ -137,6 +147,10 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     @PreAuthorize("hasPermission(#id, 'ITEM', #patch)")
     protected void patch(Context context, HttpServletRequest request, String apiCategory, String model, UUID id,
                          Patch patch) throws AuthorizeException, SQLException {
+        Item item = itemService.find(context, id);
+        if (!editMetadataFeature.isAuthorized(context, converter.toRest(item, utils.obtainProjection()))) {
+            throw new AccessDeniedException("Current user not authorized for this operation");
+        }
         patchDSpaceObject(apiCategory, model, id, patch);
     }
 
@@ -146,7 +160,7 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasPermission(#id, 'ITEM', 'DELETE')")
     protected void delete(Context context, UUID id) throws AuthorizeException {
         String[] copyVirtual =
             requestService.getCurrentRequest().getServletRequest()
@@ -206,7 +220,14 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
             //           of the item's relationships and copy their data depending on the
             //           configuration.
             for (Relationship relationship : relationshipService.findByItem(context, item)) {
-                relationshipService.delete(obtainContext(), relationship);
+                boolean copyToLeft = relationship.getRelationshipType().isCopyToLeft();
+                boolean copyToRight = relationship.getRelationshipType().isCopyToRight();
+                if (relationship.getLeftItem().getID().equals(item.getID())) {
+                    copyToLeft = false;
+                } else {
+                    copyToRight = false;
+                }
+                relationshipService.forceDelete(obtainContext(), relationship, copyToLeft, copyToRight);
             }
         } else {
             // Option 3: Copy the virtual metadata of selected types of this item to its related items. The copyVirtual
@@ -256,7 +277,7 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
             copyToRight = false;
         }
 
-        relationshipService.delete(obtainContext(), relationshipToDelete, copyToLeft, copyToRight);
+        relationshipService.forceDelete(obtainContext(), relationshipToDelete, copyToLeft, copyToRight);
     }
 
     @Override
@@ -308,7 +329,9 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
         } catch (IOException e1) {
             throw new UnprocessableEntityException("Error parsing request body", e1);
         }
-
+        if (!editMetadataFeature.isAuthorized(context, itemRest)) {
+            throw new AccessDeniedException("Current user not authorized for this operation");
+        }
         Item item = itemService.find(context, uuid);
         if (item == null) {
             throw new ResourceNotFoundException(apiCategory + "." + model + " with id: " + uuid + " not found");
@@ -355,5 +378,19 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
         HttpServletRequest req = getRequestService().getCurrentRequest().getHttpServletRequest();
         Item item = uriListHandlerService.handle(context, req, stringList, Item.class);
         return converter.toRest(item, utils.obtainProjection());
+    }
+
+
+    @SearchRestMethod(name = "findAllById")
+    public Page<AuthorizationRest> findAllById(@Parameter(value = "id", required = true) List<String> ids,
+            Pageable pageable) throws SQLException {
+
+        Context context = obtainContext();
+
+        List<Item> items = new ArrayList<Item>();
+
+        itemService.findByIds(context, ids).forEachRemaining(items::add);
+
+        return converter.toRestPage(items, pageable, items.size(), utils.obtainProjection());
     }
 }

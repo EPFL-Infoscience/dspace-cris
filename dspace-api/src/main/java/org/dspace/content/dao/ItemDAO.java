@@ -47,11 +47,27 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item> {
 
     public Iterator<Item> findBySubmitter(Context context, EPerson eperson) throws SQLException;
 
+    /**
+     * Find all the items by a given submitter. The order is
+     * indeterminate. All items are included.
+     *
+     * @param context DSpace context object
+     * @param eperson the submitter
+     * @param retrieveAllItems flag to determine if only archive should be returned
+     * @return an iterator over the items submitted by eperson
+     * @throws SQLException if database error
+     */
+    public Iterator<Item> findBySubmitter(Context context, EPerson eperson, boolean retrieveAllItems)
+        throws SQLException;
+
     public Iterator<Item> findBySubmitter(Context context, EPerson eperson, MetadataField metadataField, int limit)
         throws SQLException;
 
     public Iterator<Item> findByMetadataField(Context context, MetadataField metadataField, String value,
                                               boolean inArchive) throws SQLException;
+
+    public Iterator<Item> findByMetadataField(Context context, MetadataField metadataField, String value)
+        throws SQLException;
 
     public Iterator<Item> findByMetadataQuery(Context context, List<List<MetadataField>> listFieldList,
                                               List<String> query_op, List<String> query_val, List<UUID> collectionUuids,
@@ -59,6 +75,20 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item> {
 
     public Iterator<Item> findByAuthorityValue(Context context, MetadataField metadataField, String authority,
                                                boolean inArchive) throws SQLException;
+
+    /**
+     * Find all the items in the archive or not with a given authority key value in LIKE format.
+     * 
+     * @param context         DSpace context object
+     * @param likeAuthority   value that will be used with operator LIKE on field
+     *                        authority, it's possible to enter '%' to improve
+     *                        searching
+     * @param inArchive       true for archived items, null for all items (archived and not)
+     * @return
+     * @throws SQLException   if database error
+     */
+    public Iterator<Item> findByLikeAuthorityValue(Context context, String likeAuthority,
+            Boolean inArchive) throws SQLException;
 
     public Iterator<Item> findArchivedByCollection(Context context, Collection collection, Integer limit,
                                                    Integer offset) throws SQLException;
@@ -167,5 +197,15 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item> {
      */
     public int countItems(Context context, EPerson submitter, boolean includeArchived, boolean includeWithdrawn)
         throws SQLException;
+
+    /**
+     * Get all Items matching the given ids.
+     * @param context          context
+     * @param ids              the list of ids
+     * @return result list of items
+     * @throws SQLException
+     */
+    Iterator<Item> findByIds(Context context, List<UUID> ids) throws SQLException;
+
 
 }

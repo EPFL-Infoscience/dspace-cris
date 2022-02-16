@@ -7,6 +7,10 @@
  */
 package org.dspace.discovery.configuration;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,25 +24,7 @@ public class DiscoverySortConfiguration {
 
     public static final String SCORE = "score";
 
-    /** Attributes used for sorting of results **/
-    public enum SORT_ORDER {
-        desc,
-        asc
-    }
-
-    private DiscoverySortFieldConfiguration defaultSort = null;
-
     private List<DiscoverySortFieldConfiguration> sortFields = new ArrayList<DiscoverySortFieldConfiguration>();
-
-    private SORT_ORDER defaultSortOrder = SORT_ORDER.desc;
-
-    public DiscoverySortFieldConfiguration getDefaultSort() {
-        return defaultSort;
-    }
-
-    public void setDefaultSort(DiscoverySortFieldConfiguration defaultSort) {
-        this.defaultSort = defaultSort;
-    }
 
     public List<DiscoverySortFieldConfiguration> getSortFields() {
         return sortFields;
@@ -46,14 +32,6 @@ public class DiscoverySortConfiguration {
 
     public void setSortFields(List<DiscoverySortFieldConfiguration> sortFields) {
         this.sortFields = sortFields;
-    }
-
-    public SORT_ORDER getDefaultSortOrder() {
-        return defaultSortOrder;
-    }
-
-    public void setDefaultSortOrder(SORT_ORDER defaultSortOrder) {
-        this.defaultSortOrder = defaultSortOrder;
     }
 
     public DiscoverySortFieldConfiguration getSortFieldConfiguration(String sortField) {
@@ -67,15 +45,26 @@ public class DiscoverySortConfiguration {
             return configuration;
         }
 
-        if (defaultSort != null && StringUtils.equals(defaultSort.getMetadataField(), sortField)) {
-            return defaultSort;
-        }
-
         for (DiscoverySortFieldConfiguration sortFieldConfiguration : CollectionUtils.emptyIfNull(sortFields)) {
             if (StringUtils.equals(sortFieldConfiguration.getMetadataField(), sortField)) {
                 return sortFieldConfiguration;
             }
         }
         return null;
+    }
+
+    public String getDefaultSortDirection() {
+        return isNotEmpty(getSortFields()) ? getSortFields().get(0).getDefaultSortOrder().name() : null;
+    }
+
+    public String getDefaultSortField() {
+        if (isEmpty(getSortFields())) {
+            return SCORE;
+        }
+        DiscoverySortFieldConfiguration defaultSort = getSortFields().get(0);
+        if (isBlank(defaultSort.getMetadataField())) {
+            return SCORE;
+        }
+        return defaultSort.getMetadataField();
     }
 }

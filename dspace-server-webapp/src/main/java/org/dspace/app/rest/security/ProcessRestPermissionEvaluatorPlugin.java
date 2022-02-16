@@ -6,15 +6,16 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest.security;
-
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.ProcessRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.scripts.Process;
 import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.RequestService;
@@ -53,21 +54,26 @@ public class ProcessRestPermissionEvaluatorPlugin extends RestObjectPermissionEv
         }
 
         Request request = requestService.getCurrentRequest();
-        Context context = ContextUtil.obtainContext(request.getServletRequest());
+        Context context = ContextUtil.obtainContext(request.getHttpServletRequest());
 
         try {
             int processId = Integer.parseInt(targetId.toString());
             Process process = processService.find(context, processId);
-            if (process == null) {
+            EPerson currentUser =  context.getCurrentUser();
+
+            if (Objects.isNull(process) || Objects.isNull(process.getEPerson())) {
                 return true;
             }
-            if (!((context.getCurrentUser() == null) || (!context.getCurrentUser().equals(process.getEPerson())
-                && !authorizeService.isAdmin(context)))) {
+
+            if (!(Objects.isNull(currentUser) || (!context.getCurrentUser().equals(process.getEPerson())
+                    && !authorizeService.isAdmin(context)))) {
                 return true;
             }
+
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }
         return false;
     }
+
 }

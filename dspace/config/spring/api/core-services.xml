@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:util="http://www.springframework.org/schema/util"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
-    default-lazy-init="true">
-
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+       default-lazy-init="true">
 
     <!-- ******************** -->
     <!-- Service declarations -->
@@ -23,6 +21,7 @@
     <bean class="org.dspace.app.util.MetadataExposureServiceImpl"/>
     <bean class="org.dspace.app.util.OpenSearchServiceImpl"/>
     <bean class="org.dspace.app.util.WebAppServiceImpl"/>
+    <bean class="org.dspace.app.util.DSpaceObjectUtilsImpl"/>
 
     <bean class="org.dspace.authenticate.AuthenticationServiceImpl"/>
 
@@ -44,6 +43,7 @@
     <bean class="org.dspace.content.CommunityServiceImpl"/>
     <bean class="org.dspace.content.InstallItemServiceImpl"/>
     <bean class="org.dspace.content.ItemServiceImpl"/>
+    <bean class="org.dspace.content.MetadataDSpaceCsvExportServiceImpl"/>
     <bean class="org.dspace.content.MetadataFieldServiceImpl"/>
     <bean class="org.dspace.content.MetadataSchemaServiceImpl"/>
     <bean class="org.dspace.content.MetadataValueServiceImpl"/>
@@ -51,10 +51,12 @@
     <bean class="org.dspace.content.SupervisedItemServiceImpl"/>
     <bean class="org.dspace.content.WorkspaceItemServiceImpl"/>
     <bean class="org.dspace.content.RelationshipServiceImpl"/>
+    <bean class="org.dspace.content.RelationshipPlacesIndexingServiceImpl"/>
     <bean class="org.dspace.content.EntityTypeServiceImpl"/>
     <bean class="org.dspace.content.EntityServiceImpl"/>
     <bean class="org.dspace.content.RelationshipTypeServiceImpl"/>
     <bean class="org.dspace.content.RelationshipMetadataServiceImpl"/>
+    <bean class="org.dspace.content.FeedbackServiceImpl"/>
 
     <bean class="org.dspace.scripts.ProcessServiceImpl"/>
     <bean class="org.dspace.scripts.ScriptServiceImpl"/>
@@ -62,20 +64,31 @@
     <bean class="org.dspace.content.authority.ChoiceAuthorityServiceImpl"/>
     <bean class="org.dspace.content.authority.MetadataAuthorityServiceImpl" lazy-init="true"/>
 
+    <bean class="org.dspace.app.profile.ResearcherProfileServiceImpl"/>
+    
+    <bean class="org.dspace.app.profile.OrcidMetadataCopyingAction"/>
+    <bean class="org.dspace.app.profile.OrcidProfileEnricher"/>
+    
+    <bean class='org.dspace.service.impl.HttpConnectionPoolService'
+          id='solrHttpConnectionPoolService'
+          scope='singleton'
+          autowire-candidate='true'>
+        <constructor-arg name='configPrefix' value='solr'/>
+    </bean>
+
     <!-- Ensure PluginService is initialized properly via init() method -->
     <bean class="org.dspace.core.LegacyPluginServiceImpl" init-method="init"/>
     <bean class="org.dspace.core.LicenseServiceImpl"/>
     <bean class="org.dspace.core.NewsServiceImpl">
-   		<property name="acceptableFilenames">
-			<list>
-				<value>news-top.html</value>
-				<value>news-side.html</value>
-			</list>
-		</property>
-	</bean>
+        <property name="acceptableFilenames">
+            <list>
+                <value>news-top.html</value>
+                <value>news-side.html</value>
+            </list>
+        </property>
+    </bean>
 
-    <!-- Ensure WorkflowCuratorService is initialized properly via init() method -->
-    <bean class="org.dspace.curate.WorkflowCuratorServiceImpl" init-method="init"/>
+    <bean class='org.dspace.curate.XmlWorkflowCuratorServiceImpl'/>
 
     <bean class="org.dspace.disseminate.CitationDocumentServiceImpl"/>
 
@@ -89,6 +102,7 @@
     <bean class="org.dspace.eperson.GroupServiceImpl"/>
     <bean class="org.dspace.eperson.RegistrationDataServiceImpl"/>
     <bean class="org.dspace.eperson.SubscribeServiceImpl"/>
+    <bean class="org.dspace.eperson.SubscribeParameterServiceImpl"/>
     <bean class="org.dspace.eperson.SupervisorServiceImpl"/>
 
     <bean class="org.dspace.event.EventServiceImpl"/>
@@ -98,15 +112,24 @@
     <bean class="org.dspace.harvest.HarvestedCollectionServiceImpl"/>
     <bean class="org.dspace.harvest.HarvestedItemServiceImpl"/>
     <bean class="org.dspace.harvest.HarvestSchedulingServiceImpl"/>
+    <bean class="org.dspace.harvest.OAIHarvester"/>
+    <bean class="org.dspace.harvest.OAIHarvesterClientImpl"/>
+    <bean class="org.dspace.harvest.OAIHarvesterValidatorImpl"/>
+    <bean class="org.dspace.harvest.OAIHarvesterEmailSenderImpl"/>
+    <bean class="org.dspace.harvest.OAIHarvesterXlsReportGeneratorImpl"/>
 
     <bean class="org.dspace.identifier.DOIServiceImpl"/>
 
     <bean class="org.dspace.license.CreativeCommonsServiceImpl"/>
+    <bean class="org.dspace.license.CCLicenseConnectorServiceImpl"/>
 
     <bean id="spiderDetectorService" class="org.dspace.statistics.util.SpiderDetectorServiceImpl"/>
     <bean id="clientInfoService" class="org.dspace.service.impl.ClientInfoServiceImpl"/>
 
     <bean class="org.dspace.versioning.VersionHistoryServiceImpl"/>
+
+    <bean class="org.dspace.content.security.MetadataSecurityServiceImpl"/>
+    <bean class="org.dspace.metricsSecurity.BoxMetricsLayoutConfigurationService"/>
 
     <!-- Configurable workflow services -->
     <bean class="org.dspace.xmlworkflow.storedcomponents.ClaimedTaskServiceImpl"/>
@@ -126,13 +149,38 @@
     <bean class="org.dspace.discovery.indexobject.PoolTaskIndexFactoryImpl" autowire-candidate="true"/>
     <bean class="org.dspace.discovery.indexobject.WorkflowItemIndexFactoryImpl" autowire-candidate="true"/>
     <bean class="org.dspace.discovery.indexobject.WorkspaceItemIndexFactoryImpl" autowire-candidate="true"/>
+    <bean class="org.dspace.discovery.indexobject.MetadataFieldIndexFactoryImpl" autowire-candidate="true"/>
 
-	<!-- Imp beans -->
+    <!-- Imp beans -->
     <bean class="org.dspace.batch.ImpBitstreamServiceImpl"/>
     <bean class="org.dspace.batch.ImpMetadatavalueServiceImpl"/>
     <bean class="org.dspace.batch.ImpRecordServiceImpl"/>
-    <bean class="org.dspace.batch.ImpRecordToItemServiceImpl"/>
     <bean class="org.dspace.batch.ImpBitstreamMetadatavalueServiceImpl"/>
     <bean class="org.dspace.batch.ImpWorkflowNStateServiceImpl"/>
+
+    <!-- Configurable layout services -->
+    <bean class="org.dspace.layout.service.impl.CrisLayoutTabServiceImpl"/>
+    <bean class="org.dspace.layout.service.impl.CrisLayoutBoxServiceImpl"/>
+    <bean class="org.dspace.layout.service.impl.CrisLayoutFieldServiceImpl"/>
+    <bean class="org.dspace.layout.service.impl.CrisLayoutMetadataGroupServiceImpl"/>
+    <bean class="org.dspace.layout.service.impl.CrisLayoutMetric2BoxServiceImpl"/>
+
+    <bean class="org.dspace.layout.service.impl.LayoutSecurityServiceImpl"/>
+    <bean class="org.dspace.layout.service.impl.CrisLayoutBoxAccessServiceImpl"/>
+    <bean class="org.dspace.layout.service.impl.CrisLayoutTabAccessServiceImpl"/>
+    <bean class="org.dspace.content.security.CrisSecurityServiceImpl"/>
+    <bean class="org.dspace.app.metrics.service.CrisMetricsServiceImpl"/>
+    
+    <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolValidatorImpl"/>
+    <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolParserImpl"/>
+    
+    <bean class="org.dspace.statistics.LoginStatisticsServiceImpl" />
+
+    <bean class="org.dspace.statistics.WorkflowStatisticsServiceImpl" />
+    
+    <!-- OIDC Authentication -->
+    <bean class="org.dspace.authenticate.OidcAuthenticationBean" id="oidcAuthentication"/>
+    <bean class="org.dspace.authenticate.oidc.impl.OidcClientImpl" />
+
 </beans>
 

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * An authenticated user is allowed to interact with a pool task only if it is in his list.
- * 
+ *
  * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 @Component
@@ -57,7 +57,7 @@ public class PoolTaskRestPermissionEvaluatorPlugin extends RestObjectPermissionE
         }
 
         Request request = requestService.getCurrentRequest();
-        Context context = ContextUtil.obtainContext(request.getServletRequest());
+        Context context = ContextUtil.obtainContext(request.getHttpServletRequest());
         EPerson ePerson = null;
         try {
             ePerson = ePersonService.findByEmail(context, (String) authentication.getPrincipal());
@@ -75,7 +75,7 @@ public class PoolTaskRestPermissionEvaluatorPlugin extends RestObjectPermissionE
             XmlWorkflowItem workflowItem = poolTask.getWorkflowItem();
 
             PoolTask poolTask2 = poolTaskService.findByWorkflowIdAndEPerson(context, workflowItem, ePerson);
-            if (poolTask2 != null && poolTask2.getID() == poolTask.getID()) {
+            if (poolTask2 != null && poolTask2.getID().equals(poolTask.getID())) {
                 return true;
             }
         } catch (SQLException | AuthorizeException | IOException e) {

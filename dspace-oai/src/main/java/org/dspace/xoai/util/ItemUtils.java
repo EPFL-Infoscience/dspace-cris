@@ -34,12 +34,13 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xoai.data.DSpaceItem;
 
 /**
@@ -61,6 +62,9 @@ public class ItemUtils {
     private static final BitstreamService bitstreamService
             = ContentServiceFactory.getInstance().getBitstreamService();
 
+    private static final ConfigurationService configurationService
+            = DSpaceServicesFactory.getInstance().getConfigurationService();
+
     private static final MetadataAuthorityService mam = ContentAuthorityServiceFactory
             .getInstance().getMetadataAuthorityService();
 
@@ -79,7 +83,7 @@ public class ItemUtils {
     private ItemUtils() {
     }
 
-    private static Element getElement(List<Element> list, String name) {
+    public static Element getElement(List<Element> list, String name) {
         for (Element e : list) {
             if (name.equals(e.getName())) {
                 return e;
@@ -89,13 +93,13 @@ public class ItemUtils {
         return null;
     }
 
-    private static Element create(String name) {
+    public static Element create(String name) {
         Element e = new Element();
         e.setName(name);
         return e;
     }
 
-    private static Element.Field createValue(String name, String value) {
+    public static Element.Field createValue(String name, String value) {
         Element.Field e = new Element.Field();
         e.setValue(value);
         e.setName(name);
@@ -207,7 +211,7 @@ public class ItemUtils {
                 String url = "";
                 String bsName = bit.getName();
                 String sid = String.valueOf(bit.getSequenceID());
-                String baseUrl = ConfigurationManager.getProperty("oai", "bitstream.baseUrl");
+                String baseUrl = configurationService.getProperty("oai.bitstream.baseUrl");
                 String handle = null;
                 // get handle of parent Item of this bitstream, if there
                 // is one:
@@ -218,15 +222,7 @@ public class ItemUtils {
                         handle = bi.get(0).getHandle();
                     }
                 }
-                if (bsName == null) {
-                    List<String> ext = bit.getFormat(context).getExtensions();
-                    bsName = "bitstream_" + sid + (ext.isEmpty() ? "" : ext.get(0));
-                }
-                if (handle != null && baseUrl != null) {
-                    url = baseUrl + "/bitstream/" + handle + "/" + sid + "/" + URLUtils.encode(bsName);
-                } else {
-                    url = URLUtils.encode(bsName);
-                }
+                url = baseUrl + "/bitstreams/" + bit.getID().toString() + "/download";
 
                 String cks = bit.getChecksum();
                 String cka = bit.getChecksumAlgorithm();
@@ -386,9 +382,9 @@ public class ItemUtils {
 
         // Repository Info
         Element repository = create("repository");
-        repository.getField().add(createValue("url", ConfigurationManager.getProperty("dspace.ui.url")));
-        repository.getField().add(createValue("name", ConfigurationManager.getProperty("dspace.name")));
-        repository.getField().add(createValue("mail", ConfigurationManager.getProperty("mail.admin")));
+        repository.getField().add(createValue("url", configurationService.getProperty("dspace.ui.url")));
+        repository.getField().add(createValue("name", configurationService.getProperty("dspace.name")));
+        repository.getField().add(createValue("mail", configurationService.getProperty("mail.admin")));
         metadata.getElement().add(repository);
 
         // Licensing info

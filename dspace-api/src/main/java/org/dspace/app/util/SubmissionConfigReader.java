@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -194,27 +196,53 @@ public class SubmissionConfigReader {
     }
 
     /**
-     * Returns the Item Submission process config used for a particular
-     * collection, or the default if none is defined for the collection
+     * Returns the Item Submission process config used for a particular collection,
+     * or the default if none is defined for the collection
      *
-     * @param collectionHandle collection's unique Handle
+     * @param collection the collection
      * @return the SubmissionConfig representing the item submission config
-     * @throws SubmissionConfigReaderException if no default submission process configuration defined
+     * @throws SubmissionConfigReaderException if no default submission process
+     *                                         configuration defined
      */
-    public SubmissionConfig getSubmissionConfigByCollection(String collectionHandle) {
+    public SubmissionConfig getSubmissionConfigByCollection(Collection collection) {
+
+        CollectionService collService = ContentServiceFactory.getInstance().getCollectionService();
+
+        String submitName = collService.getMetadataFirstValue(collection, "cris", "submission", "definition", null);
+        if (submitName != null) {
+            SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
+            if (subConfig != null) {
+                return subConfig;
+            }
+        }
+
         // get the name of the submission process config for this collection
-        String submitName = collectionToSubmissionConfig
-            .get(collectionHandle);
-        if (submitName == null) {
-            submitName = collectionToSubmissionConfig
-                .get(DEFAULT_COLLECTION);
+        submitName = collectionToSubmissionConfig.get(collection.getHandle());
+        if (submitName != null) {
+            SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
+            if (subConfig != null) {
+                return subConfig;
+            }
         }
-        if (submitName == null) {
-            throw new IllegalStateException(
-                "No item submission process configuration designated as 'default' in 'submission-map' section of " +
-                    "'item-submission.xml'.");
+
+        submitName = collService.getMetadataFirstValue(collection, "dspace", "entity", "type", null);
+        if (submitName != null) {
+            SubmissionConfig subConfig = getSubmissionConfigByName(submitName.toLowerCase());
+            if (subConfig != null) {
+                return subConfig;
+            }
         }
-        return getSubmissionConfigByName(submitName);
+
+        submitName = getDefaultSubmissionConfigName();
+        if (submitName != null) {
+            SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
+            if (subConfig != null) {
+                return subConfig;
+            }
+        }
+
+        throw new IllegalStateException("No item submission process configuration designated as 'default' "
+            + "in 'submission-map' section of 'item-submission.xml'.");
     }
 
     /**
@@ -377,7 +405,7 @@ public class SubmissionConfigReader {
         for (int i = 0; i < len; i++) {
             Node nd = nl.item(i);
             // process each step definition
-            if (nd.getNodeName().equals("step")) {
+            if (StringUtils.equalsIgnoreCase(nd.getNodeName(), "step-definition")) {
                 String stepID = getAttribute(nd, "id");
                 if (stepID == null) {
                     throw new SAXException(
@@ -541,6 +569,11 @@ public class SubmissionConfigReader {
         String mandatory = getAttribute(nStep, "mandatory");
         if (StringUtils.isNotBlank(mandatory)) {
             stepInfo.put("mandatory", mandatory);
+        }
+
+        String opened = getAttribute(nStep, "opened");
+        if (StringUtils.isNotBlank(opened)) {
+            stepInfo.put("opened", opened);
         }
 
         // look for REQUIRED 'step' information

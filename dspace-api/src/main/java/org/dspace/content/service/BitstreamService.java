@@ -33,6 +33,7 @@ import org.dspace.core.Context;
  */
 public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpaceObjectLegacySupportService<Bitstream> {
 
+    @Override
     public Bitstream find(Context context, UUID id) throws SQLException;
 
     public List<Bitstream> findAll(Context context) throws SQLException;
@@ -53,7 +54,7 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
      * @return the clone
      * @throws SQLException if database error
      */
-    public Bitstream clone(Context context, Bitstream bitstream) throws SQLException;
+    public Bitstream clone(Context context, Bitstream bitstream) throws SQLException, AuthorizeException;
 
     /**
      * Create a new bitstream, with a new ID. The checksum and file size are
@@ -209,6 +210,8 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
 
     public Bitstream getFirstBitstream(Item item, String bundleName) throws SQLException;
 
+    public Bitstream getThumbnail(Context context, Bitstream bitstream) throws SQLException;
+
     public BitstreamFormat getFormat(Context context, Bitstream bitstream) throws SQLException;
 
     public Iterator<Bitstream> findByStoreNumber(Context context, Integer storeNumber) throws SQLException;
@@ -232,4 +235,5 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
      */
     @Nullable
     Long getLastModified(Bitstream bitstream) throws IOException;
+
 }

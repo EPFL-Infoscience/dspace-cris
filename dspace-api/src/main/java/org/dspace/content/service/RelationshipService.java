@@ -9,6 +9,7 @@ package org.dspace.content.service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
@@ -35,14 +36,18 @@ public interface RelationshipService extends DSpaceCRUDService<Relationship> {
     /**
      * Retrieves the list of Relationships currently in the system for which the given Item is either
      * a leftItem or a rightItem object
-     * @param context   The relevant DSpace context
-     * @param item      The Item that has to be the left or right item for the relationship to be included in the list
-     * @param limit     paging limit
-     * @param offset    paging offset
-     * @return          The list of relationships for which each relationship adheres to the above listed constraint
-     * @throws SQLException If something goes wrong
+     * @param context         The relevant DSpace context
+     * @param item            The Item that has to be the left or right item for the relationship to be
+     *                        included in the list
+     * @param limit           paging limit
+     * @param offset          paging offset
+     * @param excludeTilted   If true, excludes tilted relationships
+     * @return                The list of relationships for which each relationship adheres to the above
+     *                        listed constraint
+     * @throws SQLException   If something goes wrong
      */
-    List<Relationship> findByItem(Context context, Item item, Integer limit, Integer offset) throws SQLException;
+    List<Relationship> findByItem(Context context, Item item, Integer limit, Integer offset, boolean excludeTilted)
+            throws SQLException;
 
     /**
      * Retrieves the full list of relationships currently in the system
@@ -324,14 +329,16 @@ public interface RelationshipService extends DSpaceCRUDService<Relationship> {
     int countByItem(Context context, Item item) throws SQLException;
 
     /**
-     * Count total number of relationships (rows in relationship table) by a relationship type
+     * Count total number of relationships (rows in relationship table) by a relationship type and a boolean indicating
+     * whether the relationship should contain the item on the left side or not
      *
      * @param context context
      * @param relationshipType relationship type to filter by
-     * @return total count
+     * @param isLeft Indicating whether the counted Relationships should have the given Item on the left side or not
+     * @return total count with the given parameters
      * @throws SQLException if database error
      */
-    int countByItemAndRelationshipType(Context context, Item item, RelationshipType relationshipType)
+    int countByItemAndRelationshipType(Context context, Item item, RelationshipType relationshipType, boolean isLeft)
             throws SQLException;
 
     /**
@@ -369,14 +376,70 @@ public interface RelationshipService extends DSpaceCRUDService<Relationship> {
 
     /**
      * This method is used to delete a Relationship whilst given the possibility to copy the Virtual Metadata created
-     * by this relationship to the left and/or right item
-     * @param context               The relevant DSpace context
-     * @param relationship          The relationship to be deleted
-     * @param copyToLeftItem        A boolean indicating whether we should copy metadata to the left item or not
-     * @param copyToRightItem       A boolean indicating whether we should copy metadata to the right item or not
-     * @param forceBypassValidation A boolean indicating whether we should force by-pass validation
+     * by this relationship to the left and/or right item.
+     * This method will bypass the cardinality checks on the {@link RelationshipType} for the given {@link Relationship}
+     * This should only be used during the deletion of items so that the min cardinality check can't disallow items
+     * to be deleted
+     * @param context           The relevant DSpace context
+     * @param relationship      The relationship to be deleted
+     * @param copyToLeftItem    A boolean indicating whether we should copy metadata to the left item or not
+     * @param copyToRightItem   A boolean indicating whether we should copy metadata to the right item or not
      */
-    void delete(Context context, Relationship relationship, boolean copyToLeftItem, boolean copyToRightItem,
-            boolean bypassValidation) throws SQLException, AuthorizeException;
+    void forceDelete(Context context, Relationship relationship, boolean copyToLeftItem, boolean copyToRightItem)
+        throws SQLException, AuthorizeException;
+
+    /**
+     * This method establishes if for a given RelationshipType, among leftPlace and rightPlace value,
+     * only one of the two represents actually a position.
+     * In this case, value not used to represent a position is used to indicate the total number of relationship
+     * of the same type with one of the two related item in common.
+     *
+     * This decision is based on key configuration "relationship.place.onlyleft" or "relationship.place.onlyright"
+     * values.
+     *
+     * For example, if a relation between a Publication and a Person, with leftPlace set to 3 and rightPlace set to 1,
+     * means that the same Person has in total 3 relations of the same type with Publication and this relation is in
+     * the 2nd position out of 3 (valid place field value is 0-based).
+     *
+     * @param relationshipType type of relationship
+     * @param isLeft if true, it is checked if used places field is "leftPlace", "rightPlace" is used otherwise.
+     * @return
+     */
+    boolean placesOnly(final RelationshipType relationshipType, final boolean isLeft);
+
+    /**
+     * This method is used to retrieve relationships that match focusItem
+     * on the one hand and matches list of related items elsewhere.
+     *
+     * @param context            DSpace context object
+     * @param focusUUID          UUID of Item that will match left side if the param isLeft is true otherwise right side
+     * @param relationshipType   Relationship type to filter by
+     * @param items              List of UUID that will use to filter other side respect the focusUUID
+     * @param isLeft             Indicating whether the counted Relationships should have
+     *                           the given Item on the left side or not
+     * @param limit              paging limit
+     * @param offset             paging offset
+     * @return
+     * @throws SQLException      If database error
+     */
+    public List<Relationship> findByItemRelationshipTypeAndRelatedList(Context context, UUID focusUUID,
+                RelationshipType relationshipType, List<UUID> items, boolean isLeft,
+                int offset, int limit) throws SQLException;
+
+    /**
+     * Count total number of relationships that match focusItem
+     * on the one hand and matches list of related items elsewhere.
+     *
+     * @param context            DSpace context object
+     * @param focusUUID          UUID of Item that will match left side if the param isLeft is true otherwise right side
+     * @param relationshipType   Relationship type to filter by
+     * @param items              List of UUID that will use to filter other side respect the focusUUID
+     * @param isLeft             Indicating whether the counted Relationships should have
+     *                           the given Item on the left side or not
+     * @return
+     * @throws SQLException      If database error
+     */
+    public int countByItemRelationshipTypeAndRelatedList(Context context, UUID focusUUID,
+           RelationshipType relationshipType, List<UUID> items, boolean isLeft) throws SQLException;
 
 }

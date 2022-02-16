@@ -29,7 +29,7 @@ public class IPMatcherTest {
     private static final String IP6_FULL_ADDRESS2 = "2001:18e8:3:171:218:8bff:fe2a:56a3";
     private static final String IP6_MASKED_ADDRESS = "2001:18e8:3::/48";
 
-    private final static int increment = 6;
+    private final static int increment = 17;
 
     private static IPMatcher ip6FullMatcher;
     private static IPMatcher ip6MaskedMatcher;
@@ -150,6 +150,14 @@ public class IPMatcherTest {
     public void testIPv6MatchingFailure() throws Exception {
         final IPMatcher ipMatcher = new IPMatcher("::2");
 
+        assertFalse(ipMatcher.match("0:0:0:0:0:0:0:1"));
+    }
+
+    @Test
+    public void testIPv6FullMaskMatching() throws Exception {
+        final IPMatcher ipMatcher = new IPMatcher("::2/128");
+
+        assertTrue(ipMatcher.match("0:0:0:0:0:0:0:2"));
         assertFalse(ipMatcher.match("0:0:0:0:0:0:0:1"));
     }
 

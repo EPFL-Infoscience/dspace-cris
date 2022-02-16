@@ -8,8 +8,9 @@
 package org.dspace.discovery.configuration;
 
 import java.util.List;
+import java.util.Objects;
 
-import org.springframework.beans.factory.annotation.Required;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kevin Van de Velde (kevin at atmire dot com)
@@ -28,7 +29,7 @@ public class DiscoverySearchFilter {
         return indexFieldName;
     }
 
-    @Required
+    @Autowired(required = true)
     public void setIndexFieldName(String indexFieldName) {
         this.indexFieldName = indexFieldName;
     }
@@ -37,7 +38,7 @@ public class DiscoverySearchFilter {
         return metadataFields;
     }
 
-    @Required
+    @Autowired(required = true)
     public void setMetadataFields(List<String> metadataFields) {
         this.metadataFields = metadataFields;
     }
@@ -103,4 +104,25 @@ public class DiscoverySearchFilter {
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(indexFieldName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        DiscoverySearchFilter other = (DiscoverySearchFilter) obj;
+        return Objects.equals(indexFieldName, other.indexFieldName);
+    }
+
 }

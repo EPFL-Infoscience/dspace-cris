@@ -14,6 +14,7 @@ import org.dspace.app.rest.RootRestResourceController;
 import org.dspace.app.rest.model.hateoas.RootResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +31,9 @@ public class RootHalLinkFactory extends HalLinkFactory<RootResource, RootRestRes
         for (Link endpointLink : discoverableEndpointsService.getDiscoverableEndpoints()) {
             list.add(
                 buildLink(endpointLink.getRel().value(),
-                          halResource.getContent().getDspaceRest() + endpointLink.getHref()));
+                          halResource.getContent().getDspaceServer() + endpointLink.getHref()));
         }
+        list.add(buildLink(IanaLinkRelations.SELF.value(), getMethodOn().listDefinedEndpoint(null)));
     }
 
     protected Class<RootRestResourceController> getControllerClass() {
