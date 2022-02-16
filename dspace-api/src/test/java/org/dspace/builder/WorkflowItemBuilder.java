@@ -250,10 +250,6 @@ public class WorkflowItemBuilder extends AbstractBuilder<XmlWorkflowItem, XmlWor
         return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "arxiv", identifierArxiv);
     }
 
-    public WorkflowItemBuilder withIdentifierIsi(final String identifierIsi) {
-        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "isi", identifierIsi);
-    }
-
     public WorkflowItemBuilder withIdentifierScopus(final String identifierScopus) {
         return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "scopus", identifierScopus);
     }

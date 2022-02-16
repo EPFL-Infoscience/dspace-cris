@@ -14,7 +14,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.deduplication.utils.DedupUtils;
-import org.dspace.app.rest.builder.util.AbstractBuilderCleanupUtil;
 import org.dspace.app.audit.AuditService;
 import org.dspace.app.metrics.service.CrisMetricsService;
 import org.dspace.app.nbevent.service.NBEventService;

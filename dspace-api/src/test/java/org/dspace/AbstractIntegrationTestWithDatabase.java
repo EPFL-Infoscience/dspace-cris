@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.deduplication.service.DedupService;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
+import org.dspace.authority.AuthoritySearchService;
 import org.dspace.authority.MockAuthoritySolrServiceImpl;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.AbstractBuilder;

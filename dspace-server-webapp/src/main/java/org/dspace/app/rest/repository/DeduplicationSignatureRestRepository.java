@@ -39,8 +39,8 @@ public class DeduplicationSignatureRestRepository extends DSpaceRestRepository<D
     @Override
     public Page<DeduplicationSignatureRest> findAll(Context context, Pageable pageable) {
         try {
-            return converter.toRestPage(utils.getPage(dedupUtils.findAllSignatures(),
-                pageable), utils.obtainProjection());
+            return converter.toRestPage(dedupUtils.findAllSignatures(),
+                pageable, utils.obtainProjection());
         } catch (SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

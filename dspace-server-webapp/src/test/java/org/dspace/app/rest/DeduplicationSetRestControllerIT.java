@@ -14,10 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.UUID;
 
 import org.dspace.app.deduplication.utils.DedupUtils;
-import org.dspace.app.rest.builder.CollectionBuilder;
-import org.dspace.app.rest.builder.CommunityBuilder;
-import org.dspace.app.rest.builder.EPersonBuilder;
-import org.dspace.app.rest.builder.ItemBuilder;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.ItemBuilder;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;

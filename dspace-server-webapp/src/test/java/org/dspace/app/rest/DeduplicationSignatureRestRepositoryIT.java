@@ -15,13 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.sql.SQLException;
 
-import org.dspace.app.rest.builder.CollectionBuilder;
-import org.dspace.app.rest.builder.CommunityBuilder;
-import org.dspace.app.rest.builder.DeduplicationSignatureBuilder;
-import org.dspace.app.rest.builder.EPersonBuilder;
-import org.dspace.app.rest.builder.ItemBuilder;
-import org.dspace.app.rest.builder.WorkflowItemBuilder;
-import org.dspace.app.rest.builder.WorkspaceItemBuilder;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.DeduplicationSignatureBuilder;
+import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkflowItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;

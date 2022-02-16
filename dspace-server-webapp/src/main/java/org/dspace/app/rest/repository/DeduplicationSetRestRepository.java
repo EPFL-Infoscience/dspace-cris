@@ -46,8 +46,8 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @Override
     public Page<DeduplicationSetRest> findAll(Context context, Pageable pageable) {
         try {
-            return converter.toRestPage(utils.getPage(dedupUtils.findAllGroups(context),
-                pageable), utils.obtainProjection());
+            return converter.toRestPage(dedupUtils.findAllGroups(context),
+                pageable, utils.obtainProjection());
         } catch (SearchServiceException | SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -73,8 +73,8 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
             @Parameter(value = "signature-id", required = true) String signatureId, Pageable pageable) {
         try {
             Context context = obtainContext();
-            return converter.toRestPage(utils.getPage(dedupUtils.findAllGroups(context, signatureId),
-                    pageable), utils.obtainProjection());
+            return converter.toRestPage(dedupUtils.findAllGroups(context, signatureId),
+                    pageable, utils.obtainProjection());
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -87,8 +87,8 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
             @Parameter(value = "rule", required = true) String rule, Pageable pageable) {
         try {
             Context context = obtainContext();
-            return converter.toRestPage(utils.getPage(dedupUtils.findAllGroups(context, signatureId, rule),
-                    pageable), utils.obtainProjection());
+            return converter.toRestPage(dedupUtils.findAllGroups(context, signatureId, rule),
+                    pageable, utils.obtainProjection());
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

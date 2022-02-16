@@ -49,7 +49,7 @@ public class DeduplicationSetItemsLinkRepository extends AbstractDSpaceRestRepos
             }
             List<Item> items = duplicateInfo.getItems();
             Pageable pageable = utils.getPageable(optionalPageable);
-            return converter.toRestPage(utils.getPage(items, pageable), utils.obtainProjection());
+            return converter.toRestPage(items, pageable, utils.obtainProjection());
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
