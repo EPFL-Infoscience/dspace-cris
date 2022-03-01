@@ -15,8 +15,10 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.deduplication.service.DedupService;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
+import org.dspace.authority.AuthoritySearchService;
 import org.dspace.authority.MockAuthoritySolrServiceImpl;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.AbstractBuilder;
@@ -188,6 +190,17 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
             getFirst(serviceManager, MockSolrLoggerServiceImpl.class).reset();
             getFirst(serviceManager, MockAuthoritySolrServiceImpl.class).reset();
             getFirst(serviceManager, MockSolrDedupCore.class).reset();
+
+            MockAuthoritySolrServiceImpl authorityService = DSpaceServicesFactory.getInstance()
+                    .getServiceManager()
+                    .getServiceByName(AuthoritySearchService.class.getName(), MockAuthoritySolrServiceImpl.class);
+            authorityService.reset();
+
+            // Clear the dedup core
+            MockSolrDedupCore dedupService = DSpaceServicesFactory.getInstance()
+                    .getServiceManager()
+                    .getServiceByName(DedupService.class.getName(), MockSolrDedupCore.class);
+            dedupService.reset();
 
             // Reload our ConfigurationService (to reset configs to defaults again)
             DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();

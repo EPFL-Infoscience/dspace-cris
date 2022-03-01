@@ -60,4 +60,6 @@
 
     <bean id="crisMetricsServiceFactory" class="org.dspace.externalservices.scopus.factory.CrisMetricsServiceFactoryImpl"/>
 
+    <bean id="deduplicationServiceFactory" class="org.dspace.deduplication.factory.DeduplicationServiceFactoryImpl"/>
+
 </beans>
