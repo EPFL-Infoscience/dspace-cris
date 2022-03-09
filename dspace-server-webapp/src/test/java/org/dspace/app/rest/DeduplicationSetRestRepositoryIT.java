@@ -14,12 +14,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.deduplication.utils.MD5ValueSignature;
+import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
-import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
@@ -31,6 +36,8 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
 
     @Autowired
     private DedupUtils dedupUtils;
+
+    private MD5ValueSignature md5Signature = new MD5ValueSignature();
 
     @Test
     public void findAllUnauthorizedTest() throws Exception {
@@ -278,19 +285,22 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIssueDate("2015-12-18")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
+        String checksum = md5Signature.getSignature(publicItem1, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:098f6bcd4621d373cade4e832627b4f6";
+        String id = "title:" + checksum;
         String signatureId = "title";
-        String setChecksum = "098f6bcd4621d373cade4e832627b4f6";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$.id", Matchers.equalTo(id)))
             .andExpect(jsonPath("$.signatureId", Matchers.equalTo(signatureId)))
-            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(setChecksum)))
+            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(checksum)))
             .andExpect(jsonPath("$.otherSetIds", Matchers.hasSize(0)))
             .andExpect(jsonPath("$._links.items.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id + "/items")))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id)));
@@ -349,33 +359,36 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIssueDate("2015-12-18")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
+        String checksum1 = md5Signature.getSignature(publicItem1, context).get(0);
+        String checksum2 = md5Signature.getSignature(publicItem3, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "title:098f6bcd4621d373cade4e832627b4f6";
+        String id = "title:" + checksum1;
         String signatureId = "title";
-        String setChecksum = "098f6bcd4621d373cade4e832627b4f6";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$.id", Matchers.equalTo(id)))
             .andExpect(jsonPath("$.signatureId", Matchers.equalTo(signatureId)))
-            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(setChecksum)))
+            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(checksum1)))
             .andExpect(jsonPath("$.otherSetIds", Matchers.hasSize(0)))
             .andExpect(jsonPath("$._links.items.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id + "/items")))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id)));
 
-        id = "title:bee1c0f53d40e56f04a84dda46bbfbdb";
+        id = "title:" + checksum2;
         signatureId = "title";
-        setChecksum = "bee1c0f53d40e56f04a84dda46bbfbdb";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$.id", Matchers.equalTo(id)))
             .andExpect(jsonPath("$.signatureId", Matchers.equalTo(signatureId)))
-            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(setChecksum)))
+            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(checksum2)))
             .andExpect(jsonPath("$.otherSetIds", Matchers.hasSize(0)))
             .andExpect(jsonPath("$._links.items.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id + "/items")))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id)));
@@ -427,13 +440,17 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIdentifierDoi("10.1234/123456789")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String setChecksum = md5Signature.getSignature(publicItem1, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
+        String id = "identifier:" + setChecksum;
         String signatureId = "identifier";
-        String setChecksum = "cc562133c18bd2baf21b0b7bfcdd9334";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -502,33 +519,36 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIdentifierDoi("10.5555/987654321")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String signature1 = md5Signature.getSignature(publicItem1, context).get(0);
+        String signature2 = md5Signature.getSignature(publicItem3, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-
-        String id = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
         String signatureId = "identifier";
-        String setChecksum = "cc562133c18bd2baf21b0b7bfcdd9334";
+        String id = "identifier:" + signature1;
+
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$.id", Matchers.equalTo(id)))
             .andExpect(jsonPath("$.signatureId", Matchers.equalTo(signatureId)))
-            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(setChecksum)))
+            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(signature1)))
             .andExpect(jsonPath("$.otherSetIds", Matchers.hasSize(0)))
             .andExpect(jsonPath("$._links.items.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id + "/items")))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id)));
 
-        id = "identifier:c2de594816afd0b5dbab91c0919fca3d";
-        signatureId = "identifier";
-        setChecksum = "c2de594816afd0b5dbab91c0919fca3d";
+        id = "identifier:" + signature2;
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$.id", Matchers.equalTo(id)))
             .andExpect(jsonPath("$.signatureId", Matchers.equalTo(signatureId)))
-            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(setChecksum)))
+            .andExpect(jsonPath("$.setChecksum", Matchers.equalTo(signature2)))
             .andExpect(jsonPath("$.otherSetIds", Matchers.hasSize(0)))
             .andExpect(jsonPath("$._links.items.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id + "/items")))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id)));
@@ -582,13 +602,20 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIdentifierArxiv("arXiv:1501.00001")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String setChecksum1 = md5Signature.getSignature(publicItem1, context).get(0);
+
+        List<String> ignorePrefixArxiv = Arrays.asList("arXiv:", "ARXIV:", "arxiv:");
+        setMD5ValueSignatureInstance("dc.identifier.arxiv", "arxiv:", "identifier", ignorePrefixArxiv, "");
+        String setChecksum2 = md5Signature.getSignature(publicItem1, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         String signatureId = "identifier";
-        String setChecksum1 = "7efc267730909ed455af806fbb4f9935";
-        String setChecksum2 = "cc562133c18bd2baf21b0b7bfcdd9334";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + signatureId + ":" + setChecksum1))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -657,14 +684,25 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIdentifierPmid("1234")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefixDoi = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefixDoi, "");
+        String setChecksum1 = md5Signature.getSignature(publicItem1, context).get(0);
+
+        List<String> ignorePrefixArxiv = Arrays.asList("arXiv:", "ARXIV:", "arxiv:");
+        setMD5ValueSignatureInstance("dc.identifier.arxiv", "arxiv:", "identifier", ignorePrefixArxiv, "");
+        String setChecksum2 = md5Signature.getSignature(publicItem1, context).get(0);
+
+        List<String> ignorePrefixPmid = Arrays.asList("pmid://", "pmid:", "PMID://", "PMID:");
+        setMD5ValueSignatureInstance("dc.identifier.pmid", "pmid:", "identifier", ignorePrefixPmid, "");
+        String setChecksum3 = md5Signature.getSignature(publicItem1, context).get(0);
+
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         String signatureId = "identifier";
-        String setChecksum1 = "760e3775b24106e4e4501d1faf238090";
-        String setChecksum2 = "cc562133c18bd2baf21b0b7bfcdd9334";
-        String setChecksum3 = "7efc267730909ed455af806fbb4f9935";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + signatureId + ":" + setChecksum1))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -1294,11 +1332,15 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIssueDate("2015-12-18")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:098f6bcd4621d373cade4e832627b4f6";
+        String id = "title:" + signature;
 
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id))
             .andExpect(status().isNoContent());
@@ -1352,11 +1394,16 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIdentifierDoi("10.1234/123456789")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
+        String id = "identifier:" + signature;
 
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id))
             .andExpect(status().isNoContent());
@@ -1441,11 +1488,15 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIssueDate("2015-12-18")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:098f6bcd4621d373cade4e832627b4f6";
+        String id = "title:" + signature;
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id + "/items"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._links.self.href",
@@ -1498,11 +1549,16 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIdentifierDoi("10.1234/123456789")
             .build();
 
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
+        String id = "identifier:" + signature;
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id + "/items"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._links.self.href",
@@ -1512,4 +1568,14 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .andExpect(jsonPath("$.page.totalPages", is(1)))
             .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
+
+    private void setMD5ValueSignatureInstance(String metadata, String prefix, String signatureType,
+                                              List<String> ignorePrefixes, String normalizeRegex) {
+        md5Signature.setMetadata(metadata);
+        md5Signature.setPrefix(prefix);
+        md5Signature.setSignatureType(signatureType);
+        md5Signature.setIgnorePrefix(ignorePrefixes);
+        md5Signature.setNormalizationRegexp(normalizeRegex);
+    }
+
 }
