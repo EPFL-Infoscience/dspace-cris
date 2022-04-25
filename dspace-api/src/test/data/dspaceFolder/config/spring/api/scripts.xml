@@ -131,4 +131,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.scripts.impl.MockDSpaceRunnableScript"/>
     </bean>
 
+    <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import and store items from external source"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnable"/>
+    </bean>
+
 </beans>

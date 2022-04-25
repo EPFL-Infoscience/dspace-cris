@@ -231,6 +231,38 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
     }
 
     @Override
+    public List<Suggestion> findAllUnprocessedSuggestionsBySource(Context context, String source,
+        int pageSize, long offset, boolean ascending) throws SolrServerException, IOException {
+
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setRows(pageSize);
+        solrQuery.setStart((int) offset);
+        solrQuery.setQuery("*:*");
+        solrQuery.addFilterQuery(
+                SOURCE + ":" + source,
+                PROCESSED + ":false");
+
+        if (ascending) {
+            solrQuery.addSort(SortClause.asc("trust"));
+        } else {
+            solrQuery.addSort(SortClause.desc("trust"));
+        }
+
+        solrQuery.addSort(SortClause.desc("date"));
+        solrQuery.addSort(SortClause.asc("title"));
+
+        QueryResponse response = getSolr().query(solrQuery);
+        List<Suggestion> suggestions = new ArrayList<Suggestion>();
+        for (SolrDocument solrDoc : response.getResults()) {
+            Suggestion suggestion = convertSolrDoc(context, solrDoc, source);
+            if (suggestion != null) {
+                suggestions.add(suggestion);
+            }
+        }
+        return suggestions;
+    }
+
+    @Override
     public List<SuggestionTarget> findAllTargets(Context context, String source, int pageSize, long offset)
         throws SolrServerException, IOException {
 
@@ -286,7 +318,7 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
         solrQuery.setRows(0);
         solrQuery.setQuery(SOURCE + ":" + source);
         solrQuery.addFilterQuery(
-            TARGET_ID + ":" + target.toString(),
+                TARGET_ID + ":" + target.toString(),
             PROCESSED + ":false");
         QueryResponse response = getSolr().query(solrQuery);
         SuggestionTarget sTarget = new SuggestionTarget();
@@ -303,6 +335,10 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
 
     private Suggestion convertSolrDoc(Context context, SolrDocument solrDoc, String sourceName) {
         Item target = findItem(context, (String) solrDoc.getFieldValue(TARGET_ID));
+
+        if (target == null) {
+            return null;
+        }
 
         Suggestion suggestion = new Suggestion(sourceName, target, (String) solrDoc.getFieldValue(SUGGESTION_ID));
         suggestion.setDisplay((String) solrDoc.getFieldValue(DISPLAY));

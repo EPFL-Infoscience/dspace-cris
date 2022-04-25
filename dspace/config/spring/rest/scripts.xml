@@ -73,6 +73,11 @@
         <property name="description" value="Import and store locally metadata from loader"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.PublicationLoaderRunnable"/>
     </bean>
+
+    <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import and store items from external source"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnable"/>
+    </bean>
     
     <bean id="orcid-bulk-push" class="org.dspace.app.orcid.script.OrcidBulkPushScriptConfiguration" primary="true">
         <property name="description" value="Perform the bulk synchronization of all the BATCH configured ORCID entities placed in the ORCID queue"/>
