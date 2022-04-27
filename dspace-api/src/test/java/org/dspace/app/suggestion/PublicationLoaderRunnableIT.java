@@ -25,10 +25,8 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * Integration tests for {@link PublicationLoaderRunnable}.
@@ -39,10 +37,6 @@ import org.mockito.Mockito;
 public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithDatabase {
 
     private SolrSuggestionStorageService solrSuggestionStorageService;
-
-    private PublicationLoaderRunnable publicationLoaderRunnable;
-
-    private LiveImportDataProvider mockPubmedProvider;
 
     private Collection collection;
 
@@ -79,8 +73,6 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
                           .build();
 
         context.restoreAuthSystemState();
-        publicationLoaderRunnable = new PublicationLoaderRunnable();
-        mockPubmedProvider = Mockito.mock(LiveImportDataProvider.class);
     }
 
     @Test
