@@ -8,7 +8,9 @@
 package org.dspace.app.suggestion;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
@@ -18,6 +20,7 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchService;
+import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
@@ -45,6 +48,8 @@ public class PublicationLoaderRunnable
 
     protected String loader;
 
+    private Map<String, LiveImportDataProvider> nameToProvider = new HashMap<String, LiveImportDataProvider>();
+
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public PublicationLoaderScriptConfiguration<PublicationLoaderRunnable> getScriptConfiguration() {
@@ -58,18 +63,32 @@ public class PublicationLoaderRunnable
 
         loader = commandLine.getOptionValue("l");
 
-        if (loader == null) {
-            throw new NullPointerException("loader can't be null");
-        }
-
-        publicationLoader = getPublicationLoader(loader);
-
         profile = commandLine.getOptionValue("s");
         if (profile == null) {
             LOGGER.info("No argument for -s, process all profile");
         } else {
             LOGGER.info("Process eperson item with UUID " + profile);
         }
+    }
+
+    @Override
+    public void internalRun() throws Exception {
+
+        context = new Context();
+
+        if (loader == null) {
+            throw new NullPointerException("loader can't be null");
+        }
+
+        publicationLoader = getPublicationLoader(loader);
+
+        List<Item> researchers = getResearchers(profile);
+
+        for (Item researcher : researchers) {
+
+            publicationLoader.importAuthorRecords(context, researcher);
+        }
+
     }
 
     private SolrSuggestionProvider getPublicationLoader(String loader) {
@@ -84,23 +103,10 @@ public class PublicationLoaderRunnable
                     "pubmedPublicationLoader", PubmedPublicationLoader.class);
                 break;
             default:
-                throw new IllegalArgumentException("incorrect loader");
+                throw new IllegalArgumentException("IllegalArgumentException: " +
+                    "Provider for: " + loader + " couldn't be found");
         }
         return publicationLoader;
-    }
-
-    @Override
-    public void internalRun() throws Exception {
-
-        context = new Context();
-
-        List<Item> researchers = getResearchers(profile);
-
-        for (Item researcher : researchers) {
-
-            publicationLoader.importAuthorRecords(context, researcher);
-        }
-
     }
 
     /**
