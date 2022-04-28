@@ -34,6 +34,7 @@ import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
+import org.dspace.workflow.WorkflowException;
 import org.dspace.workflow.WorkflowService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,51 +79,64 @@ public class ExternalSourceItemImportRunnable
         source = commandLine.getOptionValue("p");
         score = commandLine.getOptionValue("s");
         collectionId = commandLine.getOptionValue("u");
-
-        if (source == null || score == null || collectionId == null) {
-            throw new NullPointerException();
-        }
     }
 
     @Override
     public void internalRun() throws Exception {
         context = new Context();
-        assignCurrentUserInContext(context);
+
+        if (source == null || score == null || collectionId == null) {
+            throw new NullPointerException("provider -p option and score -s option " +
+                "and collection uuid -u option can't be null");
+        }
+
+        assignCurrentUserInContext();
         assignSpecialGroupsInContext();
-        context.turnOffAuthorisationSystem();
-        List<Suggestion> suggestions = new ArrayList<>();
-        int idx = 0;
-        suggestions = findAllUnprocessedSuggestionsBySource(context, source, idx);
-        while (!isEmpty(suggestions) && idx <= 1000) {
-            suggestions = filterSuggestionsByScore(suggestions, Double.parseDouble(score));
 
-            for (Suggestion suggestion : suggestions) {
-                WorkspaceItem workspaceItem = createWorkspaceItem(context, collectionId,
-                        suggestion.getExternalSourceUri());
-                workflowService.start(context, workspaceItem);
-                solrSuggestionStorageService.flagSuggestionAsProcessed(suggestion);
-            }
-
-            idx += 10;
-            suggestions = findAllUnprocessedSuggestionsBySource(context, source, idx);
+        try {
+            context.turnOffAuthorisationSystem();
+            performImportItemsExternalSource(context);
+            context.complete();
+        } catch (Exception e) {
+            handler.handleException(e);
+            context.abort();
+        } finally {
+            context.restoreAuthSystemState();
         }
     }
 
-    private void assignCurrentUserInContext(Context context) throws ParseException {
+    private void assignCurrentUserInContext() throws SQLException {
         UUID uuid = getEpersonIdentifier();
         if (uuid != null) {
-            try {
-                EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
-                context.setCurrentUser(ePerson);
-            } catch (SQLException e) {
-                LOGGER.error("Something went wrong trying to fetch the eperson for uuid: " + uuid, e);
-            }
+            EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
+            context.setCurrentUser(ePerson);
         }
     }
 
     private void assignSpecialGroupsInContext() throws SQLException {
         for (UUID uuid : handler.getSpecialGroups()) {
             context.setSpecialGroup(uuid);
+        }
+    }
+
+    private void performImportItemsExternalSource(Context context) throws SQLException {
+        List<Suggestion> suggestions = new ArrayList<>();
+        int idx = 0;
+        suggestions = findAllUnprocessedSuggestionsBySource(context, source, idx);
+        while (!isEmpty(suggestions) && idx <= 1000) {
+            suggestions = filterSuggestionsByScore(suggestions, Double.parseDouble(score));
+            for (Suggestion suggestion : suggestions) {
+                try {
+                    WorkspaceItem workspaceItem = createWorkspaceItem(context, collectionId,
+                        suggestion.getExternalSourceUri());
+                    workflowService.start(context, workspaceItem);
+                    solrSuggestionStorageService.flagSuggestionAsProcessed(suggestion);
+                } catch (AuthorizeException | IOException | WorkflowException | SolrServerException e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+            }
+            idx += 10;
+            suggestions = findAllUnprocessedSuggestionsBySource(context, source, idx);
         }
     }
 
