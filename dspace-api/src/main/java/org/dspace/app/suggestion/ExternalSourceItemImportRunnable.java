@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -20,6 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.dspace.authorize.AuthorizeException;
@@ -30,6 +32,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.scripts.DSpaceRunnable;
@@ -60,6 +63,7 @@ public class ExternalSourceItemImportRunnable
     private String source;
     private String score;
     private String collectionId;
+    private String email;
 
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -79,11 +83,14 @@ public class ExternalSourceItemImportRunnable
         source = commandLine.getOptionValue("p");
         score = commandLine.getOptionValue("s");
         collectionId = commandLine.getOptionValue("u");
+        email = commandLine.getOptionValue("e");
+
     }
 
     @Override
     public void internalRun() throws Exception {
         context = new Context();
+        context.setCurrentUser(findEPerson());
 
         if (source == null || score == null || collectionId == null) {
             throw new NullPointerException("provider -p option and score -s option " +
@@ -103,6 +110,22 @@ public class ExternalSourceItemImportRunnable
         } finally {
             context.restoreAuthSystemState();
         }
+    }
+
+    private EPerson findEPerson() throws SQLException {
+        EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        String email = commandLine.getOptionValue('e');
+        if (StringUtils.isNotBlank(email)) {
+            EPerson byEmail = ePersonService.findByEmail(context, email);
+            if (Objects.nonNull(byEmail)) {
+                return byEmail;
+            }
+        }
+        UUID uuid = getEpersonIdentifier();
+        if (uuid != null) {
+            return ePersonService.find(context, uuid);
+        }
+        return null;
     }
 
     private void assignCurrentUserInContext() throws SQLException {

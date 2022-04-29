@@ -64,6 +64,10 @@ public class ExternalSourceItemImportScriptConfiguration<T extends ExternalSourc
             options.getOption("u").setType(String.class);
             options.getOption("u").setRequired(true);
 
+            // this option is mandatory if we run from CLI
+            options.addOption("e", "email", true, "eperson email");
+            options.getOption("e").setType(String.class);
+
             super.options = options;
         }
         return options;
