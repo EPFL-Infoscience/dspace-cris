@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +37,6 @@ import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
-import org.dspace.workflow.WorkflowException;
 import org.dspace.workflow.WorkflowService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +63,7 @@ public class ExternalSourceItemImportRunnable
     private String score;
     private String collectionId;
     private String email;
+    private String limit;
 
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -84,6 +84,7 @@ public class ExternalSourceItemImportRunnable
         score = commandLine.getOptionValue("s");
         collectionId = commandLine.getOptionValue("u");
         email = commandLine.getOptionValue("e");
+        limit = commandLine.getOptionValue("l");
 
     }
 
@@ -93,7 +94,7 @@ public class ExternalSourceItemImportRunnable
         context.setCurrentUser(findEPerson());
 
         if (source == null || score == null || collectionId == null) {
-            throw new NullPointerException("provider -p option and score -s option " +
+            throw new NullPointerException("provider -p option and minimum score -s option " +
                 "and collection uuid -u option can't be null");
         }
 
@@ -144,38 +145,58 @@ public class ExternalSourceItemImportRunnable
 
     private void performImportItemsExternalSource(Context context) throws SQLException {
         List<Suggestion> suggestions = new ArrayList<>();
-        int idx = 0;
-        suggestions = findAllUnprocessedSuggestionsBySource(context, source, idx);
-        while (!isEmpty(suggestions) && idx <= 1000) {
-            suggestions = filterSuggestionsByScore(suggestions, Double.parseDouble(score));
-            for (Suggestion suggestion : suggestions) {
-                try {
-                    WorkspaceItem workspaceItem = createWorkspaceItem(context, collectionId,
-                        suggestion.getExternalSourceUri());
-                    workflowService.start(context, workspaceItem);
-                    solrSuggestionStorageService.flagSuggestionAsProcessed(suggestion);
-                } catch (AuthorizeException | IOException | WorkflowException | SolrServerException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
-            }
+        int countRecordWorked = 0;
+        int totalRecordWorked = 0;
+        int totalItemsNotProcessed = 0;
+        int limit = getLimit(this.limit);
+        int pageSize = limit % 10 == 0 ? 10 : limit;
+        int idx = pageSize;
+
+        suggestions = findAllUnprocessedSuggestionsBySourceAndScore(context, source, score, 0, pageSize);
+
+        while (!isEmpty(suggestions) && idx <= limit) {
+            countRecordWorked = fillWorkspaceItems(context, suggestions);
+            totalRecordWorked += countRecordWorked;
+            totalItemsNotProcessed += suggestions.size() - countRecordWorked;
+            context.commit();
             idx += 10;
-            suggestions = findAllUnprocessedSuggestionsBySource(context, source, idx);
+            suggestions = findAllUnprocessedSuggestionsBySourceAndScore(context, source, score, 0, 10);
         }
+
+        handler.logInfo("Processed " + totalRecordWorked + " records");
+        handler.logInfo("Not Processed " + totalItemsNotProcessed + " records");
+        handler.logInfo("Update end");
     }
 
-    public List<Suggestion> findAllUnprocessedSuggestionsBySource(Context context, String source, long offset) {
+    private int fillWorkspaceItems(Context context, List<Suggestion> suggestions) throws SQLException {
+        int countDataObjects = 0;
+        for (Suggestion suggestion : suggestions) {
+            try {
+                WorkspaceItem workspaceItem = createWorkspaceItem(context, collectionId,
+                    suggestion.getExternalSourceUri());
+                workflowService.start(context, workspaceItem);
+                solrSuggestionStorageService.flagSuggestionAsProcessed(suggestion);
+                countDataObjects++;
+            } catch (Exception e) {
+                handler.logError(e.getMessage(), e);
+                handler.handleException(e.getMessage(), e);
+            }
+        }
+        return countDataObjects;
+    }
+
+    private int getLimit(String limit) {
+        return limit != null && !limit.isEmpty() ? Integer.parseInt(limit) : 1000;
+    }
+
+    private List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScore(Context context, String source,
+                                                                           String score, long offset, int pageSize) {
         try {
-            return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySource(context, source,
-                    10, offset, true);
+            return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScore(context, source, score,
+                pageSize, offset, true);
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private List<Suggestion> filterSuggestionsByScore(List<Suggestion> suggestions, double score) {
-        return suggestions.stream()
-                .filter(s -> s.getScore() >= score)
-                .collect(Collectors.toList());
     }
 
     /**
@@ -190,14 +211,17 @@ public class ExternalSourceItemImportRunnable
      */
     private WorkspaceItem createWorkspaceItem(Context context, String collectionId, String uri)
             throws SQLException, AuthorizeException {
-        ExternalDataObject dataObject = getExternalDataObjectFromUriList(uri);
 
         try {
+            ExternalDataObject dataObject = getExternalDataObjectFromUriList(uri);
             Collection collection = collectionService.find(context, UUID.fromString(collectionId));
             return externalDataService.createWorkspaceItemFromExternalDataObject(context, dataObject, collection);
         } catch (AuthorizeException | SQLException e) {
             LOGGER.error("An error occured when trying to create item in collection with uuid: " + collectionId,
                     e);
+            throw e;
+        } catch (ResourceNotFoundException e) {
+            LOGGER.error(e.getMessage());
             throw e;
         }
     }
@@ -219,8 +243,17 @@ public class ExternalSourceItemImportRunnable
 
         Optional<ExternalDataObject> externalDataObject = externalDataService
                 .getExternalDataObject(externalSourceIdentifer, id);
+
+        sleepForExternalData();
+
         return externalDataObject.orElseThrow(() -> new ResourceNotFoundException(
                 "Couldn't find an ExternalSource for source: " + externalSourceIdentifer + " and ID: " + id));
     }
-
+    private void sleepForExternalData() {
+        try {
+            Thread.sleep(ThreadLocalRandom.current().nextInt(0, 501));
+        } catch (InterruptedException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+    }
 }

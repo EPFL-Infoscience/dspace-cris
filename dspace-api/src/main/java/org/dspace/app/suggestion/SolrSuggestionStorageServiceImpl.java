@@ -263,6 +263,39 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
     }
 
     @Override
+    public List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScore(Context context, String source, String score,
+        int pageSize, long offset, boolean ascending) throws SolrServerException, IOException {
+
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setRows(pageSize);
+        solrQuery.setStart((int) offset);
+        solrQuery.setQuery("*:*");
+        solrQuery.addFilterQuery(
+            SOURCE + ":" + source,
+            SCORE  + ":[ " + score + " TO * ]",
+            PROCESSED + ":false");
+
+        if (ascending) {
+            solrQuery.addSort(SortClause.asc("trust"));
+        } else {
+            solrQuery.addSort(SortClause.desc("trust"));
+        }
+
+        solrQuery.addSort(SortClause.desc("date"));
+        solrQuery.addSort(SortClause.asc("title"));
+
+        QueryResponse response = getSolr().query(solrQuery);
+        List<Suggestion> suggestions = new ArrayList<Suggestion>();
+        for (SolrDocument solrDoc : response.getResults()) {
+            Suggestion suggestion = convertSolrDoc(context, solrDoc, source);
+            if (suggestion != null) {
+                suggestions.add(suggestion);
+            }
+        }
+        return suggestions;
+    }
+
+    @Override
     public List<SuggestionTarget> findAllTargets(Context context, String source, int pageSize, long offset)
         throws SolrServerException, IOException {
 

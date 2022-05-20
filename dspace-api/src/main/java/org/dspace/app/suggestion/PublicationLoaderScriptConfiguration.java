@@ -54,7 +54,8 @@ public class PublicationLoaderScriptConfiguration<T extends PublicationLoaderRun
             options.addOption("s", "single-researcher", true, "Single researcher UUID");
             options.getOption("s").setType(String.class);
 
-            options.addOption("l", "loader", true, "publication loaders oaire or pubmed or etc...");
+            options.addOption("l", "loader", true, "publication loader to be used " +
+                "(oaire, pubmed)");
             options.getOption("l").setRequired(true);
 
 

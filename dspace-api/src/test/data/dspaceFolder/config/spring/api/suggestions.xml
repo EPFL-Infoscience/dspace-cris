@@ -37,7 +37,7 @@
 		</property>
 		<property name="pipeline">
 			<list>
-				<bean class="org.dspace.app.suggestion.pubmed.BasicScorer"></bean>
+				<bean class="org.dspace.app.suggestion.pubmed.FixedValueScorer"></bean>
 			</list>
 		</property>
 	</bean>

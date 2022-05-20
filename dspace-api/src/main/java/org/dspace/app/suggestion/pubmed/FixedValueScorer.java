@@ -14,11 +14,11 @@ import org.dspace.external.model.ExternalDataObject;
 
 /**
  * Implementation of {@see org.dspace.app.suggestion.oaire.EvidenceScorer} which evaluate ImportRecords
- * 
+ * this scorer returns a fixed value
  * @author Mohamed Eskander (mohamed.eskander at 4science dot it)
  *
  */
-public class BasicScorer implements EvidenceScorer {
+public class FixedValueScorer implements EvidenceScorer {
 
     /**
      * Method which is responsible to returning a SuggestionEvidence with a score of 100.

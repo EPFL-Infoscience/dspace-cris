@@ -11,6 +11,8 @@ import static org.dspace.app.launcher.ScriptLauncher.handleScript;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -78,65 +80,112 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
     @Test
     public void testImportItemsFromExternalSourceIfNotExistingSource() throws Exception {
         String source = "foo";
-        createSuggestion(source, "35444744");
+        Suggestion suggestion = createSuggestion(item,"pubmed", "35444744");
 
         TestDSpaceRunnableHandler handler = runImportItemsFromExternalSource(source,
                 "100", collection.getID().toString());
-        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem(containsString("Processed 0 records")));
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(1));
-        assertThat(errorMessages.get(0), containsString("IllegalArgumentException: " +
-                "Provider for: " + source + " couldn't be found"));
+        assertThat(errorMessages, hasSize(0));
+        solrSuggestionStorageService.deleteSuggestion(suggestion);
+
     }
 
     @Test
     public void testImportItemsFromExternalSourceForInvalidCollectionId() throws Exception {
         String invalidId = "invalid_id";
-        createSuggestion("pubmed", "35444744");
+        Suggestion suggestion = createSuggestion(item, "pubmed", "35444744");
 
-        TestDSpaceRunnableHandler handler = runImportItemsFromExternalSource("pubmed",
-                "100", invalidId);
-        assertThat(handler.getInfoMessages(), empty());
+        String[] args = new String[] {"import-external-source-item" ,
+            "-p", "pubmed", "-s", "100", "-u", invalidId, "-l", "2"};
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getInfoMessages(), hasItem(containsString("Processed 0 records")));
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(1));
-        assertThat(errorMessages.get(0), containsString("IllegalArgumentException: Invalid UUID string:"));
+        assertThat(errorMessages, hasSize(greaterThanOrEqualTo(1)));
+        assertThat(errorMessages, hasItem(containsString("IllegalArgumentException: Invalid UUID string:")));
+        solrSuggestionStorageService.deleteSuggestion(suggestion);
     }
 
     @Test
     public void testImportItemsIfAllScoresLessThanInput() throws Exception {
         String source = "pubmed";
-        Suggestion suggestion = createSuggestion(source, "35444744");
+        Suggestion suggestion = createSuggestion(item, source, "35444744");
 
         TestDSpaceRunnableHandler handler = runImportItemsFromExternalSource(source,
             "9999", collection.getID().toString());
-        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem(containsString("Processed 0 records")));
         assertThat(handler.getWarningMessages(), empty());
         assertThat(solrSuggestionStorageService.exist(suggestion) , is(false));
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(0));
+        solrSuggestionStorageService.deleteSuggestion(suggestion);
     }
 
     @Test
     public void testImportItemsFromExternalSource() throws Exception {
         String source = "pubmed";
-        Suggestion suggestion = createSuggestion(source, "35444744");
+        Suggestion suggestion = createSuggestion(item, source, "35444744");
 
         TestDSpaceRunnableHandler handler = runImportItemsFromExternalSource(source,
                 "100", collection.getID().toString());
-        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem(containsString("Processed 1 records")));
         assertThat(handler.getWarningMessages(), empty());
         assertThat(solrSuggestionStorageService.exist(suggestion) , is(true));
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(0));
+        solrSuggestionStorageService.deleteSuggestion(suggestion);
     }
 
-    private Suggestion createSuggestion(String source, String idPart) throws Exception {
+    @Test
+    public void testImportLimitItemsFromExternalSource() throws Exception {
+
+        String source = "pubmed";
+
+        context.turnOffAuthorisationSystem();
+
+        Item item1 = ItemBuilder.createItem(context, collection)
+                               .withAuthor("Donald, Smith 1")
+                               .build();
+        Item item2 = ItemBuilder.createItem(context, collection)
+                               .withAuthor("Donald, Smith 2")
+                               .build();
+        Item item3 = ItemBuilder.createItem(context, collection)
+                               .withAuthor("Donald, Smith 3")
+                               .build();
+
+        context.restoreAuthSystemState();
+
+        Suggestion suggestion1 = createSuggestion(item1, source, "35444744");
+        Suggestion suggestion2 = createSuggestion(item2, source, "35444744");
+        Suggestion suggestion3 = createSuggestion(item3, source, "35444744");
+
+        String[] args = new String[] {"import-external-source-item" ,
+            "-p", source, "-s", "100", "-u", collection.getID().toString(), "-l", "2"};
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getInfoMessages(), hasItem(containsString("Processed 2 records")));
+        assertThat(handler.getWarningMessages(), empty());
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasSize(0));
+
+        solrSuggestionStorageService.deleteSuggestion(suggestion1);
+        solrSuggestionStorageService.deleteSuggestion(suggestion2);
+        solrSuggestionStorageService.deleteSuggestion(suggestion3);
+
+    }
+
+    private Suggestion createSuggestion(Item item, String source, String idPart) throws Exception {
 
         Suggestion suggestion = new Suggestion(source, item , idPart);
         suggestion.setExternalSourceUri(expectedExternalSourceUri(source, idPart));
@@ -148,7 +197,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
 
         suggestion.getEvidences().addAll(evidences);
 
-        solrSuggestionStorageService.addSuggestion(suggestion, false, true);
+        solrSuggestionStorageService.addSuggestion(suggestion, true, true);
 
         return suggestion;
     }

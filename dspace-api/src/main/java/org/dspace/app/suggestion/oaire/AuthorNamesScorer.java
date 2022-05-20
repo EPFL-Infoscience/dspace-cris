@@ -25,6 +25,8 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.external.model.ExternalDataObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -36,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public class AuthorNamesScorer implements EvidenceScorer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthorNamesScorer.class);
 
     private List<String> contributorMetadata;
 
@@ -113,7 +117,7 @@ public class AuthorNamesScorer implements EvidenceScorer {
             }
 
         } catch (Exception ex) {
-//            Something went wrong
+            LOGGER.error(ex.getMessage(), ex);
         }
 
         return null;
@@ -151,9 +155,8 @@ public class AuthorNamesScorer implements EvidenceScorer {
             }
             return Arrays.asList(norm.split("\\s+")).stream().sorted().collect(Collectors.joining());
         } catch (Exception ex) {
-//            Something went wrong
+            LOGGER.error(ex.getMessage(), ex);
         }
-
         return null;
     }
 
