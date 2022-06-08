@@ -29,7 +29,6 @@ import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.CrisLayoutFieldBitstream;
-import org.dspace.layout.CrisLayoutFieldMetadata;
 import org.dspace.layout.CrisMetadataGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
