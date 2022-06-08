@@ -26,6 +26,8 @@ public class AbstractEntityIntegrationTest extends AbstractControllerIntegration
      * This method will call the setUp method from AbstractControllerIntegrationTest.
      * Afterwards it will setUp the entity relation structure as defined in
      * dspace-api/src/test/data/dspaceFolder/config/entities/relationship-types.xml
+     * and will setUp the merge entity relation structure as defined in
+     * dspace-api/src/test/data/dspaceFolder/config/entities/merge-relationship-types.xml
      *
      * This method will first build the following EntityTypes:
      * - Publication
@@ -36,8 +38,14 @@ public class AbstractEntityIntegrationTest extends AbstractControllerIntegration
      * - JournalVolume
      * - JournalIssue
      *
+     * - funding
+     * - product
+     * - parent
+     * - event
+     * - equipment
+     *
      * After the EntityTypes are created, RelationshipTypes are set up between the different EntityTypes as indicated
-     * in relationship-types.xml
+     * in relationship-types.xml and also merge-relationship-types.xml
      */
     @Before
     @Override
@@ -58,6 +66,12 @@ public class AbstractEntityIntegrationTest extends AbstractControllerIntegration
         EntityType journal = EntityTypeBuilder.createEntityTypeBuilder(context, "Journal").build();
         EntityType journalVolume = EntityTypeBuilder.createEntityTypeBuilder(context, "JournalVolume").build();
         EntityType journalIssue = EntityTypeBuilder.createEntityTypeBuilder(context, "JournalIssue").build();
+
+        EntityType funding = EntityTypeBuilder.createEntityTypeBuilder(context, "Funding").build();
+        EntityType product = EntityTypeBuilder.createEntityTypeBuilder(context, "Product").build();
+        EntityType parent = EntityTypeBuilder.createEntityTypeBuilder(context, "Parent").build();
+        EntityType event = EntityTypeBuilder.createEntityTypeBuilder(context, "Event").build();
+        EntityType equipment = EntityTypeBuilder.createEntityTypeBuilder(context, "Equipment").build();
 
 
         RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publication, person, "isAuthorOfPublication",
@@ -111,6 +125,47 @@ public class AbstractEntityIntegrationTest extends AbstractControllerIntegration
                                                               "isChildOrgUnitOf", null,
                                                               1, null, null)
                                .build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publication, publication, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, person, person, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, project, project, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, orgUnit, orgUnit, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, journal, journal, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, funding, funding, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, product, product, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, parent, parent, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, event, event, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, equipment, equipment, "isMergedFromItem",
+            "isMergedInItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
 
         context.restoreAuthSystemState();
     }
