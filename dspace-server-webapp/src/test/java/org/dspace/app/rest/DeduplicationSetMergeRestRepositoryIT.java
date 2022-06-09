@@ -560,6 +560,57 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
     }
 
+    @Test
+    public void testDedupSetMergeCreationOfRelationships() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        context.turnOffAuthorisationSystem();
+
+        RelationshipType isMergedFromItemRelationshipType = relationshipTypeService
+            .findbyTypesAndTypeName(context, entityTypeService.findByEntityType(context, "Publication"),
+                entityTypeService.findByEntityType(context, "Publication"),
+                "isMergedFromItem", "isMergedInItem");
+
+        context.restoreAuthSystemState();
+
+        // no relationship between items before merge
+        getClient().perform(get("/api/core/relationships/search/byItemsAndType")
+                       .param("typeId", isMergedFromItemRelationshipType.getID().toString())
+                       .param("relationshipLabel", "isMergedFromItem")
+                       .param("focusItem", item1.getID().toString())
+                       .param("relatedItem", item2.getID().toString(),
+                           item3.getID().toString()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.page.totalPages", is(0)))
+                   .andExpect(jsonPath("$.page.totalElements", is(0)));
+
+        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
+                                 .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
+                                 .contentType(MediaType.APPLICATION_JSON))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
+                             .andExpect(jsonPath("$.item.id", is(item1.getID().toString())))
+                             .andExpect(jsonPath("$.item.metadata", Matchers.allOf(
+                                 matchMetadata("dc.type", "text3"),
+                                 matchMetadata("dc.contributor.author", "Smith, Donald 3"),
+                                 matchMetadata("dc.contributor.author", "Smith, Donald"),
+                                 matchMetadata("dspace.entity.type", "Publication"),
+                                 matchMetadata("dc.title", item1.getName())
+                             )));
+
+//      there are two relationships between target item and only the merged items ( item2, item3).
+        getClient().perform(get("/api/core/relationships/search/byItemsAndType")
+                       .param("typeId", isMergedFromItemRelationshipType.getID().toString())
+                       .param("relationshipLabel", "isMergedFromItem")
+                       .param("focusItem", item1.getID().toString())
+                       .param("relatedItem", item2.getID().toString(), item3.getID().toString(),
+                           item4.getID().toString() ))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.page.totalPages", is(1)))
+                   .andExpect(jsonPath("$.page.totalElements", is(2)));
+    }
+
     private String createTitleSetId(Item item) {
         // Set up MD5ValueSignature state to produce the same signature
         setMD5ValueSignatureInstance("dc.title", null, "title",
@@ -574,7 +625,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         DeduplicationMetadataSourcesDTO source2 = new DeduplicationMetadataSourcesDTO(item1, 0);
         DeduplicationMetadataSourcesDTO source3 = new DeduplicationMetadataSourcesDTO(item3, 0);
         DeduplicationMetadataSourcesDTO source4 = new DeduplicationMetadataSourcesDTO(item3, 0);
-        DeduplicationMetadataSourcesDTO source5 = new DeduplicationMetadataSourcesDTO(item1, 0);
 
         DeduplicationMetadataDTO metadata1 = new DeduplicationMetadataDTO("dc.contributor.author",
             List.of(source1, source2));

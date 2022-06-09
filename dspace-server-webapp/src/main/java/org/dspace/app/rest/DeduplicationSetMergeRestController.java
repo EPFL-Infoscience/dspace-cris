@@ -53,6 +53,9 @@ public class DeduplicationSetMergeRestController {
      * Method to merge the items from a set.
      *
      * @param uuid the uuid of the target item
+     * @param jsonNode the request body
+     * @param response The response object
+     * @param request  The request object
      */
     @RequestMapping(method = PUT, path = "/{uuid}")
     public ResponseEntity<RepresentationModel<?>> mergeItems(@PathVariable UUID uuid,
