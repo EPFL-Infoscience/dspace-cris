@@ -22,6 +22,8 @@ public class DeduplicationSetMergeRest extends BaseObjectRest<String> {
     public static final String NAME = "merge";
     public static final String PLURAL_NAME = "merge";
 
+    private String targetItem;
+
     private List<String> mergedItems;
 
     private List<String> mergedBitstreams;
@@ -51,6 +53,14 @@ public class DeduplicationSetMergeRest extends BaseObjectRest<String> {
     @JsonIgnore
     public Class getController() {
         return DeduplicationSetMergeRestController.class;
+    }
+
+    public String getTargetItem() {
+        return targetItem;
+    }
+
+    public void setTargetItem(String targetItem) {
+        this.targetItem = targetItem;
     }
 
     public List<String> getMergedItems() {

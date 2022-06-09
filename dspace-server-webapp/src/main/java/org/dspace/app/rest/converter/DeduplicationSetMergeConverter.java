@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
 import org.dspace.app.rest.model.DeduplicationSetMergeRest;
+import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.content.Bitstream;
@@ -43,10 +44,19 @@ public class DeduplicationSetMergeConverter
         List<String> uris = new ArrayList<>();
         List<String> bitstreamsUris = new ArrayList<>();
         Item item;
+        ItemRest itemRest = null;
+        String itemRestUri = "";
 
         if (dedupSetMerge != null) {
             item = dedupSetMerge.getItem();
-            dedupSetMergeRest.setItem(item != null ? converter.toRest(item, projection) : null);
+
+            if (item != null) {
+                itemRest = converter.toRest(item, projection);
+                itemRestUri = utils.linkToSingleResource(itemRest, "self").getHref();
+            }
+
+            dedupSetMergeRest.setItem(itemRest);
+            dedupSetMergeRest.setTargetItem(itemRestUri);
             dedupSetMergeRest.setId(item != null ? item.getID().toString() : null);
             for (Item mergedItem : dedupSetMerge.getMergedItems()) {
                 uris.add(utils.linkToSingleResource(

@@ -351,6 +351,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                             .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
                             .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.targetItem", is(itemUri1)))
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
                              .andExpect(jsonPath("$.mergedBitstreams", containsInAnyOrder(bitstreamUri,
                                  bitstreamUri1)))
@@ -432,6 +433,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                  .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
                                  .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.targetItem", is(itemUri1)))
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
@@ -479,6 +481,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                  .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
                                  .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.targetItem", is(itemUri1)))
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
@@ -591,6 +594,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                  .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
                                  .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.targetItem", is(itemUri1)))
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
