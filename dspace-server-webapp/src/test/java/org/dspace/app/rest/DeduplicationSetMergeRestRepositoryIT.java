@@ -352,8 +352,10 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                             .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
-                             .andExpect(jsonPath("$.item.id", is(item1.getID().toString())))
-                             .andExpect(jsonPath("$.item.metadata", Matchers.allOf(
+                             .andExpect(jsonPath("$.mergedBitstreams", containsInAnyOrder(bitstreamUri,
+                                 bitstreamUri1)))
+                             .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
+                             .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald 3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald"),
@@ -431,8 +433,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                  .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
-                             .andExpect(jsonPath("$.item.id", is(item1.getID().toString())))
-                             .andExpect(jsonPath("$.item.metadata", Matchers.allOf(
+                             .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
+                             .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald 3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald"),
@@ -478,8 +480,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                  .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
-                             .andExpect(jsonPath("$.item.id", is(item1.getID().toString())))
-                             .andExpect(jsonPath("$.item.metadata", Matchers.allOf(
+                             .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
+                             .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald 3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald"),
@@ -590,8 +592,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                  .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
-                             .andExpect(jsonPath("$.item.id", is(item1.getID().toString())))
-                             .andExpect(jsonPath("$.item.metadata", Matchers.allOf(
+                             .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
+                             .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald 3"),
                                  matchMetadata("dc.contributor.author", "Smith, Donald"),

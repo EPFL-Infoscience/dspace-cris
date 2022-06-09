@@ -18,8 +18,9 @@ import org.dspace.app.rest.utils.Utils;
  * @author Mohamed Eskander (mohamed.eskander at 4science.it)
  */
 @RelNameDSpaceResource(DeduplicationSetMergeRest.NAME)
-public class DeduplicationSetMergeResource extends DSpaceResource<DeduplicationSetMergeRest> {
+public class DeduplicationSetMergeResource extends HALResource<DeduplicationSetMergeRest> {
     public DeduplicationSetMergeResource(DeduplicationSetMergeRest deduplicationSetMergeRest, Utils utils) {
-        super(deduplicationSetMergeRest, utils);
+        super(deduplicationSetMergeRest);
+        embedResource("item", new ItemResource(deduplicationSetMergeRest.getItem(), utils));
     }
 }

@@ -26,6 +26,7 @@ public class DeduplicationSetMergeRest extends BaseObjectRest<String> {
 
     private List<String> mergedBitstreams;
 
+    @JsonIgnore
     private ItemRest item;
 
     @Override
