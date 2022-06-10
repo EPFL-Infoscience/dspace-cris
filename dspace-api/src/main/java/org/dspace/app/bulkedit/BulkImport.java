@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -226,7 +225,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
     private Workbook createWorkbook(InputStream is) {
         try {
             return WorkbookFactory.create(is);
-        } catch (EncryptedDocumentException | InvalidFormatException | IOException e) {
+        } catch (EncryptedDocumentException | IOException e) {
             throw new BulkImportException("An error occurs during the workbook creation", e);
         }
     }

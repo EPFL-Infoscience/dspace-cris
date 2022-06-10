@@ -119,6 +119,10 @@ public class CollectionBuilder extends AbstractDSpaceObjectBuilder<Collection> {
         return addMetadataValue(collection, "cris", "submission", "definition", null, name);
     }
 
+    public CollectionBuilder withCorrectionSubmissionDefinition(final String name) {
+        return addMetadataValue(collection, "cris", "submission", "definition-correction", null, name);
+    }
+
     public CollectionBuilder withWorkflow(final String name) {
         return addMetadataValue(collection, "cris", "workflow", "name", null, name);
     }
@@ -285,6 +289,7 @@ public class CollectionBuilder extends AbstractDSpaceObjectBuilder<Collection> {
     @Override
     public void cleanup() throws Exception {
        try (Context c = new Context()) {
+            c.setDispatcher("noindex");
             c.turnOffAuthorisationSystem();
             // Ensure object and any related objects are reloaded before checking to see what needs cleanup
             collection = c.reloadEntity(collection);

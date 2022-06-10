@@ -192,10 +192,16 @@
       <type>extract</type>
       <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
     </step-definition>
-    <step-definition id="custom-url"> 
+    <step-definition id="custom-url" mandatory="false">
         <heading>submit.progressbar.CustomUrlStep</heading>
         <processing-class>org.dspace.app.rest.submit.step.CustomUrlStep</processing-class>
         <type>custom-url</type>
+    </step-definition>
+    <step-definition id="correction" mandatory="true">
+      <heading>submit.progressbar.correction-step</heading>
+      <processing-class>org.dspace.app.rest.submit.step.CorrectionStep</processing-class>
+      <type>correction</type>
+      <scope visibilityOutside="hidden">workflow</scope>
     </step-definition>
   </step-definitions>
   <submission-definitions>
@@ -204,6 +210,7 @@
       <step id="product" />
       <step id="product_indexing" />
       <step id="product_references" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -218,6 +225,7 @@
     <submission-process name="orgunit">
       <step id="collection" />
       <step id="orgunit" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -230,6 +238,7 @@
     <submission-process name="project">
       <step id="collection" />
       <step id="project" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -242,6 +251,7 @@
     <submission-process name="journal">
       <step id="collection" />
       <step id="journal" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -258,6 +268,7 @@
       <step id="publication_indexing" />
       <step id="publication_bibliographic_details" />
       <step id="publication_references" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -275,6 +286,7 @@
       <step id="collection" />
       <step id="person" />
       <step id="custom-url" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -295,6 +307,7 @@
     <submission-process name="event">
       <step id="collection" />
       <step id="event" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -307,6 +320,7 @@
     <submission-process name="equipment">
       <step id="collection" />
       <step id="equipment" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -322,6 +336,7 @@
       <step id="patent" />
       <step id="patent_indexing" />
       <step id="patent_references" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
@@ -337,6 +352,7 @@
     <submission-process name="funding">
       <step id="collection" />
       <step id="funding" />
+      <step id="correction" />
       <step id="detect-duplicate" />
       <step id="upload" />
       <step id="license" />
