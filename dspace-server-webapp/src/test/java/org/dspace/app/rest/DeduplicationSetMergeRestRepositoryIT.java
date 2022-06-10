@@ -43,12 +43,14 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.RelationshipType;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.RelationshipTypeService;
@@ -515,7 +517,39 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
     @Test
     public void testWithdrawnOtherItemsAfterMerge() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                                          .withTitle("Test")
+                                                          .withIssueDate("2015-12-20")
+                                                          .withAuthor("Smith 1, John")
+                                                          .withAuthor("Smith 1, John 2")
+                                                          .withAuthor("Smith 1, John 3")
+                                                          .withType("text2")
+                                                          .build();
+
+        Item item2 = workspaceItem.getItem();
+
+        context.restoreAuthSystemState();
+
+//       create the request body DTO
+        deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId, itemUri1, item2.getID().toString(),
+            itemUri3, bitstreamUri, bitstreamUri1);
+
         String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+                             .andExpect(status().isOk());
+
+        getClient(adminToken).perform(get("/api/core/items/" + item1.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.withdrawn", is(false)));
+
+        getClient(adminToken).perform(get("/api/core/items/" + item3.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.withdrawn", is(false)));
+
         getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
                                  .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
                                  .contentType(MediaType.APPLICATION_JSON))
@@ -525,13 +559,14 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.withdrawn", is(false)));
 
-        getClient(adminToken).perform(get("/api/core/items/" + item2.getID()))
-                             .andExpect(status().isOk())
-                             .andExpect(jsonPath("$.withdrawn", is(true)));
-
         getClient(adminToken).perform(get("/api/core/items/" + item3.getID()))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.withdrawn", is(true)));
+
+//        Trying to get deleted item should fail with 404
+        getClient(adminToken).perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+                        .andExpect(status().isNotFound());
+
     }
 
     @Test

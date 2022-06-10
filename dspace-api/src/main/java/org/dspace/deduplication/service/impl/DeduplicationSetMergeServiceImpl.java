@@ -34,6 +34,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -41,6 +42,7 @@ import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
@@ -49,6 +51,8 @@ import org.dspace.deduplication.dto.DeduplicationSetMergeDTO;
 import org.dspace.deduplication.service.DeduplicationSetMergeService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.util.UUIDUtils;
+import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -84,6 +88,12 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
     @Autowired
     private BundleService bundleService;
+
+    @Autowired
+    private WorkflowItemService workflowItemService;
+
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
 
     private final List<String[]> authorityMetadataFields = new ArrayList<>();
 
@@ -361,7 +371,21 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     private void withdrawOtherItems(Context context, List<Item> otherItems)
         throws SQLException, AuthorizeException {
         for (Item item : otherItems) {
-            itemService.withdraw(context, item);
+
+            WorkflowItem workflowItem = workflowItemService.findByItem(context, item);
+            WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
+
+            if (workflowItem != null) {
+                workflowItemService.deleteWrapper(context, workflowItem);
+            }
+
+            if (workspaceItem != null) {
+                workspaceItemService.deleteWrapper(context, workspaceItem);
+            }
+
+            if (workflowItem == null && workspaceItem == null) {
+                itemService.withdraw(context, item);
+            }
         }
     }
 
