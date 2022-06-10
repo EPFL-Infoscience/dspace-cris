@@ -54,6 +54,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.RelationshipTypeService;
+import org.dspace.core.Constants;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
 import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
 import org.dspace.deduplication.dto.DeduplicationSetMergeDTO;
@@ -200,7 +201,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withType("text5")
                            .build();
 
-        targetBundle = bundleService.create(context, item1, BitstreamBuilder.ORIGINAL);
+        targetBundle = bundleService.create(context, item1, Constants.DEFAULT_BUNDLE_NAME);
 
         String bitstreamContent = "ThisIsSomeDummyText";
 
@@ -372,7 +373,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .param("projection", "full"))
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$._embedded.bitstreams", Matchers.contains(
+                   .andExpect(jsonPath("$._embedded.bitstreams", Matchers.containsInAnyOrder(
                        BitstreamMatcher.matchBitstreamEntry(bitstream),
                        BitstreamMatcher.matchBitstreamEntry(bitstream1)
                    )));
