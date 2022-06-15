@@ -11,6 +11,7 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static java.util.List.of;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -1372,6 +1373,54 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         getClient(tokenAdmin).perform(multipart("/api/core/edititems/" + editItem.getID() + ":FIRST-OWNER")
             .file(bibtexFile))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testFindModesById() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withEntityType("Publication")
+                                           .withName("Collection 1")
+                                           .build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                                .withTitle("Title item A")
+                                .withIssueDate("2015-06-25")
+                                .withAuthor("Smith, Maria")
+                                .build();
+
+        EditItem editItem = new EditItem(context, itemA);
+
+        context.restoreAuthSystemState();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        getClient(tokenAdmin).perform(get("/api/core/edititems/search/findModesById")
+                                          .param("uuid" , editItem.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded").exists())
+                             .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(1)))
+                             .andExpect(jsonPath("$._embedded.edititemmodes[0].id" , is("MODE1")));
+    }
+
+    @Test
+    public void testFindModesForNotExistingId() throws Exception {
+
+        String id = "bef23ba3-9aeb-4f7b-b153-77b0f1fc3612";
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        getClient(tokenAdmin).perform(get("/api/core/edititems/search/findModesById")
+                                          .param("uuid" , id))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded").doesNotExist())
+                             .andExpect(jsonPath("$.page.totalElements", is(0)));
     }
 
 }
