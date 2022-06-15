@@ -82,7 +82,7 @@ public class ExternalSourceItemImportRunnable
 
         source = commandLine.getOptionValue("p");
         score = commandLine.getOptionValue("s");
-        collectionId = commandLine.getOptionValue("u");
+        collectionId = commandLine.getOptionValue("t");
         email = commandLine.getOptionValue("e");
         limit = commandLine.getOptionValue("l");
 
