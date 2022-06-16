@@ -88,5 +88,11 @@
         <property name="description" value="Script to import CRIS layout configuration from excel file"/>
         <property name="dspaceRunnableClass" value="org.dspace.layout.script.CrisLayoutToolScript"/>
     </bean>
-    
+
+    <bean id="deduplication-merge-items"
+          class="org.dspace.app.deduplication.scripts.DedupMergeScriptConfiguration" primary="true">
+        <property name="description" value="merge items into target item" />
+        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnable"/>
+    </bean>
+
 </beans>

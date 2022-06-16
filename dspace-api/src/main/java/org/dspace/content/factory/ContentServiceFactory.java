@@ -35,6 +35,7 @@ import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 /**
@@ -69,6 +70,8 @@ public abstract class ContentServiceFactory {
     public abstract MetadataValueService getMetadataValueService();
 
     public abstract WorkspaceItemService getWorkspaceItemService();
+
+    public abstract WorkflowItemService getWorkflowItemService();
 
     public abstract InstallItemService getInstallItemService();
 

@@ -53,4 +53,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.scripts.TypeConversionTestScript"/>
     </bean>
 
+    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeScriptConfiguration">
+        <property name="description" value="merge items into target item" />
+        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnable"/>
+    </bean>
+
 </beans>

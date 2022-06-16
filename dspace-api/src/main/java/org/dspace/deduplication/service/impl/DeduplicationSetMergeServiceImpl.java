@@ -7,6 +7,7 @@
  */
 package org.dspace.deduplication.service.impl;
 
+import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.deduplication.model.DeduplicationMerge;
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
 import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.deduplication.utils.DuplicateInfo;
@@ -153,6 +155,40 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
         return new DeduplicationSetMerge(otherItems, bitstreams, itemService.find(context, targetItem.getID()));
 
+    }
+
+    @Override
+    public void merge(Context context, DeduplicationMerge deduplicationMerge)
+        throws SQLException, AuthorizeException, SearchServiceException, IOException {
+        Item targetItem = getTargetItem(context, UUIDUtils.fromString(deduplicationMerge.getTargetItem()));
+        List<Item> mergedItems = getMergedItems(context, deduplicationMerge);
+
+        if (deduplicationMerge.isExclude()) {
+            updateRelationships(context, targetItem, mergedItems);
+            updateAuthorities(context, targetItem, mergedItems);
+            return;
+        }
+
+        replaceItemExistedMetadata(context, targetItem, mergedItems,
+            deduplicationMerge.getReplacedNotEmptyMetadata());
+
+        replaceItemMetadata(context, targetItem, mergedItems,
+            deduplicationMerge.getReplacedMetadata());
+
+        appendItemExistedMetadata(context, targetItem, mergedItems,
+            deduplicationMerge.getAppendedMetadata());
+
+        updateRelationships(context, targetItem, mergedItems);
+        updateAuthorities(context, targetItem, mergedItems);
+
+        withdrawOtherItems(context, mergedItems);
+
+        if (deduplicationMerge.isDelete()) {
+            deleteMergedItems(context, mergedItems);
+            return;
+        }
+
+        createRelationships(context, targetItem, mergedItems);
     }
 
     private Item getTargetItem(Context context, UUID targetUUID) throws SQLException {
@@ -415,4 +451,79 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         Relationship persistedRelationship = relationshipService.create(context, leftItem, rightItem,
             relationshipType,false);
     }
+
+    private List<Item> getMergedItems(Context context,
+                                     DeduplicationMerge deduplicationMerge) throws SQLException {
+        Set<Item> mergedItems = new HashSet<>();
+        for (String mergedItem : deduplicationMerge.getMergedItems()) {
+            mergedItems.add(itemService.find(context, UUIDUtils.fromString(mergedItem)));
+        }
+        return new ArrayList<Item>(mergedItems);
+    }
+
+    private void replaceItemExistedMetadata(Context context, Item targetItem,
+                                         List<Item> mergedItems, List<String> replacedNotEmptyMetadata)
+        throws SQLException, AuthorizeException {
+        List<MetadataValue> metadataValues = new ArrayList<>();
+        for (String metadataFiled : replacedNotEmptyMetadata) {
+            if (isTargetItemHasMetadata(targetItem, metadataFiled)) {
+                metadataValues.addAll(getItemsMetadataValues(mergedItems, metadataFiled));
+                updateItemMetaDataValues(context, targetItem, metadataValues, getElementsFilled(metadataFiled));
+                metadataValues = new ArrayList<>();
+            }
+        }
+    }
+
+    private void replaceItemMetadata(Context context, Item targetItem,
+                                            List<Item> mergedItems, List<String> replacedMetadata)
+        throws SQLException, AuthorizeException {
+        List<MetadataValue> metadataValues = new ArrayList<>();
+        for (String metadataFiled : replacedMetadata) {
+            metadataValues.addAll(getItemsMetadataValues(mergedItems, metadataFiled));
+            updateItemMetaDataValues(context, targetItem, metadataValues, getElementsFilled(metadataFiled));
+            metadataValues = new ArrayList<>();
+        }
+    }
+
+    private void appendItemExistedMetadata(Context context, Item targetItem,
+                                            List<Item> mergedItems, List<String> appendedMetadata)
+        throws SQLException, AuthorizeException {
+        List<MetadataValue> metadataValues = new ArrayList<>();
+        for (String metadataFiled : appendedMetadata) {
+            if (isTargetItemHasMetadata(targetItem, metadataFiled)) {
+                metadataValues.addAll(getItemMetadataValues(targetItem, metadataFiled));
+                metadataValues.addAll(getItemsMetadataValues(mergedItems, metadataFiled));
+                updateItemMetaDataValues(context, targetItem, metadataValues, getElementsFilled(metadataFiled));
+                metadataValues = new ArrayList<>();
+            }
+        }
+    }
+
+    private boolean isTargetItemHasMetadata(Item targetItem, String metadataFiled) {
+        return getItemMetadataValues(targetItem, metadataFiled).size() > 0;
+    }
+
+    private List<MetadataValue> getItemsMetadataValues(List<Item> mergedItems, String metadataFiled) {
+        List<MetadataValue> metadataValues = new ArrayList<>();
+        String[] elements = getElementsFilled(metadataFiled);
+        for (Item mergedItem : mergedItems) {
+            metadataValues.addAll(getItemMetadataValues(mergedItem, metadataFiled));
+        }
+        return metadataValues;
+    }
+
+    private List<MetadataValue> getItemMetadataValues(Item item, String metadataFiled) {
+        List<MetadataValue> metadataValues = new ArrayList<>();
+        String[] elements = getElementsFilled(metadataFiled);
+        metadataValues = itemService.getMetadata(item, elements[0], elements[1], elements[2], null);
+        return metadataValues;
+    }
+
+    private void deleteMergedItems(Context context, List<Item> mergedItems)
+        throws SQLException, AuthorizeException, IOException {
+        for (Item item : mergedItems) {
+            itemService.delete(context, item);
+        }
+    }
+
 }

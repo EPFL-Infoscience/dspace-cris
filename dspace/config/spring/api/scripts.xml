@@ -133,4 +133,10 @@
         <property name="description" value="Perform the media filtering to extract full text from documents and to create thumbnails"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
     </bean>
+
+    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeCliScriptConfiguration">
+        <property name="description" value="merge items into target item" />
+        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnableCli"/>
+    </bean>
+
 </beans>
