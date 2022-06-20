@@ -10,7 +10,11 @@ package org.dspace.app.rest.repository;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,14 +26,26 @@ import org.dspace.app.rest.converter.DeduplicationSetMergeConverter;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.DeduplicationSetMergeRest;
+import org.dspace.app.util.DCInput;
+import org.dspace.app.util.DCInputSet;
+import org.dspace.app.util.DCInputsReader;
+import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
+import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
 import org.dspace.deduplication.dto.DeduplicationSetMergeDTO;
 import org.dspace.deduplication.service.DeduplicationSetMergeService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.util.UUIDUtils;
+import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +78,19 @@ public class DeduplicationSetMergeRestRepository
     @Autowired
     private DedupUtils dedupUtils;
 
+    @Autowired
+    private WorkflowItemService workflowItemService;
+
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
+
+    protected DCInputsReader dcInputsReader;
+
+    @PostConstruct
+    private void init() throws DCInputsReaderException {
+        dcInputsReader = new DCInputsReader();
+    }
+
     @Override
     public DeduplicationSetMergeRest findOne(Context context, UUID uuid) {
         throw new RepositoryMethodNotImplementedException(DeduplicationSetMergeRest.NAME, "findOne");
@@ -92,31 +121,102 @@ public class DeduplicationSetMergeRestRepository
             return converter.convert(dedupSetMerge, utils.obtainProjection());
         } catch (IOException e1) {
             throw new UnprocessableEntityException("Error parsing request body", e1);
-        } catch (SearchServiceException e) {
+        } catch (SearchServiceException | DCInputsReaderException e) {
             throw new RuntimeException(e);
         }
     }
 
     private void validate(Context context, UUID targetUUID, DeduplicationSetMergeDTO deduplicationSetMergeDTO)
-        throws SQLException, SearchServiceException {
+        throws SQLException, SearchServiceException, DCInputsReaderException {
 
-        DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, deduplicationSetMergeDTO.getSetId());
+        validateDeduplicationSet(context, deduplicationSetMergeDTO.getSetId());
+        validateTargetItem(context, targetUUID);
+        validateMergedItems(context, deduplicationSetMergeDTO.getMergedItems());
+        validateMetadata(context, targetUUID, deduplicationSetMergeDTO.getMetadata());
+        validateBitstreams(context, deduplicationSetMergeDTO.getBitstreams());
+
+    }
+
+    private void validateDeduplicationSet(Context context, String setId) throws SearchServiceException, SQLException {
+        DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, setId);
+
         if (duplicateInfo == null) {
             throw new UnprocessableEntityException(
-                "Could not find set with id: " + deduplicationSetMergeDTO.getSetId());
+                "Could not find set with id: " + setId);
         }
+    }
 
-        if (itemService.find(context, targetUUID) == null) {
-            throw new ResourceNotFoundException("Target Item with uuid " + targetUUID + " not found");
-        }
-
-        for (String itemUri : deduplicationSetMergeDTO.getMergedItems()) {
+    private void validateMergedItems(Context context, List<String> mergedItems) throws SQLException {
+        for (String itemUri : mergedItems) {
             if (itemService.find(context, getUUIDFromUri(itemUri)) == null) {
                 throw new UnprocessableEntityException("item for uuid " + getUUIDFromUri(itemUri) + "doesn't exist");
             }
         }
+    }
 
-        for (String bitstreamUri : deduplicationSetMergeDTO.getBitstreams()) {
+    private void validateTargetItem(Context context, UUID targetUUID) throws SQLException {
+        Item item = itemService.find(context, targetUUID);
+
+        if (item == null) {
+            throw new ResourceNotFoundException("Target Item with uuid " + targetUUID + " not found");
+        }
+    }
+    private void validateMetadata(Context context, UUID targetUUID, List<DeduplicationMetadataDTO> metadataList)
+        throws SQLException, DCInputsReaderException {
+
+        Item item = itemService.find(context, targetUUID);
+        Collection collection =  getCollectionByItem(context, item);
+        List<String> metadataFields = getRepeatedMetadata(metadataList);
+
+        if (metadataFields.size() > 0) {
+            checkAnyRepeatableMetadata(collection , metadataFields);
+        }
+    }
+
+    private Collection getCollectionByItem(Context context, Item item) throws SQLException {
+        Collection collection = item.getOwningCollection();
+
+        if (collection == null) {
+            WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
+            WorkflowItem workflowItem = workflowItemService.findByItem(context, item);
+            if (workspaceItem != null) {
+                collection = workspaceItem.getCollection();
+            } else if (workflowItem != null) {
+                collection = workflowItem.getCollection();
+            }
+        }
+        return collection;
+    }
+
+    private List<String> getRepeatedMetadata(List<DeduplicationMetadataDTO> metadataList) {
+        List<String> metadataFields = new ArrayList<>();
+
+        for (DeduplicationMetadataDTO metadataDTO : metadataList) {
+            List<DeduplicationMetadataSourcesDTO> sources = metadataDTO.getSources();
+            if (sources != null && sources.size() > 1) {
+                metadataFields.add(metadataDTO.getMetadataField());
+            }
+        }
+        return metadataFields;
+    }
+
+    private void checkAnyRepeatableMetadata(Collection collection, List<String> metadataFields)
+        throws DCInputsReaderException {
+        List<DCInputSet> dcInputSets = dcInputsReader.getInputsByCollection(collection);
+        for (DCInputSet dcInputSet : dcInputSets) {
+            for (String field : metadataFields) {
+                Optional<DCInput> dcInput = dcInputSet.getField(field);
+                if (dcInput.isPresent()) {
+                    if (!dcInput.get().isRepeatable()) {
+                        throw new UnprocessableEntityException("the metadata " + field + " isn't repeatable");
+                    }
+                }
+            }
+        }
+    }
+
+    private void validateBitstreams(Context context, List<String> bitstreams) throws SQLException {
+        for (String bitstreamUri : bitstreams) {
             if (bitstreamService.find(context, getUUIDFromUri(bitstreamUri)) == null) {
                 throw new UnprocessableEntityException(
                     "Bitstream for uuid " + getUUIDFromUri(bitstreamUri) + "doesn't exist");

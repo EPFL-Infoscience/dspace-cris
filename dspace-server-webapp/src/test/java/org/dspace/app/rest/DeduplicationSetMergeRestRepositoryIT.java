@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
+import static org.dspace.app.rest.matcher.BitstreamMatcher.matchBitstreamEntry;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -32,7 +33,6 @@ import org.dspace.app.deduplication.utils.MD5ValueSignature;
 import org.dspace.app.rest.converter.BitstreamConverter;
 import org.dspace.app.rest.converter.DSpaceConverter;
 import org.dspace.app.rest.converter.ItemConverter;
-import org.dspace.app.rest.matcher.BitstreamMatcher;
 import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.repository.DeduplicationSetMergeRestRepository;
@@ -160,28 +160,28 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         item1 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withAlternativeTitle("item1 title1")
                            .withIssueDate("2010-10-17")
                            .withAuthor("Smith, Donald")
-                           .withAuthor("Smith, Donald 2")
-                           .withAuthor("Smith, Donald 3")
+                           .withEditor("editor")
                            .withType("text1")
                            .build();
 
         item2 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withAlternativeTitle("item2 title1")
+                           .withAlternativeTitle("item2 title2")
                            .withIssueDate("2015-12-20")
                            .withAuthor("Smith 1, John")
-                           .withAuthor("Smith 1, John 2")
-                           .withAuthor("Smith 1, John 3")
                            .withType("text2")
                            .build();
 
         item3 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withAlternativeTitle("item3 title1")
+                           .withAlternativeTitle("item3 title2")
                            .withIssueDate("2015-12-18")
                            .withAuthor("Smith 2, John")
-                           .withAuthor("Smith 2, John 2")
-                           .withAuthor("Smith 2, John 3")
                            .withType("text3")
                            .build();
 
@@ -227,7 +227,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                 .build();
         }
 
-//      Add a bitstream to Bundle of type TEXT to item3
+//      Add bitstream1 to Bundle of type TEXT to item3
         bundleService.addBitstream(context,  bundleService.create(context, item3, "TEXT"), bitstream1);
 
 //      generate URIs for all items and bitstreams that will be merged
@@ -309,6 +309,30 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     }
 
     @Test
+    public void testDedupSetMergeIfNotRepeatableMetadata() throws Exception {
+
+        DeduplicationMetadataSourcesDTO source1 = new DeduplicationMetadataSourcesDTO(itemUri1, 0);
+        DeduplicationMetadataSourcesDTO source2 = new DeduplicationMetadataSourcesDTO(itemUri2, 0);
+
+        DeduplicationMetadataDTO metadata = new DeduplicationMetadataDTO("dc.contributor.author",
+            List.of(source1, source2));
+
+        DeduplicationSetMergeDTO deduplicationSetMergeDTO = new DeduplicationSetMergeDTO( setId,
+            List.of(itemUri2),
+            List.of(bitstreamUri),
+            List.of(metadata)
+        );
+
+//        dc.contributor.author not repeatable metadata
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
+                                 .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
+                                 .contentType(MediaType.APPLICATION_JSON))
+                             .andExpect(status().isUnprocessableEntity());
+
+    }
+
+    @Test
     public void testDedupSetMergeIfOneOfItemsDoesNotExist() throws Exception {
         String itemId = "6ba5125f-5e78-4b68-834f-25a1c67150e6";
         String setId = createTitleSetId(item1);
@@ -361,11 +385,14 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald 3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald"),
+                                 matchMetadata("dc.contributor.author", "Smith 2, John"),
+                                 matchMetadata("dc.title.alternative", "item1 title1"),
+                                 matchMetadata("dc.title.alternative", "item2 title2"),
+                                 matchMetadata("dc.title.alternative", "item3 title1"),
                                  matchMetadata("dspace.entity.type", "Publication"),
-                                 matchMetadata("dc.title", item1.getName())
-                             )));
+                                 matchMetadata("dc.title", item1.getName()))))
+                             .andExpect(jsonPath(
+                                 "$._embedded.item.metadata['dc.contributor.editor']").doesNotExist());
 
 //      after merge target item has a bundle with merged bitstreams
         getClient(adminToken).perform(
@@ -373,9 +400,9 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .param("projection", "full"))
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$._embedded.bitstreams", Matchers.containsInAnyOrder(
-                       BitstreamMatcher.matchBitstreamEntry(bitstream),
-                       BitstreamMatcher.matchBitstreamEntry(bitstream1)
+                   .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
+                       matchBitstreamEntry(bitstream),
+                       matchBitstreamEntry(bitstream1)
                    )));
     }
 
@@ -441,11 +468,14 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald 3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald"),
+                                 matchMetadata("dc.contributor.author", "Smith 2, John"),
+                                 matchMetadata("dc.title.alternative", "item1 title1"),
+                                 matchMetadata("dc.title.alternative", "item2 title2"),
+                                 matchMetadata("dc.title.alternative", "item3 title1"),
                                  matchMetadata("dspace.entity.type", "Publication"),
-                                 matchMetadata("dc.title", item1.getName())
-                             )));
+                                 matchMetadata("dc.title", item1.getName()))))
+                             .andExpect(jsonPath(
+                                 "$._embedded.item.metadata['dc.contributor.editor']").doesNotExist());
 
         getClient().perform(get("/api/core/relationships/" + idRef))
                    .andExpect(status().isOk())
@@ -489,11 +519,14 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald 3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald"),
+                                 matchMetadata("dc.contributor.author", "Smith 2, John"),
+                                 matchMetadata("dc.title.alternative", "item1 title1"),
+                                 matchMetadata("dc.title.alternative", "item2 title2"),
+                                 matchMetadata("dc.title.alternative", "item3 title1"),
                                  matchMetadata("dspace.entity.type", "Publication"),
-                                 matchMetadata("dc.title", item1.getName())
-                             )));
+                                 matchMetadata("dc.title", item1.getName()))))
+                             .andExpect(jsonPath(
+                                 "$._embedded.item.metadata['dc.contributor.editor']").doesNotExist());
 
         getClient(adminToken).perform(get("/api/core/items/" + item4.getID()))
                              .andExpect(status().isOk())
@@ -525,8 +558,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                                           .withTitle("Test")
                                                           .withIssueDate("2015-12-20")
                                                           .withAuthor("Smith 1, John")
-                                                          .withAuthor("Smith 1, John 2")
-                                                          .withAuthor("Smith 1, John 3")
+                                                          .withAlternativeTitle("item2 title1")
+                                                          .withAlternativeTitle("item2 title2")
                                                           .withType("text2")
                                                           .build();
 
@@ -635,11 +668,14 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald 3"),
-                                 matchMetadata("dc.contributor.author", "Smith, Donald"),
+                                 matchMetadata("dc.contributor.author", "Smith 2, John"),
+                                 matchMetadata("dc.title.alternative", "item1 title1"),
+                                 matchMetadata("dc.title.alternative", "item2 title2"),
+                                 matchMetadata("dc.title.alternative", "item3 title1"),
                                  matchMetadata("dspace.entity.type", "Publication"),
-                                 matchMetadata("dc.title", item1.getName())
-                             )));
+                                 matchMetadata("dc.title", item1.getName()))))
+                             .andExpect(jsonPath(
+                                 "$._embedded.item.metadata['dc.contributor.editor']").doesNotExist());
 
 //      there are two relationships between target item and only the merged items ( item2, item3).
         getClient().perform(get("/api/core/relationships/search/byItemsAndType")
@@ -663,19 +699,18 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     private DeduplicationSetMergeDTO buildDeduplicationSetMergeDTO(String id, String item1, String item2, String item3,
                                                                    String bitstream, String bitstream1) {
 
-        DeduplicationMetadataSourcesDTO source1 = new DeduplicationMetadataSourcesDTO(item1, 2);
-        DeduplicationMetadataSourcesDTO source2 = new DeduplicationMetadataSourcesDTO(item1, 0);
+        DeduplicationMetadataSourcesDTO source1 = new DeduplicationMetadataSourcesDTO(item1, 0);
+        DeduplicationMetadataSourcesDTO source2 = new DeduplicationMetadataSourcesDTO(item2, 1);
         DeduplicationMetadataSourcesDTO source3 = new DeduplicationMetadataSourcesDTO(item3, 0);
-        DeduplicationMetadataSourcesDTO source4 = new DeduplicationMetadataSourcesDTO(item3, 0);
 
-        DeduplicationMetadataDTO metadata1 = new DeduplicationMetadataDTO("dc.contributor.author",
-            List.of(source1, source2));
+        DeduplicationMetadataDTO metadata1 = new DeduplicationMetadataDTO("dc.title.alternative",
+            List.of(source1, source2, source3));
         DeduplicationMetadataDTO metadata2 = new DeduplicationMetadataDTO("dc.type",
             List.of(source3));
-        DeduplicationMetadataDTO metadata3 = new DeduplicationMetadataDTO("dspace.entity.type",
-            List.of(source4));
-        DeduplicationMetadataDTO metadata4 = new DeduplicationMetadataDTO("dc.title",
-            List.of(source4));
+        DeduplicationMetadataDTO metadata3 = new DeduplicationMetadataDTO("dc.contributor.author",
+            List.of(source3));
+        DeduplicationMetadataDTO metadata4 = new DeduplicationMetadataDTO("dc.contributor.editor",
+            List.of(new DeduplicationMetadataSourcesDTO()));
 
         DeduplicationSetMergeDTO deduplicationSetMergeDTO = new DeduplicationSetMergeDTO( id,
             List.of(item2, item3),
