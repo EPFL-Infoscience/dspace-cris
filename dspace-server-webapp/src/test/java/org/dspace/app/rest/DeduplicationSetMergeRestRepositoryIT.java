@@ -216,9 +216,11 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                 .build();
         }
 
+        String bitstreamContent1 = "ThisIsSomeDummyTextTest";
+
         //Add a bitstream to item3
         bitstream1 = null;
-        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent1, CharEncoding.UTF_8)) {
             bitstream1 = BitstreamBuilder.
                 createBitstream(context, item3, is)
                 .withName("Bitstream1")
@@ -710,7 +712,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         DeduplicationMetadataDTO metadata3 = new DeduplicationMetadataDTO("dc.contributor.author",
             List.of(source3));
         DeduplicationMetadataDTO metadata4 = new DeduplicationMetadataDTO("dc.contributor.editor",
-            List.of(new DeduplicationMetadataSourcesDTO()));
+            new ArrayList<>());
 
         DeduplicationSetMergeDTO deduplicationSetMergeDTO = new DeduplicationSetMergeDTO( id,
             List.of(item2, item3),
