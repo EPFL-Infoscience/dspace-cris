@@ -8,6 +8,8 @@
 package org.dspace.app.rest.repository;
 
 import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.deduplication.utils.DuplicateInfo;
@@ -70,10 +72,17 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @PreAuthorize("hasAuthority('ADMIN')")
     @SearchRestMethod(name = "findBySignature")
     public Page<DeduplicationSetRest> findBySignature(
-            @Parameter(value = "signature-id", required = true) String signatureId, Pageable pageable) {
+            @Parameter(value = "signature-id", required = true) String signatureId,
+            @Parameter(value = "haveItems", required = false) String haveItems, Pageable pageable) {
         try {
             Context context = obtainContext();
-            return converter.toRestPage(dedupUtils.findAllGroups(context, signatureId),
+            List<DuplicateInfo> groups = dedupUtils.findAllGroups(context, signatureId);
+
+            if (Boolean.valueOf(haveItems)) {
+                groups = groups.stream().filter(g -> g.getItems().size() > 0).collect(Collectors.toList());
+            }
+
+            return converter.toRestPage(groups,
                     pageable, utils.obtainProjection());
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -84,10 +93,17 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @SearchRestMethod(name = "findBySignatureAndRule")
     public Page<DeduplicationSetRest> findBySignatureAndRule(
             @Parameter(value = "signature-id", required = true) String signatureId,
-            @Parameter(value = "rule", required = true) String rule, Pageable pageable) {
+            @Parameter(value = "rule", required = true) String rule,
+            @Parameter(value = "haveItems", required = false) String haveItems, Pageable pageable) {
         try {
             Context context = obtainContext();
-            return converter.toRestPage(dedupUtils.findAllGroups(context, signatureId, rule),
+            List<DuplicateInfo> groups = dedupUtils.findAllGroups(context, signatureId, rule);
+
+            if (Boolean.valueOf(haveItems)) {
+                groups = groups.stream().filter(g -> g.getItems().size() > 0).collect(Collectors.toList());
+            }
+
+            return converter.toRestPage(groups,
                     pageable, utils.obtainProjection());
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
