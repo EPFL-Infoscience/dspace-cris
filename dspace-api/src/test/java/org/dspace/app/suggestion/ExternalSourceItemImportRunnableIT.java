@@ -99,7 +99,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
         Suggestion suggestion = createSuggestion(item, "pubmed", "35444744");
 
         String[] args = new String[] {"import-external-source-item" ,
-            "-p", "pubmed", "-s", "100", "-u", invalidId, "-l", "2"};
+            "-p", "pubmed", "-s", "100", "-t", invalidId, "-l", "2"};
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -168,7 +168,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
         Suggestion suggestion3 = createSuggestion(item3, source, "35444744");
 
         String[] args = new String[] {"import-external-source-item" ,
-            "-p", source, "-s", "100", "-u", collection.getID().toString(), "-l", "2"};
+            "-p", source, "-s", "100", "-t", collection.getID().toString(), "-l", "2"};
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -206,7 +206,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
           String targetId) throws Exception {
 
         String[] args = new String[] {"import-external-source-item" ,
-                "-p", source, "-s", score, "-u", targetId};
+                "-p", source, "-s", score, "-t", targetId};
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
         return handler;
