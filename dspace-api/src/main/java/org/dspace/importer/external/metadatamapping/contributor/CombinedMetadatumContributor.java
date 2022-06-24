@@ -86,10 +86,14 @@ public class CombinedMetadatumContributor<T> implements MetadataContributor<T> {
             StringBuilder value = new StringBuilder();
 
             for (LinkedList<MetadatumDTO> metadatums : metadatumLists) {
-                value.append(metadatums.get(i).getValue());
+                // add If condition to avoid IndexOutOfBoundsException
+                if (i < metadatums.size()) {
 
-                if (!metadatums.equals(metadatumLists.getLast())) {
-                    value.append(separator);
+                    value.append(metadatums.get(i).getValue());
+
+                    if (!metadatums.equals(metadatumLists.getLast())) {
+                        value.append(separator);
+                    }
                 }
             }
             values.add(metadataFieldMapping.toDCValue(field, value.toString()));

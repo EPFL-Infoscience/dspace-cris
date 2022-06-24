@@ -85,6 +85,16 @@
        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.OAIREPublicationLoaderRunnableCli"/>
     </bean>
 
+    <bean id="import-loader-suggestions" class="org.dspace.app.suggestion.PublicationLoaderCliScriptConfiguration" primary="true">
+        <property name="description" value="Import and store locally metadata from loader"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.PublicationLoaderRunnableCli"/>
+    </bean>
+
+    <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportCliScriptConfiguration" primary="true">
+        <property name="description" value="Import and store items from external source"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnableCli"/>
+    </bean>
+
     <bean id="import-nbevents" class="org.dspace.app.nbevent.NBEventsCliScriptConfiguration" primary="true">
         <property name="description" value="Import new openAIRE notification broker events"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.nbevent.NBEventsRunnableCli"/>

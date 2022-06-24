@@ -15,8 +15,34 @@
     <!-- This is defined in the solr-services.xml
 	<bean id="org.dspace.app.nbevent.service.NBEventService" 
 	   class="org.dspace.app.nbevent.service.impl.NBEventServiceImpl" /> -->
- 
-	 <util:map id="suggestionProviders" map-class="java.util.HashMap" 
+
+
+	<bean id="OAIREPublicationLoader"
+		  class="org.dspace.app.suggestion.oaire.OAIREPublicationLoader">
+		<property name="sourceName" value="oaire" />
+	</bean>
+
+	<bean id="pubmedPublicationLoader"
+		  class="org.dspace.app.suggestion.pubmed.PubmedPublicationLoader">
+		<property name="sourceName" value="pubmed" />
+		<property name="primaryProvider" ref="pubmedLiveImportDataProvider"/>
+		<property name="names">
+			<list>
+				<value>dc.title</value>
+				<value>crisrp.name</value>
+				<value>crisrp.name.translated</value>
+				<value>crisrp.name.variant</value>
+				<value>dc.identifier.orcid</value>
+			</list>
+		</property>
+		<property name="pipeline">
+			<list>
+				<bean class="org.dspace.app.suggestion.pubmed.FixedValueScorer"></bean>
+			</list>
+		</property>
+	</bean>
+
+	<util:map id="suggestionProviders" map-class="java.util.HashMap"
 	          key-type="java.lang.String" value-type="org.dspace.app.suggestion.SuggestionProvider">
 	    <entry key="scopus">
 			<bean class="org.dspace.app.suggestion.MockSolrSuggestionProvider">
@@ -28,6 +54,16 @@
                 <property name="sourceName" value="reciter"></property>
             </bean>
         </entry>
+		<entry key="oaire">
+			<bean class="org.dspace.app.suggestion.MockSolrSuggestionProvider">
+				<property name="sourceName" value="oaire"></property>
+			</bean>
+		</entry>
+		<entry key="pubmed">
+			<bean class="org.dspace.app.suggestion.MockSolrSuggestionProvider">
+				<property name="sourceName" value="pubmed"></property>
+			</bean>
+		</entry>
 	</util:map>
 
  </beans>
