@@ -76,7 +76,7 @@
                 <value>crisrp.name</value>
                 <value>crisrp.name.translated</value>
                 <value>crisrp.name.variant</value>
-                <value>dc.identifier.orcid</value>
+                <value>person.identifier.orcid</value>
             </list>
         </property>
         <property name="pipeline">

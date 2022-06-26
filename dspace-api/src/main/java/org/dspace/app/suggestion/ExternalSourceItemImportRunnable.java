@@ -8,6 +8,7 @@
 package org.dspace.app.suggestion;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
@@ -36,6 +38,7 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 import org.dspace.workflow.WorkflowService;
 import org.slf4j.Logger;
@@ -174,6 +177,17 @@ public class ExternalSourceItemImportRunnable
             try {
                 WorkspaceItem workspaceItem = createWorkspaceItem(context, collectionId,
                     suggestion.getExternalSourceUri());
+                Item target = suggestion.getTarget();
+                if (Objects.nonNull(target)
+                    && StringUtils.isNotBlank(target.getName())) {
+                    workspaceItem.getItem().getMetadata().stream()
+                        .filter(mv -> target.getName().equals(mv.getValue()))
+                        .findFirst()
+                        .ifPresent(mv -> {
+                            mv.setAuthority(UUIDUtils.toString(target.getID()));
+                            mv.setConfidence(CF_ACCEPTED);
+                        });
+                }
                 workflowService.start(context, workspaceItem);
                 solrSuggestionStorageService.flagSuggestionAsProcessed(suggestion);
                 countDataObjects++;

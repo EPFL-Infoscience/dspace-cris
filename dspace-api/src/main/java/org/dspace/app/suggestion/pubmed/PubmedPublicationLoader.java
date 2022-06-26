@@ -7,9 +7,11 @@
  */
 package org.dspace.app.suggestion.pubmed;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.suggestion.oaire.OAIREPublicationLoader;
 import org.dspace.content.Item;
 
@@ -23,28 +25,27 @@ public class PubmedPublicationLoader extends OAIREPublicationLoader {
 
     @Override
     public List<String> searchMetadataValues(Item researcher) {
-        List<String> authors = new ArrayList<String>();
-        String author = "";
+        List<String> author = new LinkedList<>();
         for (String name : getNames()) {
             String value = itemService.getMetadata(researcher, name);
             if (value != null) {
-                author += createAuthorValue(value , name);
+                author.add(createAuthorValue(value, name));
             }
         }
 
-        if (!author.isEmpty()) {
-            authors.add(author.substring(0 , (author.length() - 4)));
+        if (author.size() > 0) {
+            return Collections.singletonList(StringUtils.join(author, " OR "));
         }
 
-        return authors;
+        return Collections.emptyList();
     }
 
     private String createAuthorValue(String value, String name) {
         String author = "";
-        if (name.equals("dc.identifier.orcid")) {
-            author = "(" + value + "[Author - Identifier]) OR ";
+        if ("person.identifier.orcid".equals(name)) {
+            author = "(" + value + "[Author - Identifier])";
         } else {
-            author = "(" + value + "[Author]) OR ";
+            author = "(" + value + "[Author])";
         }
 
         return author;

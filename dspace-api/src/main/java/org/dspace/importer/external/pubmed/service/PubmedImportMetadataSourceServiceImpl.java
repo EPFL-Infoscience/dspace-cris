@@ -16,6 +16,7 @@ import java.io.StringReader;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -318,6 +319,7 @@ public class PubmedImportMetadataSourceServiceImpl extends AbstractImportMetadat
             getRecordsTarget = getRecordsTarget.queryParam("retstart", start);
 
             invocationBuilder = getRecordsTarget.request(MediaType.TEXT_PLAIN_TYPE);
+            Thread.sleep(1500L + (Math.abs(new Random().nextInt(1500))));
             response = invocationBuilder.get();
 
             List<Element> elements = splitToRecords(response.readEntity(String.class));
