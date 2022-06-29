@@ -12,8 +12,11 @@ import static org.dspace.app.rest.matcher.BitstreamMatcher.matchBitstreamEntry;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -21,6 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -201,8 +206,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withType("text5")
                            .build();
 
-        targetBundle = bundleService.create(context, item1, Constants.DEFAULT_BUNDLE_NAME);
-
         String bitstreamContent = "ThisIsSomeDummyText";
 
         //Add a bitstream to item2
@@ -216,7 +219,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                 .build();
         }
 
-        String bitstreamContent1 = "ThisIsSomeDummyTextTest";
+        String bitstreamContent1 = "ThisIsSomeDummyTextTest test content for bitstream1";
 
         //Add a bitstream to item3
         bitstream1 = null;
@@ -367,13 +370,35 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     @Test
     public void testDedupSetMergeIfItemsHaveTheSameTitle() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
-//      before merge target item has a bundle with empty bitstreams
+
+        context.turnOffAuthorisationSystem();
+
+        Bundle targetBundle = bundleService.create(context, item1, Constants.DEFAULT_BUNDLE_NAME);
+
+        File originalPdf = new File(testProps.getProperty("test.bitstream"));
+
+        //Add a bitstream to target bundle
+        Bitstream targetItemBitstream = null;
+        try (InputStream is = new FileInputStream(originalPdf)) {
+            targetItemBitstream = BitstreamBuilder
+                .createBitstream(context, targetBundle, is)
+                .withName("Test bitstream")
+                .withDescription("This is a bitstream to test the citation cover page.")
+                .withMimeType("application/pdf")
+                .build();
+        }
+
+        context.restoreAuthSystemState();
+
+//      before merge target item has a bundle with one bitstream targetItemBitstream
         getClient().perform(
             get("/api/core/bundles/" + targetBundle.getID() + "/bitstreams")
                 .param("projection", "full"))
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$._embedded.bitstreams", hasSize(0)));
+                   .andExpect(jsonPath("$._embedded.bitstreams", hasSize(1)))
+                   .andExpect(jsonPath("$._embedded.bitstreams",
+                       containsInAnyOrder(matchBitstreamEntry(targetItemBitstream))));
 
 //      perform merge
         getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
@@ -396,16 +421,17 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(jsonPath(
                                  "$._embedded.item.metadata['dc.contributor.editor']").doesNotExist());
 
-//      after merge target item has a bundle with merged bitstreams
-        getClient(adminToken).perform(
-                       get("/api/core/bundles/" + targetBundle.getID() + "/bitstreams")
-                           .param("projection", "full"))
-                   .andExpect(status().isOk())
-                   .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
-                       matchBitstreamEntry(bitstream),
-                       matchBitstreamEntry(bitstream1)
-                   )));
+//      after merge target item has a bundle with only merged bitstreams and targetItemBitstream will be removed
+        getClient(adminToken).perform(get("/api/core/bundles/" + targetBundle.getID() + "/bitstreams")
+                                 .param("projection", "full"))
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(contentType))
+                             .andExpect(jsonPath("$._embedded.bitstreams", hasSize(2)))
+                             .andExpect(jsonPath("$._embedded.bitstreams",
+                                 hasItems(matchBitstreamEntry(bitstream1),
+                                     matchBitstreamEntry(bitstream))))
+                             .andExpect(jsonPath("$._embedded.bitstreams", not(
+                                 hasItem(matchBitstreamEntry(targetItemBitstream)))));
     }
 
     @Test

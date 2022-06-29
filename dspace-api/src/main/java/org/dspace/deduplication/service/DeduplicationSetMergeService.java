@@ -8,6 +8,7 @@
 package org.dspace.deduplication.service;
 
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -38,8 +39,9 @@ public interface DeduplicationSetMergeService {
      *                      access error or other errors.
      * @throws AuthorizeException if there is an authorization problem with permissions.
      * @throws SearchServiceException if search error.
+     * @throws IOException if IO error.
      */
     public DeduplicationSetMerge merge(Context context, UUID targetUUID,
                                        DeduplicationSetMergeDTO deduplicationSetMergeDTO)
-        throws SQLException, AuthorizeException, SearchServiceException;
+        throws SQLException, AuthorizeException, SearchServiceException, IOException;
 }

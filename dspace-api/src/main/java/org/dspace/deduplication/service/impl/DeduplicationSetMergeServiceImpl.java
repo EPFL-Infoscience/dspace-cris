@@ -7,6 +7,7 @@
  */
 package org.dspace.deduplication.service.impl;
 
+import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -135,9 +136,8 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     @Override
     public DeduplicationSetMerge merge(Context context, UUID targetUUID,
                                        DeduplicationSetMergeDTO deduplicationSetMergeDTO)
-        throws SQLException, AuthorizeException, SearchServiceException {
+        throws SQLException, AuthorizeException, SearchServiceException, IOException {
 
-        List<MetadataValue> metadataValues;
         Item targetItem;
         List<Item> otherItems;
         List<Bitstream> bitstreams;
@@ -221,7 +221,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         for (DeduplicationMetadataSourcesDTO source : sortedSources) {
             if (source.getItem() != null) {
                 Item item = itemService.find(context, getUUIDFromUri(source.getItem()));
-                MetadataValue metadataValue = getMatchedMetadataValueFromItem(item, source.getPosition(),
+                MetadataValue metadataValue = getMatchedMetadataValueFromItem(item, source.getPlace(),
                     metadataDTO.getMetadataField());
                 metadataValues.add(metadataValue);
             }
@@ -233,7 +233,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     private List<DeduplicationMetadataSourcesDTO> sortSourcesAscByPosition(
         List<DeduplicationMetadataSourcesDTO> sources) {
         return sources.stream()
-                      .sorted(Comparator.comparingInt(DeduplicationMetadataSourcesDTO::getPosition))
+                      .sorted(Comparator.comparingInt(DeduplicationMetadataSourcesDTO::getPlace))
                       .collect(Collectors.toList());
     }
 
@@ -249,7 +249,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     }
 
     private void updateItemBitstreams(Context context, Item targetItem, List<Item> otherItems,
-                                      List<Bitstream> bitstreams) throws SQLException, AuthorizeException {
+                                      List<Bitstream> bitstreams) throws SQLException, AuthorizeException, IOException {
 
         for (Bitstream bitstream : bitstreams) {
             Set<Bundle> bundles = getMatchedBundlesFromOtherItems(otherItems, bitstream.getBundles());
@@ -262,6 +262,9 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 }
             }
         }
+
+        removeUnMergedBitstreamsFromTargetItem(context, targetItem, bitstreams);
+
     }
 
     private Set<Bundle> getMatchedBundlesFromOtherItems(List<Item> otherItems, List<Bundle> bundles) {
@@ -304,6 +307,26 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         bundleService.addBitstream(context, newBundle, bitstream);
         bundleService.inheritCollectionDefaultPolicies(context, newBundle, targetItem.getOwningCollection());
         bundleService.update(context, newBundle);
+    }
+
+    private void removeUnMergedBitstreamsFromTargetItem(Context context, Item item, List<Bitstream> bitstreams)
+        throws SQLException, AuthorizeException, IOException {
+        boolean bitstreamFound = false;
+        List<Bundle> bundles = item.getBundles();
+        for (Bundle bundle : bundles) {
+            for (Bitstream itemBitstream : bundle.getBitstreams()) {
+                bitstreamFound = false;
+                for (Bitstream mergedBitstream : bitstreams) {
+                    if (itemBitstream.getID().toString().equals(mergedBitstream.getID().toString())) {
+                        bitstreamFound = true;
+                    }
+                }
+                if (!bitstreamFound) {
+                    bundleService.removeBitstream(context, bundle, itemBitstream);
+                    bundleService.update(context, bundle);
+                }
+            }
+        }
     }
 
     private void updateRelationships(Context context, Item targetItem, List<Item> otherItems)
