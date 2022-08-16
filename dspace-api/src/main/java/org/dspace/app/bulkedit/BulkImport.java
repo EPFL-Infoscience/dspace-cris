@@ -724,13 +724,17 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         String itemId = inProgressItem.getItem().getID().toString();
         int row = entityRow.getRow();
 
-        if (authorizeService.isAdmin(context)) {
+        if (canInstall(inProgressItem.getCollection())) {
             installItemService.installItem(context, inProgressItem);
             handler.logInfo("Row " + row + " - Item archived successfully - ID: " + itemId);
         } else {
             handler.logWarning("Row " + row + " - Current user can't deposit an item directly bypassing the workflow");
         }
 
+    }
+
+    private boolean canInstall(Collection collection) throws SQLException {
+        return authorizeService.isAdmin(context) || authorizeService.isAdmin(context, collection);
     }
 
     private void startWorkflow(EntityRow entityRow, WorkspaceItem workspaceItem)
