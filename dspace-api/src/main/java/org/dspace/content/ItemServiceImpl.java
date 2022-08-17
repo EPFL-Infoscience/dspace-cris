@@ -142,6 +142,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     protected SubscribeService subscribeService;
     @Autowired(required = true)
     protected CrisMetricsService crisMetricsService;
+
     protected ItemServiceImpl() {
         super();
     }
@@ -1577,10 +1578,12 @@ prevent the generation of resource policy entry values with null dspace_object a
         // Build up list of matching values based on the cache
         List<MetadataValue> values = new ArrayList<>();
         for (MetadataValue dcv : item.getCachedMetadata()) {
-            if (match(schema, element, qualifier, lang, dcv)) {
+            if (match(schema, element, qualifier, dcv)) {
                 values.add(dcv);
             }
         }
+
+        values = getFilteredMetadataValuesByLanguage(values, lang);
 
         // Create an array of matching values
         return values;
