@@ -20,15 +20,6 @@
                             </property>
                             <property name="submissionDefinition" value="publication-edit" />
                         </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="FULL" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    SUBMITTER_GROUP
-                                </value>
-                            </property>
-                            <property name="submissionDefinition" value="publication-edit" />
-                        </bean>
                     </list>
                 </entry>
                 <entry key="person">
