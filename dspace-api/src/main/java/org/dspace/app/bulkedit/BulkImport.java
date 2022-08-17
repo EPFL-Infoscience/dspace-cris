@@ -1054,7 +1054,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private List<UploadDetails> getOwnUploadDetails(Row row, List<UploadDetails> uploadDetails) {
         String id = getIdFromRow(row);
-        int rowIndex = row.getRowNum();
+        int rowIndex = row.getRowNum() + 1;
         return uploadDetails.stream()
             .filter(ud -> ud.getParentId().equals(id) || ud.getParentId().equals(ROW_ID + ID_SEPARATOR + rowIndex))
             .collect(Collectors.toList());
