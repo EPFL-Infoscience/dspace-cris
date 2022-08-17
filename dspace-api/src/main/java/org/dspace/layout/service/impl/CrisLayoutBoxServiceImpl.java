@@ -163,6 +163,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             case "ORCID_AUTHORIZATIONS":
                 return hasOrcidAuthorizationsBoxContent(context, box, values);
             case "IIIFVIEWER":
+            case "IIIFTOOLBAR":
                 return isIiifEnabled(item);
             case "METADATA":
             default:
