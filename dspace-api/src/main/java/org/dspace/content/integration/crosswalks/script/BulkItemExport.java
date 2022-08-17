@@ -160,7 +160,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
                 handler.logInfo("Export will be limited to " + maxResults + " items.");
             }
             DiscoverResultItemIterator itemsIterator = searchItemsToExport(maxResults);
-            handler.logInfo("Found " + itemsIterator.getTotalSearchResults() + " items to export");
+            handler.logInfo("Found " + Math.max(itemsIterator.getTotalSearchResults(), maxResults) +
+                                " items to export");
 
             performExport(itemsIterator, streamDisseminationCrosswalk);
 
