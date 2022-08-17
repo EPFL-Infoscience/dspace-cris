@@ -42,7 +42,7 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
     @Override
     public boolean isAllowedToExecute(Context context) {
         try {
-            return authorizeService.isAdmin(context);
+            return authorizeService.isAdmin(context) || authorizeService.isCollectionAdmin(context);
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }
