@@ -64,7 +64,8 @@ public final class CrisLayoutSectionMatcher {
      */
     public static Matcher<? super Object> withIdAndTopComponent(String id, int row, int pos, String style,
         String discoveryConfig, String sortField, String order, Integer numberOfItems, boolean showAsCard,
-        boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String cardColumnStyle, String itemListStyle,
+            boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String cardColumnStyle,
+            String itemListStyle,
         boolean showAllResult, String componentType) {
 
         return allOf(
@@ -147,7 +148,8 @@ public final class CrisLayoutSectionMatcher {
      */
     public static Matcher<? super Object> withTopComponent(int row, int pos, String style,
         String discoveryConfig, String sortField, String order, Integer numberOfItems, boolean showAsCard,
-        boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String cardColumnStyle, String itemListStyle,
+            boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String cardColumnStyle,
+            String itemListStyle,
         boolean showAllResults, String componentType) {
 
         return allOf(
