@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.CollectionServiceImpl;
 import org.dspace.content.Item;
@@ -32,6 +36,7 @@ import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResultIterator;
@@ -87,6 +92,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     @SuppressWarnings("rawtypes")
     private WorkflowService workflowService;
 
+    private EPersonService ePersonService;
+
+    private AuthorizeService authorizeService;
+
     @Override
     public void setup() throws ParseException {
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -102,6 +111,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                                       LiveImportDataProvider.class));
         workflowService = WorkflowServiceFactory.getInstance()
             .getWorkflowService();
+        ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.service = commandLine.getOptionValue('s');
     }
 
@@ -126,6 +137,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         }
         if (Objects.isNull(this.collection)) {
             throw new RuntimeException("Collection with uuid" + collectionUUID + "does not exist!");
+        }
+        if (!authorizeService.isAdmin(context, collection)) {
+            throw new RuntimeException("User " + context.getCurrentUser().getEmail() + " cannot submit to collection "
+            + collection.getID());
         }
 
         try {
@@ -158,7 +173,6 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private EPerson findEPerson() throws SQLException {
-        EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         String email = commandLine.getOptionValue('e');
         if (StringUtils.isNotBlank(email)) {
             EPerson byEmail = ePersonService.findByEmail(context, email);
@@ -183,13 +197,15 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             while (itemIterator.hasNext()) {
                 Item item = itemIterator.next();
                 String id = buildID(item);
+                Optional<MetadataValue> owner = getOwner(item);
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
                     int recordsFound = dataProvider.getNumberOfResults(id);
                     int userPublicationsProcessed = 0;
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
-                        userPublicationsProcessed += fillWorkspaceItems(context, currentRecord, dataProvider, item, id);
+                        userPublicationsProcessed += fillWorkspaceItems(context, currentRecord, dataProvider, item, id,
+                                                                        owner);
                         currentRecord += LIMIT;
                     }
                     totalRecordWorked += userPublicationsProcessed;
@@ -214,6 +230,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private Optional<MetadataValue> getOwner(Item item) {
+        List<MetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(item, "cris.owner");
+        return metadataByMetadataString.size() > 0 ? Optional.of(metadataByMetadataString.get(0)) : Optional.empty();
     }
 
     /**
@@ -264,7 +285,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private int fillWorkspaceItems(Context context, int record, LiveImportDataProvider dataProvider,
-            Item item, String id) throws SQLException {
+                                   Item item, String id, Optional<MetadataValue> owner) throws SQLException {
         int countDataObjects = 0;
         try {
             for (ExternalDataObject dataObject : dataProvider.searchExternalDataObjects(id, record, LIMIT)) {
@@ -274,6 +295,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     for (List<MetadataValueDTO> metadataList : metadataValueToAdd(wsItem.getItem())) {
                         addMetadata(wsItem.getItem(), metadataList);
                     }
+                    owner.ifPresent(mv -> updateSubmitter(wsItem.getItem(), mv));
                     workflowService.start(context, wsItem);
                 }
                 countDataObjects++;
@@ -282,6 +304,28 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             log.error(e.getMessage(), e);
         }
         return countDataObjects;
+    }
+
+    private void updateSubmitter(Item item, MetadataValue submitter) {
+        if (StringUtils.isBlank(submitter.getAuthority())) {
+            return;
+        }
+        try {
+            EPerson ePerson = ePersonService.findByIdOrLegacyId(context, submitter.getAuthority());
+            if (Objects.isNull(ePerson) || ePerson.equals(item.getSubmitter())) {
+                return;
+            }
+            EPerson previousSubmitter = item.getSubmitter();
+            item.setSubmitter(ePerson);
+            int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
+            for (int actionId : actionIds) {
+                authorizeService.removeEPersonPolicies(context, item, previousSubmitter);
+                authorizeService.addPolicy(context, item, actionId, item.getSubmitter(),
+                                           ResourcePolicy.TYPE_SUBMISSION);
+            }
+        } catch (Exception e) {
+            handler.logWarning("Unable to update submitter for item " + item.getID() + " : " + e.getMessage());
+        }
     }
 
     private void addMetadata(Item item, List<MetadataValueDTO> metadataList) throws SQLException {
