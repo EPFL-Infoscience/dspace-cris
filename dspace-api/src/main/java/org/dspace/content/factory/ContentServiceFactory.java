@@ -9,6 +9,7 @@ package org.dspace.content.factory;
 
 import java.util.List;
 
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.RelationshipMetadataService;
@@ -107,6 +108,8 @@ public abstract class ContentServiceFactory {
     public abstract EntityService getEntityService();
 
     public abstract RelationshipMetadataService getRelationshipMetadataService();
+
+    public abstract ResourcePolicyService getResourcePolicyService();
 
     public InProgressSubmissionService getInProgressSubmissionService(InProgressSubmission inProgressSubmission) {
         if (inProgressSubmission instanceof WorkspaceItem) {

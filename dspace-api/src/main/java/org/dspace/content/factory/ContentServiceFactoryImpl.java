@@ -9,6 +9,7 @@ package org.dspace.content.factory;
 
 import java.util.List;
 
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.RelationshipMetadataService;
 import org.dspace.content.service.BitstreamFormatService;
@@ -84,6 +85,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private EntityTypeService entityTypeService;
     @Autowired(required = true)
     private EntityService entityService;
+    @Autowired(required = true)
+    private ResourcePolicyService resourcePolicyService;
 
     @Override
     public List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices() {
@@ -187,4 +190,10 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     public RelationshipMetadataService getRelationshipMetadataService() {
         return relationshipMetadataService;
     }
+
+    @Override
+    public ResourcePolicyService getResourcePolicyService() {
+        return resourcePolicyService;
+    }
+
 }
