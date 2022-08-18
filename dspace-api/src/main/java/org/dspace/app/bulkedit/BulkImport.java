@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BinaryOperator;
@@ -54,6 +55,7 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authority.service.ItemSearchService;
 import org.dspace.authority.service.ItemSearcherMapper;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
@@ -74,10 +76,12 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.vo.MetadataValueVO;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.util.UUIDUtils;
 import org.dspace.util.WorkbookUtils;
@@ -124,6 +128,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private static final int ACTION_CELL_INDEX = 1;
 
+    private static final int SUBMITTER_CELL_INDEX = 2;
+
     private static final String ACTION_CELL = "ACTION";
 
     private static final String BITSTREAM_METADATA = "bitstream-metadata";
@@ -133,6 +139,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
     private static final String FILE_PATH_CELL = "FILE-PATH";
 
     private static final String ORIGINAL_BUNDLE = "ORIGINAL";
+    public static final String SUBMITTER = "SUBMITTER";
 
     private CollectionService collectionService;
 
@@ -174,6 +181,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private BitstreamService bitstreamService;
 
+    private EPersonService ePersonService;
+
     @Override
     @SuppressWarnings("unchecked")
     public void setup() throws ParseException {
@@ -194,6 +203,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         this.bulkImportFileUtil = new BulkImportFileUtil(this.handler);
         this.bundleService = ContentServiceFactory.getInstance().getBundleService();
         this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        this.ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
         try {
             this.reader = new DCInputsReader();
@@ -372,7 +382,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         String sheetName = sheet.getSheetName();
         boolean isEntityRowSheet = isEntityRowSheet(sheet);
 
-        List<String> metadataFields = headers.subList(getFirstMetadataIndex(sheet), headers.size());
+        List<String> metadataFields = headers.subList(getFirstMetadataIndex(sheet, hasSubmitter(headers)),
+                                                      headers.size());
         List<String> invalidMetadataMessages = new ArrayList<>();
 
         List<String> submissionMetadata = isEntityRowSheet ? getSubmissionFormMetadata()
@@ -407,6 +418,10 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             throw new BulkImportException("The following metadata fields of the sheet named '" + sheetName
                 + "' are invalid:" + invalidMetadataMessages);
         }
+    }
+
+    private static boolean hasSubmitter(List<String> headers) {
+        return headers.contains(SUBMITTER);
     }
 
     private List<String> getSubmissionFormMetadataGroup(String groupName) {
@@ -549,11 +564,12 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                                      List<UploadDetails> uploadDetails) {
         String id = getIdFromRow(row);
         String action = getActionFromRow(row);
+        String submitter = hasSubmitter(new ArrayList<>(headers.keySet())) ? getSubmitterFromRow(row) : null;
         MultiValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
         List<MetadataGroup> ownMetadataGroup = getOwnMetadataGroups(row, metadataGroups);
         List<UploadDetails> ownUploadDetails = getOwnUploadDetails(row, uploadDetails);
 
-        return new EntityRow(id, action, row.getRowNum(), metadata, ownMetadataGroup, ownUploadDetails);
+        return new EntityRow(id, action, row.getRowNum(), metadata, ownMetadataGroup, ownUploadDetails, submitter);
     }
 
     private void performImport(List<EntityRow> entityRows) {
@@ -613,6 +629,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         addMetadata(item, entityRow, false);
         addUploadsToItem(item, entityRow);
+        setSubmitter(item, entityRow);
 
         String itemId = item.getID().toString();
         int row = entityRow.getRow();
@@ -724,13 +741,17 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         String itemId = inProgressItem.getItem().getID().toString();
         int row = entityRow.getRow();
 
-        if (authorizeService.isAdmin(context)) {
+        if (canInstall(inProgressItem.getCollection())) {
             installItemService.installItem(context, inProgressItem);
             handler.logInfo("Row " + row + " - Item archived successfully - ID: " + itemId);
         } else {
             handler.logWarning("Row " + row + " - Current user can't deposit an item directly bypassing the workflow");
         }
 
+    }
+
+    private boolean canInstall(Collection collection) throws SQLException {
+        return authorizeService.isAdmin(context) || authorizeService.isAdmin(context, collection);
     }
 
     private void startWorkflow(EntityRow entityRow, WorkspaceItem workspaceItem)
@@ -768,6 +789,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
 
         addMetadata(item, entityRow, true);
+        setSubmitter(item, entityRow);
         addUploadsToItem(item, entityRow);
 
         handler.logInfo("Row " + entityRow.getRow() + " - Item updated successfully - ID: " + item.getID());
@@ -785,6 +807,38 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         return item;
 
+    }
+
+    private void setSubmitter(Item item, EntityRow entityRow) throws SQLException, AuthorizeException {
+        if (StringUtils.isBlank(entityRow.getSubmitter())) {
+            return;
+        }
+        EPerson submitter = findSubmitter(entityRow.getSubmitter());
+        if (Objects.isNull(submitter) || submitter.equals(item.getSubmitter())) {
+            return;
+        }
+        EPerson previousSubmitter = item.getSubmitter();
+        item.setSubmitter(submitter);
+        int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
+        for (int actionId : actionIds) {
+            authorizeService.removeEPersonPolicies(context, item, previousSubmitter);
+            authorizeService.addPolicy(context, item, actionId, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
+        }
+    }
+
+    private EPerson findSubmitter(String submitter) throws SQLException {
+        EPerson ePerson = null;
+        if (StringUtils.isNumeric(submitter) || Objects.nonNull(UUIDUtils.fromString(submitter))) {
+            ePerson = ePersonService.findByIdOrLegacyId(context, submitter);
+        }
+        if (Objects.nonNull(ePerson)) {
+            return ePerson;
+        }
+        ePerson = ePersonService.findByEmail(context, submitter);
+        if (Objects.nonNull(ePerson)) {
+            return ePerson;
+        }
+        return ePersonService.findByNetid(context, submitter);
     }
 
     private void installItem(EntityRow entityRow, Item item) throws SQLException, AuthorizeException {
@@ -924,11 +978,15 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         return WorkbookUtils.getCellValue(row, ACTION_CELL_INDEX);
     }
 
+    private String getSubmitterFromRow(Row row) {
+        return WorkbookUtils.getCellValue(row, SUBMITTER_CELL_INDEX);
+    }
+
     private MultiValuedMap<String, MetadataValueVO> getMetadataFromRow(Row row, Map<String, Integer> headers) {
 
         MultiValuedMap<String, MetadataValueVO> metadata = new ArrayListValuedHashMap<String, MetadataValueVO>();
 
-        int firstMetadataIndex = getFirstMetadataIndex(row.getSheet());
+        int firstMetadataIndex = getFirstMetadataIndex(row.getSheet(), hasSubmitter(new ArrayList<>(headers.keySet())));
         boolean isEntityRowSheet = isEntityRowSheet(row.getSheet());
 
         for (String header : headers.keySet()) {
@@ -976,14 +1034,14 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         return sheet.getWorkbook().getSheetIndex(sheet) == 0;
     }
 
-    private int getFirstMetadataIndex(Sheet sheet) {
+    private int getFirstMetadataIndex(Sheet sheet, boolean hasSubmitter) {
         String sheetName = sheet.getSheetName();
 
         if (BITSTREAM_METADATA.equalsIgnoreCase(sheetName)) {
             return 3; // In Bitstream sheet metadata row starts at third index
         }
 
-        return isEntityRowSheet(sheet) ? 2 : 1;
+        return isEntityRowSheet(sheet) ? (hasSubmitter ? 3 : 2) : 1;
     }
 
     private List<MetadataGroup> getOwnMetadataGroups(Row row, List<MetadataGroup> metadataGroups) {
@@ -996,7 +1054,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private List<UploadDetails> getOwnUploadDetails(Row row, List<UploadDetails> uploadDetails) {
         String id = getIdFromRow(row);
-        int rowIndex = row.getRowNum();
+        int rowIndex = row.getRowNum() + 1;
         return uploadDetails.stream()
             .filter(ud -> ud.getParentId().equals(id) || ud.getParentId().equals(ROW_ID + ID_SEPARATOR + rowIndex))
             .collect(Collectors.toList());
@@ -1049,7 +1107,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             return false;
         }
 
-        int firstMetadataIndex = getFirstMetadataIndex(row.getSheet());
+        int firstMetadataIndex = getFirstMetadataIndex(row.getSheet(), false);
         for (int index = firstMetadataIndex; index < row.getLastCellNum(); index++) {
 
             String cellValue = WorkbookUtils.getCellValue(row, index);

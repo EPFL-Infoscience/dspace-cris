@@ -35,11 +35,18 @@ public final class EntityRow {
     private final List<MetadataGroup> metadataGroups;
 
     private final List<UploadDetails> uploadDetails;
+    private String submitter;
 
     public EntityRow(String id, String action, int row, MultiValuedMap<String, MetadataValueVO> metadata,
         List<MetadataGroup> metadataGroups, List<UploadDetails> uploadDetails) {
+        this(id, action, row, metadata, metadataGroups, uploadDetails, null);
+    }
+
+    public EntityRow(String id, String action, int row, MultiValuedMap<String, MetadataValueVO> metadata,
+                     List<MetadataGroup> metadataGroups, List<UploadDetails> uploadDetails, String submitter) {
         super();
         this.id = id;
+        this.submitter = submitter;
         this.row = row + 1;
         this.action = isBlank(action) ? ImportAction.NOT_SPECIFIED : ImportAction.valueOf(action.toUpperCase());
         this.metadata = metadata;
@@ -71,4 +78,11 @@ public final class EntityRow {
         return uploadDetails;
     }
 
+    public String getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(String submitter) {
+        this.submitter = submitter;
+    }
 }
