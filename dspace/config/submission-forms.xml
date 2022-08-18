@@ -977,6 +977,19 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint>Enter the abstract of the item.</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>datacite</dc-schema>
+          <dc-element>subject</dc-element>
+          <dc-qualifier>fos</dc-qualifier>
+          <label>Fields of Science and Technology (OECD)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+          <vocabulary closed="true">oecd</vocabulary>
+        </field>
+      </row>
     </form>
     <form name="publication_bibliographic_details">
       <row>
