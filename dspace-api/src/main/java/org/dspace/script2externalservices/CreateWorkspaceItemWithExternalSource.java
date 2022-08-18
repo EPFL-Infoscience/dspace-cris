@@ -62,7 +62,7 @@ import org.hibernate.LazyInitializationException;
 
 /**
  * Implementation of {@link DSpaceRunnable}
- * to import Publications from external service as Scopus and Web Of Science.
+ * to import Publications from external services as Scopus | Web Of Science | CrossRef.
  * 
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
@@ -106,9 +106,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         externalDataService = serviceManager
                              .getServiceByName(ExternalDataServiceImpl.class.getName(), ExternalDataServiceImpl.class);
         nameToProvider.put("scopus", serviceManager.getServiceByName("scopusLiveImportDataProvider",
-                                         LiveImportDataProvider.class));
+                                      LiveImportDataProvider.class));
         nameToProvider.put("wos", serviceManager.getServiceByName("wosLiveImportDataProvider",
                                       LiveImportDataProvider.class));
+        nameToProvider.put("crossref", serviceManager.getServiceByName("crossRefLiveImportDataProvider",
+                LiveImportDataProvider.class));
         workflowService = WorkflowServiceFactory.getInstance()
             .getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
@@ -120,12 +122,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     public void internalRun() throws Exception {
         context = new Context();
         context.setCurrentUser(findEPerson());
-        if (service == null) {
+        if (Objects.isNull(service)) {
             throw new IllegalArgumentException("The name of service must be provided");
         }
 
         LiveImportDataProvider dataProvider = nameToProvider.get(service);
-        if (dataProvider == null) {
+        if (Objects.isNull(dataProvider)) {
             throw new IllegalArgumentException("The " + this.service + " provider does not exist");
         }
 
@@ -162,6 +164,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 return getUuid("scopus.importworkspaceitem.collection-id");
             case "wos":
                 return getUuid("wos.importworkspaceitem.collection-id");
+            case "crossref":
+                return getUuid("crossref.importworkspaceitem.collection-id");
             default:
         }
         return null;
@@ -261,6 +265,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private String buildID(Item item) {
         StringBuilder id = new StringBuilder();
         switch (this.service) {
+            case "crossref":
+                String orcid = itemService.getMetadataFirstValue(item, "person", "identifier", "orcid", Item.ANY);
+                if (StringUtils.isNotBlank(orcid)) {
+                    id.append(orcid);
+                }
+                break;
             case "scopus":
                 String scopusId = itemService.getMetadataFirstValue(
                                   item, "person", "identifier", "scopus-author-id", Item.ANY);
@@ -413,17 +423,19 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         if ("wos".equals(service)) {
             discoverQuery.addFilterQueries("person.identifier.orcid:* OR person.identifier.rid:*");
         }
+        if ("crossref".equals(service)) {
+            discoverQuery.addFilterQueries("person.identifier.orcid:*");
+        }
     }
 
     private List<List<MetadataValueDTO>> metadataValueToAdd(Item item) {
         switch (this.service) {
+            case "crossref":
+                return Collections.singletonList(metadataList(item, "orcid"));
             case "scopus":
                 return Collections.singletonList(metadataList(item, "scopus-author-id"));
             case "wos":
-                return Arrays.asList(
-                    metadataList(item, "orcid"),
-                    metadataList(item, "rid")
-                );
+                return Arrays.asList(metadataList(item, "orcid"), metadataList(item, "rid"));
             default:
                 return Collections.emptyList();
         }
