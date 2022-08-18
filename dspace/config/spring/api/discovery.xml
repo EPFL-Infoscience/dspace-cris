@@ -898,6 +898,7 @@
                     <list>
                         <ref bean="sortByProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -971,6 +972,21 @@
                     <list>
                         <ref bean="sortByResearchOutputsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1010,6 +1026,7 @@
                     <list>
                         <ref bean="sortByRPProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1035,6 +1052,19 @@
                     <list>
                         <ref bean="sortByPublicationsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1060,6 +1090,19 @@
                     <list>
                         <ref bean="sortByRPPublicationsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1084,7 +1127,12 @@
                 <property name="sortFields">
                     <list>
                         <ref bean="sortByPeopleSelection" />
-                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
+                        <ref bean="sortLastModifiedAsc"/>
+                        <ref bean="sortLastModified"/>
                     </list>
                 </property>
             </bean>
@@ -1110,6 +1158,7 @@
                     <list>
                         <ref bean="sortByProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1135,6 +1184,17 @@
                     <list>
                         <ref bean="sortByOrganizationsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortOrganizationLegalName"/>
+                        <ref bean="sortOrganizationLegalNameDesc"/>
+                        <ref bean="sortOrganizationAddressCountry"/>
+                        <ref bean="sortOrganizationAddressCountryDesc"/>
+                        <ref bean="sortOrganizationAddressLocality"/>
+                        <ref bean="sortOrganizationAddressLocalityDesc"/>
+                        <ref bean="sortOrganizationFoundingDateAsc"/>
+                        <ref bean="sortOrganizationFoundingDate"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1160,6 +1220,7 @@
                     <list>
                         <ref bean="sortByProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1185,6 +1246,7 @@
                     <list>
                         <ref bean="sortByFundingsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1210,6 +1272,19 @@
                     <list>
                         <ref bean="sortByResearchOutputsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1250,11 +1325,9 @@
                 <ref bean="searchFilterFileNameInOriginalBundle" />
                 <ref bean="searchFilterFileDescriptionInOriginalBundle" />
                 <ref bean="searchFilterEntityType"/>
-                <ref bean="searchFilterIsAuthorOfPublicationRelation"/>
-                <ref bean="searchFilterIsProjectOfPublicationRelation"/>
-                <ref bean="searchFilterIsOrgUnitOfPublicationRelation"/>
-                <ref bean="searchFilterIsPublicationOfJournalIssueRelation"/>
-                <ref bean="searchFilterIsJournalOfPublicationRelation"/>
+                <ref bean="searchFilterJournal"/>
+                <ref bean="searchFilterDoi"/>
+
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1329,6 +1402,8 @@
             <ref bean="searchFilterFileNameInOriginalBundle" />
             <ref bean="searchFilterFileDescriptionInOriginalBundle" />
             <ref bean="searchFilterEntityType"/>
+            <ref bean="searchFilterJournal"/>
+            <ref bean="searchFilterDoi"/>
         </list>
     </property>
     <!--The sort filters for the discovery search-->
@@ -1400,6 +1475,7 @@
                 <ref bean="searchFilterKnowsLanguage"/>
                 <ref bean="searchFilterPersonOrgUnit"/>
                 <ref bean="searchFilterBirthdate"/>
+                <ref bean="searchFilterOrcid"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1634,6 +1710,7 @@
                 <property name="sortFields">
                     <list>
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -2310,6 +2387,21 @@
             <list>
                 <value>dc.contributor.author</value>
                 <value>dc.creator</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
+
+    <bean id="searchFilterJournal" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="journal"/>
+        <property name="metadataFields">
+            <list>
+                <value>dc.relation.ispartof</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
