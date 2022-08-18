@@ -1331,11 +1331,9 @@
                 <ref bean="searchFilterFileNameInOriginalBundle" />
                 <ref bean="searchFilterFileDescriptionInOriginalBundle" />
                 <ref bean="searchFilterEntityType"/>
-                <ref bean="searchFilterIsAuthorOfPublicationRelation"/>
-                <ref bean="searchFilterIsProjectOfPublicationRelation"/>
-                <ref bean="searchFilterIsOrgUnitOfPublicationRelation"/>
-                <ref bean="searchFilterIsPublicationOfJournalIssueRelation"/>
-                <ref bean="searchFilterIsJournalOfPublicationRelation"/>
+                <ref bean="searchFilterJournal"/>
+                <ref bean="searchFilterDoi"/>
+
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1413,6 +1411,8 @@
                 <ref bean="searchFilterFileNameInOriginalBundle" />
                 <ref bean="searchFilterFileDescriptionInOriginalBundle" />
                 <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterJournal"/>
+                <ref bean="searchFilterDoi"/>
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterDataciteAvailable" />
@@ -1487,6 +1487,7 @@
                 <ref bean="searchFilterKnowsLanguage"/>
                 <ref bean="searchFilterPersonOrgUnit"/>
                 <ref bean="searchFilterBirthdate"/>
+                <ref bean="searchFilterOrcid"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2398,6 +2399,21 @@
             <list>
                 <value>dc.contributor.author</value>
                 <value>dc.creator</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
+
+    <bean id="searchFilterJournal" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="journal"/>
+        <property name="metadataFields">
+            <list>
+                <value>dc.relation.ispartof</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
