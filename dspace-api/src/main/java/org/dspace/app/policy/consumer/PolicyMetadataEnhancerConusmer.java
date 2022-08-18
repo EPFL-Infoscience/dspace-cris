@@ -109,12 +109,12 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
 
     @Override
     public void end(Context ctx) throws Exception {
-
+        bitstreamAlreadyProcessed.clear();
     }
 
     @Override
     public void finish(Context ctx) throws Exception {
-        bitstreamAlreadyProcessed.clear();
+
     }
 
     private void handleDataciteRightsMetadata(
