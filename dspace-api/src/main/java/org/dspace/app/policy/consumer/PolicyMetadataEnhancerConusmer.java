@@ -10,8 +10,10 @@ package org.dspace.app.policy.consumer;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.dspace.app.policy.OpenAirePolicyUtils;
@@ -46,6 +48,7 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
 
     private BitstreamService bitstreamService;
     private ResourcePolicyService resourcePolicyService;
+    private Set<Bitstream> bitstreamAlreadyProcessed = new HashSet<>();
 
     @Override
     public void initialize() throws Exception {
@@ -55,10 +58,25 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
 
     @Override
     public void consume(Context ctx, Event event) throws Exception {
+
+        Bitstream bitstream = Optional.ofNullable((Bitstream) event.getObject(ctx))
+                .orElse(this.loadBitstream(ctx, event));
+        if (bitstream == null || bitstreamAlreadyProcessed.contains(bitstream)) {
+            return;
+        }
+
+        try {
+            consume(ctx, bitstream);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        } finally {
+            bitstreamAlreadyProcessed.add(bitstream);
+        }
+    }
+
+    private void consume(Context ctx, Bitstream bitstream) throws SQLException {
         Date endDate = null;
         String policyValue = OpenAirePolicyUtils.AccessRights.RESTRICTED.getName();
-        Bitstream bitstream = Optional.ofNullable((Bitstream) event.getObject(ctx))
-                                    .orElse(this.loadBitstream(ctx, event));
 
         Optional<ResourcePolicy> customPolicy = this.getCustomResourcePolicy(ctx, bitstream);
         Optional<MetadataValue> dataciteAvailable = this.getDataciteAvailableMetadata(bitstream);
@@ -96,7 +114,7 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
 
     @Override
     public void finish(Context ctx) throws Exception {
-
+        bitstreamAlreadyProcessed.clear();
     }
 
     private void handleDataciteRightsMetadata(
