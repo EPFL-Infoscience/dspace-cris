@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.dspace.app.policy.OpenAirePolicyUtils;
 import org.dspace.app.policy.OpenAirePolicyUtils.AccessRights;
 import org.dspace.authorize.ResourcePolicy;
@@ -23,6 +24,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 import org.slf4j.Logger;
@@ -58,7 +60,7 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
         Bitstream bitstream = Optional.ofNullable((Bitstream) event.getObject(ctx))
                                     .orElse(this.loadBitstream(ctx, event));
 
-        Optional<ResourcePolicy> customPolicy = this.getResourcePolicy(ctx, bitstream);
+        Optional<ResourcePolicy> customPolicy = this.getCustomResourcePolicy(ctx, bitstream);
         Optional<MetadataValue> dataciteAvailable = this.getDataciteAvailableMetadata(bitstream);
         Optional<MetadataValue> dataciteRights = this.getDataciteRightsMetadata(bitstream);
 
@@ -82,6 +84,7 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
             found = this.bitstreamService.find(ctx, event.getSubjectID());
         } catch (SQLException e) {
             logger.error("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
+            throw new SQLRuntimeException("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
         }
         return found;
     }
@@ -133,7 +136,7 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
         }
     }
 
-    private Optional<ResourcePolicy> getResourcePolicy(Context ctx, Bitstream bitstream) throws SQLException {
+    private Optional<ResourcePolicy> getCustomResourcePolicy(Context ctx, Bitstream bitstream) throws SQLException {
         return this.resourcePolicyService.find(ctx, bitstream)
                 .stream()
                 .filter(policy -> ResourcePolicy.TYPE_CUSTOM.equals(policy.getRpType()))
@@ -152,8 +155,9 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
         return bitstream.getMetadata()
                 .stream()
                 .filter(metadata ->
-                            metadataField.schema.equals(metadata.getSchema()) &&
-                            metadataField.element.equals(metadata.getElement())
+                        StringUtils.equals(metadataField.schema, metadata.getSchema()) &&
+                        StringUtils.equals(metadataField.element, metadata.getElement()) &&
+                        StringUtils.equals(metadataField.qualifier, metadata.getQualifier())
                 )
                 .findFirst();
     }
