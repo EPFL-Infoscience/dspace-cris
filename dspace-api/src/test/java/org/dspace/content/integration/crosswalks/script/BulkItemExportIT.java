@@ -38,6 +38,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
 import org.junit.Before;
 import org.junit.Test;
@@ -502,6 +504,55 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
             assertThat(content, not(containsString("<preferred-name>John Smith</preferred-name>")));
             assertThat(content, not(containsString("<preferred-name>Company</preferred-name>")));
         }
+    }
+
+    @Test
+    public void testBulkItemExportLimited() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        createItem(collection, "Edward Red", "Science", "Person");
+        createItem(collection, "My publication", "", "Publication");
+        createItem(collection, "Walter White", "Science", "Person");
+        createItem(collection, "John Smith", "Science", "Person");
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        int loggedInLimit = configurationService.getIntProperty("bulk-export.limit.loggedIn");
+        int notLoggedInLimit = configurationService.getIntProperty("bulk-export.limit.notLoggedIn");
+        configurationService.setProperty("bulk-export.limit.loggedIn", 2);
+        configurationService.setProperty("bulk-export.limit.notLoggedIn", 1);
+
+        File xml = new File("person.xml");
+        xml.deleteOnExit();
+
+        String[] args = new String[] { "bulk-item-export", "-t", "Person", "-f", "person-xml", "-so", "dc.title,ASC" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Found 3 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Export will be limited to 2 items."));
+        assertThat(handler.getInfoMessages(), hasItem("Found 2 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, null);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Export will be limited to 1 items."));
+        assertThat(handler.getInfoMessages(), hasItem("Found 1 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        configurationService.setProperty("bulk-export.limit.loggedIn", loggedInLimit);
+        configurationService.setProperty("bulk-export.limit.notLoggedIn", notLoggedInLimit);
+
+
     }
 
     private Item createItem(Collection collection, String title, String subject, String entityType) {
