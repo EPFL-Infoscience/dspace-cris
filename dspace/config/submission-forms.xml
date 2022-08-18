@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE input-forms SYSTEM "submission-forms.dtd">
-
 <input-forms>
   <form-definitions>
     <form name="bitstream-metadata">
@@ -32,6 +31,389 @@
           <dc-element>type</dc-element>
           <label>File type</label>
           <input-type value-pairs-name="bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-publication">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="publication_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>licenseCondition</dc-element>
+          <label>License</label>
+          <input-type value-pairs-name="licenses">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-product">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="product_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>licenseCondition</dc-element>
+          <label>License</label>
+          <input-type value-pairs-name="licenses">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-patent">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="patent_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>licenseCondition</dc-element>
+          <label>License</label>
+          <input-type value-pairs-name="licenses">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-orgunit">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="orgunit_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-person">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="person_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-event">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="event_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-journal">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="journal_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-equipment">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="equipment_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-project">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="project_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Personal picture, logo, main article, etc.</hint>
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-funding">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="funding_bitstream_types">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint>Personal picture, logo, main article, etc.</hint>
@@ -142,6 +524,32 @@
         </field>
       </row>
     </form>
+    <form name="product_references-dc-relation-publication">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
+          <label>Publication</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter at least the publication title / citation</required>
+          <style>col-xs-12 col-md-9</style>
+          <hint>Enter the publication title or citation, if any, that uses this product</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>doi</dc-qualifier>
+          <label>DOI</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-3</style>
+          <hint>If the publication is not found in the system please enter the DOI identifier</hint>
+        </field>
+      </row>
+    </form>
     <form name="patent_references-dc-relation-funding">
       <row>
         <field>
@@ -247,7 +655,7 @@
           <input-type>date</input-type>
           <repeatable>false</repeatable>
           <required />
-          <style>col-xs-12 col-md-3</style>
+          <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
         </field>
         <field>
@@ -258,7 +666,7 @@
           <input-type>date</input-type>
           <repeatable>false</repeatable>
           <required />
-          <style>col-xs-12 col-md-3</style>
+          <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
         </field>
       </row>
@@ -317,7 +725,7 @@
           <dc-element>contributor</dc-element>
           <dc-qualifier>author</dc-qualifier>
           <label>Author</label>
-          <input-type>name</input-type>
+          <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required>You must enter at least the author.</required>
           <hint>Enter the names of the authors of this item in the form Lastname, Firstname [i.e. Smith, Josh or Smith, J].</hint>
@@ -343,7 +751,7 @@
           <dc-element>contributor</dc-element>
           <dc-qualifier>author</dc-qualifier>
           <label>Author</label>
-          <input-type>name</input-type>
+          <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required>You must enter at least the inventor.</required>
           <hint>Enter the names of the authors of this item in the form Lastname, Firstname [i.e. Smith, Josh or Smith, J].</hint>
@@ -456,7 +864,7 @@
           <repeatable>true</repeatable>
           <required />
           <hint>If the item has any identification numbers or codes associated with
-            it, please enter the types and the actual numbers or codes.</hint>
+it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
       <row>
@@ -492,8 +900,8 @@
           <repeatable>false</repeatable>
           <required>You must enter at least the year.</required>
           <hint>Please give the date of previous publication or public distribution.
-            You can leave out the day and/or month if they aren't
-            applicable.</hint>
+                        You can leave out the day and/or month if they aren't
+                        applicable.</hint>
         </field>
       </row>
       <row>
@@ -559,19 +967,6 @@
       </row>
       <row>
         <field>
-          <dc-schema>datacite</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>fos</dc-qualifier>
-          <label>Fields of Science and Technology (OECD)</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-          <vocabulary closed="true">oecd</vocabulary>
-        </field>
-      </row>
-      <row>
-        <field>
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>abstract</dc-qualifier>
@@ -587,6 +982,18 @@
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <label>Publisher(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>The publisher or publishers of this publication</hint>
+          <type-bind>types:c_3248,types:c_5794,types:c_6670</type-bind>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>publication</dc-qualifier>
           <label>Part Of</label>
@@ -594,7 +1001,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
+          <type-bind>types:c_3248,types:c_5794,types:c_6670</type-bind>
         </field>
       </row>
       <row>
@@ -607,7 +1014,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>The ISBN of the book/report if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
+          <type-bind>types:c_3248,types:c_5794,types:c_6670</type-bind>
         </field>
       </row>
       <row>
@@ -620,7 +1027,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>The DOI of the book/report if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
+          <type-bind>types:c_3248,types:c_5794,types:c_6670</type-bind>
         </field>
       </row>
       <row>
@@ -669,7 +1076,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>The publication object of the review</hint>
-          <type-bind>publication-coar-types:c_efa0,publication-coar-types:c_ba08</type-bind>
+          <type-bind>types:c_efa0,types:c_ba08</type-bind>
         </field>
       </row>
       <row>
@@ -682,7 +1089,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>The ISBN of the reviewed item if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_efa0,publication-coar-types:c_ba08</type-bind>
+          <type-bind>types:c_efa0,types:c_ba08</type-bind>
         </field>
       </row>
       <row>
@@ -695,7 +1102,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>The DOI of the reviewed item if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_efa0,publication-coar-types:c_ba08</type-bind>
+          <type-bind>types:c_efa0,types:c_ba08</type-bind>
         </field>
       </row>
       <row>
@@ -854,7 +1261,7 @@
           <repeatable>true</repeatable>
           <required />
           <hint>If the item has any identification numbers or codes associated with
-            it, please enter the types and the actual numbers or codes.</hint>
+it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
       <row>
@@ -978,13 +1385,24 @@
           <hint>Enter the abstract of the item.</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Other information</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter any other relevant information about the dataset</hint>
+        </field>
+      </row>
     </form>
     <form name="product_references">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>publisher</dc-element>
-          <label>Publisher</label>
+          <label>Publisher(s)</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -1080,8 +1498,8 @@
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>publication</dc-qualifier>
-          <label>References</label>
-          <input-type>onebox</input-type>
+          <label>Used by</label>
+          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint>Result outputs that use this product</hint>
@@ -1225,6 +1643,19 @@
           <repeatable>true</repeatable>
           <required />
           <hint>Enter appropriate subject keywords or phrases.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>datacite</dc-schema>
+          <dc-element>subject</dc-element>
+          <dc-qualifier>fos</dc-qualifier>
+          <label>Fields of Science and Technology (OECD)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+          <vocabulary closed="true">oecd</vocabulary>
         </field>
       </row>
       <row>
@@ -1558,30 +1989,6 @@
           <label>Written Language(s)</label>
           <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
           <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>cris</dc-schema>
-          <dc-element>policy</dc-element>
-          <dc-qualifier>eperson</dc-qualifier>
-          <label>Eperson Policy</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>cris</dc-schema>
-          <dc-element>policy</dc-element>
-          <dc-qualifier>group</dc-qualifier>
-          <label>Group Policy</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -2028,6 +2435,18 @@
       </row>
       <row>
         <field>
+          <dc-schema>crisfund</dc-schema>
+          <dc-element>award</dc-element>
+          <dc-qualifier>uri</dc-qualifier>
+          <label>Award URI</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>The Award URI</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
           <dc-schema>oairecerif</dc-schema>
           <dc-element>oamandate</dc-element>
           <label>OA Mandate</label>
@@ -2067,8 +2486,6 @@
           <required />
           <hint />
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
           <dc-element>funding</dc-element>
@@ -2079,6 +2496,8 @@
           <required />
           <hint />
         </field>
+      </row>
+      <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
           <dc-element>funding</dc-element>
@@ -4116,6 +4535,263 @@
         <stored-value>personal picture</stored-value>
       </pair>
     </value-pairs>
+    <value-pairs value-pairs-name="licenses" dc-term="licenses">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution</displayed-value>
+        <stored-value>CC BY</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution-ShareAlike</displayed-value>
+        <stored-value>CC BY-SA</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution-NoDerivs</displayed-value>
+        <stored-value>CC BY-ND</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution-NonCommercial</displayed-value>
+        <stored-value>CC BY-NC</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution-NonCommercial-ShareAlike</displayed-value>
+        <stored-value>CC BY-NC-SA</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution-NonCommercial-NoDerivs</displayed-value>
+        <stored-value>CC BY-NC-ND</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>No Rights Reserved – CC0</displayed-value>
+        <stored-value>CC0</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Public Domain Mark</displayed-value>
+        <stored-value>PD</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="publication_bitstream_types" dc-term="publication_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Main Article</displayed-value>
+        <stored-value>main article</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Presentation</displayed-value>
+        <stored-value>presentation</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Video Recording</displayed-value>
+        <stored-value>video recording</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Figures</displayed-value>
+        <stored-value>figures</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Supplemantary Material</displayed-value>
+        <stored-value>supplemantary material</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Source code</displayed-value>
+        <stored-value>source code</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Preprint</displayed-value>
+        <stored-value>preprint</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Submitted version</displayed-value>
+        <stored-value>submitted version</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Accepted version</displayed-value>
+        <stored-value>accepted version</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Published version</displayed-value>
+        <stored-value>published version</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="product_bitstream_types" dc-term="product_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Main Article</displayed-value>
+        <stored-value>main article</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Raw Data</displayed-value>
+        <stored-value>raw data</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Anonymized Data</displayed-value>
+        <stored-value>anonymized data</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Figures</displayed-value>
+        <stored-value>figures</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Presentation</displayed-value>
+        <stored-value>presentation</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Video Recording</displayed-value>
+        <stored-value>video recording</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Figures</displayed-value>
+        <stored-value>figures</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Supplemantary Material</displayed-value>
+        <stored-value>supplemantary material</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Source code</displayed-value>
+        <stored-value>source code</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Preprint</displayed-value>
+        <stored-value>preprint</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Submitted version</displayed-value>
+        <stored-value>submitted version</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Accepted version</displayed-value>
+        <stored-value>accepted version</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Published version</displayed-value>
+        <stored-value>published version</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="patent_bitstream_types" dc-term="patent_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Description</displayed-value>
+        <stored-value>description</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Claims</displayed-value>
+        <stored-value>claims</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Image</displayed-value>
+        <stored-value>image</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="orgunit_bitstream_types" dc-term="orgunit_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Logo</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="person_bitstream_types" dc-term="person_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Personal Picture</displayed-value>
+        <stored-value>personal picture</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>CV</displayed-value>
+        <stored-value>cv</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="event_bitstream_types" dc-term="event_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value>Unspecified</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Logo</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Picture</displayed-value>
+        <stored-value>picture</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Program</displayed-value>
+        <stored-value>program</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Attendees list</displayed-value>
+        <stored-value>attendees list</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="journal_bitstream_types" dc-term="journal_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Logo</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="equipment_bitstream_types" dc-term="equipment_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Picture</displayed-value>
+        <stored-value>picture</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Manual</displayed-value>
+        <stored-value>manual</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="project_bitstream_types" dc-term="project_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Logo</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Fact-Sheet</displayed-value>
+        <stored-value>fact-sheet</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="funding_bitstream_types" dc-term="funding_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Agreement</displayed-value>
+        <stored-value>agreement</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Proposal</displayed-value>
+        <stored-value>proposal</stored-value>
+      </pair>
+    </value-pairs>
   </form-value-pairs>
 </input-forms>
-
