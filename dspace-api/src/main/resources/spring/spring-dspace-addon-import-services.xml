@@ -64,13 +64,11 @@
           class="org.dspace.importer.external.cinii.CiniiFieldMapping">
     </bean>
 
-    <bean id="CrossRefImportService"
-          class="org.dspace.importer.external.crossref.CrossRefImportMetadataSourceServiceImpl" scope="singleton">
+    <bean id="CrossRefImportService" class="org.dspace.importer.external.crossref.CrossRefImportMetadataSourceServiceImpl" scope="singleton">
         <property name="metadataFieldMapping" ref="CrossRefMetadataFieldMapping"/>
+        <property name="url" value="${crossref.url}"/>
     </bean>
-    <bean id="CrossRefMetadataFieldMapping"
-          class="org.dspace.importer.external.crossref.CrossRefFieldMapping">
-    </bean>
+    <bean id="CrossRefMetadataFieldMapping" class="org.dspace.importer.external.crossref.CrossRefFieldMapping"/>
 
     <bean id="ArXivImportService"
           class="org.dspace.importer.external.arxiv.service.ArXivImportMetadataSourceServiceImpl" scope="singleton">

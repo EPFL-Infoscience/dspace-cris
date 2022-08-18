@@ -584,11 +584,14 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
@@ -895,6 +898,7 @@
                     <list>
                         <ref bean="sortByProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -968,6 +972,21 @@
                     <list>
                         <ref bean="sortByResearchOutputsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1007,6 +1026,7 @@
                     <list>
                         <ref bean="sortByRPProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1032,6 +1052,19 @@
                     <list>
                         <ref bean="sortByPublicationsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1057,6 +1090,19 @@
                     <list>
                         <ref bean="sortByRPPublicationsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1081,7 +1127,12 @@
                 <property name="sortFields">
                     <list>
                         <ref bean="sortByPeopleSelection" />
-                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
+                        <ref bean="sortLastModifiedAsc"/>
+                        <ref bean="sortLastModified"/>
                     </list>
                 </property>
             </bean>
@@ -1107,6 +1158,7 @@
                     <list>
                         <ref bean="sortByProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1132,6 +1184,17 @@
                     <list>
                         <ref bean="sortByOrganizationsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortOrganizationLegalName"/>
+                        <ref bean="sortOrganizationLegalNameDesc"/>
+                        <ref bean="sortOrganizationAddressCountry"/>
+                        <ref bean="sortOrganizationAddressCountryDesc"/>
+                        <ref bean="sortOrganizationAddressLocality"/>
+                        <ref bean="sortOrganizationAddressLocalityDesc"/>
+                        <ref bean="sortOrganizationFoundingDateAsc"/>
+                        <ref bean="sortOrganizationFoundingDate"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1157,6 +1220,7 @@
                     <list>
                         <ref bean="sortByProjectsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1182,6 +1246,7 @@
                     <list>
                         <ref bean="sortByFundingsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1207,6 +1272,19 @@
                     <list>
                         <ref bean="sortByResearchOutputsSelection" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1259,9 +1337,15 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
@@ -1328,13 +1412,22 @@
             <!--<property name="defaultSort" ref="sortDateIssued"/>-->
             <property name="sortFields">
                 <list>
-                    <ref bean="sortScore" />
                     <ref bean="sortTitleAsc" />
+                    <ref bean="sortTitleDesc" />
+                    <ref bean="sortDateIssuedAsc" />
                     <ref bean="sortDateIssuedDesc" />
-                    <ref bean="sortDateAccessionedDesc"/>
+                    <ref bean="sortAuthorAsc" />
+                    <ref bean="sortAuthorDesc" />
+                    <ref bean="sortScoreAsc" />
+                    <ref bean="sortScore" />
+                    <ref bean="sortViewsAsc"/>
                     <ref bean="sortViews"/>
+                    <ref bean="sortDownloadsAsc"/>
                     <ref bean="sortDownloads"/>
+                    <ref bean="sortCitationsAsc"/>
                     <ref bean="sortCitations"/>
+                    <ref bean="sortDateAccessionedAsc" />
+                    <ref bean="sortDateAccessionedDesc" />
                 </list>
             </property>
         </bean>
@@ -1389,10 +1482,14 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
                         <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
+                        <ref bean="sortLastModifiedAsc"/>
                         <ref bean="sortLastModified"/>
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
                     </list>
                 </property>
             </bean>
@@ -1446,8 +1543,10 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
                         <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
                     </list>
                 </property>
             </bean>
@@ -1503,8 +1602,10 @@
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
                         <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
                     </list>
                 </property>
             </bean>
@@ -1558,12 +1659,18 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
                         <ref bean="sortOrganizationLegalName"/>
+                        <ref bean="sortOrganizationLegalNameDesc"/>
                         <ref bean="sortOrganizationAddressCountry"/>
+                        <ref bean="sortOrganizationAddressCountryDesc"/>
                         <ref bean="sortOrganizationAddressLocality"/>
+                        <ref bean="sortOrganizationAddressLocalityDesc"/>
+                        <ref bean="sortOrganizationFoundingDateAsc"/>
                         <ref bean="sortOrganizationFoundingDate"/>
-                        <ref bean="sortDateAccessionedDesc"/>
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1602,6 +1709,7 @@
                 <property name="sortFields">
                     <list>
                         <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                     </list>
                 </property>
             </bean>
@@ -1656,6 +1764,8 @@
                 <property name="sortFields">
                     <list>
                         <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
@@ -1711,11 +1821,16 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
+                        <ref bean="sortPublicationIssueNumberAsc"/>
                         <ref bean="sortPublicationIssueNumber"/>
                         <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortCreativeWorkDatePublishedAsc"/>
                         <ref bean="sortCreativeWorkDatePublished"/>
+                        <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
                     </list>
                 </property>
             </bean>
@@ -1769,11 +1884,16 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
+                        <ref bean="sortPublicationVolumeNumberAsc"/>
                         <ref bean="sortPublicationVolumeNumber"/>
                         <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortCreativeWorkDatePublishedAsc"/>
                         <ref bean="sortCreativeWorkDatePublished"/>
+                        <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortScore" />
                     </list>
                 </property>
             </bean>
@@ -3030,6 +3150,10 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
+    <bean id="sortScoreAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="defaultSortOrder" value="asc"/>
+    </bean>
+
     <bean id="sortTitleAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="dc.title"/>
         <property name="defaultSortOrder" value="asc"/>
@@ -3037,6 +3161,16 @@
 
     <bean id="sortTitleDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="dc.title"/>
+        <property name="defaultSortOrder" value="desc"/>
+    </bean>
+
+    <bean id="sortAuthorAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="dc.contributor.author"/>
+        <property name="defaultSortOrder" value="asc"/>
+    </bean>
+
+    <bean id="sortAuthorDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="dc.contributor.author"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
@@ -3064,6 +3198,12 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
+    <bean id="sortLastModifiedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+		<property name="metadataField" value="lastModified" />
+		<property name="type" value="date" />
+        <property name="defaultSortOrder" value="asc"/>
+	</bean>
+
     <bean id="sortLastModified" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
 		<property name="metadataField" value="lastModified" />
 		<property name="type" value="date" />
@@ -3090,10 +3230,21 @@
         <property name="metadataField" value="organization.legalName"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
+
+    <bean id="sortOrganizationLegalNameDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="organization.legalName"/>
+        <property name="defaultSortOrder" value="desc"/>
+    </bean>
     <bean id="sortOrganizationAddressCountry"
           class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="organisation.address.addressCountry"/>
         <property name="defaultSortOrder" value="asc"/>
+    </bean>
+
+    <bean id="sortOrganizationAddressCountryDesc"
+          class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="organisation.address.addressCountry"/>
+        <property name="defaultSortOrder" value="desc"/>
     </bean>
 
     <bean id="sortOrganizationAddressLocality"
@@ -3102,10 +3253,27 @@
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
+    <bean id="sortOrganizationAddressLocalityDesc"
+          class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="organisation.address.addressLocality"/>
+        <property name="defaultSortOrder" value="desc"/>
+    </bean>
+
     <bean id="sortOrganizationFoundingDate" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="organisation.foundingDate"/>
         <property name="type" value="date"/>
         <property name="defaultSortOrder" value="desc"/>
+    </bean>
+
+    <bean id="sortOrganizationFoundingDateAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="organisation.foundingDate"/>
+        <property name="type" value="date"/>
+        <property name="defaultSortOrder" value="asc"/>
+    </bean>
+
+    <bean id="sortPublicationIssueNumberAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="publicationissue.issueNumber"/>
+        <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <bean id="sortPublicationIssueNumber" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
@@ -3113,9 +3281,19 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
+    <bean id="sortCreativeWorkDatePublishedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="creativework.datePublished"/>
+        <property name="defaultSortOrder" value="asc"/>
+    </bean>
+
     <bean id="sortCreativeWorkDatePublished" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="creativework.datePublished"/>
         <property name="defaultSortOrder" value="desc"/>
+    </bean>
+
+    <bean id="sortPublicationVolumeNumberAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="publicationvolume.volumeNumber"/>
+        <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <bean id="sortPublicationVolumeNumber" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
@@ -3132,13 +3310,25 @@
         <property name="metadataField" value="metric.view"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
+    <bean id="sortViewsAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="metric.view"/>
+        <property name="defaultSortOrder" value="asc"/>
+    </bean>
     <bean id="sortDownloads" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="metric.download"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
+    <bean id="sortDownloadsAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="metric.download"/>
+        <property name="defaultSortOrder" value="asc"/>
+    </bean>
     <bean id="sortCitations" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="metric.scopus.citation"/>
         <property name="defaultSortOrder" value="desc"/>
+    </bean>
+    <bean id="sortCitationsAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="metric.scopus.citation"/>
+        <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <!-- functional sorting -->

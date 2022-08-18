@@ -10,6 +10,7 @@ package org.dspace.content.security;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -167,15 +168,25 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             return false;
         }
 
+        try {
+            for (Group group : context.getSpecialGroups()) {
+                if (groupService.isMember(context, user, group)) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e.getMessage(), e);
+        }
+
         List<Group> userGroups = user.getGroups();
         if (CollectionUtils.isEmpty(userGroups)) {
             return false;
         }
 
         return groups.stream()
-            .map(group -> findGroupByNameOrUUID(context, group))
-            .filter(group -> group != null)
-            .anyMatch(group -> userGroups.contains(group));
+                     .map(group -> findGroupByNameOrUUID(context, group))
+                     .filter(group -> Objects.nonNull(group))
+                     .anyMatch(group -> userGroups.contains(group));
     }
 
     private Group findGroupByNameOrUUID(Context context, String group) {
