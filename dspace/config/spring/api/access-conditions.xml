@@ -57,6 +57,15 @@
         <property name="map">
             <map>
                 <entry key="upload" value-ref="uploadConfigurationDefault" />
+                <entry key="upload-publication" value-ref="uploadConfigurationPublication" />
+                <entry key="upload-product" value-ref="uploadConfigurationProduct" />
+                <entry key="upload-patent" value-ref="uploadConfigurationPatent" />
+                <entry key="upload-event" value-ref="uploadConfigurationEvent" />
+                <entry key="upload-person" value-ref="uploadConfigurationPerson" />
+                <entry key="upload-orgunit" value-ref="uploadConfigurationOrgUnit" />
+                <entry key="upload-journal" value-ref="uploadConfigurationJournal" />
+                <entry key="upload-project" value-ref="uploadConfigurationProject" />
+                <entry key="upload-funding" value-ref="uploadConfigurationFunding" />
             </map>
         </property>
     </bean>
