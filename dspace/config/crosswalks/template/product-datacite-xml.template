@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.1/metadata.xsd">
+  <identifier identifierType="DOI">@dc.identifier.doi@</identifier>
+  <creators>
+      @group.dc-contributor-author.start@
+	  <creator>
+	  		<creatorName>@dc.contributor.author@</creatorName>
+	  	    @relation.dc-contributor-author.start@
+	  	    <nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org/">@person.identifier.orcid@</nameIdentifier>		
+			@relation.dc-contributor-author.end@
+			<affiliation>@oairecerif.author.affiliation@</affiliation>
+      </creator>
+   	  @group.dc-contributor-author.end@
+    </creators>
+  <titles>
+    <title>@dc.title@</title>
+  </titles>
+  <publisher>@dc.publisher@</publisher>
+  <publicationYear>@virtual.date.dc-date-issued.YYYY@</publicationYear>
+  <subjects>
+    <subject>@dc.subject@</subject>
+  </subjects>
+  <dates>
+    <date dateType="Issued">@dc.date.issued@</date>
+  </dates>
+  <language>@dc.language.iso@</language>
+  <resourceType resourceTypeGeneral="Dataset" />
+  <alternateIdentifiers>
+    <alternateIdentifier alternateIdentifierType="url">@dc.identifier.uri@</alternateIdentifier>
+  </alternateIdentifiers>
+  <relatedIdentifiers>
+  	@relation.dc-relation-publication.start@
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsReferencedBy">@dc.identifier.doi@</relatedIdentifier>
+    @relation.dc-relation-publication.end@
+    @group.dc-relation-publication.start@
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsReferencedBy">@dc.relation.doi@</relatedIdentifier>
+    @group.dc-relation-publication.end@
+  @if.authority.dc-relation-references.start@
+  @relation.dc-relation-references.start@
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="References">@dc.identifier.doi@</relatedIdentifier>
+  @relation.dc-relation-references.end@
+  @if.authority.dc-relation-references.end@
+  </relatedIdentifiers>
+  <version>@dc.description.version@</version>
+  <rightsList>
+    <rights rightsURI="https://creativecommons.org/licenses/by/4.0/legalcode">Creative Commons Attribution 4.0 International</rights>
+    <rights rightsURI="info:eu-repo/semantics/openAccess">Open Access</rights>
+  </rightsList>
+  <descriptions>
+    <description descriptionType="Abstract">@dc.description.abstract@</description>
+    <description descriptionType="Other">@dc.description@</description>
+  </descriptions>
+  <fundingReferences>
+           	@relation.dc-relation-funding.start@
+         	<fundingReference>
+					@relation.oairecerif-funder.start@
+					<funderName>@dc.title@</funderName>
+                    <funderIdentifier funderIdentifierType="Crossref Funder ID">@organization.identifier.crossrefid@</funderIdentifier>
+					@relation.oairecerif-funder.end@
+					<awardTitle>@dc.title@</awardTitle>
+					<awardNumber 
+					awardURI="@crisfund.award.uri@"
+>
+@oairecerif.funding.identifier@
+</awardNumber>
+			</fundingReference>
+         	@relation.dc-relation-funding.end@
+ </fundingReferences>        	
+</resource>
