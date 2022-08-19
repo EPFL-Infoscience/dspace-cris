@@ -282,8 +282,267 @@
 
     <!-- used to track entity type of collections -->
     <field name="search.entitytype" type="string" indexed="true" stored="true" required="false" />
-   
-    <!-- Community and collection hierarchy of the Item of interest (candidate for hierarchical facetting ) -->
+
+<!--     <field name="title" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.title" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="author" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.contributor.author" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+     <field name="dc.creator" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="editor" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.contributor.editor" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="subject" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.subject" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="organization" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="oairecerif.author.affiliation" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+     <field name="oairecerif.editor.affiliation" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="funding" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.relation.funding" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="entityType" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dspace.entity.type" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="journal" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.relation.ispartof" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="doi" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.identifier.doi" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="investigators" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="crispj.investigator" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+     <field name="crispj.coinvestigators" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="projectOrgUnits" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="crispj.coordinator" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+     <field name="crispj.partnerou" type="string" indexed="true" stored="true" required="false" multiValued="true" >
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+     <field name="crispj.organization" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+     <field name="oairecerif.funder" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="itemidentifier" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="dc.identifier" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="familyName" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="person.familyName" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="givenName" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="person.givenName" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="jobTitle" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="person.jobTitle" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="knowsLanguage" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="person.knowsLanguage" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="personOrgUnits" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="person.affiliation.name" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+     <field name="oairecerif.person.affiliation" type="string" indexed="true" stored="true" required="false" multiValued="true">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+<!--     <field name="orcid" type="string" indexed="true" stored="true" required="false">-->
+<!--         <analyzer>-->
+<!--             <tokenizer class="solr.KeywordTokenizerFactory"/>-->
+<!--         </analyzer>-->
+<!--     </field>-->
+
+     <field name="person.identifier.orcid" type="string" indexed="true" stored="true" required="false">
+         <analyzer>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+     </field>
+
+
+     <!-- Community and collection hierarchy of the Item of interest (candidate for hierarchical facetting ) -->
     <field name="location" type="lowerCaseSort" indexed="true" stored="true" multiValued="true" required="false" omitNorms="true" />
     <field name="location.comm" type="lowerCaseSort" indexed="true" stored="true" multiValued="true" required="false" omitNorms="true" />
     <field name="location.coll" type="lowerCaseSort" indexed="true" stored="true" multiValued="true" required="false" omitNorms="true" />
