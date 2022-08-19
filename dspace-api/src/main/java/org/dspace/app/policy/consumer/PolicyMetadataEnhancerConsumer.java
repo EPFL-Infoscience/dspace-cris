@@ -39,12 +39,12 @@ import org.slf4j.LoggerFactory;
  * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
  *
  */
-public class PolicyMetadataEnhancerConusmer implements Consumer {
+public class PolicyMetadataEnhancerConsumer implements Consumer {
 
     private static final String ACCESS_RESTRICTED = "restricted";
     private static final String ACCESS_OPEN = "openaccess";
 
-    private static final Logger logger = LoggerFactory.getLogger(PolicyMetadataEnhancerConusmer.class);
+    private static final Logger logger = LoggerFactory.getLogger(PolicyMetadataEnhancerConsumer.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final MetadataFieldName dataciteRightsMetadata = new MetadataFieldName("datacite", "rights");
