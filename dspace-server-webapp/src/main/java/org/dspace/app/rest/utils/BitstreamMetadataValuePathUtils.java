@@ -11,6 +11,8 @@ import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.submit.model.UploadConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Utils class offering methods to validate patch operations for bitstream metadata in the submission
@@ -21,6 +23,9 @@ public class BitstreamMetadataValuePathUtils {
 
     private DCInputsReader inputReader;
 
+    @Autowired
+    UploadConfigurationService uploadConfigurationService;
+
     BitstreamMetadataValuePathUtils() throws DCInputsReaderException {
         inputReader = new DCInputsReader();
     }
@@ -29,14 +34,15 @@ public class BitstreamMetadataValuePathUtils {
      * Method to verify that the path included in the patch operation is supported
      * by the submission configuration of the upload section
      * 
-     * @param metadataSubmissionForm the name of the bitstream metadata submission form
+     * @param uploadStepId the name of the upload configuration
      * @param absolutePath the path in the json patch operation
      * @throws DCInputsReaderException      if an error occurs reading the
      *                                      submission configuration
      * @throws UnprocessableEntityException if the path is invalid
      */
-    public void validate(String metadataSubmissionForm, String absolutePath) throws DCInputsReaderException {
+    public void validate(String uploadStepId, String absolutePath) throws DCInputsReaderException {
         String[] split = absolutePath.split("/");
+        String metadataSubmissionForm = uploadConfigurationService.getMap().get(uploadStepId).getMetadata();
         DCInputSet inputConfig = inputReader.getInputsByFormName(metadataSubmissionForm);
         // according to the rest contract the absolute path must be something like files/:idx/metadata/dc.title
         if (split.length >= 4) {
