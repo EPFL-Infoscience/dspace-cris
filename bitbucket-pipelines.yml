@@ -38,5 +38,6 @@ pipelines:
           - step: *integration-tests
   custom:
     manual:
+       - step: *unit-test-code-checks
        - step: *integration-tests
 
