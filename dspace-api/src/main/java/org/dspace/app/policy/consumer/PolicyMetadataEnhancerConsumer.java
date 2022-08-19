@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
  */
 public class PolicyMetadataEnhancerConsumer implements Consumer {
 
-    private static final String ACCESS_RESTRICTED = "restricted";
-    private static final String ACCESS_OPEN = "openaccess";
+    public static final String ACCESS_RESTRICTED = "restricted";
+    public static final String ACCESS_OPEN = "openaccess";
 
     private static final Logger logger = LoggerFactory.getLogger(PolicyMetadataEnhancerConsumer.class);
 
