@@ -16,15 +16,16 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.dspace.app.policy.OpenAirePolicyUtils;
-import org.dspace.app.policy.OpenAirePolicyUtils.AccessRights;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.event.Consumer;
@@ -40,6 +41,9 @@ import org.slf4j.LoggerFactory;
  */
 public class PolicyMetadataEnhancerConusmer implements Consumer {
 
+    private static final String ACCESS_RESTRICTED = "restricted";
+    private static final String ACCESS_OPEN = "openaccess";
+
     private static final Logger logger = LoggerFactory.getLogger(PolicyMetadataEnhancerConusmer.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -48,12 +52,14 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
 
     private BitstreamService bitstreamService;
     private ResourcePolicyService resourcePolicyService;
+    private AuthorizeService authorizeService;
     private Set<Bitstream> bitstreamAlreadyProcessed = new HashSet<>();
 
     @Override
     public void initialize() throws Exception {
         this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
         this.resourcePolicyService = ContentServiceFactory.getInstance().getResourcePolicyService();
+        this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
     }
 
     @Override
@@ -76,7 +82,8 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
 
     private void consume(Context ctx, Bitstream bitstream) throws SQLException {
         Date endDate = null;
-        String policyValue = OpenAirePolicyUtils.AccessRights.RESTRICTED.getName();
+        String policyValue = authorizeService.authorizeActionBoolean(ctx, null, bitstream, Constants.READ, false)?
+                ACCESS_OPEN:ACCESS_RESTRICTED;
 
         Optional<ResourcePolicy> customPolicy = this.getCustomResourcePolicy(ctx, bitstream);
         Optional<MetadataValue> dataciteAvailable = this.getDataciteAvailableMetadata(bitstream);
@@ -85,8 +92,6 @@ public class PolicyMetadataEnhancerConusmer implements Consumer {
         if (customPolicy.isPresent()) {
             ResourcePolicy customPolicyValue = customPolicy.get();
             policyValue = Optional.ofNullable(customPolicyValue.getRpName())
-                                .flatMap(policy -> OpenAirePolicyUtils.getPolicyByName(policy.toLowerCase()))
-                                .map(AccessRights::getName)
                                 .orElse(policyValue);
             endDate = customPolicyValue.getEndDate();
         }
