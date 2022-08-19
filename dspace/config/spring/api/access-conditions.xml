@@ -77,4 +77,138 @@
         </property>
     </bean>
 
+    <bean id="restricted" class="org.dspace.submit.model.AccessConditionOption">
+        <property name="groupName" value="LoggedIn"/>
+        <property name="name" value="restricted"/>
+        <property name="hasStartDate" value="false"/>
+        <property name="hasEndDate" value="false"/>       
+    </bean>
+    
+    <bean id="uploadConfigurationPublication" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-publication"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-publication" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationProduct" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-product"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-product" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationPatent" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-patent"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-patent" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationEvent" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-event"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-event" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationPerson" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-person"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-person" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationOrgUnit" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-orgunit"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-orgunit" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationJournal" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-journal"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-journal" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+
+    <bean id="uploadConfigurationProject" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-project"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-project" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
+
+
+    <bean id="uploadConfigurationFunding" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-funding"></property>
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+        <property name="metadata" value="bitstream-metadata-funding" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
+            </list>
+        </property>
+    </bean>
 </beans>
