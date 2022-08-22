@@ -37,7 +37,7 @@ import org.dspace.core.Constants;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWithDatabase {
+public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String TYPE_CUSTOM = "TYPE_CUSTOM";
 
@@ -121,7 +121,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
     }
 
     @Test
-    public void testWithPolicyNameEndDate()
+    public void testWithPolicyNameStartDate()
             throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
         context.turnOffAuthorisationSystem();
         Item item = ItemBuilder.createItem(context, collection).build();
@@ -130,7 +130,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
         String embargoDate = "2022-08-16";
         ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
                 .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("embargo")
-                .withEndDate(dateFormat.parse(embargoDate)).build();
+                .withStartDate(dateFormat.parse(embargoDate)).build();
 
         context.restoreAuthSystemState();
         context.commit();
@@ -142,7 +142,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
     }
 
     @Test
-    public void testWithPolicyNameEndDateEdited()
+    public void testWithPolicyNameStartDateEdited()
             throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
         context.turnOffAuthorisationSystem();
         Item item = ItemBuilder.createItem(context, collection).build();
@@ -156,7 +156,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
             .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName("embargo")
-            .withEndDate(dateFormat.parse(embargoDate))
+            .withStartDate(dateFormat.parse(embargoDate))
             .build();
 
         context.restoreAuthSystemState();
@@ -172,7 +172,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
         context.turnOffAuthorisationSystem();
 
         resourcePolicy.setRpName("test");
-        resourcePolicy.setEndDate(null);
+        resourcePolicy.setStartDate(null);
 
         this.resourcePolicyService.update(context, resourcePolicy);
 
@@ -186,7 +186,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
     }
 
     @Test
-    public void testWithPolicyNameEndDateDeleted()
+    public void testWithPolicyNameStartDateDeleted()
             throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
         context.turnOffAuthorisationSystem();
         Item item = ItemBuilder.createItem(context, collection).build();
@@ -200,7 +200,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
             .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName("embargo")
-            .withEndDate(dateFormat.parse(embargoDate))
+            .withStartDate(dateFormat.parse(embargoDate))
             .build();
 
         context.restoreAuthSystemState();
@@ -222,7 +222,7 @@ public class PolicyMetadataEnhancerConusmerIT extends AbstractIntegrationTestWit
 
         resourcePolicies.remove(resourcePolicy);
         resourcePolicy.setRpName(PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED);
-        resourcePolicy.setEndDate(null);
+        resourcePolicy.setStartDate(null);
 
         this.resourcePolicyService.delete(context, resourcePolicy);
 

@@ -93,7 +93,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
             ResourcePolicy customPolicyValue = customPolicy.get();
             policyValue = Optional.ofNullable(customPolicyValue.getRpName())
                                 .orElse(policyValue);
-            endDate = customPolicyValue.getEndDate();
+            endDate = customPolicyValue.getStartDate();
         }
 
         this.handleDataciteAvailableMetadata(ctx, endDate, bitstream, dataciteAvailable);
