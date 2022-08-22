@@ -328,9 +328,9 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
             }
             // loop over all the defined bitstream metadata submission configuration
             for (UploadConfiguration uploadCfg : uploadConfigurationService.getMap().values()) {
-                String submissionName = uploadCfg.getMetadata();
-                List<DCInputSet> inputsBySubmissionName = dcInputsReader.getInputsBySubmissionName(submissionName);
-                autoRegisterChoiceAuthorityFromSubmissionForms(submissionName, inputsBySubmissionName);
+                String formName = uploadCfg.getMetadata();
+                DCInputSet inputByFormName = dcInputsReader.getInputsByFormName(formName);
+                autoRegisterChoiceAuthorityFromSubmissionForms(formName, List.of(inputByFormName));
             }
         } catch (DCInputsReaderException e) {
             // the system is in an illegal state as the submission definition is not valid
