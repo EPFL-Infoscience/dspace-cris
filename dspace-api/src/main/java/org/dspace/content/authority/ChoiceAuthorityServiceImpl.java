@@ -339,45 +339,46 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
         }
     }
 
-	private void autoRegisterChoiceAuthorityFromSubmissionForms(String submissionName, List<DCInputSet> inputsBySubmissionName) {
-		// loop over the submission forms configuration eventually associated with the submission panel
-		for (DCInputSet dcinputSet : inputsBySubmissionName) {
-		    DCInput[][] dcinputs = dcinputSet.getFields();
-		    for (DCInput[] dcrows : dcinputs) {
-		        for (DCInput dcinput : dcrows) {
-		            // for each input in the form check if it is associated with a real value pairs
-		            // or an xml vocabulary
-		            String authorityName = null;
-		            if (StringUtils.isNotBlank(dcinput.getPairsType())
-		                    && !StringUtils.equals(dcinput.getInputType(), "qualdrop_value")) {
-		                authorityName = dcinput.getPairsType();
-		            } else if (StringUtils.isNotBlank(dcinput.getVocabulary())) {
-		                authorityName = dcinput.getVocabulary();
-		            }
+    private void autoRegisterChoiceAuthorityFromSubmissionForms(String submissionName,
+                                                                List<DCInputSet> inputsBySubmissionName) {
+        // loop over the submission forms configuration eventually associated with the submission panel
+        for (DCInputSet dcinputSet : inputsBySubmissionName) {
+            DCInput[][] dcinputs = dcinputSet.getFields();
+            for (DCInput[] dcrows : dcinputs) {
+                for (DCInput dcinput : dcrows) {
+                    // for each input in the form check if it is associated with a real value pairs
+                    // or an xml vocabulary
+                    String authorityName = null;
+                    if (StringUtils.isNotBlank(dcinput.getPairsType())
+                        && !StringUtils.equals(dcinput.getInputType(), "qualdrop_value")) {
+                        authorityName = dcinput.getPairsType();
+                    } else if (StringUtils.isNotBlank(dcinput.getVocabulary())) {
+                        authorityName = dcinput.getVocabulary();
+                    }
 
-		            // do we have an authority?
-		            if (StringUtils.isNotBlank(authorityName)) {
-		                String fieldKey = makeFieldKey(dcinput.getSchema(), dcinput.getElement(),
-		                                               dcinput.getQualifier());
-		                ChoiceAuthority ca = controller.get(authorityName);
-		                if (ca == null) {
-		                    ca = (ChoiceAuthority) pluginService
-		                        .getNamedPlugin(ChoiceAuthority.class, authorityName);
-		                    if (ca == null) {
-		                        throw new IllegalStateException("Invalid configuration for " + fieldKey
-		                                + " in submission definition " + submissionName
-		                                + ", form definition " + dcinputSet.getFormName()
-		                                + " no named plugin found: " + authorityName);
-		                    }
-		                }
+                    // do we have an authority?
+                    if (StringUtils.isNotBlank(authorityName)) {
+                        String fieldKey = makeFieldKey(dcinput.getSchema(), dcinput.getElement(),
+                                                       dcinput.getQualifier());
+                        ChoiceAuthority ca = controller.get(authorityName);
+                        if (ca == null) {
+                            ca = (ChoiceAuthority) pluginService
+                                .getNamedPlugin(ChoiceAuthority.class, authorityName);
+                            if (ca == null) {
+                                throw new IllegalStateException("Invalid configuration for " + fieldKey
+                                                                    + " in submission definition " + submissionName
+                                                                    + ", form definition " + dcinputSet.getFormName()
+                                                                    + " no named plugin found: " + authorityName);
+                            }
+                        }
 
-		                addAuthorityToFormCacheMap(submissionName, fieldKey, ca);
-		                addFormDetailsToAuthorityCacheMap(submissionName, authorityName, fieldKey);
-		            }
-		        }
-		    }
-		}
-	}
+                        addAuthorityToFormCacheMap(submissionName, fieldKey, ca);
+                        addFormDetailsToAuthorityCacheMap(submissionName, authorityName, fieldKey);
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Add the form/field to the cache map keeping track of which form/field are
