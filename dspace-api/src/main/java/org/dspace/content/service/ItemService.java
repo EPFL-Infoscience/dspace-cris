@@ -40,7 +40,7 @@ import org.dspace.eperson.Group;
 public interface ItemService
         extends DSpaceObjectService<Item>, DSpaceObjectLegacySupportService<Item> {
 
-    public Thumbnail getThumbnail(Context context, Item item, boolean requireOriginal) throws SQLException;
+    public Thumbnail getThumbnail(Context context, Item item) throws SQLException;
 
     /**
      * Create a new item, with a new internal ID. Authorization is done

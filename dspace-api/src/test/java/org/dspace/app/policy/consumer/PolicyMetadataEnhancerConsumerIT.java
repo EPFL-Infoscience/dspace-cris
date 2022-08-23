@@ -8,6 +8,8 @@
 package org.dspace.app.policy.consumer;
 
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
+import static org.dspace.app.policy.consumer.PolicyMetadataEnhancerConsumer.ACCESS_OPEN;
+import static org.dspace.app.policy.consumer.PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;

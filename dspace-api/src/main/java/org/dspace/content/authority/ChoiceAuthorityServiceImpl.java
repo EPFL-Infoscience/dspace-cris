@@ -340,8 +340,9 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     }
 
     private void autoRegisterChoiceAuthorityFromSubmissionForms(String submissionName,
-                                                                List<DCInputSet> inputsBySubmissionName) {
-        // loop over the submission forms configuration eventually associated with the submission panel
+            List<DCInputSet> inputsBySubmissionName) {
+        // loop over the submission forms configuration eventually associated with the
+        // submission panel
         for (DCInputSet dcinputSet : inputsBySubmissionName) {
             DCInput[][] dcinputs = dcinputSet.getFields();
             for (DCInput[] dcrows : dcinputs) {
@@ -350,7 +351,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                     // or an xml vocabulary
                     String authorityName = null;
                     if (StringUtils.isNotBlank(dcinput.getPairsType())
-                        && !StringUtils.equals(dcinput.getInputType(), "qualdrop_value")) {
+                            && !StringUtils.equals(dcinput.getInputType(), "qualdrop_value")) {
                         authorityName = dcinput.getPairsType();
                     } else if (StringUtils.isNotBlank(dcinput.getVocabulary())) {
                         authorityName = dcinput.getVocabulary();
@@ -359,16 +360,14 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                     // do we have an authority?
                     if (StringUtils.isNotBlank(authorityName)) {
                         String fieldKey = makeFieldKey(dcinput.getSchema(), dcinput.getElement(),
-                                                       dcinput.getQualifier());
+                                dcinput.getQualifier());
                         ChoiceAuthority ca = controller.get(authorityName);
                         if (ca == null) {
-                            ca = (ChoiceAuthority) pluginService
-                                .getNamedPlugin(ChoiceAuthority.class, authorityName);
+                            ca = (ChoiceAuthority) pluginService.getNamedPlugin(ChoiceAuthority.class, authorityName);
                             if (ca == null) {
                                 throw new IllegalStateException("Invalid configuration for " + fieldKey
-                                                                    + " in submission definition " + submissionName
-                                                                    + ", form definition " + dcinputSet.getFormName()
-                                                                    + " no named plugin found: " + authorityName);
+                                        + " in submission definition " + submissionName + ", form definition "
+                                        + dcinputSet.getFormName() + " no named plugin found: " + authorityName);
                             }
                         }
 

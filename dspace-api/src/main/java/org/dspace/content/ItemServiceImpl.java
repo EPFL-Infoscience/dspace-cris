@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -156,34 +157,28 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
-    public Thumbnail getThumbnail(Context context, Item item, boolean requireOriginal) throws SQLException {
+    public Thumbnail getThumbnail(Context context, Item item) throws SQLException {
         // Search the thumbnail using the configuration
-        Thumbnail thumbnail = thumbnailLayoutTabConfigurationStrategy(context, item, requireOriginal);
+        Thumbnail thumbnail = thumbnailLayoutTabConfigurationStrategy(context, item);
         if (thumbnail != null) {
             return thumbnail;
         }
         // If no thumbnail is retrieved by the first strategy
         // then use the fallback strategy
-        Bitstream thumbBitstream;
+        Bitstream thumbBitstream = null;
         List<Bundle> originalBundles = getBundles(item, "ORIGINAL");
         Bitstream primaryBitstream = null;
         if (CollectionUtils.isNotEmpty(originalBundles)) {
             primaryBitstream = originalBundles.get(0).getPrimaryBitstream();
         }
+        if (primaryBitstream == null) {
+            primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
+        }
         if (primaryBitstream != null) {
-            if (primaryBitstream.getFormat(context).getMIMEType().equals("text/html")) {
-                return null;
+            thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream);
+            if (thumbBitstream == null) {
+                thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
             }
-
-            thumbBitstream = bitstreamService
-                    .getBitstreamByName(item, "THUMBNAIL", primaryBitstream.getName() + ".jpg");
-
-        } else {
-            if (requireOriginal) {
-                primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
-            }
-
-            thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
         }
 
         if (thumbBitstream != null) {
@@ -196,10 +191,9 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     /**
      * @param context
      * @param item
-     * @param requireOriginal
      * @throws SQLException
      */
-    private Thumbnail thumbnailLayoutTabConfigurationStrategy(Context context, Item item, boolean requireOriginal)
+    private Thumbnail thumbnailLayoutTabConfigurationStrategy(Context context, Item item)
         throws SQLException {
         List<CrisLayoutTab> crisLayoutTabs = crisLayoutTabService.findByItem(context, String.valueOf(item.getID()));
 
@@ -207,19 +201,18 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         if (CollectionUtils.isEmpty(thumbFields)) {
             return null;
         }
-        return retrieveThumbnailFromFields(context, item, thumbFields, requireOriginal);
+        return retrieveThumbnailFromFields(context, item, thumbFields);
     }
 
     /**
      * @param context
      * @param item
      * @param thumbFields
-     * @param requireOriginal
      * @return Thumbnail
      * @throws SQLException
      */
-    private Thumbnail retrieveThumbnailFromFields(Context context, Item item, List<CrisLayoutField> thumbFields,
-        boolean requireOriginal) throws SQLException {
+    private Thumbnail retrieveThumbnailFromFields(Context context, Item item,
+            List<CrisLayoutField> thumbFields) throws SQLException {
         for (CrisLayoutField thumbField : thumbFields) {
             if (!(thumbField instanceof CrisLayoutFieldBitstream)) {
                 continue;
@@ -228,8 +221,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             String bundle = thumbFieldBitstream.getBundle();
             MetadataField metadata = thumbFieldBitstream.getMetadataField();
             String value = thumbFieldBitstream.getMetadataValue();
-            Thumbnail thumbnail = retrieveThumbnail(context, item, bundle, metadata, value,
-                requireOriginal);
+            Thumbnail thumbnail = retrieveThumbnail(context, item, bundle, metadata, value);
             if (thumbnail != null) {
                 return thumbnail;
             }
@@ -264,36 +256,26 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
      * @return Bitstream
      */
     private Thumbnail retrieveThumbnail(Context context, Item item, String bundle,
-        MetadataField metadataField,
-        String value, boolean requireOriginal) throws SQLException {
+        MetadataField metadataField, String value) throws SQLException {
         List<Bundle> bundles = getBundles(item, bundle);
         if (CollectionUtils.isNotEmpty(bundles)) {
-            List<Bitstream> bitstreamList = bundles.get(0).getBitstreams();
-            bitstreamList = bitstreamList.stream().filter(bitstream -> {
+            Optional<Bitstream> primaryBitstream = bundles.get(0).getBitstreams().stream().filter(bitstream -> {
                 return bitstream.getMetadata().stream().anyMatch(metadataValue -> {
                     return metadataValue.getMetadataField().getID() == metadataField.getID()
                         && metadataValue.getValue() != null
                         && metadataValue.getValue().equalsIgnoreCase(value);
                 });
-            }).collect(Collectors.toList());
-            if (requireOriginal) {
-                if (CollectionUtils.isEmpty(bitstreamList)) {
-                    return null;
-                }
-                return new Thumbnail(bitstreamList.get(0), bitstreamList.get(0));
+            }).findFirst();
+            if (primaryBitstream.isEmpty()) {
+                return null;
+            }
+            Bitstream thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream.get());
+            // If the thumbnail is not available return the non thumbnail bitstream
+            // retrieved in the previous steps
+            if (thumbBitstream != null) {
+                return new Thumbnail(thumbBitstream, primaryBitstream.get());
             } else {
-                if (CollectionUtils.isEmpty(bitstreamList)) {
-                    return null;
-                }
-                Bitstream thumbBitstream = bitstreamService
-                    .getBitstreamByName(item, "THUMBNAIL", bitstreamList.get(0).getName() + ".jpg");
-                // If the thumbnail is not available return the non thumbnail bitstream
-                // retrieved in the previous steps
-                if (thumbBitstream != null) {
-                    return new Thumbnail(thumbBitstream, bitstreamList.get(0));
-                } else {
-                    return new Thumbnail(bitstreamList.get(0), bitstreamList.get(0));
-                }
+                return new Thumbnail(primaryBitstream.get(), primaryBitstream.get());
             }
         }
         return null;
