@@ -75,9 +75,14 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         context.commit();
 
         bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
 
-        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(bitstream.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", null))));
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
     }
 
     @Test
@@ -94,9 +99,14 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         context.commit();
 
         bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
 
-        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(bitstream.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", null))));
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
     }
 
     @Test
@@ -118,6 +128,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights",
                 PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", null))));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights",
+                PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
     }
 
     @Test
@@ -136,9 +149,12 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         context.commit();
 
         bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
 
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", "embargo")));
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights", "embargo")));
+        assertThat(item.getMetadata(), hasItem(with("datacite.available", embargoDate)));
     }
 
     @Test
@@ -180,9 +196,12 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         context.commit();
 
         bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
 
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", "test")));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights", "test")));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
     }
 
     @Test
@@ -207,9 +226,12 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         context.commit();
 
         bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
 
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", "embargo")));
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights", "embargo")));
+        assertThat(item.getMetadata(), hasItem(with("datacite.available", embargoDate)));
 
         List<ResourcePolicy> resourcePolicies = bitstream.getResourcePolicies();
         ResourcePolicy resourcePolicy = resourcePolicies
@@ -230,9 +252,122 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         context.commit();
 
         bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
 
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.rights", "embargo"))));
-        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(bitstream.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.rights", "embargo"))));
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+    }
+
+    @Test
+    public void testWithTwoBitStreamPolicyDeletedInverted()
+            throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
+        Bitstream bitstream2 = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test2")).build();
+
+        String embargoDate = "2022-08-16";
+        ResourcePolicyBuilder
+            .createResourcePolicy(context)
+            .withDspaceObject(bitstream)
+            .withAction(Constants.READ)
+            .withUser(admin)
+            .withPolicyType(TYPE_CUSTOM)
+            .withName("embargo")
+            .withStartDate(dateFormat.parse(embargoDate))
+            .build();
+        ResourcePolicyBuilder
+            .createResourcePolicy(context)
+            .withDspaceObject(bitstream2)
+            .withAction(Constants.READ)
+            .withUser(admin)
+            .withPolicyType(TYPE_CUSTOM)
+            .withName(PolicyMetadataEnhancerConsumer.ACCESS_OPEN)
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        bitstream = context.reloadEntity(bitstream);
+        bitstream2 = context.reloadEntity(bitstream2);
+        item = context.reloadEntity(item);
+
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", "embargo")));
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(bitstream2.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(bitstream2.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights", "embargo")));
+        assertThat(item.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(item.getMetadata(),
+                not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
+
+        List<ResourcePolicy> resourcePolicies = bitstream.getResourcePolicies();
+        ResourcePolicy resourcePolicy = resourcePolicies
+                .stream()
+                .filter(rp -> TYPE_CUSTOM.equals(rp.getRpType()))
+                .findFirst()
+                .orElseThrow();
+
+        context.turnOffAuthorisationSystem();
+
+        resourcePolicies.remove(resourcePolicy);
+        this.resourcePolicyService.delete(context, resourcePolicy);
+
+        context.restoreAuthSystemState();
+
+        resourcePolicies = bitstream2.getResourcePolicies();
+        resourcePolicy = resourcePolicies
+                .stream()
+                .filter(rp -> TYPE_CUSTOM.equals(rp.getRpType()))
+                .findFirst()
+                .orElseThrow();
+
+        context.turnOffAuthorisationSystem();
+
+        resourcePolicies.remove(resourcePolicy);
+        this.resourcePolicyService.delete(context, resourcePolicy);
+
+        ResourcePolicyBuilder
+            .createResourcePolicy(context)
+            .withDspaceObject(bitstream)
+            .withAction(Constants.READ)
+            .withUser(admin)
+            .withPolicyType(TYPE_CUSTOM)
+            .withName(PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)
+            .build();
+
+        ResourcePolicyBuilder
+            .createResourcePolicy(context)
+            .withDspaceObject(bitstream2)
+            .withAction(Constants.READ)
+            .withUser(admin)
+            .withPolicyType(TYPE_CUSTOM)
+            .withName("embargo")
+            .withStartDate(dateFormat.parse(embargoDate))
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
+
+        assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.rights", "embargo"))));
+        assertThat(bitstream.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+        assertThat(bitstream2.getMetadata(), hasItem(with("datacite.rights", "embargo")));
+        assertThat(bitstream2.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.rights", "embargo"))));
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
     }
 }
