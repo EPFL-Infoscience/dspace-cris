@@ -64,6 +64,9 @@
 				<entry key="event-cerif-xml" value-ref="referCrosswalkEventCerifXml"></entry>
 				
 				<entry key="collection-xls" value-ref="xlsCrosswalkCollection"></entry>
+
+				<entry key="epfl-publication" value-ref="epflPublicationsHtml"></entry>
+				<entry key="epfl-publications" value-ref="epflPublicationsHtml"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -278,6 +281,17 @@
 		<property name="fileName" value="event.xml"/>
 		<property name="entityType" value="Event"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/events-xml.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="xmlValueConverter" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="epflPublicationsHtml">
+		<property name="templateFileName" value="crosswalks/template/epfl-publication-html.template"/>
+		<property name="mimeType" value="text/html; charset=UTF-8"/>
+		<property name="fileName" value="epfl-publications.html"/>
+		<property name="entityType" value="Publication"/>
+		<property name="publiclyReadable" value="true"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/epfl-publications-html.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
 	</bean>

@@ -9,11 +9,15 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static org.dspace.builder.ItemBuilder.createItem;
+import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertNull;
@@ -33,10 +37,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import net.minidev.json.JSONArray;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.converter.DSpaceRunnableParameterConverter;
@@ -60,6 +67,7 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.ProcessStatus;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.core.CrisConstants;
 import org.dspace.discovery.SolrServiceValuePairsIndexPlugin;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -820,6 +828,226 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                         ) ));
     }
 
+    @Test
+    public void exportPubliclyAvailableItemsTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .build();
+
+        Item firstPerson = createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Smith, John")
+                .withVariantName("J.S.")
+                .withVariantName("Smith John")
+                .withGender("M")
+                .withPersonMainAffiliation("University")
+                .withOrcidIdentifier("0000-0002-9079-5932")
+                .withScopusAuthorIdentifier("SA-01")
+                .withPersonEmail("test@test.com")
+                .withResearcherIdentifier("R-01")
+                .withResearcherIdentifier("R-02")
+                .withPersonAffiliation("Company")
+                .withPersonAffiliationStartDate("2018-01-01")
+                .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withPersonAffiliationRole("Developer")
+                .withPersonAffiliation("Another Company")
+                .withPersonAffiliationStartDate("2017-01-01")
+                .withPersonAffiliationEndDate("2017-12-31")
+                .withPersonAffiliationRole("Developer")
+                .build();
+
+        Item secondPerson = createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("White, Walter")
+                .withGender("M")
+                .withPersonMainAffiliation("University")
+                .withOrcidIdentifier("0000-0002-9079-5938")
+                .withPersonEmail("w.w@test.com")
+                .withResearcherIdentifier("R-03")
+                .withPersonAffiliation("Company")
+                .withPersonAffiliationStartDate("2018-01-01")
+                .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withPersonAffiliationRole("Developer")
+                .build();
+
+        Item project = ItemBuilder.createItem(context, collection)
+                .withEntityType("Project")
+                .withTitle("Test Project")
+                .withInternalId("111-222-333")
+                .withAcronym("TP")
+                .withProjectStartDate("2020-01-01")
+                .withProjectEndDate("2020-04-01")
+                .build();
+
+        ItemBuilder.createItem(context, collection)
+                .withEntityType("Funding")
+                .withTitle("Test Funding")
+                .withType("Internal Funding")
+                .withFunder("Test Funder")
+                .withRelationProject("Test Project", project.getID().toString())
+                .build();
+
+        Item funding = ItemBuilder.createItem(context, collection)
+                .withEntityType("Funding")
+                .withTitle("Another Test Funding")
+                .withType("Contract")
+                .withFunder("Another Test Funder")
+                .withAcronym("ATF-01")
+                .build();
+
+        ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("First Publication")
+                .withAlternativeTitle("Alternative publication title")
+                .withRelationPublication("Published in publication")
+                .withRelationDoi("doi:10.3972/test")
+                .withDoiIdentifier("doi:111.111/publication")
+                .withIsbnIdentifier("978-3-16-148410-0")
+                .withIssnIdentifier("2049-3630")
+                .withIsiIdentifier("111-222-333")
+                .withScopusIdentifier("99999999")
+                .withLanguage("en")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withSubject("test")
+                .withSubject("export")
+                .withIssueDate("2022-08-22")
+                .withAuthor("John Smith", firstPerson.getID().toString())
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor("Walter White")
+                .withAuthorAffiliation("Company")
+                .withEditor("Editor")
+                .withEditorAffiliation("Editor Affiliation")
+                .withRelationProject("Test Project", project.getID().toString())
+                .withRelationFunding("Another Test Funding", funding.getID().toString())
+                .withRelationConference("The best Conference")
+                .withRelationProduct("DataSet")
+                .build();
+
+        ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Second Publication")
+                .withAlternativeTitle("Alternative publication title")
+                .withRelationPublication("Published in publication")
+                .withRelationDoi("doi:10.3973/test")
+                .withDoiIdentifier("doi:111.222/publication")
+                .withIsbnIdentifier("978-3-16-148410-0")
+                .withIssnIdentifier("2049-3630")
+                .withIsiIdentifier("111-222-333")
+                .withScopusIdentifier("99999999")
+                .withLanguage("en")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withSubject("test")
+                .withSubject("export")
+                .withType("Controlled Vocabulary for Resource Type Genres::text::review")
+                .withIssueDate("2022-08-22")
+                .withAuthor("Jessie Pinkman", secondPerson.getID().toString())
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor("Walter White")
+                .withAuthorAffiliation("Company")
+                .withEditor("Editor")
+                .withEditorAffiliation("Editor Affiliation")
+                .withRelationProject("Test Project", project.getID().toString())
+                .withRelationFunding("Another Test Funding", funding.getID().toString())
+                .withRelationConference("The best Conference")
+                .withRelationProduct("DataSet")
+                .build();
+
+        LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
+        parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));
+        parameters.add(new DSpaceCommandLineParameter("-f", "epfl-publications"));
+
+        List<ParameterValueRest> list = parameters.stream()
+                .map(dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter
+                        .convert(dSpaceCommandLineParameter, Projection.DEFAULT))
+                .collect(Collectors.toList());
+
+        String token = getAuthToken(admin.getEmail(), password);
+        List<ProcessStatus> acceptableProcessStatuses = new LinkedList<>();
+        acceptableProcessStatuses.addAll(Arrays.asList(ProcessStatus.SCHEDULED,
+                ProcessStatus.RUNNING,
+                ProcessStatus.COMPLETED));
+
+        AtomicReference<Integer> idRef = new AtomicReference<>();
+
+        context.restoreAuthSystemState();
+
+
+        try {
+
+            getClient(token)
+                    .perform(
+                            multipart("/api/system/scripts/bulk-item-export/processes")
+                             .param("properties", new Gson().toJson(list))
+                     )
+                    .andExpect(status().isAccepted())
+                    .andExpect(jsonPath("$", is(
+                            ProcessMatcher.matchProcess("bulk-item-export",
+                                                        String.valueOf(admin.getID()),
+                                                        parameters,
+                                                        acceptableProcessStatuses))))
+                    .andDo(result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId")));
+            MvcResult mvcResult = getClient(token)
+                    .perform(get("/api/system/processes/" + idRef.get() + "/files"))
+                    .andReturn();
+
+            JSONArray publicationsJsonId = read(mvcResult.getResponse().getContentAsString(),
+                    "$._embedded.files[?(@.name=='epfl-publications.html')].id");
+
+            String epflBitstreamId = publicationsJsonId.get(0).toString();
+            getClient()
+                .perform(get("/api/core/bitstreams/" + epflBitstreamId))
+                .andExpect(status().isOk())
+                .andExpect(
+                    jsonPath("$",
+                            allOf(
+                                    hasJsonPath("name", is("epfl-publications.html")),
+                                    hasJsonPath("id", is(epflBitstreamId))
+                            )
+                    )
+                );
+
+            getClient()
+                .perform(get("/api/core/bitstreams/" + epflBitstreamId + "/content"))
+                .andExpect(status().isOk());
+
+            mvcResult = getClient(token)
+                .perform(
+                    get("/api/authz/resourcepolicies/search/resource")
+                    .param("uuid", epflBitstreamId)
+                )
+                .andReturn();
+
+            DocumentContext parsedResponse = JsonPath.parse(mvcResult.getResponse().getContentAsString());
+            List<Map<String, Object>> groups = parsedResponse
+                    .read("$._embedded.resourcepolicies[?(@._embedded.group.name=='Anonymous')]");
+
+            assertThat(groups, hasSize(1));
+
+            parsedResponse = JsonPath.parse(groups.get(0));
+
+            assertThat(parsedResponse.read("$.type"), equalTo("resourcepolicy"));
+            assertThat(parsedResponse.read("$.action"), equalTo("READ"));
+            assertThat(parsedResponse.read("$.startDate"), equalTo(null));
+            assertThat(parsedResponse.read("$.endDate"), equalTo(null));
+            assertThat(parsedResponse.read("$._embedded.eperson"), equalTo(null));
+
+        } finally {
+            if (idRef.get() != null) {
+                ProcessBuilder.deleteProcess(idRef.get());
+            }
+        }
+    }
 
     @After
     public void destroy() throws Exception {
