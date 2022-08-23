@@ -57,6 +57,15 @@
         <property name="map">
             <map>
                 <entry key="upload" value-ref="uploadConfigurationDefault" />
+                <entry key="upload-publication" value-ref="uploadConfigurationPublication" />
+                <entry key="upload-product" value-ref="uploadConfigurationProduct" />
+                <entry key="upload-patent" value-ref="uploadConfigurationPatent" />
+                <entry key="upload-event" value-ref="uploadConfigurationEvent" />
+                <entry key="upload-person" value-ref="uploadConfigurationPerson" />
+                <entry key="upload-orgunit" value-ref="uploadConfigurationOrgUnit" />
+                <entry key="upload-journal" value-ref="uploadConfigurationJournal" />
+                <entry key="upload-project" value-ref="uploadConfigurationProject" />
+                <entry key="upload-funding" value-ref="uploadConfigurationFunding" />
             </map>
         </property>
     </bean>
@@ -88,6 +97,7 @@
         <property name="name" value="upload-publication"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-publication" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -102,6 +112,7 @@
         <property name="name" value="upload-product"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-product" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -116,6 +127,7 @@
         <property name="name" value="upload-patent"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-patent" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -130,6 +142,7 @@
         <property name="name" value="upload-event"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-event" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -144,6 +157,7 @@
         <property name="name" value="upload-person"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-person" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -158,6 +172,7 @@
         <property name="name" value="upload-orgunit"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-orgunit" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -172,6 +187,7 @@
         <property name="name" value="upload-journal"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-journal" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -187,6 +203,7 @@
         <property name="name" value="upload-project"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-project" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -202,6 +219,7 @@
         <property name="name" value="upload-funding"></property>
         <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
         <property name="metadata" value="bitstream-metadata-funding" />
+        <property name="singleAccessCondition" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
