@@ -9,10 +9,11 @@
 package org.dspace.discovery;
 
 import java.sql.SQLException;
-import java.util.LinkedList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -30,10 +31,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+
+/**
+ * This Implementation customize the way on which read permissions are set on Solr documents
+ * representing workspace items.
+ * In particular, read is set for submitter, collection admin group of collection to which
+ * item will be submitted, and to cris owners of linked items defined and having authority
+ * stored in item's metadata listed and set in additionalReadMetadata field
+ */
 public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, SolrServiceSearchPlugin {
 
     private static final String DISCOVER_OTHER_WORKSPACE_CONFIGURATION_NAME = "otherworkspace";
-    private static final String PUBLICATION = "Publication";
 
     private static final Logger log = LoggerFactory.getLogger(SharedWorkspaceSolrIndexPlugin.class);
 
@@ -42,6 +50,17 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
 
     @Autowired
     private EPersonService ePersonService;
+
+    private final List<String> additionalReadMetadata;
+
+    /**
+     *
+     * @param additionalReadMetadata metadata representing linked items for which, if present, cris.owner
+     *                               must have read permissions of indexed item.
+     */
+    public SharedWorkspaceSolrIndexPlugin(List<String> additionalReadMetadata) {
+        this.additionalReadMetadata = additionalReadMetadata;
+    }
 
     @Override
     public void additionalIndex(Context context, IndexableObject indexableObject, SolrInputDocument document) {
@@ -55,18 +74,11 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
         if (Objects.isNull(item)) {
             return;
         }
-        String entityType = itemService.getMetadata(item, "dspace.entity.type");
-        if (!PUBLICATION.equals(entityType)) {
-            return;
-        }
 
         document.removeField("read");
         try {
             addRead(document, Optional.ofNullable(workspaceItem.getSubmitter()));
-            // add other
-
-            addReadToCoworkers(context, document, item);
-            // add collection admins
+            addReadToAdditionalEpersons(context, document, item);
             addReadToCollectionAdmin(document, workspaceItem);
         } catch (SQLException e) {
             log.error("Error while assigning reading privileges: {}", e.getMessage(),
@@ -79,10 +91,11 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
                 .ifPresent(group -> document.addField("read", "g" + group.getID().toString()));
     }
 
-    private void addReadToCoworkers(Context context, SolrInputDocument document, Item item) throws SQLException {
+    private void addReadToAdditionalEpersons(Context context, SolrInputDocument document, Item item)
+        throws SQLException {
 
-        for (MetadataValue coworker : findCoworkers(item)) {
-            String authority = coworker.getAuthority();
+        for (MetadataValue allowedOwner : otherAllowed(item)) {
+            String authority = allowedOwner.getAuthority();
             if (StringUtils.isBlank(authority) ||
                 Objects.isNull(UUIDUtils.fromString(authority))) {
                 continue;
@@ -93,13 +106,19 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
         }
     }
 
-    private List<MetadataValue> findCoworkers(Item item) {
-        List<MetadataValue> coworkers = new LinkedList<>();
-        coworkers.addAll(
-            itemService.getMetadata(item, "dc", "contributor", "author", null));
-        coworkers.addAll(
-            itemService.getMetadata(item, "dc", "contributor", "editor", null));
-        return coworkers;
+    private List<MetadataValue> otherAllowed(Item item) {
+
+        return additionalReadMetadata.stream()
+                                     .map(mds -> itemService.getMetadataByMetadataString(item, mds))
+                                     .flatMap(Collection::stream)
+                                     .collect(Collectors.toList());
+
+//        List<MetadataValue> coworkers = new LinkedList<>();
+//        coworkers.addAll(
+//            itemService.getMetadataByMetadataString(item, "dc", "contributor", "author", null));
+//        coworkers.addAll(
+//            itemService.getMetadata(item, "dc", "contributor", "editor", null));
+//        return coworkers;
     }
 
     private static void addRead(SolrInputDocument document, Optional<EPerson> subm) {

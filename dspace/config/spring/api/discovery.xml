@@ -37,7 +37,14 @@
     <bean id="solrServiceMetricsIndexPlugin" class="org.dspace.discovery.SolrServiceMetricsIndexPlugin"/>
     <bean id="solrServiceCrisValuePairsIndexPlugin" class="org.dspace.discovery.SolrServiceValuePairsIndexPlugin"/>
     <bean id="solrServiceCustomUrlIndexPlugin" class="org.dspace.discovery.SolrServiceCustomUrlIndexPlugin"/>
-    <bean id="sharedWorkspaceSolrIndexPlugin" class="org.dspace.discovery.SharedWorkspaceSolrIndexPlugin"/>
+    <bean id="sharedWorkspaceSolrIndexPlugin" class="org.dspace.discovery.SharedWorkspaceSolrIndexPlugin">
+        <constructor-arg name="additionalReadMetadata">
+            <list>
+                <value>dc.contributor.author</value>
+                <value>dc.contributor.editor</value>
+            </list>
+        </constructor-arg>
+    </bean>
 
 
     <alias name="solrServiceResourceIndexPlugin" alias="org.dspace.discovery.SolrServiceResourceRestrictionPlugin"/>

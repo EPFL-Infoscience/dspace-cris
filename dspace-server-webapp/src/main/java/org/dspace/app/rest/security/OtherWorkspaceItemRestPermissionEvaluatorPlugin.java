@@ -28,6 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+/**
+ * Evaluates permissions on workspace items having a submitter different than current user, but for which
+ * current user must be allowed to read data.
+ */
 @Component
 public class OtherWorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermissionEvaluatorPlugin {
     private static final Logger log = LoggerFactory.getLogger(OtherWorkspaceItemRestPermissionEvaluatorPlugin.class);
