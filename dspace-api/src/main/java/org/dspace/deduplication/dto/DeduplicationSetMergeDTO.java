@@ -8,6 +8,7 @@
 package org.dspace.deduplication.dto;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -26,6 +27,8 @@ public class DeduplicationSetMergeDTO {
     private List<String> bitstreams;
 
     private List<DeduplicationMetadataDTO> metadata;
+
+    private Map<String, Map<String, String>> _links;
 
     public DeduplicationSetMergeDTO() {
     }
@@ -68,5 +71,13 @@ public class DeduplicationSetMergeDTO {
 
     public void setMetadata(List<DeduplicationMetadataDTO> metadata) {
         this.metadata = metadata;
+    }
+
+    public Map<String, Map<String, String>> get_links() {
+        return _links;
+    }
+
+    public void set_links(Map<String, Map<String, String>> _links) {
+        this._links = _links;
     }
 }
