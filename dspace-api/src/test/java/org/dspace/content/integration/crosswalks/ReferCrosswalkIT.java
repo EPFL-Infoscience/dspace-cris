@@ -2183,6 +2183,146 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+    @Test
+    public void testManyEpflPublicationsHtml() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item firstPerson = createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Smith, John")
+                .withVariantName("J.S.")
+                .withVariantName("Smith John")
+                .withGender("M")
+                .withPersonMainAffiliation("University")
+                .withOrcidIdentifier("0000-0002-9079-5932")
+                .withScopusAuthorIdentifier("SA-01")
+                .withPersonEmail("test@test.com")
+                .withResearcherIdentifier("R-01")
+                .withResearcherIdentifier("R-02")
+                .withPersonAffiliation("Company")
+                .withPersonAffiliationStartDate("2018-01-01")
+                .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withPersonAffiliationRole("Developer")
+                .withPersonAffiliation("Another Company")
+                .withPersonAffiliationStartDate("2017-01-01")
+                .withPersonAffiliationEndDate("2017-12-31")
+                .withPersonAffiliationRole("Developer")
+                .build();
+
+        Item secondPerson = createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("White, Walter")
+                .withGender("M")
+                .withPersonMainAffiliation("University")
+                .withOrcidIdentifier("0000-0002-9079-5938")
+                .withPersonEmail("w.w@test.com")
+                .withResearcherIdentifier("R-03")
+                .withPersonAffiliation("Company")
+                .withPersonAffiliationStartDate("2018-01-01")
+                .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withPersonAffiliationRole("Developer")
+                .build();
+
+        Item project = ItemBuilder.createItem(context, collection)
+                .withEntityType("Project")
+                .withTitle("Test Project")
+                .withInternalId("111-222-333")
+                .withAcronym("TP")
+                .withProjectStartDate("2020-01-01")
+                .withProjectEndDate("2020-04-01")
+                .build();
+
+        ItemBuilder.createItem(context, collection)
+                .withEntityType("Funding")
+                .withTitle("Test Funding")
+                .withType("Internal Funding")
+                .withFunder("Test Funder")
+                .withRelationProject("Test Project", project.getID().toString())
+                .build();
+
+        Item funding = ItemBuilder.createItem(context, collection)
+                .withEntityType("Funding")
+                .withTitle("Another Test Funding")
+                .withType("Contract")
+                .withFunder("Another Test Funder")
+                .withAcronym("ATF-01")
+                .build();
+
+        Item firstPublication = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("First Publication")
+                .withAlternativeTitle("Alternative publication title")
+                .withRelationPublication("Published in publication")
+                .withRelationDoi("doi:10.3972/test")
+                .withDoiIdentifier("doi:111.111/publication")
+                .withIsbnIdentifier("978-3-16-148410-0")
+                .withIssnIdentifier("2049-3630")
+                .withIsiIdentifier("111-222-333")
+                .withScopusIdentifier("99999999")
+                .withLanguage("en")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withSubject("test")
+                .withSubject("export")
+                .withIssueDate("2022-08-22")
+                .withAuthor("John Smith", firstPerson.getID().toString())
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor("Walter White")
+                .withAuthorAffiliation("Company")
+                .withEditor("Editor")
+                .withEditorAffiliation("Editor Affiliation")
+                .withRelationProject("Test Project", project.getID().toString())
+                .withRelationFunding("Another Test Funding", funding.getID().toString())
+                .withRelationConference("The best Conference")
+                .withRelationProduct("DataSet")
+                .build();
+
+        Item secondPublication = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Second Publication")
+                .withAlternativeTitle("Alternative publication title")
+                .withRelationPublication("Published in publication")
+                .withRelationDoi("doi:10.3973/test")
+                .withDoiIdentifier("doi:111.222/publication")
+                .withIsbnIdentifier("978-3-16-148410-0")
+                .withIssnIdentifier("2049-3630")
+                .withIsiIdentifier("111-222-333")
+                .withScopusIdentifier("99999999")
+                .withLanguage("en")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withSubject("test")
+                .withSubject("export")
+                .withType("Controlled Vocabulary for Resource Type Genres::text::review")
+                .withIssueDate("2022-08-22")
+                .withAuthor("Jessie Pinkman", secondPerson.getID().toString())
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor("Walter White")
+                .withAuthorAffiliation("Company")
+                .withEditor("Editor")
+                .withEditorAffiliation("Editor Affiliation")
+                .withRelationProject("Test Project", project.getID().toString())
+                .withRelationFunding("Another Test Funding", funding.getID().toString())
+                .withRelationConference("The best Conference")
+                .withRelationProduct("DataSet")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publications");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), out);
+
+        try (FileInputStream fis = getFileInputStream("epfl-publications.html")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
     private void compareEachLine(String result, String expectedResult) {
 
         String[] resultLines = result.split("\n");

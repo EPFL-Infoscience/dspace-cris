@@ -7,13 +7,25 @@
  */
 package org.dspace.app.policy.consumer;
 
+import static org.dspace.util.FunctionalUtils.throwingConsumerWrapper;
+import static org.dspace.util.FunctionalUtils.throwingMapperWrapper;
+
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.dspace.authorize.ResourcePolicy;
@@ -21,10 +33,17 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -43,47 +62,223 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
     public static final String ACCESS_RESTRICTED = "restricted";
     public static final String ACCESS_OPEN = "openaccess";
+    public static final String METADATA_ONLY = "metadata-only";
 
     private static final Logger logger = LoggerFactory.getLogger(PolicyMetadataEnhancerConsumer.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final MetadataFieldName dataciteRightsMetadata = new MetadataFieldName("datacite", "rights");
     private static final MetadataFieldName dataciteAvailableMetadata = new MetadataFieldName("datacite", "available");
+    private static final MetadataFieldName oaireLicenseMetadata = new MetadataFieldName("oaire", "licenseCondition");
+    private static final List<MetadataFieldName> bitstreamToItemMetadatas = List.of(
+        oaireLicenseMetadata,
+        dataciteAvailableMetadata,
+        dataciteRightsMetadata
+    );
+    private static final Map<MetadataFieldName, List<String>> defaultItemMetadatas = Map.of(dataciteRightsMetadata,
+            List.of(METADATA_ONLY));
 
     private BitstreamService bitstreamService;
+    private ItemService itemService;
     private ResourcePolicyService resourcePolicyService;
     private AuthorizeService authorizeService;
     private Set<Bitstream> bitstreamAlreadyProcessed = new HashSet<>();
+    private Set<Item> itemsToProcess = new HashSet<>();
+    private MetadataFieldService metadataFieldService;
 
     @Override
     public void initialize() throws Exception {
         this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        this.itemService = ContentServiceFactory.getInstance().getItemService();
         this.resourcePolicyService = ContentServiceFactory.getInstance().getResourcePolicyService();
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+        this.metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
     }
 
     @Override
     public void consume(Context ctx, Event event) throws Exception {
-
         Bitstream bitstream = Optional.ofNullable((Bitstream) event.getObject(ctx))
-                .orElse(this.loadBitstream(ctx, event));
-        if (bitstream == null || bitstreamAlreadyProcessed.contains(bitstream)) {
+            .orElse(this.loadBitstream(ctx, event));
+        Item item = Optional.ofNullable((Item) event.getObject(ctx))
+                .orElse(this.loadItem(ctx, event));
+        if (bitstream != null) {
+            this.handleBitStreamConsumer(ctx, bitstream, event);
+        } else if (item != null && Event.CREATE == event.getEventType()) {
+            this.handleItemConsumer(ctx, item);
+        } else {
+            logger.warn("Can't consume the DSPaceObject with id {}, only BITSTREAM and ITEMS are consumable!",
+                    event.getSubjectID());
+        }
+    }
+
+    private void removeAllEnhancedMetadatas(Context ctx, Bitstream bitstream) {
+        Optional.of(getRemovableMetadatas(bitstream))
+            .filter(list -> !list.isEmpty())
+            .ifPresent(throwingConsumerWrapper(list ->
+                    this.bitstreamService.removeMetadataValues(ctx, bitstream, list)
+                )
+            );
+    }
+
+    @Override
+    public void end(Context ctx) throws Exception {
+        bitstreamAlreadyProcessed.clear();
+        this.itemsToProcess
+            .stream()
+            .forEach(item -> this.handleItemConsumer(ctx, item));
+        itemsToProcess.clear();
+    }
+
+    @Override
+    public void finish(Context ctx) throws Exception {
+
+    }
+
+    private boolean alreadyProcessed(Bitstream bitstream) {
+        return bitstreamAlreadyProcessed.contains(bitstream);
+    }
+
+    private void handleBitStreamConsumer(Context ctx, Bitstream bitstream, Event event) {
+
+        if (bitstream == null || this.alreadyProcessed(bitstream)) {
+            return;
+        }
+        List<Item> bitstreamItems = List.of();
+        try {
+            consume(ctx, bitstream, event);
+            bitstreamItems = bitstream.getBundles()
+                .stream()
+                .filter(bundle -> "ORIGINAL".equals(bundle.getName()))
+                .map(Bundle::getItems)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            bitstreamAlreadyProcessed.add(bitstream);
+            bitstreamItems
+                .stream()
+                .forEach(item -> this.itemsToProcess.add(item));
+        }
+    }
+
+    private void handleItemConsumer(Context ctx, Item item) {
+
+        if (item == null) {
             return;
         }
 
         try {
-            consume(ctx, bitstream);
+            Item loadedItem = this.itemService.find(ctx, item.getID());
+            Map<MetadataField, List<String>> grouped =
+                Optional.ofNullable(loadedItem)
+                        .map(i -> i.getBundles("ORIGINAL"))
+                        .filter(bundles -> !bundles.isEmpty())
+                        .map(bundles -> bundles.get(0))
+                        .map(Bundle::getBitstreams)
+                        .filter(bitstreams -> !bitstreams.isEmpty())
+                        .map(bitstreams -> bitstreams.get(0))
+                        .map(bitstream -> getMetadatasForItem(ctx, List.of(bitstream)).collect(Collectors.toList()))
+                        .map(metadatas -> groupByMetadataField(metadatas))
+                        .filter(metadatas -> !metadatas.isEmpty())
+                        .orElse(this.mapWithMetadataField(ctx, defaultItemMetadatas));
+
+            this.itemService.removeMetadataValues(ctx, loadedItem, getRemovableMetadatas(loadedItem));
+
+            grouped
+                .entrySet()
+                .stream()
+                .forEach(
+                    throwingConsumerWrapper(entry ->
+                        this.itemService.addMetadata(ctx, loadedItem, entry.getKey(), null, entry.getValue())
+                    )
+                );
+
         } catch (SQLException e) {
+            logger.error(MessageFormat.format("Error while processing item {}!", item.getID().toString()), e);
             throw new SQLRuntimeException(e);
-        } finally {
-            bitstreamAlreadyProcessed.add(bitstream);
         }
+
     }
 
-    private void consume(Context ctx, Bitstream bitstream) throws SQLException {
+    private Map<MetadataField, List<String>> mapWithMetadataField(Context ctx,
+            Map<MetadataFieldName, List<String>> fieldNameMap) {
+        return fieldNameMap
+                    .entrySet()
+                    .stream()
+                    .map(throwingMapperWrapper(
+                            entry -> {
+                                MetadataFieldName fieldName = entry.getKey();
+                                MetadataField field = this.metadataFieldService.findByElement(ctx, fieldName.schema,
+                                        fieldName.element, fieldName.qualifier);
+                                return new AbstractMap.SimpleEntry<>(field, entry.getValue());
+                            },
+                            null
+                        )
+                    )
+                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    }
+
+    private Stream<MetadataValue> getMetadatasForItem(Context ctx, List<Bitstream> bitstreams) {
+        return bitstreams
+            .stream()
+            .map(
+                throwingMapperWrapper(bitstream ->
+                    this.bitstreamService.find(ctx, bitstream.getID()),
+                    null
+                )
+            )
+            .filter(Objects::nonNull)
+            .flatMap(bitstream -> filterMetadatasForItem(bitstream));
+    }
+
+    private Stream<MetadataValue> filterMetadatasForItem(Bitstream bitstream) {
+        return bitstream.getMetadata()
+            .stream()
+            .filter(
+                metadataFilter(
+                    bitstreamToItemMetadatas
+                )
+            );
+    }
+
+    private List<MetadataValue> getRemovableMetadatas(DSpaceObject dspaceObject) {
+        return dspaceObject
+            .getMetadata()
+            .stream()
+            .filter(
+                metadataFilter(
+                    bitstreamToItemMetadatas
+                )
+            )
+            .collect(Collectors.toList());
+    }
+
+    private Map<MetadataField, List<String>> groupByMetadataField(List<MetadataValue> metadatas) {
+        return this.collectByGroupingMetadataFieldMappingValue(metadatas.stream());
+    }
+
+    private Map<MetadataField, List<String>> collectByGroupingMetadataFieldMappingValue(Stream<MetadataValue> stream) {
+        return stream
+                .collect(
+                        Collectors.groupingBy(
+                                MetadataValue::getMetadataField,
+                                Collectors.mapping(MetadataValue::getValue, Collectors.toList())
+                                )
+                        );
+    }
+
+    private void consume(Context ctx, Bitstream bitstream, Event event) throws SQLException {
+
+        if (Event.DELETE == event.getEventType()) {
+            removeAllEnhancedMetadatas(ctx, bitstream);
+            return;
+        }
+
         Date endDate = null;
         String policyValue = authorizeService.authorizeActionBoolean(ctx, null, bitstream, Constants.READ, false)
-            ? ACCESS_OPEN : ACCESS_RESTRICTED;
+                ? ACCESS_OPEN
+                : ACCESS_RESTRICTED;
 
         Optional<ResourcePolicy> customPolicy = this.getCustomResourcePolicy(ctx, bitstream);
         Optional<MetadataValue> dataciteAvailable = this.getDataciteAvailableMetadata(bitstream);
@@ -96,9 +291,20 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
             endDate = customPolicyValue.getStartDate();
         }
 
-        this.handleDataciteAvailableMetadata(ctx, endDate, bitstream, dataciteAvailable);
+        String formattedDate =
+                Optional.ofNullable(endDate)
+                        .map(date -> dateFormat.format(date))
+                        .orElse(null);
 
-        this.handleDataciteRightsMetadata(ctx, policyValue, bitstream, dataciteRights);
+        this.addOrRemoveMetadataWithValue(
+                this.bitstreamService,
+                ctx,
+                formattedDate,
+                bitstream,
+                dataciteAvailable
+        );
+
+        this.handleDataciteRightsMetadata(this.bitstreamService, ctx, policyValue, bitstream, dataciteRights);
     }
 
     private Bitstream loadBitstream(Context ctx, Event event) {
@@ -112,48 +318,54 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         return found;
     }
 
-    @Override
-    public void end(Context ctx) throws Exception {
-        bitstreamAlreadyProcessed.clear();
+    private Item loadItem(Context ctx, Event event) {
+        Item found = null;
+        try {
+            found = this.itemService.find(ctx, event.getSubjectID());
+        } catch (SQLException e) {
+            logger.error("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
+            throw new SQLRuntimeException("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
+        }
+        return found;
     }
 
-    @Override
-    public void finish(Context ctx) throws Exception {
-
-    }
-
-    private void handleDataciteRightsMetadata(
+    private <T extends DSpaceObject> void handleDataciteRightsMetadata(
+            DSpaceObjectService<T> dspaceObjectService,
             Context ctx,
             String policyValue,
-            Bitstream bitstream,
+            T dspaceObject,
             Optional<MetadataValue> dataciteRights
     ) throws SQLException {
         if (
                 dataciteRights.isEmpty() ||
                 dataciteRights.filter(metadata -> !policyValue.equals(metadata.getValue())).isPresent()
         ) {
-            this.bitstreamService.setMetadataSingleValue(ctx, bitstream, dataciteRightsMetadata, null, policyValue);
+            dspaceObjectService.setMetadataSingleValue(ctx, dspaceObject, dataciteRightsMetadata, null, policyValue);
         }
     }
 
-    private void handleDataciteAvailableMetadata(Context ctx, Date endDate, Bitstream bitstream,
-            Optional<MetadataValue> dataciteAvailable) throws SQLException {
-        if (endDate == null) {
-            if (dataciteAvailable.isPresent()) {
-                this.bitstreamService.removeMetadataValues(ctx, bitstream, List.of(dataciteAvailable.get()));
+    private <T extends DSpaceObject> void addOrRemoveMetadataWithValue(
+            DSpaceObjectService<T> dspaceObjectService,
+            Context ctx,
+            String metadataValue,
+            T dspaceObject,
+            Optional<MetadataValue> metadataOptional
+    ) throws SQLException {
+        if (metadataValue == null) {
+            if (metadataOptional.isPresent()) {
+                dspaceObjectService.removeMetadataValues(ctx, dspaceObject, List.of(metadataOptional.get()));
             }
         } else {
-            String formattedDate = dateFormat.format(endDate);
             if (
-                    dataciteAvailable.isEmpty() ||
-                    dataciteAvailable.filter(metadata -> !formattedDate.equals(metadata.getValue())).isPresent()
+                    metadataOptional.isEmpty() ||
+                    metadataOptional.filter(metadata -> !metadataValue.equals(metadata.getValue())).isPresent()
             ) {
-                this.bitstreamService.setMetadataSingleValue(
+                dspaceObjectService.setMetadataSingleValue(
                     ctx,
-                    bitstream,
+                    dspaceObject,
                     dataciteAvailableMetadata,
                     null,
-                    formattedDate
+                    metadataValue
                 );
             }
         }
@@ -174,15 +386,32 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         return this.getMetadata(bitstream, dataciteRightsMetadata);
     }
 
-    private Optional<MetadataValue> getMetadata(Bitstream bitstream, MetadataFieldName metadataField) {
-        return bitstream.getMetadata()
+    private Optional<MetadataValue> getMetadata(DSpaceObject dspaceObject, MetadataFieldName metadataField) {
+        return dspaceObject.getMetadata()
                 .stream()
-                .filter(metadata ->
-                        StringUtils.equals(metadataField.schema, metadata.getSchema()) &&
-                        StringUtils.equals(metadataField.element, metadata.getElement()) &&
-                        StringUtils.equals(metadataField.qualifier, metadata.getQualifier())
+                .filter(metadataFilter(metadataField)
                 )
                 .findFirst();
+    }
+
+    private Predicate<? super MetadataValue> metadataFilter(MetadataFieldName metadataField) {
+        return metadata ->
+                StringUtils.equals(metadataField.schema, metadata.getSchema()) &&
+                StringUtils.equals(metadataField.element, metadata.getElement()) &&
+                StringUtils.equals(metadataField.qualifier, metadata.getQualifier());
+    }
+
+    private Predicate<? super MetadataValue> metadataFilter(List<MetadataFieldName> metadataFields) {
+        return metadata ->
+            metadataFields
+                .stream()
+                .filter(field ->
+                    StringUtils.equals(field.schema, metadata.getSchema()) &&
+                    StringUtils.equals(field.element, metadata.getElement()) &&
+                    StringUtils.equals(field.qualifier, metadata.getQualifier())
+                )
+                .findFirst()
+                .isPresent();
     }
 
 }
