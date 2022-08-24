@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -24,6 +25,7 @@ import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.dao.CrisLayoutTabDAO;
 import org.dspace.layout.service.CrisLayoutTabService;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -41,6 +43,9 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Override
     public CrisLayoutTab create(Context c, CrisLayoutTab tab) throws SQLException, AuthorizeException {
@@ -172,7 +177,15 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
     public List<CrisLayoutTab> findByItem(Context context, String itemUuid) throws SQLException {
         Item item = Objects.requireNonNull(itemService.find(context, UUID.fromString(itemUuid)),
                                            "The itemUuid entered does not match with any item");
-        String entityType  = itemService.getMetadata(item, "dspace.entity.type");
+        String entityType  =
+            Optional.ofNullable(this.configurationService.getProperty("dspace.metadata.layout.tab"))
+                .map(metadataField -> this.itemService.getMetadataByMetadataString(item, metadataField))
+                .filter(metadatas -> !metadatas.isEmpty())
+                .map(metadatas -> metadatas.get(0))
+                .map(metadata -> Optional.ofNullable(metadata.getAuthority())
+                                         .orElse(metadata.getValue())
+                 )
+                .orElse(itemService.getMetadata(item, "dspace.entity.type"));
         if (entityType == null) {
             return Collections.emptyList();
         }
