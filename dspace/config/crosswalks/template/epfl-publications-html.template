@@ -1,0 +1,10 @@
+<html>
+    <head></head>
+    <body>
+        <div class="infoScienceBox">
+            <div class="list-group my-3">
+                @item.template@
+            </div>
+        </div>
+    </body>
+</html>

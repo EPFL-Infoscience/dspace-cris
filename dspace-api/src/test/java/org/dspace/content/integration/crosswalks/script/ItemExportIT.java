@@ -31,6 +31,7 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.core.CrisConstants;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -203,5 +204,61 @@ public class ItemExportIT extends AbstractIntegrationTestWithDatabase {
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(1));
         assertThat(errorMessages.get(0), containsString("No item found by id 7b7b9082-39db-498d-a6dd-4a9f429d535b"));
+    }
+
+    @Test
+    public void testPublicItemExportEpflManyPublicationsHtml() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item firstPerson = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Edward White")
+                .withJobTitle("Researcher")
+                .withOrcidIdentifier("0000-0002-9077-5939")
+                .build();
+
+        Item firstPublication = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("First Publication")
+                .withAlternativeTitle("Alternative publication title")
+                .withRelationPublication("Published in publication")
+                .withRelationDoi("doi:10.3972/test")
+                .withDoiIdentifier("doi:111.111/publication")
+                .withIsbnIdentifier("978-3-16-148410-0")
+                .withIssnIdentifier("2049-3630")
+                .withIsiIdentifier("111-222-333")
+                .withScopusIdentifier("99999999")
+                .withLanguage("en")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withSubject("test")
+                .withSubject("export")
+                .withIssueDate("2022-08-22")
+                .withAuthor("John Smith", firstPerson.getID().toString())
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor("Walter White")
+                .withAuthorAffiliation("Company")
+                .withEditor("Editor")
+                .withEditorAffiliation("Editor Affiliation")
+                .withRelationProject("Test Project")
+                .withRelationFunding("Another Test Funding")
+                .withRelationConference("The best Conference")
+                .withRelationProduct("DataSet")
+                .build();
+        context.restoreAuthSystemState();
+        context.setCurrentUser(admin);
+
+        String[] args = new String[] { "item-export", "-i", firstPublication.getID().toString(), "-f",
+                "epfl-publication" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+
+        File xml = new File("epfl-publications.html"); // default file name for epfl publications
+        xml.deleteOnExit();
+
+        assertThat("The xml file should be created", xml.exists(), is(true));
     }
 }

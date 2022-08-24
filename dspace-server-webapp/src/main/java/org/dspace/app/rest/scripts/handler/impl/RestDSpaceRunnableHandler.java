@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,11 +29,13 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.ProcessStatus;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.scripts.DSpaceCommandLineParameter;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.scripts.Process;
@@ -53,6 +56,7 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
     private ProcessService processService = ScriptServiceFactory.getInstance().getProcessService();
     private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
     private Integer processId;
     private String scriptName;
@@ -255,6 +259,21 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
         throws IOException, SQLException, AuthorizeException {
         Process process = processService.find(context, processId);
         processService.appendFile(context, process, inputStream, type, fileName);
+    }
+
+    @Override
+    public void writeFilestream(Context context, String fileName, InputStream inputStream, String type,
+            boolean isPubliclyReadable)
+            throws IOException, SQLException, AuthorizeException {
+        Process process = processService.find(context, processId);
+        Map<Integer, EPerson> userPolicies = Optional.ofNullable(context.getCurrentUser())
+                .map(user -> Map.of(Constants.READ, user, Constants.WRITE, user, Constants.DELETE, user))
+                .orElse(null);
+        Map<Integer, Group> groupPolicies = null;
+        if (isPubliclyReadable) {
+            groupPolicies = Map.of(Constants.READ, groupService.findByName(context, Group.ANONYMOUS));
+        }
+        processService.appendFile(context, process, inputStream, type, fileName, groupPolicies, userPolicies);
     }
 
     /**
