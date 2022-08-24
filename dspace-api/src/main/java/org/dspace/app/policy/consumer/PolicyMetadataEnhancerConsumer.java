@@ -82,8 +82,8 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
     private void consume(Context ctx, Bitstream bitstream) throws SQLException {
         Date endDate = null;
-        String policyValue = authorizeService.authorizeActionBoolean(ctx, null, bitstream, Constants.READ, false)?
-                ACCESS_OPEN:ACCESS_RESTRICTED;
+        String policyValue = authorizeService.authorizeActionBoolean(ctx, null, bitstream, Constants.READ, false)
+            ? ACCESS_OPEN : ACCESS_RESTRICTED;
 
         Optional<ResourcePolicy> customPolicy = this.getCustomResourcePolicy(ctx, bitstream);
         Optional<MetadataValue> dataciteAvailable = this.getDataciteAvailableMetadata(bitstream);

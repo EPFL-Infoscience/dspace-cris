@@ -117,10 +117,10 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
     }
 
     public String getID(String id) {
-        if (DoiCheck.isDoi(id)) { 
-           return "filter=doi:" + id;
+        if (DoiCheck.isDoi(id)) {
+            return "filter=doi:" + id;
         }
-        if (OrcidCheck.isOrcid(id)) { 
+        if (OrcidCheck.isOrcid(id)) {
             return "filter=orcid:" + id;
         }
         return StringUtils.EMPTY;

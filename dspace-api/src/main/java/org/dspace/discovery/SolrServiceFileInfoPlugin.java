@@ -97,33 +97,33 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
 
     private static final SolrFieldMetadataMapper<?> OAIRE_LICENSE_MAPPER =
             new SolrFieldMetadataMapper<String>(
-                    METADATA_LICENSE_CONDITION,
-                    (document, fieldName) -> (value -> {
-                        addField(document, fieldName, value);
-                        addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
-                        addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                    })
+                METADATA_LICENSE_CONDITION,
+                (document, fieldName) -> (value -> {
+                    addField(document, fieldName, value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                })
             );
 
     private static final SolrFieldMetadataMapper<?> DATACITE_RIGHTS_MAPPER =
             new SolrFieldMetadataMapper<String>(
-                    METADATA_DATACITE_RIGHTS,
-                    (document, fieldName) -> (value -> {
-                        addField(document, fieldName, value);
-                        addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
-                        addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                    })
+                METADATA_DATACITE_RIGHTS,
+                (document, fieldName) -> (value -> {
+                    addField(document, fieldName, value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                })
             );
 
     private static final SolrFieldMetadataMapper<?> DATACITE_AVAILABLE_MAPPER =
             new SolrFieldMetadataMapper<String>(
-                    METADATA_DATACITE_AVAILABLE,
-                    (document, fieldName) -> (value -> {
-                        addField(document, fieldName, value);
-                        addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
-                        addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                        addField(document, fieldName.concat(SOLR_POSTFIX_YEAR), dtf.parseLocalDate(value).getYear());
-                    })
+                METADATA_DATACITE_AVAILABLE,
+                (document, fieldName) -> (value -> {
+                    addField(document, fieldName, value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_YEAR), dtf.parseLocalDate(value).getYear());
+                })
             );
 
     private static final Map<String, SolrFieldMetadataMapper<?>> mappableMetadatas = Stream.of(

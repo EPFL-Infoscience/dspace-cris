@@ -8,6 +8,8 @@
 package org.dspace.app.policy.consumer;
 
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
+import static org.dspace.app.policy.consumer.PolicyMetadataEnhancerConsumer.ACCESS_OPEN;
+import static org.dspace.app.policy.consumer.PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
@@ -76,7 +78,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
         bitstream = context.reloadEntity(bitstream);
 
-        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", ACCESS_RESTRICTED)));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", null))));
     }
 
@@ -95,7 +97,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
         bitstream = context.reloadEntity(bitstream);
 
-        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", ACCESS_RESTRICTED)));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", null))));
     }
 
@@ -232,7 +234,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         bitstream = context.reloadEntity(bitstream);
 
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.rights", "embargo"))));
-        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", ACCESS_OPEN)));
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
     }
 }
