@@ -60,8 +60,12 @@ public class MetadataValidator implements SubmissionStepValidator {
         List<ValidationError> errors = new ArrayList<>();
 
         DCInputSet inputConfig = getDCInputSet(config);
-        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(), DOCUMENT_TYPE_FIELD);
-        String documentTypeValue = documentType.size() > 0 ? documentType.get(0).getValue() : "";
+        List<MetadataValue> documentTypes = itemService.getMetadataByMetadataString(obj.getItem(), DOCUMENT_TYPE_FIELD);
+        MetadataValue documentType = documentTypes.size() > 0 ? documentTypes.get(0) : null;
+		String typeBindChoice = documentType != null
+				? StringUtils.isNotEmpty(documentType.getAuthority()) ? documentType.getAuthority()
+						: documentType.getValue()
+				: null;
 
         for (DCInput[] row : inputConfig.getFields()) {
             for (DCInput input : row) {
@@ -69,8 +73,8 @@ public class MetadataValidator implements SubmissionStepValidator {
                     metadataAuthorityService.makeFieldKey(input.getSchema(), input.getElement(), input.getQualifier());
                 boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(fieldKey);
 
-                // skip validation if field is not allowed for the current document type
-                if (input.isAllowedFor(documentTypeValue) == false) {
+                // skip validation if field is NOT allowed for the current document type
+				if (!input.isAllowedFor(typeBindChoice)) {
                     continue;
                 }
 

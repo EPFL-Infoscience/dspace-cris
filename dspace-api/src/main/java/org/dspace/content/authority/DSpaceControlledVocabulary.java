@@ -68,12 +68,14 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     protected static String idParentTemplate = "//node[@id = '%s']/parent::isComposedBy/parent::node";
     protected static String rootTemplate = "/node";
     protected static String pluginNames[] = null;
+    public static final String ID_SPLITTER = ":";
 
     protected String vocabularyName = null;
     protected InputSource vocabulary = null;
     protected Map<Locale,InputSource> vocabularies = null;
     protected Boolean suggestHierarchy = false;
     protected Boolean storeHierarchy = true;
+    protected boolean storeAuthority = false;
     protected String hierarchyDelimiter = "::";
     protected Integer preloadLevel = 1;
 
@@ -88,9 +90,7 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
 
     @Override
     public boolean storeAuthorityInMetadata() {
-        // For backward compatibility controlled vocabularies don't store the node id in
-        // the metadatavalue
-        return false;
+        return storeAuthority;
     }
 
     public static String[] getPluginNames() {
@@ -134,6 +134,8 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
             vocabularyName = this.getPluginInstanceName();
             String configurationPrefix = "vocabulary.plugin." + vocabularyName;
             storeHierarchy = config.getBooleanProperty(configurationPrefix + ".hierarchy.store", storeHierarchy);
+            storeAuthority = config.getBooleanProperty(configurationPrefix + ".authority.store",
+                    config.getBooleanProperty("vocabulary.plugin.authority.store", false));
             suggestHierarchy = config.getBooleanProperty(configurationPrefix + ".hierarchy.suggest", suggestHierarchy);
             preloadLevel = config.getIntProperty(configurationPrefix + ".hierarchy.preloadLevel", preloadLevel);
             String configuredDelimiter = config.getProperty(configurationPrefix + ".delimiter");
@@ -230,13 +232,15 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     @Override
     public Choice getChoice(String authKey, String locale) {
         init();
+        String authorityName = getAuthorityNameFromAuthorityKey(authKey);
+        String nodeId = getNodeIdFromAuthorityKey(authKey);
         Node node;
         try {
-            node = getNode(authKey, locale);
+            node = getNode(nodeId, locale);
         } catch (XPathExpressionException e) {
             return null;
         }
-        return createChoiceFromNode(node, this.vocabularyName);
+        return createChoiceFromNode(authorityName, node);
     }
 
     @Override
@@ -259,11 +263,12 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     }
 
     @Override
-    public Choice getParentChoice(String authorityName, String childId, String locale) {
+    public Choice getParentChoice(String authorityName, String childAuthKey, String locale) {
         init();
         try {
+            String childId = getNodeIdFromAuthorityKey(childAuthKey);
             String xpathExpression = String.format(idParentTemplate, childId);
-            Choice choice = createChoiceFromNode(getNodeFromXPath(xpathExpression, locale), authorityName);
+            Choice choice = createChoiceFromNode(authorityName, getNodeFromXPath(xpathExpression, locale));
             return choice;
         } catch (XPathExpressionException e) {
             log.error(e.getMessage(), e);
@@ -277,6 +282,26 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         return preloadLevel;
     }
 
+    private String getNodeIdFromAuthorityKey(String authKey) {
+        if (StringUtils.isNotBlank(authKey)) {
+            String[] split = authKey.split(ID_SPLITTER, 2);
+            if (split.length == 2) {
+                return split[1];
+            }
+        }
+        return null;
+    }
+
+    private String getAuthorityNameFromAuthorityKey(String authKey) {
+        if (StringUtils.isNotBlank(authKey)) {
+            String[] split = authKey.split(ID_SPLITTER, 2);
+            if (split.length == 2) {
+                return split[0];
+            }
+        }
+        return null;
+    }
+
     private boolean isRootElement(Node node) {
         if (node != null && node.getOwnerDocument().getDocumentElement().equals(node)) {
             return true;
@@ -284,9 +309,9 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         return false;
     }
 
-    private Node getNode(String key, String locale) throws XPathExpressionException {
+    private Node getNode(String nodeId, String locale) throws XPathExpressionException {
         init();
-        String xpathExpression = String.format(idTemplate, key);
+        String xpathExpression = String.format(idTemplate, nodeId);
         Node node = getNodeFromXPath(xpathExpression, locale);
         return node;
     }
@@ -309,14 +334,14 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
             Node node = results.item(i);
             Choice choice = new Choice(getAuthority(node), getLabel(node), getValue(node),
                     isSelectable(node));
-            choice.extras = addOtherInformation(getParent(node), getNote(node), getChildren(node), getAuthority(node));
+            choice.extras = addOtherInformation(getParent(node), getNote(node), getChildren(node), getNodeId(node));
             choices.add(choice);
         }
         return choices;
     }
 
     private Map<String, String> addOtherInformation(String parentCurr, String noteCurr,
-            List<String> childrenCurr, String authorityCurr) {
+            List<String> childrenCurr, String nodeId) {
         Map<String, String> extras = new HashMap<String, String>();
         if (StringUtils.isNotBlank(parentCurr)) {
             extras.put("parent", parentCurr);
@@ -329,13 +354,14 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         } else {
             extras.put("hasChildren", "false");
         }
-        extras.put("id", authorityCurr);
+        extras.put("id", nodeId);
         return extras;
     }
 
     private String getNodeLabel(String key, boolean useHierarchy, String locale) {
         try {
-            Node node = getNode(key, locale);
+            String nodeId = getNodeIdFromAuthorityKey(key);
+            Node node = getNode(nodeId, locale);
             if (Objects.isNull(node)) {
                 return null;
             }
@@ -350,8 +376,8 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     }
 
     private String getLabel(Node node) {
-        String hierarchy = this.buildString(node);
         if (this.suggestHierarchy) {
+            String hierarchy = this.buildString(node);
             return hierarchy;
         } else {
             return node.getAttributes().getNamedItem("label").getNodeValue();
@@ -359,8 +385,8 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     }
 
     private String getValue(Node node) {
-        String hierarchy = this.buildString(node);
         if (this.storeHierarchy) {
+            String hierarchy = this.buildString(node);
             return hierarchy;
         } else {
             return node.getAttributes().getNamedItem("label").getNodeValue();
@@ -425,19 +451,23 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     private String getAuthority(Node node) {
         Node idAttr = node.getAttributes().getNamedItem("id");
         if (null != idAttr) { // 'id' is optional
+            return getPluginInstanceName() + ID_SPLITTER + idAttr.getNodeValue();
+        } else {
+            return null;
+        }
+    }
+
+    private String getNodeId(Node node) {
+        Node idAttr = node.getAttributes().getNamedItem("id");
+        if (null != idAttr) { // 'id' is optional
             return idAttr.getNodeValue();
         } else {
             return null;
         }
     }
 
-    private Choices getChoicesByXpath(
-            String authorityName,
-            String xpathExpression,
-            int start,
-            int limit,
-            String locale
-    ) {
+    private Choices getChoicesByXpath(String authorityName, String xpathExpression, int start, int limit,
+            String locale) {
         List<Choice> choices = new ArrayList<Choice>();
         XPath xpath = XPathFactory.newInstance().newXPath();
         try {
@@ -455,7 +485,7 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
                                 continue;
                             }
                             count++;
-                            choices.add(createChoiceFromNode(childNode, authorityName));
+                            choices.add(createChoiceFromNode(authorityName, childNode));
                         }
                     }
                 }
@@ -469,7 +499,7 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         return new Choices(false);
     }
 
-    private Choice createChoiceFromNode(Node node, String authorityName) {
+    private Choice createChoiceFromNode(String authorityName, Node node) {
         if (node != null && !isRootElement(node)) {
             Choice choice = new Choice(
                     authorityName,
@@ -478,7 +508,7 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
                     getValue(node),
                     isSelectable(node)
             );
-            choice.extras = addOtherInformation(getParent(node), getNote(node),getChildren(node), getAuthority(node));
+            choice.extras = addOtherInformation(getParent(node), getNote(node), getChildren(node), getNodeId(node));
             return choice;
         }
         return null;
