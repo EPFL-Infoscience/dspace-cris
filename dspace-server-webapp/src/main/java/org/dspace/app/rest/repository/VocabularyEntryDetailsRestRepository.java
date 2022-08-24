@@ -24,6 +24,7 @@ import org.dspace.app.rest.utils.AuthorityUtils;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.DSpaceControlledVocabulary;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.InitializingBean;
@@ -76,7 +77,12 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
         String vocabularyName = parts[0];
         String vocabularyId = parts[1];
         ChoiceAuthority source = cas.getChoiceAuthorityByAuthorityName(vocabularyName);
-        Choice choice = source.getChoice(vocabularyId, context.getCurrentLocale().toString());
+        // hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
+        // build a vocabulary entry details ID
+        if (source instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(vocabularyId, vocabularyName)) {
+            vocabularyId = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + vocabularyId;
+        }
+        Choice choice = source.getChoice(id, context.getCurrentLocale().toString());
         return authorityUtils.convertEntryDetails(choice, vocabularyName, source.isHierarchical(),
                 utils.obtainProjection());
     }
