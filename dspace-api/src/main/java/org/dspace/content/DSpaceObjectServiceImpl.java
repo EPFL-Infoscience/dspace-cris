@@ -249,11 +249,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
             List<String> values, List<String> authorities, List<Integer> confidences, Supplier<Integer> placeSupplier)
                     throws SQLException {
 
-        boolean storeAuthoritySetForMetadata = Optional.ofNullable(requestService.getCurrentRequest())
-            .map(r -> (Boolean) r.getAttribute("store_authority_" + metadataField.toString('.')))
-            .orElse(false);
-        boolean authorityControlled = storeAuthoritySetForMetadata
-            || metadataAuthorityService.isAuthorityControlled(metadataField);
+        boolean authorityControlled = metadataAuthorityService.isAuthorityControlled(metadataField);
 
         boolean nonValidAuthority = isNonValidAuthority(authorityControlled, authorities);
         if (nonValidAuthority) {

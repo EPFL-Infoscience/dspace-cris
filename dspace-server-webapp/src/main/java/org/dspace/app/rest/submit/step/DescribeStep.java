@@ -146,9 +146,6 @@ public class DescribeStep extends AbstractProcessingStep {
             String fieldName = split[0];
             Optional<DCInput> field = inputConfig.getField(fieldName);
             if (field.isPresent()) {
-                if (isFromVocabulary(field.get())) {
-                    currentRequest.setAttribute("store_authority_" + fieldName, true);
-                }
                 patchOperation.perform(context, currentRequest, source, op);
             } else {
                 throw new UnprocessableEntityException("The field " + split[0] + " is not present in section "
