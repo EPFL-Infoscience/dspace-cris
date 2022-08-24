@@ -174,7 +174,9 @@ public class DiscoveryExportController {
     }
 
     private void runDSpaceScript(EPerson user,
-                                 ScriptConfiguration scriptToExecute, RestDSpaceRunnableHandler restDSpaceRunnableHandler, List<String> args)
+                                 ScriptConfiguration scriptToExecute,
+                                 RestDSpaceRunnableHandler restDSpaceRunnableHandler,
+                                 List<String> args)
         throws InstantiationException, IllegalAccessException {
         DSpaceRunnable dSpaceRunnable = scriptService.createDSpaceRunnableForScriptConfiguration(scriptToExecute);
         try {
