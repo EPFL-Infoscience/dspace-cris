@@ -7,6 +7,9 @@
  */
 package org.dspace.app.policy.consumer;
 
+import static org.dspace.util.FunctionalUtils.throwingConsumerWrapper;
+import static org.dspace.util.FunctionalUtils.throwingMapperWrapper;
+
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -43,7 +46,6 @@ import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
-import org.dspace.util.FunctionalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,25 +89,34 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
     @Override
     public void consume(Context ctx, Event event) throws Exception {
-
-        Bitstream bitstream =
+        this.handleBitStreamConsumer(
+                ctx,
                 Optional.ofNullable((Bitstream) event.getObject(ctx))
-                        .orElse(this.loadBitstream(ctx, event));
-        if (bitstream != null) {
-            this.handleBitStreamConsumer(
-                    ctx,
-                    bitstream
-            );
-            return;
-        }
-        Item item =
-            Optional.ofNullable((Item) event.getObject(ctx))
-                    .orElse(this.loadItem(ctx, event));
-        if (item != null) {
-            this.handleItemConsumer(ctx, item);
-            return;
-        }
+                    .orElse(this.loadBitstream(ctx, event)),
+                event
+        );
+    }
 
+    private void removeAllEnhancedMetadatas(Context ctx, Bitstream bitstream) {
+        Optional.of(getRemovableMetadatas(bitstream))
+            .filter(list -> !list.isEmpty())
+            .ifPresent(throwingConsumerWrapper(list ->
+                    this.bitstreamService.removeMetadataValues(ctx, bitstream, list)
+                )
+            );
+    }
+
+    @Override
+    public void end(Context ctx) throws Exception {
+        bitstreamAlreadyProcessed.clear();
+        this.itemsToProcess
+            .stream()
+            .forEach(item -> this.handleItemConsumer(ctx, item));
+        itemsToProcess.clear();
+    }
+
+    @Override
+    public void finish(Context ctx) throws Exception {
 
     }
 
@@ -113,18 +124,27 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         return bitstreamAlreadyProcessed.contains(bitstream);
     }
 
-    private void handleBitStreamConsumer(Context ctx, Bitstream bitstream) {
+    private void handleBitStreamConsumer(Context ctx, Bitstream bitstream, Event event) {
 
         if (bitstream == null || this.alreadyProcessed(bitstream)) {
             return;
         }
-
+        List<Item> bitstreamItems = List.of();
         try {
-            consume(ctx, bitstream);
+            consume(ctx, bitstream, event);
+            bitstreamItems = bitstream.getBundles()
+                .stream()
+                .filter(bundle -> "ORIGINAL".equals(bundle.getName()))
+                .map(Bundle::getItems)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
             bitstreamAlreadyProcessed.add(bitstream);
+            bitstreamItems
+                .stream()
+                .forEach(item -> this.itemsToProcess.add(item));
         }
     }
 
@@ -153,7 +173,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 .entrySet()
                 .stream()
                 .forEach(
-                    FunctionalUtils.throwingConsumerWrapper(entry ->
+                    throwingConsumerWrapper(entry ->
                         this.itemService.addMetadata(ctx, loadedItem, entry.getKey(), null, entry.getValue())
                     )
                 );
@@ -169,7 +189,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         return bitstreams
             .stream()
             .map(
-                FunctionalUtils.throwingMapperWrapper(bitstream ->
+                throwingMapperWrapper(bitstream ->
                     this.bitstreamService.find(ctx, bitstream.getID()),
                     null
                 )
@@ -188,8 +208,8 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
             );
     }
 
-    private List<MetadataValue> getRemovableMetadatas(Item loadedItem) {
-        return loadedItem
+    private List<MetadataValue> getRemovableMetadatas(DSpaceObject dspaceObject) {
+        return dspaceObject
             .getMetadata()
             .stream()
             .filter(
@@ -201,17 +221,26 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     }
 
     private Map<MetadataField, List<String>> groupByMetadataField(List<MetadataValue> metadatas) {
-        return metadatas
-            .stream()
-            .collect(
-                Collectors.groupingBy(
-                        MetadataValue::getMetadataField,
-                        Collectors.mapping(MetadataValue::getValue, Collectors.toList())
-                )
-            );
+        return this.collectByGroupingMetadataFieldMappingValue(metadatas.stream());
     }
 
-    private void consume(Context ctx, Bitstream bitstream) throws SQLException {
+    private Map<MetadataField, List<String>> collectByGroupingMetadataFieldMappingValue(Stream<MetadataValue> stream) {
+        return stream
+                .collect(
+                        Collectors.groupingBy(
+                                MetadataValue::getMetadataField,
+                                Collectors.mapping(MetadataValue::getValue, Collectors.toList())
+                                )
+                        );
+    }
+
+    private void consume(Context ctx, Bitstream bitstream, Event event) throws SQLException {
+
+        if (Event.DELETE == event.getEventType()) {
+            removeAllEnhancedMetadatas(ctx, bitstream);
+            return;
+        }
+
         Date endDate = null;
         String policyValue = authorizeService.authorizeActionBoolean(ctx, null, bitstream, Constants.READ, false)
                 ? ACCESS_OPEN
@@ -242,14 +271,6 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         );
 
         this.handleDataciteRightsMetadata(this.bitstreamService, ctx, policyValue, bitstream, dataciteRights);
-
-        bitstream.getBundles()
-            .stream()
-            .filter(bundle -> "ORIGINAL".equals(bundle.getName()))
-            .map(Bundle::getItems)
-            .flatMap(Collection::stream)
-            .forEach(item -> this.itemsToProcess.add(item));
-
     }
 
     private Bitstream loadBitstream(Context ctx, Event event) {
@@ -261,31 +282,6 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
             throw new SQLRuntimeException("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
         }
         return found;
-    }
-
-    private Item loadItem(Context ctx, Event event) {
-        Item found = null;
-        try {
-            found = this.itemService.find(ctx, event.getSubjectID());
-        } catch (SQLException e) {
-            logger.error("Error while retrieving the item with ID: " + event.getSubjectID(), e);
-            throw new SQLRuntimeException("Error while retrieving the item with ID: " + event.getSubjectID(), e);
-        }
-        return found;
-    }
-
-    @Override
-    public void end(Context ctx) throws Exception {
-        bitstreamAlreadyProcessed.clear();
-        this.itemsToProcess
-            .stream()
-            .forEach(item -> this.handleItemConsumer(ctx, item));
-        itemsToProcess.clear();
-    }
-
-    @Override
-    public void finish(Context ctx) throws Exception {
-
     }
 
     private <T extends DSpaceObject> void handleDataciteRightsMetadata(

@@ -8,8 +8,6 @@
 package org.dspace.app.policy.consumer;
 
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
-import static org.dspace.app.policy.consumer.PolicyMetadataEnhancerConsumer.ACCESS_OPEN;
-import static org.dspace.app.policy.consumer.PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
@@ -19,6 +17,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.tools.ant.filters.StringInputStream;
@@ -35,6 +34,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Constants;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +49,8 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
     private ResourcePolicyService resourcePolicyService = ContentServiceFactory.getInstance()
             .getResourcePolicyService();
+    private BitstreamService bitstreamService = ContentServiceFactory.getInstance()
+            .getBitstreamService();
 
     @Before
     public void setup() {
@@ -70,9 +72,6 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                     .createBitstream(context, item, new StringInputStream("test"))
                     .build();
 
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-                .withUser(admin).build();
-
         context.restoreAuthSystemState();
         context.commit();
 
@@ -88,6 +87,41 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
     }
 
     @Test
+    public void testWithoutPolicyTypeDelete()
+            throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        Bitstream bitstream = BitstreamBuilder
+                .createBitstream(context, item, new StringInputStream("test"))
+                .build();
+
+        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
+        .withUser(admin).build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        context.turnOffAuthorisationSystem();
+
+        this.bitstreamService.delete(context, bitstream);
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
+
+        assertThat(bitstream.getMetadata(),
+                not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
+        assertThat(bitstream.getMetadata(),
+                not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED))));
+        assertThat(item.getMetadata(),
+                not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
+        assertThat(item.getMetadata(),
+                not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED))));
+    }
+
+    @Test
     public void testWithoutPolicyName()
             throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
         context.turnOffAuthorisationSystem();
@@ -95,7 +129,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
 
         ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).build();
+        .withUser(admin).withPolicyType(TYPE_CUSTOM).build();
 
         context.restoreAuthSystemState();
         context.commit();
@@ -108,6 +142,39 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", null))));
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+
+        context.turnOffAuthorisationSystem();
+
+        bitstream = context.reloadEntity(bitstream);
+        List<ResourcePolicy> resourcePolicies = bitstream.getResourcePolicies();
+
+        Iterator<ResourcePolicy> iterator = resourcePolicies.iterator();
+        while (iterator.hasNext()) {
+            try {
+                ResourcePolicy next = iterator.next();
+                resourcePolicies.remove(next);
+                this.resourcePolicyService.delete(context, next);
+            } catch (AuthorizeException | SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
+
+        assertThat(bitstream.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(bitstream.getMetadata(),
+                not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
+        assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", null))));
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
+        assertThat(item.getMetadata(),
+                not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
     }
 
