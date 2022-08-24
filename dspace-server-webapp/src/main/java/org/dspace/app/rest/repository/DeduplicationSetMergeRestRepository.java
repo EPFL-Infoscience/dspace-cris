@@ -11,21 +11,30 @@ import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.dspace.app.deduplication.model.DeduplicationMergeTarget;
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
 import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.deduplication.utils.DuplicateInfo;
+import org.dspace.app.rest.Parameter;
+import org.dspace.app.rest.SearchRestMethod;
+import org.dspace.app.rest.converter.DeduplicationMergeTargetConverter;
 import org.dspace.app.rest.converter.DeduplicationSetMergeConverter;
+import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.DeduplicationMergeTargetRest;
 import org.dspace.app.rest.model.DeduplicationSetMergeRest;
+import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
@@ -68,6 +77,12 @@ public class DeduplicationSetMergeRestRepository
 
     @Autowired
     DeduplicationSetMergeConverter converter;
+
+    @Autowired
+    DeduplicationMergeTargetConverter targetConverter;
+
+    @Autowired
+    ItemConverter itemConverter;
 
     @Autowired
     private ItemService itemService;
@@ -124,6 +139,25 @@ public class DeduplicationSetMergeRestRepository
         } catch (SearchServiceException | DCInputsReaderException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @SearchRestMethod(name = "findTargets")
+    public DeduplicationMergeTargetRest findTargets(@Parameter(value = "uuid", required = true) UUID[] uuids) {
+
+        Context context = obtainContext();
+
+        List<String> allowedTargets = Arrays.stream(uuids)
+                                            .map(uuid -> findItem(context, uuid))
+                                            .filter(item -> item != null && isAllowedTarget(context, item))
+                                            .map(item -> convertItemToUri(itemConverter, item))
+                                            .collect(Collectors.toList());
+
+        if (allowedTargets.isEmpty()) {
+            throw new ResourceNotFoundException("none of provided items is eligible as target");
+        }
+
+        return targetConverter.convert(new DeduplicationMergeTarget(allowedTargets), utils.obtainProjection());
     }
 
     private void validate(Context context, UUID targetUUID, DeduplicationSetMergeDTO deduplicationSetMergeDTO)
@@ -229,4 +263,35 @@ public class DeduplicationSetMergeRestRepository
         return UUIDUtils.fromString(path.substring(path.lastIndexOf("/") + 1));
     }
 
+    private Item findItem(Context context, UUID uuid) {
+        try {
+            return itemService.find(context, uuid);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private boolean isAllowedTarget(Context context, Item item) {
+        return !( item.isArchived() || isItemInWorkspace(context, item) || isItemInWorkflow(context, item) );
+    }
+
+    private boolean isItemInWorkspace(Context context, Item item) {
+        try {
+            return workspaceItemService.findByItem(context, item) != null;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private boolean isItemInWorkflow(Context context, Item item) {
+        try {
+            return workflowItemService.findByItem(context, item) != null;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private String convertItemToUri(ItemConverter converter, Item item) {
+        return utils.linkToSingleResource(converter.convert(item, Projection.DEFAULT), "self").getHref();
+    }
 }

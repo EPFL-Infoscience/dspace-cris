@@ -12,6 +12,7 @@ import static org.dspace.app.rest.matcher.BitstreamMatcher.matchBitstreamEntry;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,11 +45,13 @@ import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.repository.DeduplicationSetMergeRestRepository;
 import org.dspace.app.rest.test.AbstractEntityIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -58,12 +62,15 @@ import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
+import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.core.Constants;
+import org.dspace.core.ReloadableEntity;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
 import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
 import org.dspace.deduplication.dto.DeduplicationSetMergeDTO;
 import org.dspace.eperson.EPerson;
+import org.dspace.workflow.WorkflowItem;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,6 +101,9 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
     @Autowired
     protected EntityTypeService entityTypeService;
+
+    @Autowired
+    private ItemService itemService;
 
     @Autowired
     private BundleService bundleService;
@@ -717,6 +727,117 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                    .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
 
+    @Test
+    public void testFindTargetsWithAnonymousUser() throws Exception {
+
+        getClient().perform(get("/api/deduplications/merge/search/findTargets")
+                       .param("uuid", item1.getID().toString()))
+                   .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    public void testFindTargetsWithNotAdminUser() throws Exception {
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(epersonToken).perform(get("/api/deduplications/merge/search/findTargets")
+                                   .param("uuid", item1.getID().toString()))
+                               .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    public void testFindTargetsWithAdminUser() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item item1 = ItemBuilder.createItem(context, collection)
+                                .withTitle("item 1")
+                                .build();
+
+//        archived item
+        Item item2 = ItemBuilder.createItem(context, collection)
+                                .withTitle("item 2")
+                                .build();
+
+//        workspace item
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                                          .withTitle("workspace item")
+                                                          .build();
+        Item item3 = workspaceItem.getItem();
+
+//        workflow item
+        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
+                                                       .withTitle("workflow item")
+                                                       .build();
+        Item item4 = workspaceItem.getItem();
+
+        String fakeId = "9f28fd77-1ebd-445a-aeee-2c1c1be36033";
+
+//       unarchive item1
+        item1 = reload(item1);
+        item1.setArchived(false);
+        itemService.update(context, item1);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/deduplications/merge/search/findTargets")
+                                 .param("uuid", item1.getID().toString())
+                                 .param("uuid", item2.getID().toString())
+                                 .param("uuid", item3.getID().toString())
+                                 .param("uuid", item4.getID().toString())
+                                 .param("uuid", fakeId))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.allowedTargets", hasSize(1)))
+                             .andExpect(jsonPath("$.allowedTargets",
+                                 containsInAnyOrder(equalTo(convertDspaceObjectToUri(itemConverter, item1)))))
+                             .andExpect(jsonPath("$._links.self.href",
+                                 containsString("/api/deduplications/merge/search/findTargets" +
+                                     "?uuid=" + item1.getID().toString() +
+                                     "&uuid=" + item2.getID().toString() +
+                                     "&uuid=" + item3.getID().toString() +
+                                     "&uuid=" + item4.getID().toString() +
+                                     "&uuid=" + fakeId)));
+
+    }
+
+    @Test
+    public void testFindTargetsNotFound() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+//        archived item
+        Item item1 = ItemBuilder.createItem(context, collection)
+                                .withTitle("item 1")
+                                .build();
+
+//        workspace item
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                                          .withTitle("workspace item")
+                                                          .build();
+        Item item2 = workspaceItem.getItem();
+
+//        workflow item
+        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
+                                                       .withTitle("workflow item")
+                                                       .build();
+        Item item3 = workspaceItem.getItem();
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/deduplications/merge/search/findTargets")
+                                 .param("uuid", item1.getID().toString())
+                                 .param("uuid", item2.getID().toString())
+                                 .param("uuid", item3.getID().toString()))
+                             .andExpect(status().isNotFound());
+
+    }
+
     private String createTitleSetId(Item item) {
         // Set up MD5ValueSignature state to produce the same signature
         setMD5ValueSignatureInstance("dc.title", null, "title",
@@ -763,4 +884,10 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
             (RestAddressableModel) converter.convert(item, Projection.DEFAULT), "self"
         ).getHref();
     }
+
+    @SuppressWarnings("rawtypes")
+    private <T extends ReloadableEntity> T reload(T entity) throws SQLException, AuthorizeException {
+        return context.reloadEntity(entity);
+    }
+
 }
