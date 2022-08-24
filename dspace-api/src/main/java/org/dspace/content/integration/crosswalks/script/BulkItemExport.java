@@ -179,7 +179,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         crosswalk.disseminate(context, itemsIterator, out);
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         String name = getFileName(crosswalk);
-        handler.writeFilestream(context, name, in, crosswalk.getMIMEType());
+        handler.writeFilestream(context, name, in, crosswalk.getMIMEType(), crosswalk.isPubliclyReadable());
         handler.logInfo("Items exported successfully into file named " + name);
     }
 
