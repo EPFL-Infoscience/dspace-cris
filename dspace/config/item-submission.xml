@@ -221,12 +221,6 @@
       <processing-class>org.dspace.app.rest.submit.step.CCLicenseStep</processing-class>
       <type>cclicense</type>
     </step-definition>
-    <!-- This optional step may allow the user to select access conditions on the item -->
-    <step-definition id="itemAccessConditions">
-      <heading>submit.progressbar.accessCondition</heading>
-      <processing-class>org.dspace.app.rest.submit.step.AccessConditionStep</processing-class>
-      <type>accessCondition</type>
-    </step-definition>
     <!-- This optional step may enrich the current submission using information extracted
              from uploaded files or metadata.  -->
     <!-- Please note that this step will be triggered only when a request is performed,
@@ -251,6 +245,12 @@
       <processing-class>org.dspace.app.rest.submit.step.CorrectionStep</processing-class>
       <type>correction</type>
       <scope visibilityOutside="hidden">workflow</scope>
+    </step-definition>
+    <!-- This optional step may allow the user to select access conditions on the item -->
+    <step-definition id="itemAccessConditions" mandatory="true">
+      <heading>submit.progressbar.itemAccessConditions</heading>
+      <processing-class>org.dspace.app.rest.submit.step.AccessConditionStep</processing-class>
+      <type>accessCondition</type>
     </step-definition>
   </step-definitions>
   <submission-definitions>
