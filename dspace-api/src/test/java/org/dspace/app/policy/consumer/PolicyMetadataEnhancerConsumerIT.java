@@ -64,6 +64,21 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
     }
 
     @Test
+    public void testWithoutBitstreams()
+            throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        item = context.reloadEntity(item);
+
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+    }
+
+    @Test
     public void testWithoutPolicyType()
             throws FileNotFoundException, SQLException, AuthorizeException, IOException, ParseException {
         context.turnOffAuthorisationSystem();
@@ -119,6 +134,8 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                 not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
         assertThat(item.getMetadata(),
                 not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED))));
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
     }
 
     @Test

@@ -13,11 +13,13 @@ import static org.dspace.util.FunctionalUtils.throwingMapperWrapper;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +43,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -59,6 +62,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
     public static final String ACCESS_RESTRICTED = "restricted";
     public static final String ACCESS_OPEN = "openaccess";
+    public static final String METADATA_ONLY = "metadata-only";
 
     private static final Logger logger = LoggerFactory.getLogger(PolicyMetadataEnhancerConsumer.class);
 
@@ -71,6 +75,8 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         dataciteAvailableMetadata,
         dataciteRightsMetadata
     );
+    private static final Map<MetadataFieldName, List<String>> defaultItemMetadatas = Map.of(dataciteRightsMetadata,
+            List.of(METADATA_ONLY));
 
     private BitstreamService bitstreamService;
     private ItemService itemService;
@@ -78,6 +84,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private AuthorizeService authorizeService;
     private Set<Bitstream> bitstreamAlreadyProcessed = new HashSet<>();
     private Set<Item> itemsToProcess = new HashSet<>();
+    private MetadataFieldService metadataFieldService;
 
     @Override
     public void initialize() throws Exception {
@@ -85,16 +92,23 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         this.itemService = ContentServiceFactory.getInstance().getItemService();
         this.resourcePolicyService = ContentServiceFactory.getInstance().getResourcePolicyService();
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+        this.metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
     }
 
     @Override
     public void consume(Context ctx, Event event) throws Exception {
-        this.handleBitStreamConsumer(
-                ctx,
-                Optional.ofNullable((Bitstream) event.getObject(ctx))
-                    .orElse(this.loadBitstream(ctx, event)),
-                event
-        );
+        Bitstream bitstream = Optional.ofNullable((Bitstream) event.getObject(ctx))
+            .orElse(this.loadBitstream(ctx, event));
+        Item item = Optional.ofNullable((Item) event.getObject(ctx))
+                .orElse(this.loadItem(ctx, event));
+        if (bitstream != null) {
+            this.handleBitStreamConsumer(ctx, bitstream, event);
+        } else if (item != null && Event.CREATE == event.getEventType()) {
+            this.handleItemConsumer(ctx, item);
+        } else {
+            logger.warn("Can't consume the DSPaceObject with id {}, only BITSTREAM and ITEMS are consumable!",
+                    event.getSubjectID());
+        }
     }
 
     private void removeAllEnhancedMetadatas(Context ctx, Bitstream bitstream) {
@@ -156,18 +170,20 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
         try {
             Item loadedItem = this.itemService.find(ctx, item.getID());
-            List<MetadataValue> metadatas =
+            Map<MetadataField, List<String>> grouped =
                 Optional.ofNullable(loadedItem)
                         .map(i -> i.getBundles("ORIGINAL"))
+                        .filter(bundles -> !bundles.isEmpty())
                         .map(bundles -> bundles.get(0))
                         .map(Bundle::getBitstreams)
+                        .filter(bitstreams -> !bitstreams.isEmpty())
                         .map(bitstreams -> bitstreams.get(0))
                         .map(bitstream -> getMetadatasForItem(ctx, List.of(bitstream)).collect(Collectors.toList()))
-                        .orElse(List.of());
+                        .map(metadatas -> groupByMetadataField(metadatas))
+                        .filter(metadatas -> !metadatas.isEmpty())
+                        .orElse(this.mapWithMetadataField(ctx, defaultItemMetadatas));
 
             this.itemService.removeMetadataValues(ctx, loadedItem, getRemovableMetadatas(loadedItem));
-
-            Map<MetadataField, List<String>> grouped = groupByMetadataField(metadatas);
 
             grouped
                 .entrySet()
@@ -183,6 +199,24 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
             throw new SQLRuntimeException(e);
         }
 
+    }
+
+    private Map<MetadataField, List<String>> mapWithMetadataField(Context ctx,
+            Map<MetadataFieldName, List<String>> fieldNameMap) {
+        return fieldNameMap
+                    .entrySet()
+                    .stream()
+                    .map(throwingMapperWrapper(
+                            entry -> {
+                                MetadataFieldName fieldName = entry.getKey();
+                                MetadataField field = this.metadataFieldService.findByElement(ctx, fieldName.schema,
+                                        fieldName.element, fieldName.qualifier);
+                                return new AbstractMap.SimpleEntry<>(field, entry.getValue());
+                            },
+                            null
+                        )
+                    )
+                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
     private Stream<MetadataValue> getMetadatasForItem(Context ctx, List<Bitstream> bitstreams) {
@@ -277,6 +311,17 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         Bitstream found = null;
         try {
             found = this.bitstreamService.find(ctx, event.getSubjectID());
+        } catch (SQLException e) {
+            logger.error("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
+            throw new SQLRuntimeException("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
+        }
+        return found;
+    }
+
+    private Item loadItem(Context ctx, Event event) {
+        Item found = null;
+        try {
+            found = this.itemService.find(ctx, event.getSubjectID());
         } catch (SQLException e) {
             logger.error("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
             throw new SQLRuntimeException("Error while retrieving the bitstream with ID: " + event.getSubjectID(), e);
