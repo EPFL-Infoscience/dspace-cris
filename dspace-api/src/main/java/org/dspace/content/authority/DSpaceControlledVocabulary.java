@@ -256,8 +256,9 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     }
 
     @Override
-    public Choices getChoicesByParent(String authorityName, String parentId, int start, int limit, String locale) {
+    public Choices getChoicesByParent(String authorityName, String parentAuthKey, int start, int limit, String locale) {
         init();
+        String parentId = getNodeIdFromAuthorityKey(parentAuthKey);
         String xpathExpression = String.format(idTemplate, parentId);
         return getChoicesByXpath(authorityName, xpathExpression, start, limit, locale);
     }

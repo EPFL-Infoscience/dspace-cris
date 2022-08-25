@@ -18,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.content.authority.zdb.ZDBAuthorityValue;
 import org.dspace.content.authority.zdb.ZDBService;
-import org.dspace.utils.DSpace;
 /**
  * 
  * @author Mykhaylo Boychuk (4science.it)
@@ -29,9 +28,7 @@ public class ZDBAuthority extends ItemAuthority {
 
     private static Logger log = LogManager.getLogger(ZDBAuthority.class);
 
-    private ZDBService source = new DSpace().getServiceManager().getServiceByName("ZDBSource", ZDBService.class);
-
-    private static DSpace dspace = new DSpace();
+    private ZDBService source = dspace.getServiceManager().getServiceByName("ZDBSource", ZDBService.class);
 
     @Override
     public Choices getMatches(String query, int start, int limit, String locale) {
@@ -76,4 +73,5 @@ public class ZDBAuthority extends ItemAuthority {
         }
         return extras;
     }
+
 }

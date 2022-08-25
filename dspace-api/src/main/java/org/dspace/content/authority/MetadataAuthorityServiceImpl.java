@@ -22,6 +22,7 @@ import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.content.MetadataField;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.MetadataFieldService;
@@ -102,9 +103,16 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
 
     }
 
-    public void init() {
+    private synchronized void init() {
 
         if (isAuthorityRequired == null) {
+            try {
+                itemSubmissionConfigReader = new SubmissionConfigReader();
+            } catch (SubmissionConfigReaderException e) {
+                // the system is in an illegal state as the submission definition is not valid
+                throw new IllegalStateException("Error reading the item submission configuration: " + e.getMessage(),
+                        e);
+            }
             isAuthorityRequired = new HashMap<>();
             List<String> keys = configurationService.getPropertyKeys(AUTH_PREFIX);
             Context context = new Context();
