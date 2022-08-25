@@ -1,0 +1,84 @@
+<record>
+    @if.metadata.dc-identifier-issn.start@
+    <datafield tag="022" ind1=" " ind2=" ">
+        <subfield code="a">@dc.identifier.issn@</subfield>
+    </datafield>
+    @if.metadata.dc-identifier-issn.end@
+    @if.metadata.dc-identifier-doi.start@
+    <datafield tag="024" ind1="7" ind2=" ">
+        <subfield code="2">doi</subfield>
+        <subfield code="a">@dc.identifier.doi@</subfield>
+    </datafield>
+    @if.metadata.dc-identifier-doi.end@
+    @if.metadata.dc-identifier-arxiv.start@
+    <datafield tag="024" ind1="7" ind2="0">
+        <subfield code="a">@dc.identifier.arxiv@</subfield>
+        <subfield code="2">ArXiv</subfield>
+    </datafield>
+    @if.metadata.dc-identifier-arxiv.end@
+    @if.metadata.dc-identifier-isi.start@
+    <datafield tag="024" ind1="7" ind2="0">
+        <subfield code="a">@dc.identifier.isi@</subfield>
+        <subfield code="2">isi</subfield>
+    </datafield>
+    @if.metadata.dc-identifier-isi.end@
+    @if.metadata.dc-identifier-scopus.start@
+    <datafield tag="024" ind1="/" ind2=" ">
+        <subfield code="a">@dc.identifier.scopus@</subfield>
+    </datafield>
+    @if.metadata.dc-identifier-scopus.end@
+    @if.metadata.dc-identifier-pmid.start@
+    <datafield tag="024" ind1="/" ind2=" ">
+        <subfield code="a">@dc.identifier.pmid@</subfield>
+    </datafield>
+    @if.metadata.dc-identifier-pmid.end@
+    <datafield tag="245" ind1=" " ind2=" ">
+        <subfield code="a">@dc.title@</subfield>
+    </datafield>
+    @if.metadata.dc-date-issued.start@
+    <datafield tag="260" ind1=" " ind2=" ">
+        <subfield code="c">@dc.date.issued@</subfield>
+    </datafield>
+    @if.metadata.dc-date-issued.end@
+    @group.dc-type.start@
+    <datafield tag="336" ind1=" " ind2=" ">
+        <subfield code="a">@virtual.vocabulary.dc-type.leaf@</subfield>
+    </datafield>
+    @group.dc-type.end@
+    @if.metadata.dc-description-abstract.start@
+    <datafield tag="520" ind1=" " ind2=" ">
+        <subfield code="a">@dc.description.abstract@</subfield>
+    </datafield>
+    @if.metadata.dc-description-abstract.end@
+    @group.dc-subject.start@
+    <datafield tag="653" ind1="1" ind2=" ">
+        <subfield code="a">@dc.subject@</subfield>
+    </datafield>
+    @group.dc-subject.end@
+    @group.dc-contributor-author.start@
+    <datafield tag="700" ind1=" " ind2=" ">
+        <subfield code="a">@dc.contributor.author@</subfield>
+    </datafield>
+    @group.dc-contributor-author.end@
+    @group.dc-relation-conference.start@
+    <datafield tag="711" ind1="2" ind2=" ">
+        <subfield code="a">@dc.relation.conference@</subfield>
+    </datafield>
+    @group.dc-relation-conference.end@
+
+    @if.metadata.dc-relation-ispartof.start@
+    <datafield tag="773" ind1=" " ind2=" ">
+        <subfield code="t">@dc.relation.ispartof@</subfield>
+        @if.metadata.oaire-citation-start.start@
+        <subfield code="q">@virtual.fullpage@</subfield>
+        @if.metadata.oaire-citation-start.end@
+        <subfield code="k">@dc.relation.ispartofseries@</subfield>
+    </datafield>
+    @if.metadata.dc-relation-ispartof.end@
+    @group.dc-identifier-url.start@
+    <datafield tag="790" ind1=" " ind2=" ">
+        <subfield code="2">url</subfield>
+        <subfield code="w">@dc.identifier.url@</subfield>
+    </datafield>
+    @group.dc-identifier-url.end@
+</record>

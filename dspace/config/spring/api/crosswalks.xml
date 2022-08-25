@@ -13,6 +13,7 @@
 				<entry key="endnote" value-ref="referCrosswalkEndnote"></entry>
 				
 				<entry key="publication-cerif-xml" value-ref="referCrosswalkPublicationCerifXml"></entry>
+				<entry key="publication-marc-xml" value-ref="referCrosswalkPublicationMarcXml"></entry>
 				<entry key="publication-json" value-ref="cslItemDataCrosswalkJson"></entry>
 				<entry key="publication-pdf" value-ref="pdfCrosswalkPublication"></entry>
 				<entry key="publication-csv" value-ref="csvCrosswalkPublication"></entry>
@@ -142,6 +143,18 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/publications-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPublicationMarcXml">
+		<property name="templateFileName" value="crosswalks/template/publication-marc-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="publication.xml"/>
+		<property name="entityType" value="Publication"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/publications-marc-xml.template"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
+		<property name="publiclyReadable" value="true"/>
 	</bean>
 	
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnote">
@@ -499,6 +512,9 @@
 	<bean class="org.dspace.content.integration.crosswalks.converter.JsonValueConverter" id="jsonValueConverter" />
 	
 	<bean class="org.dspace.content.integration.crosswalks.postprocessors.JsonPostProcessor" id="jsonPostProcessor" />
+	<bean class="org.dspace.content.integration.crosswalks.postprocessors.ItemsCounterPostProcessor" id="xmlMarcCounterPostProcessor">
+		<constructor-arg name="itemPlaceholder" value="&lt;record"/>
+	</bean>
 	
 	<!-- VIRTUAL FIELDS CONFIGURATION -->
 	
