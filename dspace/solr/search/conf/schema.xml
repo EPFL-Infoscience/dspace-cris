@@ -568,7 +568,7 @@
      <field name="itemauthoritylookupexactmatch" type="text" indexed="true" stored="true" multiValued="true"/>
      
     <field name="customurl" type="string" indexed="true" stored="true" required="false" multiValued="true"/>
-    <dynamicField name="entityType_s"   type="string"  indexed="true" stored="true" docValues="true" />
+    <field name="entityType_s" type="string" indexed="true" stored="true" docValues="true" />
     
  </fields>
 
