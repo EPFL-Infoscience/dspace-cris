@@ -8,6 +8,9 @@
 
 package org.dspace.content.authority;
 
+import static org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars;
+import static org.dspace.discovery.SolrServiceBestMatchIndexingPlugin.BEST_MATCH_INDEX;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,7 +83,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     // punt!  this is a poor implementation..
     @Override
     public Choices getBestMatch(String text, String locale) {
-        return getMatches(text, 0, 2, locale);
+        boolean onlyExactMatches = isPersonItemAuthority();
+        return getMatches(text, 0, 2, locale, onlyExactMatches);
     }
 
     /**
@@ -89,6 +93,10 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
      */
     @Override
     public Choices getMatches(String text, int start, int limit, String locale) {
+        return getMatches(text, start, limit, locale, false);
+    }
+
+    private Choices getMatches(String text, int start, int limit, String locale, boolean onlyExactMatches) {
         if (limit <= 0) {
             limit = 20;
         }
@@ -100,12 +108,18 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         }
 
         String entityType = getLinkedEntityType();
-        ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
-        String luceneQuery = itemAuthorityService.getSolrQuery(text);
 
+        String query = "";
+
+        if (!onlyExactMatches) {
+            ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
+            query = "(" + itemAuthorityService.getSolrQuery(text) + ") OR ";
+        }
+
+        query += BEST_MATCH_INDEX + ":" + escapeQueryChars(text);
 
         SolrQuery solrQuery = new SolrQuery();
-        solrQuery.setQuery(luceneQuery);
+        solrQuery.setQuery(query);
         solrQuery.setStart(start);
         solrQuery.setRows(limit);
         solrQuery.addFilterQuery("search.resourcetype:" + Item.class.getSimpleName());
@@ -253,6 +267,10 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
     protected int calculateConfidence(Choice[] choices) {
         return ArrayUtils.isNotEmpty(choices) ? Choices.CF_AMBIGUOUS : Choices.CF_UNSET;
+    }
+
+    private boolean isPersonItemAuthority() {
+        return "Person".equals(getLinkedEntityType());
     }
 
     private boolean hasValidExternalSource(String sourceIdentifier) {

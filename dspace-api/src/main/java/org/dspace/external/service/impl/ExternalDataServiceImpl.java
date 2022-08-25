@@ -109,8 +109,7 @@ public class ExternalDataServiceImpl implements ExternalDataService {
         for (MetadataValueDTO metadataValueDTO : externalDataObject.getMetadata()) {
             itemService.addMetadata(context, item, metadataValueDTO.getSchema(), metadataValueDTO.getElement(),
                                     metadataValueDTO.getQualifier(), metadataValueDTO.getLanguage(),
-                                    metadataValueDTO.getValue(), metadataValueDTO.getAuthority(),
-                                    metadataValueDTO.getConfidence());
+                                    metadataValueDTO.getValue());
         }
 
         log.info(LogHelper.getHeader(context, "create_item_from_externalDataObject", "Created item" +
