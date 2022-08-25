@@ -272,7 +272,7 @@ public class DeduplicationSetMergeRestRepository
     }
 
     private boolean isAllowedTarget(Context context, Item item) {
-        return !( item.isArchived() || isItemInWorkspace(context, item) || isItemInWorkflow(context, item) );
+        return item.isArchived() && !isItemInWorkspace(context, item) && !isItemInWorkflow(context, item);
     }
 
     private boolean isItemInWorkspace(Context context, Item item) {

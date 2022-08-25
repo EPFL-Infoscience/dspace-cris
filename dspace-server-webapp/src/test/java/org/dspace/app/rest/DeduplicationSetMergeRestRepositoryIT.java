@@ -776,7 +776,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         String fakeId = "9f28fd77-1ebd-445a-aeee-2c1c1be36033";
 
 //       unarchive item1
-        item1 = reload(item1);
+        item1 = context.reloadEntity(item1);
         item1.setArchived(false);
         itemService.update(context, item1);
 
@@ -793,7 +793,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.allowedTargets", hasSize(1)))
                              .andExpect(jsonPath("$.allowedTargets",
-                                 containsInAnyOrder(equalTo(convertDspaceObjectToUri(itemConverter, item1)))))
+                                 containsInAnyOrder(equalTo(convertDspaceObjectToUri(itemConverter, item2)))))
                              .andExpect(jsonPath("$._links.self.href",
                                  containsString("/api/deduplications/merge/search/findTargets" +
                                      "?uuid=" + item1.getID().toString() +
@@ -809,7 +809,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         context.turnOffAuthorisationSystem();
 
-//        archived item
         Item item1 = ItemBuilder.createItem(context, collection)
                                 .withTitle("item 1")
                                 .build();
@@ -825,6 +824,11 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                                        .withTitle("workflow item")
                                                        .build();
         Item item3 = workspaceItem.getItem();
+
+//        unarchive item1
+        item1 = context.reloadEntity(item1);
+        item1.setArchived(false);
+        itemService.update(context, item1);
 
         context.restoreAuthSystemState();
 
@@ -883,11 +887,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         return utils.linkToSingleResource(
             (RestAddressableModel) converter.convert(item, Projection.DEFAULT), "self"
         ).getHref();
-    }
-
-    @SuppressWarnings("rawtypes")
-    private <T extends ReloadableEntity> T reload(T entity) throws SQLException, AuthorizeException {
-        return context.reloadEntity(entity);
     }
 
 }
