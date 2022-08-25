@@ -71,7 +71,6 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     public static final String ID_SPLITTER = ":";
 
     protected String vocabularyName = null;
-    protected InputSource vocabulary = null;
     protected Map<Locale,InputSource> vocabularies = null;
     protected Boolean suggestHierarchy = false;
     protected Boolean storeHierarchy = true;
@@ -81,6 +80,19 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
 
     public DSpaceControlledVocabulary() {
         super();
+        ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
+        vocabularyName = this.getPluginInstanceName();
+        log.info("Configuring " + this.getClass().getName() + ": " + vocabularyName);
+        String configurationPrefix = "vocabulary.plugin." + vocabularyName;
+        storeHierarchy = config.getBooleanProperty(configurationPrefix + ".hierarchy.store", storeHierarchy);
+        storeAuthority = config.getBooleanProperty(configurationPrefix + ".authority.store",
+                config.getBooleanProperty("vocabulary.plugin.authority.store", false));
+        suggestHierarchy = config.getBooleanProperty(configurationPrefix + ".hierarchy.suggest", suggestHierarchy);
+        preloadLevel = config.getIntProperty(configurationPrefix + ".hierarchy.preloadLevel", preloadLevel);
+        String configuredDelimiter = config.getProperty(configurationPrefix + ".delimiter");
+        if (configuredDelimiter != null) {
+            hierarchyDelimiter = configuredDelimiter.replaceAll("(^\"|\"$)", "");
+        }
     }
 
     @Override
@@ -124,24 +136,13 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         }
     }
 
-    protected void init() {
+    private synchronized void init() {
         if (vocabularies == null) {
             vocabularies = new HashMap<Locale, InputSource>();
             Locale[] locales = I18nUtil.getSupportedLocales();
             ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
-
-            log.info("Initializing " + this.getClass().getName());
             vocabularyName = this.getPluginInstanceName();
-            String configurationPrefix = "vocabulary.plugin." + vocabularyName;
-            storeHierarchy = config.getBooleanProperty(configurationPrefix + ".hierarchy.store", storeHierarchy);
-            storeAuthority = config.getBooleanProperty(configurationPrefix + ".authority.store",
-                    config.getBooleanProperty("vocabulary.plugin.authority.store", false));
-            suggestHierarchy = config.getBooleanProperty(configurationPrefix + ".hierarchy.suggest", suggestHierarchy);
-            preloadLevel = config.getIntProperty(configurationPrefix + ".hierarchy.preloadLevel", preloadLevel);
-            String configuredDelimiter = config.getProperty(configurationPrefix + ".delimiter");
-            if (configuredDelimiter != null) {
-                hierarchyDelimiter = configuredDelimiter.replaceAll("(^\"|\"$)", "");
-            }
+            log.info("Initializing " + this.getClass().getName() + ": " + vocabularyName);
             String filename;
             for (Locale l : locales) {
                 filename = I18nUtil.getControlledVocabularyFileName(l, vocabularyName);
