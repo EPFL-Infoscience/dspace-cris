@@ -100,7 +100,7 @@ public class IdentifierRestControllerIT extends AbstractControllerIntegrationTes
         getClient(token).perform(get("/api/pid/find?id={handle}", item.getHandle())).andExpect(status().isFound());
 
         getClient(token).perform(delete("/api/core/items/" + item.getID()));
-        
+
         // The item has been deleted but the record is found in the DB (with a null dso)
         getClient(token).perform(get("/api/pid/find?id={handle}", item.getHandle())).andExpect(status().isGone());
     }
