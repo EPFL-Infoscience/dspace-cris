@@ -77,7 +77,7 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
         String vocabularyName = parts[0];
         String vocabularyId = parts[1];
         ChoiceAuthority source = cas.getChoiceAuthorityByAuthorityName(vocabularyName);
-        // hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
+        //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
         // build a vocabulary entry details ID
         if (source instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(vocabularyId, vocabularyName)) {
             vocabularyId = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + vocabularyId;
