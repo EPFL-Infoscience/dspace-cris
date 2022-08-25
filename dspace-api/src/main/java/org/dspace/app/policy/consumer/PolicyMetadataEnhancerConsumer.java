@@ -97,17 +97,24 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
     @Override
     public void consume(Context ctx, Event event) throws Exception {
-        Bitstream bitstream = Optional.ofNullable((Bitstream) event.getObject(ctx))
-            .orElse(this.loadBitstream(ctx, event));
-        Item item = Optional.ofNullable((Item) event.getObject(ctx))
-                .orElse(this.loadItem(ctx, event));
-        if (bitstream != null) {
-            this.handleBitStreamConsumer(ctx, bitstream, event);
-        } else if (item != null && Event.CREATE == event.getEventType()) {
-            this.handleItemConsumer(ctx, item);
+        if (Constants.BITSTREAM == event.getSubjectType()) {
+            this.handleBitStreamConsumer(
+                    ctx,
+                    Optional.ofNullable((Bitstream) event.getObject(ctx))
+                            .orElse(this.loadBitstream(ctx, event)),
+                    event
+            );
+        } else if (Constants.ITEM == event.getSubjectType() && Event.CREATE == event.getEventType()) {
+            this.handleItemConsumer(
+                    ctx,
+                    Optional.ofNullable((Item) event.getObject(ctx))
+                            .orElse(this.loadItem(ctx, event))
+            );
         } else {
-            logger.warn("Can't consume the DSPaceObject with id {}, only BITSTREAM and ITEMS are consumable!",
-                    event.getSubjectID());
+            logger.warn(
+                "Can't consume the DSPaceObject with id {}, only BITSTREAM and ITEMS'CREATION events are consumable!",
+                event.getSubjectID()
+            );
         }
     }
 
