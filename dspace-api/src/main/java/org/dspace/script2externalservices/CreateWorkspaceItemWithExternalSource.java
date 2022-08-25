@@ -31,11 +31,13 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.CollectionServiceImpl;
+import org.dspace.content.InstallItemServiceImpl;
 import org.dspace.content.Item;
 import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
@@ -71,9 +73,17 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private static final Logger log = LogManager.getLogger(CreateWorkspaceItemWithExternalSource.class);
 
+    private static final String WORKFLOW_STATE = "workflow";
+    private static final String WORKSPACE_STATE = "workspace";
+    private static final String ARCHIVED_ITEM_STATE = "item";
+
     private static final int LIMIT = 10;
 
     private String service;
+
+    private String collectionUuid;
+
+    private String finalState;
 
     private Context context;
 
@@ -96,11 +106,15 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private AuthorizeService authorizeService;
 
+    private InstallItemService installItemService;
+
     @Override
     public void setup() throws ParseException {
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         ServiceManager serviceManager = new DSpace().getServiceManager();
         itemService = serviceManager.getServiceByName(ItemServiceImpl.class.getName(), ItemServiceImpl.class);
+        installItemService = serviceManager.getServiceByName(InstallItemServiceImpl.class.getName(),
+                                                             InstallItemServiceImpl.class);
         collectionService = serviceManager
                             .getServiceByName(CollectionServiceImpl.class.getName(),CollectionServiceImpl.class);
         externalDataService = serviceManager
@@ -111,11 +125,13 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                                       LiveImportDataProvider.class));
         nameToProvider.put("crossref", serviceManager.getServiceByName("crossRefLiveImportDataProvider",
                 LiveImportDataProvider.class));
-        workflowService = WorkflowServiceFactory.getInstance()
-            .getWorkflowService();
+        workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+
         this.service = commandLine.getOptionValue('s');
+        this.finalState = commandLine.getOptionValue('f');
+        this.collectionUuid = commandLine.getOptionValue('c');
     }
 
     @Override
@@ -124,6 +140,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         context.setCurrentUser(findEPerson());
         if (Objects.isNull(service)) {
             throw new IllegalArgumentException("The name of service must be provided");
+        }
+
+        if (StringUtils.isBlank(this.finalState) || isNotSupportedState()) {
+            throw new IllegalArgumentException("The provided final state: (" + this.finalState + ") is not supported,"
+                                             + " it must be one of this: workspace, workflow or item");
         }
 
         LiveImportDataProvider dataProvider = nameToProvider.get(service);
@@ -158,7 +179,14 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         }
     }
 
+    private boolean isNotSupportedState() {
+        return !Arrays.asList(WORKSPACE_STATE, WORKFLOW_STATE, ARCHIVED_ITEM_STATE).contains(this.finalState);
+    }
+
     private UUID getCollectionUUID() {
+        if (StringUtils.isNoneBlank(collectionUuid)) {
+            return UUID.fromString(collectionUuid);
+        }
         switch (this.service) {
             case "scopus":
                 return getUuid("scopus.importworkspaceitem.collection-id");
@@ -306,7 +334,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                         addMetadata(wsItem.getItem(), metadataList);
                     }
                     owner.ifPresent(mv -> updateSubmitter(wsItem.getItem(), mv));
-                    workflowService.start(context, wsItem);
+                    if (!StringUtils.equals(this.finalState, WORKSPACE_STATE)) {
+                        makeFinalState(wsItem);
+                    }
                 }
                 countDataObjects++;
             }
@@ -314,6 +344,15 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             log.error(e.getMessage(), e);
         }
         return countDataObjects;
+    }
+
+    private void makeFinalState(WorkspaceItem wsItem) throws SQLException, AuthorizeException, IOException, WorkflowException {
+        if (StringUtils.equals(this.finalState, WORKFLOW_STATE)) {
+            workflowService.start(context, wsItem);
+        }
+        if (StringUtils.equals(this.finalState, ARCHIVED_ITEM_STATE)) {
+            installItemService.installItem(this.context, wsItem);
+        }
     }
 
     private void updateSubmitter(Item item, MetadataValue submitter) {
