@@ -763,6 +763,13 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
             .andExpect(jsonPath("$._embedded.entries", contains(matchItemAuthorityProperties(
                 person4Id, "Cortese, Claudio", "Cortese, Claudio", "vocabularyEntry"))));
 
+        getClient(token).perform(get("/api/submission/vocabularies/PersonAuthority/entries")
+            .param("filter", "Cortese A. P.")
+            .param("exact", "true"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$._embedded.entries", contains(matchItemAuthorityProperties(
+                person4Id, "Cortese, Claudio", "Cortese, Claudio", "vocabularyEntry"))));
+
     }
 
     @Override
