@@ -8,19 +8,24 @@
 
 package org.dspace.app.rest;
 
+import static org.apache.commons.lang.StringUtils.defaultIfBlank;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.SearchResultsRest;
+import org.dspace.app.rest.parameter.SearchFilter;
 import org.dspace.app.rest.scripts.handler.impl.RestDSpaceRunnableHandler;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.HttpHeadersInitializer;
@@ -36,10 +41,12 @@ import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.service.ScriptService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -56,13 +63,30 @@ public class DiscoveryExportController {
     private ConfigurationService configurationService;
 
     @GetMapping(produces = "application/xml", path = "/export")
-    public ResponseEntity export(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity export(HttpServletRequest request, HttpServletResponse response,
+                                 @RequestParam(value = "query", required = false) String query,
+                                 @RequestParam(value = "scope", required = false) String scope,
+                                 @RequestParam(value = "spc.sf", required = false) String sort,
+                                 @RequestParam(value = "spc.sd", required = false) String sortDirection,
+                                 @RequestParam(value = "configuration", required = false) String configuration,
+                                 List<SearchFilter> searchFilters,
+                                 Pageable page) {
 
 
         ScriptConfiguration scriptToExecute = scriptService.getScriptConfiguration("bulk-item-export");
         Context context = ContextUtil.obtainContext(request);
         EPerson user = context.getCurrentUser();
-        List<DSpaceCommandLineParameter> dSpaceCommandLineParameters = parameters();
+
+        String sorting = defaultIfBlank(sort, "score") + "," +
+            defaultIfBlank(sortDirection, "DESC");
+
+        List<DSpaceCommandLineParameter> dSpaceCommandLineParameters = parameters(
+            defaultIfBlank(query, "*"),
+            defaultIfBlank(configuration, "default"),
+            sorting,
+            scope,
+            buildFilters(searchFilters));
+
         try {
             RestDSpaceRunnableHandler restDSpaceRunnableHandler = new RestDSpaceRunnableHandler(
                 user,
@@ -88,17 +112,30 @@ public class DiscoveryExportController {
 
     }
 
-    private List<DSpaceCommandLineParameter> parameters() {
-        String query = "*";
-        String configuration = "default";
-        List<DSpaceCommandLineParameter> result = Arrays.asList(
-            new DSpaceCommandLineParameter("-t", "Publication"),
-            new DSpaceCommandLineParameter("-f", "publication-cerif-xml"),
-            new DSpaceCommandLineParameter("-q", query),
-            new DSpaceCommandLineParameter("-c", configuration),
-            new DSpaceCommandLineParameter("-so", "score,DESC")
-        );
+    private List<DSpaceCommandLineParameter> parameters(String query, String configuration,
+                                                        String sorting, String scope, String filters) {
+        List<DSpaceCommandLineParameter> result = new LinkedList<>();
+        result.add(new DSpaceCommandLineParameter("-t", "Publication"));
+        result.add(new DSpaceCommandLineParameter("-f", "publication-marc-xml"));
+        result.add(new DSpaceCommandLineParameter("-q", query));
+        result.add(new DSpaceCommandLineParameter("-c", configuration));
+        result.add(new DSpaceCommandLineParameter("-so", sorting));
+
+        if (StringUtils.isNotBlank(scope)) {
+            result.add(new DSpaceCommandLineParameter("-s", scope));
+        }
+
+        if (StringUtils.isNotBlank(filters)) {
+            result.add(new DSpaceCommandLineParameter("-sf", filters));
+        }
+
         return result;
+    }
+
+    private String buildFilters(List<SearchFilter> searchFilters) {
+        return searchFilters.stream()
+            .map(sf -> sf.getName() + "=" + sf.getValue() + "," + sf.getOperator())
+            .collect(Collectors.joining("&"));
     }
 
     private Bitstream responseFromBitstreams(Context context, List<Bitstream> bitstreams)
