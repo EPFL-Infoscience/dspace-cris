@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugin {
 
-    public static final String BEST_MATCH_INDEX = "bestmatch";
+    public static final String BEST_MATCH_INDEX = "bestmatch_s";
 
     private static final String FIRSTNAME_FIELD = "person.givenName";
 
