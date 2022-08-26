@@ -53,6 +53,10 @@ import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
 import org.apache.velocity.runtime.resource.util.StringResourceRepository;
+import org.dspace.core.EmailUtils.FileAttachment;
+import org.dspace.core.EmailUtils.InputStreamAttachment;
+import org.dspace.core.EmailUtils.UnmodifiableConfigurationService;
+import org.dspace.core.EmailUtils.InputStreamDataSource;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -150,6 +154,8 @@ public class Email {
      * The character set this message will be sent in
      */
     private String charset;
+    
+    private String fullMessage;
 
     private static final Logger LOG = LogManager.getLogger();
 
@@ -186,6 +192,17 @@ public class Email {
         replyTo = null;
         charset = null;
     }
+
+    /**
+     * Create a new email message.
+     */
+    public Email(String subject, String fullMessage) {
+        this();
+        this.subject = subject;
+        this.fullMessage = fullMessage;
+    }
+    
+    
 
     /**
      * Add a recipient
@@ -369,7 +386,7 @@ public class Email {
             throw new MessagingException("Template not merged", ex);
         }
 
-        String fullMessage = writer.toString();
+        this.fullMessage = writer.toString();
 
         if (disabled && fixedRecipients.length > 0) {
             fullMessage += "\n===REAL RECIPIENT===\n";
@@ -593,103 +610,53 @@ public class Email {
         System.out.println("\nEmail sent successfully!\n");
     }
 
-    /**
-     * Utility struct class for handling file attachments.
-     *
-     * @author ojd20
-     */
-    private static class FileAttachment {
-        public FileAttachment(File f, String n) {
-            this.file = f;
-            this.name = n;
-        }
 
-        File file;
-
-        String name;
+    protected String getContent() {
+        return content;
     }
 
-    /**
-     * Utility struct class for handling file attachments.
-     *
-     * @author Adán Román Ruiz at arvo.es
-     */
-    private static class InputStreamAttachment {
-        public InputStreamAttachment(InputStream is, String name, String mimetype) {
-            this.is = is;
-            this.name = name;
-            this.mimetype = mimetype;
-        }
-
-        InputStream is;
-        String mimetype;
-        String name;
+    protected String getContentName() {
+        return contentName;
     }
 
-    /**
-     * @author arnaldo
-     */
-    public static class InputStreamDataSource implements DataSource {
-        private final String name;
-        private final String contentType;
-        private final ByteArrayOutputStream baos;
-
-        InputStreamDataSource(String name, String contentType, InputStream inputStream) throws IOException {
-            this.name = name;
-            this.contentType = contentType;
-            baos = new ByteArrayOutputStream();
-            int read;
-            byte[] buff = new byte[256];
-            while ((read = inputStream.read(buff)) != -1) {
-                baos.write(buff, 0, read);
-            }
-        }
-
-        @Override
-        public String getContentType() {
-            return contentType;
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return new ByteArrayInputStream(baos.toByteArray());
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new IOException("Cannot write to this read-only resource");
-        }
+    protected String getSubject() {
+        return subject;
     }
 
-    /**
-     * Wrap ConfigurationService to prevent templates from modifying
-     * the configuration.
-     */
-    public static class UnmodifiableConfigurationService {
-        private final ConfigurationService configurationService;
-
-        /**
-         * Swallow an instance of ConfigurationService.
-         *
-         * @param cs the real instance, to be wrapped.
-         */
-        public UnmodifiableConfigurationService(ConfigurationService cs) {
-            configurationService = cs;
-        }
-
-        /**
-         * Look up a key in the actual ConfigurationService.
-         *
-         * @param key to be looked up in the DSpace configuration.
-         * @return whatever value ConfigurationService associates with {@code key}.
-         */
-        public String get(String key) {
-            return configurationService.getProperty(key);
-        }
+    protected List<Object> getArguments() {
+        return arguments;
     }
+
+    protected List<String> getRecipients() {
+        return recipients;
+    }
+
+    protected List<String> getCcAddresses() {
+        return ccAddresses;
+    }
+
+    protected String getReplyTo() {
+        return replyTo;
+    }
+
+    protected List<FileAttachment> getAttachments() {
+        return attachments;
+    }
+
+    protected List<InputStreamAttachment> getMoreAttachments() {
+        return moreAttachments;
+    }
+
+    protected String getCharset() {
+        return charset;
+    }
+
+    protected Template getTemplate() {
+        return template;
+    }
+
+    public String getFullMessage() {
+        return fullMessage;
+    }
+    
 }

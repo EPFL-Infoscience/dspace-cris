@@ -1,0 +1,21 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.app.email.template;
+
+import javax.mail.MessagingException;
+
+import org.dspace.core.Context;
+import org.dspace.core.EmailTemplate;
+import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
+
+public interface EmailTemplateService {
+
+    String generateContent(Context context, EmailTemplate emailTemplate, ClaimedTask claimedTask)
+            throws MessagingException;
+
+}

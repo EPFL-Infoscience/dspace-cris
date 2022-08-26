@@ -35,6 +35,35 @@
             </util:list>
         </property>
     </bean>
+    
+    <!--EPFL workflow-->
+    <bean name="epflWorkflow" class="org.dspace.xmlworkflow.state.Workflow">
+        <property name="firstStep" ref="epflstep"/>
+        <property name="steps">
+            <util:list>
+                <ref bean="epflstep"/>
+                <ref bean="editstep"/>
+                <ref bean="finaleditstep"/>
+                <ref bean="checkcorrectionstep"/>
+            </util:list>
+        </property>
+    </bean>
+
+    <bean name="epflstep" class="org.dspace.xmlworkflow.state.Step">
+        <property name="userSelectionMethod" ref="claimaction"/>
+        <property name="role" ref="reviewer"/>
+        <property name="outcomes">
+            <util:map>
+                <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
+                       value-ref="editstep"/>
+            </util:map>
+        </property>
+        <property name="actions">
+            <util:list>
+                <ref bean="reviewaction"/>
+            </util:list>
+        </property>
+    </bean>
 
     <bean name="reviewstep" class="org.dspace.xmlworkflow.state.Step">
         <property name="userSelectionMethod" ref="claimaction"/>
