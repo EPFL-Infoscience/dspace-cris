@@ -25,11 +25,11 @@ public class ChangeSubmitterServiceImpl implements ChangeSubmitterService {
     EPersonService ePersonService;
 
     @Override
-    public void setUpSubmitter(Context context, Item item, String submitterName) throws SQLException, AuthorizeException {
-        if (StringUtils.isBlank(submitterName)) {
+    public void setUpSubmitter(Context context, Item item, String submitterIdentifier) throws SQLException, AuthorizeException {
+        if (StringUtils.isBlank(submitterIdentifier)) {
             return;
         }
-        EPerson submitter = findSubmitter(context, submitterName);
+        EPerson submitter = findSubmitter(context, submitterIdentifier);
         if (Objects.isNull(submitter) || submitter.equals(item.getSubmitter())) {
             return;
         }

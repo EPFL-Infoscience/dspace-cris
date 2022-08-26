@@ -29,6 +29,7 @@ import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,8 +38,10 @@ import org.springframework.web.bind.annotation.RestController;
  * item ID and the submitter's identifier
  */
 @RestController
-@RequestMapping("/api/" + WorkspaceItemRest.CATEGORY + "/" + WorkspaceItemRest.NAME + "/changesubmitter")
+@RequestMapping("/api/" + WorkspaceItemRest.CATEGORY + "/" + WorkspaceItemRest.NAME)
 public class ItemChangeSubmitterController {
+
+    public static final String ACTION = "changesubmitter";
 
     @Autowired
     ItemService itemService;
@@ -65,7 +68,7 @@ public class ItemChangeSubmitterController {
      * @throws SQLException
      * @throws AuthorizeException
      */
-    @PostMapping
+    @RequestMapping(method = RequestMethod.POST, value = ACTION)
     public void postChangeSubmitter(HttpServletRequest request, HttpServletResponse response,
             @RequestParam("itemId") UUID itemID, @RequestParam("submitterIdentifier") String submitterIdentifier)
             throws SQLException, AuthorizeException {
