@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
+import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataFieldName;
@@ -45,6 +46,7 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.utils.DSpace;
 
 /**
  * Shibboleth authentication for DSpace
@@ -97,6 +99,8 @@ public class ShibAuthentication implements AuthenticationMethod {
     protected MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
                                                                                  .getMetadataSchemaService();
     protected ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+
+    protected ProfileInitializer profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
 
 
     /**
@@ -458,7 +462,13 @@ public class ShibAuthentication implements AuthenticationMethod {
     @Override
     public void initEPerson(Context context, HttpServletRequest request,
                             EPerson eperson) throws SQLException {
-        // We don't do anything because all our work is done authenticate and special groups.
+
+        try {
+            profileInitializer.initialize(context, eperson);
+        } catch (Exception ex) {
+            log.error("An error occurs initializing EPerson.", ex);
+        }
+
     }
 
     /**
