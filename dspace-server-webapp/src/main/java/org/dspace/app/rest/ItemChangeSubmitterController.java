@@ -8,8 +8,10 @@
 package org.dspace.app.rest;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -27,7 +29,11 @@ import org.dspace.submit.service.ChangeSubmitterService;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.TemplateVariable;
+import org.springframework.hateoas.TemplateVariables;
+import org.springframework.hateoas.UriTemplate;
+import org.springframework.hateoas.TemplateVariable.VariableType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,6 +48,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ItemChangeSubmitterController {
 
     public static final String ACTION = "changesubmitter";
+    public static final String ITEM_PARAM = "itemId";
+    public static final String SUB_PARAM = "submitterIdentifier";
 
     @Autowired
     ItemService itemService;
@@ -58,6 +66,21 @@ public class ItemChangeSubmitterController {
     @Autowired
     ChangeSubmitterService changeSubmitterService;
 
+    @Autowired
+    DiscoverableEndpointsService discoverableEndpointsService;
+
+    @PostConstruct
+    public void afterPropertiesSet() {
+        discoverableEndpointsService
+                .register(this,
+                        Arrays.asList(Link.of(
+                                UriTemplate.of("/api/" + WorkspaceItemRest.CATEGORY + "/" + WorkspaceItemRest.NAME,
+                                        new TemplateVariables(
+                                                new TemplateVariable(ITEM_PARAM, VariableType.REQUEST_PARAM),
+                                                new TemplateVariable(SUB_PARAM, VariableType.REQUEST_PARAM))),
+                                ACTION)));
+    }
+
     /**
      * Set the new submitter if allowed (must be a curator)
      * 
@@ -70,7 +93,7 @@ public class ItemChangeSubmitterController {
      */
     @RequestMapping(method = RequestMethod.POST, value = ACTION)
     public void postChangeSubmitter(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam("itemId") UUID itemID, @RequestParam("submitterIdentifier") String submitterIdentifier)
+            @RequestParam(ITEM_PARAM) UUID itemID, @RequestParam(SUB_PARAM) String submitterIdentifier)
             throws SQLException, AuthorizeException {
 
         Context context = ContextUtil.obtainContext(request);
@@ -104,6 +127,7 @@ public class ItemChangeSubmitterController {
         }
 
         changeSubmitterService.setUpSubmitter(context, item, submitterIdentifier);
+        context.commit();
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 }

@@ -207,6 +207,31 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                    .andExpect(jsonPath("$.page.totalElements", is(3)))
         ;
     }
+    
+    @Test
+    public void changeSubmitterTest() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson testEPerson = EPersonBuilder.createEPerson(context).withNameInMetadata("John", "Doe")
+                .withEmail("Johndoe@example.com").build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1).withTitle("Item 1").build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", item.getID().toString()).param("submitterIdentifier", "Johndoe@example.com"))
+                .andExpect(status().isNoContent());
+
+        getClient(token).perform(get("/api/core/items/" + item.getID().toString())).andExpect(status().isOk());
+    }
 
     @Test
     public void findAllForbiddenTest() throws Exception {
