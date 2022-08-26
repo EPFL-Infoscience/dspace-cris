@@ -1,0 +1,88 @@
+<record>
+    @group.dc-relation-issn.start@
+    <datafield tag="022" ind1=" " ind2=" ">
+        <subfield code="a">@dc.relation.issn@</subfield>
+    </datafield>
+    @group.dc-relation-issn.end@
+    @group.dc-identifier-doi.start@
+    <datafield tag="024" ind1="7" ind2=" ">
+        <subfield code="2">doi</subfield>
+        <subfield code="a">@dc.identifier.doi@</subfield>
+    </datafield>
+    @group.dc-identifier-doi.end@
+    @group.dc-identifier-arxiv.start@
+    <datafield tag="024" ind1="7" ind2="0">
+        <subfield code="a">@dc.identifier.arxiv@</subfield>
+        <subfield code="2">ArXiv</subfield>
+    </datafield>
+    @group.dc-identifier-arxiv.end@
+    @group.dc-identifier-isi.start@
+    <datafield tag="024" ind1="7" ind2="0">
+        <subfield code="a">@dc.identifier.isi@</subfield>
+        <subfield code="2">isi</subfield>
+    </datafield>
+    @group.dc-identifier-isi.end@
+    @group.dc-identifier-scopus.start@
+    <datafield tag="024" ind1="/" ind2=" ">
+        <subfield code="a">@dc.identifier.scopus@</subfield>
+    </datafield>
+    @group.dc-identifier-scopus.end@
+    @group.dc-identifier-pmid.start@
+    <datafield tag="024" ind1="/" ind2=" ">
+        <subfield code="a">@dc.identifier.pmid@</subfield>
+    </datafield>
+    @group.dc-identifier-pmid.end@
+    <datafield tag="245" ind1=" " ind2=" ">
+        <subfield code="a">@dc.title@</subfield>
+    </datafield>
+    @group.dc-date-issued.start@
+    <datafield tag="260" ind1=" " ind2=" ">
+        <subfield code="c">@dc.date.issued@</subfield>
+    </datafield>
+    @group.dc-date-issued.end@
+    @group.dc-type.start@
+    <datafield tag="336" ind1=" " ind2=" ">
+        <subfield code="a">@virtual.vocabulary.dc-type.leaf@</subfield>
+    </datafield>
+    @group.dc-type.end@
+    @group.dc-description-abstract.start@
+    <datafield tag="520" ind1=" " ind2=" ">
+        <subfield code="a">@dc.description.abstract@</subfield>
+    </datafield>
+    @group.dc-description-abstract.end@
+    @group.dc-subject.start@
+    <datafield tag="653" ind1="1" ind2=" ">
+        <subfield code="a">@dc.subject@</subfield>
+    </datafield>
+    @group.dc-subject.end@
+    @group.dc-contributor-author.start@
+    <datafield tag="700" ind1=" " ind2=" ">
+        <subfield code="a">@dc.contributor.author@</subfield>
+    </datafield>
+    @group.dc-contributor-author.end@
+    @group.dc-relation-conference.start@
+    <datafield tag="711" ind1="2" ind2=" ">
+        <subfield code="a">@dc.relation.conference@</subfield>
+    </datafield>
+    @group.dc-relation-conference.end@
+
+    @if.metadata.dc-relation-ispartof.start@
+    <datafield tag="773" ind1=" " ind2=" ">
+        <subfield code="t">@dc.relation.ispartof@</subfield>
+        @if.metadata.oaire-citation-startPage.start@
+        <subfield code="q">@virtual.fullpage@</subfield>
+        @if.metadata.oaire-citation-startPage.end@
+        <subfield code="k">@dc.relation.ispartofseries@</subfield>
+    </datafield>
+    @if.metadata.dc-relation-ispartof.end@
+    @group.bundle-original.start@
+    <datafield tag="856" ind1="4" ind2=" ">
+        <subfield code="9">@virtual.bitstreamData.original.data.id@</subfield>
+        <subfield code="0">@virtual.bitstreamData.original.metadata.dc-type@</subfield>
+        <subfield code="s">@virtual.bitstreamData.original.data.sizeBytes@</subfield>
+        <subfield code="u">https://epfl-poc.4science.cloud/bitstreams/@virtual.bitstreamData.original.data.id@/download</subfield>
+        <subfield code="e">@virtual.bitstreamData.original.metadata.datacite-rights@</subfield>
+        <subfield code="1">@virtual.bitstreamData.original.metadata.oaire-licenseCondition@</subfield>
+    </datafield>
+    @group.bundle-original.end@
+</record>
