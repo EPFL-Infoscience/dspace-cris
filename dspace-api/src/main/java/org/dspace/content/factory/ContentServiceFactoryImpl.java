@@ -32,6 +32,7 @@ import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
+import org.dspace.submit.service.ChangeSubmitterService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

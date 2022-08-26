@@ -36,6 +36,7 @@ import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.submit.service.ChangeSubmitterService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 /**
