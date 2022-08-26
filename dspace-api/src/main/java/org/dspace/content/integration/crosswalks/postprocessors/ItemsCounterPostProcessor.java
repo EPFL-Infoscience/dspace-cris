@@ -18,10 +18,10 @@ import java.util.function.Consumer;
 public class ItemsCounterPostProcessor implements Consumer<List<String>> {
 
     private static final String COUNTER_FIELD = "#items.counter#";
-    private final String itemPlaceholder;
+    private final String itemLineIdentifier;
 
-    public ItemsCounterPostProcessor(String itemPlaceholder) {
-        this.itemPlaceholder = itemPlaceholder;
+    public ItemsCounterPostProcessor(String itemLineIdentifier) {
+        this.itemLineIdentifier = itemLineIdentifier;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class ItemsCounterPostProcessor implements Consumer<List<String>> {
                 counterLineId = i;
                 continue;
             }
-            if (s.contains(itemPlaceholder)) {
+            if (s.contains(itemLineIdentifier)) {
                 total++;
             }
         }
