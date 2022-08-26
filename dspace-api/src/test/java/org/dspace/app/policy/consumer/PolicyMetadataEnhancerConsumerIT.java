@@ -35,6 +35,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +52,8 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
             .getResourcePolicyService();
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance()
             .getBitstreamService();
+    private ItemService itemService = ContentServiceFactory.getInstance()
+            .getItemService();
 
     @Before
     public void setup() {
@@ -70,6 +73,16 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Item item = ItemBuilder.createItem(context, collection).build();
         context.restoreAuthSystemState();
         context.commit();
+
+        item = context.reloadEntity(item);
+
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+        assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+
+        context.turnOffAuthorisationSystem();
+        this.itemService.update(context, item);
+        context.restoreAuthSystemState();
 
         item = context.reloadEntity(item);
 

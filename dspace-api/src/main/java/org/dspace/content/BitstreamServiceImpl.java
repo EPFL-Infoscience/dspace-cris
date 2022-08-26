@@ -431,8 +431,8 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
                     }
                 }
                 String mimetype = bitstream.getFormat(context).getMIMEType();
-				if (configurationService.getIntProperty("cris.layout.thumbnail.maxsize", 250000) >=
-						bitstream.getSizeBytes() && StringUtils.containsIgnoreCase(mimetype, "image/")) {
+                if (configurationService.getIntProperty("cris.layout.thumbnail.maxsize", 250000) >=
+                        bitstream.getSizeBytes() && StringUtils.containsIgnoreCase(mimetype, "image/")) {
                     return bitstream;
                 }
             }
