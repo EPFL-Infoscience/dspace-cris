@@ -49,6 +49,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * This controller perform a query as if it were performed on DSpace search page, accepting same parameters, and returns
+ * search results (only publications in this implementation) in their marc xml representation.
+ */
 @RestController
 @RequestMapping("/api/" + SearchResultsRest.CATEGORY)
 public class DiscoveryExportController {
@@ -69,6 +73,8 @@ public class DiscoveryExportController {
                                  @RequestParam(value = "spc.sf", required = false) String sort,
                                  @RequestParam(value = "spc.sd", required = false) String sortDirection,
                                  @RequestParam(value = "configuration", required = false) String configuration,
+                                 @RequestParam(value = "spc.page", required = false) String spcPage,
+                                 @RequestParam(value = "spc.rpp", required = false) String resultsPerPage,
                                  List<SearchFilter> searchFilters,
                                  Pageable page) {
 
@@ -77,15 +83,24 @@ public class DiscoveryExportController {
         Context context = ContextUtil.obtainContext(request);
         EPerson user = context.getCurrentUser();
 
-        String sorting = defaultIfBlank(sort, "score") + "," +
-            defaultIfBlank(sortDirection, "DESC");
+        String sorting = defaultIfBlank(sort, "dc.title") + "," +
+            defaultIfBlank(sortDirection, "ASC");
+
+        Integer pageNumber = page.getPageNumber() >= 0 ? page.getPageNumber() :
+            Integer.valueOf(spcPage);
+
+        resultsPerPage = StringUtils.defaultIfBlank(resultsPerPage, "10");
+
+        int limit = Integer.parseInt(resultsPerPage);
 
         List<DSpaceCommandLineParameter> dSpaceCommandLineParameters = parameters(
             defaultIfBlank(query, "*"),
             defaultIfBlank(configuration, "default"),
             sorting,
             scope,
-            buildFilters(searchFilters));
+            buildFilters(searchFilters),
+            pageNumber * limit,
+            limit);
 
         try {
             RestDSpaceRunnableHandler restDSpaceRunnableHandler = new RestDSpaceRunnableHandler(
@@ -113,13 +128,15 @@ public class DiscoveryExportController {
     }
 
     private List<DSpaceCommandLineParameter> parameters(String query, String configuration,
-                                                        String sorting, String scope, String filters) {
+                                                        String sorting, String scope, String filters,
+                                                        Integer offset, Integer limit) {
         List<DSpaceCommandLineParameter> result = new LinkedList<>();
         result.add(new DSpaceCommandLineParameter("-t", "Publication"));
-        result.add(new DSpaceCommandLineParameter("-f", "publication-marc-xml"));
+        result.add(new DSpaceCommandLineParameter("-f", "epfl-publication-marc-xml"));
         result.add(new DSpaceCommandLineParameter("-q", query));
         result.add(new DSpaceCommandLineParameter("-c", configuration));
         result.add(new DSpaceCommandLineParameter("-so", sorting));
+        result.add(new DSpaceCommandLineParameter("-o", String.valueOf(offset)));
 
         if (StringUtils.isNotBlank(scope)) {
             result.add(new DSpaceCommandLineParameter("-s", scope));
@@ -127,6 +144,10 @@ public class DiscoveryExportController {
 
         if (StringUtils.isNotBlank(filters)) {
             result.add(new DSpaceCommandLineParameter("-sf", filters));
+        }
+
+        if (limit > 0) {
+            result.add(new DSpaceCommandLineParameter("-l", String.valueOf(limit)));
         }
 
         return result;
@@ -159,6 +180,9 @@ public class DiscoveryExportController {
 
     private ResponseEntity toResponseEntity(Context context, Bitstream bitstream, HttpServletRequest request,
                                             HttpServletResponse response) throws SQLException, IOException {
+
+        //FIXME: part of this logic is similar to one in org.dspace.app.rest.BitstreamRestController, as further step it
+        // might be centralized and refactored.
 
         HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
             .withBufferSize(BUFFER_SIZE)
