@@ -193,7 +193,6 @@ public class ExternalSourceItemImportRunnable
                 countDataObjects++;
             } catch (Exception e) {
                 handler.logError(e.getMessage(), e);
-                handler.handleException(e.getMessage(), e);
             }
         }
         return countDataObjects;
