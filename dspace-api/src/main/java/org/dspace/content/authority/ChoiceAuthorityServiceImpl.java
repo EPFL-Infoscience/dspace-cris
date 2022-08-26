@@ -413,7 +413,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
             definition2type2authority = new HashMap<Integer, Map<String, ChoiceAuthority>>();
         }
         if (definition2type2authority.containsKey(dsoType)) {
-            type2authority = definition2type2authority.get(fieldKey);
+            type2authority = definition2type2authority.get(dsoType);
         } else {
             type2authority = new HashMap<String, ChoiceAuthority>();
         }
