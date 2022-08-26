@@ -282,6 +282,7 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
         }
 
         solrQuery.addSort(SortClause.desc("date"));
+        solrQuery.addSort(SortClause.asc("suggestion_id"));
         solrQuery.addSort(SortClause.asc("title"));
 
         QueryResponse response = getSolr().query(solrQuery);
