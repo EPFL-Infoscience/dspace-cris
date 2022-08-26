@@ -42,7 +42,7 @@ import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
-import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.EntityService;
@@ -164,9 +164,9 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
                                                                                    .getAuthorityValueService();
     protected ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
-    protected MetadataAuthorityService metadataAuthorityService = ContentAuthorityServiceFactory
+    protected ChoiceAuthorityService choiceAuthorityService = ContentAuthorityServiceFactory
         .getInstance()
-        .getMetadataAuthorityService();
+        .getChoiceAuthorityService();
 
     /**
      * Create an instance of the metadata importer. Requires a context and an array of CSV lines
@@ -1142,7 +1142,8 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
             builder.append("_").append(qualifier);
         }
 
-        boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(builder.toString());
+        boolean isAuthorityControlled = choiceAuthorityService.isChoicesConfigured(builder.toString(),
+                Constants.ITEM, null);
 
         if (fromAuthority != null && isAuthorityControlled) {
             if (value.indexOf(':') > 0) {

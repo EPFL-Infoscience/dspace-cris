@@ -16,6 +16,7 @@ import org.dspace.app.rest.projection.Projection;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.core.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -47,13 +48,24 @@ public class AuthorityUtils {
     @Autowired
     private ConverterService converter;
 
-
+    /**
+     * Please use the choice authority service directly. This method assumes that
+     * you are looking only for general item configuration (no one collection and
+     * dso type specific as value-pairs or controlled-vocabulary)
+     * 
+     * @param schema
+     * @param element
+     * @param qualifier
+     * @return
+     */
+    @Deprecated
     public boolean isChoice(String schema, String element, String qualifier) {
-        return cas.isChoicesConfigured(org.dspace.core.Utils.standardize(schema, element, qualifier, "_"), null);
+        return cas.isChoicesConfigured(org.dspace.core.Utils.standardize(schema, element, qualifier, "_"),
+                Constants.ITEM, null);
     }
 
     public String getAuthorityName(String schema, String element, String qualifier) {
-        return cas.getChoiceAuthorityName(schema, element, qualifier, null);
+        return cas.getChoiceAuthorityName(schema, element, qualifier, Constants.ITEM, null);
     }
 
     public boolean isClosed(String schema, String element, String qualifier) {

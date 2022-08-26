@@ -277,7 +277,7 @@ public class LayoutSecurityServiceImplTest {
                                      securityMetadataField().getElement(), null, Item.ANY, true))
             .thenReturn(metadataValueList);
 
-        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), any()))
+        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), any(), any()))
             .thenReturn("EPersonAuthority");
 
         when(choiceAuthorityService.getChoiceAuthorityByAuthorityName("EPersonAuthority"))
@@ -439,7 +439,7 @@ public class LayoutSecurityServiceImplTest {
             Arrays.asList(metadataValueWithAuthority(securityMetadataField, securityAuthorityUuid.toString()),
                 metadataValueWithAuthority(securityMetadataField, groupUuid.toString()));
 
-        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), any()))
+        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), any(), any()))
             .thenReturn("GroupAuthority");
 
         when(choiceAuthorityService.getChoiceAuthorityByAuthorityName("GroupAuthority"))

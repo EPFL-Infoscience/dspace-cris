@@ -40,7 +40,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.content.authority.Choices;
 import org.dspace.content.dao.ItemDAO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
@@ -56,7 +55,6 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.virtual.VirtualMetadataPopulator;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.I18nUtil;
 import org.dspace.core.LogHelper;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -1558,15 +1556,6 @@ prevent the generation of resource policy entry values with null dspace_object a
         // Now, lets count unique items across that list of collections
         return itemDAO.countItems(context, collections, true, false) + itemDAO.countItems(context, collections,
                 false, true);
-    }
-
-    @Override
-    protected void getAuthoritiesAndConfidences(String fieldKey, Collection collection, List<String> values,
-                                                List<String> authorities, List<Integer> confidences, int i) {
-        String locale = I18nUtil.getDefaultLocale().getLanguage();
-        Choices c = choiceAuthorityService.getBestMatch(fieldKey, values.get(i), collection, locale);
-        authorities.add(c.values.length > 0 && c.values[0] != null ? c.values[0].authority : null);
-        confidences.add(c.confidence);
     }
 
     @Override

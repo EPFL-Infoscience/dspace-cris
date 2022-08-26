@@ -39,6 +39,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.CrisConstants;
 import org.dspace.event.Consumer;
@@ -149,7 +150,7 @@ public class CrisConsumer implements Consumer {
 
             String fieldKey = getFieldKey(metadata);
 
-            if (!choiceAuthorityService.isChoicesConfigured(fieldKey, null)) {
+            if (!choiceAuthorityService.isChoicesConfigured(fieldKey, Constants.ITEM, null)) {
                 continue;
             }
 

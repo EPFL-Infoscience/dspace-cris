@@ -7,9 +7,9 @@
  */
 package org.dspace.content.authority.service;
 
-import java.util.List;
-
+import org.dspace.content.Collection;
 import org.dspace.content.MetadataField;
+import org.dspace.core.Constants;
 
 /**
  * Broker for metadata authority settings configured for each metadata field.
@@ -42,36 +42,29 @@ import org.dspace.content.MetadataField;
 public interface MetadataAuthorityService {
 
     /**
-     * Predicate - is field authority-controlled?
+     * Predicate - is authority value required for field and the specificied dspace
+     * object?
      *
      * @param metadataField metadata field
+     * @param dsoType       the type of dspace object to consider (Item, Bitstream,
+     *                      etc?.) as defined in the {@link Constants}
+     * @param collection    the DSpace collection that own or will own the DSpace
+     *                      Object. It can be <code>null</code>
      * @return true/false
      */
-    public boolean isAuthorityControlled(MetadataField metadataField);
+    public boolean isAuthorityRequired(MetadataField metadataField, int dsoType, Collection collection);
 
     /**
-     * Predicate - is field authority-controlled?
+     * Predicate - is authority value required for field and the specificied dspace object?
      *
-     * @param fieldKey field key
+     * @param fieldKey   field key
+     * @param dsoType    the type of dspace object to consider (Item, Bitstream,
+     *                   etc?.) as defined in the {@link Constants}
+     * @param collection the DSpace collection that own or will own the DSpace
+     *                   Object. It can be <code>null</code>
      * @return true/false
      */
-    public boolean isAuthorityControlled(String fieldKey);
-
-    /**
-     * Predicate - is authority value required for field?
-     *
-     * @param metadataField metadata field
-     * @return true/false
-     */
-    public boolean isAuthorityRequired(MetadataField metadataField);
-
-    /**
-     * Predicate - is authority value required for field?
-     *
-     * @param fieldKey field key
-     * @return true/false
-     */
-    public boolean isAuthorityRequired(String fieldKey);
+    public boolean isAuthorityRequired(String fieldKey, int dsoType, Collection collection);
 
 
     /**
@@ -104,14 +97,6 @@ public interface MetadataAuthorityService {
      * @return the minimal valid level of confidence for the given metadata
      */
     public int getMinConfidence(MetadataField metadataField);
-
-    /**
-     * Return the list of metadata field with authority control. The strings
-     * are in the form <code>schema.element[.qualifier]</code>
-     *
-     * @return the list of metadata field with authority control
-     */
-    public List<String> getAuthorityMetadata();
 
     /**
      * This method has been created to have a way of clearing the cache kept inside the service
