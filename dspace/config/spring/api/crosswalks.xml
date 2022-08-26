@@ -13,7 +13,6 @@
 				<entry key="endnote" value-ref="referCrosswalkEndnote"></entry>
 				
 				<entry key="publication-cerif-xml" value-ref="referCrosswalkPublicationCerifXml"></entry>
-				<entry key="publication-marc-xml" value-ref="referCrosswalkPublicationMarcXml"></entry>
 				<entry key="publication-json" value-ref="cslItemDataCrosswalkJson"></entry>
 				<entry key="publication-pdf" value-ref="pdfCrosswalkPublication"></entry>
 				<entry key="publication-csv" value-ref="csvCrosswalkPublication"></entry>
@@ -70,6 +69,7 @@
 
 				<entry key="epfl-publication" value-ref="epflPublicationsHtml"></entry>
 				<entry key="epfl-publications" value-ref="epflPublicationsHtml"></entry>
+				<entry key="epfl-publication-marc-xml" value-ref="epflPublicationsMarcXml"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -145,13 +145,13 @@
 		<property name="converter" ref="xmlValueConverter" />
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPublicationMarcXml">
-		<property name="templateFileName" value="crosswalks/template/publication-marc-xml.template"/>
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="epflPublicationsMarcXml">
+		<property name="templateFileName" value="crosswalks/template/epfl-publication-marc-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="publication.xml"/>
 		<property name="entityType" value="Publication"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
-		<property name="multipleItemsTemplateFileName" value="crosswalks/template/publications-marc-xml.template"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/epfl-publications-marc-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
 		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
 		<property name="publiclyReadable" value="true"/>
@@ -532,6 +532,7 @@
 				<entry key="date" value-ref="virtualFieldDateFormatter" />
 				<entry key="vocabulary" value-ref="virtualFieldVocabulary" />
                 <entry key="metric" value-ref="virtualFieldMetric" />
+                <entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
 			</map>
 		</constructor-arg>
 	</bean>
@@ -556,6 +557,7 @@
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldDateFormatter" id="virtualFieldDateFormatter"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldVocabulary" id="virtualFieldVocabulary"/>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMetric" id="virtualFieldMetric"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldBitstreamData" id="virtualFieldBitstreamData"/>
 	
 	<!-- MapConverter configuration -->
 
