@@ -180,7 +180,7 @@ public class HandleIdentifierProvider extends IdentifierProvider {
     @Override
     public boolean isGone(Context context, String identifier) throws IdentifierException {
         try {
-            return handleService.isGone(context, identifier);
+            return handleService.isGone(context, handleService.parseHandle(identifier));
         } catch (SQLException sqe) {
             throw new IdentifierException(sqe.getMessage(), sqe);
         }
