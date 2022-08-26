@@ -146,11 +146,12 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         String query = "";
 
-        if (!onlyExactMatches) {
-            query = "(" + itemAuthorityService.getSolrQuery(text) + ") OR ";
+        if (onlyExactMatches) {
+            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(text);
+        } else {
+            itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
+            query = itemAuthorityService.getSolrQuery(text);
         }
-
-        query += BEST_MATCH_INDEX + ":" + escapeQueryChars(text);
 
         SolrQuery solrQuery = new SolrQuery();
         solrQuery.setQuery(query);
