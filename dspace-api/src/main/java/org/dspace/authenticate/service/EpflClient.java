@@ -9,6 +9,7 @@ package org.dspace.authenticate.service;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -26,12 +27,14 @@ public class EpflClient {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    private Map<String, String> persIdMapping = Map.of("G35457", "360892", "G35458", "317953", "G35459", "307818");
+
     public EpflResponse getAccred(String persid) {
 
         HttpUriRequest httpUriRequest = RequestBuilder.get(getAccredUrl())
             .addParameter("app", getApp())
             .addParameter("caller", getCaller())
-            .addParameter("persid", persid)
+            .addParameter("persid", persIdMapping.getOrDefault(persid, persid))
             .addParameter("password", getPassword())
             .addHeader("Accept", "application/json")
             .build();
