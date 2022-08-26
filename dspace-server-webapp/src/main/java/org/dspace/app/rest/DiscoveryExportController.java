@@ -78,6 +78,7 @@ public class DiscoveryExportController {
                                  List<SearchFilter> searchFilters,
                                  Pageable page) {
 
+        // FIXME: try to reuse as much parameter as possible as in original discovery request
 
         ScriptConfiguration scriptToExecute = scriptService.getScriptConfiguration("bulk-item-export");
         Context context = ContextUtil.obtainContext(request);
@@ -86,8 +87,8 @@ public class DiscoveryExportController {
         String sorting = defaultIfBlank(sort, "dc.title") + "," +
             defaultIfBlank(sortDirection, "ASC");
 
-        Integer pageNumber = page.getPageNumber() >= 0 ? page.getPageNumber() :
-            Integer.valueOf(spcPage);
+        Integer pageNumber = Objects.nonNull(spcPage) ? Integer.parseInt(spcPage) :
+            page.getPageNumber();
 
         resultsPerPage = StringUtils.defaultIfBlank(resultsPerPage, "10");
 
@@ -99,7 +100,7 @@ public class DiscoveryExportController {
             sorting,
             scope,
             buildFilters(searchFilters),
-            pageNumber * limit,
+            (Math.max(0,pageNumber - 1)) * limit,
             limit);
 
         try {
