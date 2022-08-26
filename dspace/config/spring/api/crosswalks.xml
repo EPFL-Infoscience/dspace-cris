@@ -513,7 +513,7 @@
 	
 	<bean class="org.dspace.content.integration.crosswalks.postprocessors.JsonPostProcessor" id="jsonPostProcessor" />
 	<bean class="org.dspace.content.integration.crosswalks.postprocessors.ItemsCounterPostProcessor" id="xmlMarcCounterPostProcessor">
-		<constructor-arg name="itemPlaceholder" value="&lt;record"/>
+		<constructor-arg name="itemLineIdentifier" value="&lt;record"/>
 	</bean>
 	
 	<!-- VIRTUAL FIELDS CONFIGURATION -->
