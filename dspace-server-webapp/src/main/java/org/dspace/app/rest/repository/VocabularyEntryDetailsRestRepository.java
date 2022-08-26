@@ -82,7 +82,7 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
         if (source instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(vocabularyId, vocabularyName)) {
             vocabularyId = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + vocabularyId;
         }
-        Choice choice = source.getChoice(id, context.getCurrentLocale().toString());
+        Choice choice = source.getChoice(vocabularyId, context.getCurrentLocale().toString());
         return authorityUtils.convertEntryDetails(choice, vocabularyName, source.isHierarchical(),
                 utils.obtainProjection());
     }
