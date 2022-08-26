@@ -184,5 +184,8 @@
     <bean class="org.dspace.authenticate.OidcAuthenticationBean" id="oidcAuthentication"/>
     <bean class="org.dspace.authenticate.oidc.impl.OidcClientImpl" />
     
+    <bean id="org.dspace.authenticate.service.ProfileInitializer" class="org.dspace.authenticate.service.ProfileInitializer"/>
+    <bean id="org.dspace.authenticate.service.EpflClient" class="org.dspace.authenticate.service.EpflClient"/>
+    
 </beans>
 
