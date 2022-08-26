@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
@@ -41,6 +42,7 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
     private Iterator<IndexableObject> currentSlotIterator;
 
     private boolean uncacheEntitites;
+    private Integer maxResults;
 
     public DiscoverResultIterator(Context context, DiscoverQuery discoverQuery) {
         this(context, null, discoverQuery, true);
@@ -57,18 +59,37 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
     public DiscoverResultIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery,
         boolean uncacheEntities) {
 
+        this(context, scopeObject, discoverQuery, uncacheEntities, null);
+    }
+
+    public DiscoverResultIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery,
+                                  boolean uncacheEntities, Integer maxResults) {
+
         this.context = context;
         this.scopeObject = scopeObject;
         this.discoverQuery = discoverQuery;
         this.iteratorCounter = discoverQuery.getStart();
         this.searchService = SearchUtils.getSearchService();
         this.uncacheEntitites = uncacheEntities;
+        this.maxResults = Objects.isNull(maxResults) ? null : iteratorCounter + maxResults;
 
         updateCurrentSlotIterator();
     }
 
+    public DiscoverResultIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery,
+                                  Integer maxResults) {
+        this(context, scopeObject, discoverQuery, true, maxResults);
+    }
+
+    public DiscoverResultIterator(Context context, DiscoverQuery discoverQuery, Integer maxResults) {
+        this(context, null, discoverQuery, true, maxResults);
+    }
+
     @Override
     public boolean hasNext() {
+        if (Objects.nonNull(maxResults) && iteratorCounter >= maxResults) {
+            return false;
+        }
         if (currentSlotIterator.hasNext()) {
             return true;
         }
