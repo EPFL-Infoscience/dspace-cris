@@ -78,7 +78,8 @@ public class DiscoveryExportController {
                                  List<SearchFilter> searchFilters,
                                  Pageable page) {
 
-        // FIXME: try to reuse as much parameter as possible as in original discovery request
+        // FIXME: try to reuse as much parameter as possible as in original discovery request, all parameter set,
+        //  mapping search page frontend request could be handled in a different way.
 
         ScriptConfiguration scriptToExecute = scriptService.getScriptConfiguration("bulk-item-export");
         Context context = ContextUtil.obtainContext(request);
