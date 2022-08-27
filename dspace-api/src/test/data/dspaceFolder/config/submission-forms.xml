@@ -1679,6 +1679,18 @@ You can leave out the day and/or month if they aren't applicable.</hint>
           <hint>Enter the affiliation of the author as stated on the publication.</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>Type</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <vocabulary>srsc</vocabulary>
+          <required />
+          <hint>Select a subject from the vocabulary.</hint>
+        </field>
+      </row>
    </form>
 
    <form name="sampleauthority">

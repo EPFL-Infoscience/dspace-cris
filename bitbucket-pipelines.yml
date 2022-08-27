@@ -22,7 +22,7 @@ definitions:
         script:
           - export MAVEN_OPTS="-Xmx4096M"
           - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
-          - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2 -Dtest.argLine=-Xmx4096M
+          - mvn clean install license:check -DskipUnitTests=true -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2 -Dtest.argLine=-Xmx4096M
 
 pipelines:
   branches:
@@ -37,7 +37,8 @@ pipelines:
           - step: *unit-test-code-checks
           - step: *integration-tests
   custom:
-    manual:
-       - step: *unit-test-code-checks
+    integration:
        - step: *integration-tests
+    unit:
+       - step: *unit-test-code-checks
 

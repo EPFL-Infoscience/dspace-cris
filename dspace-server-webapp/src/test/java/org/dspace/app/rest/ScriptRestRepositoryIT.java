@@ -66,6 +66,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.ProcessStatus;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.CrisConstants;
 import org.dspace.discovery.SolrServiceValuePairsIndexPlugin;
@@ -76,6 +77,7 @@ import org.dspace.scripts.Process;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -105,9 +107,14 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     @Autowired
     private MetadataAuthorityService metadataAuthorityService;
 
+    @Autowired
+    private ChoiceAuthorityService choiceAuthorityService;
+
     @After
     public void after() {
+        DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
         metadataAuthorityService.clearCache();
+        choiceAuthorityService.clearCache();
     }
 
     @Test

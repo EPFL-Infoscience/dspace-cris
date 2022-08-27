@@ -24,6 +24,7 @@ import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.validation.model.ValidationError;
 
@@ -69,14 +70,17 @@ public class MetadataValidator implements SubmissionStepValidator {
 
         for (DCInput[] row : inputConfig.getFields()) {
             for (DCInput input : row) {
-                String fieldKey =
-                    metadataAuthorityService.makeFieldKey(input.getSchema(), input.getElement(), input.getQualifier());
-                boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(fieldKey);
-
                 // skip validation if field is NOT allowed for the current document type
                 if (!input.isAllowedFor(typeBindChoice)) {
                     continue;
                 }
+
+                String fieldKey = metadataAuthorityService.makeFieldKey(input.getSchema(), input.getElement(),
+                        input.getQualifier());
+                boolean isAuthorityControlled = metadataAuthorityService.isAuthorityAllowed(fieldKey, Constants.ITEM,
+                        obj.getCollection());
+                boolean isAuthorityRequired = isAuthorityControlled
+                        && metadataAuthorityService.isAuthorityRequired(fieldKey, Constants.ITEM, obj.getCollection());
 
                 List<String> fieldsName = new ArrayList<String>();
                 if (input.isQualdropValue()) {
@@ -87,7 +91,8 @@ public class MetadataValidator implements SubmissionStepValidator {
                     for (int i = 1; i < inputPairs.size(); i += 2) {
                         String fullFieldname = input.getFieldName() + "." + (String) inputPairs.get(i);
                         List<MetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(), fullFieldname);
-                        validateMetadataValues(mdv, input, config, isAuthorityControlled, fieldKey, errors);
+                        validateMetadataValues(mdv, input, config, isAuthorityControlled, isAuthorityRequired,
+                                fieldKey, errors);
                         if (mdv.size() > 0 && input.isVisible(DCInput.SUBMISSION_SCOPE)) {
                             foundResult = true;
                         }
@@ -105,7 +110,8 @@ public class MetadataValidator implements SubmissionStepValidator {
 
                 for (String fieldName : fieldsName) {
                     List<MetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(), fieldName);
-                    validateMetadataValues(mdv, input, config, isAuthorityControlled, fieldKey, errors);
+                    validateMetadataValues(mdv, input, config, isAuthorityControlled, isAuthorityRequired,
+                            fieldKey, errors);
                     if ((input.isRequired() && mdv.size() == 0) && input.isVisible(DCInput.SUBMISSION_SCOPE)) {
                         // since this field is missing add to list of error
                         // fields
@@ -128,7 +134,7 @@ public class MetadataValidator implements SubmissionStepValidator {
     }
 
     private void validateMetadataValues(List<MetadataValue> mdv, DCInput input, SubmissionStepConfig config,
-        boolean isAuthorityControlled, String fieldKey, List<ValidationError> errors) {
+        boolean isAuthorityControlled, boolean isAuthorityRequired, String fieldKey, List<ValidationError> errors) {
         for (MetadataValue md : mdv) {
             if (! (input.validate(md.getValue()))) {
                 addError(errors, ERROR_VALIDATION_REGEX,
@@ -137,8 +143,7 @@ public class MetadataValidator implements SubmissionStepValidator {
             }
             if (isAuthorityControlled) {
                 String authKey = md.getAuthority();
-                if (metadataAuthorityService.isAuthorityRequired(fieldKey) &&
-                    StringUtils.isBlank(authKey)) {
+                if (isAuthorityRequired && StringUtils.isBlank(authKey)) {
                     addError(errors, ERROR_VALIDATION_AUTHORITY_REQUIRED,
                         "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() +
                             "/" + input.getFieldName() + "/" + md.getPlace());

@@ -54,17 +54,19 @@ public class VocabularyEntryDetailsParentLinkRepository extends AbstractDSpaceRe
 
         ChoiceAuthority authority = choiceAuthorityService.getChoiceAuthorityByAuthorityName(vocabularyName);
         Choice choice = null;
+        boolean fix = false;
         if (StringUtils.isNotBlank(id) && authority != null && authority.isHierarchical()) {
             //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
             // build a vocabulary entry details ID
             if (authority instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(id, vocabularyName)) {
+                fix = true;
                 id = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + id;
             }
             choice = choiceAuthorityService.getParentChoice(vocabularyName, id, context.getCurrentLocale().toString());
         } else {
             throw new NotFoundException();
         }
-        return authorityUtils.convertEntryDetails(choice, vocabularyName, authority.isHierarchical(),
+        return authorityUtils.convertEntryDetails(fix, choice, vocabularyName, authority.isHierarchical(),
                 utils.obtainProjection());
     }
 }
