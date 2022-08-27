@@ -20,7 +20,6 @@
         <property name="name" value="submission-form"/>
         <property name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
         <property name="metadataAuthorityService" ref="org.dspace.content.authority.MetadataAuthorityServiceImpl"/>
-        <property name="choiceAuthorityService" ref="org.dspace.content.authority.ChoiceAuthorityServiceImpl"/>
     </bean>
 
     <bean name="uploadValidation" class="org.dspace.validation.UploadValidator">

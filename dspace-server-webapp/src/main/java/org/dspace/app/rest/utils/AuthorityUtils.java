@@ -76,20 +76,31 @@ public class AuthorityUtils {
         return cas.getPresentation(org.dspace.core.Utils.standardize(schema, element, qualifier, "_"));
     }
 
-    /*
+    /**
+     * TODO the authorityName MUST be a part of Choice model
+     *
+     * @param fix           if true mean that we need to deal with a
+     *                      DSpaceControlledVocabulary that requires to have the
+     *                      vocabulary name in both the authority than in the entry
+     *                      id. An entry id with a double vocabulary name would cause issue to angular
+     *                      if the vocabulary entry was requested using just one occurrence of the name
+     *                      FIXME hack to deal with an improper use on the angular side of the node id
+     *                      (otherinformation.id) to build a vocabulary entry details ID
      * @param choice
      * @param authorityName
-     * @param projection the name of the projection to use, or {@code null}.
+     * @param projection    the name of the projection to use, or {@code null}.
      * @return
      */
-    public VocabularyEntryDetailsRest convertEntryDetails(Choice choice, String authorityName,
-           boolean isHierarchical, Projection projection) {
+    public VocabularyEntryDetailsRest convertEntryDetails(boolean fix, Choice choice, String authorityName,
+            boolean isHierarchical, Projection projection) {
         if (choice == null) {
             return null;
         }
         VocabularyEntryDetailsRest entry = converter.toRest(choice, projection);
         entry.setVocabularyName(authorityName);
-        entry.setId(entry.getId());
+        if (!fix) {
+            entry.setId(authorityName + ":" + entry.getId());
+        }
         entry.setInHierarchicalVocabulary(isHierarchical);
         return entry;
     }

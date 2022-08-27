@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,7 +41,7 @@ import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
-import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.EntityService;
@@ -87,11 +86,6 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
      * The lines to import
      */
     List<DSpaceCSVLine> toImport;
-
-    /**
-     * The authority controlled fields
-     */
-    protected static Set<String> authorityControlled;
 
     /**
      * The prefix of the authority controlled field
@@ -164,9 +158,9 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
                                                                                    .getAuthorityValueService();
     protected ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
-    protected ChoiceAuthorityService choiceAuthorityService = ContentAuthorityServiceFactory
+    protected MetadataAuthorityService metadataAuthorityService = ContentAuthorityServiceFactory
         .getInstance()
-        .getChoiceAuthorityService();
+        .getMetadataAuthorityService();
 
     /**
      * Create an instance of the metadata importer. Requires a context and an array of CSV lines
@@ -193,9 +187,6 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
         // Find the EPerson, assign to context
         assignCurrentUserInContext(c);
 
-        if (authorityControlled == null) {
-            setAuthorizedMetadataFields();
-        }
         // Read commandLines from the CSV file
         try {
 
@@ -1142,7 +1133,7 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
             builder.append("_").append(qualifier);
         }
 
-        boolean isAuthorityControlled = choiceAuthorityService.isChoicesConfigured(builder.toString(),
+        boolean isAuthorityControlled = metadataAuthorityService.isAuthorityAllowed(builder.toString(),
                 Constants.ITEM, null);
 
         if (fromAuthority != null && isAuthorityControlled) {
@@ -1374,25 +1365,10 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
     /**
      * is the field is defined as authority controlled
      */
-    private static boolean isAuthorityControlledField(String md) {
+    private boolean isAuthorityControlledField(String md) {
         String mdf = StringUtils.substringAfter(md, ":");
         mdf = StringUtils.substringBefore(mdf, "[");
-        return authorityControlled.contains(mdf);
-    }
-
-    /**
-     * Set authority controlled fields
-     */
-    private void setAuthorizedMetadataFields() {
-        authorityControlled = new HashSet<>();
-        Enumeration propertyNames = configurationService.getProperties().propertyNames();
-        while (propertyNames.hasMoreElements()) {
-            String key = ((String) propertyNames.nextElement()).trim();
-            if (key.startsWith(AC_PREFIX)
-                && configurationService.getBooleanProperty(key, false)) {
-                authorityControlled.add(key.substring(AC_PREFIX.length()));
-            }
-        }
+        return metadataAuthorityService.isAuthorityAllowed(mdf.replaceAll("\\.", "_"), Constants.ITEM, null);
     }
 
     /**

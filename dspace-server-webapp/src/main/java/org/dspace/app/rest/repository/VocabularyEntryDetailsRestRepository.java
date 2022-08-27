@@ -77,14 +77,22 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
         String vocabularyName = parts[0];
         String vocabularyId = parts[1];
         ChoiceAuthority source = cas.getChoiceAuthorityByAuthorityName(vocabularyName);
+        Choice choice = source.getChoice(vocabularyId, context.getCurrentLocale().toString());
         //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
         // build a vocabulary entry details ID
+        boolean fix = false;
         if (source instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(vocabularyId, vocabularyName)) {
-            vocabularyId = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + vocabularyId;
+            fix = true;
         }
-        Choice choice = source.getChoice(vocabularyId, context.getCurrentLocale().toString());
-        return authorityUtils.convertEntryDetails(choice, vocabularyName, source.isHierarchical(),
-                utils.obtainProjection());
+        VocabularyEntryDetailsRest entryDetails = authorityUtils.convertEntryDetails(fix, choice, vocabularyName,
+                source.isHierarchical(), utils.obtainProjection());
+        //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
+        // build a vocabulary entry details ID
+        if (source instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(vocabularyId, vocabularyName)
+                && entryDetails != null) {
+            entryDetails.setId(id);
+        }
+        return entryDetails;
     }
 
     @SearchRestMethod(name = "top")
@@ -97,8 +105,15 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
         if (source.isHierarchical()) {
             Choices choices = cas.getTopChoices(vocabularyId, (int)pageable.getOffset(), pageable.getPageSize(),
                     context.getCurrentLocale().toString());
+            //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
+            // build a vocabulary entry details ID
+            boolean fix = false;
+            if (source instanceof DSpaceControlledVocabulary) {
+                //FIXME this will stop to work once angular starts to deal with the proper form of the entry id...
+                fix = true;
+            }
             for (Choice value : choices.values) {
-                results.add(authorityUtils.convertEntryDetails(value, vocabularyId, source.isHierarchical(),
+                results.add(authorityUtils.convertEntryDetails(fix, value, vocabularyId, source.isHierarchical(),
                         utils.obtainProjection()));
             }
             Page<VocabularyEntryDetailsRest> resources = new PageImpl<VocabularyEntryDetailsRest>(results, pageable,

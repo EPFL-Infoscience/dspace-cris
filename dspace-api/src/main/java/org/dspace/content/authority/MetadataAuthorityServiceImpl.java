@@ -12,8 +12,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.util.DCInput;
+import org.dspace.app.util.DCInputSet;
+import org.dspace.app.util.DCInputsReader;
+import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.app.util.SubmissionConfig;
+import org.dspace.app.util.SubmissionConfigReader;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.content.Collection;
 import org.dspace.content.MetadataField;
 import org.dspace.content.authority.service.MetadataAuthorityService;
@@ -21,6 +29,8 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
 import org.dspace.core.service.PluginService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.submit.model.UploadConfiguration;
+import org.dspace.submit.model.UploadConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -57,6 +67,12 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
 
     private static final String AUTH_PREFIX = "authority.controlled";
 
+    // the item submission reader
+    private SubmissionConfigReader itemSubmissionConfigReader;
+
+    @Autowired(required = true)
+    protected UploadConfigurationService uploadConfigurationService;
+
     @Autowired(required = true)
     protected PluginService pluginService;
 
@@ -64,9 +80,24 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
     protected MetadataFieldService metadataFieldService;
 
     @Autowired(required = true)
+    protected AuthorityServiceUtils authorityServiceUtils;
+
+    @Autowired(required = true)
     protected ConfigurationService configurationService;
 
-    // map of field key to answer of whether field requires the use of an authority
+    // map of field key that allow use of authorities
+    // this comes from the dspace.cfg via the authority.controlled.* properties for
+    // general controlled fields or from the submission forms for fields that are
+    // controlled for specific collection (value-pairs or vocabularies)
+    // for collection specific fields the map use as key the submission-name
+    // for item's controlled metadata or the form-name for bitstream's controlled
+    // metadata (i.e. tradition.dc.type is the key for the item dc.type of a collection
+    // using the traditional submission and bitstream-metadata.dc.type is the key for
+    // the metadata dc.type of bitstream included in the tradition submission that has
+    // an upload step that refers to the bitstream-metadata form
+    protected Map<String, Boolean> controlled = new HashMap<>();
+
+    // map of field key to answer of whether field is required to be controlled
     protected Map<String, Boolean> isAuthorityRequired = null;
 
     /**
@@ -87,6 +118,13 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
     private synchronized void init() {
 
         if (isAuthorityRequired == null) {
+            try {
+                itemSubmissionConfigReader = new SubmissionConfigReader();
+            } catch (SubmissionConfigReaderException e) {
+                // the system is in an illegal state as the submission definition is not valid
+                throw new IllegalStateException("Error reading the item submission configuration: " + e.getMessage(),
+                        e);
+            }
             isAuthorityRequired = new HashMap<>();
             List<String> keys = configurationService.getPropertyKeys(AUTH_PREFIX);
             Context context = new Context();
@@ -119,6 +157,7 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
                     }
                     boolean ctl = configurationService.getBooleanProperty(key, true);
                     boolean req = configurationService.getBooleanProperty("authority.required." + field, false);
+                    controlled.put(metadataField.toString(), ctl);
                     isAuthorityRequired.put(metadataField.toString(), req);
 
                     // get minConfidence level for this field if any
@@ -130,6 +169,7 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
                         "Authority Control: For schema=" + schema + ", elt=" + element + ", qual=" + qualifier +
                             ", controlled=" + ctl + ", required=" + req);
                 }
+                autoRegisterControlledAuthorityFromInputReader();
             } catch (SQLException e) {
                 log.error("Error reading authority config", e);
             }
@@ -138,6 +178,74 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
             int dmc = readConfidence("authority.minconfidence");
             if (dmc >= Choices.CF_UNSET) {
                 defaultMinConfidence = dmc;
+            }
+        }
+    }
+
+    /**
+     * Add to the list of controlled metadata all the fields that are linked to a
+     * vocabulary that actually store an authority
+     */
+    private void autoRegisterControlledAuthorityFromInputReader() {
+        try {
+            List<SubmissionConfig> submissionConfigs = itemSubmissionConfigReader
+                    .getAllSubmissionConfigs(Integer.MAX_VALUE, 0);
+            DCInputsReader dcInputsReader = new DCInputsReader();
+
+            // loop over all the defined item submission configuration
+            for (SubmissionConfig subCfg : submissionConfigs) {
+                String submissionName = subCfg.getSubmissionName();
+                List<DCInputSet> inputsBySubmissionName = dcInputsReader.getInputsBySubmissionName(submissionName);
+                autoRegisterControlledAuthorityFromSubmissionForms(submissionName, inputsBySubmissionName);
+            }
+            // loop over all the defined bitstream metadata submission configuration
+            for (UploadConfiguration uploadCfg : uploadConfigurationService.getMap().values()) {
+                String formName = uploadCfg.getMetadata();
+                DCInputSet inputByFormName = dcInputsReader.getInputsByFormName(formName);
+                autoRegisterControlledAuthorityFromSubmissionForms(formName, List.of(inputByFormName));
+            }
+        } catch (DCInputsReaderException e) {
+            // the system is in an illegal state as the submission definition is not valid
+            throw new IllegalStateException("Error reading the item submission configuration: " + e.getMessage(),
+                    e);
+        }
+
+    }
+
+    private void autoRegisterControlledAuthorityFromSubmissionForms(String submissionName,
+            List<DCInputSet> inputsBySubmissionName) {
+        // loop over the submission forms configuration eventually associated with the
+        // submission panel
+        for (DCInputSet dcinputSet : inputsBySubmissionName) {
+            DCInput[][] dcinputs = dcinputSet.getFields();
+            for (DCInput[] dcrows : dcinputs) {
+                for (DCInput dcinput : dcrows) {
+                    // for each input in the form check if it is associated with a real value pairs
+                    // or an xml vocabulary
+                    String authorityName = null;
+                    if (StringUtils.isNotBlank(dcinput.getPairsType())
+                            && !StringUtils.equals(dcinput.getInputType(), "qualdrop_value")) {
+                        authorityName = dcinput.getPairsType();
+                    } else if (StringUtils.isNotBlank(dcinput.getVocabulary())) {
+                        authorityName = dcinput.getVocabulary();
+                    }
+
+                    // do we have an authority?
+                    if (StringUtils.isNotBlank(authorityName)) {
+                        String fieldKey = makeFieldKey(dcinput.getSchema(), dcinput.getElement(),
+                                dcinput.getQualifier());
+                        ChoiceAuthority ca = (ChoiceAuthority) pluginService.getNamedPlugin(
+                                ChoiceAuthority.class, authorityName);
+                        if (ca == null) {
+                            throw new IllegalStateException("Invalid configuration for " + fieldKey
+                                    + " in submission definition " + submissionName + ", form definition "
+                                    + dcinputSet.getFormName() + " no named plugin found: " + authorityName);
+                        }
+                        if (ca.storeAuthorityInMetadata()) {
+                            controlled.put(submissionName + "." + fieldKey, true);
+                        }
+                    }
+                }
             }
         }
     }
@@ -155,6 +263,25 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
             }
         }
         return Choices.CF_UNSET - 1;
+    }
+
+    @Override
+    public boolean isAuthorityAllowed(MetadataField metadataField, int dsoType, Collection collection) {
+        init();
+        return isAuthorityAllowed(makeFieldKey(metadataField), dsoType, collection);
+    }
+
+    @Override
+    public boolean isAuthorityAllowed(String fieldKey, int dsoType, Collection collection) {
+        init();
+        if (controlled.containsKey(fieldKey) && controlled.get(fieldKey)) {
+            return true;
+        } else if (collection != null) {
+            String subName = authorityServiceUtils.getSubmissionOrFormName(itemSubmissionConfigReader, dsoType,
+                    collection);
+            return controlled.containsKey(subName + "." + fieldKey) && controlled.get(subName + "." + fieldKey);
+        }
+        return false;
     }
 
     @Override
@@ -202,6 +329,7 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
 
     @Override
     public void clearCache() {
+        controlled.clear();
         minConfidence.clear();
         isAuthorityRequired = null;
     }

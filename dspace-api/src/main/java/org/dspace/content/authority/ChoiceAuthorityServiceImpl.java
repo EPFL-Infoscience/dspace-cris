@@ -26,7 +26,6 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
-import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Collection;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -79,9 +78,13 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     private boolean initialized = false;
 
     // map of authority name to field keys (the same authority can be configured over multiple metadata)
+    // the keys used by this cache are unique across all the dso type so there is
+    // no need to add a dsoType (int key) level
     protected Map<String, List<String>> authorities = new HashMap<String, List<String>>();
 
     // map of authority name to form definition and field keys
+    // the keys used by this cache are unique across all the dso type so there is
+    // no need to add a dsoType (int key) level
     protected Map<String, Map<String, List<String>>> authoritiesFormDefinitions =
             new HashMap<String, Map<String, List<String>>>();
 
@@ -94,6 +97,8 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     protected PluginService pluginService;
     @Autowired(required = true)
     protected UploadConfigurationService uploadConfigurationService;
+    @Autowired(required = true)
+    protected AuthorityServiceUtils authorityServiceUtils;
 
     final static String CHOICES_PLUGIN_PREFIX = "choices.plugin.";
     final static String CHOICES_PRESENTATION_PREFIX = "choices.presentation.";
@@ -360,7 +365,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                         }
 
                         addAuthorityToFormCacheMap(dsoType, submissionName, fieldKey, ca);
-                        addFormDetailsToAuthorityCacheMap(dsoType, submissionName, authorityName, fieldKey);
+                        addFormDetailsToAuthorityCacheMap(submissionName, authorityName, fieldKey);
                     }
                 }
             }
@@ -375,7 +380,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
      * @param authorityName  the name of the authority plugin
      * @param fieldKey       the field key that use the authority
      */
-    private void addFormDetailsToAuthorityCacheMap(int dsoType, String submissionName, String authorityName,
+    private void addFormDetailsToAuthorityCacheMap(String submissionName, String authorityName,
             String fieldKey) {
         Map<String, List<String>> submissionDefinitionNames2fieldKeys;
         if (authoritiesFormDefinitions.containsKey(authorityName)) {
@@ -498,7 +503,8 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
             SubmissionConfigReader configReader;
             try {
                 configReader = new SubmissionConfigReader();
-                String submissionName = getSubmissionFormName(configReader, dsoType, collection);
+                String submissionName = authorityServiceUtils.getSubmissionOrFormName(configReader, dsoType,
+                        collection);
                 if (submissionName == null) {
                     log.warn("No submission name was found for object type " + dsoType + " in collection "
                             + collection.getHandle());
@@ -518,25 +524,6 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
             }
         }
         return ma;
-    }
-
-    private String getSubmissionFormName(SubmissionConfigReader configReader, int dsoType,
-            Collection collection) {
-        switch (dsoType) {
-            case Constants.ITEM:
-                return configReader.getSubmissionConfigByCollection(collection).getSubmissionName();
-            case Constants.BITSTREAM:
-                SubmissionConfig subCfg = configReader.getSubmissionConfigByCollection(collection);
-                for (int i = 0; i < subCfg.getNumberOfSteps(); i++) {
-                    SubmissionStepConfig step = subCfg.getStep(i);
-                    if (SubmissionStepConfig.UPLOAD_STEP_NAME.equalsIgnoreCase(step.getType())) {
-                        return uploadConfigurationService.getMap().get(step.getId()).getMetadata();
-                    }
-                }
-                return null;
-            default:
-                return null;
-        }
     }
 
     /**

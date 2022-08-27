@@ -22,7 +22,6 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -54,8 +53,6 @@ public class MetadataValidator implements SubmissionStepValidator {
 
     private MetadataAuthorityService metadataAuthorityService;
 
-    private ChoiceAuthorityService choiceAuthorityService;
-
     private String name;
 
     @Override
@@ -80,7 +77,7 @@ public class MetadataValidator implements SubmissionStepValidator {
 
                 String fieldKey = metadataAuthorityService.makeFieldKey(input.getSchema(), input.getElement(),
                         input.getQualifier());
-                boolean isAuthorityControlled = choiceAuthorityService.isChoicesConfigured(fieldKey, Constants.ITEM,
+                boolean isAuthorityControlled = metadataAuthorityService.isAuthorityAllowed(fieldKey, Constants.ITEM,
                         obj.getCollection());
                 boolean isAuthorityRequired = isAuthorityControlled
                         && metadataAuthorityService.isAuthorityRequired(fieldKey, Constants.ITEM, obj.getCollection());

@@ -42,6 +42,28 @@ import org.dspace.core.Constants;
 public interface MetadataAuthorityService {
 
     /**
+     * Predicate - is field allowing authority?
+     *
+     * @param metadataField metadata field
+     * @param dsoType       the type of dspace object to consider (Item, Bitstream,
+     *                      etc?.) as defined in the {@link Constants}
+     * @param collection    the DSpace collection that own or will own the DSpace
+     * @return true/false
+     */
+    public boolean isAuthorityAllowed(MetadataField metadataField, int dsoType, Collection collection);
+
+    /**
+     * Predicate - is field allowing authority?
+     *
+     * @param fieldKey field key
+     * @param dsoType       the type of dspace object to consider (Item, Bitstream,
+     *                      etc?.) as defined in the {@link Constants}
+     * @param collection    the DSpace collection that own or will own the DSpace
+     * @return true/false
+     */
+    public boolean isAuthorityAllowed(String fieldKey, int dsoType, Collection collection);
+
+    /**
      * Predicate - is authority value required for field and the specificied dspace
      * object?
      *

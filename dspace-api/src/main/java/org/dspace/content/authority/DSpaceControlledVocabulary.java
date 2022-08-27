@@ -233,7 +233,11 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
     @Override
     public Choice getChoice(String authKey, String locale) {
         init();
-        String authorityName = getAuthorityNameFromAuthorityKey(authKey);
+        //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
+        // build a vocabulary entry details ID
+        if (!StringUtils.startsWith(authKey, vocabularyName)) {
+            authKey = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + authKey;
+        }
         String nodeId = getNodeIdFromAuthorityKey(authKey);
         Node node;
         try {
@@ -241,7 +245,7 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
         } catch (XPathExpressionException e) {
             return null;
         }
-        return createChoiceFromNode(authorityName, node);
+        return createChoiceFromNode(vocabularyName, node);
     }
 
     @Override
@@ -289,16 +293,6 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Hiera
             String[] split = authKey.split(ID_SPLITTER, 2);
             if (split.length == 2) {
                 return split[1];
-            }
-        }
-        return null;
-    }
-
-    private String getAuthorityNameFromAuthorityKey(String authKey) {
-        if (StringUtils.isNotBlank(authKey)) {
-            String[] split = authKey.split(ID_SPLITTER, 2);
-            if (split.length == 2) {
-                return split[0];
             }
         }
         return null;

@@ -341,9 +341,10 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                 String authority = null;
                 String preferedLabel = null;
                 List<String> variants = null;
-                boolean isAuthorityControlled = choiceAuthorityService
-                        .isChoicesConfigured(metadataField.toString(), item.getType(), item.getOwningCollection());
-
+                boolean isAuthorityControlled = metadataAuthorityService
+                        .isAuthorityAllowed(metadataField, item.getType(), collection);
+                boolean hasChoiceAuthority = choiceAuthorityService.isChoicesConfigured(metadataField.toString(),
+                        item.getType(), collection);
                 int minConfidence = isAuthorityControlled ? metadataAuthorityService
                         .getMinConfidence(metadataField) : Choices.CF_ACCEPTED;
 
@@ -377,7 +378,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                                                                 Boolean.FALSE),
                                                 true);
 
-                        if (!ignorePrefered) {
+                        if (!ignorePrefered && hasChoiceAuthority) {
                             try {
                                 preferedLabel = choiceAuthorityService.getLabel(meta, Constants.ITEM, collection,
                                         meta.getLanguage());
@@ -397,7 +398,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                                                         .getPropertyAsType("discovery.index.authority.ignore-variants",
                                                                 Boolean.FALSE),
                                                 true);
-                        if (!ignoreVariants) {
+                        if (!ignoreVariants && hasChoiceAuthority) {
                             try {
                                 variants = choiceAuthorityService
                                     .getVariants(meta, Constants.ITEM, collection);
