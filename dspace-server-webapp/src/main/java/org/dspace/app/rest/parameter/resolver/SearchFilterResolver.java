@@ -11,6 +11,8 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
@@ -43,6 +45,7 @@ public class SearchFilterResolver implements HandlerMethodArgumentResolver {
         List<SearchFilter> result = new LinkedList<>();
 
         Iterator<String> parameterNames = webRequest.getParameterNames();
+        DateFilter dateFilter = null;
         while (parameterNames != null && parameterNames.hasNext()) {
             String parameterName = parameterNames.next();
 
@@ -52,17 +55,40 @@ public class SearchFilterResolver implements HandlerMethodArgumentResolver {
                 for (String value : webRequest.getParameterValues(parameterName)) {
                     String filterValue = StringUtils.substringBeforeLast(value, FILTER_OPERATOR_SEPARATOR);
                     String filterOperator = StringUtils.substringAfterLast(value, FILTER_OPERATOR_SEPARATOR);
-                    this.checkIfValidOperator(filterOperator);
-                    result.add(new SearchFilter(filterName, filterOperator, filterValue));
+                    boolean dateParameter = isDateParameter(filterName);
+                    if (dateParameter) {
+                        dateFilter = Objects.isNull(dateFilter) ? new DateFilter() : dateFilter;
+                        updateDateFilter(dateFilter, filterName, filterValue);
+                    } else {
+                        this.checkIfValidOperator(filterOperator);
+                    }
+                    if (!dateParameter) {
+                        result.add(new SearchFilter(filterName, filterOperator, filterValue));
+                    }
                 }
+
             }
         }
+        Optional.ofNullable(dateFilter)
+                .ifPresent(df -> result.add(df.toSearchFilter()));
 
         if (parameter.getParameterType().equals(SearchFilter.class)) {
             return result.isEmpty() ? null : result.get(0);
         } else {
             return result;
         }
+    }
+
+    private void updateDateFilter(DateFilter dateFilter, String filterName, String filterValue) {
+        if (Objects.isNull(dateFilter)) {
+            dateFilter = new DateFilter();
+        }
+        dateFilter.update(filterName, filterValue);
+    }
+
+    private boolean isDateParameter(String filterName) {
+        return filterName.startsWith("date")
+            && (filterName.endsWith(".min") || filterName.endsWith(".max"));
     }
 
     private void checkIfValidOperator(String filterOperator) {
@@ -83,5 +109,41 @@ public class SearchFilterResolver implements HandlerMethodArgumentResolver {
             && parameter.getGenericParameterType() instanceof ParameterizedType
             && ((ParameterizedType) parameter.getGenericParameterType()).getActualTypeArguments()[0]
             .equals(SearchFilter.class);
+    }
+
+    private static class DateFilter {
+        private String min;
+        private String max;
+        private String filterName;
+        public void update(String filterName, String filterValue) {
+            int start = filterName.indexOf(".");
+            if (start < 0 || !StringUtils.isNumeric(filterValue)) {
+                throw new UnprocessableEntityException("Invalid date filter param");
+            }
+            String filterType = filterName.substring(start + 1);
+            if (StringUtils.isBlank(this.filterName)) {
+                this.filterName = filterName.substring(0,start);
+            }
+            switch (filterType) {
+                case "min" :
+                    this.min = filterValue;
+                    break;
+                case "max" :
+                    this.max = filterValue;
+                    break;
+                default:
+                    throw new UnprocessableEntityException("Invalid date filter param value");
+            }
+        }
+
+        public SearchFilter toSearchFilter() {
+            StringBuilder value = new StringBuilder()
+                .append("[ ")
+                .append(StringUtils.defaultIfBlank(min, "*"))
+                .append(" TO ")
+                .append(StringUtils.defaultIfBlank(max, "*"))
+                .append(" ]");
+            return new SearchFilter(filterName, "", value.toString());
+        }
     }
 }
