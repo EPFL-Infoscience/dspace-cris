@@ -324,7 +324,7 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
     public boolean isGone(Context context, String identifier)
         throws IdentifierNotFoundException, IdentifierNotResolvableException {
         try {
-            return handleService.isGone(context, identifier);
+            return handleService.isGone(context, handleService.parseHandle(identifier));
         } catch (SQLException sqe) {
             throw new IdentifierNotResolvableException(sqe.getMessage(), sqe);
         }

@@ -66,11 +66,13 @@ public class SherpaAuthority implements ChoiceAuthority {
             String predicate = isIssn ? PREDICATE_EQUALS : PREDICATE_CONTAINS_WORD;
             SHERPAResponse sherpaResponse = sherpaService.performRequest(TYPE, field, predicate, text, start, limit);
             String authority;
-            for (SHERPAJournal journal : sherpaResponse.getJournals()) {
-                authority = CollectionUtils.isEmpty(journal.getIssns()) ? StringUtils.EMPTY : journal.getIssns().get(0);
-                Map<String, String> extras = getSherpaExtra(journal);
-                String title = journal.getTitles().get(0);
-                results.add(new Choice(authority, title, title, extras));
+            if (CollectionUtils.isNotEmpty(sherpaResponse.getJournals())) {
+                for (SHERPAJournal journal : sherpaResponse.getJournals()) {
+                    authority = CollectionUtils.isEmpty(journal.getIssns()) ? "" : journal.getIssns().get(0);
+                    Map<String, String> extras = getSherpaExtra(journal);
+                    String title = journal.getTitles().get(0);
+                    results.add(new Choice(authority, title, title, extras));
+                }
             }
             return results.toArray(new Choice[results.size()]);
         } else {
