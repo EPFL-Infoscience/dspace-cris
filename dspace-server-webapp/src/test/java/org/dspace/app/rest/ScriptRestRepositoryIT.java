@@ -66,6 +66,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.ProcessStatus;
+import org.dspace.content.authority.DCInputAuthority;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.CrisConstants;
@@ -111,6 +112,9 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
         metadataAuthorityService.clearCache();
         choiceAuthorityService.clearCache();
+        // the DCInputAuthority has an internal cache of the DCInputReader
+        DCInputAuthority.reset();
+        DCInputAuthority.getPluginNames();
     }
 
     @Test
@@ -121,6 +125,11 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         String ukranianLanguage = "uk";
         String[] supportedLanguage = { italianLanguage, ukranianLanguage };
         configurationService.setProperty("webui.supported.locales", supportedLanguage);
+        metadataAuthorityService.clearCache();
+        choiceAuthorityService.clearCache();
+        // the DCInputAuthority has an internal cache of the DCInputReader
+        DCInputAuthority.reset();
+        DCInputAuthority.getPluginNames();
 
         LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
         parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));
