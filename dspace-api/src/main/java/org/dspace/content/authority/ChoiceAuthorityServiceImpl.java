@@ -496,31 +496,24 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
         return ma;
     }
 
-    private ChoiceAuthority getAuthorityByFieldKeyCollection(String fieldKey, int dsoType, Collection collection) {
+    @Override
+    public ChoiceAuthority getAuthorityByFieldKeyCollection(String fieldKey, int dsoType, Collection collection) {
         init();
         ChoiceAuthority ma = controller.get(fieldKey);
         if (ma == null && collection != null) {
-            SubmissionConfigReader configReader;
-            try {
-                configReader = new SubmissionConfigReader();
-                String submissionName = authorityServiceUtils.getSubmissionOrFormName(configReader, dsoType,
-                        collection);
-                if (submissionName == null) {
-                    log.warn("No submission name was found for object type " + dsoType + " in collection "
-                            + collection.getHandle());
-                    return null;
+            String submissionName = authorityServiceUtils.getSubmissionOrFormName(itemSubmissionConfigReader,
+                    dsoType, collection);
+            if (submissionName == null) {
+                log.warn("No submission name was found for object type " + dsoType + " in collection "
+                        + collection.getHandle());
+                return null;
+            }
+            Map<Integer, Map<String, ChoiceAuthority>> mapType2SubAuth = controllerFormDefinitions.get(fieldKey);
+            if (mapType2SubAuth != null) {
+                Map<String, ChoiceAuthority> mapSubAuth = mapType2SubAuth.get(dsoType);
+                if (mapSubAuth != null) {
+                    ma = mapSubAuth.get(submissionName);
                 }
-                Map<Integer, Map<String, ChoiceAuthority>> mapType2SubAuth = controllerFormDefinitions.get(fieldKey);
-                if (mapType2SubAuth != null) {
-                    Map<String, ChoiceAuthority> mapSubAuth = mapType2SubAuth.get(dsoType);
-                    if (mapSubAuth != null) {
-                        ma = mapSubAuth.get(submissionName);
-                    }
-                }
-            } catch (SubmissionConfigReaderException e) {
-                // the system is in an illegal state as the submission definition is not valid
-                throw new IllegalStateException("Error reading the item submission configuration: " + e.getMessage(),
-                        e);
             }
         }
         return ma;
