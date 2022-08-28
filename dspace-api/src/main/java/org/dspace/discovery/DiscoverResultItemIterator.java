@@ -31,6 +31,15 @@ public class DiscoverResultItemIterator extends DiscoverResultIterator<Item, UUI
         super(context, scopeObject, discoverQuery);
     }
 
+    public DiscoverResultItemIterator(Context context, IndexableObject<?, ?> scopeObject,
+                                      DiscoverQuery discoverQuery, Integer maxResults) {
+        super(context, scopeObject, discoverQuery, maxResults);
+    }
+
+    public DiscoverResultItemIterator(Context context, DiscoverQuery discoverQuery, Integer maxResults) {
+        super(context, discoverQuery, maxResults);
+    }
+
     @Override
     public Item next() {
         IndexableObject<?, ?> nextIndexableObject = getNextIndexableObject();

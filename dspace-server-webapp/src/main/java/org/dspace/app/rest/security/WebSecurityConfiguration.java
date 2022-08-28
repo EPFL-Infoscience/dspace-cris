@@ -110,6 +110,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .ignoringAntMatchers(configurationService.getArrayProperty("csrf.ignore-paths"))
                 .csrfTokenRepository(this.csrfTokenRepository())
                 .sessionAuthenticationStrategy(this.sessionAuthenticationStrategy())
+                .ignoringRequestMatchers(this.dspaceCsrfRequestMatcher())
             .and()
             .exceptionHandling()
                 // Return 401 on authorization failures with a correct WWWW-Authenticate header
@@ -183,6 +184,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public CsrfTokenRepository csrfTokenRepository() {
         return new DSpaceCsrfTokenRepository();
+    }
+
+    public DSpaceCsrfIgnoringRequestMatcher dspaceCsrfRequestMatcher() {
+        return new DSpaceCsrfIgnoringRequestMatcher(csrfTokenRepository());
     }
 
     /**
