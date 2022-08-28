@@ -64,10 +64,8 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
                     "choose between (\"workspace\" or \"workflow\" or \"item\")");
             options.getOption("f").setType(String.class);
             options.getOption("f").setRequired(true);
-            
             options.addOption("c", "collection-uuid", true, "collection-uuid into which to make import");
             options.getOption("c").setType(UUID.class);
-
             super.options = options;
         }
         return options;

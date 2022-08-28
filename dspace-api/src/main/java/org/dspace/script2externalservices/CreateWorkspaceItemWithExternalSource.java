@@ -65,7 +65,7 @@ import org.hibernate.LazyInitializationException;
 /**
  * Implementation of {@link DSpaceRunnable}
  * to import Publications from external services as Scopus | Web Of Science | CrossRef.
- * 
+ *
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
 public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
@@ -346,7 +346,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return countDataObjects;
     }
 
-    private void makeFinalState(WorkspaceItem wsItem) throws SQLException, AuthorizeException, IOException, WorkflowException {
+    private void makeFinalState(WorkspaceItem wsItem)
+            throws SQLException, AuthorizeException, IOException, WorkflowException {
         if (StringUtils.equals(this.finalState, WORKFLOW_STATE)) {
             workflowService.start(context, wsItem);
         }
