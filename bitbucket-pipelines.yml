@@ -1,6 +1,8 @@
 image: maven:3.6.1
 
 definitions:
+  docker:
+    memory: 2048  # increase memory for docker-in-docker from 1GB to 2GB
   caches:
     gradlewrapper: ~/.gradle/wrapper
   steps:
