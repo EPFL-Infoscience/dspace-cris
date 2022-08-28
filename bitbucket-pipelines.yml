@@ -12,6 +12,26 @@ definitions:
         script:
           - export MAVEN_OPTS="-Xmx4096M"
           - mvn install -B -V -P-assembly -Dtest.argLine=-Xmx4096M -Pcoverage-report -DskipUnitTests=false -Pdspace-rest
+        artifacts:
+          - dspace-api/target/surefire-reports/*-output.txt
+          - dspace-iiif/target/surefire-reports/*-output.txt
+          - dspace-oai/target/surefire-reports/*-output.txt
+          - dspace-rdf/target/surefire-reports/*-output.txt
+          - dspace-rest/target/surefire-reports/*-output.txt
+          - dspace-server-webapp/target/surefire-reports/*-output.txt
+          - dspace-services/target/surefire-reports/*-output.txt
+          - dspace-sword/target/surefire-reports/*-output.txt
+          - dspace-swordv2/target/surefire-reports/*-output.txt
+          - dspace-api/target/failsafe-reports/*-output.txt
+          - dspace-iiif/target/failsafe-reports/*-output.txt
+          - dspace-oai/target/failsafe-reports/*-output.txt
+          - dspace-rdf/target/failsafe-reports/*-output.txt
+          - dspace-rest/target/failsafe-reports/*-output.txt
+          - dspace-server-webapp/target/failsafe-reports/*-output.txt
+          - dspace-services/target/failsafe-reports/*-output.txt
+          - dspace-sword/target/failsafe-reports/*-output.txt
+          - dspace-swordv2/target/failsafe-reports/*-output.txt
+
     - step: &integration-tests
         name: integration-tests
         size: 2x
@@ -23,6 +43,25 @@ definitions:
           - export MAVEN_OPTS="-Xmx4096M"
           - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
           - mvn clean install license:check -DskipUnitTests=true -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2 -Dtest.argLine=-Xmx4096M
+        artifacts:
+          - dspace-api/target/surefire-reports/*-output.txt
+          - dspace-iiif/target/surefire-reports/*-output.txt
+          - dspace-oai/target/surefire-reports/*-output.txt
+          - dspace-rdf/target/surefire-reports/*-output.txt
+          - dspace-rest/target/surefire-reports/*-output.txt
+          - dspace-server-webapp/target/surefire-reports/*-output.txt
+          - dspace-services/target/surefire-reports/*-output.txt
+          - dspace-sword/target/surefire-reports/*-output.txt
+          - dspace-swordv2/target/surefire-reports/*-output.txt
+          - dspace-api/target/failsafe-reports/*-output.txt
+          - dspace-iiif/target/failsafe-reports/*-output.txt
+          - dspace-oai/target/failsafe-reports/*-output.txt
+          - dspace-rdf/target/failsafe-reports/*-output.txt
+          - dspace-rest/target/failsafe-reports/*-output.txt
+          - dspace-server-webapp/target/failsafe-reports/*-output.txt
+          - dspace-services/target/failsafe-reports/*-output.txt
+          - dspace-sword/target/failsafe-reports/*-output.txt
+          - dspace-swordv2/target/failsafe-reports/*-output.txt
 
 pipelines:
   branches:

@@ -201,4 +201,14 @@ public interface ChoiceAuthorityService {
      * @return            the metadata fields
      */
     public List<String> getAuthorityControlledFieldsByEntityType(String entityType);
+
+    /**
+     * Return the ChoiceAuthority instance identified by the specified params
+     *
+     * @param fieldKey
+     * @param dsoType
+     * @param collection
+     * @return the ChoiceAuthority identified by the specified params
+     */
+    public ChoiceAuthority getAuthorityByFieldKeyCollection(String fieldKey, int dsoType, Collection collection);
 }

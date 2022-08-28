@@ -66,10 +66,10 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.ProcessStatus;
+import org.dspace.content.authority.DCInputAuthority;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.CrisConstants;
-import org.dspace.discovery.SolrServiceValuePairsIndexPlugin;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.scripts.DSpaceCommandLineParameter;
@@ -102,9 +102,6 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     private DSpaceRunnableParameterConverter dSpaceRunnableParameterConverter;
 
     @Autowired
-    private SolrServiceValuePairsIndexPlugin solrServiceValuePairsIndexPlugin;
-
-    @Autowired
     private MetadataAuthorityService metadataAuthorityService;
 
     @Autowired
@@ -115,6 +112,9 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
         metadataAuthorityService.clearCache();
         choiceAuthorityService.clearCache();
+        // the DCInputAuthority has an internal cache of the DCInputReader
+        DCInputAuthority.reset();
+        DCInputAuthority.getPluginNames();
     }
 
     @Test
@@ -125,7 +125,11 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         String ukranianLanguage = "uk";
         String[] supportedLanguage = { italianLanguage, ukranianLanguage };
         configurationService.setProperty("webui.supported.locales", supportedLanguage);
-        solrServiceValuePairsIndexPlugin.setup();
+        metadataAuthorityService.clearCache();
+        choiceAuthorityService.clearCache();
+        // the DCInputAuthority has an internal cache of the DCInputReader
+        DCInputAuthority.reset();
+        DCInputAuthority.getPluginNames();
 
         LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
         parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));

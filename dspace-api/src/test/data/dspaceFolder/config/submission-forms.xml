@@ -1680,6 +1680,19 @@ You can leave out the day and/or month if they aren't applicable.</hint>
         </field>
       </row>
       <row>
+          <field>
+              <dc-schema>dc</dc-schema>
+              <dc-element>language</dc-element>
+              <dc-qualifier>iso</dc-qualifier>
+              <repeatable>false</repeatable>
+              <label>Language</label>
+              <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
+              <hint>Select the language of the item.
+              </hint>
+              <required></required>
+          </field>
+      </row>
+      <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>type</dc-element>
