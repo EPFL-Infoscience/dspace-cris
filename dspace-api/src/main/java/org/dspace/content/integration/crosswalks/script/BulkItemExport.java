@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
@@ -106,6 +107,10 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
     private Context context;
 
+    private Integer limit;
+
+    private Integer offset;
+
     @Override
     public void setup() throws ParseException {
 
@@ -122,6 +127,14 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         this.entityType = commandLine.getOptionValue('t');
         this.sort = commandLine.getOptionValue("so");
         this.exportFormat = commandLine.getOptionValue('f');
+
+        if (StringUtils.isNotBlank(commandLine.getOptionValue("o"))) {
+            this.offset = Integer.valueOf(commandLine.getOptionValue("o"));
+        }
+
+        if (StringUtils.isNotBlank(commandLine.getOptionValue("l"))) {
+            this.limit = Integer.valueOf(commandLine.getOptionValue("l"));
+        }
     }
 
     @Override
@@ -194,9 +207,9 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         DiscoverQuery discoverQuery = buildDiscoveryQuery(discoveryConfiguration, scopeObject);
 
         if (isRelatedItem) {
-            return new DiscoverResultItemIterator(context, discoverQuery);
+            return new DiscoverResultItemIterator(context, discoverQuery, this.limit);
         } else {
-            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery);
+            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery, this.limit);
         }
     }
 
@@ -237,8 +250,12 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.setQuery(query);
-        discoverQuery.setMaxResults(QUERY_PAGINATION_SIZE);
+        discoverQuery.setMaxResults(Optional.ofNullable(this.limit)
+                                        .map(l -> Math.min(l, QUERY_PAGINATION_SIZE))
+                                        .orElse(QUERY_PAGINATION_SIZE));
         discoverQuery.addFilterQueries(getFilterQueries(discoveryConfiguration));
+        Optional.ofNullable(this.offset)
+                    .ifPresent(discoverQuery::setStart);
         if (entityType != null) {
             discoverQuery.addFilterQueries("search.entitytype:" + entityType);
         }
