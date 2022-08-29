@@ -23,6 +23,7 @@ import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.dspace.submit.model.UploadConfiguration;
 import org.dspace.submit.model.UploadConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class BitstreamResourcePolicyAddPatchOperation extends AddPatchOperation<
     @Autowired
     UploadConfigurationService uploadConfigurationService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     @Override
     void add(Context context, HttpServletRequest currentRequest, InProgressSubmission source, String path, Object value)
             throws Exception {
@@ -63,10 +67,17 @@ public class BitstreamResourcePolicyAddPatchOperation extends AddPatchOperation<
                     List<AccessConditionDTO> newAccessConditions = new ArrayList<AccessConditionDTO>();
                     if (splitAbsPath.length == 3) {
                         resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_CUSTOM);
+                        if (isAppendModeDisabled()) {
+                            resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_INHERITED);
+                        }
                         newAccessConditions = evaluateArrayObject((LateObjectEvaluator) value);
                     } else if (splitAbsPath.length == 4) {
                         // contains "-", call index-based accessConditions it make not sense
                         newAccessConditions.add(evaluateSingleObject((LateObjectEvaluator) value));
+                        if (isAppendModeDisabled()) {
+                            resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_INHERITED,
+                                Constants.READ);
+                        }
                     }
 
                     if (CollectionUtils.isNotEmpty(newAccessConditions)) {
@@ -77,6 +88,10 @@ public class BitstreamResourcePolicyAddPatchOperation extends AddPatchOperation<
                 idx++;
             }
         }
+    }
+
+    private boolean isAppendModeDisabled() {
+        return configurationService.getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode");
     }
 
     @Override
