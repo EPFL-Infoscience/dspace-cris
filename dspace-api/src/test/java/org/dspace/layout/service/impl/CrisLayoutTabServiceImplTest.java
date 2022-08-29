@@ -13,6 +13,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +25,8 @@ import java.util.UUID;
 
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -32,6 +35,7 @@ import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutRow;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.dao.CrisLayoutTabDAO;
+import org.dspace.services.ConfigurationService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -55,6 +59,8 @@ public class CrisLayoutTabServiceImplTest {
     private AuthorizeService authorizeService;
     @Mock
     private ItemService itemService;
+    @Mock
+    private ConfigurationService configurationService;
 
     @InjectMocks
     private CrisLayoutTabServiceImpl crisLayoutTabService;
@@ -97,13 +103,188 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType))
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null))
             .thenReturn(Arrays.asList(tabOne, tabTwo, tabThree, tabWithoutBoxes, tabWithOnlyForbiddenBoxes));
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
 
         assertThat(tabs.stream().map(CrisLayoutTab::getShortName).collect(toList()),
             containsInAnyOrder("tab1", "tab2", "tab3", "empty", "forbidden"));
+
+    }
+
+    @Test
+    public void allTabsCustomMetadataAuthorityAreReturned() throws SQLException {
+        String itemUuid = UUID.randomUUID().toString();
+        Item item = mock(Item.class);
+        String entityType = "relationshipEntity";
+        String metadataValue = "dc.type";
+        String authority = "custom-authority";
+        String value = "custom-value";
+
+        List<MetadataValue> itemMetadata = Arrays.asList(metadataValue(), metadataValue());
+
+        CrisLayoutTab tabOne = grantedAccessTab("tab1",
+                boxWithContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata),
+                restrictedBox(item, itemMetadata));
+        CrisLayoutTab tabTwo = grantedAccessTab("tab2",
+                restrictedBox(item, itemMetadata),
+                boxWithContent(item, itemMetadata),
+                boxWithContent(item, itemMetadata));
+        CrisLayoutTab tabThree = grantedAccessTab("tab3",
+                boxWithoutContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata));
+
+        CrisLayoutTab tabWithoutBoxes = grantedAccessTab("empty");
+        CrisLayoutTab tabWithOnlyForbiddenBoxes = grantedAccessTab("forbidden",
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata));
+
+        forbiddenAccessTab("forbidden-tab",
+                boxWithContent(item, itemMetadata),
+                boxWithContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata));
+
+        when(itemService.find(context, UUID.fromString(itemUuid)))
+        .thenReturn(item);
+
+        when(itemService.getMetadata(item, "dspace.entity.type"))
+        .thenReturn(entityType);
+
+        when(configurationService.getProperty("dspace.metadata.layout.tab"))
+        .thenReturn(metadataValue);
+
+        List<MetadataValue> listOfMetadatas = List
+                .of(metadataValue(metadataField("dc", "type", null), value, authority));
+        when(itemService.getMetadataByMetadataString(item, metadataValue))
+        .thenReturn(listOfMetadatas);
+
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, authority))
+        .thenReturn(Arrays.asList(tabOne, tabTwo, tabThree, tabWithoutBoxes, tabWithOnlyForbiddenBoxes));
+
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, value))
+        .thenReturn(null);
+
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null))
+        .thenReturn(null);
+
+        List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
+
+        assertThat(tabs.stream().map(CrisLayoutTab::getShortName).collect(toList()),
+                containsInAnyOrder("tab1", "tab2", "tab3", "empty", "forbidden"));
+
+    }
+
+    @Test
+    public void allTabsCustomMetadataValueAreReturned() throws SQLException {
+        String itemUuid = UUID.randomUUID().toString();
+        Item item = mock(Item.class);
+        String entityType = "relationshipEntity";
+        String metadataValue = "dc.type";
+        String authority = "custom-authority";
+        String value = "custom-value";
+
+        List<MetadataValue> itemMetadata = Arrays.asList(metadataValue(), metadataValue());
+
+        CrisLayoutTab tabOne = grantedAccessTab("tab1",
+                boxWithContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata),
+                restrictedBox(item, itemMetadata));
+        CrisLayoutTab tabTwo = grantedAccessTab("tab2",
+                restrictedBox(item, itemMetadata),
+                boxWithContent(item, itemMetadata),
+                boxWithContent(item, itemMetadata));
+        CrisLayoutTab tabThree = grantedAccessTab("tab3",
+                boxWithoutContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata));
+
+        CrisLayoutTab tabWithoutBoxes = grantedAccessTab("empty");
+        CrisLayoutTab tabWithOnlyForbiddenBoxes = grantedAccessTab("forbidden",
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata));
+
+        forbiddenAccessTab("forbidden-tab",
+                boxWithContent(item, itemMetadata),
+                boxWithContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata));
+
+        when(itemService.find(context, UUID.fromString(itemUuid))).thenReturn(item);
+
+        when(itemService.getMetadata(item, "dspace.entity.type")).thenReturn(entityType);
+
+        when(configurationService.getProperty("dspace.metadata.layout.tab")).thenReturn(metadataValue);
+
+        List<MetadataValue> listOfMetadatas = List
+                .of(metadataValue(metadataField("dc", "type", null), value, authority));
+        when(itemService.getMetadataByMetadataString(item, metadataValue)).thenReturn(listOfMetadatas);
+
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, authority)).thenReturn(null);
+
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, value))
+                .thenReturn(Arrays.asList(tabOne, tabTwo, tabThree, tabWithoutBoxes, tabWithOnlyForbiddenBoxes));
+
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null)).thenReturn(null);
+
+        List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
+
+        assertThat(tabs.stream().map(CrisLayoutTab::getShortName).collect(toList()),
+                containsInAnyOrder("tab1", "tab2", "tab3", "empty", "forbidden"));
+
+    }
+
+    @Test
+    public void allTabsNoCustomMetadataAreReturned() throws SQLException {
+        String itemUuid = UUID.randomUUID().toString();
+        Item item = mock(Item.class);
+        String entityType = "relationshipEntity";
+        String metadataValue = "dc.type";
+
+        List<MetadataValue> itemMetadata = Arrays.asList(metadataValue(), metadataValue());
+
+        CrisLayoutTab tabOne = grantedAccessTab("tab1",
+                boxWithContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata),
+                restrictedBox(item, itemMetadata));
+        CrisLayoutTab tabTwo = grantedAccessTab("tab2",
+                restrictedBox(item, itemMetadata),
+                boxWithContent(item, itemMetadata),
+                boxWithContent(item, itemMetadata));
+        CrisLayoutTab tabThree = grantedAccessTab("tab3",
+                boxWithoutContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata));
+
+        CrisLayoutTab tabWithoutBoxes = grantedAccessTab("empty");
+        CrisLayoutTab tabWithOnlyForbiddenBoxes = grantedAccessTab("forbidden",
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata),
+                restrictedBox(item, itemMetadata));
+
+        forbiddenAccessTab("forbidden-tab",
+                boxWithContent(item, itemMetadata),
+                boxWithContent(item, itemMetadata),
+                boxWithoutContent(item, itemMetadata));
+
+        when(itemService.find(context, UUID.fromString(itemUuid))).thenReturn(item);
+
+        when(itemService.getMetadata(item, "dspace.entity.type")).thenReturn(entityType);
+
+        when(configurationService.getProperty("dspace.metadata.layout.tab")).thenReturn(metadataValue);
+
+        when(itemService.getMetadataByMetadataString(item, metadataValue)).thenReturn(null);
+
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null))
+                .thenReturn(Arrays.asList(tabOne, tabTwo, tabThree, tabWithoutBoxes, tabWithOnlyForbiddenBoxes));
+
+        List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
+
+        assertThat(tabs.stream().map(CrisLayoutTab::getShortName).collect(toList()),
+                containsInAnyOrder("tab1", "tab2", "tab3", "empty", "forbidden"));
 
     }
 
@@ -120,7 +301,7 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType)).thenReturn(emptyList());
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null)).thenReturn(emptyList());
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
 
@@ -140,7 +321,7 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType)).thenReturn(List.of());
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null)).thenReturn(List.of());
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
 
@@ -182,6 +363,31 @@ public class CrisLayoutTabServiceImplTest {
 
     private MetadataValue metadataValue() {
         return mock(MetadataValue.class);
+    }
+
+    private MetadataField metadataField(String schema, String element, String qualifier) {
+        MetadataField metadataField = mock(MetadataField.class);
+        lenient().when(metadataField.getElement()).thenReturn(element);
+        lenient().when(metadataField.getQualifier()).thenReturn(qualifier);
+
+        MetadataSchema metadataSchema = mock(MetadataSchema.class);
+        lenient().when(metadataSchema.getName()).thenReturn(schema);
+        lenient().when(metadataField.getMetadataSchema()).thenReturn(metadataSchema);
+        if (qualifier == null) {
+            lenient().when(metadataField.toString('.')).thenReturn(schema + "." + element);
+        } else {
+            lenient().when(metadataField.toString('.')).thenReturn(schema + "." + element + "." + qualifier);
+        }
+
+        return metadataField;
+    }
+
+    private MetadataValue metadataValue(MetadataField field, String value, String authority) {
+        MetadataValue metadataValue = mock(MetadataValue.class);
+        lenient().when(metadataValue.getMetadataField()).thenReturn(field);
+        lenient().when(metadataValue.getValue()).thenReturn(value);
+        lenient().when(metadataValue.getAuthority()).thenReturn(authority);
+        return metadataValue;
     }
 
     private CrisLayoutBox boxWithContent(Item item, List<MetadataValue> itemMetadata) throws SQLException {

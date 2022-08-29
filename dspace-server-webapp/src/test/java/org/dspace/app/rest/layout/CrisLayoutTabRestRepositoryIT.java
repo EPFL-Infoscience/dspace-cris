@@ -677,22 +677,24 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         MetadataField title = mfss.findByElement(context, schema, "title", null);
 
         // Create new items
-        // first uses metadata type authority - publication
-        Item item = ItemBuilder.createItem(context, collection)
+        // first uses metadata type authority as custom filter
+        String authority = "publication-coar-types:c_2f33";
+        String metadataValue = "Resource Types::text::book";
+        Item itemPublicationAuthority = ItemBuilder.createItem(context, collection)
                 .withTitle("TITLE")
-                .withEntityType(eTypePer.getLabel())
-                .withType(eTypeCollection.getLabel(), publicationType.getLabel())
+                .withType(metadataValue, authority)
+                .withEntityType(publicationType.getLabel())
                 .build();
-        // second uses metadata type value - collection
-        Item itemCollection = ItemBuilder.createItem(context, collection)
+        // second uses ametadata type value as custom filter
+        Item itemPublicationValue = ItemBuilder.createItem(context, collection)
                 .withTitle("TITLE 1")
-                .withEntityType(eTypePer.getLabel())
-                .withType(eTypeCollection.getLabel())
+                .withType(metadataValue)
+                .withEntityType(publicationType.getLabel())
                 .build();
-        // third uses entity type value - person
-        Item itemPerson = ItemBuilder.createItem(context, collection)
+        // third uses entity type value as custom filter
+        Item itemPublication = ItemBuilder.createItem(context, collection)
                 .withTitle("TITLE 2")
-                .withEntityType(eTypePer.getLabel())
+                .withEntityType(publicationType.getLabel())
                 .build();
 
         // Create tabs for Publication Entity
@@ -707,66 +709,84 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
                 .withContainer(false)
                 .addField(field)
                 .build();
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
+        CrisLayoutTab tabAuthority = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
                 .withShortName("TabOne For Publication - priority 0")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withHeader("New Tab header")
+                .withCustomFilter(authority)
                 .addBoxIntoNewRow(boxOne)
                 .build();
 
         context.restoreAuthSystemState();
         // Test
-        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", item.getID().toString()))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
-        .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))));
+        getClient()
+            .perform(
+                get("/api/layout/tabs/search/findByItem")
+                    .param("uuid",itemPublicationAuthority.getID().toString())
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tabAuthority))));
 
         context.turnOffAuthorisationSystem();
 
-        boxOne = CrisLayoutBoxBuilder.createBuilder(context, eTypeCollection, false, false)
+        boxOne = CrisLayoutBoxBuilder.createBuilder(context, publicationType, false, false)
                 .withShortname("Box shortname 1")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withContainer(false)
                 .addField(field)
                 .build();
-        tab = CrisLayoutTabBuilder.createTab(context, eTypeCollection, 0)
+        CrisLayoutTab tabPublicationValue = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
                 .withShortName("TabOne For Collection - priority 0")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withHeader("New Tab header")
+                .withCustomFilter(metadataValue)
                 .addBoxIntoNewRow(boxOne)
                 .build();
 
         context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", itemCollection.getID().toString()))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(contentType))
-        .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
-        .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))));
+        getClient()
+            .perform(
+                get("/api/layout/tabs/search/findByItem")
+                    .param("uuid",itemPublicationValue.getID().toString())
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tabPublicationValue))));
 
         context.turnOffAuthorisationSystem();
 
-        boxOne = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
+        boxOne = CrisLayoutBoxBuilder.createBuilder(context, publicationType, false, false)
                 .withShortname("Box shortname 1")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withContainer(false)
                 .addField(field)
                 .build();
-        tab = CrisLayoutTabBuilder.createTab(context, eTypePer, 0)
+        CrisLayoutTab tabPublication = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
                 .withShortName("TabOne For Person - priority 0")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withHeader("New Tab header")
+                .withCustomFilter(null)
                 .addBoxIntoNewRow(boxOne)
                 .build();
 
         context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", itemPerson.getID().toString()))
+        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", itemPublication.getID().toString()))
         .andExpect(status().isOk())
         .andExpect(content().contentType(contentType))
         .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
-        .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))));
+        .andExpect(
+            jsonPath(
+                "$._embedded.tabs",
+                contains(
+                    matchTab(tabPublication)
+                )
+            )
+        );
     }
 
     /**
