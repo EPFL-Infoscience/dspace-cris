@@ -18,11 +18,11 @@ public interface ChangeSubmitterService {
     /**
      * Updates the submitter given an item and the submitter identifier
      * 
-     * @param context               DSpace context
-     * @param item                  
-     * @param submitterName         uuid, mail, netid
+     * @param context       DSpace context
+     * @param item          Whose submitter will be updated
+     * @param submitterName A string (uuid, mail, netid...)
      * @throws SQLException
      * @throws AuthorizeException
      */
-   void setUpSubmitter(Context context, Item item, String submitterName) throws SQLException, AuthorizeException;
+    void setUpSubmitter(Context context, Item item, String submitterName) throws SQLException, AuthorizeException;
 }
