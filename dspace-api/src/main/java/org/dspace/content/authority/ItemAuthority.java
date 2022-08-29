@@ -147,7 +147,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         String query = "";
 
         if (onlyExactMatches) {
-            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(text);
+            String valueToMatch = isPersonItemAuthority() ? removeComma(text) : text;
+            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(valueToMatch);
         } else {
             itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
             query = itemAuthorityService.getSolrQuery(text);
@@ -184,7 +185,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         Choice[] results = new Choice[choiceList.size()];
         results = choiceList.toArray(results);
 
-        return new Choices(results, start, total, Choices.CF_AMBIGUOUS, total > (start + limit), 0);
+        return new Choices(results, start, total, calculateConfidence(results), total > (start + limit), 0);
     }
 
     private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results) {
@@ -305,7 +306,13 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     }
 
     protected int calculateConfidence(Choice[] choices) {
-        return ArrayUtils.isNotEmpty(choices) ? Choices.CF_AMBIGUOUS : Choices.CF_UNSET;
+
+        if (ArrayUtils.isEmpty(choices)) {
+            return Choices.CF_UNSET;
+        }
+
+        return choices.length == 1 ? Choices.CF_UNCERTAIN : Choices.CF_AMBIGUOUS;
+
     }
 
     private boolean isPersonItemAuthority() {
@@ -318,6 +325,10 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             return (externalsource != null);
         }
         return false;
+    }
+
+    private String removeComma(String text) {
+        return StringUtils.normalizeSpace(StringUtils.replace(text, ",", " "));
     }
 
 }

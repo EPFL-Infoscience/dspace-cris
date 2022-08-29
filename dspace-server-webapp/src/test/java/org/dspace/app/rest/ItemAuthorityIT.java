@@ -624,6 +624,20 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
         String token = getAuthToken(eperson.getEmail(), password);
 
         getClient(token).perform(get("/api/submission/vocabularies/PersonAuthority/entries")
+            .param("filter", "Bollini, Andrea")
+            .param("exact", "true"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$._embedded.entries", contains(matchItemAuthorityProperties(
+                person1Id, "Bollini, Andrea", "Bollini, Andrea", "vocabularyEntry"))));
+
+        getClient(token).perform(get("/api/submission/vocabularies/PersonAuthority/entries")
+            .param("filter", "Bollini,Andrea")
+            .param("exact", "true"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$._embedded.entries", contains(matchItemAuthorityProperties(
+                person1Id, "Bollini, Andrea", "Bollini, Andrea", "vocabularyEntry"))));
+
+        getClient(token).perform(get("/api/submission/vocabularies/PersonAuthority/entries")
             .param("filter", "Bollini Andrea")
             .param("exact", "true"))
             .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
