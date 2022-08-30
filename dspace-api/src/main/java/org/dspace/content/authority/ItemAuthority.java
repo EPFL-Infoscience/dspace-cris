@@ -60,7 +60,6 @@ import org.dspace.utils.DSpace;
 public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     private static Logger log = LogManager.getLogger(ItemAuthority.class);
     final static String CHOICES_EXTERNALSOURCE_PREFIX = "choises.externalsource.";
-    final static String URL_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
 
     /** the name assigned to the specific instance by the PluginService, @see {@link NameAwarePlugin} **/
     private String authorityName;
@@ -119,15 +118,14 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         Item item = null;
 
         String entityType = getLinkedEntityType();
-        ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
 
-        if (text.startsWith(configurationService.getProperty("dspace.ui.url"))) {
+        if (StringUtils.startsWith(text, configurationService.getProperty("dspace.ui.url"))) {
 
             String authority = text.split("/")[text.split("/").length - 1];
 
             try (Context context = new Context()) {
-                if (authority.matches(URL_REGEX)) {
-                    UUID uuid = UUID.fromString(authority);
+                if (UUIDUtils.fromString(authority) != null) {
+                    UUID uuid = UUIDUtils.fromString(authority);
                     item = itemService.find(context, uuid);
                 } else {
                     Optional<Item> items = customUrlService.findItemByCustomUrl(context, authority);
@@ -137,8 +135,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
                 }
                 if (item != null) {
                     choiceList.add(new Choice(authority, item.getName(), item.getName()));
+                    return buildChoices(choiceList, start, choiceList.size(), limit);
                 }
-                return buildChoices(choiceList, start, choiceList.size(), limit);
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
@@ -150,7 +148,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             String valueToMatch = isPersonItemAuthority() ? removeComma(text) : text;
             query = BEST_MATCH_INDEX + ":" + escapeQueryChars(valueToMatch);
         } else {
-            itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
+            ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
             query = itemAuthorityService.getSolrQuery(text);
         }
 
