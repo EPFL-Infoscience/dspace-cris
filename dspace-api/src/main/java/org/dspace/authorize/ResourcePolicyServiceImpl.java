@@ -243,6 +243,7 @@ public class ResourcePolicyServiceImpl implements ResourcePolicyService {
     @Override
     public void removePolicies(Context c, DSpaceObject o, String type, int action)
         throws SQLException, AuthorizeException {
+        resourcePolicyDAO.deleteByDsoAndTypeAndAction(c, o, type, action);
         c.turnOffAuthorisationSystem();
         contentServiceFactory.getDSpaceObjectService(o).updateLastModified(c, o);
         c.restoreAuthSystemState();
