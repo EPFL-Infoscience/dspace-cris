@@ -31,81 +31,126 @@
 			<list>
 				<bean class="org.dspace.content.edit.CorrectItemMode">
 					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
+						<value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+					</property>
+					<property name="groups">
+					   <list>
+					       <value>cris.virtual.epflgroupunits</value>
+					   </list>
 					</property>
 				</bean>
 			</list>
 		</entry> 
 		<entry key="Person">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry> 
 		<entry key="Equipment">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry> 
 		<entry key="Funding">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry> 
 		<entry key="Orgunit">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry> 
 		<entry key="Journal">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry> 
 		<entry key="Patent">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry>
 		<entry key="Project">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry>
 		<entry key="Event">
 			<list>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">ADMIN</value>
-					</property>
-				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>cris.virtual.epflgroupunits</value>
+                       </list>
+                    </property>
+                </bean>
 			</list>
 		</entry>
 	</util:map>

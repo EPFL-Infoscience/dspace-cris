@@ -61,6 +61,9 @@ public interface ResourcePolicyDAO extends GenericDAO<ResourcePolicy> {
 
     public void deleteByDsoAndAction(Context context, DSpaceObject dso, int actionId) throws SQLException;
 
+    public void deleteByDsoAndTypeAndAction(Context context, DSpaceObject dSpaceObject, String type, int action)
+        throws SQLException;
+
     public void deleteByDsoAndType(Context context, DSpaceObject dSpaceObject, String type) throws SQLException;
 
     public void deleteByDsoAndEPersonAndType(Context c, DSpaceObject o, EPerson e, String type) throws SQLException;

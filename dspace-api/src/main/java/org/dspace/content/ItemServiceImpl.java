@@ -1222,17 +1222,8 @@ prevent the generation of resource policy entry values with null dspace_object a
 
     */
 
-    /**
-     * Add the default policies, which have not been already added to the given DSpace object
-     *
-     * @param context                   The relevant DSpace Context.
-     * @param dso                       The DSpace Object to add policies to
-     * @param defaultCollectionPolicies list of policies
-     * @throws SQLException       An exception that provides information on a database access error or other errors.
-     * @throws AuthorizeException Exception indicating the current user of the context does not have permission
-     *                            to perform a particular action.
-     */
-    protected void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso,
+    @Override
+    public void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso,
         List<ResourcePolicy> defaultCollectionPolicies) throws SQLException, AuthorizeException {
         boolean appendMode = configurationService
                 .getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode", false);

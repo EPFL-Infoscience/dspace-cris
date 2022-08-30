@@ -317,6 +317,7 @@
 
             <!--Step will be to Upload the item -->
             <step id="upload"/>
+            <step id="defaultAC"/>
             <!-- <step id="upload-with-embargo"/> -->
             <step id="detect-duplicate"/>
 

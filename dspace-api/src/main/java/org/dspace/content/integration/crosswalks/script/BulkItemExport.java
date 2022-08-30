@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -105,6 +106,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
     private String exportFormat;
 
+    private String selectedItems;
+
     private Context context;
 
     private Integer limit;
@@ -127,6 +130,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         this.entityType = commandLine.getOptionValue('t');
         this.sort = commandLine.getOptionValue("so");
         this.exportFormat = commandLine.getOptionValue('f');
+        this.selectedItems = commandLine.getOptionValue("si");
 
         if (StringUtils.isNotBlank(commandLine.getOptionValue("o"))) {
             this.offset = Integer.valueOf(commandLine.getOptionValue("o"));
@@ -144,18 +148,20 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         assignSpecialGroupsInContext();
         assignHandlerLocaleInContext();
 
-        if (exportFormat == null) {
+        if (StringUtils.isBlank(exportFormat)) {
             throw new IllegalArgumentException("The export format must be provided");
         }
 
         filters = parseSearchFilters();
 
         StreamDisseminationCrosswalk streamDisseminationCrosswalk = getCrosswalkByType(exportFormat);
-        if (streamDisseminationCrosswalk == null) {
+        if (Objects.isNull(streamDisseminationCrosswalk)) {
             throw new IllegalArgumentException("No dissemination configured for format " + exportFormat);
         }
 
         try {
+            String[] items = StringUtils.isNotBlank(this.selectedItems) ? selectedItems.split(";") : null;
+            this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQuery(items);
             DiscoverResultItemIterator itemsIterator = searchItemsToExport();
             handler.logInfo("Found " + itemsIterator.getTotalSearchResults() + " items to export");
 
@@ -166,7 +172,17 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             handler.handleException(e);
             context.abort();
         }
+    }
 
+    private String buildQuery(String[] items) {
+        StringBuilder query = new StringBuilder();
+        for (int i = 0; i < items.length; i++) {
+            if (StringUtils.isNotBlank(query.toString())) {
+                query.append(" OR ");
+            }
+            query.append("search.uniqueid:Item-").append(items[i]);
+        }
+        return query.toString();
     }
 
     private void assignHandlerLocaleInContext() {
@@ -238,7 +254,6 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             handler.logWarning(message);
             LOGGER.warn(message, ex);
         }
-
         return scopeObj;
     }
 
@@ -254,9 +269,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
                                         .map(l -> Math.min(l, QUERY_PAGINATION_SIZE))
                                         .orElse(QUERY_PAGINATION_SIZE));
         discoverQuery.addFilterQueries(getFilterQueries(discoveryConfiguration));
-        Optional.ofNullable(this.offset)
-                    .ifPresent(discoverQuery::setStart);
-        if (entityType != null) {
+        Optional.ofNullable(this.offset).ifPresent(discoverQuery::setStart);
+        if (StringUtils.isNotBlank(entityType)) {
             discoverQuery.addFilterQueries("search.entitytype:" + entityType);
         }
         configureSorting(discoverQuery, discoveryConfiguration, scope);

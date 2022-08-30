@@ -37,6 +37,8 @@ import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +57,9 @@ public class ProfileInitializer {
     private ItemService itemService;
 
     @Autowired
+    private GroupService groupService;
+
+    @Autowired
     private WorkspaceItemService workspaceItemService;
 
     @Autowired
@@ -65,29 +70,28 @@ public class ProfileInitializer {
 
     public boolean initialize(Context context, EPerson eperson) {
 
-        if (eperson == null || hasAlreadyAProfile(context, eperson)) {
+        if (eperson == null) {
             return false;
         }
 
         context.turnOffAuthorisationSystem();
         try {
-            ResearcherProfile profile = createPrivateProfile(context, eperson);
-            getPersid(eperson).ifPresent(persId -> enrichProfile(context, persId, profile.getItem()));
+            ResearcherProfile profile = findProfile(context, eperson)
+                    .orElseGet(() -> createPrivateProfile(context, eperson));
+            Optional<String> persid = getPersid(eperson);
+            if (persid.isPresent()) {
+                return enrichProfile(context, persid.get(), profile.getItem());
+            } else {
+                return false;
+            }
         } finally {
             context.restoreAuthSystemState();
         }
-
-        return true;
-
     }
 
-    private boolean hasAlreadyAProfile(Context context, EPerson eperson) {
-        return findProfile(context, eperson) != null;
-    }
-
-    private ResearcherProfile findProfile(Context context, EPerson eperson) {
+    public Optional<ResearcherProfile> findProfile(Context context, EPerson eperson) {
         try {
-            return researcherProfileService.findById(context, eperson.getID());
+            return Optional.ofNullable(researcherProfileService.findById(context, eperson.getID()));
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }
@@ -105,34 +109,58 @@ public class ProfileInitializer {
         }
     }
 
-    private void enrichProfile(Context context, String persid, Item item) {
-
-        addMetadata(context, item, "cris", "legacyId", null, persid);
-
-        EpflResponse accred = client.getAccred(persid);
-        if (accred == null || CollectionUtils.isEmpty(accred.getResult())) {
-            log.warn("No accred found by persid " + persid);
-            return;
-        }
-
-        Long unitId = accred.getResult().get(0).getUnitid();
-        if (unitId == null) {
-            log.warn("No unitid found by persid " + persid);
-            return;
-        }
-
-        Item unit = findOrgUnitByCrisLegacyId(context, unitId)
-            .orElseGet(() -> createOrgUnit(context, unitId));
-
-        String unitName = itemService.getMetadataFirstValue(unit, "dc", "title", null, Item.ANY);
-        addMetadata(context, item, "person", "affiliation", "name", unitName, unit.getID().toString());
-
+    private boolean enrichProfile(Context context, String persid, Item item) {
         try {
-            itemService.update(context, item);
+            boolean profileNeedSave = false;
+            String legacyId = itemService.getMetadataFirstValue(item, "cris", "legacyId", null, Item.ANY);
+            if (!StringUtils.equals(legacyId, persid)) {
+                profileNeedSave = true;
+                itemService.clearMetadata(context, item, "cris", "legacyId", null, Item.ANY);
+                addMetadata(context, item, "cris", "legacyId", null, persid);
+            }
+
+            EpflResponse accred = client.getAccred(persid);
+            if (accred == null || CollectionUtils.isEmpty(accred.getResult())) {
+                log.warn("No accred found by persid " + persid);
+                return false;
+            }
+
+            Long unitId = accred.getResult().get(0).getUnitid();
+            String currUnitName = itemService.getMetadataFirstValue(item,  "person", "affiliation", "name", Item.ANY);
+            if (unitId == null) {
+                log.warn("No unitid found by persid " + persid);
+                if (currUnitName != null) {
+                    profileNeedSave = true;
+                    itemService.clearMetadata(context, item, "person", "affiliation", "name", Item.ANY);
+                }
+            } else {
+                Item unit = findOrgUnitByCrisLegacyId(context, unitId)
+                    .orElseGet(() -> createOrgUnit(context, unitId));
+
+                Group groupUnit = findGroupUnit(context, unitId)
+                        .orElseGet(() -> createGroup(context, unitId));
+                String unitName = getUnitName(unitId);
+                if (!StringUtils.equals(unitName, currUnitName)) {
+                    profileNeedSave = true;
+                    itemService.clearMetadata(context, item, "person", "affiliation", "name", Item.ANY);
+                    addMetadata(context, item, "person", "affiliation", "name", unitName, unit.getID().toString());
+                }
+            }
+            if (profileNeedSave) {
+                itemService.update(context, item);
+            }
+            return profileNeedSave;
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    public Optional<Group> findGroupUnit(Context ctx, Long unitId) {
+        try {
+            return Optional.ofNullable(groupService.findByName(ctx, getUnitName(unitId)));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Optional<Item> findOrgUnitByCrisLegacyId(Context ctx, Long unitId) {
@@ -152,13 +180,31 @@ public class ProfileInitializer {
         try {
             WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
             Item item = workspaceItem.getItem();
-            addMetadata(context, item, "dc", "title", null, "UNIT " + unitId);
+            String value = getUnitName(unitId);
+            addMetadata(context, item, "dc", "title", null, value);
             addMetadata(context, item, "cris", "legacyId", null, String.valueOf(unitId));
             return installItemService.installItem(context, workspaceItem);
         } catch (AuthorizeException | SQLException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private Group createGroup(Context context, Long unitId) {
+        try {
+            Group group = groupService.create(context);
+            groupService.setName(group, getUnitName(unitId));
+            groupService.update(context, group);
+            context.setSpecialGroup(group.getID());
+            return group;
+        } catch (AuthorizeException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    private String getUnitName(Long unitId) {
+        String value = "UNIT " + unitId;
+        return value;
     }
 
     @SuppressWarnings("rawtypes")
