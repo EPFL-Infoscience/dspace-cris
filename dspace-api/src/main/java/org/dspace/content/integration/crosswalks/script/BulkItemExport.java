@@ -130,7 +130,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         this.entityType = commandLine.getOptionValue('t');
         this.sort = commandLine.getOptionValue("so");
         this.exportFormat = commandLine.getOptionValue('f');
-        this.selectedItems =commandLine.getOptionValue("si");
+        this.selectedItems = commandLine.getOptionValue("si");
 
         if (StringUtils.isNotBlank(commandLine.getOptionValue("o"))) {
             this.offset = Integer.valueOf(commandLine.getOptionValue("o"));
@@ -161,7 +161,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
         try {
             String[] items = StringUtils.isNotBlank(this.selectedItems) ? selectedItems.split(";") : null;
-            this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQUery(items);
+            this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQuery(items);
             DiscoverResultItemIterator itemsIterator = searchItemsToExport();
             handler.logInfo("Found " + itemsIterator.getTotalSearchResults() + " items to export");
 
@@ -174,7 +174,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         }
     }
 
-    private String buildQUery(String[] items) {
+    private String buildQuery(String[] items) {
         StringBuilder query = new StringBuilder();
         for (int i = 0; i < items.length; i++) {
             if (StringUtils.isNotBlank(query.toString())) {
