@@ -63,7 +63,7 @@ public class BulkItemExportScriptConfiguration<T extends BulkItemExport> extends
             options.getOption("f").setRequired(true);
 
             options.addOption("si", "selected-items", true, "the list of selected items to export");
-            options.getOption("si").setType(String[].class);
+            options.getOption("si").setType(String.class);
             options.getOption("si").setRequired(false);
 
             options.addOption("o", "offset", true, "the offset for export start");

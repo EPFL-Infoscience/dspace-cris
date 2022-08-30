@@ -106,7 +106,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
     private String exportFormat;
 
-    private String[] selectedItems;
+    private String selectedItems;
 
     private Context context;
 
@@ -130,7 +130,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         this.entityType = commandLine.getOptionValue('t');
         this.sort = commandLine.getOptionValue("so");
         this.exportFormat = commandLine.getOptionValue('f');
-        this.selectedItems =commandLine.getOptionValues("si");
+        this.selectedItems =commandLine.getOptionValue("si");
 
         if (StringUtils.isNotBlank(commandLine.getOptionValue("o"))) {
             this.offset = Integer.valueOf(commandLine.getOptionValue("o"));
@@ -160,7 +160,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         }
 
         try {
-            this.query = Objects.isNull(selectedItems) || selectedItems.length == 0 ? this.query : buildQUery();
+            String[] items = StringUtils.isNotBlank(this.selectedItems) ? selectedItems.split(";") : null;
+            this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQUery(items);
             DiscoverResultItemIterator itemsIterator = searchItemsToExport();
             handler.logInfo("Found " + itemsIterator.getTotalSearchResults() + " items to export");
 
@@ -173,13 +174,13 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         }
     }
 
-    private String buildQUery() {
+    private String buildQUery(String[] items) {
         StringBuilder query = new StringBuilder();
-        for (int i = 0; i < selectedItems.length; i++) {
+        for (int i = 0; i < items.length; i++) {
             if (StringUtils.isNotBlank(query.toString())) {
-                query.append(" & ");
+                query.append(" OR ");
             }
-            query.append("search.uniqueid:Item-").append(selectedItems[i]);
+            query.append("search.uniqueid:Item-").append(items[i]);
         }
         return query.toString();
     }
