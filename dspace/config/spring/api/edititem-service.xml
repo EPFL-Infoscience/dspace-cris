@@ -20,8 +20,6 @@
                             </property>
                             <property name="submissionDefinition" value="publication-edit" />
                         </bean>
-                    </list>
-                    <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="FULLAUTH" />
                             <property name="security">
@@ -37,8 +35,6 @@
                             </property>
                             <property name="submissionDefinition" value="publication-edit" />
                         </bean>
-                    </list>
-                    <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="FULLADMIN" />
                             <property name="security">
