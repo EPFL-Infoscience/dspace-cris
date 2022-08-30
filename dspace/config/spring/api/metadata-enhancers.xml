@@ -15,7 +15,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            http://www.springframework.org/schema/context
-           http://www.springframework.org/schema/context/spring-context-2.5.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+           http://www.springframework.org/schema/util
+           http://www.springframework.org/schema/util/spring-util.xsd"
 >
 
     <context:annotation-config />
@@ -23,12 +25,28 @@
     <bean id="org.dspace.content.enhancer.service.ItemEnhancerService" 
         class="org.dspace.content.enhancer.service.impl.ItemEnhancerServiceImpl" />
 
+    <util:list id="sourceItemRelatedEntityItemEnhancer" value-type="java.lang.String">
+        <value>dc.contributor.author</value>
+    </util:list>
+
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Publication" />
-        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="sourceItemMetadataField" ref="sourceItemRelatedEntityItemEnhancer" />
         <property name="relatedItemMetadataField" value="person.affiliation.name" />
         <property name="virtualQualifier" value="department" />
     </bean>
-    
+
+    <util:list id="sourceItemRelatedEntityGroupItemEnhancer" value-type="java.lang.String">
+        <value>dc.contributor.author</value>
+        <value>dc.contributor.editor</value>
+    </util:list>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityGroupItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" ref="sourceItemRelatedEntityGroupItemEnhancer" />
+        <property name="relatedItemMetadataField" value="person.affiliation.name" />
+        <property name="virtualQualifier" value="epflgroupunits" />
+    </bean>
+
 
 </beans>
