@@ -268,20 +268,20 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(infoMessages, hasSize(6));
         assertThat(infoMessages.get(0), containsString("The given workbook is valid. Proceed with the import"));
         assertThat(infoMessages.get(1), containsString("The workbook has been parsed correctly, "
-            + "found 4 tabs to import"));
+            + "found 6 tabs to import"));
         assertThat(infoMessages.get(2), containsString("Proceed with the clearing of the previous layout"));
         assertThat(infoMessages.get(3), containsString("Found 0 tabs to delete"));
         assertThat(infoMessages.get(4), containsString("The previous layout has been deleted, "
             + "proceed with the import of the new configuration"));
         assertThat(infoMessages.get(5), containsString("Import completed successfully"));
 
-        assertThat(tabService.findAll(context), hasSize(4));
+        assertThat(tabService.findAll(context), hasSize(6));
 
-        List<CrisLayoutTab> personTabs = tabService.findByEntityType(context, "Person");
+        List<CrisLayoutTab> personTabs = tabService.findByEntityType(context, "Person", null);
         assertThat(personTabs, hasSize(2));
 
         CrisLayoutTab firstPersonTab = personTabs.get(0);
-        assertThatTabHas(firstPersonTab, "details", "Person", "Profile", 1, 0, false, 0, LayoutSecurity.PUBLIC);
+        assertThatTabHas(firstPersonTab, "details", "Person", null, "Profile", 1, 0, false, 0, LayoutSecurity.PUBLIC);
 
         CrisLayoutRow firstPersonTabRow = firstPersonTab.getRows().get(0);
         assertThat(firstPersonTabRow.getStyle(), is("person-details-style"));
@@ -344,7 +344,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             is("oairecerif.person.gender"));
 
         CrisLayoutTab secondPersonTab = personTabs.get(1);
-        assertThatTabHas(secondPersonTab, "publications", "Person", "Publications", 2, 1, false, 2, OWNER_ONLY);
+        assertThatTabHas(secondPersonTab, "publications", "Person", null, "Publications", 2, 1, false, 2, OWNER_ONLY);
         assertThat(secondPersonTab.getMetadataSecurityFields(),
             contains(matches(metadataField -> metadataField.toString('.').equals("cris.policy.eperson"))));
 
@@ -372,22 +372,63 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(profileResearchoutputsBox.getGroupSecurityFields(),
                    contains(matches(groupField -> groupField.getName().equals("Researchers"))));
 
-        List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication");
-        assertThat(publicationTabs, hasSize(2));
+        List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication", null);
+        assertThat(publicationTabs, hasSize(4));
+        List<CrisLayoutTab> publicationBookAuthority = tabService.findByEntityType(context, "Publication",
+                "publication-coar-types:c_2f33");
+        assertThat(publicationBookAuthority, hasSize(1));
+        List<CrisLayoutTab> publicationBookValue = tabService.findByEntityType(context, "Publication",
+                "Resource Types::text::book");
+        assertThat(publicationBookValue, hasSize(1));
 
         CrisLayoutTab publicationTab = publicationTabs.get(0);
         CrisLayoutTab publicationTab1 = publicationTabs.get(1);
+        CrisLayoutTab publicationTab2 = publicationBookAuthority.get(0);
+        CrisLayoutTab publicationTab3 = publicationBookValue.get(0);
 
-        assertThatTabHas(publicationTab, "details", "Publication", "Details", 1, 1, true, 0,
+        assertThatTabHas(publicationTab, "details", "Publication", null, "Details", 1, 1, true, 0,
             LayoutSecurity.CUSTOM_DATA_AND_ADMINISTRATOR);
         assertThat(publicationTab.getGroupSecurityFields(),
                    contains(matches(groupField -> groupField.getName().equals("Researchers"))));
+        assertThatTabHas(publicationTab, "details", "Publication", null, "Details", 1, 1, true, 0,
+                LayoutSecurity.CUSTOM_DATA_AND_ADMINISTRATOR);
+        assertThat(publicationTab.getGroupSecurityFields(),
+                contains(matches(groupField -> groupField.getName().equals("Researchers"))));
 
         CrisLayoutRow publicationTabRow = publicationTab.getRows().get(0);
         assertThat(publicationTabRow.getStyle(), is("test-style"));
         assertThat(publicationTabRow.getCells(), hasSize(2));
 
-        assertThatTabHas(publicationTab1, "details-hierarchical", "Publication", "Details Hierarchical",
+        assertThatTabHas(publicationTab2, "book-authority", "Publication", "publication-coar-types:c_2f33",
+                "Book Authority", 1, 0, false, 0, LayoutSecurity.PUBLIC);
+
+        CrisLayoutRow publicationTab2Row1 = publicationTab1.getRows().get(0);
+        assertThat(publicationTab2Row1.getStyle(), nullValue());
+        assertThat(publicationTab2Row1.getCells(), hasSize(1));
+
+        CrisLayoutCell publicationTab2FirstCell = publicationTabRow.getCells().get(0);
+        assertThat(publicationTab2FirstCell.getStyle(), nullValue());
+        assertThat(publicationTab2FirstCell.getBoxes(), hasSize(1));
+
+        CrisLayoutCell publicationTab2FirstCell1 = publicationTab2Row1.getCells().get(0);
+        assertThat(publicationTab2FirstCell1.getStyle(), nullValue());
+        assertThat(publicationTab2FirstCell1.getBoxes(), hasSize(1));
+
+        CrisLayoutBox publicationTab2DetailsBox = publicationTab2FirstCell.getBoxes().get(0);
+        assertThatBoxHas(publicationTab2DetailsBox, "details", "METADATA", "Publication", "Details", 4, 0,
+            0, true, false, true, null, LayoutSecurity.PUBLIC);
+
+        CrisLayoutBox publicationTab2DetailsBox1 = publicationTab2FirstCell1.getBoxes().get(0);
+        assertThatBoxHas(publicationTab2DetailsBox1, "hierarchy", "HIERARCHY", "Publication", "Hierarchy", 0, 0,
+                         0, false, false, false, null, LayoutSecurity.PUBLIC);
+
+        assertThatHierarchicalBoxHas(publicationTab2DetailsBox1.getHierarchicalVocabulary2Box(),
+                "publication-coar-types", "dc.type");
+
+        assertThatTabHas(publicationTab3, "book-value", "Publication", "Resource Types::text::book", "Book Value", 1, 0,
+                false, 0, LayoutSecurity.PUBLIC);
+
+        assertThatTabHas(publicationTab1, "details-hierarchical", "Publication", null, "Details Hierarchical",
                          1, 0, false, 0,
                          LayoutSecurity.PUBLIC);
 
@@ -635,7 +676,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
 
-        assertThat(tabService.findAll(context), hasSize(4));
+        assertThat(tabService.findAll(context), hasSize(6));
         assertThat(context.reloadEntity(tab), nullValue());
         assertThat(context.reloadEntity(box), nullValue());
 
@@ -716,10 +757,12 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
     }
 
-    private void assertThatTabHas(CrisLayoutTab tab, String shortname, String entityType, String header, int rowsSize,
-        int securityFieldsSize, boolean isLeading, int priority, LayoutSecurity security) {
+    private void assertThatTabHas(CrisLayoutTab tab, String shortname, String entityType, String customFilter,
+            String header, int rowsSize, int securityFieldsSize, boolean isLeading, int priority,
+            LayoutSecurity security) {
 
         assertThat(tab.getEntity().getLabel(), is(entityType));
+        assertThat(tab.getCustomFilter(), is(customFilter));
         assertThat(tab.getHeader(), is(header));
         assertThat(tab.getPriority(), is(priority));
         assertThat(tab.getRows(), hasSize(rowsSize));

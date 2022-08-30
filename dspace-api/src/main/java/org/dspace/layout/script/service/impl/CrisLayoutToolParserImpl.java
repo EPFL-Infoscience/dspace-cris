@@ -123,9 +123,19 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
 
         Workbook workbook = tabRow.getSheet().getWorkbook();
         String name = getCellValue(tabRow, SHORTNAME_COLUMN);
-        String entityType = getCellValue(tabRow, ENTITY_COLUMN);
+        String entityColumn = getCellValue(tabRow, ENTITY_COLUMN);
+        String customFilter =
+                Optional.of(entityColumn.split("\\."))
+                    .filter(splitted -> splitted.length == 2)
+                    .map(splitted -> splitted[1])
+                    .orElse(null);
+        String entityType =
+                Optional.of(entityColumn.split("\\."))
+                    .map(splitted -> splitted[0])
+                    .orElse(entityColumn);
 
         tab.setEntity(getEntityType(context, entityType));
+        tab.setCustomFilter(customFilter);
         tab.setShortName(name);
         tab.setHeader(getCellValue(tabRow, LABEL_COLUMN));
         tab.setLeading(toBoolean(getCellValue(tabRow, LEADING_COLUMN)));
@@ -175,7 +185,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
 
     private List<CrisLayoutBox> buildBoxes(Context context, Row tab2boxRow) {
 
-        String entityType = getCellValue(tab2boxRow, ENTITY_COLUMN);
+        String entityType = getEntityValue(tab2boxRow, ENTITY_COLUMN);
 
         String boxes = getCellValue(tab2boxRow, BOXES_COLUMN);
         if (StringUtils.isBlank(boxes)) {
@@ -288,7 +298,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
 
     private List<CrisMetadataGroup> buildCrisMetadataGroups(Context context, Row row) {
         String metadataField = getCellValue(row, METADATA_COLUMN);
-        String entity = getCellValue(row, ENTITY_COLUMN);
+        String entity = getEntityValue(row, ENTITY_COLUMN);
 
         Sheet metadatagroupsSheet = getSheetByName(row.getSheet().getWorkbook(), METADATAGROUPS_SHEET);
 
@@ -397,7 +407,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
     private Stream<Row> getRowsByEntityAndColumnValue(Sheet sheet, String entity, String columnName, String value) {
         return WorkbookUtils.getNotEmptyRowsSkippingHeader(sheet).stream()
             .filter(row -> value.equals(getCellValue(row, columnName)))
-            .filter(row -> entity.equals(getCellValue(row, ENTITY_COLUMN)));
+            .filter(row -> entity.equals(getEntityValue(row, ENTITY_COLUMN)));
     }
 
     private boolean toBoolean(String value) {
@@ -410,6 +420,14 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException("Invalid integer value: " + value);
         }
+    }
+
+    private String getEntityValue(Row row, String header) {
+        String cellValue = WorkbookUtils.getCellValue(row, header);
+        return Optional.ofNullable(cellValue)
+                       .filter(cell -> cell.contains("."))
+                       .map(cell -> cell.split("\\.")[0])
+                       .orElse(StringUtils.isNotBlank(cellValue) ? cellValue : null);
     }
 
     private String getCellValue(Row row, String header) {
