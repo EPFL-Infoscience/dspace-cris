@@ -272,6 +272,13 @@
       <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
+    <submission-process name="publication-correction">
+      <step id="extractionstep" />
+      <step id="publication" />
+      <step id="publication_indexing" />
+      <step id="publication_bibliographic_details" />
+      <step id="publication_references" />
+    </submission-process>
     <submission-process name="person">
       <step id="collection" />
       <step id="correction" />
