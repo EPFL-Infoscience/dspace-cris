@@ -16,7 +16,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -36,8 +35,7 @@ import org.dspace.utils.DSpace;
  */
 public class ReciprocalItemAuthorityConsumer implements Consumer
 {
-    private static final Logger log = Logger.getLogger(ReciprocalItemAuthorityConsumer.class);
-    
+
     private Map<String, String> reciprocalMetadata = new ConcurrentHashMap<String, String>();
     
     private transient Set<UUID> processedHandles = new HashSet<UUID>();
