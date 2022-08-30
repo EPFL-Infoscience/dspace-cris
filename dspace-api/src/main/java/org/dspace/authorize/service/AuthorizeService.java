@@ -399,6 +399,19 @@ public interface AuthorizeService {
         throws SQLException, AuthorizeException;
 
     /**
+     * removes policies that match the params
+     *
+     * @param c    DSpace context
+     * @param o    object to remove policies for
+     * @param eperson the eperson that own the policies to be removed
+     * @param type policy type
+     * @throws SQLException       if there's a database problem
+     * @throws AuthorizeException if authorization error
+     */
+    public void removeAllPoliciesByDSOAndEPersonAndType(Context context, DSpaceObject o, EPerson eperson,
+            String tYPE_SUBMISSION) throws SQLException, AuthorizeException;
+
+    /**
      * Remove all policies from an object that match a given action. FIXME
      * doesn't check authorization
      *
@@ -636,4 +649,5 @@ public interface AuthorizeService {
      *                      relationship, false otherwise
      */
     boolean canHandleRelationship(Context context, Relationship relationship);
+
 }
