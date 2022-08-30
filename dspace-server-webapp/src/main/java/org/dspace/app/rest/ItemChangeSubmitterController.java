@@ -20,12 +20,10 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.submit.service.ChangeSubmitterService;
-import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
@@ -107,16 +105,7 @@ public class ItemChangeSubmitterController {
             return;
         }
 
-        Collection collection = item.getOwningCollection();
-        if (collection == null) {
-            WorkspaceItem wsItem = workspaceItemService.findByItem(context, item);
-            WorkflowItem wfItem = workflowItemService.findByItem(context, item);
-            if (wsItem == null) {
-                collection = wfItem.getCollection();
-            } else {
-                collection = wsItem.getCollection();
-            }
-        }
+        Collection collection = (Collection) itemService.getParentObject(context, item);
 
         // returns unauthorized if the collection is null or if the user is not the
         // collection admin
@@ -126,7 +115,7 @@ public class ItemChangeSubmitterController {
         }
 
         changeSubmitterService.setUpSubmitter(context, item, submitterIdentifier);
-        context.commit();
+        context.complete();
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 }

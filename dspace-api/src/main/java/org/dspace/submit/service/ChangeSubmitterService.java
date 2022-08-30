@@ -20,7 +20,7 @@ public interface ChangeSubmitterService {
      * 
      * @param context       DSpace context
      * @param item          Whose submitter will be updated
-     * @param submitterName A string (uuid, mail, netid...)
+     * @param submitterName A string (uuid, mail or netid are tested in this order)
      * @throws SQLException
      * @throws AuthorizeException
      */

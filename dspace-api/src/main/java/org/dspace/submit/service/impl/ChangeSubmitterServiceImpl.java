@@ -9,12 +9,14 @@ package org.dspace.submit.service.impl;
 
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -31,6 +33,9 @@ public class ChangeSubmitterServiceImpl implements ChangeSubmitterService {
     @Autowired
     EPersonService ePersonService;
 
+    @Autowired
+    ItemService itemService;
+
     @Override
     public void setUpSubmitter(Context context, Item item, String submitterIdentifier)
             throws SQLException, AuthorizeException {
@@ -43,17 +48,22 @@ public class ChangeSubmitterServiceImpl implements ChangeSubmitterService {
         }
         EPerson previousSubmitter = item.getSubmitter();
         item.setSubmitter(submitter);
-        int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
-        for (int actionId : actionIds) {
-            authorizeService.removeEPersonPolicies(context, item, previousSubmitter);
-            authorizeService.addPolicy(context, item, actionId, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
+        // fix the policies for inprogress submission
+        if (itemService.isInProgressSubmission(context, item)) {
+            int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
+            authorizeService.removeAllPoliciesByDSOAndEPersonAndType(context, item, previousSubmitter,
+                    ResourcePolicy.TYPE_SUBMISSION);
+            for (int actionId : actionIds) {
+                authorizeService.addPolicy(context, item, actionId, submitter, ResourcePolicy.TYPE_SUBMISSION);
+            }
         }
     }
 
     private EPerson findSubmitter(Context context, String submitter) throws SQLException {
         EPerson ePerson = null;
-        if (StringUtils.isNumeric(submitter) || Objects.nonNull(UUIDUtils.fromString(submitter))) {
-            ePerson = ePersonService.findByIdOrLegacyId(context, submitter);
+        UUID uuid = UUIDUtils.fromString(submitter);
+        if (Objects.nonNull(uuid)) {
+            ePerson = ePersonService.find(context, uuid);
         }
         if (Objects.nonNull(ePerson)) {
             return ePerson;
