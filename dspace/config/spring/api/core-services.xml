@@ -7,6 +7,8 @@
     <!-- Service declarations -->
     <!-- ******************** -->
     <bean class="org.dspace.app.requestitem.RequestItemServiceImpl"/>
+    
+    <bean class="org.dspace.submit.service.impl.ChangeSubmitterServiceImpl"/>
 
     <bean class="org.dspace.app.itemexport.ItemExportServiceImpl"/>
 
