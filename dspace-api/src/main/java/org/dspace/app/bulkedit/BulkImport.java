@@ -57,6 +57,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.InProgressSubmission;
@@ -66,6 +67,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.packager.PackageUtils;
+import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
@@ -181,6 +183,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private BitstreamService bitstreamService;
 
+    private BitstreamFormatService bitstreamFormatService;
+
     @Override
     @SuppressWarnings("unchecked")
     public void setup() throws ParseException {
@@ -202,6 +206,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         this.bundleService = ContentServiceFactory.getInstance().getBundleService();
         this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
         this.submitterService = SubmitterServiceFactory.getInstance().getSubmitterService();
+        this.bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
 
         try {
             this.reader = new DCInputsReader();
@@ -660,7 +665,10 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 if (optionalBundle.isPresent() && optionalInputStream.isPresent()) {
                     Optional<Bitstream> bitstream =
                         createBitstream(optionalBundle.get(), optionalInputStream.get());
-                    bitstream.ifPresent(value -> addMetadataToBitstream(value, u.getMetadataGroup()));
+                    bitstream.ifPresent(value -> {
+                        addMetadataToBitstream(value, u.getMetadataGroup());
+                        setBitstreamFormat(value);
+                    });
                 } else {
                     handler.logError("Cannot create bundle or input stream for " +
                                          "bundle: " + u.getBundleName() + " with path: " + u.getFilePath() +
@@ -674,6 +682,16 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         for (Map.Entry<String, MetadataValueVO> entry : metadataGroup.getMetadata().entries()) {
             Optional<MetadataField> metadataField = getMetadataFieldByString(entry.getKey());
             metadataField.ifPresent(field -> addMetadataToBitstream(bitstream, field, entry.getValue()));
+        }
+    }
+
+    private void setBitstreamFormat(Bitstream bitstream) {
+        try {
+            BitstreamFormat bf = bitstreamFormatService.guessFormat(context, bitstream);
+            bitstreamService.setFormat(context, bitstream, bf);
+            bitstreamService.update(context, bitstream);
+        } catch (SQLException | AuthorizeException e) {
+            handler.logError(e.getMessage());
         }
     }
 

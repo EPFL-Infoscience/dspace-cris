@@ -57,6 +57,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -1771,7 +1772,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         Map<String, String> metadataMap = getMetadataFromBitStream(bitstream1);
 
-        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        assertThat(metadataMap.get("dc.title"), is("Test title.txt"));
         assertThat(metadataMap.get("dc.description"), is("test file descr"));
         assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
         assertThat(bitstream1.getBundles().get(0).getName(), is("ORIGINAL"));
@@ -1788,6 +1789,88 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             "a14ba215-c0f0-4b74-b21a-06359bfabd45", 0, 600)));
         assertThat(metadata, hasItems(with("dc.contributor.editor",
             "Corrado Francesco, Lombardi", "29177bec-ff50-4428-aa43-1fdf932f0d33", 0, 600)));
+
+    }
+
+    /**
+     * Test Bitstream format of created Bitstreams.
+     */
+    @Test
+    public void testCreatePublicationInWorkspaceItemsWithBitstreams() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection publication = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "items-with-bitstreams.xlsx";
+        String fileLocation = getXlsFilePath(fileName);
+        String bitstreamLocation = getBitstreamFilePath("test.txt");
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName, null,
+            Arrays.asList(bitstreamLocation));
+
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        assertThat("Expected no warnings", handler.getWarningMessages(), empty());
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
+
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 2 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - WorkflowItem created successfully"));
+
+        // verify created item (ROW 2)
+        String itemUuid = getItemUuidFromMessage(infoMessages.get(3));
+
+        Item createdItem = itemService.findByIdOrLegacyId(context, itemUuid);
+        assertThat("Item expected to be created", createdItem, notNullValue());
+        assertThat(createdItem.isArchived(), is(true));
+        assertThat(findWorkspaceItem(createdItem), nullValue());
+
+        List<Bitstream> bitstreams = new ArrayList<>();
+        bitstreamService.getItemBitstreams(context, createdItem).forEachRemaining(bitstreams::add);
+
+        Bitstream bitstream = getBitstreamByBundleName(bitstreams, "LICENSE");
+        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+        String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        assertThat(bitstream.getBundles().get(0).getName(), is("LICENSE"));
+        assertThat(bitstreamContent, containsString("NOTE: PLACE YOUR OWN LICENSE HERE\n" +
+            "This sample license is provided for informational purposes only."));
+
+        BitstreamFormat bf = bitstream.getFormat(context);
+
+        assertThat(bf.getMIMEType(), is("text/plain; charset=utf-8"));
+        assertThat(bf.getShortDescription(), is("License"));
+        assertThat(bf.getDescription(), is("Item-specific license agreed to upon submission"));
+
+        Bitstream bitstream1 = getBitstreamByBundleName(bitstreams, "ORIGINAL");
+        inputStream = bitstreamService.retrieve(context, bitstream1);
+        bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream1);
+
+        assertThat(metadataMap.get("dc.title"), is("Test title.txt"));
+        assertThat(metadataMap.get("dc.description"), is("test file descr"));
+        assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
+        assertThat(bitstream1.getBundles().get(0).getName(), is("ORIGINAL"));
+
+        BitstreamFormat bf1 = bitstream1.getFormat(context);
+
+        assertThat(bf1.getMIMEType(), is("text/plain"));
+        assertThat(bf1.getShortDescription(), is("Text"));
+        assertThat(bf1.getDescription(), is("Plain Text"));
 
     }
 
