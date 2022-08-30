@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,9 +27,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.profile.ResearcherProfile;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataSchema;
@@ -334,6 +337,18 @@ public class ShibAuthentication implements AuthenticationMethod {
 
             // Loop through each affiliation
             Set<Group> groups = new HashSet<>();
+            Optional<ResearcherProfile> profile = profileInitializer.findProfile(context, context.getCurrentUser());
+            if (profile.isPresent()) {
+                Item item = profile.get().getItem();
+                String currUnitName = item.getItemService().getMetadataFirstValue(item, "person", "affiliation", "name",
+                        Item.ANY);
+                if (currUnitName != null) {
+                    Group group = groupService.findByName(context, currUnitName);
+                    if (group != null) {
+                        groups.add(group);
+                    }
+                }
+            }
             if (affiliations != null) {
                 for (String affiliation : affiliations) {
                     // If we ignore the affiliation's scope then strip the scope if it exists.

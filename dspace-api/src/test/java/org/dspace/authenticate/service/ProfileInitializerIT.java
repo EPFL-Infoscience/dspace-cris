@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,9 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 import org.junit.After;
@@ -48,6 +52,8 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         .getServiceManager().getServicesByType(ResearcherProfileService.class).get(0);
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
     private EpflClient epflClient;
 
@@ -113,11 +119,10 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         boolean initialized = profileInitializer.initialize(context, user);
         assertThat(initialized, is(true));
 
-        context.commit();
-
         ResearcherProfile profile = researcherProfileService.findById(context, user.getID());
         assertThat(profile, notNullValue());
         assertThat(profile.isVisible(), is(false));
+        context.commit();
 
         Item profileItem = profile.getItem();
         assertThat(getMetadataValue(profileItem, "dc.title"), is("User Example"));
@@ -139,14 +144,40 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getMetadataValue(orgUnit, "dspace.entity.type"), is("OrgUnit"));
         assertThat(getMetadataValue(orgUnit, "cris.legacyId"), is("14214"));
 
+        // verify that we have created the group and added it to the current context special group
+        Group group = groupService.findByName(context, "UNIT 14214");
+        assertThat(group, notNullValue());
+        assertThat(context.getSpecialGroups().contains(group), is(true));
+
         verify(mockEpflClient).getAccred("123456");
         verifyNoMoreInteractions(mockEpflClient);
 
         initialized = profileInitializer.initialize(context, user);
         assertThat(initialized, is(false));
-
+        verify(mockEpflClient, times(2)).getAccred("123456");
         verifyNoMoreInteractions(mockEpflClient);
 
+        // update the main affiliation to check if the profile initializer will fix it back
+        context.turnOffAuthorisationSystem();
+        profileItem = context.reloadEntity(profileItem);
+        itemService.clearMetadata(context, profileItem, "person", "affiliation", "name", Item.ANY);
+        itemService.update(context, profileItem);
+        context.commit();
+        context.restoreAuthSystemState();
+        initialized = profileInitializer.initialize(context, user);
+        context.commit();
+        verify(mockEpflClient, times(3)).getAccred("123456");
+        verifyNoMoreInteractions(mockEpflClient);
+        assertThat(initialized, is(true));
+        profileItem = context.reloadEntity(profileItem);
+        affiliations = itemService.getMetadataByMetadataString(profileItem,
+                "person.affiliation.name");
+        assertThat(affiliations, hasSize(1));
+        affiliation = affiliations.get(0);
+        assertThat(affiliation.getValue(), is("UNIT 14214"));
+        assertThat(affiliation.getAuthority(), notNullValue());
+
+        // test with the other profile
         initialized = profileInitializer.initialize(context, anotherUser);
         assertThat(initialized, is(true));
 
