@@ -24,6 +24,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.enhancer.AbstractItemEnhancer;
 import org.dspace.content.enhancer.ItemEnhancer;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.vo.MetadataValueVO;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.util.UUIDUtils;
@@ -119,7 +120,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
             getMetadataValues(relatedItem, relatedItemMetadataField)
                 .stream()
                 .map(relatedItemMetadataValue -> getRelatedItemValue(context, relatedItemMetadataValue))
-                .filter(relatedItemValue -> StringUtils.isNotBlank(relatedItemValue))
+                    .filter(relatedItemValue -> relatedItemValue != null
+                            && StringUtils.isNotBlank(relatedItemValue.getValue()))
                 .forEach(
                     throwingConsumerWrapper(
                         relatedItemValue -> enhanceVirtualFields(context, item, metadataValue, relatedItemValue)
@@ -130,13 +132,13 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     }
 
     protected void enhanceVirtualFields(Context context, Item item, MetadataValue metadataValue,
-            String relatedItemMetadataValue) throws SQLException {
+            MetadataValueVO relatedItemMetadataValue) throws SQLException {
         addVirtualField(context, item, relatedItemMetadataValue);
         addVirtualSourceField(context, item, metadataValue);
     }
 
-    protected String getRelatedItemValue(Context context, MetadataValue relatedItemMetadataValue) {
-        return relatedItemMetadataValue.getValue();
+    protected MetadataValueVO getRelatedItemValue(Context context, MetadataValue relatedItemMetadataValue) {
+        return new MetadataValueVO(relatedItemMetadataValue.getValue());
     }
 
     private List<MetadataValue> getEnhanceableMetadataValue(Item item) {
@@ -175,9 +177,9 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                     .flatMap(metadataField -> itemService.getMetadataByMetadataString(item, metadataField).stream());
     }
 
-    private void addVirtualField(Context context, Item item, String value) throws SQLException {
+    private void addVirtualField(Context context, Item item, MetadataValueVO value) throws SQLException {
         itemService.addMetadata(context, item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_METADATA_ELEMENT,
-            getVirtualQualifier(), null, value);
+                getVirtualQualifier(), null, value.getValue(), value.getAuthority(), value.getConfidence());
     }
 
     private void addVirtualSourceField(Context context, Item item, MetadataValue sourceValue) throws SQLException {
