@@ -21,6 +21,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
@@ -829,5 +830,21 @@ public interface ItemService
      * @throws SQLException   if database error
      */
     Iterator<Item> findByIds(Context context, List<String> ids) throws SQLException;
+
+    /**
+     * Add the default policies, which have not been already added to the given
+     * DSpace object
+     *
+     * @param  context                   The relevant DSpace Context.
+     * @param  dso                       The DSpace Object to add policies to
+     * @param  defaultCollectionPolicies list of policies
+     * @throws SQLException              An exception that provides information on a
+     *                                   database access error or other errors.
+     * @throws AuthorizeException        Exception indicating the current user of
+     *                                   the context does not have permission to
+     *                                   perform a particular action.
+     */
+    void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso, List<ResourcePolicy> defaultCollectionPolicies)
+        throws SQLException, AuthorizeException;
 
 }

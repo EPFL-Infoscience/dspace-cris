@@ -67,17 +67,14 @@ public class BitstreamResourcePolicyAddPatchOperation extends AddPatchOperation<
                     List<AccessConditionDTO> newAccessConditions = new ArrayList<AccessConditionDTO>();
                     if (splitAbsPath.length == 3) {
                         resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_CUSTOM);
-                        if (isAppendModeDisabled()) {
-                            resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_INHERITED);
-                        }
                         newAccessConditions = evaluateArrayObject((LateObjectEvaluator) value);
                     } else if (splitAbsPath.length == 4) {
                         // contains "-", call index-based accessConditions it make not sense
                         newAccessConditions.add(evaluateSingleObject((LateObjectEvaluator) value));
-                        if (isAppendModeDisabled()) {
-                            resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_INHERITED,
-                                Constants.READ);
-                        }
+                    }
+
+                    if (isAppendModeDisabled() && item.isArchived()) {
+                        resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_INHERITED);
                     }
 
                     if (CollectionUtils.isNotEmpty(newAccessConditions)) {
@@ -91,7 +88,7 @@ public class BitstreamResourcePolicyAddPatchOperation extends AddPatchOperation<
     }
 
     private boolean isAppendModeDisabled() {
-        return configurationService.getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode");
+        return !configurationService.getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode");
     }
 
     @Override
