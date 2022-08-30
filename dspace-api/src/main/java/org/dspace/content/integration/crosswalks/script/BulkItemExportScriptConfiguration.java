@@ -7,6 +7,8 @@
  */
 package org.dspace.content.integration.crosswalks.script;
 
+import java.util.List;
+
 import org.apache.commons.cli.Options;
 import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
@@ -59,6 +61,10 @@ public class BulkItemExportScriptConfiguration<T extends BulkItemExport> extends
             options.addOption("f", "format", true, "the format in which the itemd must be exported");
             options.getOption("f").setType(String.class);
             options.getOption("f").setRequired(true);
+
+            options.addOption("si", "selected-items", true, "the list of selected items to export");
+            options.getOption("si").setType(String[].class);
+            options.getOption("si").setRequired(false);
 
             options.addOption("o", "offset", true, "the offset for export start");
             options.getOption("o").setType(String.class);

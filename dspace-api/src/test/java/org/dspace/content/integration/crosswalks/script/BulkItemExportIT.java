@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -501,6 +502,34 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
             assertThat(content, containsString("<preferred-name>Edward White</preferred-name>"));
             assertThat(content, not(containsString("<preferred-name>John Smith</preferred-name>")));
             assertThat(content, not(containsString("<preferred-name>Company</preferred-name>")));
+        }
+    }
+
+    @Test
+    public void testSelectedItemsBulkItemExport() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Item item1 = createItem(collection, "Edward Red", "Science", "Person");
+        createItem(collection, "My publication", "", "Person");
+        Item item3 = createItem(collection, "Walter White", "Science", "Person");
+        createItem(collection, "John Smith", "Science", "Person");
+        context.restoreAuthSystemState();
+        context.commit();
+
+        List<String> items = Arrays.asList(item1.getID().toString() ,item3.getID().toString());
+
+        String[] args = new String[] { "bulk-item-export", "-si", items.toString(), "-f", "person-xml" };
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        File xml = new File("person.xml");
+        xml.deleteOnExit();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        try (FileInputStream fis = new FileInputStream(xml)) {
+            String content = IOUtils.toString(fis, Charset.defaultCharset());
+            assertThat(content, containsString("<preferred-name>Edward Red</preferred-name>"));
+            assertThat(content, containsString("<preferred-name>Walter White</preferred-name>"));
         }
     }
 
