@@ -8,6 +8,8 @@
 package org.dspace.script2externalservices;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import org.apache.commons.cli.Options;
 import org.dspace.authorize.service.AuthorizeService;
@@ -51,15 +53,19 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
 
     @Override
     public Options getOptions() {
-        if (options == null) {
+        if (Objects.isNull(options)) {
             Options options = new Options();
             options.addOption("s", "service", true, "the name of the external service to be " +
                 "queried (\"scopus\" or \"wos\" or \"crossref\")");
             options.getOption("s").setType(String.class);
             options.getOption("s").setRequired(true);
-
             options.addOption("e", "eperson", true, "email of the eperson performing the import");
-
+            options.addOption("f", "final status", true, "the final status of import " +
+                    "choose between (\"workspace\" or \"workflow\" or \"item\")");
+            options.getOption("f").setType(String.class);
+            options.getOption("f").setRequired(true);
+            options.addOption("c", "collection-uuid", true, "collection-uuid into which to make import");
+            options.getOption("c").setType(UUID.class);
             super.options = options;
         }
         return options;
