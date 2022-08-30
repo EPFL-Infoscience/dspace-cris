@@ -7,7 +7,7 @@
 	<bean id="org.dspace.submit.listener.MetadataListener" class="org.dspace.submit.listener.SimpleMetadataListener">
         <property name="externalDataProvidersMap">
 	        <map>
-                <entry key="dc.identifier.pmid">
+<!--                 <entry key="dc.identifier.pmid">
                     <list>
                         <ref bean="pubmedLiveImportDataProvider"/>
                     </list>
@@ -22,22 +22,22 @@
                         <ref bean="arxivLiveImportDataProvider"/>
                     </list>
                 </entry>
-                <entry key="dc.identifier.doi">
+ -->                <entry key="dc.identifier.doi">
                     <list>
                         <ref bean="crossRefLiveImportDataProvider"/>
                     </list>
                 </entry>
-                <entry key="dc.identifier.adsbibcode">
+<!--                 <entry key="dc.identifier.adsbibcode">
                     <list>
                         <ref bean="adsLiveImportDataProvider" />
                     </list>
                 </entry>
-                <entry key="dc.identifier.isi">
+ -->                <entry key="dc.identifier.isi">
                     <list>
                         <ref bean="wosLiveImportDataProvider" />
                     </list>
                 </entry>
-                <entry key="dc.identifier.patentno">
+<!--                 <entry key="dc.identifier.patentno">
                     <list>
                         <ref bean="epoLiveImportDataProvider" />
                     </list>
@@ -52,11 +52,11 @@
                         <ref bean="epoLiveImportDataProvider" />
                     </list>
                 </entry>
-	        </map>           
+ -->	        </map>           
         </property>
 		<property name="generators">
 			<list>
-				<ref bean="org.dspace.submit.listener.EpoGeneratorExternalId" />
+				<!-- <ref bean="org.dspace.submit.listener.EpoGeneratorExternalId" /> -->
 				<ref bean="org.dspace.submit.listener.DefaultGeneratorExternalId" />
 				<!-- the order of the beans is significant, the last one must be DefaultGeneratorExternalId -->
 			</list>
