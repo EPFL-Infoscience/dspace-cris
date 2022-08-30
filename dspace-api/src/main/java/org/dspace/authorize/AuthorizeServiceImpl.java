@@ -595,6 +595,12 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     }
 
     @Override
+    public void removeAllPoliciesByDSOAndEPersonAndType(Context c, DSpaceObject o, EPerson e, String type)
+        throws SQLException, AuthorizeException {
+        resourcePolicyService.removePolicies(c, o, e, type);
+    }
+
+    @Override
     public void removePoliciesActionFilter(Context context, DSpaceObject dso, int actionID)
         throws SQLException, AuthorizeException {
         resourcePolicyService.removePolicies(context, dso, actionID);

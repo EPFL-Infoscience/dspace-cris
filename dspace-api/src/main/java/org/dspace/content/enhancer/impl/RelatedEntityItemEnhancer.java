@@ -115,7 +115,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
             List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem, relatedItemMetadataField);
             for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
-                addVirtualField(context, item, relatedItemMetadataValue.getValue());
+                String value = relatedItemMetadataValue.getValue();
+                addVirtualField(context, item, value);
                 addVirtualSourceField(context, item, metadataValue);
             }
 

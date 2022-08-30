@@ -20,9 +20,11 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.ThrowingSupplier;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class EpflClient {
 
+    @Autowired
     private ConfigurationService configurationService;
 
     private ObjectMapper objectMapper = new ObjectMapper();

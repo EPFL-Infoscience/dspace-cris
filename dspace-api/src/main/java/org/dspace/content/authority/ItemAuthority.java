@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -28,6 +30,8 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
+import org.dspace.app.customurl.CustomUrlService;
+import org.dspace.app.customurl.service.CustomUrlServiceImpl;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.authority.factory.ItemAuthorityServiceFactory;
@@ -50,7 +54,7 @@ import org.dspace.utils.DSpace;
  * the corresponding dataset or viceversa)
  *
  * @author Andrea Bollini
- * @author Giusdeppe Digilio
+ * @author Giuseppe Digilio
  * @version $Revision $
  */
 public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
@@ -63,6 +67,9 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     protected DSpace dspace = new DSpace();
 
     protected ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+    private CustomUrlService customUrlService = dspace.getServiceManager()
+            .getServiceByName("org.dspace.app.customurl.CustomUrlService", CustomUrlServiceImpl.class);
 
     private SearchService searchService = dspace.getServiceManager().getServiceByName(
         "org.dspace.discovery.SearchService", SearchService.class);
@@ -107,12 +114,39 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             return new Choices(Choices.CF_UNSET);
         }
 
+        List<Choice> choiceList = new ArrayList<>();
+        Item item = null;
+
         String entityType = getLinkedEntityType();
+
+        if (StringUtils.startsWith(text, configurationService.getProperty("dspace.ui.url"))) {
+
+            String authority = text.split("/")[text.split("/").length - 1];
+
+            try (Context context = new Context()) {
+                if (UUIDUtils.fromString(authority) != null) {
+                    UUID uuid = UUIDUtils.fromString(authority);
+                    item = itemService.find(context, uuid);
+                } else {
+                    Optional<Item> items = customUrlService.findItemByCustomUrl(context, authority);
+                    if (items.isPresent()) {
+                        item = items.get();
+                    }
+                }
+                if (item != null) {
+                    choiceList.add(new Choice(authority, item.getName(), item.getName()));
+                    return buildChoices(choiceList, start, choiceList.size(), limit);
+                }
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
 
         String query = "";
 
         if (onlyExactMatches) {
-            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(text);
+            String valueToMatch = isPersonItemAuthority() ? removeComma(text) : text;
+            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(valueToMatch);
         } else {
             ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
             query = itemAuthorityService.getSolrQuery(text);
@@ -128,24 +162,28 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             solrQuery.addFilterQuery("dspace.entity.type:" + entityType);
         }
 
-        customAuthorityFilters.stream()
-            .flatMap(caf -> caf.getFilterQueries(this).stream())
-            .forEach(solrQuery::addFilterQuery);
+        customAuthorityFilters.stream().flatMap(caf -> caf.getFilterQueries(this).stream())
+                .forEach(solrQuery::addFilterQuery);
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults());
-            Choice[] results = new Choice[choiceList.size()];
-            results = choiceList.toArray(results);
+            choiceList = getChoiceListFromQueryResults(queryResponse.getResults());
+
             long numFound = queryResponse.getResults().getNumFound();
 
-            return new Choices(results, start, (int) numFound, Choices.CF_AMBIGUOUS,
-                               numFound > (start + limit), 0);
+            return buildChoices(choiceList, start, (int) numFound, limit);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new Choices(Choices.CF_UNSET);
         }
+    }
+
+    private Choices buildChoices(List<Choice> choiceList, int start, int total, int limit) {
+        Choice[] results = new Choice[choiceList.size()];
+        results = choiceList.toArray(results);
+
+        return new Choices(results, start, total, calculateConfidence(results), total > (start + limit), 0);
     }
 
     private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results) {
@@ -266,7 +304,13 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     }
 
     protected int calculateConfidence(Choice[] choices) {
-        return ArrayUtils.isNotEmpty(choices) ? Choices.CF_AMBIGUOUS : Choices.CF_UNSET;
+
+        if (ArrayUtils.isEmpty(choices)) {
+            return Choices.CF_UNSET;
+        }
+
+        return choices.length == 1 ? Choices.CF_UNCERTAIN : Choices.CF_AMBIGUOUS;
+
     }
 
     private boolean isPersonItemAuthority() {
@@ -279,6 +323,10 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             return (externalsource != null);
         }
         return false;
+    }
+
+    private String removeComma(String text) {
+        return StringUtils.normalizeSpace(StringUtils.replace(text, ",", " "));
     }
 
 }

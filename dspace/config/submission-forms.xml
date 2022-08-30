@@ -978,6 +978,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <vocabulary closed="true">oecd</vocabulary>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>url</dc-qualifier>
+          <label>Other URL(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="publication_bibliographic_details">
       <row>
@@ -996,12 +1008,12 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>publisher</dc-element>
-          <label>Publisher(s)</label>
+          <label>Publisher</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
-          <hint>The publisher or publishers of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
+          <hint>The publisher of this publication</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_2f33,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_b239,publication-coar-types:c_6501,publication-coar-types:c_7acd,publication-coar-types:c_beb9,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_7bab,publication-coar-types:c_545b,publication-coar-types:c_998f,publication-coar-types:QX5C-AR31</type-bind>
         </field>
       </row>
       <row>
@@ -1053,18 +1065,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint>The journal or Serie where this publication has been published</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>ispartofseries</dc-qualifier>
-          <label>Series/Report No.</label>
-          <input-type>series</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the series and number assigned to this item by your community.</hint>
+          <type-bind>publication-coar-types:c_2f33,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_b239,publication-coar-types:c_6501,publication-coar-types:c_7acd,publication-coar-types:c_beb9,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_7bab,publication-coar-types:c_545b,publication-coar-types:c_998f,publication-coar-types:QX5C-AR31</type-bind>
         </field>
       </row>
       <row>
@@ -1077,6 +1078,19 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint>The journal or Serie ISSN if it was not found in the system</hint>
+          <type-bind>publication-coar-types:c_2f33,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_b239,publication-coar-types:c_6501,publication-coar-types:c_7acd,publication-coar-types:c_beb9,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_7bab,publication-coar-types:c_545b,publication-coar-types:c_998f,publication-coar-types:QX5C-AR31</type-bind>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartofseries</dc-qualifier>
+          <label>Series/Report No.</label>
+          <input-type>series</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the series and number assigned to this item by your community.</hint>
         </field>
       </row>
       <row>
@@ -2902,10 +2916,6 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Gov't Doc #</displayed-value>
         <stored-value>govdoc</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>URI</displayed-value>
-        <stored-value>uri</stored-value>
       </pair>
       <pair>
         <displayed-value>ISBN</displayed-value>

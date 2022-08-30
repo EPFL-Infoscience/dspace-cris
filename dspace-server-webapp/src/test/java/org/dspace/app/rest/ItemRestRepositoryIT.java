@@ -209,6 +209,32 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    public void changeSubmitterTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1).withTitle("Item 1").build();
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, col1).withTitle("Item2")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", item.getID().toString()).param("submitterIdentifier", "Johndoe@example.com"))
+                .andExpect(status().isNoContent());
+        getClient(token).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workspaceItem.getItem().getID().toString())
+                .param("submitterIdentifier", "Johndoe@example.com")).andExpect(status().isNoContent());
+
+        getClient(token).perform(get("/api/core/items/" + item.getID().toString())).andExpect(status().isOk());
+    }
+
+    @Test
     public void findAllForbiddenTest() throws Exception {
         String tokenEperson = getAuthToken(eperson.getEmail(), password);
         getClient(tokenEperson).perform(get("/api/core/items"))

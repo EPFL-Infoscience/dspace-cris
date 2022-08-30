@@ -12,7 +12,31 @@
                 <entry key="publication">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="FULL" />
+                            <property name="name" value="FULLSUB" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    SUBMITTER
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="publication-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLAUTH" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="items">
+                                <list>
+                                    <value>dc.contributor.author</value>
+                                    <value>dc.contributor.editor</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="publication-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
                             <property name="security">
                                 <value type="org.dspace.content.security.CrisSecurity">
                                     ITEM_ADMIN
@@ -68,7 +92,7 @@
                             </property>
                             <property name="submissionDefinition" value="funding-edit" />
                         </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
+<!--                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="INVESTIGATOR" />
                             <property name="security">
                               <value type="org.dspace.content.security.CrisSecurity">
@@ -81,7 +105,7 @@
                             		<value>crisfund.investigators</value>
                             	</list>
                             </property>
-                        </bean>
+                        </bean> -->
                     </list>
                 </entry>
                 <entry key="orgunit">
@@ -95,7 +119,7 @@
                             </property>
                             <property name="submissionDefinition" value="orgunit-edit" />
                         </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
+<!--                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="DIRECTOR" />
                             <property name="security">
                               <value type="org.dspace.content.security.CrisSecurity">
@@ -108,7 +132,7 @@
                             		<value>crisou.director</value>
                             	</list>
                             </property>
-                        </bean>
+                        </bean> -->
                     </list>
                 </entry>
                 <entry key="patent">
@@ -135,7 +159,7 @@
                             </property>
                             <property name="submissionDefinition" value="project-edit" />
                         </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
+                        <!-- <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="INVESTIGATOR" />
                             <property name="security">
                               <value type="org.dspace.content.security.CrisSecurity">
@@ -148,7 +172,7 @@
                             		<value>crispj.investigator</value>
                             	</list>
                             </property>
-                        </bean>
+                        </bean> -->
                     </list>
                 </entry>
                 <entry key="product">
