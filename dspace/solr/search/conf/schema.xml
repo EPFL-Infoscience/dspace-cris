@@ -283,7 +283,7 @@
     <!-- used to track entity type of collections -->
     <field name="search.entitytype" type="string" indexed="true" stored="true" required="false" />
 
-     <field name="dc.title" type="string" indexed="true" stored="true" required="false">
+     <field name="dc.title" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
@@ -331,25 +331,25 @@
          </analyzer>
      </field>
 
-     <field name="dspace.entity.type" type="string" indexed="true" stored="true" required="false">
+     <field name="dspace.entity.type" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.relation.ispartof" type="string" indexed="true" stored="true" required="false">
+     <field name="dc.relation.ispartof" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.identifier.doi" type="string" indexed="true" stored="true" required="false">
+     <field name="dc.identifier.doi" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="crispj.investigator" type="string" indexed="true" stored="true" required="false">
+     <field name="crispj.investigator" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
@@ -361,7 +361,7 @@
          </analyzer>
      </field>
 
-     <field name="crispj.coordinator" type="string" indexed="true" stored="true" required="false">
+     <field name="crispj.coordinator" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
@@ -379,31 +379,31 @@
          </analyzer>
      </field>
 
-     <field name="oairecerif.funder" type="string" indexed="true" stored="true" required="false">
+     <field name="oairecerif.funder" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.identifier" type="string" indexed="true" stored="true" required="false">
+     <field name="dc.identifier" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="person.familyName" type="string" indexed="true" stored="true" required="false">
+     <field name="person.familyName" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="person.givenName" type="string" indexed="true" stored="true" required="false">
+     <field name="person.givenName" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="person.jobTitle" type="string" indexed="true" stored="true" required="false">
+     <field name="person.jobTitle" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
@@ -415,7 +415,7 @@
          </analyzer>
      </field>
 
-     <field name="person.affiliation.name" type="string" indexed="true" stored="true" required="false">
+     <field name="person.affiliation.name" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
@@ -427,7 +427,7 @@
          </analyzer>
      </field>
 
-     <field name="person.identifier.orcid" type="string" indexed="true" stored="true" required="false">
+     <field name="person.identifier.orcid" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
