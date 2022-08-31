@@ -97,14 +97,12 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         }
 
         List<Group> specialGroups = context.getSpecialGroups();
-        if (CollectionUtils.isEmpty(specialGroups)) {
-            return false;
-        }
-
-        for (Group group : specialGroups) {
-            for (String groupMetadataField : groupMetadataFields) {
-                if (anyMetadataHasAuthorityEqualsTo(item, groupMetadataField, group.getID())) {
-                    return true;
+        if (!CollectionUtils.isEmpty(specialGroups)) {
+            for (Group group : specialGroups) {
+                for (String groupMetadataField : groupMetadataFields) {
+                    if (anyMetadataHasAuthorityEqualsTo(item, groupMetadataField, group.getID())) {
+                        return true;
+                    }
                 }
             }
         }

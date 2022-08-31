@@ -527,8 +527,8 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
 
         try (FileInputStream fis = new FileInputStream(txt)) {
             String content = IOUtils.toString(fis, Charset.defaultCharset());
-            assertThat(content, containsString("Edward Red,” n.d. http://localhost:4000/handle/123456789/3"));
-            assertThat(content, containsString("Walter White,” n.d. http://localhost:4000/handle/123456789/5"));
+            assertThat(content, containsString("“Edward Red,” n.d. http://localhost:4000/handle/123456789/3"));
+            assertThat(content, containsString("“Walter White,” n.d. http://localhost:4000/handle/123456789/5"));
         }
     }
 
