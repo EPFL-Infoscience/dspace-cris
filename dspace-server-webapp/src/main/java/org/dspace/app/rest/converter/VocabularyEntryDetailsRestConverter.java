@@ -42,8 +42,14 @@ public class VocabularyEntryDetailsRestConverter implements DSpaceConverter<Choi
         String id = choice.authority;
         //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
         // build a vocabulary entry details ID
-		if (StringUtils.isNotEmpty(choice.authorityName)
-				&& !StringUtils.startsWith(id, choice.authorityName + VocabularyEntryDetailsRestConverter.ID_SPLITTER)) {
+        if (
+                StringUtils.isNotEmpty(choice.authorityName) &&
+                !StringUtils
+                    .startsWith(
+                        id,
+                        choice.authorityName + VocabularyEntryDetailsRestConverter.ID_SPLITTER
+                    )
+        ) {
             id = new StringBuilder(choice.authorityName)
                     .append(VocabularyEntryDetailsRestConverter.ID_SPLITTER)
                     .append(choice.authority)

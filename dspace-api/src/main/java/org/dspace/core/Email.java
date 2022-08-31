@@ -8,14 +8,11 @@
 package org.dspace.core;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +22,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import javax.activation.DataHandler;
-import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.Address;
 import javax.mail.BodyPart;
@@ -55,8 +51,8 @@ import org.apache.velocity.runtime.resource.loader.StringResourceLoader;
 import org.apache.velocity.runtime.resource.util.StringResourceRepository;
 import org.dspace.core.EmailUtils.FileAttachment;
 import org.dspace.core.EmailUtils.InputStreamAttachment;
-import org.dspace.core.EmailUtils.UnmodifiableConfigurationService;
 import org.dspace.core.EmailUtils.InputStreamDataSource;
+import org.dspace.core.EmailUtils.UnmodifiableConfigurationService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -154,7 +150,7 @@ public class Email {
      * The character set this message will be sent in
      */
     private String charset;
-    
+
     private String fullMessage;
 
     private static final Logger LOG = LogManager.getLogger();
@@ -201,8 +197,6 @@ public class Email {
         this.subject = subject;
         this.fullMessage = fullMessage;
     }
-    
-    
 
     /**
      * Add a recipient
@@ -658,5 +652,5 @@ public class Email {
     public String getFullMessage() {
         return fullMessage;
     }
-    
+
 }

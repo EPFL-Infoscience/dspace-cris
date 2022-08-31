@@ -213,7 +213,8 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         return fieldNameMap
                     .entrySet()
                     .stream()
-                    .map(throwingMapperWrapper(
+                    .map(
+                        throwingMapperWrapper(
                             entry -> {
                                 MetadataFieldName fieldName = entry.getKey();
                                 MetadataField field = this.metadataFieldService.findByElement(ctx, fieldName.schema,
