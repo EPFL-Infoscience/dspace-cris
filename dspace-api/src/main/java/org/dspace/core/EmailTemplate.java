@@ -13,14 +13,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-
 import javax.mail.MessagingException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -39,8 +36,12 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
+ *
+ */
 public class EmailTemplate {
-    
+
     private static final Logger log = LoggerFactory.getLogger(EmailTemplate.class);
 
     /** Velocity template settings. */
@@ -101,7 +102,7 @@ public class EmailTemplate {
 
         Optional.ofNullable(argumentMap)
             .filter(map -> !map.isEmpty())
-            .ifPresent(map -> 
+            .ifPresent(map ->
                 map.entrySet()
                     .stream()
                     .forEach(entry -> vctx.put(entry.getKey(), entry.getValue()))
@@ -135,7 +136,6 @@ public class EmailTemplate {
         return writer.toString();
     }
 
-    
     public Template getTemplate() {
         return template;
     }
@@ -157,5 +157,5 @@ public class EmailTemplate {
     protected VelocityContext getVctx() {
         return vctx;
     }
-    
+
 }

@@ -13,6 +13,10 @@ import org.dspace.core.Context;
 import org.dspace.core.EmailTemplate;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 
+/**
+ * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
+ *
+ */
 public interface EmailTemplateService {
 
     String generateContent(Context context, EmailTemplate emailTemplate, ClaimedTask claimedTask)

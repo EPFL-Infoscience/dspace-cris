@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EmailUtils {
-    
+
     /**
      * Utility struct class for handling file attachments.
      *
@@ -156,7 +156,9 @@ public class EmailUtils {
         String charset = null;
 
         // If no character set specified, attempt to retrieve a default
-        if (charset == null) { charset = config.getProperty("mail.charset"); }
+        if (charset == null) {
+            charset = config.getProperty("mail.charset");
+        }
 
         // Get session
         Session session = DSpaceServicesFactory.getInstance().getEmailService().getSession();
@@ -178,9 +180,9 @@ public class EmailUtils {
                 message.addRecipient(Message.RecipientType.CC, new InternetAddress(ccAddress));
             }
         }
-        
+
         VelocityContext vctx = null;
-        if (StringUtils.isBlank(fullMessage)) {            
+        if (StringUtils.isBlank(fullMessage)) {
             EmailTemplate emailTemplate = new EmailTemplate(email.getContentName(), email.getContent());
             vctx = emailTemplate.getVctx();
             fullMessage = emailTemplate.generateTemplate(email.getArguments(), null);
@@ -211,10 +213,11 @@ public class EmailUtils {
         String subject = email.getSubject();
         if (vctx != null) {
             for (String headerName : config.getArrayProperty("mail.message.headers")) {
-                String headerValue = null;
-                    headerValue = (String) vctx.get(headerName);
+                String headerValue = (String) vctx.get(headerName);
                 if ("subject".equalsIgnoreCase(headerName)) {
-                    if (null != subject) { subject = headerValue; }
+                    if (null != subject) {
+                        subject = headerValue;
+                    }
                 } else if ("charset".equalsIgnoreCase(headerName)) {
                     charset = headerValue;
                 } else {
@@ -296,7 +299,9 @@ public class EmailUtils {
 
             text.append('\n').append(fullMessage);
 
-            if (fixedRecipients.length > 0) { Transport.send(message); }
+            if (fixedRecipients.length > 0) {
+                Transport.send(message);
+            }
 
             log.info(text.toString());
         } else {

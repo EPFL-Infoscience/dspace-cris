@@ -7,8 +7,8 @@
  */
 package org.dspace.app.email.template;
 
+import java.text.MessageFormat;
 import java.util.List;
-
 import javax.mail.MessagingException;
 
 import org.dspace.content.Collection;
@@ -22,16 +22,23 @@ import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.ibm.icu.text.MessageFormat;
-
+/**
+ * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
+ *
+ */
 @Service
 public class EmailTemplateServiceImpl implements EmailTemplateService {
 
     @Autowired
     ConfigurationService configurationService;
-    
-    /* (non-Javadoc)
-     * @see org.dspace.app.email.template.EmailTemplateService#generateContent(org.dspace.core.Context, org.dspace.core.EmailTemplate, org.dspace.xmlworkflow.storedcomponents.ClaimedTask)
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.dspace.app.email.template.EmailTemplateService#generateContent(org.dspace
+     * .core.Context, org.dspace.core.EmailTemplate,
+     * org.dspace.xmlworkflow.storedcomponents.ClaimedTask)
      */
     @Override
     public String generateContent(

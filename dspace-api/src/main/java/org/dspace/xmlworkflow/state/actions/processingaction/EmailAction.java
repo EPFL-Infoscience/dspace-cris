@@ -76,7 +76,7 @@ public class EmailAction extends ProcessingAction {
         }
 
         Email email = new Email(subject, content);
-        
+
         XmlWorkflowServiceFactory
             .getInstance()
             .getXmlWorkflowService()

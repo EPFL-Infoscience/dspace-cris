@@ -9,7 +9,6 @@ package org.dspace.core;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -18,12 +17,10 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.fop.render.afp.AbstractAFPImageHandlerRawStream;
 import org.apache.logging.log4j.Logger;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
@@ -381,7 +378,7 @@ public class I18nUtil {
         return localizedFileName;
     }
 
-    
+
     private static final List<String> localeSubpaths(Locale locale, String fileType) {
         return List.of(
                 getVariantSubname(locale, fileType),
@@ -394,7 +391,7 @@ public class I18nUtil {
         return Optional.ofNullable(locale)
              .filter(lc -> !lc.getCountry().isEmpty())
              .filter(lc -> !lc.getVariant().isEmpty())
-             .map(lc -> 
+             .map(lc ->
                  StringUtils.join(
                      "_",
                      lc.getLanguage(),
@@ -408,7 +405,7 @@ public class I18nUtil {
         return Optional.ofNullable(locale)
              .filter(lc -> !lc.getCountry().isEmpty())
              .filter(lc -> !lc.getVariant().isEmpty())
-             .map(lc -> 
+             .map(lc ->
                  StringUtils.join(
                      "_",
                      lc.getLanguage(),
@@ -437,7 +434,7 @@ public class I18nUtil {
                  )
                 .orElse(null);
     }
-    
+
     private static final Set<String> getFilenames(Locale locale, String folder, String fileType) {
         return Stream.of(new File(folder).listFiles())
                 .filter(file -> !file.isDirectory())

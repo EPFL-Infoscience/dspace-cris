@@ -10,7 +10,6 @@ package org.dspace.app.rest.mail.template;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
@@ -55,7 +54,10 @@ public class EmailTemplateRestController {
         );
     }
 
-    @PostMapping(value = "/{name}/" + ClaimedTaskRest.NAME + "/{claimedTaskId}", produces = "application/json;charset=UTF-8")
+    @PostMapping(
+        value = "/{name}/" + ClaimedTaskRest.NAME + "/{claimedTaskId}",
+        produces = "application/json;charset=UTF-8"
+    )
     public ResponseEntity<String> generate(
             @PathVariable("name") String templateName,
             @PathVariable("claimedTaskId") Integer claimedTaskId,
