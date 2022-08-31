@@ -205,7 +205,7 @@ public class DiscoveryExportController {
         org.dspace.app.rest.utils.BitstreamResource bitstreamResource =
             new org.dspace.app.rest.utils.BitstreamResource(
                 bitstream.getName(), bitstream.getID(), currentUser != null ? currentUser.getID() : null,
-                false);
+                false, false);
 
         context.complete();
 
