@@ -2262,6 +2262,40 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    public void testCreateItemWithNotConsistentEntityType() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ItemRest itemRest = new ItemRest();
+        itemRest.setName("Title Text");
+        itemRest.setInArchive(true);
+        itemRest.setDiscoverable(true);
+        itemRest.setWithdrawn(false);
+
+        itemRest.setMetadata(new MetadataRest()
+            .put("dc.title", new MetadataValueRest("Title Text"))
+            .put("dspace.entity.type", new MetadataValueRest("Patent")));
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(post("/api/core/items?owningCollection=" + collection.getID().toString())
+            .content(mapper.writeValueAsBytes(itemRest)).contentType(contentType))
+            .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
     public void updateTest() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();
