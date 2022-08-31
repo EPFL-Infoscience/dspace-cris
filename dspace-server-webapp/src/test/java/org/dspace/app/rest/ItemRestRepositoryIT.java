@@ -2170,7 +2170,10 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
 
         context.restoreAuthSystemState();
 
@@ -2239,7 +2242,9 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                 matchMetadata("dc.rights",
                                     "Custom Copyright Text"),
                                 matchMetadata("dc.title",
-                                    "Title Text")
+                                    "Title Text"),
+                                matchMetadata("dspace.entity.type",
+                                    "Publication")
                             )))));
 
         getClient(token).perform(post("/api/core/items?owningCollection=" +

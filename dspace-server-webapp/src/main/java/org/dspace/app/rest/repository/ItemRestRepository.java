@@ -317,6 +317,12 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
         item.setLastModified(itemRest.getLastModified());
         metadataConverter.setMetadata(context, item, itemRest.getMetadata());
 
+        String entityType = itemService.getEntityType(item);
+        String collectionEntityType = collectionService.getEntityType(collection);
+        if (StringUtils.isBlank(entityType) && StringUtils.isNotBlank(collectionEntityType)) {
+            itemService.setEntityType(context, item, collectionEntityType);
+        }
+
         Item itemToReturn = installItemService.installItem(context, workspaceItem);
 
         return converter.toRest(itemToReturn, utils.obtainProjection());
