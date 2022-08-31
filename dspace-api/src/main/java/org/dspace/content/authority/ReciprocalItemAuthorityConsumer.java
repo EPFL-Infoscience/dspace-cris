@@ -33,109 +33,101 @@ import org.dspace.utils.DSpace;
  * @author Andrea Bollini
  * @version $Revision $
  */
-public class ReciprocalItemAuthorityConsumer implements Consumer
-{
+public class ReciprocalItemAuthorityConsumer implements Consumer {
 
     private Map<String, String> reciprocalMetadata = new ConcurrentHashMap<String, String>();
-    
+
     private transient Set<UUID> processedHandles = new HashSet<UUID>();
-    
+
     private ItemService itemService;
-    
-	public ReciprocalItemAuthorityConsumer() {
-		ConfigurationService confService = new DSpace().getConfigurationService();
-		itemService = ContentServiceFactory.getInstance().getItemService();
-		for (String conf : confService.getPropertyKeys("ItemAuthority.reciprocalMetadata")) {
-			reciprocalMetadata.put(conf.substring("ItemAuthority.reciprocalMetadata.".length()),
-					confService.getProperty(conf));
-			reciprocalMetadata.put(confService.getProperty(conf),
-					conf.substring("ItemAuthority.reciprocalMetadata.".length()));
-	}
-	}
-    
-    public void initialize()
-        throws Exception
-    {
-       
+
+    public ReciprocalItemAuthorityConsumer() {
+        ConfigurationService confService = new DSpace().getConfigurationService();
+        itemService = ContentServiceFactory.getInstance().getItemService();
+        for (String conf : confService.getPropertyKeys("ItemAuthority.reciprocalMetadata")) {
+            reciprocalMetadata.put(conf.substring("ItemAuthority.reciprocalMetadata.".length()),
+                    confService.getProperty(conf));
+            reciprocalMetadata.put(confService.getProperty(conf),
+                    conf.substring("ItemAuthority.reciprocalMetadata.".length()));
+        }
     }
 
-    public void consume(Context ctx, Event event)
-        throws Exception
-    {
-    	try
-    	{
-	    	ctx.turnOffAuthorisationSystem();
-	    	Item item = (Item) event.getSubject(ctx);
-	    	if (item == null || !item.isArchived()) return;
-	    	if (processedHandles.contains(item.getID())) {
-	    		return;
-	    	}
-	    	else {
-	    		processedHandles.add(item.getID());
-	    	}
-	        if (reciprocalMetadata != null) {
-	        	for (String k : reciprocalMetadata.keySet()) {
-	        		String entityType = k.split("\\.", 2)[0];
-	        		String metadata = k.split("\\.", 2)[1];
-	        		checkItemRefs(ctx, item, entityType, metadata, reciprocalMetadata.get(k));
-	        	}
-	        }
-    	}
-    	finally {
-    		ctx.restoreAuthSystemState();
-    	}
+    public void initialize() throws Exception {
+
     }
 
-	private void checkItemRefs(Context ctx, Item item, String entityType, String metadata, String reciprocalMetadata)
-			throws SQLException {
-		
-		// only process the reciprocal metadata for the appropriate entity type
-		if (!StringUtils.equalsIgnoreCase(itemService.getEntityType(item), entityType)) {
-			return;
-		}
-		List<MetadataValue> meta = itemService.getMetadataByMetadataString(item, metadata);
-		if (meta != null) {
-			for (MetadataValue md : meta) {
-				if (md.getAuthority() != null && md.getConfidence() == Choices.CF_ACCEPTED) {
-					try {
-						UUID id = UUID.fromString(md.getAuthority());
-						Item target = itemService.find(ctx, id);
-			    		if (target != null) {
-			    			assureReciprocalLink(ctx, target, reciprocalMetadata, item.getName(), item.getID().toString());
-			    		}
-					} catch (IllegalArgumentException e) {
-						// if the authority is not an uuid nothing is needed
-					}
-				}
-			}
-		}
-	}
-
-	private void assureReciprocalLink(Context ctx, Item target, String mdString, String name, String sourceUuid)
-			throws SQLException {
-		List<MetadataValue> meta = target.getItemService().getMetadataByMetadataString(target, mdString);
-		String[] mdSplit = mdString.split("\\.");
-		if (meta != null) {
-			for (MetadataValue md : meta) {
-				if (StringUtils.equals(md.getAuthority(), sourceUuid)) {
-					return;
-				}
-			}
-		}
-		itemService.addMetadata(ctx, target, mdSplit[0], mdSplit[1], mdSplit.length > 2 ? mdSplit[2] : null, null, name,
-				sourceUuid, Choices.CF_ACCEPTED);
-	}
-
-	public void end(Context ctx)
-        throws Exception
-    {
-    	// nothing
-		processedHandles.clear();
+    public void consume(Context ctx, Event event) throws Exception {
+        try {
+            ctx.turnOffAuthorisationSystem();
+            Item item = (Item) event.getSubject(ctx);
+            if (item == null || !item.isArchived()) {
+                return;
+            }
+            if (processedHandles.contains(item.getID())) {
+                return;
+            } else {
+                processedHandles.add(item.getID());
+            }
+            if (reciprocalMetadata != null) {
+                for (String k : reciprocalMetadata.keySet()) {
+                    String entityType = k.split("\\.", 2)[0];
+                    String metadata = k.split("\\.", 2)[1];
+                    checkItemRefs(ctx, item, entityType, metadata, reciprocalMetadata.get(k));
+                }
+            }
+        } finally {
+            ctx.restoreAuthSystemState();
+        }
     }
-    
-    public void finish(Context ctx) 
-    {
-    	// nothing
+
+    private void checkItemRefs(Context ctx, Item item, String entityType, String metadata, String reciprocalMetadata)
+            throws SQLException {
+
+        // only process the reciprocal metadata for the appropriate entity type
+        if (!StringUtils.equalsIgnoreCase(itemService.getEntityType(item), entityType)) {
+            return;
+        }
+        List<MetadataValue> meta = itemService.getMetadataByMetadataString(item, metadata);
+        if (meta != null) {
+            for (MetadataValue md : meta) {
+                if (md.getAuthority() != null && md.getConfidence() == Choices.CF_ACCEPTED) {
+                    try {
+                        UUID id = UUID.fromString(md.getAuthority());
+                        Item target = itemService.find(ctx, id);
+                        if (target != null) {
+                            assureReciprocalLink(ctx, target, reciprocalMetadata, item.getName(),
+                                    item.getID().toString());
+                        }
+                    } catch (IllegalArgumentException e) {
+                        // if the authority is not an uuid nothing is needed
+                    }
+                }
+            }
+        }
+    }
+
+    private void assureReciprocalLink(Context ctx, Item target, String mdString, String name, String sourceUuid)
+            throws SQLException {
+        List<MetadataValue> meta = target.getItemService().getMetadataByMetadataString(target, mdString);
+        String[] mdSplit = mdString.split("\\.");
+        if (meta != null) {
+            for (MetadataValue md : meta) {
+                if (StringUtils.equals(md.getAuthority(), sourceUuid)) {
+                    return;
+                }
+            }
+        }
+        itemService.addMetadata(ctx, target, mdSplit[0], mdSplit[1], mdSplit.length > 2 ? mdSplit[2] : null, null, name,
+                sourceUuid, Choices.CF_ACCEPTED);
+    }
+
+    public void end(Context ctx) throws Exception {
+        // nothing
+        processedHandles.clear();
+    }
+
+    public void finish(Context ctx) {
+        // nothing
     }
 
 }
