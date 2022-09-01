@@ -510,12 +510,12 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
         Item item1 = createItem(collection, "Edward Red", "Science", "Publication");
         createItem(collection, "My publication", "", "Publication");
-        Item item3 = createItem(collection, "Walter White", "Science", "Publication");
+        Item item2 = createItem(collection, "Walter White", "Science", "Publication");
         createItem(collection, "John Smith", "Science", "Publication");
         context.restoreAuthSystemState();
         context.commit();
 
-        String items = item1.getID().toString() + ";" + item3.getID().toString();
+        String items = item1.getID().toString() + ";" + item2.getID().toString();
 
         String[] args = new String[] { "bulk-item-export", "-si", items, "-f", "publication-chicago" };
 
@@ -527,8 +527,10 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
 
         try (FileInputStream fis = new FileInputStream(txt)) {
             String content = IOUtils.toString(fis, Charset.defaultCharset());
-            assertThat(content, containsString("“Edward Red,” n.d. http://localhost:4000/handle/123456789/3"));
-            assertThat(content, containsString("“Walter White,” n.d. http://localhost:4000/handle/123456789/5"));
+            assertThat(content,
+                    containsString("“Edward Red,” n.d. http://localhost:4000/handle/" + item1.getHandle()));
+            assertThat(content,
+                    containsString("“Walter White,” n.d. http://localhost:4000/handle/" + item2.getHandle()));
         }
     }
 
