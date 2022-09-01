@@ -214,13 +214,14 @@
     <bean id="scieloMetadataFieldMapping"
           class="org.dspace.importer.external.scielo.service.ScieloFieldMapping">
     </bean>
-    <bean id="WosImportService"
-          class="org.dspace.importer.external.wos.service.WOSImportMetadataSourceServiceImpl" scope="singleton">
+
+    <bean id="WosImportService" class="org.dspace.importer.external.wos.service.WOSImportMetadataSourceServiceImpl" scope="singleton">
         <property name="metadataFieldMapping" ref="wosMetadataFieldMapping"/>
+        <property name="apiKey" value="${wos.apiKey}"/>
+        <property name="url" value="${wos.url}"/>
+        <property name="urlSearch" value="${wos.url.search}"/>
     </bean>
-    <bean id="wosMetadataFieldMapping"
-          class="org.dspace.importer.external.wos.service.WOSFieldMapping">
-    </bean>
+    <bean id="wosMetadataFieldMapping" class="org.dspace.importer.external.wos.service.WOSFieldMapping"/>
 
     <bean id="openaireImportServiceByAuthor"
           class="org.dspace.importer.external.openaire.service.OpenAireImportMetadataSourceServiceImpl" scope="singleton">

@@ -15,7 +15,6 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.dspace.core.CrisConstants;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -25,10 +24,9 @@ import org.jdom2.xpath.XPathFactory;
 
 /**
  * This contributor checks for each node returned for the supplied path
- * if node contains supplied attribute - the value of the current node is taken,
- * otherwise #PLACEHOLDER_PARENT_METADATA_VALUE#
+ * if node contains supplied attribute - the value of the current node is taken if exist.
  * 
- * @author Boychuk Mykhaylo (boychuk.mykhaylo at 4Science dot it)
+ * @author Boychuk Mykhaylo (boychuk.mykhaylo at 4Science dot com)
  */
 public class SimpleXpathMetadatumAndAttributeContributor extends SimpleXpathMetadatumContributor {
 
@@ -44,7 +42,7 @@ public class SimpleXpathMetadatumAndAttributeContributor extends SimpleXpathMeta
             namespaces.add(Namespace.getNamespace(prefixToNamespaceMapping.get(ns), ns));
         }
         XPathExpression<Object> xpath = XPathFactory.instance().compile(query, Filters.fpassthrough(), null,
-            namespaces);
+                namespaces);
         List<Object> nodes = xpath.evaluate(t);
         for (Object el : nodes) {
             if (el instanceof Element) {
@@ -52,9 +50,6 @@ public class SimpleXpathMetadatumAndAttributeContributor extends SimpleXpathMeta
                 String attributeValue = element.getAttributeValue(this.attribute);
                 if (StringUtils.isNotBlank(attributeValue)) {
                     values.add(metadataFieldMapping.toDCValue(this.field, attributeValue));
-                } else {
-                    values.add(metadataFieldMapping.toDCValue(this.field,
-                        CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE));
                 }
             } else {
                 log.warn("node of type: " + el.getClass());
