@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
@@ -38,6 +39,9 @@ public class WorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermis
 
     @Autowired
     private RequestService requestService;
+
+    @Autowired
+    private ResearcherProfileService researcherProfileService;
 
     @Autowired
     WorkspaceItemService wis;
@@ -85,6 +89,10 @@ public class WorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermis
                 if (witem.getSubmitter().getID().equals(ePerson.getID())) {
                     return true;
                 }
+            }
+
+            if (researcherProfileService.isAuthorOf(context, ePerson, witem.getItem())) {
+                return true;
             }
 
             if (authorizeService.authorizeActionBoolean(context, witem.getItem(),

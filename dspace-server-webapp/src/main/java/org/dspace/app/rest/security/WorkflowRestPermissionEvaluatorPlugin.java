@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -56,6 +57,9 @@ public class WorkflowRestPermissionEvaluatorPlugin extends RestObjectPermissionE
     @Autowired
     private EPersonService ePersonService;
 
+    @Autowired
+    private ResearcherProfileService researcherProfileService;
+
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId,
                                  String targetType, DSpaceRestPermission permission) {
@@ -89,6 +93,11 @@ public class WorkflowRestPermissionEvaluatorPlugin extends RestObjectPermissionE
             if (claimedTaskService.findByWorkflowIdAndEPerson(context, workflowItem, ePerson) != null) {
                 return true;
             }
+
+            if (researcherProfileService.isAuthorOf(context, ePerson, workflowItem.getItem())) {
+                return true;
+            }
+
         } catch (SQLException | AuthorizeException | IOException e) {
             log.error(e.getMessage(), e);
         }

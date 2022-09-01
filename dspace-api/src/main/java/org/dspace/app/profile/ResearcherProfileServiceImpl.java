@@ -212,6 +212,27 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
         return new ResearcherProfile(item);
     }
 
+    public boolean isAuthorOf(Context context, EPerson ePerson, Item item) {
+
+        try {
+
+            ResearcherProfile researcherProfile = findById(context, ePerson.getID());
+
+            if (researcherProfile == null) {
+                return false;
+            }
+
+            String profileItemId = researcherProfile.getItem().getID().toString();
+
+            return itemService.getMetadataByMetadataString(item, "dc.contributor.author").stream()
+                .anyMatch(metadataValue -> profileItemId.equals(metadataValue.getAuthority()));
+
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     private boolean notClaimableEntityType(final Item item) {
         final String entityType = itemService.getEntityType(item);
         return Arrays.stream(configurationService.getArrayProperty("claimable.entityType"))
