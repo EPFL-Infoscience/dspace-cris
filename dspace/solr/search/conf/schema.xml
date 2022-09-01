@@ -531,7 +531,13 @@
  <copyField source="*" dest="search_text"/>
  <copyField source="lastModified" dest="lastModified_dt"/>
  <copyField source="title" dest="itemauthoritylookup"/>
+ <copyField source="crisrp.name.variant" dest="itemauthoritylookup"/>
+ <copyField source="crisrp.name.translated" dest="itemauthoritylookup"/>
+ <copyField source="oairecerif.acronym" dest="itemauthoritylookup"/>
  <copyField source="title" dest="itemauthoritylookupexactmatch"/>
+ <copyField source="crisrp.name.variant" dest="itemauthoritylookupexactmatch"/>
+ <copyField source="crisrp.name.translated" dest="itemauthoritylookupexactmatch"/>
+ <copyField source="oairecerif.acronym" dest="itemauthoritylookupexactmatch"/>
  <copyField source="dspace.entity.type" dest="search.entitytype"/>
 
 </schema>

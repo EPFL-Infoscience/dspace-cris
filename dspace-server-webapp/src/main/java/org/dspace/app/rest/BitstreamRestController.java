@@ -130,6 +130,9 @@ public class BitstreamRestController {
         }
 
         try {
+            // if we got here we have already verified that the user is allowed to access
+            // the bit, see the preAuthorize annotation
+            context.turnOffAuthorisationSystem();
             long filesize = bit.getSizeBytes();
             Boolean citationEnabledForBitstream = citationDocumentService.isCitationEnabledForBitstream(bit, context);
 
@@ -153,7 +156,7 @@ public class BitstreamRestController {
 
             org.dspace.app.rest.utils.BitstreamResource bitstreamResource =
                 new org.dspace.app.rest.utils.BitstreamResource(
-                    name, uuid, currentUser != null ? currentUser.getID() : null, citationEnabledForBitstream);
+                    name, uuid, currentUser != null ? currentUser.getID() : null, citationEnabledForBitstream, true);
 
             //We have all the data we need, close the connection to the database so that it doesn't stay open during
             //download/streaming
@@ -170,6 +173,8 @@ public class BitstreamRestController {
                           "Client is probably switching to a Range request.", ex);
         } catch (Exception e) {
             throw e;
+        } finally {
+            context.restoreAuthSystemState();
         }
         return null;
     }

@@ -807,6 +807,14 @@ public interface ItemService
     public String getEntityType(Item item);
 
     /**
+     * Set the entity type of the given item with the provided value.
+     *
+     * @param item       the item to update
+     * @param entityType the entity type to set
+     */
+    public void setEntityType(Context context, Item item, String entityType);
+
+    /**
      * Find all the items in the archive or not with a given authority key value in LIKE format.
      * 
      * @param context         DSpace context object

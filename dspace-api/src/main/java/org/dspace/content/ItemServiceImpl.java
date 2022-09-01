@@ -56,6 +56,7 @@ import org.dspace.content.virtual.VirtualMetadataPopulator;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.SubscribeService;
@@ -1675,6 +1676,15 @@ prevent the generation of resource policy entry values with null dspace_object a
     @Override
     public String getEntityType(Item item) {
         return getMetadataFirstValue(item, new MetadataFieldName("dspace.entity.type"), Item.ANY);
+    }
+
+    @Override
+    public void setEntityType(Context context, Item item, String entityType) {
+        try {
+            setMetadataSingleValue(context, item, new MetadataFieldName("dspace.entity.type"), null, entityType);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
     /**
