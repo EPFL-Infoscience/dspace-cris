@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
@@ -43,6 +44,9 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
 
     @Autowired
     private AuthorizeService authorizeService;
+
+    @Autowired
+    private ResearcherProfileService researcherProfileService;
 
     @Autowired
     private RequestService requestService;
@@ -98,6 +102,13 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                         if (!DSpaceRestPermission.READ.equals(restPermission) &&
                                    !item.isArchived() && !item.isWithdrawn()) {
                             return false;
+                        }
+
+                        if (DSpaceRestPermission.READ.equals(restPermission)
+                                && !item.isArchived()
+                                && !item.isWithdrawn()
+                                && researcherProfileService.isAuthorOf(context, ePerson, item)) {
+                            return true;
                         }
                     }
 
