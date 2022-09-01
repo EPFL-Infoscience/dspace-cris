@@ -282,11 +282,14 @@ public class SubmissionService {
                     "Start workflow failed due to validation error on workspaceitem");
         }
 
+        context.turnOffAuthorisationSystem();
         try {
             wi = workflowService.start(context, wsi);
         } catch (IOException e) {
             throw new RuntimeException("The workflow could not be started for workspaceItem with" +
                                                " id:  " + id, e);
+        } finally {
+            context.restoreAuthSystemState();
         }
 
         return wi;

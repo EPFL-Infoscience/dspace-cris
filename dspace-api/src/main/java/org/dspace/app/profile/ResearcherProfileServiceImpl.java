@@ -52,6 +52,7 @@ import org.dspace.util.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.Assert;
 
 /**
@@ -90,6 +91,10 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
 
     @Autowired(required = false)
     private List<AfterResearcherProfileCreationAction> afterCreationActions;
+
+    @Autowired(required = false)
+    @Qualifier("sharedWorkspaceAuthorMetadataFields")
+    private List<String> sharedWorkspaceAuthorMetadataFields;
 
     @PostConstruct
     public void postConstruct() {
@@ -216,6 +221,10 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
 
         try {
 
+            if (CollectionUtils.isEmpty(sharedWorkspaceAuthorMetadataFields)) {
+                return false;
+            }
+
             ResearcherProfile researcherProfile = findById(context, ePerson.getID());
 
             if (researcherProfile == null) {
@@ -224,7 +233,8 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
 
             String profileItemId = researcherProfile.getItem().getID().toString();
 
-            return itemService.getMetadataByMetadataString(item, "dc.contributor.author").stream()
+            return sharedWorkspaceAuthorMetadataFields.stream()
+                .flatMap(field -> itemService.getMetadataByMetadataString(item, field).stream())
                 .anyMatch(metadataValue -> profileItemId.equals(metadataValue.getAuthority()));
 
         } catch (SQLException | AuthorizeException e) {
