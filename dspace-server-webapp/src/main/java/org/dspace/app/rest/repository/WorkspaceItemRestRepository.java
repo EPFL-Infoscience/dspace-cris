@@ -259,6 +259,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         List<Operation> operations = patch.getOperations();
         WorkspaceItemRest wsi = findOne(context, id);
         WorkspaceItem source = wis.find(context, id);
+        context.turnOffAuthorisationSystem();
         for (Operation op : operations) {
             //the value in the position 0 is a null value
             String[] path = op.getPath().substring(1).split("/", 3);
@@ -271,6 +272,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
             }
         }
         wis.update(context, source);
+        context.restoreAuthSystemState();
     }
 
     @PreAuthorize("hasPermission(#id, 'WORKSPACEITEM', 'DELETE')")

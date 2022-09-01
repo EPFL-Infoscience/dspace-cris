@@ -11,6 +11,7 @@ import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.ResourcePolicyMatcher.matches;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
+import static org.dspace.app.rest.matcher.WorkspaceItemMatcher.matchItemWithTitleAndDateIssued;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.dspace.authorize.ResourcePolicy.TYPE_SUBMISSION;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -8535,6 +8536,22 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         getClient(getAuthToken(user.getEmail(), password))
             .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
             .andExpect(status().isOk());
+
+        // a simple patch to update an existent metadata
+        List<Operation> updateTitle = new ArrayList<Operation>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "New Title");
+        updateTitle.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
+
+        String patchBody = getPatchContent(updateTitle);
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(patch("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$", is(matchItemWithTitleAndDateIssued(workspaceItem, "New Title", "2017-10-17"))));
 
         getClient(getAuthToken(user.getEmail(), password))
             .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
