@@ -10,6 +10,7 @@ package org.dspace.xmlworkflow.state.actions.processingaction;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,11 +18,15 @@ import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
+import org.dspace.core.EmailUtils;
+import org.dspace.core.LogHelper;
+import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowException;
-import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
 import org.dspace.xmlworkflow.state.Step;
 import org.dspace.xmlworkflow.state.actions.ActionResult;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * EmailAction that can be used in step to send an
@@ -32,12 +37,14 @@ import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
  */
 public class EmailAction extends ProcessingAction {
 
+    private static final Logger logger = LoggerFactory.getLogger(EmailAction.class);
+
     private static final String MAIL_SUBJECT = "subject";
     private static final String MAIL_CONTENT = "content";
+    private static final String SUBMIT_MAIL = "submit_mail";
+
     public static final int MAIN_PAGE = 0;
     public static final int REJECT_PAGE = 1;
-
-    private static final String SUBMIT_MAIL = "submit_mail";
 
     private final List<String> options = List.of(SUBMIT_MAIL);
 
@@ -75,13 +82,21 @@ public class EmailAction extends ProcessingAction {
             return getErrorActionResult(request, MAIL_SUBJECT);
         }
 
+        EPerson currentUser = c.getCurrentUser();
+        EPerson eperson = wfi.getSubmitter();
+
         Email email = new Email(subject, content);
+        email.addRecipient(eperson.getEmail());
+        email.addCcAddress(currentUser.getEmail());
 
-        XmlWorkflowServiceFactory
-            .getInstance()
-            .getXmlWorkflowService()
-            .sendWorkflowItemBackSubmission(c, wfi, c.getCurrentUser(),this.getProvenanceStartId(), subject);
-
+        try {
+            EmailUtils.send(email, content);
+        } catch (MessagingException e) {
+            logger.warn(LogHelper.getHeader(c, "submit_mail",
+                    "cannot email user" + " eperson_id" + eperson.getID()
+                    + " eperson_email" + eperson.getEmail()
+                    + " workflow_item_id" + wfi.getID()), e);
+        }
 
         return new ActionResult(ActionResult.TYPE.TYPE_SUBMISSION_PAGE);
     }

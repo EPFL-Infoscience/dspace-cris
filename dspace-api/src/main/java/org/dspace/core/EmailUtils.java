@@ -146,6 +146,10 @@ public class EmailUtils {
     private EmailUtils() {
     }
 
+    public static void send(Email email) throws MessagingException, IOException {
+        send(email, null);
+    }
+
     public static void send(Email email, String fullMessage) throws MessagingException, IOException {
         ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
 

@@ -389,8 +389,7 @@ public class I18nUtil {
 
     private static String getLanguageSubname(Locale locale, String fileType) {
         return Optional.ofNullable(locale)
-             .filter(lc -> !lc.getCountry().isEmpty())
-             .filter(lc -> !lc.getVariant().isEmpty())
+             .filter(lc -> !lc.getLanguage().isEmpty())
              .map(lc ->
                  StringUtils.join(
                      "_",
@@ -403,22 +402,23 @@ public class I18nUtil {
 
     private static String getCountrySubname(Locale locale, String fileType) {
         return Optional.ofNullable(locale)
-             .filter(lc -> !lc.getCountry().isEmpty())
-             .filter(lc -> !lc.getVariant().isEmpty())
-             .map(lc ->
-                 StringUtils.join(
-                     "_",
-                     lc.getLanguage(),
-                     "_",
-                     lc.getCountry(),
-                     fileType
+                .filter(lc -> !lc.getLanguage().isEmpty())
+                .filter(lc -> !lc.getCountry().isEmpty())
+                .map(lc ->
+                     StringUtils.join(
+                         "_",
+                         lc.getLanguage(),
+                         "_",
+                         lc.getCountry(),
+                         fileType
+                     )
                  )
-             )
-         .orElse(null);
+                .orElse(null);
     }
 
     private static final String getVariantSubname(Locale locale, String fileType) {
         return Optional.ofNullable(locale)
+                .filter(lc -> !lc.getLanguage().isEmpty())
                 .filter(lc -> !lc.getCountry().isEmpty())
                 .filter(lc -> !lc.getVariant().isEmpty())
                 .map(lc ->
