@@ -193,7 +193,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
                 "delete from ResourcePolicy where dSpaceObject.id = :dsoId AND eperson = :ep AND rptype = :rptype";
         Query query = createQuery(context, queryString);
         query.setParameter("dsoId", dso.getID());
-        query.setParameter("ep", e.getID());
+        query.setParameter("epId", e);
         query.setParameter("rptype", type);
         query.executeUpdate();
     }
