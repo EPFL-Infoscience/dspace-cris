@@ -211,27 +211,169 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     @Test
     public void changeSubmitterTest() throws Exception {
         context.turnOffAuthorisationSystem();
+        EPerson anotherUser = EPersonBuilder.createEPerson(context).withEmail("another@example.com")
+                .withNameInMetadata("Another", "User").withPassword(password).build();
+        EPerson newSubmitter = EPersonBuilder.createEPerson(context).withEmail("newsubmitter@example.com")
+                .withNameInMetadata("New", "Submitter").withPassword(password).build();
+        EPerson colAdmin = EPersonBuilder.createEPerson(context).withEmail("coladmin@example.com")
+                .withNameInMetadata("Col", "Admin").withPassword(password).build();
 
         parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection 1")
+                .withWorkflowGroup("editor", eperson)
+                .withAdminGroup(colAdmin)
+                .build();
 
         Item item = ItemBuilder.createItem(context, col1).withTitle("Item 1").build();
         WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, col1).withTitle("Item2")
                 .build();
-
+        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, col1).withTitle("Item2")
+                .build();
         context.restoreAuthSystemState();
 
-        String token = getAuthToken(admin.getEmail(), password);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        String tokenColAdmin = getAuthToken(colAdmin.getEmail(), password);
+        String tokenAnotherUser = getAuthToken(anotherUser.getEmail(), password);
 
-        getClient(token).perform(post("/api/submission/workspaceitem/changesubmitter")
-                .param("itemId", item.getID().toString()).param("submitterIdentifier", "Johndoe@example.com"))
-                .andExpect(status().isNoContent());
-        getClient(token).perform(post("/api/submission/workspaceitem/changesubmitter")
+        // check that the submitter is not exposed to anonymous or generic user
+        getClient().perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName").doesNotExist())
+                .andExpect(jsonPath("$.submitterEmail").doesNotExist());
+
+        getClient(tokenAnotherUser).perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName").doesNotExist())
+                .andExpect(jsonPath("$.submitterEmail").doesNotExist());
+
+        // the admin and colAdmin see the eperson as submitter
+        getClient(tokenAdmin).perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        getClient(tokenColAdmin).perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        // change submitter
+        // anonymous and normal users fails
+        getClient().perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", item.getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isUnauthorized());
+        getClient().perform(post("/api/submission/workspaceitem/changesubmitter")
                 .param("itemId", workspaceItem.getItem().getID().toString())
-                .param("submitterIdentifier", "Johndoe@example.com")).andExpect(status().isNoContent());
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isUnauthorized());
+        getClient().perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workflowItem.getItem().getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isUnauthorized());
 
-        getClient(token).perform(get("/api/core/items/" + item.getID().toString())).andExpect(status().isOk());
+        getClient(tokenAnotherUser).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", item.getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isForbidden());
+        getClient(tokenAnotherUser).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workspaceItem.getItem().getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isForbidden());
+        getClient(tokenAnotherUser).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workflowItem.getItem().getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isForbidden());
+
+        // check that all is unchanged
+        getClient(tokenAdmin).perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        getClient(tokenColAdmin).perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        getClient(tokenAdmin).perform(get("/api/core/items/" + workspaceItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        getClient(tokenColAdmin).perform(get("/api/core/items/" + workspaceItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        getClient(tokenAdmin).perform(get("/api/core/items/" + workflowItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        getClient(tokenColAdmin).perform(get("/api/core/items/" + workflowItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(eperson.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(eperson.getEmail())));
+
+        // change submitter
+        // as coladmin
+        getClient(tokenColAdmin).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", item.getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isNoContent());
+        getClient(tokenColAdmin).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workspaceItem.getItem().getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isNoContent());
+        getClient(tokenColAdmin).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workflowItem.getItem().getID().toString())
+                .param("submitterIdentifier", newSubmitter.getEmail()))
+                .andExpect(status().isNoContent());
+
+        // check that changes are persisted
+        getClient(tokenColAdmin).perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(newSubmitter.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(newSubmitter.getEmail())));
+        getClient(tokenColAdmin).perform(get("/api/core/items/" + workspaceItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(newSubmitter.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(newSubmitter.getEmail())));
+        getClient(tokenColAdmin).perform(get("/api/core/items/" + workflowItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(newSubmitter.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(newSubmitter.getEmail())));
+
+        // change submitter as admin
+        getClient(tokenAdmin).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", item.getID().toString())
+                .param("submitterIdentifier", anotherUser.getEmail()))
+                .andExpect(status().isNoContent());
+        getClient(tokenAdmin).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workspaceItem.getItem().getID().toString())
+                .param("submitterIdentifier", anotherUser.getEmail()))
+                .andExpect(status().isNoContent());
+        getClient(tokenAdmin).perform(post("/api/submission/workspaceitem/changesubmitter")
+                .param("itemId", workflowItem.getItem().getID().toString())
+                .param("submitterIdentifier", anotherUser.getEmail()))
+                .andExpect(status().isNoContent());
+
+        // check that changes are persisted
+        getClient(tokenAdmin).perform(get("/api/core/items/" + item.getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(anotherUser.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(anotherUser.getEmail())));
+        getClient(tokenAdmin).perform(get("/api/core/items/" + workspaceItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(anotherUser.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(anotherUser.getEmail())));
+        getClient(tokenAdmin).perform(get("/api/core/items/" + workflowItem.getItem().getID().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.submitterName", Matchers.is(anotherUser.getFullName())))
+                .andExpect(jsonPath("$.submitterEmail", Matchers.is(anotherUser.getEmail())));
     }
 
     @Test

@@ -95,7 +95,7 @@ public class ItemChangeSubmitterController {
 
         Context context = ContextUtil.obtainContext(request);
         if (context.getCurrentUser() == null) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
@@ -107,14 +107,18 @@ public class ItemChangeSubmitterController {
 
         Collection collection = (Collection) itemService.getParentObject(context, item);
 
-        // returns unauthorized if the collection is null or if the user is not the
+        // returns forbidden if the collection is null or if the user is not the
         // collection admin
         if (!authorizeService.isAdmin(context, collection)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
+        // turn off authorization so that we can change the submitter also for ongoing submission
+        // authorization have been already verified in the lines above
+        context.turnOffAuthorisationSystem();
         changeSubmitterService.setUpSubmitter(context, item, submitterIdentifier);
+        context.restoreAuthSystemState();
         context.complete();
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
