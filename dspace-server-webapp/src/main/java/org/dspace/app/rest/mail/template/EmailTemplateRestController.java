@@ -73,7 +73,7 @@ public class EmailTemplateRestController {
         value = "/{name}/" + ClaimedTaskRest.NAME + "/{claimedTaskId}",
         produces = "application/json;charset=UTF-8"
     )
-    public ResponseEntity<String> generate(
+    public ResponseEntity<EmailTemplateRest> generate(
             @PathVariable("name") String templateName,
             @PathVariable("claimedTaskId") Integer claimedTaskId,
             HttpServletRequest request
@@ -83,11 +83,13 @@ public class EmailTemplateRestController {
         EmailTemplate emailTemplate = EmailTemplate.getEmailTemplate(
                 I18nUtil.getEmailFilename(context.getCurrentLocale(), templateName)
         );
-        return new ResponseEntity<String>(
-                this.emailTemplateService.generateContent(
+        return new ResponseEntity<>(
+                new EmailTemplateRest(
+                    this.emailTemplateService.generateContent(
                         context,
                         emailTemplate,
                         claimedTask
+                    )
                 ),
                 HttpStatus.OK
         );
