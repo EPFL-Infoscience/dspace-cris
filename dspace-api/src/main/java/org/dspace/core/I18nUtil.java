@@ -380,11 +380,13 @@ public class I18nUtil {
 
 
     private static final List<String> localeSubpaths(Locale locale, String fileType) {
-        return List.of(
-                getVariantSubname(locale, fileType),
-                getCountrySubname(locale, fileType),
-                getLanguageSubname(locale, fileType)
-         );
+        return Stream.of(
+                    getVariantSubname(locale, fileType),
+                    getCountrySubname(locale, fileType),
+                    getLanguageSubname(locale, fileType)
+                )
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     private static String getLanguageSubname(Locale locale, String fileType) {

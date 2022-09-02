@@ -60,7 +60,7 @@
         </property>
         <property name="actions">
             <util:list>
-                <ref bean="reviewaction"/>
+                <ref bean="epflaction"/>
             </util:list>
         </property>
     </bean>
