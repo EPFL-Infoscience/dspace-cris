@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(EmailTemplateRestController.BASE_PATH)
 public class EmailTemplateRestController {
 
-    protected static final String BASE_PATH = "/email/template";
+    protected static final String BASE_PATH = "api/email/template";
 
     private static final Logger log = LogManager.getLogger();
 
@@ -65,7 +65,6 @@ public class EmailTemplateRestController {
     public ResponseEntity<List<String>> getAll(HttpServletRequest request) {
         return new ResponseEntity<>(
                 I18nUtil.getEmailTemplates(ContextUtil.obtainContext(request).getCurrentLocale()),
-                map,
                 HttpStatus.OK
         );
     }
@@ -90,7 +89,6 @@ public class EmailTemplateRestController {
                         emailTemplate,
                         claimedTask
                 ),
-                map,
                 HttpStatus.OK
         );
     }

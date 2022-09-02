@@ -109,8 +109,12 @@ public class EmailTemplate {
                     .forEach(entry -> vctx.put(entry.getKey(), entry.getValue()))
             );
 
-        ArrayList<Object> argumentList = new ArrayList<Object>(Math.max(arguments.size(), 20));
-        argumentList.addAll(arguments);
+        // TODO: replace positional items in templates with keys
+        // email templates are using indexes of params array
+        // so we fill it with empty strings to overcome IOB errors!
+
+        ArrayList<Object> argumentList = new ArrayList<Object>(arguments);
+        argumentList.addAll(Collections.nCopies(20, ""));
 
         Optional.ofNullable(argumentList)
             .filter(list -> !list.isEmpty())
