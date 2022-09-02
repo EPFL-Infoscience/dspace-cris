@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.dspace.app.profile.ResearcherProfile;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
@@ -83,4 +84,6 @@ public interface ResearcherProfileService {
      */
     ResearcherProfile claim(Context context, EPerson ePerson, URI uri)
         throws SQLException, AuthorizeException, SearchServiceException;
+
+    boolean isAuthorOf(Context context, EPerson ePerson, Item item);
 }

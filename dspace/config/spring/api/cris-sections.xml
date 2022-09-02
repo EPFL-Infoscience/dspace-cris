@@ -212,7 +212,7 @@
                     <property name="showAllResults" value="true"/>
                 </bean>
             </list>
-            <list>
+<!--             <list>
 	            <bean class="org.dspace.layout.CrisLayoutCarouselComponent">
 				    <property name="discoveryConfigurationName" value="person" />
 				    <property name="style" value="col-md-12" />
@@ -229,7 +229,7 @@
                     <property name="titleStyle" value="text-center" />
                 </bean>
             </list>
-          </list>
+ -->          </list>
         </constructor-arg>
     </bean>
 

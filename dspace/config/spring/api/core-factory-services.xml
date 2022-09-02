@@ -23,6 +23,7 @@
     <bean id="authorizeServiceFactory" class="org.dspace.authorize.factory.AuthorizeServiceFactoryImpl"/>
     <bean id="checkerServiceFactory" class="org.dspace.checker.factory.CheckerServiceFactoryImpl"/>
     <bean id="contentServiceFactory" class="org.dspace.content.factory.ContentServiceFactoryImpl"/>
+    <bean id="submitterServiceFactory" class="org.dspace.submit.factory.impl.SubmitterServiceFactoryImpl"/>
     <bean id="scriptServiceFactory" class="org.dspace.scripts.factory.impl.ScriptServiceFactoryImpl"/>
     <bean id="coreServiceFactory" class="org.dspace.core.factory.CoreServiceFactoryImpl"/>
 

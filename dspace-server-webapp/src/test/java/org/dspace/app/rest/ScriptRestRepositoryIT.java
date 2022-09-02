@@ -66,9 +66,10 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.ProcessStatus;
+import org.dspace.content.authority.DCInputAuthority;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.CrisConstants;
-import org.dspace.discovery.SolrServiceValuePairsIndexPlugin;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.scripts.DSpaceCommandLineParameter;
@@ -76,6 +77,7 @@ import org.dspace.scripts.Process;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -100,14 +102,19 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     private DSpaceRunnableParameterConverter dSpaceRunnableParameterConverter;
 
     @Autowired
-    private SolrServiceValuePairsIndexPlugin solrServiceValuePairsIndexPlugin;
+    private MetadataAuthorityService metadataAuthorityService;
 
     @Autowired
-    private MetadataAuthorityService metadataAuthorityService;
+    private ChoiceAuthorityService choiceAuthorityService;
 
     @After
     public void after() {
+        DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
         metadataAuthorityService.clearCache();
+        choiceAuthorityService.clearCache();
+        // the DCInputAuthority has an internal cache of the DCInputReader
+        DCInputAuthority.reset();
+        DCInputAuthority.getPluginNames();
     }
 
     @Test
@@ -118,7 +125,11 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         String ukranianLanguage = "uk";
         String[] supportedLanguage = { italianLanguage, ukranianLanguage };
         configurationService.setProperty("webui.supported.locales", supportedLanguage);
-        solrServiceValuePairsIndexPlugin.setup();
+        metadataAuthorityService.clearCache();
+        choiceAuthorityService.clearCache();
+        // the DCInputAuthority has an internal cache of the DCInputReader
+        DCInputAuthority.reset();
+        DCInputAuthority.getPluginNames();
 
         LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
         parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));

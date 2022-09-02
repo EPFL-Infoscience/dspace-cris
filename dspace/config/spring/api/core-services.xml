@@ -8,6 +8,8 @@
     <!-- ******************** -->
     <bean class="org.dspace.app.email.template.EmailTemplateServiceImpl"/>
     <bean class="org.dspace.app.requestitem.RequestItemServiceImpl"/>
+    
+    <bean class="org.dspace.submit.service.impl.ChangeSubmitterServiceImpl"/>
 
     <bean class="org.dspace.app.itemexport.ItemExportServiceImpl"/>
 
@@ -63,6 +65,7 @@
     <bean class="org.dspace.scripts.ScriptServiceImpl"/>
 
     <bean class="org.dspace.content.authority.ChoiceAuthorityServiceImpl"/>
+    <bean class="org.dspace.content.authority.AuthorityServiceUtils"/>
     <bean class="org.dspace.content.authority.MetadataAuthorityServiceImpl" lazy-init="true"/>
 
     <bean class="org.dspace.app.profile.ResearcherProfileServiceImpl"/>
@@ -184,6 +187,9 @@
     <!-- OIDC Authentication -->
     <bean class="org.dspace.authenticate.OidcAuthenticationBean" id="oidcAuthentication"/>
     <bean class="org.dspace.authenticate.oidc.impl.OidcClientImpl" />
+    
+    <bean id="org.dspace.authenticate.service.ProfileInitializer" class="org.dspace.authenticate.service.ProfileInitializer"/>
+    <bean id="org.dspace.authenticate.service.EpflClient" class="org.dspace.authenticate.service.EpflClient"/>
     
 </beans>
 

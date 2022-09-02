@@ -7,7 +7,7 @@
 
     <bean class="org.dspace.importer.external.liveimportclient.service.LiveImportClientImpl"/>
 
-    <bean class="org.dspace.external.provider.impl.SHERPAv2JournalISSNDataProvider" init-method="init">
+<!--     <bean class="org.dspace.external.provider.impl.SHERPAv2JournalISSNDataProvider" init-method="init">
         <property name="sherpaService">
             <bean class="org.dspace.app.sherpa.SHERPAService">
                 <property name="maxNumberOfTries" value="3"/>
@@ -52,7 +52,10 @@
             </list>
         </property>
     </bean>
-    <bean class="org.dspace.external.provider.impl.OrcidV3AuthorDataProvider" init-method="init">
+
+ -->
+ 
+     <bean class="org.dspace.external.provider.impl.OrcidV3AuthorDataProvider" init-method="init">
         <property name="sourceIdentifier" value="orcid"/>
         <property name="orcidUrl" value="${orcid.domain-url}" />
         <property name="clientId" value="${orcid.application-client-id}" />
@@ -70,7 +73,7 @@
         <constructor-arg value="${orcid.api-url}"/>
     </bean>
 
-    <bean id="pubmedLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+<!--     <bean id="pubmedLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="pubmedImportService"/>
         <property name="sourceIdentifier" value="pubmed"/>
         <property name="recordIdMetadata" value="dc.identifier.pmid"/>
@@ -114,7 +117,7 @@
             </list>
         </property>
     </bean>
-
+ -->
     <bean id="crossRefLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="CrossRefImportService"/>
         <property name="sourceIdentifier" value="crossref"/>
@@ -126,7 +129,7 @@
         </property>
     </bean>
 
-    <bean id="ciniiLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+<!--     <bean id="ciniiLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="CiniiImportService"/>
         <property name="sourceIdentifier" value="cinii"/>
         <property name="recordIdMetadata" value="dc.identifier.other"/>
@@ -158,7 +161,7 @@
             </list>
         </property>
     </bean>
-
+ -->
     <bean id="wosLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="WosImportService"/>
         <property name="sourceIdentifier" value="wos"/>
@@ -170,7 +173,7 @@
         </property>
     </bean>
 
-    <bean id="scieloLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+<!--     <bean id="scieloLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="ScieloImportService"/>
         <property name="sourceIdentifier" value="scielo"/>
         <property name="recordIdMetadata" value="dc.identifier.other"/>
@@ -215,20 +218,21 @@
         </property>
     </bean>
 
-    <bean id="orcidPublicationDataProvider" class="org.dspace.external.provider.impl.OrcidPublicationDataProvider">
-        <property name="sourceIdentifier" value="orcidWorks"/>
-        <property name="fieldMapping" ref="orcidPublicationDataProviderFieldMapping"/>
+    <bean id="vufindLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+        <property name="metadataSource" ref="vufindImportService"/>
+        <property name="sourceIdentifier" value="vufind"/>
+        <property name="recordIdMetadata" value="dc.identifier.other"/>
         <property name="supportedEntityTypes">
             <list>
                 <value>Publication</value>
             </list>
         </property>
     </bean>
+ -->
 
-    <bean id="vufindLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
-        <property name="metadataSource" ref="vufindImportService"/>
-        <property name="sourceIdentifier" value="vufind"/>
-        <property name="recordIdMetadata" value="dc.identifier.other"/>
+    <bean id="orcidPublicationDataProvider" class="org.dspace.external.provider.impl.OrcidPublicationDataProvider">
+        <property name="sourceIdentifier" value="orcidWorks"/>
+        <property name="fieldMapping" ref="orcidPublicationDataProviderFieldMapping"/>
         <property name="supportedEntityTypes">
             <list>
                 <value>Publication</value>

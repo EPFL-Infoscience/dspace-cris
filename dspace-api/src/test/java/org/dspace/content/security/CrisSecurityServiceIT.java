@@ -239,6 +239,97 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testHasAccessWithCustomVirtualMetadataConfig() throws SQLException {
+
+        context.turnOffAuthorisationSystem();
+
+        Group group = GroupBuilder.createGroup(context)
+                .withName("Group")
+                .build();
+
+        Group group1 = GroupBuilder.createGroup(context)
+                .withName("Group1")
+                .build();
+
+        Group group2 = GroupBuilder.createGroup(context)
+                .withName("Group2")
+                .build();
+
+        EPerson firstUser = EPersonBuilder.createEPerson(context)
+                .withEmail("user@mail.it")
+                .withGroupMembership(group)
+                .build();
+
+        EPerson secondUser = EPersonBuilder.createEPerson(context)
+                .withEmail("user2@mail.it")
+                .withGroupMembership(group1)
+                .build();
+
+        EPerson thirdUser = EPersonBuilder.createEPerson(context)
+                .withEmail("user3@mail.it")
+                .withGroupMembership(group2)
+                .build();
+
+        EPerson fourthUser = EPersonBuilder.createEPerson(context)
+                .withEmail("user4@mail.it")
+                .withGroupMembership(group)
+                .build();
+
+        Item author = ItemBuilder.createItem(context, collection)
+                .withTitle("Author")
+                .withCrisOwner(thirdUser)
+                .withPersonMainAffiliation("Group2")
+                .build();
+
+        Item editor = ItemBuilder.createItem(context, collection)
+                .withTitle("Editor")
+                .withCrisOwner(fourthUser)
+                .withPersonMainAffiliation("Group")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("Test item")
+                .withCrisOwner("Owner", owner.getID().toString())
+                .withAuthor("Author", author.getID().toString())
+                .withEditor("Editor", editor.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+
+        AccessItemMode accessMode = buildAccessItemMode(CrisSecurity.CUSTOM);
+        when(accessMode.getUserMetadataFields()).thenReturn(List.of("cris.policy.eperson"));
+        when(accessMode.getGroupMetadataFields())
+                .thenReturn(List.of("cris.policy.group"));
+        when(accessMode.getItemMetadataFields()).thenReturn(List.of());
+
+        assertThat(crisSecurityService.hasAccess(context, item, eperson, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, admin, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, owner, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, collectionAdmin, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, communityAdmin, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, submitter, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, anotherSubmitter, accessMode), is(false));
+
+        assertThat(crisSecurityService.hasAccess(context, item, firstUser, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, secondUser, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, thirdUser, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, fourthUser, accessMode), is(false));
+
+        when(accessMode.getGroupMetadataFields())
+            .thenReturn(
+                List.of(
+                    "cris.policy.group",
+                    "cris.virtual.epflgroupunits"
+                )
+            );
+        assertThat(crisSecurityService.hasAccess(context, item, firstUser, accessMode), is(true));
+        assertThat(crisSecurityService.hasAccess(context, item, secondUser, accessMode), is(false));
+        assertThat(crisSecurityService.hasAccess(context, item, thirdUser, accessMode), is(true));
+        assertThat(crisSecurityService.hasAccess(context, item, fourthUser, accessMode), is(true));
+
+    }
+
+    @Test
     public void testHasAccessWithItemAdminConfig() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();

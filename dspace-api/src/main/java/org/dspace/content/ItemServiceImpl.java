@@ -40,7 +40,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.content.authority.Choices;
 import org.dspace.content.dao.ItemDAO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
@@ -56,8 +55,8 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.virtual.VirtualMetadataPopulator;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.I18nUtil;
 import org.dspace.core.LogHelper;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.SubscribeService;
@@ -1224,17 +1223,8 @@ prevent the generation of resource policy entry values with null dspace_object a
 
     */
 
-    /**
-     * Add the default policies, which have not been already added to the given DSpace object
-     *
-     * @param context                   The relevant DSpace Context.
-     * @param dso                       The DSpace Object to add policies to
-     * @param defaultCollectionPolicies list of policies
-     * @throws SQLException       An exception that provides information on a database access error or other errors.
-     * @throws AuthorizeException Exception indicating the current user of the context does not have permission
-     *                            to perform a particular action.
-     */
-    protected void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso,
+    @Override
+    public void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso,
         List<ResourcePolicy> defaultCollectionPolicies) throws SQLException, AuthorizeException {
         boolean appendMode = configurationService
                 .getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode", false);
@@ -1561,15 +1551,6 @@ prevent the generation of resource policy entry values with null dspace_object a
     }
 
     @Override
-    protected void getAuthoritiesAndConfidences(String fieldKey, Collection collection, List<String> values,
-                                                List<String> authorities, List<Integer> confidences, int i) {
-        String locale = I18nUtil.getDefaultLocale().getLanguage();
-        Choices c = choiceAuthorityService.getBestMatch(fieldKey, values.get(i), collection, locale);
-        authorities.add(c.values.length > 0 && c.values[0] != null ? c.values[0].authority : null);
-        confidences.add(c.confidence);
-    }
-
-    @Override
     public Item findByIdOrLegacyId(Context context, String id) throws SQLException {
         if (StringUtils.isNumeric(id)) {
             return findByLegacyId(context, Integer.parseInt(id));
@@ -1695,6 +1676,15 @@ prevent the generation of resource policy entry values with null dspace_object a
     @Override
     public String getEntityType(Item item) {
         return getMetadataFirstValue(item, new MetadataFieldName("dspace.entity.type"), Item.ANY);
+    }
+
+    @Override
+    public void setEntityType(Context context, Item item, String entityType) {
+        try {
+            setMetadataSingleValue(context, item, new MetadataFieldName("dspace.entity.type"), null, entityType);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
     /**

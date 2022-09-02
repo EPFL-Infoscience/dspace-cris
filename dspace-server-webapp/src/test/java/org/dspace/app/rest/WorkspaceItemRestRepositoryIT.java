@@ -11,6 +11,7 @@ import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.ResourcePolicyMatcher.matches;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
+import static org.dspace.app.rest.matcher.WorkspaceItemMatcher.matchItemWithTitleAndDateIssued;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.dspace.authorize.ResourcePolicy.TYPE_SUBMISSION;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -8444,6 +8445,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .withCorrectionSubmissionDefinition("traditional-cris")
             .withEntityType("Publication")
             .withSubmitterGroup(user)
+            .withWorkflowGroup("editor", user)
             .build();
 
         Item item = ItemBuilder.createItem(context, collection)
@@ -8473,6 +8475,90 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$.sections.traditionalpagetwo").exists())
             .andExpect(jsonPath("$.sections.traditionalpagethree-cris-open").exists())
             .andExpect(jsonPath("$.sections.traditionalpagethree-cris-collapsed").exists());
+    }
+
+    @Test
+    public void testAuthorFindOneAndDeposit() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withEmail("user@test.com")
+            .withPassword(password)
+            .build();
+
+        EPerson anotherUser = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withEmail("anotheruser@test.com")
+            .withPassword(password)
+            .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withWorkflowGroup(1, eperson)
+            .build();
+
+        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 2")
+            .withEntityType("Person")
+            .build();
+
+        Item userProfile = ItemBuilder.createItem(context, personCollection)
+            .withTitle("User")
+            .withCrisOwner(user)
+            .build();
+
+        Item anotherUserProfile = ItemBuilder.createItem(context, personCollection)
+            .withTitle("User")
+            .withCrisOwner(anotherUser)
+            .build();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+            .withTitle("Workspace Item")
+            .withIssueDate("2017-10-17")
+            .withAuthor("Author")
+            .withEditor("Editor", userProfile.getID().toString())
+            .grantLicense()
+            .withFulltext("test.pdf", "source", InputStream.nullInputStream())
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(anotherUser.getEmail(), password))
+            .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+            .andExpect(status().isForbidden());
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+            .andExpect(status().isOk());
+
+        // a simple patch to update an existent metadata
+        List<Operation> updateTitle = new ArrayList<Operation>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "New Title");
+        updateTitle.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
+
+        String patchBody = getPatchContent(updateTitle);
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(patch("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$", is(matchItemWithTitleAndDateIssued(workspaceItem, "New Title", "2017-10-17"))));
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                .content("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .contentType(textUriContentType))
+            .andExpect(status().isCreated());
+
     }
 
 }

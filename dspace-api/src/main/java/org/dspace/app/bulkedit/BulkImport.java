@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BinaryOperator;
@@ -55,10 +54,10 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authority.service.ItemSearchService;
 import org.dspace.authority.service.ItemSearcherMapper;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.InProgressSubmission;
@@ -68,6 +67,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.packager.PackageUtils;
+import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
@@ -76,13 +76,13 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.vo.MetadataValueVO;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.EPersonService;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.submit.factory.SubmitterServiceFactory;
+import org.dspace.submit.service.ChangeSubmitterService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.util.WorkbookUtils;
 import org.dspace.utils.DSpace;
@@ -163,6 +163,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private ValidationService validationService;
 
+    private ChangeSubmitterService submitterService;
+
     private DCInputsReader reader;
 
     private BulkImportTransformerService bulkImportTransformerService;
@@ -181,7 +183,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private BitstreamService bitstreamService;
 
-    private EPersonService ePersonService;
+    private BitstreamFormatService bitstreamFormatService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -203,7 +205,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         this.bulkImportFileUtil = new BulkImportFileUtil(this.handler);
         this.bundleService = ContentServiceFactory.getInstance().getBundleService();
         this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-        this.ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        this.submitterService = SubmitterServiceFactory.getInstance().getSubmitterService();
+        this.bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
 
         try {
             this.reader = new DCInputsReader();
@@ -662,7 +665,10 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 if (optionalBundle.isPresent() && optionalInputStream.isPresent()) {
                     Optional<Bitstream> bitstream =
                         createBitstream(optionalBundle.get(), optionalInputStream.get());
-                    bitstream.ifPresent(value -> addMetadataToBitstream(value, u.getMetadataGroup()));
+                    bitstream.ifPresent(value -> {
+                        addMetadataToBitstream(value, u.getMetadataGroup());
+                        setBitstreamFormat(value);
+                    });
                 } else {
                     handler.logError("Cannot create bundle or input stream for " +
                                          "bundle: " + u.getBundleName() + " with path: " + u.getFilePath() +
@@ -676,6 +682,16 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         for (Map.Entry<String, MetadataValueVO> entry : metadataGroup.getMetadata().entries()) {
             Optional<MetadataField> metadataField = getMetadataFieldByString(entry.getKey());
             metadataField.ifPresent(field -> addMetadataToBitstream(bitstream, field, entry.getValue()));
+        }
+    }
+
+    private void setBitstreamFormat(Bitstream bitstream) {
+        try {
+            BitstreamFormat bf = bitstreamFormatService.guessFormat(context, bitstream);
+            bitstreamService.setFormat(context, bitstream, bf);
+            bitstreamService.update(context, bitstream);
+        } catch (SQLException | AuthorizeException e) {
+            handler.logError(e.getMessage());
         }
     }
 
@@ -813,32 +829,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         if (StringUtils.isBlank(entityRow.getSubmitter())) {
             return;
         }
-        EPerson submitter = findSubmitter(entityRow.getSubmitter());
-        if (Objects.isNull(submitter) || submitter.equals(item.getSubmitter())) {
-            return;
-        }
-        EPerson previousSubmitter = item.getSubmitter();
-        item.setSubmitter(submitter);
-        int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
-        for (int actionId : actionIds) {
-            authorizeService.removeEPersonPolicies(context, item, previousSubmitter);
-            authorizeService.addPolicy(context, item, actionId, item.getSubmitter(), ResourcePolicy.TYPE_SUBMISSION);
-        }
-    }
-
-    private EPerson findSubmitter(String submitter) throws SQLException {
-        EPerson ePerson = null;
-        if (StringUtils.isNumeric(submitter) || Objects.nonNull(UUIDUtils.fromString(submitter))) {
-            ePerson = ePersonService.findByIdOrLegacyId(context, submitter);
-        }
-        if (Objects.nonNull(ePerson)) {
-            return ePerson;
-        }
-        ePerson = ePersonService.findByEmail(context, submitter);
-        if (Objects.nonNull(ePerson)) {
-            return ePerson;
-        }
-        return ePersonService.findByNetid(context, submitter);
+        submitterService.setUpSubmitter(context, item, entityRow.getSubmitter());
     }
 
     private void installItem(EntityRow entityRow, Item item) throws SQLException, AuthorizeException {

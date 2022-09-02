@@ -187,6 +187,31 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
+    public void deleteByDsoAndEPersonAndType(Context context, DSpaceObject dso, EPerson e, String type)
+            throws SQLException {
+        String queryString =
+                "delete from ResourcePolicy where dSpaceObject.id = :dsoId AND eperson = :ep AND rptype = :rptype";
+        Query query = createQuery(context, queryString);
+        query.setParameter("dsoId", dso.getID());
+        query.setParameter("ep", e);
+        query.setParameter("rptype", type);
+        query.executeUpdate();
+    }
+
+    @Override
+    public void deleteByDsoAndTypeAndAction(Context context, DSpaceObject dso, String type, int actionId)
+        throws SQLException {
+        String queryString = "delete from ResourcePolicy where dSpaceObject.id = :dsoId "
+            + "AND rptype = :rptype AND actionId= :actionId";
+        Query query = createQuery(context, queryString);
+        query.setParameter("dsoId", dso.getID());
+        query.setParameter("rptype", type);
+        query.setParameter("actionId", actionId);
+        query.executeUpdate();
+
+    }
+
+    @Override
     public void deleteByGroup(Context context, Group group) throws SQLException {
         String queryString = "delete from ResourcePolicy where epersonGroup= :epersonGroup";
         Query query = createQuery(context, queryString);

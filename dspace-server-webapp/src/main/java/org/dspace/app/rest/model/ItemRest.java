@@ -9,6 +9,7 @@ package org.dspace.app.rest.model;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -68,6 +69,10 @@ public class ItemRest extends DSpaceObjectRest {
     private boolean discoverable = false;
     private boolean withdrawn = false;
     private Date lastModified = new Date();
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String submitterName = null;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String submitterEmail = null;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String entityType = null;
 
@@ -120,5 +125,21 @@ public class ItemRest extends DSpaceObjectRest {
 
     public void setEntityType(String entityType) {
         this.entityType = entityType;
+    }
+
+    public void setSubmitterEmail(String submitterEmail) {
+        this.submitterEmail = submitterEmail;
+    }
+
+    public String getSubmitterEmail() {
+        return submitterEmail;
+    }
+
+    public void setSubmitterName(String submitterName) {
+        this.submitterName = submitterName;
+    }
+
+    public String getSubmitterName() {
+        return submitterName;
     }
 }

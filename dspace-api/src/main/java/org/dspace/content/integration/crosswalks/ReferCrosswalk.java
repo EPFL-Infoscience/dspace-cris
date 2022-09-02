@@ -307,8 +307,24 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private int getMetadataGroupSize(Item item, String metadataGroupFieldName) {
+    private int getMetadataGroupSize(Item item, String metadataGroupFieldName)  {
+        boolean isBundleGroup = metadataGroupFieldName.startsWith("bundle");
+        if (isBundleGroup) {
+            return bundleGroupSize(item, metadataGroupFieldName);
+        }
         return itemService.getMetadataByMetadataString(item, metadataGroupFieldName).size();
+    }
+
+    private int bundleGroupSize(Item item, String metadataGroupFieldName) {
+        String bundleName = StringUtils.stripStart(metadataGroupFieldName, "bundle.").toUpperCase();
+        try {
+            return itemService.getBundles(item, bundleName).stream()
+                              .mapToInt(b -> b.getBitstreams().size())
+                              .sum();
+        } catch (SQLException e) {
+            log.warn("error while extracting bitstreams size {}", e.getMessage());
+            return 0;
+        }
     }
 
     private List<String> getMetadataValuesForLine(Context context, TemplateLine line, Item item) {

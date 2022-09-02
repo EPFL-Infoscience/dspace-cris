@@ -504,6 +504,36 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+    @Test
+    public void testSelectedItemsBulkItemExport() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Item item1 = createItem(collection, "Edward Red", "Science", "Publication");
+        createItem(collection, "My publication", "", "Publication");
+        Item item2 = createItem(collection, "Walter White", "Science", "Publication");
+        createItem(collection, "John Smith", "Science", "Publication");
+        context.restoreAuthSystemState();
+        context.commit();
+
+        String items = item1.getID().toString() + ";" + item2.getID().toString();
+
+        String[] args = new String[] { "bulk-item-export", "-si", items, "-f", "publication-chicago" };
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        File txt = new File("publications.txt");
+        txt.deleteOnExit();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        try (FileInputStream fis = new FileInputStream(txt)) {
+            String content = IOUtils.toString(fis, Charset.defaultCharset());
+            assertThat(content,
+                    containsString("“Edward Red,” n.d. http://localhost:4000/handle/" + item1.getHandle()));
+            assertThat(content,
+                    containsString("“Walter White,” n.d. http://localhost:4000/handle/" + item2.getHandle()));
+        }
+    }
+
     private Item createItem(Collection collection, String title, String subject, String entityType) {
         return ItemBuilder.createItem(context, collection)
             .withTitle(title)

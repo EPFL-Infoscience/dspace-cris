@@ -7,17 +7,23 @@
  */
 package org.dspace.app.rest.converter;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataValueList;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.security.service.MetadataSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
+import org.dspace.eperson.EPerson;
+import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +37,8 @@ import org.springframework.stereotype.Component;
 public class ItemConverter
         extends DSpaceObjectConverter<Item, ItemRest>
         implements IndexableObjectConverter<Item, ItemRest> {
+
+    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     private ItemService itemService;
@@ -46,6 +54,7 @@ public class ItemConverter
         item.setWithdrawn(obj.isWithdrawn());
         item.setLastModified(obj.getLastModified());
         item.setEntityType(itemService.getEntityType(obj));
+        setSubmitterName(obj, item);
         return item;
     }
 
@@ -94,4 +103,24 @@ public class ItemConverter
     public boolean supportsModel(IndexableObject idxo) {
         return idxo.getIndexedObject() instanceof Item;
     }
+
+    private void setSubmitterName(Item item, ItemRest itemRest) {
+        Context context = null;
+        Request currentRequest = requestService.getCurrentRequest();
+        if (currentRequest != null) {
+            context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
+        }
+        try {
+            if (context != null && authorizeService.isAdmin(context, item)) {
+                EPerson submitter = item.getSubmitter();
+                if (submitter != null) {
+                    itemRest.setSubmitterName(submitter.getFullName());
+                    itemRest.setSubmitterEmail(submitter.getEmail());
+                }
+            }
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
 }

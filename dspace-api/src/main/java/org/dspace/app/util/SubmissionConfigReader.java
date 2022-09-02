@@ -231,26 +231,41 @@ public class SubmissionConfigReader {
 
         String submitName = collService.getMetadataFirstValue(collection, "cris", "submission", "definition", null);
         if (submitName != null) {
-            SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
-            if (subConfig != null) {
-                return subConfig;
+            try {
+                SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
+                if (subConfig != null) {
+                    return subConfig;
+                }
+            } catch (IllegalStateException e) {
+                log.error("The collection " + collection.getID().toString()
+                        + " has an invalid cris.submission.definition value " + submitName, e);
             }
         }
 
         // get the name of the submission process config for this collection
         submitName = collectionToSubmissionConfig.get(collection.getHandle());
         if (submitName != null) {
-            SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
-            if (subConfig != null) {
-                return subConfig;
+            try {
+                SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
+                if (subConfig != null) {
+                    return subConfig;
+                }
+            } catch (IllegalStateException e) {
+                log.error("The collection " + collection.getID().toString() + " has an invalid mapping by handle "
+                        + collection.getHandle() + " in the item-submission.xml " + submitName, e);
             }
         }
 
         submitName = collService.getMetadataFirstValue(collection, "dspace", "entity", "type", null);
         if (submitName != null) {
-            SubmissionConfig subConfig = getSubmissionConfigByName(submitName.toLowerCase());
-            if (subConfig != null) {
-                return subConfig;
+            try {
+                SubmissionConfig subConfig = getSubmissionConfigByName(submitName.toLowerCase());
+                if (subConfig != null) {
+                    return subConfig;
+                }
+            } catch (IllegalStateException e) {
+                log.warn("The collection " + collection.getID().toString() + " has an entity type " + submitName
+                        + " without an explicit mapping, fallback to the default");
             }
         }
 
