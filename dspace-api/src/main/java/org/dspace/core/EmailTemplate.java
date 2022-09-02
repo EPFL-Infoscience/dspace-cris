@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,10 @@ public class EmailTemplate {
                     .forEach(entry -> vctx.put(entry.getKey(), entry.getValue()))
             );
 
-        Optional.ofNullable(arguments)
+        ArrayList<Object> argumentList = new ArrayList<Object>(Math.max(arguments.size(), 20));
+        argumentList.addAll(arguments);
+
+        Optional.ofNullable(argumentList)
             .filter(list -> !list.isEmpty())
             .ifPresent(list -> vctx.put("params", Collections.unmodifiableList(list)));
 
