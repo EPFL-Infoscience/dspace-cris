@@ -9,7 +9,6 @@ package org.dspace.script2externalservices;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 import org.apache.commons.cli.Options;
 import org.dspace.authorize.service.AuthorizeService;
@@ -65,7 +64,8 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
             options.getOption("f").setType(String.class);
             options.getOption("f").setRequired(true);
             options.addOption("c", "collection-uuid", true, "collection-uuid into which to make import");
-            options.getOption("c").setType(UUID.class);
+            options.getOption("c").setType(String.class);
+            options.getOption("c").setRequired(false);
             super.options = options;
         }
         return options;

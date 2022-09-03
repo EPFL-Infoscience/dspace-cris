@@ -16,7 +16,6 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.dspace.core.CrisConstants;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -25,6 +24,7 @@ import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 
 /**
+ * Web Of Science specific implementation of {@link MetadataContributor}
  * 
  * @author Boychuk Mykhaylo (boychuk.mykhaylo at 4Science dot it)
  */
@@ -47,7 +47,7 @@ public class WosIdentifierRidContributor extends SimpleXpathMetadatumContributor
                 Element element = ((Element) el).getChild("name");
                 if (Objects.nonNull(element)) {
                     String type = element.getAttributeValue("role");
-                    setIdentyfire(type, element, values);
+                    setIdentyfier(type, element, values);
                 }
             } else {
                 log.warn("node of type: " + el.getClass());
@@ -56,14 +56,11 @@ public class WosIdentifierRidContributor extends SimpleXpathMetadatumContributor
         return values;
     }
 
-    private void setIdentyfire(String type, Element el, List<MetadatumDTO> values) {
+    private void setIdentyfier(String type, Element el, List<MetadatumDTO> values) {
         if (StringUtils.equals("researcher_id", type)) {
             String value = el.getAttributeValue("r_id");
             if (StringUtils.isNotBlank(value)) {
                 values.add(metadataFieldMapping.toDCValue(this.field, value));
-            } else {
-                values.add(metadataFieldMapping.toDCValue(this.field,
-                           CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE));
             }
         }
     }
