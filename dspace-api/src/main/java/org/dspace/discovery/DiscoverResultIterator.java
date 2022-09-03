@@ -42,24 +42,19 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
     private Iterator<IndexableObject> currentSlotIterator;
 
     private boolean uncacheEntitites;
-    private Integer maxResults;
+
+    private int maxResults;
 
     public DiscoverResultIterator(Context context, DiscoverQuery discoverQuery) {
-        this(context, null, discoverQuery, true);
+        this(context, null, discoverQuery, true, -1);
     }
 
     public DiscoverResultIterator(Context context, DiscoverQuery discoverQuery, boolean uncacheEntities) {
-        this(context, null, discoverQuery, uncacheEntities);
+        this(context, null, discoverQuery, uncacheEntities, -1);
     }
 
     public DiscoverResultIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery) {
-        this(context, scopeObject, discoverQuery, true);
-    }
-
-    public DiscoverResultIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery,
-        boolean uncacheEntities) {
-
-        this(context, scopeObject, discoverQuery, uncacheEntities, null);
+        this(context, scopeObject, discoverQuery, true, -1);
     }
 
     public DiscoverResultIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery,
@@ -71,7 +66,7 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
         this.iteratorCounter = discoverQuery.getStart();
         this.searchService = SearchUtils.getSearchService();
         this.uncacheEntitites = uncacheEntities;
-        this.maxResults = Objects.isNull(maxResults) ? null : iteratorCounter + maxResults;
+        this.maxResults = Objects.isNull(maxResults) ? -1 : iteratorCounter + maxResults;
 
         updateCurrentSlotIterator();
     }
@@ -81,13 +76,13 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
         this(context, scopeObject, discoverQuery, true, maxResults);
     }
 
-    public DiscoverResultIterator(Context context, DiscoverQuery discoverQuery, Integer maxResults) {
+    public DiscoverResultIterator(Context context, DiscoverQuery discoverQuery, int maxResults) {
         this(context, null, discoverQuery, true, maxResults);
     }
 
     @Override
     public boolean hasNext() {
-        if (Objects.nonNull(maxResults) && iteratorCounter >= maxResults) {
+        if (maxResults > 0 && iteratorCounter >= maxResults) {
             return false;
         }
         if (currentSlotIterator.hasNext()) {

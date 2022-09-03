@@ -24,7 +24,7 @@ public class BulkItemExportScriptConfiguration<T extends BulkItemExport> extends
 
     @Override
     public boolean isAllowedToExecute(Context context) {
-        return context.getCurrentUser() != null;
+        return true;
     }
 
     @Override

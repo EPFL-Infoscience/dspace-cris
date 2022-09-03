@@ -25,6 +25,8 @@ import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -58,6 +60,8 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +90,10 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     private ItemService itemService;
 
     private DiscoveryConfigurationService discoveryConfigurationService;
+
+    private ConfigurationService configurationService;
+
+    private AuthorizeService authorizeService;
 
     private SearchService searchService;
 
@@ -122,6 +130,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         this.itemService = ContentServiceFactory.getInstance().getItemService();
         this.discoveryConfigurationService = new DSpace().getSingletonService(DiscoveryConfigurationService.class);
         this.searchService = SearchUtils.getSearchService();
+        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
 
         this.query = commandLine.getOptionValue('q');
         this.scope = commandLine.getOptionValue('s');
@@ -159,11 +169,18 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             throw new IllegalArgumentException("No dissemination configured for format " + exportFormat);
         }
 
+        int maxResults = maxResults();
+
         try {
             String[] items = StringUtils.isNotBlank(this.selectedItems) ? selectedItems.split(";") : null;
             this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQuery(items);
-            DiscoverResultItemIterator itemsIterator = searchItemsToExport();
-            handler.logInfo("Found " + itemsIterator.getTotalSearchResults() + " items to export");
+            if (maxResults > 0) {
+                handler.logInfo("Export will be limited to " + maxResults + " items.");
+            }
+            DiscoverResultItemIterator itemsIterator = searchItemsToExport(maxResults);
+            handler.logInfo("Found " + Math.min(itemsIterator.getTotalSearchResults(),
+                                                maxResults > 0 ? maxResults : Integer.MAX_VALUE) +
+                                " items to export");
 
             performExport(itemsIterator, streamDisseminationCrosswalk);
 
@@ -212,7 +229,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         handler.logInfo("Items exported successfully into file named " + name);
     }
 
-    private DiscoverResultItemIterator searchItemsToExport() throws SearchServiceException, SQLException {
+    private DiscoverResultItemIterator searchItemsToExport(int maxResults) throws SearchServiceException, SQLException {
         IndexableObject<?, ?> scopeObject = resolveScope();
         DiscoveryConfiguration discoveryConfiguration = discoveryConfigurationService
             .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
@@ -222,12 +239,14 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
         DiscoverQuery discoverQuery = buildDiscoveryQuery(discoveryConfiguration, scopeObject);
 
+
         if (isRelatedItem) {
-            return new DiscoverResultItemIterator(context, discoverQuery, this.limit);
+            return new DiscoverResultItemIterator(context, discoverQuery, maxResults);
         } else {
-            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery, this.limit);
+            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery, maxResults);
         }
     }
+
 
     private IndexableObject<?, ?> resolveScope() {
         IndexableObject<?, ?> scopeObj = null;
@@ -422,4 +441,15 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         return new DSpace().getSingletonService(StreamDisseminationCrosswalkMapper.class).getByType(type);
     }
 
+    private int maxResults() throws SQLException {
+
+        StringBuilder property = new StringBuilder("bulk-export.limit.");
+        if (authorizeService.isAdmin(context)) {
+            property.append("admin");
+        } else {
+            property.append(Optional.ofNullable(context.getCurrentUser()).map(ignored -> "loggedIn")
+                                .orElse("notLoggedIn"));
+        }
+        return configurationService.getIntProperty(property.toString(), -1);
+    }
 }

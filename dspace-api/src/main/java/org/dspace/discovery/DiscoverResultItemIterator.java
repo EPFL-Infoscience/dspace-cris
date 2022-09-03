@@ -31,13 +31,13 @@ public class DiscoverResultItemIterator extends DiscoverResultIterator<Item, UUI
         super(context, scopeObject, discoverQuery);
     }
 
-    public DiscoverResultItemIterator(Context context, IndexableObject<?, ?> scopeObject,
-                                      DiscoverQuery discoverQuery, Integer maxResults) {
-        super(context, scopeObject, discoverQuery, maxResults);
+    public DiscoverResultItemIterator(Context context, DiscoverQuery discoverQuery, int maxResults) {
+        super(context, null, discoverQuery, true, maxResults);
     }
 
-    public DiscoverResultItemIterator(Context context, DiscoverQuery discoverQuery, Integer maxResults) {
-        super(context, discoverQuery, maxResults);
+    public DiscoverResultItemIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery,
+                                      int maxResults) {
+        super(context, scopeObject, discoverQuery, true, maxResults);
     }
 
     @Override
