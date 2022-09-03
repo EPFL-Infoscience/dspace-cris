@@ -12,8 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
@@ -374,6 +379,80 @@ public class I18nUtil {
     }
 
 
+    private static final List<String> localeSubpaths(Locale locale, String fileType) {
+        return Stream.of(
+                    getVariantSubname(locale, fileType),
+                    getCountrySubname(locale, fileType),
+                    getLanguageSubname(locale, fileType)
+                )
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private static String getLanguageSubname(Locale locale, String fileType) {
+        return Optional.ofNullable(locale)
+             .filter(lc -> !lc.getLanguage().isEmpty())
+             .map(lc ->
+                 StringUtils.join(
+                     "_",
+                     lc.getLanguage(),
+                     fileType
+                 )
+             )
+         .orElse(null);
+    }
+
+    private static String getCountrySubname(Locale locale, String fileType) {
+        return Optional.ofNullable(locale)
+                .filter(lc -> !lc.getLanguage().isEmpty())
+                .filter(lc -> !lc.getCountry().isEmpty())
+                .map(lc ->
+                     StringUtils.join(
+                         "_",
+                         lc.getLanguage(),
+                         "_",
+                         lc.getCountry(),
+                         fileType
+                     )
+                 )
+                .orElse(null);
+    }
+
+    private static final String getVariantSubname(Locale locale, String fileType) {
+        return Optional.ofNullable(locale)
+                .filter(lc -> !lc.getLanguage().isEmpty())
+                .filter(lc -> !lc.getCountry().isEmpty())
+                .filter(lc -> !lc.getVariant().isEmpty())
+                .map(lc ->
+                    StringUtils.join(
+                        "_",
+                        lc.getLanguage(),
+                        "_",
+                        lc.getCountry(),
+                        "_",
+                        lc.getVariant(),
+                        fileType
+                    )
+                 )
+                .orElse(null);
+    }
+
+    private static final Set<String> getFilenames(Locale locale, String folder, String fileType) {
+        return Stream.of(new File(folder).listFiles())
+                .filter(file -> !file.isDirectory())
+                .map(file -> file.getName())
+                .map(fileName -> localeSubpaths(locale, fileType)
+                                    .stream()
+                                    .filter(Objects::nonNull)
+                                    .filter(name -> !name.isBlank())
+                                    .filter(name -> fileName.endsWith(name))
+                                    .map(name -> fileName.substring(0, fileName.indexOf(name)))
+                                    .findFirst()
+                                    .orElse(fileName.substring(0, fileName.lastIndexOf(fileType)))
+                )
+                .collect(Collectors.toSet());
+    }
+
     /**
      * Get the appropriate localized version of an email template according to language settings
      *
@@ -389,6 +468,26 @@ public class I18nUtil {
 
         String templateName = getFilename(locale, templateFile, "");
         return templateName;
+    }
+
+    /**
+     * Get email templates according to language settings
+     *
+     * @param locale Locale for this request
+     * @return templateNames
+     * {@code List<String>} - localized filenames of email templates
+     */
+    public static List<String> getEmailTemplates(Locale locale) {
+        String emailTemplatesFolder = getSubpath("config", "emails");
+        return new ArrayList<>(getFilenames(locale, emailTemplatesFolder, ""));
+    }
+
+    private static String getSubpath(String... path) {
+        String dspaceFolder = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.dir");
+        String subpath = Stream.of(path)
+                .filter(el -> StringUtils.isNotBlank(el))
+                .collect(Collectors.joining(File.separator));
+        return StringUtils.join(dspaceFolder, File.separator, subpath);
     }
 
     /**

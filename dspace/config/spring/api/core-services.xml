@@ -6,6 +6,7 @@
     <!-- ******************** -->
     <!-- Service declarations -->
     <!-- ******************** -->
+    <bean class="org.dspace.app.email.template.EmailTemplateServiceImpl"/>
     <bean class="org.dspace.app.requestitem.RequestItemServiceImpl"/>
     
     <bean class="org.dspace.submit.service.impl.ChangeSubmitterServiceImpl"/>
