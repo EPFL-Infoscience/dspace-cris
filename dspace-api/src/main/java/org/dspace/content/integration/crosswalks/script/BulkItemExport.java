@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
@@ -57,7 +58,9 @@ import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.discovery.indexobject.IndexableWorkflowItem;
 import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -95,8 +98,9 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
     private AuthorizeService authorizeService;
 
-    private SearchService searchService;
+    private GroupService groupService;
 
+    private SearchService searchService;
 
     private String query;
 
@@ -132,6 +136,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         this.searchService = SearchUtils.getSearchService();
         this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+        this.groupService = EPersonServiceFactory.getInstance().getGroupService();
 
         this.query = commandLine.getOptionValue('q');
         this.scope = commandLine.getOptionValue('s');
@@ -170,14 +175,17 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         }
 
         int maxResults = maxResults();
-
+        if (maxResults == 0) {
+            throw new AuthorizeException("You are not allowed to run the export process");
+        }
         try {
             String[] items = StringUtils.isNotBlank(this.selectedItems) ? selectedItems.split(";") : null;
             this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQuery(items);
             if (maxResults > 0) {
                 handler.logInfo("Export will be limited to " + maxResults + " items.");
             }
-            DiscoverResultItemIterator itemsIterator = searchItemsToExport(maxResults);
+            DiscoverResultItemIterator itemsIterator = searchItemsToExport(maxResults,
+                    streamDisseminationCrosswalk.isPubliclyReadable());
             handler.logInfo("Found " + Math.min(itemsIterator.getTotalSearchResults(),
                                                 maxResults > 0 ? maxResults : Integer.MAX_VALUE) +
                                 " items to export");
@@ -229,7 +237,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         handler.logInfo("Items exported successfully into file named " + name);
     }
 
-    private DiscoverResultItemIterator searchItemsToExport(int maxResults) throws SearchServiceException, SQLException {
+    private DiscoverResultItemIterator searchItemsToExport(int maxResults, boolean onlyPublic)
+            throws SearchServiceException, SQLException {
         IndexableObject<?, ?> scopeObject = resolveScope();
         DiscoveryConfiguration discoveryConfiguration = discoveryConfigurationService
             .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
@@ -237,7 +246,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         boolean isRelatedItem = discoveryConfiguration != null &&
             discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration;
 
-        DiscoverQuery discoverQuery = buildDiscoveryQuery(discoveryConfiguration, scopeObject);
+        DiscoverQuery discoverQuery = buildDiscoveryQuery(discoveryConfiguration, scopeObject, onlyPublic);
 
 
         if (isRelatedItem) {
@@ -277,17 +286,19 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     }
 
     private DiscoverQuery buildDiscoveryQuery(DiscoveryConfiguration discoveryConfiguration,
-        IndexableObject<?, ?> scope) throws SQLException {
+        IndexableObject<?, ?> scope, boolean onlyPublic) throws SQLException {
 
         DiscoverQuery discoverQuery = buildBaseQuery(discoveryConfiguration, scope);
         discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.setQuery(query);
-        discoverQuery.setMaxResults(Optional.ofNullable(this.limit)
-                                        .map(l -> Math.min(l, QUERY_PAGINATION_SIZE))
-                                        .orElse(QUERY_PAGINATION_SIZE));
+        discoverQuery.setMaxResults(QUERY_PAGINATION_SIZE);
         discoverQuery.addFilterQueries(getFilterQueries(discoveryConfiguration));
+        if (onlyPublic) {
+            Group anonymous = groupService.findByName(context, Group.ANONYMOUS);
+            discoverQuery.addFilterQueries("read:g" + anonymous.getID().toString());
+        }
         Optional.ofNullable(this.offset).ifPresent(discoverQuery::setStart);
         if (StringUtils.isNotBlank(entityType)) {
             discoverQuery.addFilterQueries("search.entitytype:" + entityType);
@@ -444,12 +455,21 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     private int maxResults() throws SQLException {
 
         StringBuilder property = new StringBuilder("bulk-export.limit.");
-        if (authorizeService.isAdmin(context)) {
+        if (authorizeService.isAdmin(context) || authorizeService.isComColAdmin(context)) {
             property.append("admin");
         } else {
             property.append(Optional.ofNullable(context.getCurrentUser()).map(ignored -> "loggedIn")
                                 .orElse("notLoggedIn"));
         }
-        return configurationService.getIntProperty(property.toString(), -1);
+        int maxByUserCategory = configurationService.getIntProperty(property.toString(), -1);
+        if (maxByUserCategory > 0 && this.limit != null && this.limit > 0) {
+            return Optional.ofNullable(this.limit)
+                .map(l -> Math.min(l, maxByUserCategory))
+                .orElse(maxByUserCategory);
+        } else if (maxByUserCategory == -1 && this.limit != null && this.limit > 0) {
+            return this.limit;
+        } else {
+            return maxByUserCategory;
+        }
     }
 }

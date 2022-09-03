@@ -536,6 +536,7 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+    @Test
     public void testBulkItemExportLimited() throws Exception {
 
         context.turnOffAuthorisationSystem();

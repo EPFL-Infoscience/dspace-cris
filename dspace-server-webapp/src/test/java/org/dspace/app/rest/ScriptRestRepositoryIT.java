@@ -15,11 +15,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,21 +30,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import net.minidev.json.JSONArray;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.DSpaceRunnableParameterConverter;
 import org.dspace.app.rest.matcher.BitstreamMatcher;
 import org.dspace.app.rest.matcher.PageMatcher;
@@ -55,6 +53,7 @@ import org.dspace.app.rest.model.ParameterValueRest;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
@@ -69,6 +68,8 @@ import org.dspace.content.ProcessStatus;
 import org.dspace.content.authority.DCInputAuthority;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.integration.crosswalks.ReferCrosswalk;
+import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMapper;
 import org.dspace.core.CrisConstants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -78,6 +79,7 @@ import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.service.ProcessService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.utils.DSpace;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -86,11 +88,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultMatcher;
 
 public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ProcessService processService;
+
+    @Autowired
+    private ResourcePolicyService resourcePolicyService;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -973,6 +979,22 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .withRelationProduct("DataSet")
                 .build();
 
+        Item restrictedItem = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Third Publication")
+                .withSubject("export")
+                .withAuthor("EPerson", eperson.getID().toString())
+                .build();
+
+        Item restrictedItem2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Fourth Publication")
+                .withSubject("export")
+                .build();
+
+        resourcePolicyService.removeAllPolicies(context, restrictedItem);
+        resourcePolicyService.removeAllPolicies(context, restrictedItem2);
+
         LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
         parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));
         parameters.add(new DSpaceCommandLineParameter("-f", "epfl-publications"));
@@ -982,7 +1004,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .convert(dSpaceCommandLineParameter, Projection.DEFAULT))
                 .collect(Collectors.toList());
 
-        String token = getAuthToken(admin.getEmail(), password);
+        String adminToken = getAuthToken(admin.getEmail(), password);
         List<ProcessStatus> acceptableProcessStatuses = new LinkedList<>();
         acceptableProcessStatuses.addAll(Arrays.asList(ProcessStatus.SCHEDULED,
                 ProcessStatus.RUNNING,
@@ -992,10 +1014,16 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
-
+        String[] includedContents = {
+                "First Publication",
+                "Second Publication"
+        };
+        String[] excludedContents = {
+                "Third Publication",
+                "Fourth Publication"
+        };
         try {
-
-            getClient(token)
+            getClient(adminToken)
                     .perform(
                             multipart("/api/system/scripts/bulk-item-export/processes")
                              .param("properties", new Gson().toJson(list))
@@ -1008,55 +1036,223 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                                                         acceptableProcessStatuses))))
                     .andDo(result -> idRef
                             .set(read(result.getResponse().getContentAsString(), "$.processId")));
-            MvcResult mvcResult = getClient(token)
-                    .perform(get("/api/system/processes/" + idRef.get() + "/files"))
-                    .andReturn();
-
-            JSONArray publicationsJsonId = read(mvcResult.getResponse().getContentAsString(),
-                    "$._embedded.files[?(@.name=='epfl-publications.html')].id");
-
-            String epflBitstreamId = publicationsJsonId.get(0).toString();
-            getClient()
-                .perform(get("/api/core/bitstreams/" + epflBitstreamId))
-                .andExpect(status().isOk())
-                .andExpect(
-                    jsonPath("$",
-                            allOf(
-                                    hasJsonPath("name", is("epfl-publications.html")),
-                                    hasJsonPath("id", is(epflBitstreamId))
-                            )
-                    )
-                );
-
-            getClient()
-                .perform(get("/api/core/bitstreams/" + epflBitstreamId + "/content"))
-                .andExpect(status().isOk());
-
-            mvcResult = getClient(token)
-                .perform(
-                    get("/api/authz/resourcepolicies/search/resource")
-                    .param("uuid", epflBitstreamId)
-                )
-                .andReturn();
-
-            DocumentContext parsedResponse = JsonPath.parse(mvcResult.getResponse().getContentAsString());
-            List<Map<String, Object>> groups = parsedResponse
-                    .read("$._embedded.resourcepolicies[?(@._embedded.group.name=='Anonymous')]");
-
-            assertThat(groups, hasSize(1));
-
-            parsedResponse = JsonPath.parse(groups.get(0));
-
-            assertThat(parsedResponse.read("$.type"), equalTo("resourcepolicy"));
-            assertThat(parsedResponse.read("$.action"), equalTo("READ"));
-            assertThat(parsedResponse.read("$.startDate"), equalTo(null));
-            assertThat(parsedResponse.read("$.endDate"), equalTo(null));
-            assertThat(parsedResponse.read("$._embedded.eperson"), equalTo(null));
-
+            checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, true);
         } finally {
             if (idRef.get() != null) {
                 ProcessBuilder.deleteProcess(idRef.get());
             }
+        }
+        // anonymous export
+        getClient()
+            .perform(
+                    multipart("/api/system/scripts/bulk-item-export/processes")
+                     .param("properties", new Gson().toJson(list))
+             )
+            // this is acceptable here because the process
+            .andExpect(status().isUnauthorized());
+        try {
+            // eperson export
+            String epToken = getAuthToken(eperson.getEmail(), password);
+            getClient(epToken)
+                .perform(
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                         .param("properties", new Gson().toJson(list))
+                 )
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$", is(
+                        ProcessMatcher.matchProcess("bulk-item-export",
+                                                    String.valueOf(eperson.getID()),
+                                                    parameters,
+                                                    acceptableProcessStatuses))))
+                .andDo(result -> idRef
+                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
+            checkExportOutput(epToken, null, idRef, includedContents, excludedContents, true);
+        } finally {
+            if (idRef.get() != null) {
+                ProcessBuilder.deleteProcess(idRef.get());
+            }
+        }
+
+        // set the export results as not public, we should get reserved content in it
+        ReferCrosswalk expCross = (ReferCrosswalk) new DSpace()
+                .getSingletonService(StreamDisseminationCrosswalkMapper.class).getByType("epfl-publications");
+        // allow anonymous users to run the export
+        configurationService.setProperty("bulk-export.limit.notLoggedIn", 10);
+        expCross.setPubliclyReadable(false);
+        includedContents = new String[]{
+                "First Publication",
+                "Second Publication",
+                "Third Publication",
+                "Fourth Publication"
+        };
+        excludedContents = new String[]{
+        };
+        try {
+            getClient(adminToken)
+                    .perform(
+                            multipart("/api/system/scripts/bulk-item-export/processes")
+                             .param("properties", new Gson().toJson(list))
+                     )
+                    .andExpect(status().isAccepted())
+                    .andExpect(jsonPath("$", is(
+                            ProcessMatcher.matchProcess("bulk-item-export",
+                                                        String.valueOf(admin.getID()),
+                                                        parameters,
+                                                        acceptableProcessStatuses))))
+                    .andDo(result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId")));
+            checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, false);
+        } finally {
+            if (idRef.get() != null) {
+                ProcessBuilder.deleteProcess(idRef.get());
+            }
+        }
+        includedContents = new String[]{
+                "First Publication",
+                "Second Publication"
+        };
+        excludedContents = new String[]{
+                "Third Publication",
+                "Fourth Publication"
+        };
+        try {
+            // anonymous export
+            getClient()
+                .perform(
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                         .param("properties", new Gson().toJson(list))
+                 )
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$", is(
+                        ProcessMatcher.matchProcess("bulk-item-export",
+                                                    null,
+                                                    parameters,
+                                                    acceptableProcessStatuses))))
+                .andDo(result -> idRef
+                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
+            checkExportOutput(null, null, idRef, includedContents, excludedContents, false);
+        } finally {
+            if (idRef.get() != null) {
+                ProcessBuilder.deleteProcess(idRef.get());
+            }
+        }
+        // lower the allowed limit of item to export and check again
+        configurationService.setProperty("bulk-export.limit.notLoggedIn", 1);
+        includedContents = new String[]{
+                "First Publication"
+        };
+        excludedContents = new String[]{
+                "Second Publication",
+                "Third Publication",
+                "Fourth Publication"
+        };
+        try {
+            // anonymous export
+            getClient()
+                .perform(
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                         .param("properties", new Gson().toJson(list))
+                 )
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$", is(
+                        ProcessMatcher.matchProcess("bulk-item-export",
+                                                    null,
+                                                    parameters,
+                                                    acceptableProcessStatuses))))
+                .andDo(result -> idRef
+                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
+            checkExportOutput(null, null, idRef, includedContents, excludedContents, false);
+        } finally {
+            if (idRef.get() != null) {
+                ProcessBuilder.deleteProcess(idRef.get());
+            }
+        }
+
+        includedContents = new String[]{
+                "First Publication",
+                "Second Publication"
+        };
+        excludedContents = new String[]{
+                "Fourth Publication",
+                // authors don't have special permission on the record in the epfl roles-matrix
+                "Third Publication"
+        };
+        try {
+            // eperson export
+            String epToken = getAuthToken(eperson.getEmail(), password);
+            getClient(epToken)
+                .perform(
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                         .param("properties", new Gson().toJson(list))
+                 )
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$", is(
+                        ProcessMatcher.matchProcess("bulk-item-export",
+                                                    String.valueOf(eperson.getID()),
+                                                    parameters,
+                                                    acceptableProcessStatuses))))
+                .andDo(result -> idRef
+                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
+            checkExportOutput(epToken, null, idRef, includedContents, excludedContents, false);
+        } finally {
+            if (idRef.get() != null) {
+                ProcessBuilder.deleteProcess(idRef.get());
+            }
+        }
+        expCross.setPubliclyReadable(true);
+    }
+
+    private void checkExportOutput(String processToken, String fileToken,
+            AtomicReference<Integer> idRef, String[] includedContents, String[] excludedContents, boolean publicFile)
+            throws Exception, SQLException, UnsupportedEncodingException {
+        String contentAsString = null;
+        MvcResult mvcResult = null;
+        // wait and retry up to 3 sec to get the process completed
+        for (int i = 0; i < 6; i++) {
+            Thread.sleep(500);
+            mvcResult = getClient(processToken)
+                    .perform(get("/api/system/processes/" + idRef.get() + "/files"))
+                    .andReturn();
+            contentAsString = mvcResult.getResponse().getContentAsString();
+            if (StringUtils.isNotBlank(contentAsString)) {
+                break;
+            }
+        }
+        JSONArray publicationsJsonId = read(contentAsString,
+                "$._embedded.files[?(@.name=='epfl-publications.html')].id");
+
+        assertNotNull("The epfl-publications.html file must be present", publicationsJsonId);
+        String epflBitstreamId = publicationsJsonId.get(0).toString();
+        getClient(processToken)
+            .perform(get("/api/core/bitstreams/" + epflBitstreamId))
+            .andExpect(status().isOk())
+            .andExpect(
+                jsonPath("$",
+                        allOf(
+                                hasJsonPath("name", is("epfl-publications.html")),
+                                hasJsonPath("id", is(epflBitstreamId))
+                        )
+                )
+            );
+
+        ResultMatcher anonymousDownload = publicFile || processToken == null ? status().isOk()
+                : status().isUnauthorized();
+        getClient(fileToken)
+            .perform(get("/api/core/bitstreams/" + epflBitstreamId + "/content"))
+            .andExpect(anonymousDownload);
+        mvcResult = getClient(processToken)
+            .perform(get("/api/core/bitstreams/" + epflBitstreamId + "/content"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String exportContent = mvcResult.getResponse().getContentAsString();
+        for (String includedContent : includedContents) {
+            assertThat("The following content must be present " + includedContent,
+                    exportContent.contains(includedContent));
+        }
+        for (String excludedContent : excludedContents) {
+            assertThat("The following content must be NOT present " + excludedContent,
+                    !exportContent.contains(excludedContent));
         }
     }
 

@@ -270,7 +270,7 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
                 .map(user -> Map.of(Constants.READ, user, Constants.WRITE, user, Constants.DELETE, user))
                 .orElse(null);
         Map<Integer, Group> groupPolicies = null;
-        if (isPubliclyReadable) {
+        if (isPubliclyReadable || context.getCurrentUser() == null) {
             groupPolicies = Map.of(Constants.READ, groupService.findByName(context, Group.ANONYMOUS));
         }
         processService.appendFile(context, process, inputStream, type, fileName, groupPolicies, userPolicies);
