@@ -119,12 +119,18 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                             .getServiceByName(CollectionServiceImpl.class.getName(),CollectionServiceImpl.class);
         externalDataService = serviceManager
                              .getServiceByName(ExternalDataServiceImpl.class.getName(), ExternalDataServiceImpl.class);
-        nameToProvider.put("scopus", serviceManager.getServiceByName("scopusLiveImportDataProvider",
-                                      LiveImportDataProvider.class));
-        nameToProvider.put("wos", serviceManager.getServiceByName("wosLiveImportDataProvider",
-                                      LiveImportDataProvider.class));
-        nameToProvider.put("crossref", serviceManager.getServiceByName("crossRefLiveImportDataProvider",
-                LiveImportDataProvider.class));
+        if (serviceManager.isServiceExists("scopusLiveImportDataProvider")) {
+            nameToProvider.put("scopus",
+                    serviceManager.getServiceByName("scopusLiveImportDataProvider", LiveImportDataProvider.class));
+        }
+        if (serviceManager.isServiceExists("wosLiveImportDataProvider")) {
+            nameToProvider.put("wos",
+                    serviceManager.getServiceByName("wosLiveImportDataProvider", LiveImportDataProvider.class));
+        }
+        if (serviceManager.isServiceExists("crossRefLiveImportDataProvider")) {
+            nameToProvider.put("crossref",
+                    serviceManager.getServiceByName("crossRefLiveImportDataProvider", LiveImportDataProvider.class));
+        }
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
@@ -219,7 +225,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return null;
     }
 
-    private void performCreatingOfWorkspaceItems(Context context,LiveImportDataProvider dataProvider) {
+    private void performCreatingOfWorkspaceItems(Context context, LiveImportDataProvider dataProvider) {
 
         int totalRecordWorked = 0;
         int countItemsProcessed = 0;

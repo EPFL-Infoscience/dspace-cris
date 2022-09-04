@@ -7,15 +7,20 @@
  */
 package org.dspace.script2externalservices;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.external.service.ExternalDataService;
+import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.configuration.ScriptConfiguration;
+import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +58,20 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
     @Override
     public Options getOptions() {
         if (Objects.isNull(options)) {
+            ServiceManager serviceManager = new DSpace().getServiceManager();
+            List<String> providers = new ArrayList<String>();
+            if (serviceManager.isServiceExists("scopusLiveImportDataProvider")) {
+                providers.add("\"scopus\"");
+            }
+            if (serviceManager.isServiceExists("wosLiveImportDataProvider")) {
+                providers.add("\"wos\"");
+            }
+            if (serviceManager.isServiceExists("crossRefLiveImportDataProvider")) {
+                providers.add("\"crossref\"");
+            }
             Options options = new Options();
             options.addOption("s", "service", true, "the name of the external service to be " +
-                "queried (\"scopus\" or \"wos\" or \"crossref\")");
+                "queried (" + StringUtils.join(providers, ",") + ")");
             options.getOption("s").setType(String.class);
             options.getOption("s").setRequired(true);
             options.addOption("e", "eperson", true, "email of the eperson performing the import");
