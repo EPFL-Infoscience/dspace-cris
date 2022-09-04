@@ -1044,8 +1044,15 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
     @Override
     public WorkspaceItem sendWorkflowItemBackSubmission(Context context, XmlWorkflowItem wi, EPerson e,
+            String provenance, String rejection_message) throws SQLException, AuthorizeException, IOException {
+        return sendWorkflowItemBackSubmission(context, wi, e, provenance, rejection_message, true);
+    }
+
+    @Override
+    public WorkspaceItem sendWorkflowItemBackSubmission(Context context, XmlWorkflowItem wi, EPerson e,
                                                         String provenance,
-                                                        String rejection_message)
+                                                        String rejection_message,
+                                                        boolean rejectNotification)
         throws SQLException, AuthorizeException,
         IOException {
 
@@ -1092,8 +1099,10 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         // convert into personal workspace
         WorkspaceItem wsi = returnToWorkspace(context, wi);
 
-        // notify that it's been rejected
-        notifyOfReject(context, wi, e, rejection_message);
+        // notify that it's been rejected if requested
+        if (rejectNotification) {
+            notifyOfReject(context, wi, e, rejection_message);
+        }
         log.info(LogHelper.getHeader(context, "reject_workflow", "workflow_item_id="
             + wi.getID() + "item_id=" + wi.getItem().getID()
             + "collection_id=" + wi.getCollection().getID() + "eperson_id="

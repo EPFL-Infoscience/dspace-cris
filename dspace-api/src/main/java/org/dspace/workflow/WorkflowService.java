@@ -100,6 +100,9 @@ public interface WorkflowService<T extends WorkflowItem> {
                                                         String rejection_message)
         throws SQLException, AuthorizeException, IOException;
 
+    public WorkspaceItem sendWorkflowItemBackSubmission(Context c, T workflowItem, EPerson e, String provenance,
+            String rejection_message, boolean rejectNotification) throws SQLException, AuthorizeException, IOException;
+
     public String getMyDSpaceLink();
 
     public void deleteCollection(Context context, Collection collection)

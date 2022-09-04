@@ -19,7 +19,15 @@ import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
  */
 public interface EmailTemplateService {
 
-    String generateContent(Context context, EmailTemplate emailTemplate, ClaimedTask claimedTask)
+    /**
+     * 
+     * @param context
+     * @param emailTemplate
+     * @param claimedTask
+     * @return an array of two Strings where the place 0 is the subject and the place 1 is the content
+     * @throws MessagingException
+     */
+    String[] generateContent(Context context, EmailTemplate emailTemplate, ClaimedTask claimedTask)
             throws MessagingException;
 
 }

@@ -36,9 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class AcceptEditRejectAction extends ProcessingAction {
 
-    private static final String SUBMIT_APPROVE = "submit_approve";
-    private static final String SUBMIT_REJECT = "submit_reject";
-    private static final String SUBMITTER_IS_DELETED_PAGE = "submitter_deleted";
+    protected static final String SUBMIT_APPROVE = "submit_approve";
+    protected static final String SUBMIT_REJECT = "submit_reject";
+    protected static final String SUBMITTER_IS_DELETED_PAGE = "submitter_deleted";
 
     //TODO: rename to AcceptAndEditMetadataAction
 

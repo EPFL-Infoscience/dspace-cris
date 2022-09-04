@@ -189,7 +189,8 @@ public class EmailUtils {
         if (StringUtils.isBlank(fullMessage)) {
             EmailTemplate emailTemplate = new EmailTemplate(email.getContentName(), email.getContent());
             vctx = emailTemplate.getVctx();
-            fullMessage = emailTemplate.generateTemplate(email.getArguments(), null);
+            String[] result = emailTemplate.generateTemplate(email.getArguments(), null);
+            fullMessage = result[1];
         }
 
         if (disabled && fixedRecipients.length > 0) {

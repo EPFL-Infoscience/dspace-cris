@@ -17,14 +17,10 @@ public class EmailTemplateRest {
     @JsonInclude(value = Include.NON_NULL)
     private String subject;
 
-    public EmailTemplateRest(String content) {
-        this(content, null);
-    }
-
-    public EmailTemplateRest(String content, String subject) {
+    public EmailTemplateRest(String subject, String content) {
         super();
-        this.content = content;
         this.subject = subject;
+        this.content = content;
     }
 
     public String getSubject() {

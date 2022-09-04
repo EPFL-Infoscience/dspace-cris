@@ -12,6 +12,8 @@
             <util:map>
                 <entry key="defaultWorkflow"
                        value-ref="defaultWorkflow"/>
+                <entry key="123456789/82"
+                       value-ref="epflWorkflow"/>
 <!--                <entry key="123456789/4" value-ref="selectSingleReviewer"/>-->
 <!--                <entry key="123456789/5" value-ref="scoreReview"/>-->
             </util:map>
@@ -42,8 +44,7 @@
         <property name="steps">
             <util:list>
                 <ref bean="epflstep"/>
-                <ref bean="editstep"/>
-                <ref bean="finaleditstep"/>
+                <ref bean="reviewstep"/>
                 <ref bean="checkcorrectionstep"/>
             </util:list>
         </property>
@@ -51,7 +52,7 @@
 
     <bean name="epflstep" class="org.dspace.xmlworkflow.state.Step">
         <property name="userSelectionMethod" ref="claimaction"/>
-        <property name="role" ref="reviewer"/>
+        <property name="role" ref="epflreviewer"/>
         <property name="outcomes">
             <util:map>
                 <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
@@ -63,6 +64,13 @@
                 <ref bean="epflaction"/>
             </util:list>
         </property>
+    </bean>
+
+    <bean id="epflreviewer" class="org.dspace.xmlworkflow.Role">
+        <property name="scope" value="#{ T(org.dspace.xmlworkflow.Role.Scope).COLLECTION}"/>
+        <property name="name" value="EPFLReviewer"/>
+        <property name="description"
+                  value="The people responsible for this step are able to edit the incoming submissions, and then accept or reject them sending custom email messages."/>
     </bean>
 
     <bean name="reviewstep" class="org.dspace.xmlworkflow.state.Step">
@@ -85,7 +93,7 @@
         <property name="scope" value="#{ T(org.dspace.xmlworkflow.Role.Scope).COLLECTION}"/>
         <property name="name" value="Reviewer"/>
         <property name="description"
-                  value="The people responsible for this step are able to edit the metadata of incoming submissions, and then accept or reject them."/>
+                  value="The people responsible for this step are able to accept or reject them WITHOUT edit the record."/>
     </bean>
 
     <bean name="editstep" class="org.dspace.xmlworkflow.state.Step">
@@ -108,7 +116,7 @@
         <property name="scope" value="#{ T(org.dspace.xmlworkflow.Role.Scope).COLLECTION}"/>
         <property name="name" value="Editor"/>
         <property name="description"
-                  value="The people responsible for this step are able to edit the metadata of incoming submissions, and then accept or reject them."/>
+                  value="The people responsible for this step are able to edit the incoming submissions, and then accept or reject them."/>
     </bean>
 
     <bean name="finaleditstep" class="org.dspace.xmlworkflow.state.Step">
@@ -131,7 +139,7 @@
         <property name="scope" value="#{ T(org.dspace.xmlworkflow.Role.Scope).COLLECTION}"/>
         <property name="name" value="Final Editor"/>
         <property name="description"
-                  value="The people responsible for this step are able to edit the metadata of incoming submissions, but will not be able to reject them."/>
+                  value="The people responsible for this step are able to edit the incoming submissions, but will not be able to reject them."/>
     </bean>
     
     <bean name="checkcorrectionstep" class="org.dspace.xmlworkflow.state.Step">

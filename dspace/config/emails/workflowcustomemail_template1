@@ -1,0 +1,17 @@
+## Rejection email message
+##
+## {0}  Title of submission
+## {1}  Name of collection
+## {2}  Fullname of the Submitter
+## {3}  Email of the Submitter
+## {4}  Name of the rejector
+## {5}  Email of the rejector
+## {6}  Link to 'My DSpace' page
+##
+#set($subject = 'DSpace: Template 1 subject')
+Dear ${params[2]}
+I need more information about your submission ${params[0]} in the collection ${params[1]}...
+
+Please reach me at ${params[5]}
+Best regards, 
+${params[4]}

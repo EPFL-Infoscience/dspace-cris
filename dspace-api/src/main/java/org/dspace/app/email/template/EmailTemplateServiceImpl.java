@@ -37,7 +37,7 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
      * org.dspace.xmlworkflow.storedcomponents.ClaimedTask)
      */
     @Override
-    public String generateContent(
+    public String[] generateContent(
             Context context,
             EmailTemplate emailTemplate,
             ClaimedTask claimedTask
@@ -50,10 +50,15 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         String email = submitter.getEmail();
         String itemName = item.getName();
         String collectionName = collection.getName();
+        String rejector = claimedTask.getOwner().getFirstName();
+        String rejectorEmail = claimedTask.getOwner().getEmail();
         List<Object> arguments = List.of(
             itemName,
             collectionName,
-            fullName + "(" + email + ")",
+            fullName,
+            email,
+            rejector,
+            rejectorEmail,
             configurationService.getProperty("dspace.ui.url") + "/mydspace"
         );
         return emailTemplate.generateTemplate(arguments, null);

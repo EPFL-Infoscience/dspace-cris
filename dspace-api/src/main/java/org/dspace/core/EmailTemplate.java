@@ -92,7 +92,8 @@ public class EmailTemplate {
         this.content = content;
     }
 
-    public String generateTemplate(List<Object> arguments, Map<String, Object> argumentMap) throws MessagingException {
+    public String[] generateTemplate(List<Object> arguments, Map<String, Object> argumentMap)
+            throws MessagingException {
         ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
 
         VelocityEngine templateEngine = new VelocityEngine();
@@ -140,8 +141,8 @@ public class EmailTemplate {
             log.error("Template not merged:  {}", ex.getMessage());
             throw new MessagingException("Template not merged", ex);
         }
-
-        return writer.toString();
+        String subject = (String) vctx.get("subject");
+        return new String[] {subject, writer.toString()};
     }
 
     public Template getTemplate() {

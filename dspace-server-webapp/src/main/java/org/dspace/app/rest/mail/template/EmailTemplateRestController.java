@@ -10,9 +10,11 @@ package org.dspace.app.rest.mail.template;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.email.template.EmailTemplateService;
@@ -47,8 +49,13 @@ public class EmailTemplateRestController {
 
     @GetMapping(produces = "application/json;charset=UTF-8")
     public ResponseEntity<List<String>> getAll(HttpServletRequest request) {
+        List<String> emailTemplates = I18nUtil.getEmailTemplates(ContextUtil.obtainContext(request).getCurrentLocale());
         return new ResponseEntity<>(
-                I18nUtil.getEmailTemplates(ContextUtil.obtainContext(request).getCurrentLocale()),
+                emailTemplates
+                    .stream()
+                    .filter(t -> StringUtils.startsWith(t, "workflowcustomemail_"))
+                    .sorted()
+                    .collect(Collectors.toList()),
                 HttpStatus.OK
         );
     }
@@ -67,14 +74,13 @@ public class EmailTemplateRestController {
         EmailTemplate emailTemplate = EmailTemplate.getEmailTemplate(
                 I18nUtil.getEmailFilename(context.getCurrentLocale(), templateName)
         );
+        String[] generateContent = this.emailTemplateService.generateContent(
+            context,
+            emailTemplate,
+            claimedTask
+        );
         return new ResponseEntity<>(
-                new EmailTemplateRest(
-                    this.emailTemplateService.generateContent(
-                        context,
-                        emailTemplate,
-                        claimedTask
-                    )
-                ),
+                new EmailTemplateRest(generateContent[0],generateContent[1]),
                 HttpStatus.OK
         );
     }

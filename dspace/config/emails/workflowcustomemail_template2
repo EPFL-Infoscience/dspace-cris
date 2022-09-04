@@ -1,0 +1,21 @@
+## Rejection email message
+##
+## {0}  Title of submission
+## {1}  Name of collection
+## {2}  Fullname of the Submitter
+## {3}  Email of the Submitter
+## {4}  Name of the rejector
+## {5}  Email of the rejector
+## {6}  Link to 'My DSpace' page
+##
+#set($subject = 'DSpace: Template 2 subject toward rejection')
+Dear ${params[2]}
+I found some mistake in your submission ${params[0]} done in the collection ${params[1]}...
+please fix them and submit your record again.
+
+You can find your item back into your workspace
+${params[6]}
+
+Please reach me at ${params[5]} if you have any questions.
+Best regards, 
+${params[4]}
