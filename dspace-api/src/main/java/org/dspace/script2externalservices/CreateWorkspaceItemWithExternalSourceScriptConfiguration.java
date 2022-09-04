@@ -82,6 +82,11 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
             options.addOption("c", "collection-uuid", true, "collection-uuid into which to make import");
             options.getOption("c").setType(String.class);
             options.getOption("c").setRequired(false);
+            options.addOption("q", "query", true, "extra parameters to append to the generated query "
+                    + "(to limit the publications year, record creation time, etc. according "
+                    + "to the datasource capabilities)");
+            options.getOption("q").setType(String.class);
+            options.getOption("q").setRequired(false);
             super.options = options;
         }
         return options;

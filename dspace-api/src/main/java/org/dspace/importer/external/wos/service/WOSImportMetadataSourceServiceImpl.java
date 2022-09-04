@@ -269,6 +269,9 @@ public class WOSImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
         } else if (isIsi(query)) {
             return "UT=(" + query + ")";
         }
+        if (StringUtils.contains(query, "=")) {
+            return query;
+        }
         StringBuilder queryBuilder =  new StringBuilder("TS=(");
         queryBuilder.append(query).append(")");
         return queryBuilder.toString();

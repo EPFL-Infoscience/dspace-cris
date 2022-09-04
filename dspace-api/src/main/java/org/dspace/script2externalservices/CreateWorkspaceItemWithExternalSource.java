@@ -81,6 +81,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private String service;
 
+    private String extraQuery;
+
     private String collectionUuid;
 
     private String finalState;
@@ -138,6 +140,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         this.service = commandLine.getOptionValue('s');
         this.finalState = commandLine.getOptionValue('f');
         this.collectionUuid = commandLine.getOptionValue('c');
+        this.extraQuery = commandLine.getOptionValue('q');
     }
 
     @Override
@@ -229,6 +232,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
         int totalRecordWorked = 0;
         int countItemsProcessed = 0;
+        int totalItemsProcessed = 0;
         try {
             Iterator<Item> itemIterator = findItems(context);
             handler.logInfo("Update start");
@@ -239,15 +243,18 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
                     int recordsFound = dataProvider.getNumberOfResults(id);
-                    int userPublicationsProcessed = 0;
+                    int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
-                        userPublicationsProcessed += fillWorkspaceItems(context, currentRecord, dataProvider, item, id,
-                                                                        owner);
+                        int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, item, id,
+                                owner);
+                        userPublicationsProcessed[0] += resultFill[0];
+                        userPublicationsProcessed[1] += resultFill[1];
                         currentRecord += LIMIT;
                     }
-                    totalRecordWorked += userPublicationsProcessed;
-                    if (userPublicationsProcessed >= 20) {
+                    totalRecordWorked += userPublicationsProcessed[0];
+                    totalItemsProcessed += userPublicationsProcessed[1];
+                    if (userPublicationsProcessed[0] >= 20) {
                         context.commit();
                         // to ensure that collection's template item is fully initialized
                         reloadCollectionIfNeeded();
@@ -262,7 +269,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 }
             }
             context.commit();
-            handler.logInfo("Processed " + totalRecordWorked + " records");
+            handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
             handler.logInfo("Update end");
         } catch (SQLException | SearchServiceException e) {
             log.error(e.getMessage(), e);
@@ -325,12 +332,16 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 break;
             default:
         }
+        if (StringUtils.isNotBlank(this.extraQuery)) {
+            id.append(" ").append(this.extraQuery);
+        }
         return id.toString();
     }
 
-    private int fillWorkspaceItems(Context context, int record, LiveImportDataProvider dataProvider,
+    private int[] fillWorkspaceItems(Context context, int record, LiveImportDataProvider dataProvider,
                                    Item item, String id, Optional<MetadataValue> owner) throws SQLException {
         int countDataObjects = 0;
+        int imported = 0;
         try {
             for (ExternalDataObject dataObject : dataProvider.searchExternalDataObjects(id, record, LIMIT)) {
                 if (!exist(dataObject.getMetadata())) {
@@ -343,13 +354,14 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     if (!StringUtils.equals(this.finalState, WORKSPACE_STATE)) {
                         makeFinalState(wsItem);
                     }
+                    imported++;
                 }
                 countDataObjects++;
             }
         } catch (AuthorizeException | IOException | WorkflowException e) {
             log.error(e.getMessage(), e);
         }
-        return countDataObjects;
+        return new int[] {countDataObjects, imported};
     }
 
     private void makeFinalState(WorkspaceItem wsItem)
@@ -414,6 +426,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 try {
                     Iterator<Item> itemIterator = findItemsInDSpace(context, filter.toString());
                     if (itemIterator.hasNext()) {
+                        handler.logInfo("Ignoring record with identifier " + value + " already in the repository "
+                                + itemIterator.next().getID().toString());
                         return true;
                     }
                 } catch (SearchServiceException e) {
@@ -437,6 +451,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 metadata.setSchema("dc");
                 metadata.setElement("identifier");
                 metadata.setQualifier("isi");
+                break;
+            case "crossref":
+                metadata.setSchema("dc");
+                metadata.setElement("identifier");
+                metadata.setQualifier("doi");
                 break;
             default:
         }
