@@ -29,19 +29,6 @@
   <alternateIdentifiers>
     <alternateIdentifier alternateIdentifierType="url">@dc.identifier.uri@</alternateIdentifier>
   </alternateIdentifiers>
-  <relatedIdentifiers>
-  	@relation.dc-relation-publication.start@
-    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsReferencedBy">@dc.identifier.doi@</relatedIdentifier>
-    @relation.dc-relation-publication.end@
-    @group.dc-relation-publication.start@
-    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsReferencedBy">@dc.relation.doi@</relatedIdentifier>
-    @group.dc-relation-publication.end@
-  @if.authority.dc-relation-references.start@
-  @relation.dc-relation-references.start@
-    <relatedIdentifier relatedIdentifierType="DOI" relationType="References">@dc.identifier.doi@</relatedIdentifier>
-  @relation.dc-relation-references.end@
-  @if.authority.dc-relation-references.end@
-  </relatedIdentifiers>
   <version>@dc.description.version@</version>
   <rightsList>
     <rights rightsURI="@virtual.mapConverter.right2licenseUrl.oaire-licenseCondition@">
@@ -53,20 +40,4 @@
     <description descriptionType="Abstract">@dc.description.abstract@</description>
     <description descriptionType="Other">@dc.description@</description>
   </descriptions>
-  <fundingReferences>
-           	@relation.dc-relation-funding.start@
-         	<fundingReference>
-					@relation.oairecerif-funder.start@
-					<funderName>@dc.title@</funderName>
-                    <funderIdentifier funderIdentifierType="Crossref Funder ID">@organization.identifier.crossrefid@</funderIdentifier>
-					@relation.oairecerif-funder.end@
-					<awardTitle>@dc.title@</awardTitle>
-					<awardNumber 
-					awardURI="@crisfund.award.uri@"
->
-@oairecerif.funding.identifier@
-</awardNumber>
-			</fundingReference>
-         	@relation.dc-relation-funding.end@
- </fundingReferences>        	
 </resource>
