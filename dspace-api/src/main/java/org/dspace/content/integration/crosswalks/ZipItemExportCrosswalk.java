@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -33,6 +34,9 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +63,9 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
     @Autowired
     private BitstreamStorageService bitstreamStorageService;
 
+    @Autowired
+    private GroupService groupService;
+
     private String zipName = "items.zip";
 
     private String entityType;
@@ -70,6 +77,23 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
     private StreamDisseminationCrosswalk crosswalk;
 
     private CrosswalkMode crosswalkMode = CrosswalkMode.MULTIPLE;
+
+    private List<String> allowedGroups;
+
+    @Override
+    public boolean isAuthorized(Context context) {
+        if (CollectionUtils.isEmpty(allowedGroups)) {
+            return true;
+        }
+
+        EPerson ePerson = context.getCurrentUser();
+        if (ePerson == null) {
+            return allowedGroups.contains(Group.ANONYMOUS);
+        }
+
+        return allowedGroups.stream()
+            .anyMatch(groupName -> isMemberOfGroupNamed(context, ePerson, groupName));
+    }
 
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
@@ -89,7 +113,10 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
         Assert.notNull(metadataFileName, "The name of the metadata file is required to perform a bulk item export");
         Assert.notNull(crosswalk, "An instance of DisseminationCrosswalk is required to perform a bulk item export");
         Assert.notNull(zipName, "The name of the zip to be generated is required to perform a bulk item export");
-        Assert.notNull(entityType, "The entity type of the items is required to perform a bulk item export");
+
+        if (!isAuthorized(context)) {
+            throw new AuthorizeException("The current user is not allowed to perform a zip item export");
+        }
 
         createZip(context, dsoIterator, out);
 
@@ -216,6 +243,15 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
         return item.getID().toString();
     }
 
+    private boolean isMemberOfGroupNamed(Context context, EPerson ePerson, String groupName) {
+        try {
+            Group group = groupService.findByName(context, groupName);
+            return groupService.isMember(context, ePerson, group);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public String getMIMEType() {
         return "application/octet-stream";
@@ -276,6 +312,14 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
 
     public void setMetadataFileName(String metadataFileName) {
         this.metadataFileName = metadataFileName;
+    }
+
+    public List<String> getAllowedGroups() {
+        return allowedGroups;
+    }
+
+    public void setAllowedGroups(List<String> allowedGroups) {
+        this.allowedGroups = allowedGroups;
     }
 
 }

@@ -319,6 +319,12 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/epfl-publications-html.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="allowedGroups">
+            <list>
+                <value>Administrator</value>
+                <value>Curators</value>
+            </list>
+        </property>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkPerson">
@@ -514,6 +520,12 @@
         <property name="bitstreamBundle" value="ORIGINAL"/>
         <property name="metadataFileName" value="mets.xml"/>
         <property name="crosswalk" ref="metsCrosswalk"/>
+        <property name="allowedGroups">
+            <list>
+                <value>Administrator</value>
+                <value>Curators</value>
+            </list>
+        </property>
     </bean>
     
     <bean class="org.dspace.content.integration.crosswalks.METSStreamDisseminationCrosswalk" id="metsCrosswalk"/>
