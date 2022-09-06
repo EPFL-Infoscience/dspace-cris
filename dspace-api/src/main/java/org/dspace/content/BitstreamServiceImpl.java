@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -395,6 +396,13 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             }
         }
         return null;
+    }
+
+    @Override
+    public List<Bitstream> getBitstreamByBundleName(Item item, String bundleName) throws SQLException {
+        return itemService.getBundles(item, bundleName).stream()
+            .flatMap(bundle -> bundle.getBitstreams().stream())
+            .collect(Collectors.toList());
     }
 
     @Override
