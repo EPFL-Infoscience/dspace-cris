@@ -181,6 +181,10 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             throw new UnsupportedOperationException("No template defined for multiple items");
         }
 
+        if (!isAuthorized(context)) {
+            throw new AuthorizeException("The current user is not allowed to perform a zip item export");
+        }
+
         List<String> lines = new ArrayList<String>();
 
         for (TemplateLine line : multipleItemsTemplateLines) {
