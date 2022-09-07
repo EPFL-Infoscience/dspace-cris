@@ -116,6 +116,11 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="publication_simplified" mandatory="true">
+      <heading>submit.progressbar.describe.publication_simplified</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
     <step-definition id="publication" mandatory="true">
       <heading>submit.progressbar.describe.publication</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
@@ -209,20 +214,16 @@
       <step id="product" />
       <step id="product_indexing" />
       <step id="product_references" />
-      <step id="detect-duplicate" />
       <step id="upload-product" />
     </submission-process>
     <submission-process name="orgunit">
       <step id="collection" />
       <step id="correction" />
       <step id="orgunit" />
-      <step id="detect-duplicate" />
       <step id="upload-orgunit" />
-      <step id="license" />
     </submission-process>
     <submission-process name="orgunit-edit">
       <step id="orgunit" />
-      <step id="detect-duplicate" />
       <step id="upload-orgunit" />
     </submission-process>
     <submission-process name="project">
@@ -235,7 +236,6 @@
     </submission-process>
     <submission-process name="project-edit">
       <step id="project" />
-      <step id="detect-duplicate" />
       <step id="upload-project" />
     </submission-process>
     <submission-process name="journal">
@@ -248,7 +248,6 @@
     </submission-process>
     <submission-process name="journal-edit">
       <step id="journal" />
-      <step id="detect-duplicate" />
       <step id="upload-journal" />
     </submission-process>
     <submission-process name="publication">
@@ -269,7 +268,6 @@
       <step id="publication_indexing" />
       <step id="publication_bibliographic_details" />
       <step id="publication_references" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="publication-correction">
@@ -290,14 +288,12 @@
     <submission-process name="person-edit">
       <step id="person" />
       <step id="custom-url" />
-      <step id="detect-duplicate" />
       <step id="upload-person" />
     </submission-process>
     <submission-process name="admin-person-edit">
       <step id="person" />
       <step id="owner" />
       <step id="custom-url" />
-      <step id="detect-duplicate" />
       <step id="upload-person" />
     </submission-process>
     <submission-process name="event">
@@ -310,7 +306,6 @@
     </submission-process>
     <submission-process name="event-edit">
       <step id="event" />
-      <step id="detect-duplicate" />
       <step id="upload-equipment" />
     </submission-process>
     <submission-process name="equipment">
@@ -323,7 +318,6 @@
     </submission-process>
     <submission-process name="equipment-edit">
       <step id="equipment" />
-      <step id="detect-duplicate" />
       <step id="upload-equipment" />
     </submission-process>
     <submission-process name="patent">
@@ -342,7 +336,6 @@
       <step id="patent" />
       <step id="patent_indexing" />
       <step id="patent_references" />
-      <step id="detect-duplicate" />
       <step id="upload-patent" />
     </submission-process>
     <submission-process name="funding">
@@ -355,8 +348,15 @@
     </submission-process>
     <submission-process name="funding-edit">
       <step id="funding" />
-      <step id="detect-duplicate" />
       <step id="upload-funding" />
+    </submission-process>
+    <submission-process name="publication-simplified">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="publication_simplified" />
+      <step id="upload-publication" />
+      <step id="license" />
     </submission-process>
   </submission-definitions>
 </item-submission>
