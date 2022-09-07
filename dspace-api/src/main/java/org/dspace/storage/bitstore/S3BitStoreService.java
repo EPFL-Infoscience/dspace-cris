@@ -204,7 +204,6 @@ public class S3BitStoreService implements BitStoreService {
         String key = getFullKey(bitstream.getInternalId());
         //Copy istream to temp file, and send the file, with some metadata
         File scratchFile = File.createTempFile(bitstream.getInternalId(), "s3bs");
-        long fileSize = scratchFile.length();
         try (
                 FileOutputStream fos = new FileOutputStream(scratchFile);
                 // Read through a digest input stream that will work out the MD5
@@ -212,6 +211,7 @@ public class S3BitStoreService implements BitStoreService {
         ) {
             Utils.bufferedCopy(dis, fos);
             in.close();
+            long fileSize = scratchFile.length();
             byte[] md5Digest = dis.getMessageDigest().digest();
             String md5Base64 = Base64.encodeBase64String(md5Digest);
             ObjectMetadata objMetadata = new ObjectMetadata();
