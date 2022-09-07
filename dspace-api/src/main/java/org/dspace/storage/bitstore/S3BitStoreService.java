@@ -204,6 +204,7 @@ public class S3BitStoreService implements BitStoreService {
         String key = getFullKey(bitstream.getInternalId());
         //Copy istream to temp file, and send the file, with some metadata
         File scratchFile = File.createTempFile(bitstream.getInternalId(), "s3bs");
+        long fileSize = scratchFile.length();
         try (
                 FileOutputStream fos = new FileOutputStream(scratchFile);
                 // Read through a digest input stream that will work out the MD5
@@ -215,8 +216,9 @@ public class S3BitStoreService implements BitStoreService {
             String md5Base64 = Base64.encodeBase64String(md5Digest);
             ObjectMetadata objMetadata = new ObjectMetadata();
             objMetadata.setContentMD5(md5Base64);
+            objMetadata.setContentLength(fileSize);
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, scratchFile);
-
+            putObjectRequest.setMetadata(objMetadata);
             TransferManager transferManager = TransferManagerBuilder.standard()
                 .withS3Client(s3Service)
                 .build();
@@ -224,7 +226,7 @@ public class S3BitStoreService implements BitStoreService {
             Upload upload = transferManager.upload(putObjectRequest);
             UploadResult uploadResult = upload.waitForUploadResult();
 
-            bitstream.setSizeBytes(scratchFile.length());
+            bitstream.setSizeBytes(fileSize);
             // we cannot use the S3 ETAG here as it could be not a MD5 in case of multipart upload (large files) or if
             // the bucket is encrypted
             bitstream.setChecksum(Utils.toHex(md5Digest));
