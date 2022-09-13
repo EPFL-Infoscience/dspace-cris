@@ -8444,6 +8444,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .withCorrectionSubmissionDefinition("traditional-cris")
             .withEntityType("Publication")
             .withSubmitterGroup(user)
+            .withWorkflowGroup("editor", user)
             .build();
 
         Item item = ItemBuilder.createItem(context, collection)
