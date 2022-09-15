@@ -163,7 +163,8 @@ public class ExternalSourceItemImportRunnable
             totalItemsNotProcessed += suggestions.size() - countRecordWorked;
             context.commit();
             idx += 10;
-            suggestions = findAllUnprocessedSuggestionsBySourceAndScore(context, source, score, 0, 10);
+            suggestions = findAllUnprocessedSuggestionsBySourceAndScore(context, source, score, totalItemsNotProcessed,
+                totalItemsNotProcessed + 10);
         }
 
         handler.logInfo("Processed " + totalRecordWorked + " records");
@@ -192,8 +193,7 @@ public class ExternalSourceItemImportRunnable
                 solrSuggestionStorageService.flagSuggestionAsProcessed(suggestion);
                 countDataObjects++;
             } catch (Exception e) {
-                handler.logError(e.getMessage(), e);
-                handler.handleException(e.getMessage(), e);
+                handler.logError(e.getMessage());
             }
         }
         return countDataObjects;

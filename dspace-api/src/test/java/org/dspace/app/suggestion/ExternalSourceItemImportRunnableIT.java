@@ -16,9 +16,11 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.collections4.ListUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -108,7 +110,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(greaterThanOrEqualTo(1)));
-        assertThat(errorMessages, hasItem(containsString("IllegalArgumentException: Invalid UUID string:")));
+        assertThat(errorMessages, hasItem(containsString("Invalid UUID string:")));
         solrSuggestionStorageService.deleteSuggestion(suggestion);
     }
 
@@ -142,6 +144,54 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(0));
         solrSuggestionStorageService.deleteSuggestion(suggestion);
+    }
+
+    @Test
+    public void testImportItemsFromExternalSourceWithSuccessAndFail() throws Exception {
+        String source = "pubmed";
+
+        List<Suggestion> allSuggestions;
+        List<Suggestion> passSuggestions = new ArrayList<>();
+        List<Suggestion> failSuggestions = new ArrayList<>();
+
+        for (int i = 1 ; i <= 13 ; i++) {
+
+            passSuggestions.add(createSuggestion(item, source, "35444744" + i));
+
+            Suggestion s =  createSuggestion(item, source, "35444755" + i);
+            s.setExternalSourceUri("invalid_uri");
+            solrSuggestionStorageService.addSuggestion(s, true, true);
+            failSuggestions.add(s);
+        }
+
+        TestDSpaceRunnableHandler handler = runImportItemsFromExternalSource(source,
+            "100", collection.getID().toString());
+
+        assertThat(handler.getInfoMessages(),
+            hasItem(containsString("Processed " + passSuggestions.size() + " records")));
+
+        assertThat(handler.getInfoMessages(),
+            hasItem(containsString("Not Processed " + failSuggestions.size() + " records")));
+
+        assertThat(handler.getWarningMessages(), empty());
+
+        for (Suggestion suggestion : passSuggestions) {
+            assertThat(solrSuggestionStorageService.exist(suggestion) , is(true));
+        }
+
+        for (Suggestion suggestion : failSuggestions) {
+            assertThat(solrSuggestionStorageService.exist(suggestion) , is(false));
+        }
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasSize(13));
+        assertThat(errorMessages, hasItem(containsString("No match found")));
+
+        allSuggestions = ListUtils.union(passSuggestions, failSuggestions);
+
+        for (Suggestion suggestion : allSuggestions) {
+            solrSuggestionStorageService.deleteSuggestion(suggestion);
+        }
     }
 
     @Test
