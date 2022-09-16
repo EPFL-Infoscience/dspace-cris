@@ -14,7 +14,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -28,8 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,7 +44,6 @@ import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.repository.DeduplicationSetMergeRestRepository;
 import org.dspace.app.rest.test.AbstractEntityIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -65,7 +63,6 @@ import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.core.Constants;
-import org.dspace.core.ReloadableEntity;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
 import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
 import org.dspace.deduplication.dto.DeduplicationSetMergeDTO;
@@ -175,6 +172,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         item1 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withIdentifierDoi("10.1234/123456789")
                            .withAlternativeTitle("item1 title1")
                            .withIssueDate("2010-10-17")
                            .withAuthor("Smith, Donald")
@@ -184,6 +182,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         item2 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withIdentifierDoi("10.1234/123456789")
                            .withAlternativeTitle("item2 title1")
                            .withAlternativeTitle("item2 title2")
                            .withIssueDate("2015-12-20")
@@ -193,6 +192,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         item3 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withIdentifierDoi("10.1234/123456789")
                            .withAlternativeTitle("item3 title1")
                            .withAlternativeTitle("item3 title2")
                            .withIssueDate("2015-12-18")
@@ -310,20 +310,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     }
 
     @Test
-    public void testDedupSetMergeIfSetIdDoesNotExist() throws Exception {
-        String setId = "fake" + createTitleSetId(item1);
-        DeduplicationSetMergeDTO deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId,
-            item1.getID().toString(), item2.getID().toString(), item3.getID().toString(), bitstream.getID().toString(),
-            bitstream1.getID().toString());
-
-        String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
-                                 .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
-                                 .contentType(MediaType.APPLICATION_JSON))
-                             .andExpect(status().isUnprocessableEntity());
-    }
-
-    @Test
     public void testDedupSetMergeIfNotRepeatableMetadata() throws Exception {
 
         DeduplicationMetadataSourcesDTO source1 = new DeduplicationMetadataSourcesDTO(itemUri1, 0);
@@ -437,9 +423,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(status().isOk())
                              .andExpect(content().contentType(contentType))
                              .andExpect(jsonPath("$._embedded.bitstreams", hasSize(2)))
-                             .andExpect(jsonPath("$._embedded.bitstreams",
-                                 hasItems(matchBitstreamEntry(bitstream1),
-                                     matchBitstreamEntry(bitstream))))
+                             .andExpect(jsonPath("$._embedded.bitstreams", hasItem(matchBitstreamEntry(bitstream))))
+                             .andExpect(jsonPath("$._embedded.bitstreams", hasItem(matchBitstreamEntry(bitstream1))))
                              .andExpect(jsonPath("$._embedded.bitstreams", not(
                                  hasItem(matchBitstreamEntry(targetItemBitstream)))));
     }
@@ -635,14 +620,18 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.withdrawn", is(true)));
 
-//        Trying to get deleted item should fail with 404
+//        Trying to get deleted workspace item should fail with 404
         getClient(adminToken).perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
                         .andExpect(status().isNotFound());
+
+//        Trying to get deleted item should fail with 404
+        getClient(adminToken).perform(get("/api/core/items/" + workspaceItem.getItem().getID()))
+                             .andExpect(status().isNotFound());
 
     }
 
     @Test
-    public void testRemoveMergedItemsAfterMerge() throws Exception {
+    public void testRemoveItemsFromSetAfterMerge() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
 
         getClient(adminToken).perform(get("/api/deduplications/sets/" + setId + "/items"))
@@ -660,7 +649,66 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                  .contentType(MediaType.APPLICATION_JSON))
                              .andExpect(status().isOk());
 
-//        here will return the two unmerged items of the same set group.
+//        check that Set not exist anymore
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + setId + "/items"))
+                             .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    public void testRemoveItemsFromSetAfterMergeAndExistedIntoAnotherSet() throws Exception {
+
+        String titleSetId = createTitleSetId(item1);
+        String identifierSetId = createIdentifierSetId(item1);
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        // duplicated by title
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + titleSetId + "/items"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._links.self.href",
+                                 Matchers.containsString("/api/deduplications/sets/" + titleSetId + "/items")))
+                             .andExpect(jsonPath("$.page.number", is(0)))
+                             .andExpect(jsonPath("$.page.size", is(20)))
+                             .andExpect(jsonPath("$.page.totalPages", is(1)))
+                             .andExpect(jsonPath("$.page.totalElements", is(5)));
+
+        // duplicated by identifier
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + identifierSetId + "/items"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._links.self.href",
+                                 Matchers.containsString("/api/deduplications/sets/" + identifierSetId + "/items")))
+                             .andExpect(jsonPath("$.page.number", is(0)))
+                             .andExpect(jsonPath("$.page.size", is(20)))
+                             .andExpect(jsonPath("$.page.totalPages", is(1)))
+                             .andExpect(jsonPath("$.page.totalElements", is(3)));
+
+//        here will merge three items
+        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
+                                 .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
+                                 .contentType(MediaType.APPLICATION_JSON))
+                             .andExpect(status().isOk());
+
+//        check that Title Set not exist anymore
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + titleSetId + "/items"))
+                             .andExpect(status().isNotFound());
+
+//        check that Identifier Set not exist anymore, cause items have merged above by title
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + identifierSetId + "/items"))
+                             .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    public void testMergeWithoutSetId() throws Exception {
+
+        // create the request body DTO without setId
+        deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(null, itemUri1, itemUri2,
+            itemUri3, bitstreamUri, bitstreamUri1);
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+//        check that Set contains all items before merge
         getClient(adminToken).perform(get("/api/deduplications/sets/" + setId + "/items"))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$._links.self.href",
@@ -668,7 +716,23 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(jsonPath("$.page.number", is(0)))
                              .andExpect(jsonPath("$.page.size", is(20)))
                              .andExpect(jsonPath("$.page.totalPages", is(1)))
-                             .andExpect(jsonPath("$.page.totalElements", is(2)));
+                             .andExpect(jsonPath("$.page.totalElements", is(5)));
+
+//        here will merge three items
+        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
+                                 .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
+                                 .contentType(MediaType.APPLICATION_JSON))
+                             .andExpect(status().isOk());
+
+//        check that Set contains all items after merge
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + setId + "/items"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._links.self.href",
+                                 Matchers.containsString("/api/deduplications/sets/" + setId + "/items")))
+                             .andExpect(jsonPath("$.page.number", is(0)))
+                             .andExpect(jsonPath("$.page.size", is(20)))
+                             .andExpect(jsonPath("$.page.totalPages", is(1)))
+                             .andExpect(jsonPath("$.page.totalElements", is(5)));
 
     }
 
@@ -847,6 +911,15 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         setMD5ValueSignatureInstance("dc.title", null, "title",
             new ArrayList<>(), "[^\\p{L}]");
         return "title:" + md5Signature.getSignature(item, context).get(0);
+    }
+
+    private String createIdentifierSetId(Item item) {
+        List<String> ignorePrefix =
+            Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/","dx.doi.org/");
+
+        // Set up MD5ValueSignature state to produce the same signature
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        return "identifier:" + md5Signature.getSignature(item, context).get(0);
     }
 
     private DeduplicationSetMergeDTO buildDeduplicationSetMergeDTO(String id, String item1, String item2, String item3,

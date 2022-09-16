@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.deduplication.model.DeduplicationMergeTarget;
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
 import org.dspace.app.deduplication.utils.DedupUtils;
-import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.DeduplicationMergeTargetConverter;
@@ -128,7 +127,7 @@ public class DeduplicationSetMergeRestRepository
         throws AuthorizeException, SQLException {
         ObjectMapper mapper = new ObjectMapper();
         DeduplicationSetMergeDTO deduplicationSetMergeDTO;
-        DeduplicationSetMerge dedupSetMerge = null;
+        DeduplicationSetMerge dedupSetMerge;
         try {
             deduplicationSetMergeDTO = mapper.readValue(jsonNode.toString(), DeduplicationSetMergeDTO.class);
             validate(context, uuid, deduplicationSetMergeDTO);
@@ -163,21 +162,11 @@ public class DeduplicationSetMergeRestRepository
     private void validate(Context context, UUID targetUUID, DeduplicationSetMergeDTO deduplicationSetMergeDTO)
         throws SQLException, SearchServiceException, DCInputsReaderException {
 
-        validateDeduplicationSet(context, deduplicationSetMergeDTO.getSetId());
         validateTargetItem(context, targetUUID);
         validateMergedItems(context, deduplicationSetMergeDTO.getMergedItems());
         validateMetadata(context, targetUUID, deduplicationSetMergeDTO.getMetadata());
         validateBitstreams(context, deduplicationSetMergeDTO.getBitstreams());
 
-    }
-
-    private void validateDeduplicationSet(Context context, String setId) throws SearchServiceException, SQLException {
-        DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, setId);
-
-        if (duplicateInfo == null) {
-            throw new UnprocessableEntityException(
-                "Could not find set with id: " + setId);
-        }
     }
 
     private void validateMergedItems(Context context, List<String> mergedItems) throws SQLException {
