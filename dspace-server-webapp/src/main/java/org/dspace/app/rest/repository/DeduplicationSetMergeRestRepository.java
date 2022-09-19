@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.deduplication.model.DeduplicationMergeTarget;
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
-import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.DeduplicationMergeTargetConverter;
@@ -88,9 +87,6 @@ public class DeduplicationSetMergeRestRepository
 
     @Autowired
     BitstreamService bitstreamService;
-
-    @Autowired
-    private DedupUtils dedupUtils;
 
     @Autowired
     private WorkflowItemService workflowItemService;

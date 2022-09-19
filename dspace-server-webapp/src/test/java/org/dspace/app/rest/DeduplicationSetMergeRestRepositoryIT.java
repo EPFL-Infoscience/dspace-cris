@@ -700,7 +700,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     }
 
     @Test
-    public void testMergeWithoutSetId() throws Exception {
+    public void givenItemsInSetWhenMergingAnItemWithoutSetIdThenNothingHappensToSet() throws Exception {
 
         // create the request body DTO without setId
         deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(null, itemUri1, itemUri2,

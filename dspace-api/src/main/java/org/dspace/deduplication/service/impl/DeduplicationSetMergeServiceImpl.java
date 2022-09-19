@@ -41,8 +41,6 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
-import org.dspace.content.service.MetadataFieldService;
-import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -97,12 +95,6 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
     @Autowired
     private WorkspaceItemService workspaceItemService;
-
-    @Autowired
-    private MetadataFieldService metadataFieldService;
-
-    @Autowired
-    private MetadataValueService metadataValueService;
 
     private final List<String[]> authorityMetadataFields = new ArrayList<>();
 
@@ -438,7 +430,6 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
             for (Item item : duplicateInfo.getItems()) {
                 dedupUtils.rejectAdminDups(context, duplicateInfo, item.getID(), Constants.ITEM);
             }
-            System.out.println(duplicateInfo);
         }
     }
 

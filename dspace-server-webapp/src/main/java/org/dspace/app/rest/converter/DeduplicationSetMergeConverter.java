@@ -18,6 +18,7 @@ import org.dspace.app.rest.utils.Utils;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,14 +32,14 @@ public class DeduplicationSetMergeConverter
         implements DSpaceConverter<DeduplicationSetMerge, DeduplicationSetMergeRest> {
 
     @Autowired
-    private ConverterService converter;
+    private ApplicationContext applicationContext;
 
     @Autowired
     private Utils utils;
 
     @Override
     public DeduplicationSetMergeRest convert(DeduplicationSetMerge dedupSetMerge, Projection projection) {
-
+        ConverterService converter = this.applicationContext.getBean(ConverterService.class);
         DeduplicationSetMergeRest dedupSetMergeRest = new DeduplicationSetMergeRest();
         dedupSetMergeRest.setProjection(projection);
         List<String> uris = new ArrayList<>();
