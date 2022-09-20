@@ -7,7 +7,7 @@
 --
 
 -----------------------------------------------------------------------------------
-CREATE TABLE cris_layout_tab2securitygroup
+CREATE TABLE if not exists cris_layout_tab2securitygroup
 (
     tab_id integer NOT NULL,
     group_id uuid NOT NULL,

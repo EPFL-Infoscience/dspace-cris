@@ -144,6 +144,11 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
     }
 
     protected WorkspaceItemBuilder addMetadataValue(String schema, String element, String qualifier, String language,
+                                                    String value) {
+        return addMetadataValue(schema, element, qualifier, language, value, null, -1);
+    }
+
+    protected WorkspaceItemBuilder addMetadataValue(String schema, String element, String qualifier, String language,
         String value, String authority, int confidence) {
 
         try {
@@ -175,6 +180,10 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
 
     public WorkspaceItemBuilder withTitle(final String title) {
         return setMetadataSingleValue(MetadataSchemaEnum.DC.getName(), "title", null, title);
+    }
+
+    public WorkspaceItemBuilder withTitleForLanguage(final String title, final String language) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "title", null, language, title);
     }
 
     public WorkspaceItemBuilder withAlternativeTitle(final String title) {
@@ -212,6 +221,10 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
 
     public WorkspaceItemBuilder withSubject(final String subject) {
         return addMetadataValue(MetadataSchemaEnum.DC.getName(), "subject", null, subject);
+    }
+
+    public WorkspaceItemBuilder withSubjectForLanguage(final String subject, final String language) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "subject", null, language, subject);
     }
 
     public WorkspaceItemBuilder withAbstract(final String subject) {

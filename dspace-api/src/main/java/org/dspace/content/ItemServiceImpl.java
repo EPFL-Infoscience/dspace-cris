@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -39,7 +40,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.content.authority.Choices;
 import org.dspace.content.dao.ItemDAO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
@@ -55,8 +55,8 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.virtual.VirtualMetadataPopulator;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.I18nUtil;
 import org.dspace.core.LogHelper;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.SubscribeService;
@@ -65,6 +65,11 @@ import org.dspace.harvest.HarvestedItem;
 import org.dspace.harvest.service.HarvestedItemService;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.IdentifierService;
+import org.dspace.layout.CrisLayoutBox;
+import org.dspace.layout.CrisLayoutField;
+import org.dspace.layout.CrisLayoutFieldBitstream;
+import org.dspace.layout.CrisLayoutTab;
+import org.dspace.layout.service.CrisLayoutTabService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItemService;
@@ -138,42 +143,140 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Autowired(required = true)
     private OrcidSynchronizationService orcidSynchronizationService;
 
+    @Autowired
+    private CrisLayoutTabService crisLayoutTabService;
+
     @Autowired(required = true)
     protected SubscribeService subscribeService;
     @Autowired(required = true)
     protected CrisMetricsService crisMetricsService;
+
     protected ItemServiceImpl() {
         super();
     }
 
     @Override
-    public Thumbnail getThumbnail(Context context, Item item, boolean requireOriginal) throws SQLException {
-        Bitstream thumbBitstream;
+    public Thumbnail getThumbnail(Context context, Item item) throws SQLException {
+        // Search the thumbnail using the configuration
+        Thumbnail thumbnail = thumbnailLayoutTabConfigurationStrategy(context, item);
+        if (thumbnail != null) {
+            return thumbnail;
+        }
+        // If no thumbnail is retrieved by the first strategy
+        // then use the fallback strategy
+        Bitstream thumbBitstream = null;
         List<Bundle> originalBundles = getBundles(item, "ORIGINAL");
         Bitstream primaryBitstream = null;
         if (CollectionUtils.isNotEmpty(originalBundles)) {
             primaryBitstream = originalBundles.get(0).getPrimaryBitstream();
         }
+        if (primaryBitstream == null) {
+            primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
+        }
         if (primaryBitstream != null) {
-            if (primaryBitstream.getFormat(context).getMIMEType().equals("text/html")) {
-                return null;
+            thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream);
+            if (thumbBitstream == null) {
+                thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
             }
-
-            thumbBitstream = bitstreamService
-                    .getBitstreamByName(item, "THUMBNAIL", primaryBitstream.getName() + ".jpg");
-
-        } else {
-            if (requireOriginal) {
-                primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
-            }
-
-            thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
         }
 
         if (thumbBitstream != null) {
             return new Thumbnail(thumbBitstream, primaryBitstream);
         }
 
+        return null;
+    }
+
+    /**
+     * @param context
+     * @param item
+     * @throws SQLException
+     */
+    private Thumbnail thumbnailLayoutTabConfigurationStrategy(Context context, Item item)
+        throws SQLException {
+        List<CrisLayoutTab> crisLayoutTabs = crisLayoutTabService.findByItem(context, String.valueOf(item.getID()));
+
+        List<CrisLayoutField> thumbFields = getThumbnailFields(crisLayoutTabs);
+        if (CollectionUtils.isEmpty(thumbFields)) {
+            return null;
+        }
+        return retrieveThumbnailFromFields(context, item, thumbFields);
+    }
+
+    /**
+     * @param context
+     * @param item
+     * @param thumbFields
+     * @return Thumbnail
+     * @throws SQLException
+     */
+    private Thumbnail retrieveThumbnailFromFields(Context context, Item item,
+            List<CrisLayoutField> thumbFields) throws SQLException {
+        for (CrisLayoutField thumbField : thumbFields) {
+            if (!(thumbField instanceof CrisLayoutFieldBitstream)) {
+                continue;
+            }
+            CrisLayoutFieldBitstream thumbFieldBitstream = (CrisLayoutFieldBitstream)thumbField;
+            String bundle = thumbFieldBitstream.getBundle();
+            MetadataField metadata = thumbFieldBitstream.getMetadataField();
+            String value = thumbFieldBitstream.getMetadataValue();
+            Thumbnail thumbnail = retrieveThumbnail(context, item, bundle, metadata, value);
+            if (thumbnail != null) {
+                return thumbnail;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param crisLayoutTabs
+     * @return List<CrisLayoutField>
+     */
+    private List<CrisLayoutField> getThumbnailFields(List<CrisLayoutTab> crisLayoutTabs) {
+        List<CrisLayoutField> thumbFields = new LinkedList<>();
+        for (CrisLayoutTab tab : crisLayoutTabs) {
+            for (CrisLayoutBox box : tab.getBoxes()) {
+                thumbFields.addAll(box.getLayoutFields().stream()
+                    .filter(field -> field.getRendering() != null && field.getRendering().equals("thumbnail"))
+                    .collect(Collectors.toList()));
+            }
+        }
+        return thumbFields;
+    }
+
+    /**
+     * @param context
+     * @param item
+     * @param bundle
+     * @param metadata
+     * @param value
+     * @param requireOriginal
+     * @throws SQLException
+     * @return Bitstream
+     */
+    private Thumbnail retrieveThumbnail(Context context, Item item, String bundle,
+        MetadataField metadataField, String value) throws SQLException {
+        List<Bundle> bundles = getBundles(item, bundle);
+        if (CollectionUtils.isNotEmpty(bundles)) {
+            Optional<Bitstream> primaryBitstream = bundles.get(0).getBitstreams().stream().filter(bitstream -> {
+                return bitstream.getMetadata().stream().anyMatch(metadataValue -> {
+                    return metadataValue.getMetadataField().getID() == metadataField.getID()
+                        && metadataValue.getValue() != null
+                        && metadataValue.getValue().equalsIgnoreCase(value);
+                });
+            }).findFirst();
+            if (primaryBitstream.isEmpty()) {
+                return null;
+            }
+            Bitstream thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream.get());
+            // If the thumbnail is not available return the non thumbnail bitstream
+            // retrieved in the previous steps
+            if (thumbBitstream != null) {
+                return new Thumbnail(thumbBitstream, primaryBitstream.get());
+            } else {
+                return new Thumbnail(primaryBitstream.get(), primaryBitstream.get());
+            }
+        }
         return null;
     }
 
@@ -1120,17 +1223,8 @@ prevent the generation of resource policy entry values with null dspace_object a
 
     */
 
-    /**
-     * Add the default policies, which have not been already added to the given DSpace object
-     *
-     * @param context                   The relevant DSpace Context.
-     * @param dso                       The DSpace Object to add policies to
-     * @param defaultCollectionPolicies list of policies
-     * @throws SQLException       An exception that provides information on a database access error or other errors.
-     * @throws AuthorizeException Exception indicating the current user of the context does not have permission
-     *                            to perform a particular action.
-     */
-    protected void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso,
+    @Override
+    public void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso,
         List<ResourcePolicy> defaultCollectionPolicies) throws SQLException, AuthorizeException {
         boolean appendMode = configurationService
                 .getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode", false);
@@ -1457,15 +1551,6 @@ prevent the generation of resource policy entry values with null dspace_object a
     }
 
     @Override
-    protected void getAuthoritiesAndConfidences(String fieldKey, Collection collection, List<String> values,
-                                                List<String> authorities, List<Integer> confidences, int i) {
-        String locale = I18nUtil.getDefaultLocale().getLanguage();
-        Choices c = choiceAuthorityService.getBestMatch(fieldKey, values.get(i), collection, locale);
-        authorities.add(c.values.length > 0 && c.values[0] != null ? c.values[0].authority : null);
-        confidences.add(c.confidence);
-    }
-
-    @Override
     public Item findByIdOrLegacyId(Context context, String id) throws SQLException {
         if (StringUtils.isNumeric(id)) {
             return findByLegacyId(context, Integer.parseInt(id));
@@ -1577,10 +1662,12 @@ prevent the generation of resource policy entry values with null dspace_object a
         // Build up list of matching values based on the cache
         List<MetadataValue> values = new ArrayList<>();
         for (MetadataValue dcv : item.getCachedMetadata()) {
-            if (match(schema, element, qualifier, lang, dcv)) {
+            if (match(schema, element, qualifier, dcv)) {
                 values.add(dcv);
             }
         }
+
+        values = getFilteredMetadataValuesByLanguage(values, lang);
 
         // Create an array of matching values
         return values;
@@ -1589,6 +1676,15 @@ prevent the generation of resource policy entry values with null dspace_object a
     @Override
     public String getEntityType(Item item) {
         return getMetadataFirstValue(item, new MetadataFieldName("dspace.entity.type"), Item.ANY);
+    }
+
+    @Override
+    public void setEntityType(Context context, Item item, String entityType) {
+        try {
+            setMetadataSingleValue(context, item, new MetadataFieldName("dspace.entity.type"), null, entityType);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
     /**
