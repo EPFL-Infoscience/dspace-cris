@@ -186,6 +186,10 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
         return addMetadataValue(MetadataSchemaEnum.DC.getName(), "title", null, language, title);
     }
 
+    public WorkspaceItemBuilder withAlternativeTitle(final String title) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "title", "alternative", title);
+    }
+
     public WorkspaceItemBuilder withIssueDate(final String issueDate) {
         return addMetadataValue(MetadataSchemaEnum.DC.getName(), "date", "issued", new DCDate(issueDate).toString());
     }
@@ -257,6 +261,26 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
 
     public WorkspaceItemBuilder withOldCustomUrl(String url) {
         return addMetadataValue("cris", "customurl", "old", url);
+    }
+
+    public WorkspaceItemBuilder withIdentifierDoi(final String identifierDoi) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "doi", identifierDoi);
+    }
+
+    public WorkspaceItemBuilder withIdentifierArxiv(final String identifierArxiv) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "arxiv", identifierArxiv);
+    }
+
+    public WorkspaceItemBuilder withIdentifierIsi(final String identifierIsi) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "isi", identifierIsi);
+    }
+
+    public WorkspaceItemBuilder withIdentifierScopus(final String identifierScopus) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "scopus", identifierScopus);
+    }
+
+    public WorkspaceItemBuilder withIdentifierPmid(final String identifierPmid) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "pmid", identifierPmid);
     }
 
     public WorkspaceItemBuilder grantLicense() {
