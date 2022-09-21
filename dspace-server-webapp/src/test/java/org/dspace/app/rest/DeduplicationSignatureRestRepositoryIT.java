@@ -14,7 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.sql.SQLException;
+import java.util.List;
 
+import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -26,14 +29,20 @@ import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIntegrationTest {
+
+    @Autowired
+    private DedupUtils dedupUtils;
 
     @Test
     public void findAllUnauthorizedTest() throws Exception {
@@ -3370,4 +3379,17 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
             .andExpect(jsonPath("$.groupAdminstratorCheck", Matchers.equalTo(1)))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("/api/deduplications/signatures")));
     }
+
+    @After
+    public void destroy() throws Exception {
+        context.turnOffAuthorisationSystem();
+        List<DuplicateInfo> deDuplicateGroups =  dedupUtils.findAllGroups(context);
+        for (DuplicateInfo deDuplicateInfo : deDuplicateGroups) {
+            dedupUtils.rejectAdminDups(context, deDuplicateInfo, Constants.ITEM);
+        }
+        dedupUtils.commit();
+        context.restoreAuthSystemState();
+        super.destroy();
+    }
+
 }

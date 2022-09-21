@@ -123,8 +123,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     private Bitstream bitstream;
     private Bitstream bitstream1;
 
-    private Bundle targetBundle;
-
     private String bitstreamUri;
     private String bitstreamUri1;
 
@@ -241,9 +239,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                 .withMimeType("text/plain")
                 .build();
         }
-
-//      Add bitstream1 to Bundle of type TEXT to item3
-        bundleService.addBitstream(context,  bundleService.create(context, item3, "TEXT"), bitstream1);
 
 //      generate URIs for all items and bitstreams that will be merged
         itemUri1 = convertDspaceObjectToUri(itemConverter, item1);

@@ -11,9 +11,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.deduplication.utils.MD5ValueSignature;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -29,6 +33,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
     @Autowired
     private DedupUtils dedupUtils;
+    private MD5ValueSignature md5Signature = new MD5ValueSignature();
 
     @Test
     public void deleteItemUnauthorizedTest() throws Exception {
@@ -166,7 +171,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "title:098f6bcd4621d373cade4e832627b4f6";
+        String id = createTitleSetId(publicItem1);
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
             .andExpect(status().isNoContent());
@@ -230,7 +235,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:098f6bcd4621d373cade4e832627b4f6";
+        String id = createTitleSetId(publicItem1);
 
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
@@ -304,7 +309,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
+        String id = createIdentifierSetId(publicItem1);
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
             .andExpect(status().isNoContent());
@@ -371,7 +376,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
+        String id = createIdentifierSetId(publicItem1);
 
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
@@ -444,8 +449,8 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String idTitle = "title:098f6bcd4621d373cade4e832627b4f6";
-        String idIdentifier = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
+        String idTitle = createTitleSetId(publicItem1);
+        String idIdentifier = createIdentifierSetId(publicItem1);
 
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + idTitle + "/items/" + itemUUID))
@@ -516,8 +521,8 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String idTitle = "title:098f6bcd4621d373cade4e832627b4f6";
-        String idIdentifier = "identifier:cc562133c18bd2baf21b0b7bfcdd9334";
+        String idTitle = createTitleSetId(publicItem1);
+        String idIdentifier = createIdentifierSetId(publicItem2);
 
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + idTitle + "/items/" + itemUUID))
@@ -542,4 +547,30 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         getClient(adminToken).perform(get("/api/deduplications/sets/" + idIdentifier))
             .andExpect(status().isNotFound());
     }
+
+    private String createTitleSetId(Item item) {
+        // Set up MD5ValueSignature state to produce the same signature
+        setMD5ValueSignatureInstance("dc.title", null, "title",
+            new ArrayList<>(), "[^\\p{L}]");
+        return "title:" + md5Signature.getSignature(item, context).get(0);
+    }
+
+    private String createIdentifierSetId(Item item) {
+        List<String> ignorePrefix =
+            Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/","dx.doi.org/");
+
+        // Set up MD5ValueSignature state to produce the same signature
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        return "identifier:" + md5Signature.getSignature(item, context).get(0);
+    }
+
+    private void setMD5ValueSignatureInstance(String metadata, String prefix, String signatureType,
+                                              List<String> ignorePrefixes, String normalizeRegex) {
+        md5Signature.setMetadata(metadata);
+        md5Signature.setPrefix(prefix);
+        md5Signature.setSignatureType(signatureType);
+        md5Signature.setIgnorePrefix(ignorePrefixes);
+        md5Signature.setNormalizationRegexp(normalizeRegex);
+    }
+
 }
