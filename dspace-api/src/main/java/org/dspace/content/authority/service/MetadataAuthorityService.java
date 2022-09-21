@@ -7,6 +7,8 @@
  */
 package org.dspace.content.authority.service;
 
+import java.util.List;
+
 import org.dspace.content.Collection;
 import org.dspace.content.MetadataField;
 import org.dspace.core.Constants;
@@ -119,6 +121,14 @@ public interface MetadataAuthorityService {
      * @return the minimal valid level of confidence for the given metadata
      */
     public int getMinConfidence(MetadataField metadataField);
+
+    /**
+     * Return the list of metadata field with authority control. The strings
+     * are in the form <code>schema.element[.qualifier]</code>
+     *
+     * @return the list of metadata field with authority control
+     */
+    public List<String> getAuthorityMetadata();
 
     /**
      * This method has been created to have a way of clearing the cache kept inside the service

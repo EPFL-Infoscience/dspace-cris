@@ -248,9 +248,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
      * @param context
      * @param item
      * @param bundle
-     * @param metadata
+     * @param metadataField
      * @param value
-     * @param requireOriginal
      * @throws SQLException
      * @return Bitstream
      */

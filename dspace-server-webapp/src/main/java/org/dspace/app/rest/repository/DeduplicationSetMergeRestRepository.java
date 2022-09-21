@@ -124,8 +124,7 @@ public class DeduplicationSetMergeRestRepository
     @Override
     @PreAuthorize("hasAuthority('ADMIN')")
     public DeduplicationSetMergeRest put(Context context, HttpServletRequest request,
-                                            String apiCategory, String model, UUID uuid, JsonNode jsonNode)
-        throws AuthorizeException, SQLException {
+                                            String apiCategory, String model, UUID uuid, JsonNode jsonNode) {
         ObjectMapper mapper = new ObjectMapper();
         DeduplicationSetMergeDTO deduplicationSetMergeDTO;
         DeduplicationSetMerge dedupSetMerge = null;
@@ -138,6 +137,16 @@ public class DeduplicationSetMergeRestRepository
             throw new UnprocessableEntityException("Error parsing request body", e1);
         } catch (SearchServiceException | DCInputsReaderException e) {
             throw new RuntimeException(e);
+        } catch (AuthorizeException e) {
+            throw new RuntimeException(
+                "Unable to perform PUT request as the current user does not have sufficient rights",
+                e
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                "Unable to update DSpace object " + DeduplicationSetMergeRest.PLURAL_NAME + " with id=" + uuid,
+                e
+            );
         }
     }
 
