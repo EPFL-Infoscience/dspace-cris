@@ -1,4 +1,4 @@
-/**
+/**tem
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE and NOTICE files at the root of the source
  * tree and available online at
@@ -30,7 +30,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.CharEncoding;
@@ -58,17 +61,22 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
+import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipTypeService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
 import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
 import org.dspace.deduplication.dto.DeduplicationSetMergeDTO;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.WorkflowItemService;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +89,36 @@ import org.springframework.http.MediaType;
  *
  */
 public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegrationTest {
+
+    @FunctionalInterface
+    private static interface ExFunction<T, R, E extends Exception> {
+        R apply(T t) throws Exception;
+    }
+
+    @FunctionalInterface
+    private static interface ExConsumer<T, E extends Exception> {
+        void accept(T t) throws Exception;
+    }
+
+    private static <T, R, E extends Exception> Function<T, R> uncheckFn(ExFunction<T, R, E> fn) {
+        return t -> {
+            try {
+                return fn.apply(t);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private static <T, R, E extends Exception> Consumer<T> uncheckConsumer(ExConsumer<T, E> consumer) {
+        return t -> {
+            try {
+                consumer.accept(t);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
 
     private MD5ValueSignature md5Signature = new MD5ValueSignature();
 
@@ -103,7 +141,19 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     private ItemService itemService;
 
     @Autowired
+    private BitstreamService bitstreamService;
+
+    @Autowired
     private BundleService bundleService;
+
+    @Autowired
+    private WorkflowItemService workflowItemService;
+
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
+
+    @Autowired
+    private CollectionService collectionService;
 
     private EPerson submitter;
     private EPerson reviewer;
@@ -131,6 +181,12 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     private DeduplicationSetMergeDTO deduplicationSetMergeDTO;
     private ObjectMapper mapper;
 
+    private WorkspaceItem workspaceItem;
+    private WorkflowItem workflowItem;
+
+    private List<Item> removableItems;
+    private List<Bitstream> removableBitstreams;
+
     /**
      * Build the relationships using the standard test XML with the initialize-entities script
      */
@@ -140,6 +196,9 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         super.setUp();
 
         context.turnOffAuthorisationSystem();
+
+        this.removableItems = new ArrayList<Item>();
+        this.removableBitstreams = new ArrayList<Bitstream>();
 
         mapper = new ObjectMapper();
 
@@ -178,6 +237,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withType("text1")
                            .build();
 
+        removableItems.add(item1);
+
         item2 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
                            .withIdentifierDoi("10.1234/123456789")
@@ -187,6 +248,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withAuthor("Smith 1, John")
                            .withType("text2")
                            .build();
+
+        removableItems.add(item2);
 
         item3 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
@@ -198,6 +261,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withType("text3")
                            .build();
 
+        removableItems.add(item3);
+
         item4 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
                            .withIssueDate("2015-12-19")
@@ -206,6 +271,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withType("text4")
                            .build();
 
+        removableItems.add(item4);
+
         item5 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
                            .withIssueDate("2015-12-25")
@@ -213,6 +280,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withAuthor("Smith 5", item3.getID().toString())
                            .withType("text5")
                            .build();
+
+        removableItems.add(item5);
 
         String bitstreamContent = "ThisIsSomeDummyText";
 
@@ -225,6 +294,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                 .withDescription("description")
                 .withMimeType("text/plain")
                 .build();
+            this.removableBitstreams.add(bitstream);
         }
 
         String bitstreamContent1 = "ThisIsSomeDummyTextTest test content for bitstream1";
@@ -238,6 +308,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                 .withDescription("description1")
                 .withMimeType("text/plain")
                 .build();
+            this.removableBitstreams.add(bitstream1);
         }
 
 //      generate URIs for all items and bitstreams that will be merged
@@ -255,6 +326,38 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         context.restoreAuthSystemState();
     }
+
+    @After
+    public void teardown() throws Exception {
+        context.turnOffAuthorisationSystem();
+//        removableBitstreams
+//            .stream()
+//            .filter(Objects::nonNull)
+//            .forEach(uncheckConsumer(bitstream -> this.bitstreamService.delete(context, bitstream)));
+        removableItems
+            .stream()
+            .filter(Objects::nonNull)
+            .map(uncheckFn(item -> this.context.reloadEntity(item)))
+            .filter(Objects::nonNull)
+            .forEach(uncheckConsumer(item -> this.itemService.delete(context, item)));
+//        if (this.workspaceItem != null) {
+//            workspaceItem = this.context.reloadEntity(workspaceItem);
+//            if (workspaceItem != null) {
+//                this.workspaceItemService.deleteAll(context, workspaceItem);
+//            }
+//        }
+//        if (this.workflowItem != null) {
+//            workflowItem = this.context.reloadEntity(workflowItem);
+//            if (workflowItem != null) {
+//                this.workflowItemService.delete(context, workflowItem);
+//            }
+//        }
+//        collection = this.context.reloadEntity(collection);
+//        this.collectionService.delete(context, collection);
+        context.commit();
+        context.restoreAuthSystemState();
+    }
+
 
     @Test
     public void testDedupSetMergeWithGetRequest() throws Exception {
@@ -442,6 +545,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .withPersonIdentifierFirstName("Donald")
                              .build();
 
+        removableItems.add(author);
+
         context.restoreAuthSystemState();
 
         RelationshipType isAuthorOfPublicationRelationshipType = relationshipTypeService
@@ -572,7 +677,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         context.turnOffAuthorisationSystem();
 
-        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+        workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                                                           .withTitle("Test")
                                                           .withIssueDate("2015-12-20")
                                                           .withAuthor("Smith 1, John")
@@ -581,12 +686,12 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                                                           .withType("text2")
                                                           .build();
 
-        Item item2 = workspaceItem.getItem();
+        Item itemTwo = workspaceItem.getItem();
 
         context.restoreAuthSystemState();
 
 //       create the request body DTO
-        deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId, itemUri1, item2.getID().toString(),
+        deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId, itemUri1, itemTwo.getID().toString(),
             itemUri3, bitstreamUri, bitstreamUri1);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -622,7 +727,11 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 //        Trying to get deleted item should fail with 404
         getClient(adminToken).perform(get("/api/core/items/" + workspaceItem.getItem().getID()))
                              .andExpect(status().isNotFound());
-
+        this.context.turnOffAuthorisationSystem();
+        //workspaceItem = this.context.reloadEntity(workspaceItem);
+        //itemTwo = workspaceItem.getItem();
+        //this.itemService.withdraw(context, itemTwo);
+        this.context.restoreAuthSystemState();
     }
 
     @Test
@@ -811,56 +920,58 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         context.turnOffAuthorisationSystem();
 
-        Item item1 = ItemBuilder.createItem(context, collection)
+        Item itemOne = ItemBuilder.createItem(context, collection)
                                 .withTitle("item 1")
                                 .build();
 
+        removableItems.add(itemOne);
+
 //        archived item
-        Item item2 = ItemBuilder.createItem(context, collection)
+        Item itemTwo = ItemBuilder.createItem(context, collection)
                                 .withTitle("item 2")
                                 .build();
 
+        removableItems.add(itemTwo);
+
 //        workspace item
-        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+        workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                                                           .withTitle("workspace item")
                                                           .build();
-        Item item3 = workspaceItem.getItem();
+        Item itemThree = workspaceItem.getItem();
 
-//        workflow item
-        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
+        workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
                                                        .withTitle("workflow item")
                                                        .build();
-        Item item4 = workspaceItem.getItem();
+        Item itemFour = workflowItem.getItem();
 
         String fakeId = "9f28fd77-1ebd-445a-aeee-2c1c1be36033";
 
 //       unarchive item1
-        item1 = context.reloadEntity(item1);
-        item1.setArchived(false);
-        itemService.update(context, item1);
+        itemOne = context.reloadEntity(itemOne);
+        itemOne.setArchived(false);
+        itemService.update(context, itemOne);
 
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
         getClient(adminToken).perform(get("/api/deduplications/merge/search/findTargets")
-                                 .param("uuid", item1.getID().toString())
-                                 .param("uuid", item2.getID().toString())
-                                 .param("uuid", item3.getID().toString())
-                                 .param("uuid", item4.getID().toString())
+                                 .param("uuid", itemOne.getID().toString())
+                                 .param("uuid", itemTwo.getID().toString())
+                                 .param("uuid", itemThree.getID().toString())
+                                 .param("uuid", itemFour.getID().toString())
                                  .param("uuid", fakeId))
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.allowedTargets", hasSize(1)))
                              .andExpect(jsonPath("$.allowedTargets",
-                                 containsInAnyOrder(equalTo(convertDspaceObjectToUri(itemConverter, item2)))))
+                                 containsInAnyOrder(equalTo(convertDspaceObjectToUri(itemConverter, itemTwo)))))
                              .andExpect(jsonPath("$._links.self.href",
                                  containsString("/api/deduplications/merge/search/findTargets" +
-                                     "?uuid=" + item1.getID().toString() +
-                                     "&uuid=" + item2.getID().toString() +
-                                     "&uuid=" + item3.getID().toString() +
-                                     "&uuid=" + item4.getID().toString() +
+                                     "?uuid=" + itemOne.getID().toString() +
+                                     "&uuid=" + itemTwo.getID().toString() +
+                                     "&uuid=" + itemThree.getID().toString() +
+                                     "&uuid=" + itemFour.getID().toString() +
                                      "&uuid=" + fakeId)));
-
     }
 
     @Test
@@ -868,37 +979,38 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         context.turnOffAuthorisationSystem();
 
-        Item item1 = ItemBuilder.createItem(context, collection)
+        Item itemOne = ItemBuilder.createItem(context, collection)
                                 .withTitle("item 1")
                                 .build();
 
+        removableItems.add(itemOne);
+
 //        workspace item
-        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+        workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                                                           .withTitle("workspace item")
                                                           .build();
-        Item item2 = workspaceItem.getItem();
+        Item itemTwo = workspaceItem.getItem();
 
 //        workflow item
-        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
+        workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
                                                        .withTitle("workflow item")
                                                        .build();
-        Item item3 = workspaceItem.getItem();
+        Item itemThree = workflowItem.getItem();
 
 //        unarchive item1
-        item1 = context.reloadEntity(item1);
-        item1.setArchived(false);
-        itemService.update(context, item1);
+        itemOne = context.reloadEntity(itemOne);
+        itemOne.setArchived(false);
+        itemService.update(context, itemOne);
 
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
         getClient(adminToken).perform(get("/api/deduplications/merge/search/findTargets")
-                                 .param("uuid", item1.getID().toString())
-                                 .param("uuid", item2.getID().toString())
-                                 .param("uuid", item3.getID().toString()))
+                                 .param("uuid", itemOne.getID().toString())
+                                 .param("uuid", itemTwo.getID().toString())
+                                 .param("uuid", itemThree.getID().toString()))
                              .andExpect(status().isNotFound());
-
     }
 
     private String createTitleSetId(Item item) {
