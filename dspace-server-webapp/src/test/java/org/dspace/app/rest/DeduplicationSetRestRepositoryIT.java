@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.dspace.app.deduplication.utils.DedupUtils;
-import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.app.deduplication.utils.MD5ValueSignature;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
@@ -28,10 +27,8 @@ import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -1570,18 +1567,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .andExpect(jsonPath("$.page.size", is(20)))
             .andExpect(jsonPath("$.page.totalPages", is(1)))
             .andExpect(jsonPath("$.page.totalElements", is(2)));
-    }
-
-    @After
-    public void destroy() throws Exception {
-        context.turnOffAuthorisationSystem();
-        List<DuplicateInfo> deDuplicateGroups =  dedupUtils.findAllGroups(context);
-        for (DuplicateInfo deDuplicateInfo : deDuplicateGroups) {
-            dedupUtils.rejectAdminDups(context, deDuplicateInfo, Constants.ITEM);
-        }
-        dedupUtils.commit();
-        context.restoreAuthSystemState();
-        super.destroy();
     }
 
     private void setMD5ValueSignatureInstance(String metadata, String prefix, String signatureType,

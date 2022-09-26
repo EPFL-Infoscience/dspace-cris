@@ -1,4 +1,4 @@
-/**tem
+/**
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE and NOTICE files at the root of the source
  * tree and available online at
@@ -30,11 +30,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -61,22 +59,17 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
-import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
-import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipTypeService;
-import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
 import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
 import org.dspace.deduplication.dto.DeduplicationSetMergeDTO;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
-import org.dspace.workflow.WorkflowItemService;
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,36 +82,6 @@ import org.springframework.http.MediaType;
  *
  */
 public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegrationTest {
-
-    @FunctionalInterface
-    private static interface ExFunction<T, R, E extends Exception> {
-        R apply(T t) throws Exception;
-    }
-
-    @FunctionalInterface
-    private static interface ExConsumer<T, E extends Exception> {
-        void accept(T t) throws Exception;
-    }
-
-    private static <T, R, E extends Exception> Function<T, R> uncheckFn(ExFunction<T, R, E> fn) {
-        return t -> {
-            try {
-                return fn.apply(t);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-    }
-
-    private static <T, R, E extends Exception> Consumer<T> uncheckConsumer(ExConsumer<T, E> consumer) {
-        return t -> {
-            try {
-                consumer.accept(t);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-    }
 
     private MD5ValueSignature md5Signature = new MD5ValueSignature();
 
@@ -141,19 +104,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     private ItemService itemService;
 
     @Autowired
-    private BitstreamService bitstreamService;
-
-    @Autowired
     private BundleService bundleService;
-
-    @Autowired
-    private WorkflowItemService workflowItemService;
-
-    @Autowired
-    private WorkspaceItemService workspaceItemService;
-
-    @Autowired
-    private CollectionService collectionService;
 
     private EPerson submitter;
     private EPerson reviewer;
@@ -326,38 +277,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         context.restoreAuthSystemState();
     }
-
-    @After
-    public void teardown() throws Exception {
-        context.turnOffAuthorisationSystem();
-//        removableBitstreams
-//            .stream()
-//            .filter(Objects::nonNull)
-//            .forEach(uncheckConsumer(bitstream -> this.bitstreamService.delete(context, bitstream)));
-        removableItems
-            .stream()
-            .filter(Objects::nonNull)
-            .map(uncheckFn(item -> this.context.reloadEntity(item)))
-            .filter(Objects::nonNull)
-            .forEach(uncheckConsumer(item -> this.itemService.delete(context, item)));
-//        if (this.workspaceItem != null) {
-//            workspaceItem = this.context.reloadEntity(workspaceItem);
-//            if (workspaceItem != null) {
-//                this.workspaceItemService.deleteAll(context, workspaceItem);
-//            }
-//        }
-//        if (this.workflowItem != null) {
-//            workflowItem = this.context.reloadEntity(workflowItem);
-//            if (workflowItem != null) {
-//                this.workflowItemService.delete(context, workflowItem);
-//            }
-//        }
-//        collection = this.context.reloadEntity(collection);
-//        this.collectionService.delete(context, collection);
-        context.commit();
-        context.restoreAuthSystemState();
-    }
-
 
     @Test
     public void testDedupSetMergeWithGetRequest() throws Exception {
@@ -732,6 +651,12 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         //itemTwo = workspaceItem.getItem();
         //this.itemService.withdraw(context, itemTwo);
         this.context.restoreAuthSystemState();
+    }
+
+    @Test
+    @JsonIgnore
+    public void emptyTest() throws Exception {
+
     }
 
     @Test

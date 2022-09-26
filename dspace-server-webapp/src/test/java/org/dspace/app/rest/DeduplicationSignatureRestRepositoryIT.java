@@ -2000,6 +2000,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         // Restore the authorization system
         context.restoreAuthSystemState();
 
+        dedupUtils.commit();
         String adminToken = getAuthToken(admin.getEmail(), password);
         String id = "identifier";
         // 0 groups for submitters, reviewers and administrators
