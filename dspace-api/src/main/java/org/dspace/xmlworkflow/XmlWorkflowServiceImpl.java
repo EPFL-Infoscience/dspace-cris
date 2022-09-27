@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
@@ -51,12 +53,15 @@ import org.dspace.core.LogHelper;
 import org.dspace.curate.service.XmlWorkflowCuratorService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.event.Event;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.EventService;
 import org.dspace.usage.UsageWorkflowEvent;
+import org.dspace.util.FunctionalUtils;
+import org.dspace.util.UUIDUtils;
 import org.dspace.workflow.WorkflowException;
 import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
 import org.dspace.xmlworkflow.service.WorkflowRequirementsService;
@@ -134,6 +139,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
     protected XmlWorkflowCuratorService xmlWorkflowCuratorService;
     @Autowired(required = true)
     protected EventService eventService;
+    @Autowired(required = true)
+    private EPersonService ePersonService;
 
     protected XmlWorkflowServiceImpl() {
 
@@ -691,7 +698,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
     }
 
     /**
-     * notify the submitter that the item is archived
+     * notify submitter and authors that the item is archived
      *
      * @param context The relevant DSpace Context.
      * @param item    which item was archived
@@ -705,7 +712,9 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             // Get submitter
             EPerson ep = item.getSubmitter();
             // send the notification to the submitter unless the submitter eperson has been deleted
-            if (null != ep) {
+            if (null != ep && StringUtils.isNotBlank(ep.getEmail())) {
+                // Get authors
+                List<EPerson> authors = getAuthors(context, item);
                 // Get the Locale
                 Locale supportedLocale = I18nUtil.getEPersonLocale(ep);
                 Email email = Email.getEmail(I18nUtil.getEmailFilename(supportedLocale, "submit_archive"));
@@ -727,6 +736,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
                 }
 
                 email.addRecipient(ep.getEmail());
+                authors.forEach(author -> email.addRecipient(author.getEmail()));
                 email.addArgument(title);
                 email.addArgument(coll.getName());
                 email.addArgument(handleService.getCanonicalForm(handle));
@@ -737,6 +747,38 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             log.warn(LogHelper.getHeader(context, "notifyOfArchive",
                     "cannot email user" + " item_id=" + item.getID()), e);
         }
+    }
+
+
+    private List<EPerson> getAuthors(Context context, Item item) {
+        List<MetadataValue> authorMetadatas =
+            this.itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "contributor", "author", Item.ANY);
+        return authorMetadatas
+            .stream()
+            .filter(metadata ->
+                StringUtils.isNotBlank(metadata.getValue()) &&
+                StringUtils.isNotBlank(metadata.getAuthority()) &&
+                null != UUIDUtils.fromString(metadata.getAuthority())
+            )
+            .map(
+                FunctionalUtils.throwingMapperWrapper(
+                    metadata -> findPerson(context, metadata),
+                    null
+                )
+            )
+            .filter(Objects::nonNull)
+            .filter(person -> StringUtils.isNotBlank(person.getEmail()))
+            .collect(Collectors.toList());
+    }
+
+
+    public EPerson findPerson(Context context, List<MetadataValue> metadatas) throws SQLException {
+        return this.ePersonService.find(context, UUIDUtils.fromString(metadatas.get(0).getAuthority()));
+    }
+
+
+    public EPerson findPerson(Context context, MetadataValue metadata) throws SQLException {
+        return this.ePersonService.find(context, UUIDUtils.fromString(metadata.getAuthority()));
     }
 
     // send notices of curation activity

@@ -21,6 +21,7 @@ import org.dspace.builder.ClaimedTaskBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -83,6 +84,43 @@ public class XmlWorkflowServiceIT extends AbstractIntegrationTestWithDatabase {
         // Submitter person is both original submitter as well as reviewer, should have edit access of reject, i.e.
         // sent back/to submission task
         assertTrue(this.containsRPForUser(taskToReject.getWorkflowItem().getItem(), submitter, Constants.WRITE));
+    }
+
+    @Test
+    public void testnotifyOfArchive() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
+        EPerson author1 =
+            EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Vincenzo", "Mecca")
+                .withEmail("vincenzo.mecca@outlook.it")
+                .build();
+        EPerson author2 =
+            EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Vincenzo", "4science")
+                .withEmail("vincenzo.mecca@4science.com")
+                .build();
+        context.setCurrentUser(submitter);
+        Community community = CommunityBuilder.createCommunity(context)
+                                              .withName("Parent Community")
+                                              .build();
+        Collection colWithWorkflow = CollectionBuilder.createCollection(context, community)
+                                                      .withName("Collection WITH workflow")
+                                                      .withWorkflowGroup(1, submitter)
+                                                      .build();
+        Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(colWithWorkflow);
+        ClaimedTask taskToReject = ClaimedTaskBuilder.createClaimedTask(context, colWithWorkflow, submitter)
+                                                     .withTitle("Test workflow item to reject")
+                                                     .withAuthor("Vincenzo, Mecca")
+                                                     .withAuthor("Vincenzo, 4science")
+                                                     .build();
+        Item item = ItemBuilder.createItem(context, colWithWorkflow)
+                .withTitle("Test workflow item to reject")
+                .withAuthor("Vincenzo, Mecca", author1.getID().toString())
+                .withAuthor("Vincenzo, 4science", author2.getID().toString())
+                .build();
+        context.restoreAuthSystemState();
+        ((XmlWorkflowServiceImpl)this.xmlWorkflowService).notifyOfArchive(context, item, colWithWorkflow);
     }
 
     private boolean containsRPForUser(Item item, EPerson user, int action) throws SQLException {
