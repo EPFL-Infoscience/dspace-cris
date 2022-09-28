@@ -26,6 +26,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
+import org.dspace.core.Email;
 import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -34,6 +35,8 @@ import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.state.Workflow;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
@@ -87,7 +90,7 @@ public class XmlWorkflowServiceIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testnotifyOfArchive() throws Exception {
+    public void givenAnItemWithAuthorsWhenInvokingNotifyArchiveThenMailWithIsSentToAllAuthors() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
         EPerson author1 =
@@ -102,25 +105,36 @@ public class XmlWorkflowServiceIT extends AbstractIntegrationTestWithDatabase {
                 .build();
         context.setCurrentUser(submitter);
         Community community = CommunityBuilder.createCommunity(context)
-                                              .withName("Parent Community")
-                                              .build();
+            .withName("Parent Community")
+            .build();
         Collection colWithWorkflow = CollectionBuilder.createCollection(context, community)
-                                                      .withName("Collection WITH workflow")
-                                                      .withWorkflowGroup(1, submitter)
-                                                      .build();
-        Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(colWithWorkflow);
-        ClaimedTask taskToReject = ClaimedTaskBuilder.createClaimedTask(context, colWithWorkflow, submitter)
-                                                     .withTitle("Test workflow item to reject")
-                                                     .withAuthor("Vincenzo, Mecca")
-                                                     .withAuthor("Vincenzo, 4science")
-                                                     .build();
+            .withName("Collection WITH workflow")
+            .withWorkflowGroup(1, submitter)
+            .build();
+        XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(colWithWorkflow);
+        ClaimedTaskBuilder.createClaimedTask(context, colWithWorkflow, submitter)
+            .withTitle("Test workflow item to reject")
+            .withAuthor("Vincenzo, Mecca")
+            .withAuthor("Vincenzo, 4science")
+            .build();
         Item item = ItemBuilder.createItem(context, colWithWorkflow)
-                .withTitle("Test workflow item to reject")
-                .withAuthor("Vincenzo, Mecca", author1.getID().toString())
-                .withAuthor("Vincenzo, 4science", author2.getID().toString())
-                .build();
+            .withTitle("Test workflow item to reject")
+            .withAuthor("Vincenzo, Mecca", author1.getID().toString())
+            .withAuthor("Vincenzo, 4science", author2.getID().toString())
+            .build();
         context.restoreAuthSystemState();
-        ((XmlWorkflowServiceImpl)this.xmlWorkflowService).notifyOfArchive(context, item, colWithWorkflow);
+        try (MockedStatic<Email> mockedEmail = Mockito.mockStatic(Email.class)) {
+            Email emailSpy = Mockito.spy(Email.class);
+            Mockito.doNothing().when(emailSpy).send();
+            mockedEmail.when(() -> Email.getEmail(Mockito.anyString())).thenReturn(emailSpy);
+
+            ((XmlWorkflowServiceImpl)this.xmlWorkflowService).notifyOfArchive(context, item, colWithWorkflow);
+
+            Mockito.verify(emailSpy, Mockito.times(1)).addRecipient(submitter.getEmail());
+            Mockito.verify(emailSpy, Mockito.times(1)).addRecipient(author1.getEmail());
+            Mockito.verify(emailSpy, Mockito.times(1)).addRecipient(author2.getEmail());
+            Mockito.verify(emailSpy, Mockito.times(1)).send();
+        }
     }
 
     private boolean containsRPForUser(Item item, EPerson user, int action) throws SQLException {
