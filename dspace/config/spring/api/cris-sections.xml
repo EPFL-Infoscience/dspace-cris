@@ -189,13 +189,14 @@
                     <property name="order" value="desc" />
                     <property name="style" value="col-md-6"/>
                     <property name="numberOfItems" value="5"/>
-                    <property name="showAsCard" value="false"/>
+                    <property name="showAsCard" value="true"/>
                     <property name="showLayoutSwitch" value="false"/>
                     <property name="defaultLayoutMode" value="LIST"/>
                     <property name="cardStyle" value=""/>
                     <property name="cardColumnStyle" value="col-12 col-lg-6"/>
                     <property name="itemListStyle" value=""/>
-                    <property name="showAllResults" value="true"/>
+                    <property name="showAllResults" value="false"/>
+                    <property name="titleKey" value="dc.date.accessioned"/>
                 </bean>
                 <bean class="org.dspace.layout.CrisLayoutTopComponent">
                     <property name="discoveryConfigurationName" value="homePageTopItems" />
@@ -203,13 +204,14 @@
                     <property name="order" value="desc" />
                     <property name="style" value="col-md-6"/>
                     <property name="numberOfItems" value="5"/>
-                    <property name="showAsCard" value="false"/>
+                    <property name="showAsCard" value="true"/>
                     <property name="cardColumnStyle" value="col-12 col-lg-6"/>
                     <property name="showLayoutSwitch" value="false"/>
                     <property name="defaultLayoutMode" value="LIST"/>
                     <property name="cardStyle" value=""/>
                     <property name="itemListStyle" value=""/>
-                    <property name="showAllResults" value="true"/>
+                    <property name="showAllResults" value="false"/>
+                    <property name="titleKey" value="metric.view"/>
                 </bean>
             </list>
 <!--             <list>
