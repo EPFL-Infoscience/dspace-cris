@@ -52,7 +52,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
 
     /**
      * Class used to map a target metadata into a solr index using {@code SolrInputDocument}
-     * 
+     *
      * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
      *
      * @param <T>
@@ -85,51 +85,63 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     private static final String SOLR_FIELD_NAME_FOR_OAIRE_LICENSE_CONDITION = "original_bundle_oaire_licenseCondition";
     private static final String SOLR_FIELD_NAME_FOR_DATACITE_RIGHTS = "original_bundle_datacite_rights";
     private static final String SOLR_FIELD_NAME_FOR_DATACITE_AVAILABLE = "original_bundle_datacite_available";
+    private static final String SOLR_FIELD_NAME_FOR_FILETYPE = "dspace_file_type";
     private static final String SOLR_POSTFIX_FILTER = "_filter";
     private static final String SOLR_POSTFIX_KEYWORD = "_keyword";
     // used for facets and filters of type Date to correctly search them and visualize in facets.
     private static final String SOLR_POSTFIX_YEAR = ".year";
     private static final MetadataFieldName METADATA_DATACITE_RIGHTS = new MetadataFieldName("datacite", "rights");
     private static final MetadataFieldName METADATA_DATACITE_AVAILABLE = new MetadataFieldName("datacite", "available");
-
     private static final MetadataFieldName METADATA_LICENSE_CONDITION =
             new MetadataFieldName("oaire", "licenseCondition");
+    private static final MetadataFieldName METADATA_FILE_TYPE = new MetadataFieldName("dc", "type");
 
     private static final SolrFieldMetadataMapper<?> OAIRE_LICENSE_MAPPER =
             new SolrFieldMetadataMapper<String>(
                 METADATA_LICENSE_CONDITION,
-                (document, fieldName) -> (value -> {
+                (document, fieldName) -> value -> {
                     addField(document, fieldName, value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                })
+                }
             );
 
     private static final SolrFieldMetadataMapper<?> DATACITE_RIGHTS_MAPPER =
             new SolrFieldMetadataMapper<String>(
                 METADATA_DATACITE_RIGHTS,
-                (document, fieldName) -> (value -> {
+                (document, fieldName) -> value -> {
                     addField(document, fieldName, value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                })
+                }
             );
 
     private static final SolrFieldMetadataMapper<?> DATACITE_AVAILABLE_MAPPER =
             new SolrFieldMetadataMapper<String>(
                 METADATA_DATACITE_AVAILABLE,
-                (document, fieldName) -> (value -> {
+                (document, fieldName) -> value -> {
                     addField(document, fieldName, value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_YEAR), dtf.parseLocalDate(value).getYear());
-                })
+                }
+            );
+
+    private static final SolrFieldMetadataMapper<?> FILE_TYPE_MAPPER =
+            new SolrFieldMetadataMapper<String>(
+                    METADATA_FILE_TYPE,
+                    (document, fieldName) -> value -> {
+                        addField(document, fieldName, value);
+                        addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
+                        addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                    }
             );
 
     private static final Map<String, SolrFieldMetadataMapper<?>> mappableMetadatas = Stream.of(
                 Map.entry(SOLR_FIELD_NAME_FOR_OAIRE_LICENSE_CONDITION, OAIRE_LICENSE_MAPPER),
                 Map.entry(SOLR_FIELD_NAME_FOR_DATACITE_RIGHTS, DATACITE_RIGHTS_MAPPER),
-                Map.entry(SOLR_FIELD_NAME_FOR_DATACITE_AVAILABLE, DATACITE_AVAILABLE_MAPPER)
+                Map.entry(SOLR_FIELD_NAME_FOR_DATACITE_AVAILABLE, DATACITE_AVAILABLE_MAPPER),
+                Map.entry(SOLR_FIELD_NAME_FOR_FILETYPE, FILE_TYPE_MAPPER)
             )
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -159,7 +171,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     /**
      * Method that adds index to {@link SolrInputDocument}, iterates between {@code bitstreams} and {@code mappableMetadatas}
      * then applies the corresponding mapping function to the bitstream
-     * 
+     *
      * @param document solr document
      * @param bitstreams list of bitstreams to analyze
      */
@@ -189,7 +201,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     /**
      * Method that iterates bitstream's metadatas, verifies if is mappable and then maps the ones configured
      * using the {@link SolrFieldMetadataMapper} function.
-     * 
+     *
      * @param bitstream that contains metadatas to verify
      * @param metadataMapper the mapper that will be applied to the metadatas
      * @param document solrdocument
