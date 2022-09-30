@@ -1000,7 +1000,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required>You must select a publication type</required>
-          <hint>Select the type(s) of content of the item.</hint>
+          <hint>The Resource Type vocabulary defines concepts to identify the genre of a resource, more details at &lt;a href="https://vocabularies.coar-repositories.org/resource_types/" target="_blank"&gt;Controlled Vocabularies for Repositories: Resource Types&lt;/a&gt;.</hint>
           <vocabulary>publication-coar-types</vocabulary>
         </field>
       </row>
@@ -2050,7 +2050,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>parentOrganization</dc-element>
           <label>Parent Organisation</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -2861,68 +2861,6 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-        </field>
-      </row>
-    </form>
-    <form name="publication_simplified">
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>title</dc-element>
-          <label>Title</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter a main title for this item.</required>
-          <hint>Enter the main title of the item.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>identifier</dc-element>
-          <label>Identifiers</label>
-          <input-type value-pairs-name="common_identifiers">qualdrop_value</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>If the item has any identification numbers or codes associated with
-it, please enter the types and the actual numbers or codes.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>subject</dc-element>
-          <label>Free keywords</label>
-          <input-type>tag</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Please enter some keywords</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>issued</dc-qualifier>
-          <label>Date of Issue</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>Please give the date of previous publication or public distribution.
-                        You can leave out the day and/or month if they aren't
-                        applicable.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>contributor</dc-element>
-          <dc-qualifier>author</dc-qualifier>
-          <label>Authors</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the names of the authors of this item.</hint>
         </field>
       </row>
     </form>
