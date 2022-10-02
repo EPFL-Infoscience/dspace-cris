@@ -72,7 +72,6 @@ public class S3BitStoreService implements BitStoreService {
     private String awsSecretKey;
     private String awsRegionName;
     private boolean useRelativePath;
-    private boolean trustS3Etag;
 
     /**
      * container for all the assets
@@ -438,14 +437,6 @@ public class S3BitStoreService implements BitStoreService {
 
     public void setUseRelativePath(boolean useRelativePath) {
         this.useRelativePath = useRelativePath;
-    }
-
-    public void setTrustS3Etag(boolean trustS3Etag) {
-        this.trustS3Etag = trustS3Etag;
-    }
-
-    public boolean isTrustS3Etag() {
-        return trustS3Etag;
     }
 
     /**
