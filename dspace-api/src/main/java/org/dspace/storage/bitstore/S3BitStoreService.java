@@ -72,6 +72,7 @@ public class S3BitStoreService implements BitStoreService {
     private String awsSecretKey;
     private String awsRegionName;
     private boolean useRelativePath;
+    private boolean trustS3Etag;
 
     /**
      * container for all the assets
@@ -271,7 +272,24 @@ public class S3BitStoreService implements BitStoreService {
                     attrs.put("size_bytes", objectMetadata.getContentLength());
                 }
                 if (attrs.containsKey("checksum")) {
-                    attrs.put("checksum", objectMetadata.getETag());
+                    String eTag = objectMetadata.getETag();
+                    if (trustS3Etag && isMD5Checksum(eTag)) {
+                        attrs.put("checksum", eTag);
+                    } else {
+                        try (
+                                InputStream in = get(bitstream);
+                                // Read through a digest input stream that will work out the MD5
+                                DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA));
+                        ) {
+                            in.close();
+                            byte[] md5Digest = dis.getMessageDigest().digest();
+                            String md5Base64 = Base64.encodeBase64String(md5Digest);
+                            attrs.put("checksum", md5Base64);
+                        } catch (NoSuchAlgorithmException nsae) {
+                            // Should never happen
+                            log.warn("Caught NoSuchAlgorithmException", nsae);
+                        }
+                    }
                     attrs.put("checksum_algorithm", CSA);
                 }
                 if (attrs.containsKey("modified")) {
@@ -288,6 +306,11 @@ public class S3BitStoreService implements BitStoreService {
             throw new IOException(e);
         }
         return null;
+    }
+
+    private boolean isMD5Checksum(String eTag) {
+        // if the etag is NOT an MD5 it end with -x where x is the number of part used in the multipart upload
+        return StringUtils.contains(eTag, "-");
     }
 
     /**
@@ -422,6 +445,14 @@ public class S3BitStoreService implements BitStoreService {
 
     public void setUseRelativePath(boolean useRelativePath) {
         this.useRelativePath = useRelativePath;
+    }
+
+    public void setTrustS3Etag(boolean trustS3Etag) {
+        this.trustS3Etag = trustS3Etag;
+    }
+
+    public boolean isTrustS3Etag() {
+        return trustS3Etag;
     }
 
     /**
