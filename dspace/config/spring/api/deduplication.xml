@@ -21,12 +21,14 @@
 		<property name="dedupService" ref="org.dspace.app.deduplication.service.DedupService" />
 	</bean>
 
-	<bean class="org.dspace.app.deduplication.utils.MD5ValueSignature" name="TitleSignaturePlugin">
+    <!-- 	
+     <bean class="org.dspace.app.deduplication.utils.MD5ValueSignature" name="TitleSignaturePlugin">
 		<property name="normalizationRegexp" value="[^\p{L}]" />
 		<property name="signatureType" value="title" />
 		<property name="metadata" value="dc.title" />
 		<property name="resourceTypeID" value="2" />
-	</bean>
+	 </bean>
+	-->
 
  	<bean class="org.dspace.app.deduplication.utils.MD5ValueSignature" name="ArXivSignature">
  		<property name="signatureType" value="identifier" />
@@ -90,6 +92,13 @@
 			</list>
 		</property>
 	</bean>	
+
+	<bean class="org.dspace.app.deduplication.utils.TitleWithDigitAndYearSignature" name="TitleWithDigitAndYearSignature">
+		<property name="metadata" value="dc.title" />
+		<property name="metadataYear" value="dc.date.issued" />
+		<property name="resourceTypeID" value="2" />
+		<property name="signatureType" value="titleAndYear" />
+	</bean>
 
 	<bean class="org.dspace.app.deduplication.service.SearchDeduplication" name="ITEMSearchDeduplication">
 		<property name="solrIndexPlugin">

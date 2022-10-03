@@ -54,7 +54,8 @@ public class DedupEventConsumer implements Consumer {
     public void initialize() throws Exception {
         List<Signature> signAlgo = dspace.getServiceManager().getServicesByType(Signature.class);
         for (Signature algo : signAlgo) {
-            configuredMetadata.add(algo.getMetadata());
+            algo.getConsumerTriggerMetadata().stream()
+                                             .forEach(x -> configuredMetadata.add(x));
         }
     }
 
@@ -75,7 +76,6 @@ public class DedupEventConsumer implements Consumer {
         int st = event.getSubjectType();
 
         DSpaceObject subject = event.getSubject(ctx);
-        DSpaceObject object = event.getObject(ctx);
 
         if (st != Constants.ITEM && st != Constants.BUNDLE) {
             log.warn("IndexConsumer should not have been given this kind of Subject in an event, skipping: "

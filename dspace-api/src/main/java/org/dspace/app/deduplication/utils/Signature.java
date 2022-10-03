@@ -13,11 +13,12 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
 public interface Signature {
+
     public List<String> getSignature(/* BrowsableDSpaceObject */DSpaceObject item, Context context);
 
     public int getResourceTypeID();
 
     public String getSignatureType();
 
-    public String getMetadata();
+    public List<String> getConsumerTriggerMetadata();
 }

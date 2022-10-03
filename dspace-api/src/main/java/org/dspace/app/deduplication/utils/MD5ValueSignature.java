@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -210,12 +211,16 @@ public class MD5ValueSignature implements Signature {
         return retValue;
     }
 
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
+    }
+
     public String getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(String metadata) {
-        this.metadata = metadata;
+    public List<String> getConsumerTriggerMetadata() {
+        return Collections.singletonList(metadata);
     }
 
     public int getResourceTypeID() {
