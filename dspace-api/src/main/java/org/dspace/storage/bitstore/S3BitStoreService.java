@@ -35,6 +35,7 @@ import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.amazonaws.services.s3.transfer.model.UploadResult;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -264,14 +265,15 @@ public class S3BitStoreService implements BitStoreService {
     public Map about(Bitstream bitstream, Map attrs) throws IOException {
         String key = getFullKey(bitstream.getInternalId());
         try {
-            ObjectMetadata objectMetadata = s3Service.getObjectMetadata(bucketName, key);
-
-            if (objectMetadata != null) {
-                if (attrs.containsKey("size_bytes")) {
-                    attrs.put("size_bytes", objectMetadata.getContentLength());
-                }
-                if (attrs.containsKey("modified")) {
-                    attrs.put("modified", String.valueOf(objectMetadata.getLastModified().getTime()));
+            if (attrs.containsKey("size_bytes") || attrs.containsKey("modified")) {
+                ObjectMetadata objectMetadata = s3Service.getObjectMetadata(bucketName, key);
+                if (objectMetadata != null) {
+                    if (attrs.containsKey("size_bytes")) {
+                        attrs.put("size_bytes", objectMetadata.getContentLength());
+                    }
+                    if (attrs.containsKey("modified")) {
+                        attrs.put("modified", String.valueOf(objectMetadata.getLastModified().getTime()));
+                    }
                 }
             }
             try (
@@ -279,8 +281,9 @@ public class S3BitStoreService implements BitStoreService {
                 // Read through a digest input stream that will work out the MD5
                 DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA));
             ) {
-                in.close();
+                Utils.copy(dis, NullOutputStream.NULL_OUTPUT_STREAM);
                 byte[] md5Digest = dis.getMessageDigest().digest();
+                in.close();
                 String md5check = Utils.toHex(md5Digest);
                 attrs.put("checksum", md5check);
                 attrs.put("checksum_algorithm", CSA);
@@ -291,13 +294,13 @@ public class S3BitStoreService implements BitStoreService {
             return attrs;
         } catch (AmazonS3Exception e) {
             if (e.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                return null;
+                return attrs;
             }
         } catch (AmazonClientException e) {
             log.error("about(" + key + ", attrs)", e);
             throw new IOException(e);
         }
-        return null;
+        return attrs;
     }
 
     /**

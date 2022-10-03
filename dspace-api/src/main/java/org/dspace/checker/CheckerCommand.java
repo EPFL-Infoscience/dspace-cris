@@ -248,11 +248,11 @@ public final class CheckerCommand {
             Map checksumMap = bitstreamStorageService.computeChecksum(context, info.getBitstream());
             if (MapUtils.isNotEmpty(checksumMap)) {
                 info.setBitstreamFound(true);
-                if (checksumMap.containsKey("checksum")) {
+                if (checksumMap.containsKey("checksum") && checksumMap.get("checksum") != null) {
                     info.setCurrentChecksum(checksumMap.get("checksum").toString());
                 }
 
-                if (checksumMap.containsKey("checksum_algorithm")) {
+                if (checksumMap.containsKey("checksum_algorithm") && checksumMap.get("checksum_algorithm") != null) {
                     info.setChecksumAlgorithm(checksumMap.get("checksum_algorithm").toString());
                 }
             }
