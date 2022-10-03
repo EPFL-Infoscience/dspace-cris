@@ -281,8 +281,8 @@ public class S3BitStoreService implements BitStoreService {
             ) {
                 in.close();
                 byte[] md5Digest = dis.getMessageDigest().digest();
-                String md5Base64 = Base64.encodeBase64String(md5Digest);
-                attrs.put("checksum", md5Base64);
+                String md5check = Utils.toHex(md5Digest);
+                attrs.put("checksum", md5check);
                 attrs.put("checksum_algorithm", CSA);
             } catch (NoSuchAlgorithmException nsae) {
                 // Should never happen
@@ -298,11 +298,6 @@ public class S3BitStoreService implements BitStoreService {
             throw new IOException(e);
         }
         return null;
-    }
-
-    private boolean isMD5Checksum(String eTag) {
-        // if the etag is NOT an MD5 it end with -x where x is the number of part used in the multipart upload
-        return StringUtils.contains(eTag, "-");
     }
 
     /**
