@@ -3930,7 +3930,7 @@
         <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
     <bean id="searchFilterFileType" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-        <property name="indexFieldName" value="dspace_file_type"/>
+        <property name="indexFieldName" value="original_bundle_mime_type"/>
         <property name="metadataFields">
             <list/>
         </property>
