@@ -16,7 +16,7 @@ public abstract class DuplicateInfo {
     private String signatureId;
     private List<Item> items;
     private String groupChecksum;
-    private List<String> otherGroupChecksums;
+    private List<String> otherGroupIds;
 
     public int getNumItems() {
         return items.size();
@@ -49,14 +49,16 @@ public abstract class DuplicateInfo {
         this.groupChecksum = groupChecksum;
     }
 
-    public List<String> getOtherGroupChecksums() {
-        if (this.otherGroupChecksums == null) {
-            this.otherGroupChecksums = new ArrayList<String>();
+    public List<String> getOtherGroupIds() {
+        if (this.otherGroupIds == null) {
+            this.otherGroupIds = new ArrayList<String>();
         }
-        return otherGroupChecksums;
+        return otherGroupIds;
     }
 
-    public void setOtherGroupChecksums(List<String> otherGroupChecksum) {
-        this.otherGroupChecksums = otherGroupChecksum;
+    public void setOtherGroupIds(List<String> otherGroupChecksum) {
+        this.otherGroupIds = otherGroupChecksum;
     }
+
+
 }
