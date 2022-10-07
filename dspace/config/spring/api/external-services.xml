@@ -106,6 +106,7 @@
             </list>
         </property>
     </bean>
+     -->
 
     <bean id="epoLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="EpoImportService"/>
@@ -117,7 +118,7 @@
             </list>
         </property>
     </bean>
- -->
+
     <bean id="crossRefLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="CrossRefImportService"/>
         <property name="sourceIdentifier" value="crossref"/>
