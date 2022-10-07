@@ -144,6 +144,8 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         updateRelationships(context, targetItem, otherItems);
         updateAuthorities(context, targetItem, otherItems);
 
+        addUriMetadataToOtherItems(context, targetItem, otherItems);
+
         withdrawOtherItems(context, otherItems);
         removeItemsFromSet(context, deduplicationSetMergeDTO.getSetId());
 
@@ -400,6 +402,17 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 metadataValue.getAuthority(), metadataValue.getConfidence(), metadataValue.getPlace());
         }
         itemService.update(context, item);
+    }
+
+    private void addUriMetadataToOtherItems(Context context, Item targetItem, List<Item> otherItems)
+        throws SQLException {
+        String targetUri = itemService.getMetadata(targetItem, "dc.identifier.uri");
+        if (targetUri != null) {
+            for (Item item : otherItems) {
+                itemService.addMetadata(context, item,"dspace", "merge", "target-uri",
+                    null, List.of(targetUri));
+            }
+        }
     }
 
     private void withdrawOtherItems(Context context, List<Item> otherItems)

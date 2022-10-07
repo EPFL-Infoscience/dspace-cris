@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -784,6 +785,41 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.page.totalPages", is(1)))
                    .andExpect(jsonPath("$.page.totalElements", is(2)));
+    }
+
+    @Test
+    public void testDedupSetMergeAddingUriMetadata() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
+                                 .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
+                                 .contentType(MediaType.APPLICATION_JSON))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.targetItem", is(itemUri1)))
+                             .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
+                             .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
+                             .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
+                                 matchMetadata("dc.type", "text3"),
+                                 matchMetadata("dc.contributor.author", "Smith 2, John"),
+                                 matchMetadata("dc.title.alternative", "item1 title1"),
+                                 matchMetadata("dc.title.alternative", "item2 title2"),
+                                 matchMetadata("dc.title.alternative", "item3 title1"),
+                                 matchMetadata("dspace.entity.type", "Publication"),
+                                 matchMetadata("dc.title", item1.getName()))))
+                             .andExpect(jsonPath(
+                                 "$._embedded.item.metadata['dc.contributor.editor']").doesNotExist());
+
+        item2 = context.reloadEntity(item2);
+        item3 = context.reloadEntity(item3);
+
+        // then merged items will contain uri metadata of target item
+        String targetUri = itemService.getMetadata(item1, "dc.identifier.uri");
+        String mergedItemTwoUri = itemService.getMetadata(item2, "dspace.merge.target-uri");
+        String mergedIThreeUri = itemService.getMetadata(item3, "dspace.merge.target-uri");
+
+        assertEquals(mergedItemTwoUri, targetUri);
+        assertEquals(mergedIThreeUri, targetUri);
     }
 
     @Test
