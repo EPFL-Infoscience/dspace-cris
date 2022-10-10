@@ -567,6 +567,7 @@
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterDataciteAvailable" />
+                <ref bean="searchFilterFileType" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -594,6 +595,7 @@
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterDataciteAvailable" />
+                <ref bean="searchFilterFileType" />
             </list>
         </property>
         <!--The sort filters for the discovery search (same as defaultConfiguration above)-->
@@ -1479,6 +1481,7 @@
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterDataciteAvailable" />
+                <ref bean="searchFilterFileType" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -1501,6 +1504,7 @@
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterDataciteAvailable" />
+                <ref bean="searchFilterFileType" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3918,6 +3922,15 @@
     </bean>
     <bean id="searchFilterDataciteRights" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="original_bundle_datacite_rights"/>
+        <property name="metadataFields">
+            <list/>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+    </bean>
+    <bean id="searchFilterFileType" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="original_bundle_mime_type"/>
         <property name="metadataFields">
             <list/>
         </property>
