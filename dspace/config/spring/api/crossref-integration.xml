@@ -47,9 +47,10 @@
         <constructor-arg value="dc.relation.ispartof"/>
     </bean>
 
-    <bean id="crossrefDoiTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
+    <bean id="crossrefDoiTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.ReplaceFieldWithMapConverterMetadataContributor">
         <property name="field" ref="crossref.type"/>
         <property name="query" value="/type"/>
+        <property name="simpleMapConverter" ref="mapConverterOrcidToDSpacePublicationType"/>
     </bean>
     <bean id="crossref.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.type"/>
