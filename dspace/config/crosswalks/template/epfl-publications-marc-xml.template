@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--  Search-Engine-Total-Number-Of-Results: #items.counter#  -->
 <collection xmlns="http://www.loc.gov/MARC21/slim">
 	@item.template@
