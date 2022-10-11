@@ -183,7 +183,7 @@
                 <value>Publication</value>
             </list>
         </property>
-    </bean>
+    </bean> -->
 
     <bean id="openaireLiveImportDataProviderByAuthor" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="openaireImportServiceByAuthor"/>
@@ -207,7 +207,7 @@
             </list>
         </property>
     </bean>
-
+    <!--
     <bean id="openaireLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="OpenAIREService"/>
         <property name="sourceIdentifier" value="openaireProject"/>
