@@ -94,7 +94,7 @@
                 <value>Publication</value>
             </list>
         </property>
-    </bean>
+    </bean> -->
 
     <bean id="scopusLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="ScopusImportService"/>
@@ -106,7 +106,6 @@
             </list>
         </property>
     </bean>
-     -->
 
     <bean id="epoLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="EpoImportService"/>
