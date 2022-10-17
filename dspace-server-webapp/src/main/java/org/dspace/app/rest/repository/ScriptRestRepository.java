@@ -99,7 +99,12 @@ public class ScriptRestRepository extends DSpaceRestRepository<ScriptRest, Strin
         }
         EPerson user = context.getCurrentUser();
         RestDSpaceRunnableHandler restDSpaceRunnableHandler = new RestDSpaceRunnableHandler(
-            user, scriptToExecute.getName(), dSpaceCommandLineParameters, context.getSpecialGroups());
+            user,
+            scriptToExecute.getName(),
+            dSpaceCommandLineParameters,
+            context.getSpecialGroups(),
+            context.getCurrentLocale()
+        );
         List<String> args = constructArgs(dSpaceCommandLineParameters);
         runDSpaceScript(files, context, user, scriptToExecute, restDSpaceRunnableHandler, args);
         return converter.toRest(restDSpaceRunnableHandler.getProcess(context), utils.obtainProjection());

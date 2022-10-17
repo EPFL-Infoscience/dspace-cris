@@ -1,4 +1,4 @@
-tab--
+--
 -- The contents of this file are subject to the license and copyright
 -- detailed in the LICENSE and NOTICE files at the root of the source
 -- tree and available online at
@@ -7,7 +7,7 @@ tab--
 --
 
 -----------------------------------------------------------------------------------
-CREATE TABLE cris_layout_box2securitygroup
+CREATE TABLE if not exists cris_layout_box2securitygroup
 (
     box_id integer NOT NULL,
     group_id uuid NOT NULL,
