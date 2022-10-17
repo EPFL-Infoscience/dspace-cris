@@ -42,6 +42,8 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -97,6 +99,12 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     @Autowired
     private WorkspaceItemService workspaceItemService;
 
+    @Autowired
+    private MetadataFieldService metadataFieldService;
+
+    @Autowired
+    private MetadataValueService metadataValueService;
+
     private final List<String[]> authorityMetadataFields = new ArrayList<>();
 
     @PostConstruct
@@ -129,9 +137,8 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     @Override
     public DeduplicationSetMerge merge(Context context, UUID targetUUID,
                                        DeduplicationSetMergeDTO deduplicationSetMergeDTO)
-        throws SQLException, AuthorizeException, SearchServiceException {
+        throws SQLException, AuthorizeException, SearchServiceException, IOException {
 
-        List<MetadataValue> metadataValues;
         Item targetItem;
         List<Item> otherItems;
         List<Bitstream> bitstreams;
@@ -140,9 +147,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         otherItems = getOtherItems(context, deduplicationSetMergeDTO);
         bitstreams = getBitstreams(context, deduplicationSetMergeDTO);
 
-        metadataValues = getMetadataValues(context, deduplicationSetMergeDTO.getMetadata());
-
-        updateItemMetaDataValues(context, targetItem, metadataValues);
+        updateItemMetaDataValues(context, targetItem, deduplicationSetMergeDTO.getMetadata());
         updateItemBitstreams(context, targetItem, otherItems, bitstreams);
 
         updateRelationships(context, targetItem, otherItems);
@@ -218,16 +223,40 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         return UUIDUtils.fromString(path.substring(path.lastIndexOf("/") + 1));
     }
 
-    private List<MetadataValue> getMetadataValues(Context context,
-                                                  List<DeduplicationMetadataDTO> metadataList) throws SQLException {
-        List<MetadataValue> metadataValues = new ArrayList<>();
+    private void updateItemMetaDataValues(Context context, Item targetItem,
+                                          List<DeduplicationMetadataDTO> metadataList)
+        throws SQLException, AuthorizeException {
+
+        List<MetadataValue> metadataValues;
+        String [] fields;
+
         for (DeduplicationMetadataDTO metadataDTO : metadataList) {
+            metadataValues = getMetadataValues(context, metadataDTO);
+            fields = getElementsFilled(metadataDTO.getMetadataField());
 
-            List<DeduplicationMetadataSourcesDTO> sortedSources = sortSourcesAscByPosition(metadataDTO.getSources());
+            itemService.clearMetadata(context, targetItem, fields[0], fields[1], fields[2], null);
 
-            for (DeduplicationMetadataSourcesDTO source : sortedSources) {
+            for (MetadataValue metadataValue : metadataValues) {
+                itemService.addMetadata(context, targetItem, metadataValue.getSchema(), metadataValue.getElement(),
+                    metadataValue.getQualifier(), metadataValue.getLanguage(),
+                    metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence());
+            }
+        }
+
+        itemService.update(context, targetItem);
+
+    }
+
+    private List<MetadataValue> getMetadataValues(Context context, DeduplicationMetadataDTO metadataDTO)
+        throws SQLException {
+
+        List<MetadataValue> metadataValues = new ArrayList<>();
+        List<DeduplicationMetadataSourcesDTO> sortedSources = sortSourcesAscByPosition(metadataDTO.getSources());
+
+        for (DeduplicationMetadataSourcesDTO source : sortedSources) {
+            if (source.getItem() != null) {
                 Item item = itemService.find(context, getUUIDFromUri(source.getItem()));
-                MetadataValue metadataValue = getMatchedMetadataValueFromItem(item, source.getPosition(),
+                MetadataValue metadataValue = getMatchedMetadataValueFromItem(item, source.getPlace(),
                     metadataDTO.getMetadataField());
                 metadataValues.add(metadataValue);
             }
@@ -239,7 +268,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     private List<DeduplicationMetadataSourcesDTO> sortSourcesAscByPosition(
         List<DeduplicationMetadataSourcesDTO> sources) {
         return sources.stream()
-                      .sorted(Comparator.comparingInt(DeduplicationMetadataSourcesDTO::getPosition))
+                      .sorted(Comparator.comparingInt(DeduplicationMetadataSourcesDTO::getPlace))
                       .collect(Collectors.toList());
     }
 
@@ -254,19 +283,8 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         return null;
     }
 
-    private void updateItemMetaDataValues(Context context, Item targetItem, List<MetadataValue> metadataValues)
-        throws SQLException, AuthorizeException {
-        itemService.clearMetadata(context, targetItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue metadataValue : metadataValues) {
-            itemService.addMetadata(context, targetItem, metadataValue.getSchema(), metadataValue.getElement(),
-                metadataValue.getQualifier(), metadataValue.getLanguage(),
-                metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence());
-        }
-        itemService.update(context, targetItem);
-    }
-
     private void updateItemBitstreams(Context context, Item targetItem, List<Item> otherItems,
-                                      List<Bitstream> bitstreams) throws SQLException, AuthorizeException {
+                                      List<Bitstream> bitstreams) throws SQLException, AuthorizeException, IOException {
 
         for (Bitstream bitstream : bitstreams) {
             Set<Bundle> bundles = getMatchedBundlesFromOtherItems(otherItems, bitstream.getBundles());
@@ -279,6 +297,9 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 }
             }
         }
+
+        removeUnMergedBitstreamsFromTargetItem(context, targetItem, bitstreams);
+
     }
 
     private Set<Bundle> getMatchedBundlesFromOtherItems(List<Item> otherItems, List<Bundle> bundles) {
@@ -321,6 +342,26 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         bundleService.addBitstream(context, newBundle, bitstream);
         bundleService.inheritCollectionDefaultPolicies(context, newBundle, targetItem.getOwningCollection());
         bundleService.update(context, newBundle);
+    }
+
+    private void removeUnMergedBitstreamsFromTargetItem(Context context, Item item, List<Bitstream> bitstreams)
+        throws SQLException, AuthorizeException, IOException {
+        boolean bitstreamFound = false;
+        List<Bundle> bundles = item.getBundles();
+        for (Bundle bundle : bundles) {
+            for (Bitstream itemBitstream : bundle.getBitstreams()) {
+                bitstreamFound = false;
+                for (Bitstream mergedBitstream : bitstreams) {
+                    if (itemBitstream.getID().toString().equals(mergedBitstream.getID().toString())) {
+                        bitstreamFound = true;
+                    }
+                }
+                if (!bitstreamFound) {
+                    bundleService.removeBitstream(context, bundle, itemBitstream);
+                    bundleService.update(context, bundle);
+                }
+            }
+        }
     }
 
     private void updateRelationships(Context context, Item targetItem, List<Item> otherItems)

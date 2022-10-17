@@ -101,8 +101,8 @@
         </rightCardinality>
     </type>
     <type>
-        <leftType>Dataset</leftType>
-        <rightType>Dataset</rightType>
+        <leftType>Product</leftType>
+        <rightType>Product</rightType>
         <leftwardType>isCorrectionOfItem</leftwardType>
         <rightwardType>isCorrectedByItem</rightwardType>
         <leftCardinality>

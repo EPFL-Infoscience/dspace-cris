@@ -40,22 +40,9 @@ public interface DeduplicationSetMergeService {
      *                      access error or other errors.
      * @throws AuthorizeException if there is an authorization problem with permissions.
      * @throws SearchServiceException if search error.
+     * @throws IOException if IO error.
      */
     public DeduplicationSetMerge merge(Context context, UUID targetUUID,
                                        DeduplicationSetMergeDTO deduplicationSetMergeDTO)
-        throws SQLException, AuthorizeException, SearchServiceException;
-
-    /**
-     * merge data from target Item and merged Items
-     *
-     * @param context The relevant DSpace Context.
-     * @param deduplicationMerge the object that contains data about merging.
-     * @throws java.sql.SQLException An exception that provides information on a database
-     *                      access error or other errors.
-     * @throws AuthorizeException if there is an authorization problem with permissions.
-     * @throws SearchServiceException if search error.
-     * @throws IOException if IO error.
-     */
-    public void merge(Context context, DeduplicationMerge deduplicationMerge)
         throws SQLException, AuthorizeException, SearchServiceException, IOException;
 }

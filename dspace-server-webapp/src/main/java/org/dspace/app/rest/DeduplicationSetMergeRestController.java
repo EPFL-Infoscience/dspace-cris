@@ -11,6 +11,7 @@ import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,10 +21,11 @@ import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.model.DeduplicationSetMergeRest;
 import org.dspace.app.rest.model.hateoas.DeduplicationSetMergeResource;
 import org.dspace.app.rest.repository.DeduplicationSetMergeRestRepository;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -41,13 +43,33 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/" + DeduplicationSetMergeRest.CATEGORY + "/" + DeduplicationSetMergeRest.PLURAL_NAME)
-public class DeduplicationSetMergeRestController {
+public class DeduplicationSetMergeRestController implements InitializingBean {
 
     @Autowired
     DeduplicationSetMergeRestRepository deduplicationSetMergeRestRepository;
 
     @Autowired
     private ConverterService converterService;
+
+    @Autowired
+    DiscoverableEndpointsService discoverableEndpointsService;
+
+    @Override
+    public void afterPropertiesSet() {
+        discoverableEndpointsService
+            .register(
+                this,
+                Arrays.asList(
+                        Link.of(
+                                "/api/" +
+                                DeduplicationSetMergeRest.CATEGORY +
+                                "/" +
+                                DeduplicationSetMergeRest.PLURAL_NAME,
+                                DeduplicationSetMergeRest.PLURAL_NAME
+                        )
+                )
+        );
+    }
 
     /**
      * Method to merge the items from a set.
@@ -73,9 +95,6 @@ public class DeduplicationSetMergeRestController {
         } catch (SQLException e) {
             throw new RuntimeException(
                 "Unable to update DSpace object " + DeduplicationSetMergeRest.PLURAL_NAME + " with id=" + uuid, e);
-        } catch (AuthorizeException e) {
-            throw new RuntimeException(
-                "Unable to perform PUT request as the current user does not have sufficient rights", e);
         }
         DeduplicationSetMergeResource resource = converterService.toResource(deduplicationSetMergeRest);
         return ControllerUtils.toResponseEntity(HttpStatus.OK, new HttpHeaders(), resource);

@@ -16,14 +16,14 @@ package org.dspace.deduplication.dto;
 public class DeduplicationMetadataSourcesDTO {
 
     private String item;
-    private int position;
+    private int place;
 
     public DeduplicationMetadataSourcesDTO() {
     }
 
-    public DeduplicationMetadataSourcesDTO(String item, int position) {
+    public DeduplicationMetadataSourcesDTO(String item, int place) {
         this.item = item;
-        this.position = position;
+        this.place = place;
     }
 
     public String getItem() {
@@ -34,11 +34,11 @@ public class DeduplicationMetadataSourcesDTO {
         this.item = item;
     }
 
-    public int getPosition() {
-        return position;
+    public int getPlace() {
+        return place;
     }
 
-    public void setPosition(int position) {
-        this.position = position;
+    public void setPlace(int place) {
+        this.place = place;
     }
 }
