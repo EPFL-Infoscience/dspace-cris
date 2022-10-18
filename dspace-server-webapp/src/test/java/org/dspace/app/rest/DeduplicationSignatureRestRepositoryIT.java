@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.sql.SQLException;
 
+import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -32,8 +33,12 @@ import org.dspace.workflow.WorkflowItem;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIntegrationTest {
+
+    @Autowired
+    private DedupUtils dedupUtils;
 
     @Test
     public void findAllUnauthorizedTest() throws Exception {
@@ -1991,6 +1996,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         // Restore the authorization system
         context.restoreAuthSystemState();
 
+        dedupUtils.commit();
         String adminToken = getAuthToken(admin.getEmail(), password);
         String id = "identifier";
         // 0 groups for submitters, reviewers and administrators
@@ -3370,4 +3376,5 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
             .andExpect(jsonPath("$.groupAdminstratorCheck", Matchers.equalTo(1)))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("/api/deduplications/signatures")));
     }
+
 }

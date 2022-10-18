@@ -200,6 +200,9 @@ public class AbstractIntegrationTestWithDatabase extends AbstractDSpaceIntegrati
             MockSolrDedupCore dedupService = DSpaceServicesFactory.getInstance()
                     .getServiceManager()
                     .getServiceByName(DedupService.class.getName(), MockSolrDedupCore.class);
+            // Commit any pendant change issued to solr
+            dedupService.commit();
+            // Reset the solr status
             dedupService.reset();
 
             // Reload our ConfigurationService (to reset configs to defaults again)
