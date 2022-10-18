@@ -42,7 +42,7 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
 
     @Test
     public void findAllRelationshipTypesTest() throws SQLException {
-        assertEquals(12, relationshipTypeService.findAll(context).size());
+        assertEquals(22, relationshipTypeService.findAll(context).size());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
                    //We expect a 200 OK status
                    .andExpect(status().isOk())
                    //The type has to be 'discover'
-                   .andExpect(jsonPath("$.page.totalElements", is(12)))
+                   .andExpect(jsonPath("$.page.totalElements", is(22)))
                    //There needs to be a self link to this endpoint
                    .andExpect(jsonPath("$._links.self.href", containsString("api/core/relationshiptypes")))
                    //We have 4 facets in the default configuration, they need to all be present in the embedded section
@@ -158,7 +158,16 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(8)),
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(9)),
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(10)),
-                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(11)))
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(11)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(12)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(13)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(14)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(15)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(16)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(17)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(18)),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipTypes.get(19))
+                       )
                    ));
     }
 
@@ -269,9 +278,11 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
                            RelationshipTypeMatcher.matchExplicitRestrictedRelationshipTypeValues(
                                                 "isAuthorOfPublication", "isPublicationOfAuthor"),
                            RelationshipTypeMatcher.matchExplicitRestrictedRelationshipTypeValues(
-                                    "isPublicationOfJournalIssue", "isJournalIssueOfPublication")
+                                    "isPublicationOfJournalIssue", "isJournalIssueOfPublication"),
+                           RelationshipTypeMatcher.matchExplicitRestrictedRelationshipTypeValues(
+                                    "isMergedFromItem", "isMergedInItem")
                            )))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)));
+                   .andExpect(jsonPath("$.page.totalElements", is(6)));
     }
 
     @Test
@@ -304,7 +315,7 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
                               )))
                    .andExpect(jsonPath("$.page.number", is(0)))
                    .andExpect(jsonPath("$.page.totalPages", is(2)))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)));
+                   .andExpect(jsonPath("$.page.totalElements", is(6)));
 
         getClient().perform(get("/api/core/relationshiptypes/search/byEntityType")
                    .param("type", "Publication")
@@ -315,11 +326,13 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
                               RelationshipTypeMatcher.matchExplicitRestrictedRelationshipTypeValues(
                                                    "isAuthorOfPublication", "isPublicationOfAuthor"),
                               RelationshipTypeMatcher.matchExplicitRestrictedRelationshipTypeValues(
-                                       "isPublicationOfJournalIssue", "isJournalIssueOfPublication")
+                                       "isPublicationOfJournalIssue", "isJournalIssueOfPublication"),
+                       RelationshipTypeMatcher.matchExplicitRestrictedRelationshipTypeValues(
+                                        "isMergedFromItem", "isMergedInItem")
                               )))
                    .andExpect(jsonPath("$.page.number", is(1)))
                    .andExpect(jsonPath("$.page.totalPages", is(2)))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)));
+                   .andExpect(jsonPath("$.page.totalElements", is(6)));
     }
 
 }

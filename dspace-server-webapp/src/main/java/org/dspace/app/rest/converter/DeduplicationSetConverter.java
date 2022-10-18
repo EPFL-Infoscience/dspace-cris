@@ -30,7 +30,7 @@ public class DeduplicationSetConverter
             groupRest.setId(group.getSignatureId() + ":" + group.getGroupChecksum());
             groupRest.setSignatureId(group.getSignatureId());
             groupRest.setSetChecksum(group.getGroupChecksum());
-            groupRest.setOtherSetIds(group.getOtherGroupChecksums());
+            groupRest.setOtherSetIds(group.getOtherGroupIds());
         }
         return groupRest;
     }

@@ -6,7 +6,6 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,7 +48,7 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
 
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.page",
-                                       is(PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 8))))
+                                       is(PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 13))))
                    // Expect it to return these specific Entity Types (in any order)
                    .andExpect(jsonPath("$._embedded.entitytypes", containsInAnyOrder(
                        EntityTypeMatcher.matchEntityTypeEntryForLabel("Publication"),
@@ -59,6 +58,11 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
                        EntityTypeMatcher.matchEntityTypeEntryForLabel("Journal"),
                        EntityTypeMatcher.matchEntityTypeEntryForLabel("JournalVolume"),
                        EntityTypeMatcher.matchEntityTypeEntryForLabel("JournalIssue"),
+                       EntityTypeMatcher.matchEntityTypeEntryForLabel("Funding"),
+                       EntityTypeMatcher.matchEntityTypeEntryForLabel("Product"),
+                       EntityTypeMatcher.matchEntityTypeEntryForLabel("Parent"),
+                       EntityTypeMatcher.matchEntityTypeEntryForLabel("Event"),
+                       EntityTypeMatcher.matchEntityTypeEntryForLabel("Equipment"),
                        // None is the "empty" entity type used for allowing Collections / External Sources to work with
                        // non-Entities (i.e. normal items)
                        EntityTypeMatcher.matchEntityTypeEntryForLabel("none")
@@ -90,6 +94,10 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
         RelationshipType relationshipType5 = relationshipTypeService
             .findbyTypesAndTypeName(context, publicationEntityType, orgunitEntityType, "isAuthorOfPublication",
                                   "isPublicationOfAuthor");
+        RelationshipType relationshipType6 = relationshipTypeService
+            .findbyTypesAndTypeName(context, publicationEntityType, publicationEntityType, "isMergedFromItem",
+                                  "isMergedInItem");
+
         getClient().perform(get("/api/core/entitytypes/" + publicationEntityType.getID() + "/relationshiptypes"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$._embedded.relationshiptypes", containsInAnyOrder(
@@ -97,10 +105,11 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType2),
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType3),
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType4),
-                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType5)
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType5),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType6)
                        )))
                    .andExpect(jsonPath("$.page.size", is(20)))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)))
+                   .andExpect(jsonPath("$.page.totalElements", is(6)))
                    .andExpect(jsonPath("$.page.number", is(0)));
     }
 
@@ -137,6 +146,8 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
            journalIssue, publication, "isPublicationOfJournalIssue", "isJournalIssueOfPublication");
         RelationshipType relationshipType5 = relationshipTypeService.findbyTypesAndTypeName(context,
                              publication, orgunit, "isAuthorOfPublication","isPublicationOfAuthor");
+        RelationshipType relationshipType6 = relationshipTypeService.findbyTypesAndTypeName(context,
+            publication, publication, "isMergedFromItem","isMergedInItem");
 
         getClient().perform(get("/api/core/entitytypes/" + publication.getID() + "/relationshiptypes")
                    .param("size", "2"))
@@ -146,7 +157,7 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType2)
                        )))
                    .andExpect(jsonPath("$.page.size", is(2)))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)))
+                   .andExpect(jsonPath("$.page.totalElements", is(6)))
                    .andExpect(jsonPath("$.page.number", is(0)));
 
         getClient().perform(get("/api/core/entitytypes/" + publication.getID() + "/relationshiptypes")
@@ -158,18 +169,19 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
                        RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType5)
                        )))
                    .andExpect(jsonPath("$.page.size", is(2)))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)))
+                   .andExpect(jsonPath("$.page.totalElements", is(6)))
                    .andExpect(jsonPath("$.page.number", is(1)));
 
         getClient().perform(get("/api/core/entitytypes/" + publication.getID() + "/relationshiptypes")
                    .param("size", "2")
                    .param("page", "2"))
                    .andExpect(status().isOk())
-                   .andExpect(jsonPath("$._embedded.relationshiptypes", contains(
-                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType4)
+                   .andExpect(jsonPath("$._embedded.relationshiptypes", containsInAnyOrder(
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType4),
+                       RelationshipTypeMatcher.matchRelationshipTypeEntry(relationshipType6)
                        )))
                    .andExpect(jsonPath("$.page.size", is(2)))
-                   .andExpect(jsonPath("$.page.totalElements", is(5)))
+                   .andExpect(jsonPath("$.page.totalElements", is(6)))
                    .andExpect(jsonPath("$.page.number", is(2)));
     }
 

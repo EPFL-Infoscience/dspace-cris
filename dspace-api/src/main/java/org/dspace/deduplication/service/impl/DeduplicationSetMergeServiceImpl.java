@@ -42,8 +42,6 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
-import org.dspace.content.service.MetadataFieldService;
-import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -99,12 +97,6 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     @Autowired
     private WorkspaceItemService workspaceItemService;
 
-    @Autowired
-    private MetadataFieldService metadataFieldService;
-
-    @Autowired
-    private MetadataValueService metadataValueService;
-
     private final List<String[]> authorityMetadataFields = new ArrayList<>();
 
     @PostConstruct
@@ -154,7 +146,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         updateAuthorities(context, targetItem, otherItems);
 
         withdrawOtherItems(context, otherItems);
-        removeMergedItemsFromSet(context, targetItem, otherItems, deduplicationSetMergeDTO.getSetId());
+        removeItemsFromSet(context, deduplicationSetMergeDTO.getSetId());
 
         createRelationships(context, targetItem, otherItems);
 
@@ -446,18 +438,18 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     }
 
     private void withdrawOtherItems(Context context, List<Item> otherItems)
-        throws SQLException, AuthorizeException {
+        throws SQLException, AuthorizeException, IOException {
         for (Item item : otherItems) {
 
             WorkflowItem workflowItem = workflowItemService.findByItem(context, item);
             WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
 
             if (workflowItem != null) {
-                workflowItemService.deleteWrapper(context, workflowItem);
+                workflowItemService.delete(context, workflowItem);
             }
 
             if (workspaceItem != null) {
-                workspaceItemService.deleteWrapper(context, workspaceItem);
+                workspaceItemService.deleteAll(context, workspaceItem);
             }
 
             if (workflowItem == null && workspaceItem == null) {
@@ -466,18 +458,22 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         }
     }
 
-    private void removeMergedItemsFromSet(Context context, Item targetItem, List<Item> otherItems, String setId)
+    private void removeItemsFromSet(Context context, String setId)
         throws SearchServiceException, SQLException, AuthorizeException {
         DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, setId);
-        dedupUtils.rejectAdminDups(context, duplicateInfo, targetItem.getID(), Constants.ITEM);
-        for (Item item : otherItems) {
-            dedupUtils.rejectAdminDups(context, duplicateInfo, item.getID(), Constants.ITEM);
+        if (duplicateInfo != null) {
+            for (Item item : duplicateInfo.getItems()) {
+                dedupUtils.rejectAdminDups(context, duplicateInfo, item.getID(), Constants.ITEM);
+            }
         }
     }
 
     private void createRelationships(Context context, Item leftItem, List<Item> rightItems)
         throws SQLException, AuthorizeException {
         for (Item rightItem : rightItems) {
+            if (itemService.find(context, rightItem.getID()) == null) {
+                continue;
+            }
             createRelationship(context, leftItem, rightItem);
         }
     }
