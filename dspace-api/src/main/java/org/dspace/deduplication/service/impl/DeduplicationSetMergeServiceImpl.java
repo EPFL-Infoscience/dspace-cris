@@ -164,29 +164,24 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         Item targetItem = getTargetItem(context, UUIDUtils.fromString(deduplicationMerge.getTargetItem()));
         List<Item> itemsToMerge = getItemsToMerge(context, deduplicationMerge);
 
-        if (deduplicationMerge.isExclude()) {
-            updateRelationships(context, targetItem, itemsToMerge);
-            updateAuthorities(context, targetItem, itemsToMerge);
-            return;
+        if (!deduplicationMerge.isExclude()) {
+            replaceItemExistedMetadata(context, targetItem, itemsToMerge,
+                deduplicationMerge.getReplacedNotEmptyMetadata());
+
+            replaceItemMetadata(context, targetItem, itemsToMerge,
+                deduplicationMerge.getReplacedMetadata());
+
+            appendItemExistedMetadata(context, targetItem, itemsToMerge,
+                deduplicationMerge.getAppendedMetadata());
         }
-
-        replaceItemExistedMetadata(context, targetItem, itemsToMerge,
-            deduplicationMerge.getReplacedNotEmptyMetadata());
-
-        replaceItemMetadata(context, targetItem, itemsToMerge,
-            deduplicationMerge.getReplacedMetadata());
-
-        appendItemExistedMetadata(context, targetItem, itemsToMerge,
-            deduplicationMerge.getAppendedMetadata());
 
         updateRelationships(context, targetItem, itemsToMerge);
         updateAuthorities(context, targetItem, itemsToMerge);
 
-        withdrawOtherItems(context, itemsToMerge);
-
         if (deduplicationMerge.isDelete()) {
             deleteMergedItems(context, itemsToMerge);
-            return;
+        } else {
+            withdrawOtherItems(context, itemsToMerge);
         }
 
         createRelationships(context, targetItem, itemsToMerge);
