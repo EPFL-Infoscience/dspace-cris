@@ -8,6 +8,7 @@
 package org.dspace.deduplication.factory;
 
 import org.dspace.deduplication.service.DeduplicationService;
+import org.dspace.deduplication.service.DeduplicationSetMergeService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
@@ -19,6 +20,7 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 public abstract class DeduplicationServiceFactory {
 
     public abstract DeduplicationService getDeduplicationService();
+    public abstract DeduplicationSetMergeService getDeduplicationSetMergeService();
 
     public static DeduplicationServiceFactory getInstance() {
         return DSpaceServicesFactory.getInstance().getServiceManager()

@@ -131,4 +131,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.scripts.impl.MockDSpaceRunnableScript"/>
     </bean>
 
+    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeCliScriptConfiguration">
+        <property name="description" value="merge items into target item" />
+        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnableCli"/>
+    </bean>
+
 </beans>

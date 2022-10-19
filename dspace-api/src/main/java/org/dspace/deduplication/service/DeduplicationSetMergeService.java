@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.UUID;
 
+import org.dspace.app.deduplication.model.DeduplicationMerge;
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
@@ -43,5 +44,19 @@ public interface DeduplicationSetMergeService {
      */
     public DeduplicationSetMerge merge(Context context, UUID targetUUID,
                                        DeduplicationSetMergeDTO deduplicationSetMergeDTO)
+        throws SQLException, AuthorizeException, SearchServiceException, IOException;
+
+    /**
+     * merge data from target Item and merged Items
+     *
+     * @param context The relevant DSpace Context.
+     * @param deduplicationMerge the object that contains data about merging.
+     * @throws java.sql.SQLException An exception that provides information on a database
+     *                      access error or other errors.
+     * @throws AuthorizeException if there is an authorization problem with permissions.
+     * @throws SearchServiceException if search error.
+     * @throws IOException if IO error.
+     */
+    public void merge(Context context, DeduplicationMerge deduplicationMerge)
         throws SQLException, AuthorizeException, SearchServiceException, IOException;
 }
