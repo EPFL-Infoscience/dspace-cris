@@ -249,6 +249,8 @@ db.schema = public
 # In order to use the Scopus services you need to obtain an API Key from Scopus. Once you get it, add it to the following configuration value.
 # Additional settings are defined below or in specific module file, i.e metrics.cfg
 scopus.apiKey =
+# Number of items to fetch within same request using OR clause concatenation.
+scopus.fetchSize = 1
 # leave empty if you don't need to use an institutional token
 scopus.instToken =
 # In order to use the Web of Science services you need to obtain an API Key from Clarivate. Once you get it, add it to the following configuration value.

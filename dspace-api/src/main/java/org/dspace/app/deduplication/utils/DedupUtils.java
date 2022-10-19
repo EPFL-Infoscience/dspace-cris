@@ -161,7 +161,7 @@ public class DedupUtils {
             List<String> managedGroups = new ArrayList<>();
             for (DuplicateInfo duplicateInfo : duplicateInfos) {
                 boolean found = false;
-                for (String relatedGroup : duplicateInfo.getOtherGroupChecksums()) {
+                for (String relatedGroup : duplicateInfo.getOtherGroupIds()) {
                     if (managedGroups.contains(relatedGroup)) {
                         found = true;
                         break;
@@ -852,7 +852,7 @@ public class DedupUtils {
 
                             result.add(dsi);
                         } else {
-                            dsi.getOtherGroupChecksums().add(signatureTypeString);
+                            dsi.getOtherGroupIds().add(dsi.getSignatureId() + ":" + signatureTypeString);
                         }
                     }
                 }

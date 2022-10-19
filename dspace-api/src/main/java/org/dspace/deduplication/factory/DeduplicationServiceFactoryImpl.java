@@ -8,6 +8,7 @@
 package org.dspace.deduplication.factory;
 
 import org.dspace.deduplication.service.DeduplicationService;
+import org.dspace.deduplication.service.DeduplicationSetMergeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -21,8 +22,16 @@ public class DeduplicationServiceFactoryImpl extends DeduplicationServiceFactory
     @Autowired
     private DeduplicationService deduplicationService;
 
+    @Autowired(required = true)
+    private DeduplicationSetMergeService deduplicationSetMergeService;
+
     @Override
     public DeduplicationService getDeduplicationService() {
         return deduplicationService;
+    }
+
+    @Override
+    public DeduplicationSetMergeService getDeduplicationSetMergeService() {
+        return deduplicationSetMergeService;
     }
 }

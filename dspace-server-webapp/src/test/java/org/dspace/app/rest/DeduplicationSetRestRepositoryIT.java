@@ -625,7 +625,8 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .andExpect(jsonPath("$.signatureId", Matchers.equalTo(signatureId)))
             .andExpect(jsonPath("$.setChecksum", Matchers.isOneOf(setChecksum1, setChecksum2)))
             .andExpect(jsonPath("$.otherSetIds", Matchers.hasSize(1)))
-            .andExpect(jsonPath("$.otherSetIds[0]", Matchers.isOneOf(setChecksum1, setChecksum2)))
+            .andExpect(jsonPath("$.otherSetIds[0]", Matchers.isOneOf(signatureId + ":" + setChecksum1,
+                signatureId + ":" + setChecksum2)))
             .andExpect(jsonPath("$._links.items.href", Matchers.anyOf(
                 Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum1 + "/items"),
                 Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum2 + "/items"))))
@@ -688,14 +689,17 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         List<String> ignorePrefixDoi = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
         setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefixDoi, "");
         String setChecksum1 = md5Signature.getSignature(publicItem1, context).get(0);
+        String setIdOne = "identifier:" + setChecksum1;
 
         List<String> ignorePrefixArxiv = Arrays.asList("arXiv:", "ARXIV:", "arxiv:");
         setMD5ValueSignatureInstance("dc.identifier.arxiv", "arxiv:", "identifier", ignorePrefixArxiv, "");
         String setChecksum2 = md5Signature.getSignature(publicItem1, context).get(0);
+        String setIdTwo = "identifier:" + setChecksum2;
 
         List<String> ignorePrefixPmid = Arrays.asList("pmid://", "pmid:", "PMID://", "PMID:");
         setMD5ValueSignatureInstance("dc.identifier.pmid", "pmid:", "identifier", ignorePrefixPmid, "");
         String setChecksum3 = md5Signature.getSignature(publicItem1, context).get(0);
+        String setIdThree = "identifier:" + setChecksum3;
 
 
         // Restore the authorization system
@@ -713,16 +717,16 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .andExpect(jsonPath("$.signatureId", Matchers.equalTo(signatureId)))
             .andExpect(jsonPath("$.setChecksum", Matchers.isOneOf(setChecksum1, setChecksum2, setChecksum3)))
             .andExpect(jsonPath("$.otherSetIds", Matchers.hasSize(2)))
-            .andExpect(jsonPath("$.otherSetIds[0]", Matchers.isOneOf(setChecksum1, setChecksum2, setChecksum3)))
-            .andExpect(jsonPath("$.otherSetIds[1]", Matchers.isOneOf(setChecksum1, setChecksum2, setChecksum3)))
+            .andExpect(jsonPath("$.otherSetIds[0]", Matchers.isOneOf(setIdOne, setIdTwo, setIdThree)))
+            .andExpect(jsonPath("$.otherSetIds[1]", Matchers.isOneOf(setIdOne, setIdTwo, setIdThree)))
             .andExpect(jsonPath("$._links.items.href", Matchers.anyOf(
-                    Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum1 + "/items"),
-                    Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum2 + "/items"),
-                    Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum3 + "/items"))))
+                    Matchers.containsString("http://localhost/api/deduplications/sets/" + setIdOne + "/items"),
+                    Matchers.containsString("http://localhost/api/deduplications/sets/" + setIdTwo + "/items"),
+                    Matchers.containsString("http://localhost/api/deduplications/sets/" + setIdThree + "/items"))))
             .andExpect(jsonPath("$._links.self.href", Matchers.anyOf(
-                    Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum1),
-                    Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum2),
-                    Matchers.containsString("http://localhost/api/deduplications/sets/" + signatureId + ":" + setChecksum3))));
+                    Matchers.containsString("http://localhost/api/deduplications/sets/" + setIdOne),
+                    Matchers.containsString("http://localhost/api/deduplications/sets/" + setIdTwo),
+                    Matchers.containsString("http://localhost/api/deduplications/sets/" + setIdThree))));
     }
 
     @Test
