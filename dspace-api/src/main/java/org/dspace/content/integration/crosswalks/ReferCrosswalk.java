@@ -124,6 +124,8 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private List<String> allowedGroups;
 
+    private boolean findRelatedItems = false;
+
     @PostConstruct
     private void postConstruct() throws IOException {
         String parent = configurationService.getProperty("dspace.dir") + File.separator + "config" + File.separator;
@@ -291,7 +293,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     private List<String> getSingleItemLines(Context context, DSpaceObject dso, TemplateLine line)
         throws CrosswalkObjectNotSupported, IOException {
 
-        List<String> singleItemLines = getItemLines(context, dso, false);
+        List<String> singleItemLines = getItemLines(context, dso, this.findRelatedItems);
         if (singleItemLines.size() > 0) {
             String lastLine = singleItemLines.get(singleItemLines.size() - 1);
             singleItemLines.set(singleItemLines.size() - 1, lastLine + line.getAfterField());
@@ -587,6 +589,10 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     public void setAllowedGroups(List<String> allowedGroups) {
         this.allowedGroups = allowedGroups;
+    }
+
+    public void setFindRelatedItems(boolean findRelatedItems) {
+        this.findRelatedItems = findRelatedItems;
     }
 
 }

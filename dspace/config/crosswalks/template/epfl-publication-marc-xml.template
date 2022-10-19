@@ -60,7 +60,6 @@
     <datafield tag="700" ind1=" " ind2=" ">
         <subfield code="a">@dc.contributor.author@</subfield>
     </datafield>
-    @virtual.orgunit@
     @group.dc-contributor-author.end@  
     @group.dc-relation-conference.start@
     <datafield tag="711" ind1="2" ind2=" ">
@@ -87,4 +86,14 @@
         <subfield code="1">@virtual.bitstreamData.original.metadata.oaire-licenseCondition@</subfield>
     </datafield>
     @group.bundle-original.end@
+    @relation.dc-contributor-author.start@
+    @relation.person-affiliation-name.start@
+    @if.metadata.cris-legacyId.start@
+    <datafield tag="909" ind1="C" ind2="0">
+		<subfield code="p">@oairecerif.acronym@</subfield>
+		<subfield code="x">U@cris.legacyId@</subfield>
+    </datafield>
+	@if.metadata.cris-legacyId.end@
+    @relation.person-affiliation-name.end@
+    @relation.dc-contributor-author.end@
 </record>

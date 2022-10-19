@@ -156,6 +156,7 @@
 		<property name="converter" ref="xmlValueConverter" />
 		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
 		<property name="publiclyReadable" value="true"/>
+		<property name="findRelatedItems" value="true"/>
 	</bean>
 	
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnote">
@@ -544,7 +545,6 @@
 		<constructor-arg>
 			<map>
 				<entry key="id" value-ref="virtualFieldId" />
-				<entry key="orgunit" value-ref="virtualFieldEpflOrgUnit" />
 				<entry key="authority" value-ref="virtualFieldAuthority" />
 				<entry key="reftype" value-ref="virtualFieldRefererType" />
 				<entry key="authors" value-ref="virtualFieldAuthors" />
@@ -561,7 +561,6 @@
 	</bean>
 	
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldId" id="virtualFieldId"/>
-	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualEPFLOrgunitFields" id="virtualFieldEpflOrgUnit"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthority" id="virtualFieldAuthority"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldRefererType" id="virtualFieldRefererType"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthors" id="virtualFieldAuthors"/>
