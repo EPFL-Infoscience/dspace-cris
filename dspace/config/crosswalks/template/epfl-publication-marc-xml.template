@@ -1,4 +1,5 @@
 <record>
+    <controlfield tag="001">@virtual.id@</controlfield>
     @group.dc-relation-issn.start@
     <datafield tag="022" ind1=" " ind2=" ">
         <subfield code="a">@dc.relation.issn@</subfield>
@@ -59,7 +60,8 @@
     <datafield tag="700" ind1=" " ind2=" ">
         <subfield code="a">@dc.contributor.author@</subfield>
     </datafield>
-    @group.dc-contributor-author.end@
+    @virtual.orgunit@
+    @group.dc-contributor-author.end@  
     @group.dc-relation-conference.start@
     <datafield tag="711" ind1="2" ind2=" ">
         <subfield code="a">@dc.relation.conference@</subfield>
