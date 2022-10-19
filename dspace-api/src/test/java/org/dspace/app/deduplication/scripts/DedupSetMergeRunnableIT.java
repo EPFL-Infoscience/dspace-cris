@@ -8,6 +8,7 @@
 package org.dspace.app.deduplication.scripts;
 
 import static org.dspace.app.launcher.ScriptLauncher.handleScript;
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -16,10 +17,12 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
@@ -41,11 +44,9 @@ import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.EntityService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
-import org.dspace.content.service.RelationshipTypeService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,9 +55,6 @@ public class DedupSetMergeRunnableIT extends AbstractIntegrationTestWithDatabase
     private  ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     private RelationshipService relationshipService = ContentServiceFactory.getInstance().getRelationshipService();
-    private RelationshipTypeService relationshipTypeService = ContentServiceFactory.getInstance()
-                                                                                     .getRelationshipTypeService();
-    private EntityService entityService = ContentServiceFactory.getInstance().getEntityService();
     private EntityTypeService entityTypeService = ContentServiceFactory.getInstance().getEntityTypeService();
 
     private Collection collection;
@@ -258,6 +256,112 @@ public class DedupSetMergeRunnableIT extends AbstractIntegrationTestWithDatabase
     }
 
     @Test
+    public void testDontMergeReplaceEmptyMetadatas() throws Exception {
+        DeduplicationMerge deduplicationMerge =
+            new DeduplicationMerge(
+                item1.getID().toString(),
+                Arrays.asList(item2.getID().toString()),
+                Arrays.asList("oairecerif.editor.affiliation"),
+                Arrays.asList("dc.subject"),
+                List.of(), true, false
+            );
+
+        assertThat(itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null), hasSize(0));
+        itemService.addMetadata(context, item1, "oairecerif", "editor", "affiliation", null, "new_value", null, 0, 0);
+        context.commit();
+        item1 = context.reloadEntity(item1);
+        item2 = context.reloadEntity(item2);
+        List<MetadataValue> oairecerif = itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null);
+        assertThat(oairecerif, hasSize(1));
+        assertThat(itemService.getMetadata(item2,"oairecerif", "editor", "affiliation", null), hasSize(0));
+        List<MetadataValue> dcSubject = itemService.getMetadata(item2,"dc", "subject", null, null);
+        assertThat(dcSubject, hasSize(2));
+
+        TestDSpaceRunnableHandler handler = runMergeItemsScript(deduplicationMerge);
+        context.commit();
+        assertThat(handler.getErrorMessages(), hasSize(0));
+        item1 = context.reloadEntity(item1);
+        assertThat(itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null), hasSize(1));
+        assertThat(
+            itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null),
+            containsInAnyOrder(
+                oairecerif
+                    .stream()
+                    .map(item -> hasProperty("value", equalTo(item.getValue())))
+                    .collect(Collectors.toList())
+            )
+        );
+        List<MetadataValue> mergedSubject = itemService.getMetadata(item1, "dc", "subject", null, null);
+        assertThat(
+            mergedSubject,
+            containsInAnyOrder(
+                dcSubject
+                    .stream()
+                    .map(item ->
+                        allOf(
+                                hasProperty("value", equalTo(item.getValue())),
+                                hasProperty("authority", equalTo(item.getAuthority()))
+                        )
+                    )
+                    .collect(Collectors.toList())
+            )
+        );
+    }
+
+    @Test
+    public void testMergeReplaceEmptyMetadatas() throws Exception {
+        DeduplicationMerge deduplicationMerge =
+            new DeduplicationMerge(
+                item1.getID().toString(),
+                Arrays.asList(item2.getID().toString()),
+                Arrays.asList("oairecerif.editor.affiliation"),
+                List.of(), List.of(), true, false
+            );
+
+        assertThat(itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null), hasSize(0));
+        assertThat(itemService.getMetadata(item2, "oairecerif", "editor", "affiliation", null), hasSize(0));
+        itemService.addMetadata(context, item1, "oairecerif", "editor", "affiliation", null, "new_value", null, 0, 0);
+        itemService
+            .addMetadata(context, item2, "oairecerif", "editor", "affiliation", null, "new_value_item2", null, 0, 0);
+        context.commit();
+        item1 = context.reloadEntity(item1);
+        item2 = context.reloadEntity(item2);
+        List<MetadataValue> oairecerifItem1 =
+            itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null);
+        assertThat(oairecerifItem1, hasSize(1));
+        List<MetadataValue> oairecerifItem2 =
+            itemService.getMetadata(item2, "oairecerif", "editor", "affiliation", null);
+        assertThat(oairecerifItem2, hasSize(1));
+
+        TestDSpaceRunnableHandler handler = runMergeItemsScript(deduplicationMerge);
+
+        assertThat(handler.getErrorMessages(), hasSize(0));
+        context.commit();
+        item1 = context.reloadEntity(item1);
+        assertThat(itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null), hasSize(1));
+        assertThat(
+            itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null),
+            containsInAnyOrder(
+                oairecerifItem2
+                .stream()
+                .map(item -> hasProperty("value", equalTo(item.getValue())))
+                .collect(Collectors.toList())
+            )
+        );
+        assertThat(
+            itemService.getMetadata(item1, "oairecerif", "editor", "affiliation", null),
+            not(
+                containsInAnyOrder(
+                    oairecerifItem1
+                    .stream()
+                    .map(item -> hasProperty("value", equalTo(item.getValue())))
+                    .collect(Collectors.toList())
+                )
+            )
+        );
+    }
+
+    @Test
     public void testMergeItemsWithExcludeOption() throws Exception {
 
         DeduplicationMerge deduplicationMerge = new DeduplicationMerge(item1.getID().toString(),
@@ -313,8 +417,7 @@ public class DedupSetMergeRunnableIT extends AbstractIntegrationTestWithDatabase
         assertThat(relationship2.getLeftItem().getID(), equalTo(item1.getID()));
         assertThat(relationship2.getRightItem().getID(), equalTo(author.getID()));
 
-        List<MetadataValue> metadataValue2 = itemService.getMetadata(item4,"dc", "contributor",
-            "author", null);
+        metadataValue = itemService.getMetadata(item4,"dc", "contributor", "author", null);
 
 //        after merge check that dc.contributor.author metadata of item4 has authority id of target item item1
         assertThat(metadataValue.get(0).getAuthority(), containsString(item1.getID().toString()));
