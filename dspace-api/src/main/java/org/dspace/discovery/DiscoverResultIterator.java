@@ -93,6 +93,15 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
         return (T) getNextIndexableObject().getIndexedObject();
     }
 
+    public long getTotalSearchResults() {
+
+        if (currentSlotIterator == null) {
+            updateCurrentSlotIterator();
+        }
+
+        return this.currentDiscoverResult.getTotalSearchResults();
+    }
+
     protected IndexableObject getNextIndexableObject() {
 
         if (!hasNext()) {
@@ -101,10 +110,6 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
 
         iteratorCounter++;
         return currentSlotIterator.next();
-    }
-
-    public long getTotalSearchResults() {
-        return this.currentDiscoverResult.getTotalSearchResults();
     }
 
     private void uncacheEntitites() {
