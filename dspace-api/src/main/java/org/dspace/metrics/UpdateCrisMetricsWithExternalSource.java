@@ -21,6 +21,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
@@ -152,19 +153,23 @@ public class UpdateCrisMetricsWithExternalSource extends
         }
 
         String lastImportMetadataField = getLastImportMetadataField(service);
-        String lastImportQueryCondition = lastImportMetadataField + ": [* TO *]";
         if (withLastImport) {
-            discoverQuery.setQuery(lastImportQueryCondition);
-            discoverQuery.setSortField(lastImportMetadataField + "_sort", SORT_ORDER.asc);
+            // set an upper limit to prevent items updated in the same run from being pulled out again.
+            discoverQuery.setQuery(lastImportMetadataField + ": [* TO " + currentDateMinusOneSecond() + "]");
+            discoverQuery.setSortField(lastImportMetadataField, SORT_ORDER.asc);
         } else {
-            discoverQuery.setQuery("-" + lastImportQueryCondition);
+            discoverQuery.setQuery("-" + lastImportMetadataField + ": [* TO *]");
         }
 
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
     }
 
+    private String currentDateMinusOneSecond() {
+        return DCDate.getCurrent().toString() + "-1SECONDS";
+    }
+
     private String getLastImportMetadataField(MetricsExternalServices service) {
-        return "cris.lastimport." + service.getServiceName();
+        return "cris.lastimport." + service.getServiceName() + "_dt";
     }
 
     private void performUpdateWithMultiFetch(MetricsExternalServices metricsServices, Iterator<Item> itemIterator) {

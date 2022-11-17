@@ -54,7 +54,7 @@ public class SolrServiceLastImportIndexPlugin implements SolrServiceIndexPlugin 
     }
 
     private void addLastImportSortIndex(SolrInputDocument document, String lastImportField, String lastImportValue) {
-        document.addField(lastImportField + "_sort", lastImportValue);
+        document.addField(lastImportField + "_dt", lastImportValue);
     }
 
     private String getMetadataFirstValue(Item item, String metadataField) {
