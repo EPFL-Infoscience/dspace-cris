@@ -32,6 +32,8 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 /**
@@ -50,15 +52,18 @@ public class UpdateCrisMetricsWithExternalSource extends
 
     private String param;
 
-    private Integer limit = Integer.MAX_VALUE;
+    private Integer limit;
 
     private Map<String, MetricsExternalServices> crisMetricsExternalServices = new HashMap<>();
+
+    private ConfigurationService configurationService;
 
     @Override
     public void setup() throws ParseException {
 
         ServiceManager serviceManager = new DSpace().getServiceManager();
 
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         crisMetricsExternalServices = serviceManager.getServicesByType(MetricsExternalServices.class).stream()
             .collect(toMap(MetricsExternalServices::getServiceName, Function.identity()));
 
@@ -66,6 +71,8 @@ public class UpdateCrisMetricsWithExternalSource extends
         this.param = commandLine.getOptionValue('p');
         if (commandLine.hasOption('l')) {
             this.limit = Integer.valueOf(commandLine.getOptionValue('l'));
+        } else {
+            this.limit = getDefaultLimit();
         }
     }
 
@@ -211,6 +218,10 @@ public class UpdateCrisMetricsWithExternalSource extends
         handler.logInfo("Found " + countFoundItems + " items");
         handler.logInfo("Updated " + countUpdatedItems + " metrics");
         handler.logInfo("Update end");
+    }
+
+    private Integer getDefaultLimit() {
+        return configurationService.getIntProperty("metrics.update-metrics.limit", Integer.MAX_VALUE);
     }
 
     private void assignCurrentUserInContext() throws SQLException {
