@@ -260,4 +260,32 @@
         <scope_note></scope_note>
     </dc-type>
 
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>scopus</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>scopus-person</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>wos</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>wos-person</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
 </dspace-dc-types>
