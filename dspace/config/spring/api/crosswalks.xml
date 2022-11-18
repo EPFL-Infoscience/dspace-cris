@@ -482,6 +482,7 @@
 				<entry key="date" value-ref="virtualFieldDateFormatter" />
 				<entry key="vocabulary" value-ref="virtualFieldVocabulary" />
                 <entry key="metric" value-ref="virtualFieldMetric" />
+                <entry key="citations" value-ref="virtualFieldCitations" />
 			</map>
 		</constructor-arg>
 	</bean>
@@ -506,6 +507,7 @@
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldDateFormatter" id="virtualFieldDateFormatter"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldVocabulary" id="virtualFieldVocabulary"/>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMetric" id="virtualFieldMetric"/>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldCitations" id="virtualFieldCitations"/>
 	
 	<!-- MapConverter configuration -->
 
@@ -578,6 +580,12 @@
 		<property name="defaultValue" value="Unspecified"/>
 	</bean>
 
+    <bean name="mapConverterTesseract" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-tesseract-languages.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="@@ident@@"/>
+    </bean>
+
 	<!-- CONDITION EVALUATORS CONFIGURATION -->
 	
 	<bean class="org.dspace.content.integration.crosswalks.evaluators.ConditionEvaluatorMapper" id="conditionEvaluatorMapper">
@@ -595,5 +603,9 @@
 	<!-- Item export format SERVICE -->
 	<bean class="org.dspace.content.integration.crosswalks.service.ItemExportFormatServiceImpl"/>
 	<bean class="org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService"/>
+    
+    <bean class="org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory" />
+    <bean class="org.dspace.content.integration.crosswalks.csl.CSLNestedGenerator" />
+    <bean class="org.dspace.content.integration.crosswalks.csl.CSLWebServiceGenerator" />
 
 </beans>

@@ -17,7 +17,7 @@
    <parent>
       <groupId>org.dspace</groupId>
       <artifactId>modules</artifactId>
-      <version>cris-2022.01.03-SNAPSHOT</version>
+      <version>cris-2022.02.01-SNAPSHOT</version>
       <relativePath>..</relativePath>
    </parent>
 
@@ -210,6 +210,23 @@
                <artifactId>dspace-api</artifactId>
                <type>test-jar</type>
                <scope>test</scope>
+            </dependency>
+         </dependencies>
+      </profile>
+
+      <profile>
+         <id>addon-ocr</id>
+         <activation>
+            <property>
+               <name>ocr.on</name>
+            </property>
+         </activation>
+         <dependencies>
+            <dependency>
+               <groupId>it.4science.dspace</groupId>
+               <artifactId>addon-ocr-api</artifactId>
+               <version>${addon-ocr.version}</version>
+               <type>jar</type>
             </dependency>
          </dependencies>
       </profile>

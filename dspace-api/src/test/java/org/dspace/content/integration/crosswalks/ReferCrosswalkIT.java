@@ -898,14 +898,6 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withRelationProject("Test Project", project.getID().toString())
             .build();
 
-        ItemBuilder.createItem(context, collection)
-            .withEntityType("Funding")
-            .withTitle("Another Test funding")
-            .withType("Award")
-            .withFunder("Another OrgUnit Funder")
-            .withRelationProject("Test Project", project.getID().toString())
-            .build();
-
         context.restoreAuthSystemState();
         context.commit();
 
@@ -1121,12 +1113,6 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         ItemBuilder.createItem(context, collection)
             .withEntityType("Person")
             .withTitle("Walter White")
-            .withPersonMainAffiliationName("Test OrgUnit", orgUnit.getID().toString())
-            .build();
-
-        ItemBuilder.createItem(context, collection)
-            .withEntityType("Person")
-            .withTitle("Jesse Pinkman")
             .withPersonMainAffiliationName("Test OrgUnit", orgUnit.getID().toString())
             .build();
 
@@ -2117,7 +2103,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, col)
                                .withDoiIdentifier("doi:111.111/publication")
-                               .withCrisOwner("Owner", owner.getID().toString())
+                               .withDspaceObjectOwner("Owner", owner.getID().toString())
                                .withIssueDate("2020-01-01")
                                .build();
 
@@ -2181,6 +2167,87 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         try (FileInputStream fis = getFileInputStream("publications4.xml")) {
             compareEachLine(out2.toString(), IOUtils.toString(fis, Charset.defaultCharset()));
         }
+    }
+
+    @Test
+    public void testVirtualFieldCitationsWithPerson() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item personItem = createItem(context, collection)
+            .withEntityType("Person")
+            .withTitle("John Smith")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("First Publication")
+            .withIssueDate("2020-01-01")
+            .withAuthor("John Smith", personItem.getID().toString())
+            .withAuthor("Walter White")
+            .withPublisher("Test publisher")
+            .withHandle("123456789/111111")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Second Publication")
+            .withIssueDate("2020-04-01")
+            .withAuthor("John Smith", personItem.getID().toString())
+            .withHandle("123456789/99999")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
+            .getServiceByName("referCrosswalkPersonVirtualFieldCitations", ReferCrosswalk.class);
+        assertThat(referCrosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrosswalk.disseminate(context, personItem, out);
+
+        String[] resultLines = out.toString().split("\n");
+        assertThat(resultLines.length, is(6));
+        assertThat(resultLines[0].trim(), is("<person>"));
+        assertThat(resultLines[1].trim(), is("<citations>"));
+        assertThat(resultLines[2].trim(), is("<citation>John Smith. (2020, April 1). "
+            + "Second Publication. Retrieved from http://localhost:4000/handle/123456789/99999</citation>"));
+        assertThat(resultLines[3].trim(), is("<citation>John Smith, &amp; Walter White. (2020, January 1). First "
+            + "Publication. Test publisher. Retrieved from http://localhost:4000/handle/123456789/111111</citation>"));
+        assertThat(resultLines[4].trim(), is("</citations>"));
+        assertThat(resultLines[5].trim(), is("</person>"));
+
+    }
+
+    @Test
+    public void testVirtualFieldCitationsWithPublication() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+            .withTitle("Publication")
+            .withEntityType("Publication")
+            .withIssueDate("2020-01-01")
+            .withAuthor("John Smith")
+            .withAuthor("Walter White")
+            .withPublisher("Test publisher")
+            .withHandle("123456789/111111")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
+            .getServiceByName("referCrosswalkPublicationVirtualFieldCitations", ReferCrosswalk.class);
+        assertThat(referCrosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrosswalk.disseminate(context, publication, out);
+
+        String[] resultLines = out.toString().split("\n");
+        assertThat(resultLines.length, is(3));
+        assertThat(resultLines[0].trim(), is("<publication>"));
+        assertThat(resultLines[1].trim(), is("<citation>John Smith, &amp; Walter White. (2020, January 1). "
+            + "Publication. Test publisher. Retrieved from http://localhost:4000/handle/123456789/111111</citation>"));
+        assertThat(resultLines[2].trim(), is("</publication>"));
+
     }
 
     private void compareEachLine(String result, String expectedResult) {

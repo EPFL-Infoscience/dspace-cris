@@ -129,7 +129,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(43));
+        assertThat(errorMessages, hasSize(45));
         assertThat(errorMessages, containsInAnyOrder(
             "The sheet tab has no ENTITY column",
             "The sheet tab has no LEADING column",
@@ -173,6 +173,8 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             "The sheet tabpolicy has no SHORTNAME column",
             "The sheet tabpolicy has no GROUP column",
             "The sheet boxpolicy has no GROUP column",
+            "The sheet box2metadata has no RENDERING column",
+            "The sheet metadatagroups has no RENDERING column",
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
     }
 
@@ -192,7 +194,6 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(32));
         assertThat(errorMessages, containsInAnyOrder(
             "The tab contains an unknown entity type 'Publication' at row 3",
             "The LEADING value specified on the row 2 of sheet tab is not valid: u. Allowed values: [yes, y, no, n]",
@@ -236,7 +237,9 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
                 + " is not present in the box sheet",
             "IllegalArgumentException: The given workbook is not valid. Import canceled",
             "The sheet boxpolicy has no GROUP column",
-            "The sheet tabpolicy has no GROUP column"));
+            "The sheet tabpolicy has no GROUP column",
+            "The sheet box2metadata contains an invalid RENDERING type at row 3: "
+                + "Rendering named thumbnail is not supported by field type 'METADATA'"));
     }
 
     @Test
@@ -603,6 +606,41 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(tabService.findAll(context), hasSize(1));
         assertThat(context.reloadEntity(tab), notNullValue());
         assertThat(context.reloadEntity(box), notNullValue());
+
+    }
+
+    @Test
+    public void testWithInvalidRendering() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        createEntityType("Publication");
+        createEntityType("Person");
+        context.restoreAuthSystemState();
+
+        String fileLocation = getXlsFilePath("invalid-rendering.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+        assertThat(handler.getErrorMessages(), containsInAnyOrder(
+            "The sheet box2metadata contains an invalid RENDERING type at row 1: "
+                + "Rendering named thumbnail is not supported by field type 'METADATA'",
+            "The sheet box2metadata contains an unknown RENDERING type invalid at row 3",
+            "The sheet box2metadata contains an invalid RENDERING type at row 7: "
+                + "Rendering named longtext is not supported by field type 'BITSTREAM'",
+            "The sheet box2metadata contains an invalid RENDERING type at row 8: "
+                + "Rendering named table is not supported by field type 'METADATA'",
+            "The sheet box2metadata contains an invalid RENDERING type at row 10: "
+                + "Rendering named valuepair don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 14: "
+                + "Rendering named attachment don't supports sub types",
+            "The sheet metadatagroups contains an invalid RENDERING type at row 5: "
+                + "Rendering named identifier requires a sub type",
+            "The sheet metadatagroups contains an invalid RENDERING type at row 6: "
+                + "Rendering named identifier don't supports the configured sub type",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
 
     }
 

@@ -69,6 +69,7 @@ import org.dspace.usage.UsageEvent;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -592,6 +593,7 @@ public class StatisticsRestSearchByCategoryRepositoryIT extends AbstractControll
     }
 
     @Test
+    @Ignore
     public void usageReportsSearch_Person() throws Exception {
         // publication 1 is visited 13
         // publication 2 is visited 15

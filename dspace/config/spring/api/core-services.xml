@@ -64,12 +64,14 @@
     <bean class="org.dspace.content.authority.ChoiceAuthorityServiceImpl"/>
     <bean class="org.dspace.content.authority.AuthorityServiceUtils"/>
     <bean class="org.dspace.content.authority.MetadataAuthorityServiceImpl" lazy-init="true"/>
+    
+    <bean class="org.dspace.profile.OrcidProfileEnricher"/>
+    <bean class="org.dspace.profile.OrcidMetadataCopyingAction"/>
+    
+    <bean id="org.dspace.profile.service.ResearcherProfileService" class="org.dspace.profile.ResearcherProfileServiceImpl"/>
 
-    <bean class="org.dspace.app.profile.ResearcherProfileServiceImpl"/>
-    
-    <bean class="org.dspace.app.profile.OrcidMetadataCopyingAction"/>
-    <bean class="org.dspace.app.profile.OrcidProfileEnricher"/>
-    
+    <bean class="org.dspace.handle.hdlresolver.HdlResolverServiceImpl"/>
+
     <bean class='org.dspace.service.impl.HttpConnectionPoolService'
           id='solrHttpConnectionPoolService'
           scope='singleton'
@@ -93,8 +95,9 @@
 
     <bean class="org.dspace.disseminate.CitationDocumentServiceImpl"/>
 
-    <!-- Ensure EmbargoService is initialized properly via init() method -->
+    <!-- Ensure EmbargoService and AccessStatusService are initialized properly via init() method -->
     <bean class="org.dspace.embargo.EmbargoServiceImpl" init-method="init"/>
+    <bean class="org.dspace.access.status.AccessStatusServiceImpl" init-method="init"/>
 
     <bean class="org.dspace.deduplication.DeduplicationServiceImpl"/>
     <bean class="org.dspace.deduplication.service.impl.DeduplicationSetMergeServiceImpl"/>

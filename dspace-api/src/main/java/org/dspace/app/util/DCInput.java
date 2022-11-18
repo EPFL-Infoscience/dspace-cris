@@ -199,7 +199,7 @@ public class DCInput {
         inputType = fieldMap.get("input-type");
         // these types are list-controlled
         if ("dropdown".equals(inputType) || "qualdrop_value".equals(inputType)
-            || "list".equals(inputType) ) {
+            || "list".equals(inputType)) {
             valueListName = fieldMap.get("value-pairs-name");
             valueList = listMap.get(valueListName);
         }
@@ -599,6 +599,11 @@ public class DCInput {
         return true;
     }
 
+    /**
+     * Get the type bind list for use in determining whether
+     * to display this field in angular dynamic form building
+     * @return list of bound types
+     */
     public List<String> getTypeBindList() {
         return typeBind;
     }
