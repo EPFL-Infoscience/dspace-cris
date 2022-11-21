@@ -9,15 +9,17 @@ package org.dspace.discovery;
 
 import static org.dspace.content.Item.ANY;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.discovery.indexobject.IndexableItem;
-import org.dspace.metrics.MetricsExternalServices;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -30,10 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class SolrServiceLastImportIndexPlugin implements SolrServiceIndexPlugin {
 
     @Autowired
-    private List<MetricsExternalServices> metricsExternalServices;
+    private ItemService itemService;
 
     @Autowired
-    private ItemService itemService;
+    private MetadataFieldService metadataFieldService;
 
     @Override
     @SuppressWarnings("rawtypes")
@@ -43,8 +45,7 @@ public class SolrServiceLastImportIndexPlugin implements SolrServiceIndexPlugin 
         }
 
         Item item = ((IndexableItem) dso).getIndexedObject();
-        for (MetricsExternalServices metricsExternalService : metricsExternalServices) {
-            String lastImportMetadataField = getLastImportMetadataField(metricsExternalService);
+        for (MetadataFieldName lastImportMetadataField : getLastImportMetadataFields(context)) {
             String lastImportValue = getMetadataFirstValue(item, lastImportMetadataField);
             if (lastImportValue != null) {
                 addLastImportSortIndex(document, lastImportMetadataField, lastImportValue);
@@ -53,17 +54,21 @@ public class SolrServiceLastImportIndexPlugin implements SolrServiceIndexPlugin 
 
     }
 
-    private void addLastImportSortIndex(SolrInputDocument document, String lastImportField, String lastImportValue) {
-        document.addField(lastImportField + "_dt", lastImportValue);
+    private List<MetadataFieldName> getLastImportMetadataFields(Context context) {
+        try {
+            return metadataFieldService.findMetadataFieldNamesBySchemaAndElement(context, "cris", "lastimport");
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
-    private String getMetadataFirstValue(Item item, String metadataField) {
-        return itemService.getMetadataFirstValue(item, new MetadataFieldName(metadataField), ANY);
-
+    private void addLastImportSortIndex(SolrInputDocument document, MetadataFieldName lastImportField, String value) {
+        document.addField(lastImportField.toString() + "_dt", value);
     }
 
-    private String getLastImportMetadataField(MetricsExternalServices metricsExternalService) {
-        return "cris.lastimport." + metricsExternalService.getServiceName();
+    private String getMetadataFirstValue(Item item, MetadataFieldName metadataField) {
+        return itemService.getMetadataFirstValue(item, metadataField, ANY);
+
     }
 
 }

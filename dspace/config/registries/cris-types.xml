@@ -277,6 +277,13 @@
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
+        <qualifier>scopus-publication</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
         <qualifier>wos</qualifier>
         <scope_note></scope_note>
     </dc-type>
@@ -285,6 +292,13 @@
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>wos-person</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>wos-publication</qualifier>
         <scope_note></scope_note>
     </dc-type>
 
