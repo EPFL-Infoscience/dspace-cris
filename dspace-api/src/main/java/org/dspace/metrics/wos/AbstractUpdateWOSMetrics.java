@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
-public abstract class AbstractUpdateWOSMetrics implements MetricsExternalServices {
+public abstract class AbstractUpdateWOSMetrics extends MetricsExternalServices {
 
     private static final Logger log = LogManager.getLogger(AbstractUpdateWOSMetrics.class);
 
