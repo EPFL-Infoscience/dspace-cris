@@ -7,21 +7,34 @@
  */
 package org.dspace.app.suggestion;
 
-import java.util.ArrayList;
+import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
+
+import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.collections4.IteratorUtils;
 import org.dspace.app.suggestion.oaire.OAIREPublicationLoader;
 import org.dspace.app.suggestion.pubmed.PubmedPublicationLoader;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DCDate;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataFieldName;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.discovery.IndexableObject;
-import org.dspace.discovery.SearchService;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
+import org.dspace.discovery.DiscoverResultIterator;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +55,17 @@ public class PublicationLoaderRunnable
 
     private SolrSuggestionProvider publicationLoader = null;
 
+    private ConfigurationService configurationService;
+
+    private ItemService itemService;
+
     protected Context context;
 
     protected String profile;
 
     protected String loader;
+
+    private Integer itemLimit;
 
     private Map<String, LiveImportDataProvider> nameToProvider = new HashMap<String, LiveImportDataProvider>();
 
@@ -61,6 +80,9 @@ public class PublicationLoaderRunnable
     @Override
     public void setup() throws ParseException {
 
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        itemService = ContentServiceFactory.getInstance().getItemService();
+
         loader = commandLine.getOptionValue("l");
 
         profile = commandLine.getOptionValue("s");
@@ -69,25 +91,45 @@ public class PublicationLoaderRunnable
         } else {
             LOGGER.info("Process eperson item with UUID " + profile);
         }
+
+        if (commandLine.hasOption("il")) {
+            this.itemLimit = Integer.valueOf(commandLine.getOptionValue("il"));
+        } else {
+            this.itemLimit = getDefaultLimit();
+        }
+
     }
 
     @Override
     public void internalRun() throws Exception {
 
         context = new Context();
+        context.turnOffAuthorisationSystem();
 
         if (loader == null) {
             throw new NullPointerException("loader can't be null");
         }
 
+        if (profile != null && UUIDUtils.fromString(profile) == null) {
+            throw new IllegalArgumentException("The provided argument -s is not a valid uuid");
+        }
+
         publicationLoader = getPublicationLoader(loader);
 
-        List<Item> researchers = getResearchers(profile);
+        try {
 
-        for (Item researcher : researchers) {
+            Iterator<Item> researchers = findResearchers();
+            while (researchers.hasNext()) {
+                Item researcher = researchers.next();
+                publicationLoader.importAuthorRecords(context, researcher);
+                setLastImportMetadataValue(researcher);
+            }
 
-            publicationLoader.importAuthorRecords(context, researcher);
+        } finally {
+            context.restoreAuthSystemState();
+            context.complete();
         }
+
 
     }
 
@@ -115,29 +157,80 @@ public class PublicationLoaderRunnable
      * researcher, the method returns an empty array list. If uuid is null, all
      * research will be return.
      * 
-     * @param profile uuid of the researcher. If null, all researcher will be
-     *                returned.
      * @return the researcher with specified UUID or all researchers
      */
-    @SuppressWarnings("rawtypes")
-    private List<Item> getResearchers(String profileUUID) {
-        final UUID uuid = profileUUID != null ? UUID.fromString(profileUUID) : null;
-        SearchService searchService = new DSpace().getSingletonService(SearchService.class);
-        List<IndexableObject> objects = null;
-        if (uuid != null) {
-            objects = searchService.search(context, "search.resourceid:" + uuid.toString(),
-                "lastModified", false, 0, 1000, "search.resourcetype:Item", "dspace.entity.type:Person");
+    private Iterator<Item> findResearchers() {
+
+        if (profile != null) {
+            return findResearcherByUuid();
+        }
+
+        Iterator<Item> itemsWithoutLastImport = findResearchersWithoutLastImport();
+
+        Iterator<Item> itemsSortedByLastImport = findResearchersSortedByLastImport();
+
+        Iterator<Item> chainedIterator = chainedIterator(itemsWithoutLastImport, itemsSortedByLastImport);
+        return IteratorUtils.boundedIterator(chainedIterator, itemLimit);
+
+    }
+
+    private Iterator<Item> findResearcherByUuid() {
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.setQuery("search.resourceid:" + profile);
+        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.setMaxResults(20);
+        discoverQuery.addFilterQueries("dspace.entity.type:Person");
+        return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
+    }
+
+    private Iterator<Item> findResearchersWithoutLastImport() {
+        return findResearchers(false);
+    }
+
+    private Iterator<Item> findResearchersSortedByLastImport() {
+        return findResearchers(true);
+    }
+
+    private Iterator<Item> findResearchers(boolean withLastImport) {
+
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.setMaxResults(20);
+        discoverQuery.addFilterQueries("dspace.entity.type:Person");
+
+        String lastImportMetadataField = getLastImportMetadataField();
+        if (withLastImport) {
+            // set an upper limit to prevent items updated in the same run from being pulled out again.
+            discoverQuery.setQuery(lastImportMetadataField + ": [* TO " + currentDateMinusOneSecond() + "]");
+            discoverQuery.setSortField(lastImportMetadataField, SORT_ORDER.asc);
         } else {
-            objects = searchService.search(context, "*:*", "lastModified", false, 0, 1000, "search.resourcetype:Item",
-                    "dspace.entity.type:Person");
+            discoverQuery.setQuery("-" + lastImportMetadataField + ": [* TO *]");
         }
-        List<Item> items = new ArrayList<Item>();
-        if (objects != null) {
-            for (IndexableObject o : objects) {
-                items.add((Item) o.getIndexedObject());
-            }
+
+        return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
+    }
+
+    private void setLastImportMetadataValue(Item item) {
+        try {
+            item = context.reloadEntity(item);
+            String metadataField = "cris.lastimport.loader-" + loader;
+            String currentDate = DCDate.getCurrent().toString();
+            itemService.setMetadataSingleValue(context, item, new MetadataFieldName(metadataField), null, currentDate);
+            itemService.update(context, item);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
         }
-        LOGGER.info("Found " + items.size() + " researcher(s)");
-        return items;
+    }
+
+    private String currentDateMinusOneSecond() {
+        return DCDate.getCurrent().toString() + "-1SECONDS";
+    }
+
+    private String getLastImportMetadataField() {
+        return "cris.lastimport.loader-" + loader + "_dt";
+    }
+
+    private Integer getDefaultLimit() {
+        return configurationService.getIntProperty("publication-loader.limit", 1000);
     }
 }
