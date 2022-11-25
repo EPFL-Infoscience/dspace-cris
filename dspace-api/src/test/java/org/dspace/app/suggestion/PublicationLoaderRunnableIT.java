@@ -13,7 +13,12 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
@@ -25,6 +30,7 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +44,8 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
 
     private SolrSuggestionStorageService solrSuggestionStorageService;
 
+    private ItemService itemService;
+
     private Collection collection;
 
     private Item item;
@@ -48,6 +56,8 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
     public void setup() {
 
         solrSuggestionStorageService = ContentServiceFactory.getInstance().getSolrSuggestionStorageService();
+
+        itemService = ContentServiceFactory.getInstance().getItemService();
 
         context.turnOffAuthorisationSystem();
 
@@ -100,7 +110,8 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(1));
-        assertThat(errorMessages.get(0), containsString("IllegalArgumentException: Invalid UUID string:"));
+        assertThat(errorMessages.get(0),
+            containsString("IllegalArgumentException: The provided argument -s is not a valid uuid"));
 
     }
 
@@ -171,6 +182,47 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
         solrSuggestionStorageService.flagAllSuggestionAsProcessed(loader, idPart);
     }
 
+    @Test
+    public void testImportSuggestionsWithItemLimit() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item itemC = ItemBuilder.createItem(context, this.collection)
+            .withOrcidIdentifier("2000-0002-9079-593X")
+            .withLoaderPubmedLastImport("2022-01-01T00:00:00Z")
+            .build();
+
+        Item itemD = ItemBuilder.createItem(context, this.collection)
+            .withOrcidIdentifier("3000-0002-9079-593X")
+            .withLoaderPubmedLastImport("2021-01-01T00:00:00Z")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        assertThat(getLastImport(item), nullValue());
+        assertThat(getLastImport(itemB), nullValue());
+
+        String lastImportItemC = getLastImport(itemC);
+        String lastImportitemD = getLastImport(itemD);
+
+        assertThat(lastImportItemC, notNullValue());
+        assertThat(lastImportitemD, notNullValue());
+
+        runScriptWithItemLimit("pubmed", 3);
+
+        assertThat(getLastImport(item), notNullValue());
+        assertThat(getLastImport(itemB), notNullValue());
+
+        assertThat(getLastImport(itemC), is(lastImportItemC));
+        assertThat(getLastImport(itemD), is(not(lastImportitemD)));
+
+    }
+
+    private String getLastImport(Item item) throws SQLException {
+        item = context.reloadEntity(item);
+        return itemService.getMetadataFirstValue(item, "cris", "lastimport", "loader-pubmed", Item.ANY);
+    }
+
     private TestDSpaceRunnableHandler runScriptWithResearcherUUID(String loader, String researcherId) throws Exception {
 
         String[] args = new String[] {"import-loader-suggestions" ,
@@ -185,6 +237,15 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
 
         String[] args = new String[] {"import-loader-suggestions" ,
             "-l", loader};
+
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        return handler;
+    }
+
+    private TestDSpaceRunnableHandler runScriptWithItemLimit(String loader, Integer limit) throws Exception {
+
+        String[] args = new String[] { "import-loader-suggestions", "-l", loader, "-il", limit.toString() };
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);

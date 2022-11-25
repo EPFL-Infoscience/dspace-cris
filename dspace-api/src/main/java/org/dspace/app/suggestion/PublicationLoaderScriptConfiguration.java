@@ -58,6 +58,10 @@ public class PublicationLoaderScriptConfiguration<T extends PublicationLoaderRun
                 "(oaire, pubmed)");
             options.getOption("l").setRequired(true);
 
+            options.addOption("il", "item-limit", true, "the max number of profiles. If no limit is provided, "
+                + "the default one will be used");
+            options.getOption("il").setType(Integer.class);
+            options.getOption("il").setRequired(false);
 
             super.options = options;
         }

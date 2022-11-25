@@ -772,6 +772,14 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "cris", "customurl", "old", url);
     }
 
+    public ItemBuilder withScopusPublicationLastImport(String date) {
+        return addMetadataValue(item, "cris", "lastimport", "scopus-publication", date);
+    }
+
+    public ItemBuilder withLoaderPubmedLastImport(String date) {
+        return addMetadataValue(item, "cris", "lastimport", "loader-pubmed", date);
+    }
+
     public ItemBuilder withHandle(String handle) {
         this.handle = handle;
         return this;

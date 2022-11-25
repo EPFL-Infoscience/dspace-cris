@@ -37,6 +37,7 @@
     <bean id="solrServiceMetricsIndexPlugin" class="org.dspace.discovery.SolrServiceMetricsIndexPlugin"/>
     <bean id="solrServiceCrisValuePairsIndexPlugin" class="org.dspace.discovery.SolrServiceValuePairsIndexPlugin"/>
     <bean id="solrServiceCustomUrlIndexPlugin" class="org.dspace.discovery.SolrServiceCustomUrlIndexPlugin"/>
+    <bean id="solrServiceLastImportIndexPlugin" class="org.dspace.discovery.SolrServiceLastImportIndexPlugin"/>
 
 
     <alias name="solrServiceResourceIndexPlugin" alias="org.dspace.discovery.SolrServiceResourceRestrictionPlugin"/>

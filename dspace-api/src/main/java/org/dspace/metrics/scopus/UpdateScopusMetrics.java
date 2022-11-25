@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BinaryOperator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -28,8 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * 
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
+ * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
  */
-public class UpdateScopusMetrics implements MetricsExternalServices {
+public class UpdateScopusMetrics extends MetricsExternalServices {
 
     private static Logger log = LogManager.getLogger(UpdateScopusMetrics.class);
 
@@ -43,6 +45,11 @@ public class UpdateScopusMetrics implements MetricsExternalServices {
 
     @Autowired
     private CrisMetricsService crisMetricsService;
+
+    @Override
+    public String getServiceName() {
+        return "scopus";
+    }
 
     @Override
     public List<String> getFilters() {
@@ -63,31 +70,34 @@ public class UpdateScopusMetrics implements MetricsExternalServices {
         String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
         String pmid = itemService.getMetadataFirstValue(item, "dc", "identifier", "pmid", Item.ANY);
         String scopus = itemService.getMetadataFirstValue(item, "dc", "identifier", "scopus", Item.ANY);
-        StringBuilder query = new StringBuilder();
-        if (StringUtils.isNotBlank(pmid)) {
-            if (query.length() > 0) {
-                query.append(" OR ");
-            }
-            query.append("PMID(").append(pmid).append(")");
+        return List.of(
+            mapClause(doi, "DOI"),
+            mapClause(pmid, "PMID"),
+            mapClause(scopus, "EID")
+        )
+            .stream()
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .reduce(joiningOr())
+            .map(StringBuilder::toString)
+            .orElse(null);
+    }
+
+    private BinaryOperator<StringBuilder> joiningOr() {
+        return (query, clause) -> query.append(" OR ").append(clause);
+    }
+
+    private Optional<StringBuilder> mapClause(String field, String function) {
+        StringBuilder clause = null;
+        if (StringUtils.isNotEmpty(field)) {
+            clause = new StringBuilder(function).append("(").append(field).append(")");
         }
-        if (StringUtils.isNotBlank(doi)) {
-            if (query.length() > 0) {
-                query.append(" OR ");
-            }
-            query.append("DOI(").append(doi).append(")");
-        }
-        if (StringUtils.isNotBlank(scopus)) {
-            if (query.length() > 0) {
-                query.append(" OR ");
-            }
-            query.append("EID(").append(scopus).append(")");
-        }
-        return query.toString();
+        return Optional.ofNullable(clause);
     }
 
     private boolean updateScopusMetrics(Context context, Item currentItem, CrisMetricDTO scopusMetric) {
         try {
-            if (scopusMetric == null) {
+            if (scopusMetric == null || currentItem == null) {
                 return false;
             }
             CrisMetrics scopusMetrics = crisMetricsService.findLastMetricByResourceIdAndMetricsTypes(context,
@@ -125,7 +135,7 @@ public class UpdateScopusMetrics implements MetricsExternalServices {
 
     private Double getDeltaPeriod(CrisMetricDTO currentMetric, Optional<CrisMetrics> metric) {
         if (!metric.isEmpty()) {
-            return currentMetric.getMetricCount() - metric.get().getMetricCount();
+            return currentMetric.getMetricCount() - metric.map(CrisMetrics::getMetricCount).orElse(Double.valueOf(0));
         }
         return null;
     }
