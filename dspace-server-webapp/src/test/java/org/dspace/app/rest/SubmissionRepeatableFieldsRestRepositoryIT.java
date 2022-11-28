@@ -52,6 +52,7 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
 
         collection = CollectionBuilder.createCollection(context, parentCommunity)
                                       .withName("collection")
+                                      .withEntityType("Publication")
                                       .build();
 
         context.restoreAuthSystemState();

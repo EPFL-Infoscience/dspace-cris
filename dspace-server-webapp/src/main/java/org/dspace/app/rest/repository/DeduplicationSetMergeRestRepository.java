@@ -235,9 +235,15 @@ public class DeduplicationSetMergeRestRepository
             for (String field : metadataFields) {
                 Optional<DCInput> dcInput = dcInputSet.getField(field);
                 if (dcInput.isPresent()) {
+
+                    if (dcInputSet.hasParent(field)) {
+                        continue;
+                    }
+
                     if (!dcInput.get().isRepeatable()) {
                         throw new UnprocessableEntityException("the metadata " + field + " isn't repeatable");
                     }
+
                 }
             }
         }

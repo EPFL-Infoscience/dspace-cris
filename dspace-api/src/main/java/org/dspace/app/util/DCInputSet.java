@@ -136,17 +136,7 @@ public class DCInputSet {
                         }
                     }
                 } else if (StringUtils.equalsAny(field.getInputType(), "group", "inline-group")) {
-                    String formName = getFormName() + "-" + Utils.standardize(field.getSchema(),
-                        field.getElement(), field.getQualifier(), "-");
-                    try {
-                        DCInputSet inputConfig = inputReader.getInputsByFormName(formName);
-                        Optional<DCInput> f = inputConfig.getField(fieldName);
-                        if (f.isPresent()) {
-                            return f;
-                        }
-                    } catch (DCInputsReaderException e) {
-                        log.error(e.getMessage(), e);
-                    }
+                    return getChildField(field, fieldName);
                 } else {
                     String fullName = field.getFieldName();
                     if (fullName.equals(fieldName)) {
@@ -156,6 +146,33 @@ public class DCInputSet {
             }
         }
         return Optional.empty();
+    }
+
+    private Optional<DCInput> getChildField(DCInput field, String fieldName) {
+        String formName = getFormName() + "-" + Utils.standardize(field.getSchema(),
+            field.getElement(), field.getQualifier(), "-");
+        try {
+            DCInputSet inputConfig = inputReader.getInputsByFormName(formName);
+            Optional<DCInput> f = inputConfig.getField(fieldName);
+            if (f.isPresent()) {
+                return f;
+            }
+        } catch (DCInputsReaderException e) {
+            log.error(e.getMessage(), e);
+        }
+        return Optional.empty();
+    }
+
+    public boolean hasParent(String fieldName) {
+        for (int i = 0; i < inputs.length; i++) {
+            for (int j = 0; j < inputs[i].length; j++) {
+                DCInput field = inputs[i][j];
+                if (StringUtils.equalsAny(field.getInputType(), "group", "inline-group")) {
+                    return getChildField(field, fieldName).isPresent();
+                }
+            }
+        }
+        return false;
     }
 
     /**

@@ -311,8 +311,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         DeduplicationMetadataSourcesDTO source1 = new DeduplicationMetadataSourcesDTO(itemUri1, 0);
         DeduplicationMetadataSourcesDTO source2 = new DeduplicationMetadataSourcesDTO(itemUri2, 0);
 
-        DeduplicationMetadataDTO metadata = new DeduplicationMetadataDTO("dc.contributor.author",
-            List.of(source1, source2));
+        DeduplicationMetadataDTO metadata =
+            new DeduplicationMetadataDTO("dc.title", List.of(source1, source2));
 
         DeduplicationSetMergeDTO deduplicationSetMergeDTO = new DeduplicationSetMergeDTO( setId,
             List.of(itemUri2),
@@ -320,7 +320,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
             List.of(metadata)
         );
 
-//        dc.contributor.author not repeatable metadata
+//        dc.title not repeatable metadata
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
                                  .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))

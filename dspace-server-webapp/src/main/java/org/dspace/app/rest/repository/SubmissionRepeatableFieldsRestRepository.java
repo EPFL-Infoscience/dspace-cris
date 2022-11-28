@@ -136,9 +136,13 @@ public class SubmissionRepeatableFieldsRestRepository
         for (String metadataField : getDistinctMetadataFields(item)) {
             for (DCInputSet dcInputSet : dcInputSets) {
                 if (dcInputSet.isFieldPresent(metadataField)) {
-                    if (dcInputSet.getField(metadataField).get().isRepeatable()) {
+
+                    if (dcInputSet.hasParent(metadataField)) {
+                        repeatableFields.add(metadataField);
+                    } else if (dcInputSet.getField(metadataField).get().isRepeatable()) {
                         repeatableFields.add(metadataField);
                     }
+
                 }
             }
         }
