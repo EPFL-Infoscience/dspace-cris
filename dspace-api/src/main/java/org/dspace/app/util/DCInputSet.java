@@ -136,7 +136,10 @@ public class DCInputSet {
                         }
                     }
                 } else if (StringUtils.equalsAny(field.getInputType(), "group", "inline-group")) {
-                    return getChildField(field, fieldName);
+                    Optional<DCInput> f = getChildField(field, fieldName);
+                    if (f.isPresent()) {
+                        return f;
+                    }
                 } else {
                     String fullName = field.getFieldName();
                     if (fullName.equals(fieldName)) {
@@ -153,10 +156,7 @@ public class DCInputSet {
             field.getElement(), field.getQualifier(), "-");
         try {
             DCInputSet inputConfig = inputReader.getInputsByFormName(formName);
-            Optional<DCInput> f = inputConfig.getField(fieldName);
-            if (f.isPresent()) {
-                return f;
-            }
+            return inputConfig.getField(fieldName);
         } catch (DCInputsReaderException e) {
             log.error(e.getMessage(), e);
         }
