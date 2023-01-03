@@ -163,16 +163,18 @@ public class DCInputSet {
         return Optional.empty();
     }
 
-    public boolean hasParent(String fieldName) {
+    public Optional<DCInput> findParent(String fieldName) {
         for (int i = 0; i < inputs.length; i++) {
             for (int j = 0; j < inputs[i].length; j++) {
                 DCInput field = inputs[i][j];
                 if (StringUtils.equalsAny(field.getInputType(), "group", "inline-group")) {
-                    return getChildField(field, fieldName).isPresent();
+                    if (getChildField(field, fieldName).isPresent()) {
+                        return Optional.of(field);
+                    }
                 }
             }
         }
-        return false;
+        return Optional.empty();
     }
 
     /**

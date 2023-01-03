@@ -12,8 +12,8 @@ import java.util.Map;
 
 import org.dspace.app.rest.RestResourceController;
 import org.dspace.app.rest.link.HalLinkFactory;
-import org.dspace.app.rest.model.SubmissionRepeatableFieldsRest;
-import org.dspace.app.rest.model.hateoas.SubmissionRepeatableFieldsResource;
+import org.dspace.app.rest.model.SubmissionFieldsRest;
+import org.dspace.app.rest.model.hateoas.SubmissionFieldsResource;
 import org.dspace.services.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -23,13 +23,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * This class will provide the SubmissionRepeatableFieldsResource with links
+ * This class will provide the SubmissionFieldsResource with links
  *
  * @author Mohamed Eskander (mohamed.eskander at 4science.it)
  */
 @Component
-public class SubmissionRepeatableFieldsResourceHalLinkFactory
-        extends HalLinkFactory<SubmissionRepeatableFieldsResource, RestResourceController> {
+public class SubmissionFieldsResourceHalLinkFactory
+        extends HalLinkFactory<SubmissionFieldsResource, RestResourceController> {
 
     @Autowired
     RequestService requestService;
@@ -43,7 +43,7 @@ public class SubmissionRepeatableFieldsResourceHalLinkFactory
      * @throws Exception
      */
     @Override
-    protected void addLinks(SubmissionRepeatableFieldsResource halResource, final Pageable pageable,
+    protected void addLinks(SubmissionFieldsResource halResource, final Pageable pageable,
                             LinkedList<Link> list)
             throws Exception {
 
@@ -53,7 +53,7 @@ public class SubmissionRepeatableFieldsResourceHalLinkFactory
 
 
         UriComponentsBuilder uriComponentsBuilder = uriBuilder(getMethodOn().executeSearchMethods(
-                SubmissionRepeatableFieldsRest.CATEGORY, SubmissionRepeatableFieldsRest.PLURAL,
+                SubmissionFieldsRest.CATEGORY, SubmissionFieldsRest.PLURAL,
             "findByItem", null, null, null, null, new LinkedMultiValueMap<>()));
         for (String key : parameterMap.keySet()) {
             uriComponentsBuilder.queryParam(key, parameterMap.get(key));
@@ -69,7 +69,7 @@ public class SubmissionRepeatableFieldsResourceHalLinkFactory
     }
 
     @Override
-    protected Class<SubmissionRepeatableFieldsResource> getResourceClass() {
-        return SubmissionRepeatableFieldsResource.class;
+    protected Class<SubmissionFieldsResource> getResourceClass() {
+        return SubmissionFieldsResource.class;
     }
 }

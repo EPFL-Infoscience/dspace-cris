@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -14,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.dspace.app.rest.repository.SubmissionFieldsRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -29,11 +31,11 @@ import org.junit.Test;
 
 /**
  *
- * This class handles {@link org.dspace.app.rest.repository.SubmissionRepeatableFieldsRestRepository}
+ * This class handles {@link SubmissionFieldsRestRepository}
  *
  * @author Mohamed Eskander (mohamed.eskander at 4science.com)
  */
-public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControllerIntegrationTest {
+public class SubmissionFieldsRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     private Collection collection;
 
@@ -79,7 +81,7 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(epersonToken).perform(get(
-                                   "/api/config/submissionrepeatablefields/" + item.getID()))
+                                   "/api/config/submissionfields/" + item.getID()))
                                .andExpect(status().isMethodNotAllowed());
     }
 
@@ -89,7 +91,7 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(epersonToken).perform(get(
-                                   "/api/config/submissionrepeatablefields"))
+                                   "/api/config/submissionfields"))
                                .andExpect(status().isMethodNotAllowed());
     }
 
@@ -99,7 +101,7 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(epersonToken).perform(get(
-                                   "/api/config/submissionrepeatablefields/search/findByItem")
+                                   "/api/config/submissionfields/search/findByItem")
                                    .param("uuid", "74dd0cc9-e33f-49ec-a543-affd1f4d92ad"))
                                .andExpect(status().isNotFound());
     }
@@ -113,7 +115,9 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
                           .withTitle("item title")
                           .withSubject("item subject")
                           .withAuthor("Smith")
+                          .withAuthorAffiliation("Author-Affiliation")
                           .withEditor("Arnold")
+                          .withEditorAffiliation("Editor-Affiliation")
                           .withSubject("item subject 2")
                           .withEntityType("Publication")
                           .withAlternativeTitle("item alternative title")
@@ -124,17 +128,25 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(epersonToken).perform(get(
-                "/api/config/submissionrepeatablefields/search/findByItem")
+                "/api/config/submissionfields/search/findByItem")
                                    .param("uuid", item.getID().toString()))
                                .andExpect(status().isOk())
                                .andExpect(jsonPath("$.itemId", is(item.getID().toString())))
                                .andExpect(jsonPath("$.repeatableFields", containsInAnyOrder(
                                    "dc.contributor.author",
+                                   "dc.contributor.editor",
                                    "dc.identifier.uri",
                                    "dc.title.alternative",
-                                   "dc.subject")))
+                                   "dc.subject",
+                                   "oairecerif.author.affiliation",
+                                   "oairecerif.editor.affiliation"
+                               )))
+                               .andExpect(jsonPath("$.nestedFields['dc.contributor.author']", contains(
+                                   "oairecerif.author.affiliation")))
+                               .andExpect(jsonPath("$.nestedFields['dc.contributor.editor']", contains(
+                                   "oairecerif.editor.affiliation")))
                                .andExpect(jsonPath("$._links.self.href",
-                                   containsString("/api/config/submissionrepeatablefields/search/findByItem" +
+                                   containsString("/api/config/submissionfields/search/findByItem" +
                                        "?uuid=" + item.getID().toString())));
     }
 
@@ -143,29 +155,36 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
 
         context.turnOffAuthorisationSystem();
 
-        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
-                                                          .withTitle("workspace item title")
-                                                          .withSubject("workspace item subject")
-                                                          .withAuthor("Smith")
-                                                          .withEditor("Arnold")
-                                                          .withSubject("workspace item subject 2")
-                                                          .withEntityType("Publication")
-                                                          .build();
+        WorkspaceItem workspaceItem =
+            WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                .withTitle("workspace item title")
+                                .withSubject("workspace item subject")
+                                .withAuthor("Smith")
+                                .withAuthorAffilitation("Author-Affiliation")
+                                .withEditor("Arnold")
+                                .withSubject("workspace item subject 2")
+                                .withEntityType("Publication")
+                                .build();
 
         context.restoreAuthSystemState();
 
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(epersonToken).perform(get(
-                                   "/api/config/submissionrepeatablefields/search/findByItem")
+                                   "/api/config/submissionfields/search/findByItem")
                                    .param("uuid", workspaceItem.getItem().getID().toString()))
                                .andExpect(status().isOk())
                                .andExpect(jsonPath("$.itemId", is(workspaceItem.getItem().getID().toString())))
                                .andExpect(jsonPath("$.repeatableFields", containsInAnyOrder(
                                    "dc.contributor.author",
-                                   "dc.subject")))
+                                   "dc.contributor.editor",
+                                   "dc.subject",
+                                   "oairecerif.author.affiliation"
+                               )))
+                               .andExpect(jsonPath("$.nestedFields['dc.contributor.author']", contains(
+                                   "oairecerif.author.affiliation")))
                                .andExpect(jsonPath("$._links.self.href",
-                                   containsString("/api/config/submissionrepeatablefields/search/findByItem" +
+                                   containsString("/api/config/submissionfields/search/findByItem" +
                                        "?uuid=" + workspaceItem.getItem().getID().toString())));
     }
 
@@ -174,29 +193,35 @@ public class SubmissionRepeatableFieldsRestRepositoryIT extends AbstractControll
 
         context.turnOffAuthorisationSystem();
 
-        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
-                                                       .withTitle("workflow item title")
-                                                       .withSubject("workflow item subject")
-                                                       .withAuthor("Smith")
-                                                       .withSubject("workflow item subject 2")
-                                                       .withEntityType("Publication")
-                                                       .build();
+        WorkflowItem workflowItem =
+            WorkflowItemBuilder.createWorkflowItem(context, collection)
+                               .withTitle("workflow item title")
+                               .withSubject("workflow item subject")
+                               .withAuthor("Smith")
+                               .withAuthorAffiliation("Author-Affiliation")
+                               .withSubject("workflow item subject 2")
+                               .withEntityType("Publication")
+                               .build();
 
         context.restoreAuthSystemState();
 
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(epersonToken).perform(get(
-                                   "/api/config/submissionrepeatablefields/search/findByItem")
+                                   "/api/config/submissionfields/search/findByItem")
                                    .param("uuid", workflowItem.getItem().getID().toString()))
                                .andExpect(status().isOk())
                                .andExpect(jsonPath("$.itemId", is(workflowItem.getItem().getID().toString())))
                                .andExpect(jsonPath("$.repeatableFields", containsInAnyOrder(
                                    "dc.contributor.author",
                                    "dc.identifier.uri",
-                                   "dc.subject")))
+                                   "dc.subject",
+                                   "oairecerif.author.affiliation"
+                               )))
+                               .andExpect(jsonPath("$.nestedFields['dc.contributor.author']", contains(
+                                   "oairecerif.author.affiliation")))
                                .andExpect(jsonPath("$._links.self.href",
-                                   containsString("/api/config/submissionrepeatablefields/search/findByItem" +
+                                   containsString("/api/config/submissionfields/search/findByItem" +
                                        "?uuid=" + workflowItem.getItem().getID().toString())));
     }
 

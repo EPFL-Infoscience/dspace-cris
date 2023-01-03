@@ -7,20 +7,20 @@
  */
 package org.dspace.app.rest.model.hateoas;
 
-import org.dspace.app.rest.model.SubmissionRepeatableFieldsRest;
+import org.dspace.app.rest.model.SubmissionFieldsRest;
 import org.dspace.app.rest.model.hateoas.annotations.RelNameDSpaceResource;
 import org.dspace.app.rest.utils.Utils;
 
 /**
- * SubmissionRepeatableFields Rest HAL Resource. The HAL Resource wraps the REST Resource
+ * SubmissionFields Rest HAL Resource. The HAL Resource wraps the REST Resource
  * adding support for the links and embedded resources
  *
  * @author Mohamed Eskander (mohamed.eskander at 4science.it)
  *
  */
-@RelNameDSpaceResource(SubmissionRepeatableFieldsRest.NAME)
-public class SubmissionRepeatableFieldsResource extends DSpaceResource<SubmissionRepeatableFieldsRest> {
-    public SubmissionRepeatableFieldsResource(SubmissionRepeatableFieldsRest rest, Utils utils) {
+@RelNameDSpaceResource(SubmissionFieldsRest.NAME)
+public class SubmissionFieldsResource extends DSpaceResource<SubmissionFieldsRest> {
+    public SubmissionFieldsResource(SubmissionFieldsRest rest, Utils utils) {
         super(rest, utils);
     }
 }

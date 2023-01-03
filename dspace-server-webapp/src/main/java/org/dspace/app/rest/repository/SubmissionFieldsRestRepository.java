@@ -9,18 +9,23 @@ package org.dspace.app.rest.repository;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
-import org.dspace.app.rest.model.SubmissionRepeatableFieldsRest;
-import org.dspace.app.rest.model.wrapper.SubmissionRepeatableFields;
+import org.dspace.app.rest.model.SubmissionFieldsRest;
+import org.dspace.app.rest.model.wrapper.SubmissionFields;
+import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
@@ -40,13 +45,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 /**
- * This is the repository responsible to manage Submission Repeatable Fields Rest object
+ * This is the repository responsible to manage SubmissionFields Rest object
  *
  * @author Mohamed Eskander (mohamed.eskander at 4science.it)
  */
-@Component(SubmissionRepeatableFieldsRest.CATEGORY + "." + SubmissionRepeatableFieldsRest.NAME)
-public class SubmissionRepeatableFieldsRestRepository
-    extends DSpaceRestRepository<SubmissionRepeatableFieldsRest, UUID> {
+@Component(SubmissionFieldsRest.CATEGORY + "." + SubmissionFieldsRest.NAME)
+public class SubmissionFieldsRestRepository extends DSpaceRestRepository<SubmissionFieldsRest, UUID> {
 
     @Autowired
     private WorkspaceItemService workspaceItemService;
@@ -72,28 +76,30 @@ public class SubmissionRepeatableFieldsRestRepository
      */
     @PreAuthorize("permitAll()")
     @Override
-    public SubmissionRepeatableFieldsRest findOne(Context context, UUID uuid) {
-        throw new RepositoryMethodNotImplementedException(SubmissionRepeatableFieldsRest.NAME, "findOne");
+    public SubmissionFieldsRest findOne(Context context, UUID uuid) {
+        throw new RepositoryMethodNotImplementedException(SubmissionFieldsRest.NAME, "findOne");
     }
 
     /**
      * The findAll method is not supported in this repository
      */
     @Override
-    public Page<SubmissionRepeatableFieldsRest> findAll(Context context, Pageable pageable) {
-        throw new RepositoryMethodNotImplementedException(SubmissionRepeatableFieldsRest.NAME, "findAll");
+    public Page<SubmissionFieldsRest> findAll(Context context, Pageable pageable) {
+        throw new RepositoryMethodNotImplementedException(SubmissionFieldsRest.NAME, "findAll");
     }
 
     @Override
-    public Class<SubmissionRepeatableFieldsRest> getDomainClass() {
-        return SubmissionRepeatableFieldsRest.class;
+    public Class<SubmissionFieldsRest> getDomainClass() {
+        return SubmissionFieldsRest.class;
     }
 
     @SearchRestMethod(name = "findByItem")
-    public SubmissionRepeatableFieldsRest findByItem(@Parameter(value = "uuid", required = true) UUID uuid)
+    public SubmissionFieldsRest findByItem(@Parameter(value = "uuid", required = true) UUID uuid)
         throws SQLException, DCInputsReaderException {
 
         Context context = obtainContext();
+        List<String> repeatableFields = new ArrayList<>();
+        Map<String, List<String>> nestedFields = new HashMap<>();
 
         Item item = itemService.find(context, uuid);
 
@@ -104,10 +110,12 @@ public class SubmissionRepeatableFieldsRestRepository
 
         Collection collation = findCollectionByItem(context, item);
 
-        SubmissionRepeatableFields submissionRepeatableFields =
-            new SubmissionRepeatableFields(uuid.toString(), getRepeatableFields(item, collation));
+        appendRepeatableAndNestedFields(repeatableFields, nestedFields, item, collation);
 
-        return converter.toRest(submissionRepeatableFields, utils.obtainProjection());
+        SubmissionFields submissionFields =
+            new SubmissionFields(uuid.toString(), repeatableFields, nestedFields);
+
+        return converter.toRest(submissionFields, utils.obtainProjection());
     }
 
     private Collection findCollectionByItem(Context context, Item item) throws SQLException {
@@ -129,26 +137,46 @@ public class SubmissionRepeatableFieldsRestRepository
 
     }
 
-    private List<String> getRepeatableFields(Item item, Collection collation) throws DCInputsReaderException {
-        List<String> repeatableFields = new ArrayList<>();
+    private void appendRepeatableAndNestedFields(List<String> repeatableFields,
+                                                 Map<String, List<String>> nestedFields,
+                                                 Item item, Collection collation) throws DCInputsReaderException {
+
         List<DCInputSet> dcInputSets = dcInputsReader.getInputsByCollection(collation);
 
         for (String metadataField : getDistinctMetadataFields(item)) {
             for (DCInputSet dcInputSet : dcInputSets) {
                 if (dcInputSet.isFieldPresent(metadataField)) {
-
-                    if (dcInputSet.hasParent(metadataField)) {
+                    Optional<DCInput> parentDcInputOptional = dcInputSet.findParent(metadataField);
+                    if (parentDcInputOptional.isPresent()) {
                         repeatableFields.add(metadataField);
+                        fillNestedFields(nestedFields, parentDcInputOptional.get(), metadataField);
                     } else if (dcInputSet.getField(metadataField).get().isRepeatable()) {
                         repeatableFields.add(metadataField);
                     }
-
                 }
             }
         }
+    }
 
-        return repeatableFields;
+    private void fillNestedFields(Map<String, List<String>> nestedFields,
+                                  DCInput ParentDcInput, String metadataField) {
 
+        String parentMetadataField =
+            StringUtils.joinWith(
+                ".", ParentDcInput.getSchema(), ParentDcInput.getElement(), ParentDcInput.getQualifier()
+            );
+
+        if (!parentMetadataField.equals(metadataField)) {
+            List<String> fields;
+            if (nestedFields.containsKey(parentMetadataField)) {
+                fields = nestedFields.get(parentMetadataField);
+            } else {
+                fields = new ArrayList<>();
+            }
+
+            fields.add(metadataField);
+            nestedFields.put(parentMetadataField, fields);
+        }
     }
 
     private Set<String> getDistinctMetadataFields(Item item) {
