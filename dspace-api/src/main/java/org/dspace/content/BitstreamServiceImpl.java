@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -499,6 +500,19 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     @Override
     public Long getLastModified(Bitstream bitstream) throws IOException {
         return bitstreamStorageService.getLastModified(bitstream);
+    }
+
+    @Override
+    public Iterator<Bitstream> findShowableByItem(
+        Context context, UUID itemId, Optional<String> bundleName
+    ) throws SQLException {
+        return bitstreamDAO.findShowableByItem(
+            context,
+            itemId,
+            bundleName
+                .filter(StringUtils::isNotBlank)
+                .orElse(null)
+        );
     }
 
 }

@@ -760,6 +760,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "cris", "customurl", "old", url);
     }
 
+    public ItemBuilder withScopusPublicationLastImport(String date) {
+        return addMetadataValue(item, "cris", "lastimport", "scopus-publication", date);
+    }
+
     public ItemBuilder withHandle(String handle) {
         this.handle = handle;
         return this;
@@ -877,7 +881,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     @Override
     public Item build() {
         try {
-            installItemService.installItem(context, workspaceItem, handle);
+            installItemService.installItem(context, workspaceItem, this.handle);
             itemService.update(context, item);
             //Check if we need to make this item private. This has to be done after item install.
             if (readerGroup != null) {
