@@ -133,13 +133,31 @@ public class SubmissionFieldsRestRepositoryIT extends AbstractControllerIntegrat
                                .andExpect(status().isOk())
                                .andExpect(jsonPath("$.itemId", is(item.getID().toString())))
                                .andExpect(jsonPath("$.repeatableFields", containsInAnyOrder(
-                                   "dc.contributor.author",
-                                   "dc.contributor.editor",
-                                   "dc.identifier.uri",
-                                   "dc.title.alternative",
-                                   "dc.subject",
+                                   "dc.identifier.arxiv",
+                                   "dc.identifier.ismn",
+                                   "dc.relation.product",
+                                   "dc.identifier.pmid",
+                                   "dc.relation.grantno",
+                                   "dc.relation.conference",
+                                   "dc.relation.ispartofseries",
                                    "oairecerif.author.affiliation",
-                                   "oairecerif.editor.affiliation"
+                                   "dc.identifier.uri",
+                                   "dc.description.sponsorship",
+                                   "dc.description.sponsorship",
+                                   "dc.title.alternative",
+                                   "dc.identifier.scopus",
+                                   "dc.contributor.author",
+                                   "oairecerif.editor.affiliation",
+                                   "dc.contributor.editor",
+                                   "dc.identifier.govdoc",
+                                   "dc.identifier.isi",
+                                   "dc.identifier.isbn",
+                                   "dc.identifier.doi",
+                                   "dc.identifier.adsbibcode",
+                                   "dc.identifier.issn",
+                                   "dc.subject",
+                                   "dc.relation.project",
+                                   "dc.identifier.other"
                                )))
                                .andExpect(jsonPath("$.nestedFields['dc.contributor.author']", contains(
                                    "oairecerif.author.affiliation")))
@@ -176,10 +194,31 @@ public class SubmissionFieldsRestRepositoryIT extends AbstractControllerIntegrat
                                .andExpect(status().isOk())
                                .andExpect(jsonPath("$.itemId", is(workspaceItem.getItem().getID().toString())))
                                .andExpect(jsonPath("$.repeatableFields", containsInAnyOrder(
+                                   "dc.identifier.arxiv",
+                                   "dc.identifier.ismn",
+                                   "dc.relation.product",
+                                   "dc.identifier.pmid",
+                                   "dc.relation.grantno",
+                                   "dc.relation.conference",
+                                   "dc.relation.ispartofseries",
+                                   "oairecerif.author.affiliation",
+                                   "dc.identifier.uri",
+                                   "dc.description.sponsorship",
+                                   "dc.description.sponsorship",
+                                   "dc.title.alternative",
+                                   "dc.identifier.scopus",
                                    "dc.contributor.author",
+                                   "oairecerif.editor.affiliation",
                                    "dc.contributor.editor",
+                                   "dc.identifier.govdoc",
+                                   "dc.identifier.isi",
+                                   "dc.identifier.isbn",
+                                   "dc.identifier.doi",
+                                   "dc.identifier.adsbibcode",
+                                   "dc.identifier.issn",
                                    "dc.subject",
-                                   "oairecerif.author.affiliation"
+                                   "dc.relation.project",
+                                   "dc.identifier.other"
                                )))
                                .andExpect(jsonPath("$.nestedFields['dc.contributor.author']", contains(
                                    "oairecerif.author.affiliation")))
@@ -213,10 +252,31 @@ public class SubmissionFieldsRestRepositoryIT extends AbstractControllerIntegrat
                                .andExpect(status().isOk())
                                .andExpect(jsonPath("$.itemId", is(workflowItem.getItem().getID().toString())))
                                .andExpect(jsonPath("$.repeatableFields", containsInAnyOrder(
-                                   "dc.contributor.author",
+                                   "dc.identifier.arxiv",
+                                   "dc.identifier.ismn",
+                                   "dc.relation.product",
+                                   "dc.identifier.pmid",
+                                   "dc.relation.grantno",
+                                   "dc.relation.conference",
+                                   "dc.relation.ispartofseries",
+                                   "oairecerif.author.affiliation",
                                    "dc.identifier.uri",
+                                   "dc.description.sponsorship",
+                                   "dc.description.sponsorship",
+                                   "dc.title.alternative",
+                                   "dc.identifier.scopus",
+                                   "dc.contributor.author",
+                                   "oairecerif.editor.affiliation",
+                                   "dc.contributor.editor",
+                                   "dc.identifier.govdoc",
+                                   "dc.identifier.isi",
+                                   "dc.identifier.isbn",
+                                   "dc.identifier.doi",
+                                   "dc.identifier.adsbibcode",
+                                   "dc.identifier.issn",
                                    "dc.subject",
-                                   "oairecerif.author.affiliation"
+                                   "dc.relation.project",
+                                   "dc.identifier.other"
                                )))
                                .andExpect(jsonPath("$.nestedFields['dc.contributor.author']", contains(
                                    "oairecerif.author.affiliation")))

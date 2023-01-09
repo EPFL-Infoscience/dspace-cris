@@ -10,12 +10,12 @@ package org.dspace.app.rest.repository;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
@@ -110,7 +110,7 @@ public class SubmissionFieldsRestRepository extends DSpaceRestRepository<Submiss
 
         Collection collation = findCollectionByItem(context, item);
 
-        appendRepeatableAndNestedFields(repeatableFields, nestedFields, item, collation);
+        appendRepeatableAndNestedFields(repeatableFields, nestedFields, collation);
 
         SubmissionFields submissionFields =
             new SubmissionFields(uuid.toString(), repeatableFields, nestedFields);
@@ -139,11 +139,11 @@ public class SubmissionFieldsRestRepository extends DSpaceRestRepository<Submiss
 
     private void appendRepeatableAndNestedFields(List<String> repeatableFields,
                                                  Map<String, List<String>> nestedFields,
-                                                 Item item, Collection collation) throws DCInputsReaderException {
+                                                 Collection collation) throws DCInputsReaderException {
 
         List<DCInputSet> dcInputSets = dcInputsReader.getInputsByCollection(collation);
 
-        for (String metadataField : getDistinctMetadataFields(item)) {
+        for (String metadataField : getDistinctMetadataFields(dcInputSets)) {
             for (DCInputSet dcInputSet : dcInputSets) {
                 if (dcInputSet.isFieldPresent(metadataField)) {
                     Optional<DCInput> parentDcInputOptional = dcInputSet.findParent(metadataField);
@@ -179,14 +179,14 @@ public class SubmissionFieldsRestRepository extends DSpaceRestRepository<Submiss
         }
     }
 
-    private Set<String> getDistinctMetadataFields(Item item) {
-
-        final Set<String> fields = new HashSet<>();
-
-        item.getMetadata().stream()
-            .forEach(m -> fields.add(m.getMetadataField().toString('.')));
-
-        return fields;
+    private Set<String> getDistinctMetadataFields(List<DCInputSet> dcInputSets) {
+        return
+            dcInputSets
+                .stream()
+                .flatMap(dcInputSet ->
+                    dcInputSet.getMetadataFields().stream()
+                )
+                .collect(Collectors.toSet());
     }
 
 }

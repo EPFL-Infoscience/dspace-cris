@@ -8,6 +8,7 @@
 package org.dspace.app.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -159,6 +160,50 @@ public class DCInputSet {
             log.error(e.getMessage(), e);
         }
         return Optional.empty();
+    }
+
+    public List<String> getMetadataFields() {
+        List<String > metadataFields = new ArrayList<>();
+        for (int i = 0; i < inputs.length; i++) {
+            for (int j = 0; j < inputs[i].length; j++) {
+                DCInput field = inputs[i][j];
+                if (StringUtils.equals(field.getInputType(), "qualdrop_value")) {
+                    List<String> pairs = field.getPairs();
+                    for (int k = 0; k < pairs.size(); k += 2) {
+                        String qualifier = pairs.get(k + 1);
+                        metadataFields.add(
+                            Utils.standardize(field.getSchema(), field.getElement(), qualifier, ".")
+                        );
+                    }
+                } else if (StringUtils.equalsAny(field.getInputType(), "group", "inline-group")) {
+                    appendNestedMetadataFields(metadataFields, field);
+                } else {
+                    metadataFields.add(field.getFieldName());
+                }
+            }
+        }
+        return metadataFields;
+    }
+
+    private void appendNestedMetadataFields(List<String> fields, DCInput field) {
+        String formName = getFormName() + "-" + Utils.standardize(field.getSchema(),
+            field.getElement(), field.getQualifier(), "-");
+        try {
+            DCInputSet inputConfig = inputReader.getInputsByFormName(formName);
+
+            Arrays.stream(inputConfig.getFields())
+                  .forEach(dcInputs ->
+                      Arrays.stream(dcInputs)
+                            .forEach(dcInput -> {
+                                if (StringUtils.equalsAny(dcInput.getInputType(), "group", "inline-group")) {
+                                    appendNestedMetadataFields(fields, dcInput);
+                                } else {
+                                    fields.add(dcInput.getFieldName());
+                                }
+                            }));
+        } catch (DCInputsReaderException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public Optional<DCInput> findParent(String fieldName) {
