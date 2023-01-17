@@ -11,13 +11,18 @@ import static java.lang.String.join;
 import static java.util.regex.Pattern.compile;
 import static org.dspace.app.launcher.ScriptLauncher.handleScript;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
+import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.dspace.builder.WorkspaceItemBuilder.createWorkspaceItem;
+import static org.dspace.core.Constants.READ;
+import static org.dspace.util.MultiFormatDateParser.parse;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -33,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,7 +48,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +62,8 @@ import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authority.CrisConsumer;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.content.Bitstream;
@@ -69,6 +79,9 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.CrisConstants;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.event.factory.EventServiceFactory;
 import org.dspace.event.service.EventService;
 import org.dspace.services.ConfigurationService;
@@ -104,6 +117,8 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     private BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
 
     private WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
+
+    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
     private Community community;
 
@@ -1934,6 +1949,146 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    @Test
+    public void testUpdateAndDeleteBitstreamsOfItems() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+
+        Collection publication =
+            createCollection(context, community)
+                .withSubmissionDefinition("publication")
+                .withAdminGroup(eperson)
+                .build();
+
+        Item publicationItemOne =
+            createItem(context, publication)
+                .withTitle("Test Publication")
+                .withAuthor("Eskander M.")
+                .withDescription("This is a test for bulk import")
+                .build();
+
+        Item publicationItemTwo =
+            createItem(context, publication)
+                .withTitle("Test Publication 2")
+                .withAuthor("Eskander M. 2")
+                .withDescription("This is a test for bulk import")
+                .build();
+
+        String bitstreamContent = "TEST CONTENT";
+        Bitstream bitstreamOne;
+        Bitstream bitstreamTwo;
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+            bitstreamOne =
+                BitstreamBuilder.createBitstream(context, publicationItemOne, is)
+                                .withName("title")
+                                .withMimeType("text/plain")
+                                .build();
+
+            bitstreamTwo =
+                BitstreamBuilder.createBitstream(context, publicationItemTwo, is)
+                                .withName("title")
+                                .withMimeType("text/plain")
+                                .build();
+        }
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "update-delete-bitstreams-of-items.xls";
+        String fileLocation = getXlsFilePath(fileName);
+        String bitstreamLocation = "file://test.txt";
+
+        List<String> bitstreamIds =
+            List.of(
+                bitstreamOne.getID().toString(),
+                bitstreamOne.getID().toString(),
+                bitstreamOne.getID().toString(),
+                bitstreamOne.getID().toString(),
+                bitstreamTwo.getID().toString()
+            );
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
+            List.of(publicationItemOne.getID().toString(), publicationItemTwo.getID().toString()),
+            bitstreamIds,
+            List.of(bitstreamLocation, bitstreamLocation, bitstreamLocation, bitstreamLocation));
+
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected 3 errors", handler.getErrorMessages(), hasSize(3));
+        assertThat(handler.getErrorMessages(), containsInAnyOrder(
+            "Sheet bitstream-metadata - Row 2 - The provided ACCESS-CONDITION: INAVALID_NAME is not supported!",
+            "The access condition embargo requires a start date.",
+            "The access condition embargo requires a start date."
+        ));
+        assertThat("Expected no warnings", handler.getWarningMessages(), empty());
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat("Expected 5 info messages", infoMessages, hasSize(5));
+
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 4 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 2 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - Item updated successfully"));
+        assertThat(infoMessages.get(4), containsString("Row 3 - Item updated successfully"));
+
+        publicationItemOne = context.reloadEntity(publicationItemOne);
+        publicationItemTwo = context.reloadEntity(publicationItemTwo);
+
+        List<Bitstream> bitstreams = new ArrayList<>();
+        bitstreamService.getItemBitstreams(context, publicationItemOne).forEachRemaining(bitstreams::add);
+
+        Bitstream bitstream = getBitstreamByBundleName(bitstreams, "ORIGINAL");
+        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+        String bContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream);
+
+        // title has been changed.
+        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        // new dc.description will be added to bitstream
+        assertThat(metadataMap.get("dc.description"), is("test file description"));
+        // content still the same as before
+        assertThat(bContent, is("TEST CONTENT"));
+        assertThat(bitstream.getBundles().get(0).getName(), is("ORIGINAL"));
+
+        assertThat(bitstream.getResourcePolicies().size(), greaterThanOrEqualTo(3));
+
+       Map<String, ResourcePolicy> resourcePolicyMap =
+           bitstream.getResourcePolicies()
+                    .stream()
+                    .collect(Collectors.toMap(
+                        ResourcePolicy::getRpName,resourcePolicy -> resourcePolicy));
+
+        matchResourcePolicyProperties(
+            resourcePolicyMap.get("openaccess"),
+            READ, anonymousGroup, TYPE_CUSTOM, "openaccess", null, null, "open access description"
+        );
+
+        matchResourcePolicyProperties(
+            resourcePolicyMap.get("lease"),
+            READ, anonymousGroup, TYPE_CUSTOM, "lease", null, parse("2023-02-01"), "description here"
+        );
+
+        matchResourcePolicyProperties(
+            resourcePolicyMap.get("embargo"),
+            READ, anonymousGroup, TYPE_CUSTOM, "embargo", parse("2023-01-12"), null, "description here"
+        );
+
+        BitstreamFormat bf = bitstream.getFormat(context);
+
+        assertThat(bf.getMIMEType(), is("text/plain"));
+        assertThat(bf.getShortDescription(), is("Text"));
+        assertThat(bf.getDescription(), is("Plain Text"));
+
+        bitstreams.clear();
+        bitstreamService.getItemBitstreams(context, publicationItemTwo).forEachRemaining(bitstreams::add);
+        assertThat(bitstreams, empty());
+    }
+
     /*
      * Creates a temporary Excel file which is a copy of the one provided
      * but set's the FILE_PATH column to the new bitstream path.
@@ -1954,6 +2109,30 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         return file.getAbsolutePath();
     }
 
+    /**
+     * Create a temporary Excel file which is a copy of the one provided
+     * but set the FILE_PATH column to the new bitstream path.
+     */
+    private String createTemporaryExcelFile(String excelFilePath,
+                                            String excelFileName,
+                                            List<String> idList,
+                                            List<String> bitstreamIds,
+                                            List<String> bitstreamFilePaths) throws IOException {
+        XSSFWorkbook workbook = new XSSFWorkbook(excelFilePath);
+        setIdsToExcelFile(workbook, idList);
+        setBitstreamIdsToExcelFile(workbook, bitstreamIds);
+        setBitstreamPathToExcelFile(workbook, bitstreamFilePaths);
+
+        // Write file to disk
+        File file = new File(getXlsFilePath("tmp_" + excelFileName));
+        FileOutputStream outputStream = new FileOutputStream(file);
+        workbook.write(outputStream);
+        outputStream.close();
+
+        temporaryFiles.add(file.getAbsolutePath());
+        return file.getAbsolutePath();
+    }
+
     private void setIdsToExcelFile(Workbook workbook, List<String> idList) {
         if (idList == null) {
             return;
@@ -1962,6 +2141,17 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Sheet sheet = workbook.getSheetAt(0);
         for (int i = 0; i < idList.size(); i++) {
             sheet.getRow(i + 1).getCell(0).setCellValue(idList.get(i));
+        }
+    }
+
+    private void setBitstreamIdsToExcelFile(Workbook workbook, List<String> bitstreamIds) {
+        if (bitstreamIds == null) {
+            return;
+        }
+
+        Sheet sheet = workbook.getSheet(BITSTREAM_METADATA);
+        for (int i = 0; i < bitstreamIds.size(); i++) {
+            sheet.getRow(i + 1).getCell(3).setCellValue(bitstreamIds.get(i));
         }
     }
 
@@ -2003,6 +2193,20 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             }
         }
         return null;
+    }
+
+    private void matchResourcePolicyProperties(ResourcePolicy resourcePolicy,
+                                               int actionId, Group group, String rpType,
+                                               String rpName, Date startDate,
+                                               Date endDate, String description) {
+
+        assertThat(resourcePolicy.getAction(), is(actionId));
+        assertThat(resourcePolicy.getGroup(), is(group));
+        assertThat(resourcePolicy.getRpType(), is(rpType));
+        assertThat(resourcePolicy.getRpName(), is(rpName));
+        assertThat(resourcePolicy.getStartDate(), is(startDate));
+        assertThat(resourcePolicy.getEndDate(), is(endDate));
+        assertThat(resourcePolicy.getRpDescription(), is(description));
     }
 
     @After

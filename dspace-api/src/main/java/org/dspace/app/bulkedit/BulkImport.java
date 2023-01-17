@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +36,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -44,6 +46,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.dspace.app.bulkimport.exception.BulkImportException;
+import org.dspace.app.bulkimport.model.AccessCondition;
 import org.dspace.app.bulkimport.model.EntityRow;
 import org.dspace.app.bulkimport.model.ImportAction;
 import org.dspace.app.bulkimport.model.MetadataGroup;
@@ -56,10 +59,12 @@ import org.dspace.authority.service.ItemSearcherMapper;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -81,8 +86,12 @@ import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.submit.model.AccessConditionOption;
+import org.dspace.submit.model.UploadConfiguration;
+import org.dspace.submit.model.UploadConfigurationService;
 import org.dspace.submit.factory.SubmitterServiceFactory;
 import org.dspace.submit.service.ChangeSubmitterService;
+import org.dspace.util.MultiFormatDateParser;
 import org.dspace.util.UUIDUtils;
 import org.dspace.util.WorkbookUtils;
 import org.dspace.utils.DSpace;
@@ -138,6 +147,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private static final String FILE_PATH_CELL = "FILE-PATH";
 
+    private static final String ACCESS_CONDITION_CELL = "ACCESS-CONDITION";
+
     private static final String ORIGINAL_BUNDLE = "ORIGINAL";
     public static final String SUBMITTER = "SUBMITTER";
 
@@ -185,6 +196,10 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private BitstreamFormatService bitstreamFormatService;
 
+    private UploadConfigurationService uploadConfigurationService;
+
+    private ResourcePolicyService resourcePolicyService;
+
     @Override
     @SuppressWarnings("unchecked")
     public void setup() throws ParseException {
@@ -207,6 +222,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
         this.submitterService = SubmitterServiceFactory.getInstance().getSubmitterService();
         this.bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
+        this.uploadConfigurationService = AuthorizeServiceFactory.getInstance().getUploadConfigurationService();
+        this.resourcePolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
 
         try {
             this.reader = new DCInputsReader();
@@ -321,7 +338,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         try {
             List<String> uploadMetadata = this.reader.getUploadMetadataFieldsFromCollection(getCollection());
-            List<String> metadataFields = headers.subList(3, headers.size()); // Upload sheet metadata starts at index 3
+            List<String> metadataFields = headers.subList(6, headers.size()); // Upload sheet metadata starts at index 6
 
             for (String metadataField : metadataFields) {
                 String metadata = getMetadataField(metadataField);
@@ -491,12 +508,83 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private boolean isUploadRowValid(Row row) {
         return !(StringUtils.isEmpty(getCellValue(row.getCell(0))) ||
-        StringUtils.isEmpty(getCellValue(row.getCell(1))));
+            (
+                StringUtils.isEmpty(getCellValue(row.getCell(1))) &&
+                StringUtils.isEmpty(getCellValue(row.getCell(3)))
+            ));
     }
 
     private UploadDetails buildUploadDetails(Row row, List<MetadataGroup> metadataGroups) {
-        return new UploadDetails(getCellValue(row.getCell(0)), getCellValue(row.getCell(1)),
-                                 getCellValue(row.getCell(2)), metadataGroups.get(row.getRowNum() - 1));
+        return new UploadDetails(
+            getCellValue(row.getCell(0)), getCellValue(row.getCell(1)),
+            getCellValue(row.getCell(2)), getCellValue(row.getCell(3)),
+            buildAccessConditions(row, getCellValue(row.getCell(4))),
+            BooleanUtils.toBoolean(getCellValue(row.getCell(5))),
+            metadataGroups.get(row.getRowNum() - 1));
+    }
+
+    private List<AccessCondition> buildAccessConditions(Row row, String accessCondition) {
+        List<AccessCondition> accessConditions = new ArrayList<>();
+
+        if (StringUtils.isEmpty(accessCondition)) {
+            return accessConditions;
+        }
+
+        Map<String, AccessConditionOption> accessConditionOptions =
+            findAccessConditionOptions(uploadConfigurationService.getMap().get("upload"));
+
+        String[] values = split(accessCondition, METADATA_SEPARATOR);
+
+        Arrays.stream(values)
+              .forEach(s -> {
+                  String [] split = StringUtils.split(s, AUTHORITY_SEPARATOR);
+                  String name = split[0];
+                  Optional<AccessConditionOption> accessConditionOption = Optional.ofNullable(
+                      accessConditionOptions.get(name));
+
+                  if (!accessConditionOption.isPresent()) {
+                      handleValidationErrorOnRow(row,
+                          "The provided " + ACCESS_CONDITION_CELL + ": " + name + " is not supported!");
+                      return;
+                  }
+
+                  accessConditions.add(buildAccessCondition(accessConditionOption.get(), split));
+              });
+        return accessConditions;
+    }
+
+    private Map<String, AccessConditionOption> findAccessConditionOptions(UploadConfiguration uploadConfig) {
+        return
+            uploadConfig
+                .getOptions()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        AccessConditionOption::getName,
+                        accessConditionOption -> accessConditionOption
+                    ));
+    }
+
+    private AccessCondition buildAccessCondition(AccessConditionOption accessConditionOption, String[] split) {
+        String description;
+        Date startDate = null;
+        Date endDate = null;
+
+        if (accessConditionOption.getHasStartDate() && accessConditionOption.getHasEndDate()) {
+            startDate = split.length > 1 ? MultiFormatDateParser.parse(split[1]) : null;
+            endDate = split.length > 2 ? MultiFormatDateParser.parse(split[2]) : null;
+            description = split.length == 4 ? split[3] : "";
+        } else if (accessConditionOption.getHasStartDate()) {
+            startDate = split.length > 1 ? MultiFormatDateParser.parse(split[1]) : null;
+            description = split.length == 3 ? split[2] : "";
+        } else if (accessConditionOption.getHasEndDate()) {
+            endDate = split.length > 1 ? MultiFormatDateParser.parse(split[1]) : null;
+            description = split.length == 3 ? split[2] : "";
+        } else {
+            description = split.length == 2 ? split[1] : "";
+        }
+
+        return new AccessCondition(split[0], description, startDate, endDate);
     }
 
     private List<Sheet> getAllMetadataGroupSheets(Workbook workbook) {
@@ -660,22 +748,187 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         if (hasFilesForUpload) {
             List<UploadDetails> uploadDetails = entityRow.getUploadDetails();
             uploadDetails.forEach(u -> {
-                Optional<Bundle> optionalBundle = getBundleOfUpload(item, u);
-                Optional<InputStream> optionalInputStream = bulkImportFileUtil.getInputStream(u.getFilePath());
-                if (optionalBundle.isPresent() && optionalInputStream.isPresent()) {
-                    Optional<Bitstream> bitstream =
-                        createBitstream(optionalBundle.get(), optionalInputStream.get());
-                    bitstream.ifPresent(value -> {
-                        addMetadataToBitstream(value, u.getMetadataGroup());
-                        setBitstreamFormat(value);
-                    });
+                if (StringUtils.isNotEmpty(u.getBitstreamId())) {
+                    Bitstream bitstream = findBitstream(u.getBitstreamId());
+                    if (bitstream == null) {
+                        throw new BulkImportException("No bitstream found with id " + u.getBitstreamId() +
+                            " for Item with id " + entityRow.getId());
+                    }
+                    updateOrDeleteBitstream(bitstream, u);
                 } else {
-                    handler.logError("Cannot create bundle or input stream for " +
-                                         "bundle: " + u.getBundleName() + " with path: " + u.getFilePath() +
-                                         " and parent id: " + u.getParentId());
+                    createBitstream(item, u);
                 }
             });
         }
+    }
+
+    private Bitstream findBitstream(String bitstreamId) {
+        try {
+            return bitstreamService.find(context, UUID.fromString(bitstreamId));
+        } catch (SQLException e) {
+            throw new BulkImportException(e);
+        }
+    }
+
+    private void updateOrDeleteBitstream(Bitstream bitstream, UploadDetails uploadDetails) {
+        if (StringUtils.isEmpty(uploadDetails.getFilePath())) {
+            deleteBitstream(bitstream);
+        } else {
+            updateBitstream(bitstream, uploadDetails);
+        }
+    }
+
+    private void deleteBitstream(Bitstream bitstream) {
+        try {
+            bitstreamService.delete(context, bitstream);
+        } catch (SQLException | AuthorizeException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void updateBitstream(Bitstream bitstream, UploadDetails uploadDetails) {
+        updateBitstreamMetadata(bitstream, uploadDetails);
+        updateBitstreamPolicies(bitstream, uploadDetails);
+    }
+
+    private void updateBitstreamMetadata(Bitstream bitstream, UploadDetails uploadDetails) {
+        uploadDetails
+            .getMetadataGroup()
+            .getMetadata()
+            .asMap()
+            .forEach((field, metadataValueVOs) ->
+                metadataValueVOs.forEach(metadataValueVO ->
+                    addOrUpdateBitstreamMetadata(bitstream, field, metadataValueVO)
+                ));
+    }
+
+    private void addOrUpdateBitstreamMetadata(Bitstream bitstream, String field,
+                                              MetadataValueVO metadataValueVO) {
+        Optional<MetadataField> metadataField = getMetadataFieldByString(field);
+
+        metadataField.ifPresent(f -> {
+            Optional<MetadataValue> metadataValueOptional =
+                findFirstMetadataValue(bitstream, f.toString('.'));
+
+            metadataValueOptional.ifPresent(metadataValue -> {
+                if (!metadataValue.getValue().equals(metadataValueVO.getValue())) {
+                    updateBitstreamMetadata(bitstream, f , metadataValueVO, metadataValue);
+                }
+            });
+
+            if (!metadataValueOptional.isPresent()) {
+                addMetadataToBitstream(bitstream, f, metadataValueVO);
+            }
+        });
+    }
+
+    private void updateBitstreamMetadata(Bitstream bitstream,
+                                         MetadataField metadataField,
+                                         MetadataValueVO metadataValueVO,
+                                         MetadataValue metadataValue) {
+        try {
+            bitstreamService.removeMetadataValues(context, bitstream, List.of(metadataValue));
+            addMetadataToBitstream(bitstream, metadataField, metadataValueVO);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void updateBitstreamPolicies(Bitstream bitstream, UploadDetails uploadDetails) {
+        UploadConfiguration uploadConfig = uploadConfigurationService.getMap().get("upload");
+
+        if (!uploadDetails.getAdditionalAccessCondition()) {
+            try {
+                resourcePolicyService.removeAllPolicies(context, bitstream);
+            } catch (SQLException | AuthorizeException e) {
+                throw new BulkImportException(e);
+            }
+        }
+
+        uploadDetails
+            .getAccessConditions()
+            .forEach(a ->
+                findApplyResourcePolicy(context, uploadConfig, bitstream, a.getName(), a.getDescription(),
+                    a.getStartDate(), a.getEndDate())
+            );
+    }
+
+    private void findApplyResourcePolicy(Context context, UploadConfiguration uploadConfiguration,
+                                         DSpaceObject obj, String name, String description,
+                                         Date startDate, Date endDate) {
+
+        for (AccessConditionOption aco : uploadConfiguration.getOptions()) {
+            if (aco.getName().equalsIgnoreCase(name)) {
+                try {
+                    aco.createResourcePolicy(context, obj, name, description, startDate, endDate);
+                } catch (Exception e) {
+                    handler.logError(e.getMessage());
+                }
+                break;
+            }
+        }
+    }
+
+    private Optional<MetadataValue> findFirstMetadataValue(Bitstream bitstream, String metadataField) {
+        return
+            bitstream.getMetadata()
+                     .stream()
+                     .filter(metadataValue ->
+                         metadataValue.getMetadataField().toString('.').equals(getMetadataField(metadataField)))
+                     .findFirst();
+    }
+
+    private Optional<Bundle> getBundleOfUpload(Item item, UploadDetails uploadDetails) {
+        String bundleName = uploadDetails.getBundleName();
+        // If Bundle is not specified
+        if (StringUtils.isEmpty(bundleName)) {
+            return createBundle(item, ORIGINAL_BUNDLE);
+        } else {
+            // If item already has the bundle specified
+            if (item.getBundles(bundleName).size() > 0) {
+                return Optional.of(item.getBundles(bundleName).get(0));
+            } else {
+                // Create new bundle as specified in file
+                return createBundle(item, bundleName);
+            }
+        }
+    }
+
+    private Optional<Bundle> createBundle(Item item, String bundleName) {
+        try {
+            return Optional.of(bundleService.create(context, item, bundleName));
+        } catch (Exception e) {
+            handler.logError("Cannot create bundle: [" + bundleName + "]" +
+                "\n" + e.getMessage());
+        }
+
+        return Optional.ofNullable(null);
+    }
+
+    private Optional<Bitstream> createBitstream(Item item, UploadDetails uploadDetails) {
+        Optional<Bundle> bundle = getBundleOfUpload(item, uploadDetails);
+        Optional<InputStream> inputStream =
+            bulkImportFileUtil.getInputStream(uploadDetails.getFilePath());
+
+        if (bundle.isPresent() && inputStream.isPresent()) {
+            Optional<Bitstream> bitstream =
+                createBitstream(bundle.get(), inputStream.get());
+
+            bitstream.ifPresent(value -> {
+                addMetadataToBitstream(value, uploadDetails.getMetadataGroup());
+                setBitstreamFormat(value);
+            });
+
+            return bitstream;
+        } else {
+            handler.logError(
+                "Cannot create bundle or input stream for " +
+                    "bundle: " + uploadDetails.getBundleName() +
+                    " with path: " + uploadDetails.getFilePath() +
+                    " and parent id: " + uploadDetails.getParentId()
+            );
+        }
+        return Optional.empty();
     }
 
     private void addMetadataToBitstream(Bitstream bitstream, MetadataGroup metadataGroup) {
@@ -707,38 +960,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private void addMetadataToBitstream(Bitstream bitstream, MetadataField metadataField, MetadataValueVO metadata) {
         try {
-            bitstreamService.addMetadata(context, bitstream, metadataField, "", metadata.getValue(),
+            bitstreamService.addMetadata(context, bitstream, metadataField, null, metadata.getValue(),
                                          metadata.getAuthority(), metadata.getConfidence());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private Optional<Bundle> getBundleOfUpload(Item item, UploadDetails uploadDetails) {
-        String bundleName = uploadDetails.getBundleName();
-        // If Bundle is not specified
-        if (StringUtils.isEmpty(bundleName)) {
-            return createBundle(item, ORIGINAL_BUNDLE);
-        } else {
-            // If item already has the bundle specified
-            if (item.getBundles(bundleName).size() > 0) {
-                return Optional.of(item.getBundles(bundleName).get(0));
-            } else {
-                // Create new bundle as specified in file
-                return createBundle(item, bundleName);
-            }
-        }
-    }
-
-    private Optional<Bundle> createBundle(Item item, String bundleName) {
-        try {
-            return Optional.of(bundleService.create(context, item, bundleName));
-        } catch (Exception e) {
-            handler.logError("Cannot create bundle: [" + bundleName + "]" +
-                                 "\n" + e.getMessage());
-        }
-
-        return Optional.ofNullable(null);
     }
 
     private Optional<Bitstream> createBitstream(Bundle bundle, InputStream inputStream) {
@@ -1029,7 +1255,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         String sheetName = sheet.getSheetName();
 
         if (BITSTREAM_METADATA.equalsIgnoreCase(sheetName)) {
-            return 3; // In Bitstream sheet metadata row starts at third index
+            return 6; // In Bitstream sheet metadata row starts at index 6
         }
 
         return isEntityRowSheet(sheet) ? (hasSubmitter ? 3 : 2) : 1;

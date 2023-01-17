@@ -8,6 +8,8 @@
 
 package org.dspace.app.bulkimport.model;
 
+import java.util.List;
+
 /*
  * @author Jurgen Mamani
  */
@@ -21,11 +23,22 @@ public class UploadDetails {
 
     private final MetadataGroup metadataGroup;
 
-    public UploadDetails(String parentId, String filePath, String bundleName, MetadataGroup metadataGroup) {
+    private final String bitstreamId;
+
+    private final List<AccessCondition> accessConditions;
+
+    private final boolean additionalAccessCondition;
+
+    public UploadDetails(String parentId, String filePath, String bundleName,
+                         String bitstreamId, List<AccessCondition> accessConditions,
+                         boolean additionalAccessCondition, MetadataGroup metadataGroup) {
         this.parentId = parentId;
         this.filePath = filePath;
         this.bundleName = bundleName;
         this.metadataGroup = metadataGroup;
+        this.bitstreamId = bitstreamId;
+        this.accessConditions = accessConditions;
+        this.additionalAccessCondition = additionalAccessCondition;
     }
 
     public String getParentId() {
@@ -42,5 +55,17 @@ public class UploadDetails {
 
     public MetadataGroup getMetadataGroup() {
         return metadataGroup;
+    }
+
+    public String getBitstreamId() {
+        return bitstreamId;
+    }
+
+    public List<AccessCondition> getAccessConditions() {
+        return accessConditions;
+    }
+
+    public boolean getAdditionalAccessCondition() {
+        return additionalAccessCondition;
     }
 }
