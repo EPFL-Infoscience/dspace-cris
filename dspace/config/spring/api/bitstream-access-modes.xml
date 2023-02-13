@@ -9,24 +9,42 @@
 	<util:map id="bitstreamAccessModesMap" map-class="java.util.HashMap" key-type="java.lang.String" value-type="java.util.List"> 
 		<entry key="Publication">
 			<list>
-			    <bean class="org.dspace.content.edit.CorrectItemMode">
-                    <property name="security">
-                        <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
-                    </property>
-                </bean>
-				<bean class="org.dspace.content.edit.CorrectItemMode">
-					<property name="security">
-						<value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
-					</property>
-					<property name="items">
-					   <list>
-					       <value>dc.contributor.author</value>
-					       <value>dc.contributor.editor</value>
-					   </list>
-					</property>
-				</bean>
+				<ref bean="submitterCorrectItemMode" />
+				<ref bean="customCorrectItemMode" />
 			</list>
 		</entry> 
 	</util:map>
+	
+	<util:map id="allowedBundlesForBitstreamAccess">
+	<!-- If an entry key is not specified in this map no restriction is applied -->
+		<entry key-ref="submitterCorrectItemMode">
+			<list>
+				<value>ORIGINAL</value>
+			</list>
+		</entry>
+		<entry key-ref="customCorrectItemMode">
+			<list>
+				<value>ORIGINAL</value>
+			</list>
+		</entry>	
+	</util:map>
+	
+	
+    <bean id="submitterCorrectItemMode" class="org.dspace.content.edit.CorrectItemMode">
+                 <property name="security">
+                     <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
+                 </property>
+             </bean>
+	<bean id="customCorrectItemMode" class="org.dspace.content.edit.CorrectItemMode">
+		<property name="security">
+			<value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+		</property>
+		<property name="items">
+		   <list>
+		       <value>dc.contributor.author</value>
+		       <value>dc.contributor.editor</value>
+		   </list>
+		</property>
+	</bean>
            
 </beans>

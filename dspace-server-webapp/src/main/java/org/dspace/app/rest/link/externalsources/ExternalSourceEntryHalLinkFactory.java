@@ -28,7 +28,7 @@ public class ExternalSourceEntryHalLinkFactory
 
     @Override
     protected void addLinks(ExternalSourceEntryResource halResource, Pageable pageable, LinkedList<Link> list)
-        throws Exception {
+            throws Exception {
         String externalSource = halResource.getContent().getExternalSource();
         String id = halResource.getContent().getId();
         list.add(buildLink(getMethodOn().getExternalSourceEntryValue(externalSource, id), SELF.value()));

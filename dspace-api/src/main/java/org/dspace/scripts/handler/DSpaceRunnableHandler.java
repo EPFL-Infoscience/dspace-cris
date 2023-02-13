@@ -113,18 +113,6 @@ public interface DSpaceRunnableHandler {
      * @param fileName      The filename
      * @param inputStream   The inputstream to be written
      * @param type          The type of the file
-     * @throws IOException  If something goes wrong
-     */
-    public void writeFilestream(Context context, String fileName, InputStream inputStream, String type)
-        throws IOException, SQLException, AuthorizeException;
-
-    /**
-     * This method will write the InputStream to either a file on the filesystem or a bitstream in the database
-     * depending on whether it's coming from a CommandLine call or REST call respectively
-     * @param context       The relevant DSpace context
-     * @param fileName      The filename
-     * @param inputStream   The inputstream to be written
-     * @param type          The type of the file
      * @param isPublicReadable The file can be read by everyone
      * @throws IOException  If something goes wrong
      */
@@ -133,6 +121,24 @@ public interface DSpaceRunnableHandler {
         this.writeFilestream(context, fileName, inputStream, type);
     }
 
+    /**
+     * This method will write the InputStream to either a file on the filesystem or a bitstream in the database
+     * depending on whether it's coming from a CommandLine call or REST call respectively
+     * @param context       The relevant DSpace context
+     * @param fileName      The filename
+     * @param inputStream   The inputstream to be written
+     * @param type          The type of the file
+     * @throws IOException  If something goes wrong
+     */
+    public void writeFilestream(Context context, String fileName, InputStream inputStream, String type)
+        throws IOException, SQLException, AuthorizeException;
+
+    /**
+     * This method will return a List of UUIDs for the special groups associated
+     * with the processId contained by specific implementations of this interface.
+     * Otherwise, it returns an empty collection.
+     * @return List containing UUIDs of Special Groups of the associated Process.
+     */
     public List<UUID> getSpecialGroups();
 
     public Locale getLocale();

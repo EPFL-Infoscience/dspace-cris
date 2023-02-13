@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
@@ -23,6 +22,7 @@ import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
 import org.dspace.util.UUIDUtils;
@@ -110,11 +110,12 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                                 && researcherProfileService.isAuthorOf(context, ePerson, item)) {
                             return true;
                         }
+
                     }
 
                     if (dSpaceObject instanceof Bitstream && Objects.isNull(ePerson)
-                            && authorizeService.authorizeActionBoolean(context, (Bitstream) dSpaceObject,
-                                    restPermission.getDspaceApiActionId())) {
+                        && authorizeService.authorizeActionBoolean(context, dSpaceObject,
+                                restPermission.getDspaceApiActionId())) {
                         return true;
                     }
 

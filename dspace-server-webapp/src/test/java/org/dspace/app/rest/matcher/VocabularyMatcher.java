@@ -58,7 +58,17 @@ public class VocabularyMatcher {
                     hasJsonPath("$.id", is(id)),
                     hasJsonPath("$.display", is(display)),
                     hasJsonPath("$.hasChildren", is(hasChildren))
-                )
+            ));
+    }
+
+    public static Matcher<? super Object> matchVocabularyEntry(String id, String display, String value, String type,
+        String authority) {
+        return allOf(
+            hasJsonPath("$.id", is(id)),
+                hasJsonPath("$.display", is(display)),
+                hasJsonPath("$.value", is(value)),
+                hasJsonPath("$.type", is(type)),
+                hasJsonPath("$.authority", is(authority))
         );
     }
 }

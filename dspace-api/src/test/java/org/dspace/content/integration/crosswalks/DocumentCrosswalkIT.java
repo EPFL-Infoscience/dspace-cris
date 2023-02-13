@@ -12,10 +12,13 @@ import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +47,7 @@ import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.CrisConstants;
 import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -624,6 +628,95 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    @Test
+    public void testPdfCrosswalkPersonWithPublicationsGroupedByType() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item personItem = ItemBuilder.createItem(context, collection)
+            .withEntityType("Person")
+            .withTitle("Test user")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Publication 1")
+            .withType("article")
+            .withIssueDate("2023")
+            .withAuthor("Test User", personItem.getID().toString())
+            .withAuthor("Walter White")
+            .withHandle("123456789/111111")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Publication 2")
+            .withType("book")
+            .withIssueDate("2019-03-01")
+            .withAuthor("Test User", personItem.getID().toString())
+            .withHandle("123456789/222222")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Publication 3")
+            .withType("chapter")
+            .withIssueDate("2020-06-01")
+            .withAuthor("John Smith")
+            .withAuthor("Test User", personItem.getID().toString())
+            .withHandle("123456789/333333")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Publication 4")
+            .withType("article")
+            .withIssueDate("2022-02-01")
+            .withAuthor("Walter White")
+            .withAuthor("Test User", personItem.getID().toString())
+            .withHandle("123456789/444444")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Publication 5")
+            .withType("book")
+            .withIssueDate("2022-05-06")
+            .withAuthor("Test User", personItem.getID().toString())
+            .withHandle("123456789/555555")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Publication 6")
+            .withIssueDate("2023-03-01")
+            .withAuthor("Test User", personItem.getID().toString())
+            .withAuthor("Another User")
+            .withHandle("123456789/666666")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        DocumentCrosswalk documentCrosswalk = new DSpace().getServiceManager()
+            .getServiceByName("pdfCrosswalkPersonGroupPublicationsByType", DocumentCrosswalk.class);
+        assertThat(documentCrosswalk, notNullValue());
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            documentCrosswalk.disseminate(context, personItem, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            assertThatPdfHasContent(out, content -> {
+                String[] rows = content.split("\n");
+                assertThat(rows, arrayContaining(
+                    "Publications",
+                    "Article",
+                    "Test User, & Walter White. (2023). Publication 1. http://localhost:4000/handle/123456789/111111",
+                    "Walter White, & Test User. (2022). Publication 4. http://localhost:4000/handle/123456789/444444",
+                    "Book",
+                    "Test User. (2022). Publication 5. http://localhost:4000/handle/123456789/555555",
+                    "Test User. (2019). Publication 2. http://localhost:4000/handle/123456789/222222",
+                    "Chapter",
+                    "John Smith, & Test User. (2020). Publication 3. http://localhost:4000/handle/123456789/333333",
+                    "Other",
+                    "Test User, & Another User. (2023). Publication 6. http://localhost:4000/handle/123456789/666666"));
+            });
+        }
+
+    }
+
     private Item buildPersonItem() {
         Item item = createItem(context, collection)
             .withEntityType("Person")
@@ -812,7 +905,9 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(content, containsString("Parent Organization: Parent OrgUnit"));
         assertThat(content, containsString("Identifier(s): ID-01, ID-02"));
         assertThat(content, containsString("URL(s): www.orgUnit.com, www.orgUnit.it"));
-        assertThat(content, containsString("People: Walter White, Jesse Pinkman"));
+        assertThat(content, anyOf(
+            containsString("People: Walter White, Jesse Pinkman"),
+            containsString("People: Jesse Pinkman, Walter White")));
     }
 
     private void assertThatEquipmentDocumentHasContent(String content) {

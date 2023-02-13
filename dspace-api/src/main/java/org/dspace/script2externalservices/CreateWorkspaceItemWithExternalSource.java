@@ -6,6 +6,9 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.script2externalservices;
+
+import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -31,9 +34,11 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.CollectionServiceImpl;
+import org.dspace.content.DCDate;
 import org.dspace.content.InstallItemServiceImpl;
 import org.dspace.content.Item;
 import org.dspace.content.ItemServiceImpl;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.MetadataValueDTO;
@@ -41,6 +46,7 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
 import org.dspace.discovery.DiscoverResultIterator;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.indexobject.IndexableCollection;
@@ -86,6 +92,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private String collectionUuid;
 
     private String finalState;
+
+    private Integer searchLimit;
 
     private Context context;
 
@@ -141,6 +149,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         this.finalState = commandLine.getOptionValue('f');
         this.collectionUuid = commandLine.getOptionValue('c');
         this.extraQuery = commandLine.getOptionValue('q');
+        if (commandLine.hasOption('l')) {
+            this.searchLimit = Integer.valueOf(commandLine.getOptionValue('l'));
+        } else {
+            this.searchLimit = getDefaultSearchLimit();
+        }
     }
 
     @Override
@@ -154,6 +167,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         if (StringUtils.isBlank(this.finalState) || isNotSupportedState()) {
             throw new IllegalArgumentException("The provided final state: (" + this.finalState + ") is not supported,"
                                              + " it must be one of this: workspace, workflow or item");
+        }
+
+        if (searchLimit < 0) {
+            throw new IllegalArgumentException("The search limit value must be a positive integer");
         }
 
         LiveImportDataProvider dataProvider = nameToProvider.get(service);
@@ -177,7 +194,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
         try {
             context.turnOffAuthorisationSystem();
-            performCreatingOfWorkspaceItems(context, dataProvider);
+            performCreatingOfWorkspaceItems(dataProvider);
             context.complete();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -228,13 +245,13 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return null;
     }
 
-    private void performCreatingOfWorkspaceItems(Context context, LiveImportDataProvider dataProvider) {
+    private void performCreatingOfWorkspaceItems(LiveImportDataProvider dataProvider) throws SQLException {
 
         int totalRecordWorked = 0;
-        int countItemsProcessed = 0;
         int totalItemsProcessed = 0;
+
         try {
-            Iterator<Item> itemIterator = findItems(context);
+            Iterator<Item> itemIterator = findItems();
             handler.logInfo("Update start");
             while (itemIterator.hasNext()) {
                 Item item = itemIterator.next();
@@ -246,12 +263,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
-                        int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, item, id,
-                                owner);
+                        int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, item, id, owner);
                         userPublicationsProcessed[0] += resultFill[0];
                         userPublicationsProcessed[1] += resultFill[1];
                         currentRecord += LIMIT;
                     }
+                    setLastImportMetadataValue(item);
                     totalRecordWorked += userPublicationsProcessed[0];
                     totalItemsProcessed += userPublicationsProcessed[1];
                     if (userPublicationsProcessed[0] >= 20) {
@@ -260,21 +277,14 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                         reloadCollectionIfNeeded();
                     }
                 }
-                countItemsProcessed++;
-                if (countItemsProcessed == 20) {
-                    context.commit();
-                    countItemsProcessed = 0;
-                    // to ensure that collection's template item is fully initialized
-                    reloadCollectionIfNeeded();
-                }
             }
-            context.commit();
-            handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
-            handler.logInfo("Update end");
-        } catch (SQLException | SearchServiceException e) {
+        } catch (SQLException e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
+        context.commit();
+        handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
+        handler.logInfo("Update end");
     }
 
     private Optional<MetadataValue> getOwner(Item item) {
@@ -471,17 +481,54 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
     }
 
-    private Iterator<Item> findItems(Context context)
-            throws SQLException, SearchServiceException {
+    private Iterator<Item> findItems() {
+
+        Iterator<Item> itemsWithoutLastImport = findItemsWithoutLastImport();
+        Iterator<Item> itemsSortedByLastImport = findItemsSortedByLastImport();
+
+        return chainedIterator(itemsWithoutLastImport, itemsSortedByLastImport);
+
+    }
+
+    private Iterator<Item> findItemsWithoutLastImport() {
+        return findItems(false);
+    }
+
+    private Iterator<Item> findItemsSortedByLastImport() {
+        return findItems(true);
+    }
+
+    private Iterator<Item> findItems(boolean withLastImport) {
+
         DiscoverQuery discoverQuery = new DiscoverQuery();
+
         discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.setMaxResults(20);
-        setFilter(discoverQuery, this.service);
-        discoverQuery.addFilterQueries("search.entitytype:Person");
+        setFilterQueries(discoverQuery);
+
+        String lastImportMetadataField = getLastImportMetadataField();
+        if (withLastImport) {
+            // set an upper limit to prevent items updated in the same run from being pulled out again.
+            discoverQuery.setQuery(lastImportMetadataField + ": [* TO " + currentDateMinusOneSecond() + "]");
+            discoverQuery.setSortField(lastImportMetadataField, SORT_ORDER.asc);
+        } else {
+            discoverQuery.setQuery("-" + lastImportMetadataField + ": [* TO *]");
+        }
+
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
     }
 
-    private void setFilter(DiscoverQuery discoverQuery, String service) {
+    private String currentDateMinusOneSecond() {
+        return DCDate.getCurrent().toString() + "-1SECONDS";
+    }
+
+    private String getLastImportMetadataField() {
+        return "cris.lastimport." + service + "-publication_dt";
+    }
+
+    private void setFilterQueries(DiscoverQuery discoverQuery) {
+
+        discoverQuery.addFilterQueries("search.entitytype:Person");
         if ("scopus".equals(service)) {
             discoverQuery.addFilterQueries("person.identifier.scopus-author-id:*");
         }
@@ -491,6 +538,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         if ("crossref".equals(service)) {
             discoverQuery.addFilterQueries("person.identifier.orcid:*");
         }
+
     }
 
     private List<List<MetadataValueDTO>> metadataValueToAdd(Item item) {
@@ -522,6 +570,18 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                                                 CreateWorkspaceItemWithExternalSourceScriptConfiguration.class);
     }
 
+    private void setLastImportMetadataValue(Item item) {
+        try {
+            item = context.reloadEntity(item);
+            String metadataField = "cris.lastimport." + service + "-publication";
+            String currentDate = DCDate.getCurrent().toString();
+            itemService.setMetadataSingleValue(context, item, new MetadataFieldName(metadataField), null, currentDate);
+            itemService.update(context, item);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private Collection getPublicationCollection() {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setDSpaceObjectFilter(IndexableCollection.TYPE);
@@ -532,6 +592,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             return collections.next();
         }
         return null;
+    }
+
+    private Integer getDefaultSearchLimit() {
+        return configurationService.getIntProperty("importworkspaceitem.limit", Integer.MAX_VALUE);
     }
 
     public Map<String, LiveImportDataProvider> getNameToProvider() {

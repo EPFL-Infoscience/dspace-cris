@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,7 +69,11 @@ public class ScriptRestRepository extends DSpaceRestRepository<ScriptRest, Strin
 
     @Override
     public Page<ScriptRest> findAll(Context context, Pageable pageable) {
-        List<ScriptConfiguration> scriptConfigurations = scriptService.getScriptConfigurations(context);
+        List<ScriptConfiguration> scriptConfigurations =
+            scriptService.getScriptConfigurations(context)
+                         .stream()
+                         .sorted(Comparator.comparing(ScriptConfiguration::getName))
+                         .collect(Collectors.toList());
         return converter.toRestPage(scriptConfigurations, pageable, utils.obtainProjection());
     }
 
@@ -98,13 +103,9 @@ public class ScriptRestRepository extends DSpaceRestRepository<ScriptRest, Strin
             throw new AuthorizeException("Current user is not eligible to execute script with name: " + scriptName);
         }
         EPerson user = context.getCurrentUser();
-        RestDSpaceRunnableHandler restDSpaceRunnableHandler = new RestDSpaceRunnableHandler(
-            user,
-            scriptToExecute.getName(),
-            dSpaceCommandLineParameters,
-            context.getSpecialGroups(),
-            context.getCurrentLocale()
-        );
+        RestDSpaceRunnableHandler restDSpaceRunnableHandler = new RestDSpaceRunnableHandler(user,
+            scriptToExecute.getName(), dSpaceCommandLineParameters, context.getSpecialGroups(),
+            context.getCurrentLocale());
         List<String> args = constructArgs(dSpaceCommandLineParameters);
         runDSpaceScript(files, context, user, scriptToExecute, restDSpaceRunnableHandler, args);
         return converter.toRest(restDSpaceRunnableHandler.getProcess(context), utils.obtainProjection());

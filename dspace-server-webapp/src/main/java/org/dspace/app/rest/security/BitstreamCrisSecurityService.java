@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.edit.CorrectItemMode;
@@ -44,6 +45,11 @@ public class BitstreamCrisSecurityService {
     @Qualifier("bitstreamAccessModesMap")
     private Map<String, List<CorrectItemMode>> bitstreamAccessModesMap;
 
+    @Autowired
+    @Qualifier("allowedBundlesForBitstreamAccess")
+    private Map<CorrectItemMode, List<String>> allowedBundles;
+
+
     public boolean isBitstreamAccessAllowedByCrisSecurity(Context context, EPerson ePerson, Bitstream bit)
             throws SQLException {
         DSpaceObject pdso = bitstreamService.getParentObject(context, bit);
@@ -54,12 +60,24 @@ public class BitstreamCrisSecurityService {
                 for (AccessItemMode accessMode : bitstreamAccessModesMap.getOrDefault(entityType,
                         Collections.emptyList())) {
                     if (accessMode != null &&
-                            crisSecurityService.hasAccess(context, item, ePerson, accessMode)) {
+                        crisSecurityService.hasAccess(context, item, ePerson, accessMode) &&
+                        isBundleNotRestricted(accessMode, bit)) {
                         return true;
                     }
                 }
             }
         }
         return false;
+    }
+
+    private boolean isBundleNotRestricted(AccessItemMode accessItemMode, Bitstream bit) throws SQLException {
+        if (allowedBundles.get(accessItemMode) == null) {
+            // no restriction was specified
+            return true;
+        }
+        List<Bundle> bitstreamBundles = bit.getBundles();
+        return bitstreamBundles.stream().anyMatch(bundle -> {
+            return allowedBundles.get(accessItemMode).contains(bundle.getName());
+        });
     }
 }

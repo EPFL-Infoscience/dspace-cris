@@ -23,10 +23,11 @@ import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 
 /**
- * This contributor checks for each node returned for the supplied path
- * if node contains supplied attribute - the value of the current node is taken if exist.
+ * This contributor checks for each node returned for the supplied path if node
+ * contains supplied attribute - the value of the current node is taken,
+ * otherwise #PLACEHOLDER_PARENT_METADATA_VALUE#
  * 
- * @author Boychuk Mykhaylo (boychuk.mykhaylo at 4Science dot com)
+ * @author Boychuk Mykhaylo (boychuk.mykhaylo at 4Science dot it)
  */
 public class SimpleXpathMetadatumAndAttributeContributor extends SimpleXpathMetadatumContributor {
 

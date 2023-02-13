@@ -127,7 +127,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Test item")
-            .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -150,7 +150,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Test item")
-            .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -189,12 +189,12 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item author = ItemBuilder.createItem(context, collection)
             .withTitle("Author")
-            .withCrisOwner(thirdUser)
+            .withDspaceObjectOwner(thirdUser)
             .build();
 
         Item editor = ItemBuilder.createItem(context, collection)
             .withTitle("Editor")
-            .withCrisOwner(fourthUser)
+            .withDspaceObjectOwner(fourthUser)
             .build();
 
         Group group = GroupBuilder.createGroup(context)
@@ -204,7 +204,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Test item")
-            .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
             .withAuthor("Author", author.getID().toString())
             .withEditor("Editor", editor.getID().toString())
             .withEditor("Another editor", "5260f7f1-f583-4a7a-86e5-25db93a29240")
@@ -336,7 +336,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Test item")
-            .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -359,7 +359,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Test item")
-            .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -382,7 +382,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Test item")
-            .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -437,7 +437,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Test item")
-            .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
             .build();
 
         context.restoreAuthSystemState();

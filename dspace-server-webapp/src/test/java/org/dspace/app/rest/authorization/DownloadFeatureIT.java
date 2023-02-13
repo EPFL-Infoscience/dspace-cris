@@ -329,7 +329,7 @@ public class DownloadFeatureIT extends AbstractControllerIntegrationTest {
                 .build();
         Item profile = ItemBuilder.createItem(context, col2)
                 .withTitle("Author")
-                .withCrisOwner(authorEp)
+                .withDspaceObjectOwner(authorEp)
                 .build();
         // set our submitter
         EPerson submitter = EPersonBuilder.createEPerson(context)

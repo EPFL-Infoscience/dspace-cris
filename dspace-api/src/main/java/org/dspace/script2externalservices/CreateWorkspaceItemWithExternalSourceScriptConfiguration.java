@@ -74,19 +74,29 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
                 "queried (" + StringUtils.join(providers, ",") + ")");
             options.getOption("s").setType(String.class);
             options.getOption("s").setRequired(true);
+
             options.addOption("e", "eperson", true, "email of the eperson performing the import");
+
             options.addOption("f", "final status", true, "the final status of import " +
                     "choose between (\"workspace\" or \"workflow\" or \"item\")");
             options.getOption("f").setType(String.class);
             options.getOption("f").setRequired(true);
+
             options.addOption("c", "collection-uuid", true, "collection-uuid into which to make import");
             options.getOption("c").setType(String.class);
             options.getOption("c").setRequired(false);
+
             options.addOption("q", "query", true, "extra parameters to append to the generated query "
                     + "(to limit the publications year, record creation time, etc. according "
                     + "to the datasource capabilities)");
             options.getOption("q").setType(String.class);
             options.getOption("q").setRequired(false);
+
+            options.addOption("l", "limit", true, "the max number of search to be performed. If no limit is provided, "
+                + "the default one will be used");
+            options.getOption("l").setType(Integer.class);
+            options.getOption("l").setRequired(false);
+
             super.options = options;
         }
         return options;

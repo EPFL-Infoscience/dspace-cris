@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -41,6 +42,7 @@ public class BitstreamResource extends AbstractResource {
     private boolean shouldGenerateCoverPage;
     private boolean skipAuthCheck;
     private byte[] file;
+    private Set<UUID> currentSpecialGroups;
 
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
     private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
@@ -48,11 +50,12 @@ public class BitstreamResource extends AbstractResource {
         new DSpace().getServiceManager()
                     .getServicesByType(CitationDocumentService.class).get(0);
 
-    public BitstreamResource(String name, UUID uuid, UUID currentUserUUID,
+    public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
         boolean shouldGenerateCoverPage, boolean skipAuth) {
         this.name = name;
         this.uuid = uuid;
         this.currentUserUUID = currentUserUUID;
+        this.currentSpecialGroups = currentSpecialGroups;
         this.shouldGenerateCoverPage = shouldGenerateCoverPage;
         this.skipAuthCheck = skipAuth;
     }
@@ -86,7 +89,8 @@ public class BitstreamResource extends AbstractResource {
 
     @Override
     public InputStream getInputStream() throws IOException {
-        try (Context context = new Context()) {
+        try (Context context = initializeContext()) {
+
             if (skipAuthCheck) {
                 context.turnOffAuthorisationSystem();
             }
@@ -115,9 +119,7 @@ public class BitstreamResource extends AbstractResource {
 
     @Override
     public long contentLength() throws IOException {
-        try (Context context = new Context()) {
-            EPerson currentUser = ePersonService.find(context, currentUserUUID);
-            context.setCurrentUser(currentUser);
+        try (Context context = initializeContext()) {
             Bitstream bitstream = bitstreamService.find(context, uuid);
             if (shouldGenerateCoverPage) {
                 return getCoverpageByteArray(context, bitstream).length;
@@ -127,5 +129,13 @@ public class BitstreamResource extends AbstractResource {
         } catch (SQLException | AuthorizeException e) {
             throw new IOException(e);
         }
+    }
+
+    private Context initializeContext() throws SQLException {
+        Context context = new Context();
+        EPerson currentUser = ePersonService.find(context, currentUserUUID);
+        context.setCurrentUser(currentUser);
+        currentSpecialGroups.forEach(context::setSpecialGroup);
+        return context;
     }
 }

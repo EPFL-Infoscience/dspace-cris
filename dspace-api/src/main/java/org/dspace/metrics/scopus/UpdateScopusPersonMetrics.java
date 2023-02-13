@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
-public class UpdateScopusPersonMetrics implements MetricsExternalServices {
+public class UpdateScopusPersonMetrics extends MetricsExternalServices {
 
     private static Logger log = LogManager.getLogger(UpdateScopusPersonMetrics.class);
 
@@ -44,6 +44,11 @@ public class UpdateScopusPersonMetrics implements MetricsExternalServices {
     @Override
     public List<String> getFilters() {
         return Arrays.asList("dspace.entity.type:Person", "person.identifier.scopus-author-id:*");
+    }
+
+    @Override
+    public String getServiceName() {
+        return "scopus-person";
     }
 
     @Override

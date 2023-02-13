@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
+import java.util.NoSuchElementException;
 
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
@@ -58,7 +58,7 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
     }
 
     public DiscoverResultIterator(Context context, IndexableObject<?, ?> scopeObject, DiscoverQuery discoverQuery,
-                                  boolean uncacheEntities, Integer maxResults) {
+                                  boolean uncacheEntities, int maxResults) {
 
         this.context = context;
         this.scopeObject = scopeObject;
@@ -66,7 +66,7 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
         this.iteratorCounter = discoverQuery.getStart();
         this.searchService = SearchUtils.getSearchService();
         this.uncacheEntitites = uncacheEntities;
-        this.maxResults = Objects.isNull(maxResults) ? -1 : iteratorCounter + maxResults;
+        this.maxResults = maxResults;
 
         updateCurrentSlotIterator();
     }
@@ -99,18 +99,29 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
 
         return currentSlotIterator.hasNext();
     }
+
     @Override
     public T next() {
         return (T) getNextIndexableObject().getIndexedObject();
     }
 
-    protected IndexableObject getNextIndexableObject() {
-        iteratorCounter++;
-        return currentSlotIterator.next();
+    public long getTotalSearchResults() {
+
+        if (currentSlotIterator == null) {
+            updateCurrentSlotIterator();
+        }
+
+        return this.currentDiscoverResult.getTotalSearchResults();
     }
 
-    public long getTotalSearchResults() {
-        return this.currentDiscoverResult.getTotalSearchResults();
+    protected IndexableObject getNextIndexableObject() {
+
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+
+        iteratorCounter++;
+        return currentSlotIterator.next();
     }
 
     private void uncacheEntitites() {

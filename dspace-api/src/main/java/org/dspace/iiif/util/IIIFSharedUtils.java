@@ -9,12 +9,15 @@ package org.dspace.iiif.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Constants;
 import org.dspace.license.CreativeCommonsServiceImpl;
 import org.dspace.services.ConfigurationService;
@@ -30,8 +33,12 @@ public class IIIFSharedUtils {
 
     // metadata used to enable the iiif features on the item
     public static final String METADATA_IIIF_ENABLED = "dspace.iiif.enabled";
+    // metadata used to enable the ocr search on the item
+    public static final String[] METADATA_IIIF_SEARCHABLE_ARRAY = {"iiif", "search", "enabled"};
+    public static final String METADATA_IIIF_SEARCHABLE = METADATA_IIIF_SEARCHABLE_ARRAY[0] + "."
+            + METADATA_IIIF_SEARCHABLE_ARRAY[1] + "." + METADATA_IIIF_SEARCHABLE_ARRAY[2];
     // The DSpace bundle for other content related to item.
-    protected static final String OTHER_CONTENT_BUNDLE = "OtherContent";
+    public static final String OTHER_CONTENT_BUNDLE = "OtherContent";
     // The IIIF image server url from configuration
     protected static final String IMAGE_SERVER_PATH = "iiif.image.server";
     // IIIF metadata definitions
@@ -42,17 +49,52 @@ public class IIIFSharedUtils {
     public static final String METADATA_IIIF_HEIGHT_QUALIFIER = "height";
     public static final String METADATA_IIIF_WIDTH_QUALIFIER = "width";
 
+    // metadata used to specify the canvas id of the bitstream
+    public static final String[] METADATA_IIIF_CANVASID_ARRAY = {"bitstream", "iiif", "canvasid"};
+    public static final String METADATA_IIIF_CANVASID = METADATA_IIIF_CANVASID_ARRAY[0] + "." +
+            METADATA_IIIF_CANVASID_ARRAY[1] + "." + METADATA_IIIF_CANVASID_ARRAY[2];
+
     protected static final ConfigurationService configurationService
         = DSpaceServicesFactory.getInstance().getConfigurationService();
 
 
     private IIIFSharedUtils() {}
 
+    /**
+     * This method verify if the IIIF feature is enabled on the item.
+     * Based on the {@link #METADATA_IIIF_ENABLED} metadata.
+     *
+     * @param item the DSpace item
+     * @return true if the item supports IIIF
+     */
     public static boolean isIIIFItem(Item item) {
         return item.getMetadata().stream().filter(m -> m.getMetadataField().toString('.')
-                                                 .contentEquals(METADATA_IIIF_ENABLED))
-            .anyMatch(m -> m.getValue().equalsIgnoreCase("true") ||
-                m.getValue().equalsIgnoreCase("yes"));
+                                                        .contentEquals(METADATA_IIIF_ENABLED))
+                   .anyMatch(m -> m.getValue().equalsIgnoreCase("true") ||
+                       m.getValue().equalsIgnoreCase("yes"));
+    }
+
+    /**
+     * This method verify if the item is searchable.
+     * Based on the {@link #METADATA_IIIF_SEARCH_ENABLED} metadata.
+     *
+     * @param item the DSpace item
+     * @return true if the iiif search is enabled
+     */
+    public static boolean isIIIFSearchable(Item item) {
+        return item.getMetadata().stream().filter(m -> m.getMetadataField().toString('.')
+                                                        .contentEquals(METADATA_IIIF_SEARCHABLE))
+                   .anyMatch(m -> m.getValue().equalsIgnoreCase("true") ||
+                       m.getValue().equalsIgnoreCase("yes"));
+    }
+
+    /**
+     * This method verify if the IIIF feature is enabled on the item and the item is searchable.
+     * @param item the DSpace item
+     * @return true if the item supports IIIF and the iiif search is enabled
+     */
+    public static boolean isIIIFAndSearchableItem(Item item) {
+        return isIIIFItem(item) && isIIIFSearchable(item);
     }
 
     /**
@@ -112,5 +154,34 @@ public class IIIFSharedUtils {
     public static String getInfoJsonPath(Bitstream bitstream) {
         String iiifImageServer = configurationService.getProperty(IMAGE_SERVER_PATH);
         return iiifImageServer + bitstream.getID() + "/info.json";
+    }
+
+    /**
+     * Creates the manifest id from the provided uuid.
+     * @param uuid the item id
+     * @return the manifest identifier (url)
+     */
+    public static String getManifestId(UUID uuid) {
+        return configurationService.getProperty("dspace.server.url") + "/iiif/"
+                + uuid + "/manifest";
+    }
+
+    /**
+     * Return the canvas identifier of the bitstream:
+     * - the bitstream.iiif.canvasid metadata
+     * - or the UUID of the bitstream
+     * @param bitstream the DSpace Bitstream
+     * @return the canvas identifier
+     */
+    public static String getCanvasId(Bitstream bitstream) {
+        // retrieve the canvas identifier from metadata
+        Optional<MetadataValue> canvasId = bitstream.getMetadata().stream()
+                .filter(m -> m.getMetadataField().toString('.').contentEquals(METADATA_IIIF_CANVASID))
+                .findAny();
+        if (canvasId.isEmpty()) {
+            // otherwise use the bitstream identifier
+            return bitstream.getID().toString();
+        }
+        return canvasId.get().getValue();
     }
 }

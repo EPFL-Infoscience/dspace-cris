@@ -19,6 +19,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
 import org.slf4j.Logger;
@@ -70,7 +71,7 @@ public class WorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermis
         WorkspaceItem witem = null;
         try {
             ePerson = context.getCurrentUser();
-            Integer dsoId = Integer.parseInt(targetId.toString());
+            int dsoId = Integer.parseInt(targetId.toString());
 
             // anonymous user
             if (ePerson == null) {

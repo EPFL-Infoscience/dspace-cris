@@ -200,12 +200,11 @@ public class DiscoveryExportController {
             httpHeadersInitializer.withLastModified(lastModified);
         }
 
-
         EPerson currentUser = context.getCurrentUser();
         org.dspace.app.rest.utils.BitstreamResource bitstreamResource =
             new org.dspace.app.rest.utils.BitstreamResource(
-                bitstream.getName(), bitstream.getID(), currentUser != null ? currentUser.getID() : null,
-                false, false);
+            bitstream.getName(), bitstream.getID(), currentUser != null ? currentUser.getID() : null,
+            context.getSpecialGroupUuids(), false, false);
 
         context.complete();
 

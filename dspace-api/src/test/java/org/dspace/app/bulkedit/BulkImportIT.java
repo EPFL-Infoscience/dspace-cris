@@ -7,7 +7,6 @@
  */
 package org.dspace.app.bulkedit;
 
-import static java.lang.String.join;
 import static java.util.regex.Pattern.compile;
 import static org.dspace.app.launcher.ScriptLauncher.handleScript;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
@@ -44,7 +43,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -52,7 +50,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
-import org.dspace.authority.CrisConsumer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
@@ -69,10 +66,6 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.CrisConstants;
-import org.dspace.event.factory.EventServiceFactory;
-import org.dspace.event.service.EventService;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
 import org.junit.After;
 import org.junit.Before;
@@ -85,8 +78,6 @@ import org.junit.Test;
  *
  */
 public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
-
-    private static final String CRIS_CONSUMER = CrisConsumer.CONSUMER_NAME;
 
     private static final String BASE_XLS_DIR_PATH = "./target/testing/dspace/assetstore/bulk-import/";
 
@@ -699,225 +690,201 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     @Test
     @SuppressWarnings("unchecked")
     public void testCreatePublicationWithWillBeGeneratedAuthority() throws Exception {
-        String[] defaultConsumers = activateCrisConsumer();
-        try {
 
-            context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
 
-            Item person = ItemBuilder.createItem(context, collection)
-                .withEntityType("Person")
-                .withTitle("Walter White")
-                .withOrcidIdentifier("0000-0002-9079-593X")
-                .build();
+        Item person = ItemBuilder.createItem(context, collection)
+            .withEntityType("Person")
+            .withTitle("Walter White")
+            .withOrcidIdentifier("0000-0002-9079-593X")
+            .build();
 
-            Collection publications = createCollection(context, community)
-                .withSubmissionDefinition("publication")
-                .withAdminGroup(eperson)
-                .build();
+        Collection publications = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
 
-            context.commit();
-            context.restoreAuthSystemState();
+        context.commit();
+        context.restoreAuthSystemState();
 
-            String publicationCollectionId = publications.getID().toString();
-            String fileLocation = getXlsFilePath("create-publication-with-will-be-generated-authority.xls");
-            String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
-            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String publicationCollectionId = publications.getID().toString();
+        String fileLocation = getXlsFilePath("create-publication-with-will-be-generated-authority.xls");
+        String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
-            handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
-            assertThat("Expected no errors", handler.getErrorMessages(), empty());
-            assertThat("Expected no warnings", handler.getWarningMessages(), empty());
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        assertThat("Expected no warnings", handler.getWarningMessages(), empty());
 
-            List<String> infoMessages = handler.getInfoMessages();
-            assertThat("Expected 4 info messages", infoMessages, hasSize(4));
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
 
-            assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
-            assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
-            assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
-            assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
 
-            // verify created item (ROW 2)
-            String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
+        // verify created item (ROW 2)
+        String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
 
-            Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
-            assertThat("Item expected to be created", createdItem, notNullValue());
+        Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
+        assertThat("Item expected to be created", createdItem, notNullValue());
 
-            String personId = person.getID().toString();
+        String personId = person.getID().toString();
 
-            List<MetadataValue> metadata = createdItem.getMetadata();
-            assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
-            assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
-
-        } finally {
-            resetConsumers(defaultConsumers);
-        }
+        List<MetadataValue> metadata = createdItem.getMetadata();
+        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
+        assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void testCreatePublicationWithWillBeGeneratedAuthorityAndNoRelatedItemFound() throws Exception {
-        String[] defaultConsumers = activateCrisConsumer();
-        try {
 
-            context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
 
-            createCollection(context, community)
-                .withEntityType("Person")
-                .withAdminGroup(eperson)
-                .build();
+        createCollection(context, community)
+            .withEntityType("Person")
+            .withAdminGroup(eperson)
+            .build();
 
-            Collection publications = createCollection(context, community)
-                .withSubmissionDefinition("publication")
-                .withAdminGroup(eperson)
-                .build();
+        Collection publications = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
 
-            context.commit();
-            context.restoreAuthSystemState();
+        context.commit();
+        context.restoreAuthSystemState();
 
-            String publicationCollectionId = publications.getID().toString();
-            String fileLocation = getXlsFilePath("create-publication-with-will-be-generated-authority.xls");
-            String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
-            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String publicationCollectionId = publications.getID().toString();
+        String fileLocation = getXlsFilePath("create-publication-with-will-be-generated-authority.xls");
+        String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
-            handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
-            assertThat("Expected no errors", handler.getErrorMessages(), empty());
-            assertThat("Expected no warnings", handler.getWarningMessages(), empty());
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        assertThat("Expected no warnings", handler.getWarningMessages(), empty());
 
-            List<String> infoMessages = handler.getInfoMessages();
-            assertThat("Expected 4 info messages", infoMessages, hasSize(4));
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
 
-            assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
-            assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
-            assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
-            assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
 
-            // verify created item (ROW 2)
-            String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
+        // verify created item (ROW 2)
+        String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
 
-            Item relatedPersonItem = findItemByMetadata("dc", "title", null, "Walter White");
-            assertThat("Related Person item expected to be created", relatedPersonItem, notNullValue());
+        Item relatedPersonItem = findItemByMetadata("dc", "title", null, "Walter White");
+        assertThat("Related Person item expected to be created", relatedPersonItem, notNullValue());
 
-            Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
-            assertThat("Item expected to be created", createdItem, notNullValue());
+        Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
+        assertThat("Item expected to be created", createdItem, notNullValue());
 
-            String personId = relatedPersonItem.getID().toString();
+        String personId = relatedPersonItem.getID().toString();
 
-            List<MetadataValue> metadata = createdItem.getMetadata();
-            assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
-            assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
-
-        } finally {
-            resetConsumers(defaultConsumers);
-        }
+        List<MetadataValue> metadata = createdItem.getMetadata();
+        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
+        assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void testCreatePublicationWithWillBeReferencedAuthority() throws Exception {
-        String[] defaultConsumers = activateCrisConsumer();
-        try {
 
-            context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
 
-            Item person = ItemBuilder.createItem(context, collection)
-                .withEntityType("Person")
-                .withTitle("Walter White")
-                .withOrcidIdentifier("0000-0002-9079-593X")
-                .build();
+        Item person = ItemBuilder.createItem(context, collection)
+            .withEntityType("Person")
+            .withTitle("Walter White")
+            .withOrcidIdentifier("0000-0002-9079-593X")
+            .build();
 
-            Collection publications = createCollection(context, community)
-                .withSubmissionDefinition("publication")
-                .withAdminGroup(eperson)
-                .build();
+        Collection publications = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
 
-            context.commit();
-            context.restoreAuthSystemState();
+        context.commit();
+        context.restoreAuthSystemState();
 
-            String publicationCollectionId = publications.getID().toString();
-            String fileLocation = getXlsFilePath("create-publication-with-will-be-referenced-authority.xls");
-            String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
-            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String publicationCollectionId = publications.getID().toString();
+        String fileLocation = getXlsFilePath("create-publication-with-will-be-referenced-authority.xls");
+        String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
-            handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
-            assertThat("Expected no errors", handler.getErrorMessages(), empty());
-            assertThat("Expected no warnings", handler.getWarningMessages(), empty());
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        assertThat("Expected no warnings", handler.getWarningMessages(), empty());
 
-            List<String> infoMessages = handler.getInfoMessages();
-            assertThat("Expected 4 info messages", infoMessages, hasSize(4));
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
 
-            assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
-            assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
-            assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
-            assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
 
-            // verify created item (ROW 2)
-            String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
+        // verify created item (ROW 2)
+        String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
 
-            Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
-            assertThat("Item expected to be created", createdItem, notNullValue());
+        Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
+        assertThat("Item expected to be created", createdItem, notNullValue());
 
-            String personId = person.getID().toString();
+        String personId = person.getID().toString();
 
-            List<MetadataValue> metadata = createdItem.getMetadata();
-            assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
-            assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
-
-        } finally {
-            resetConsumers(defaultConsumers);
-        }
+        List<MetadataValue> metadata = createdItem.getMetadata();
+        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
+        assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void testCreatePublicationWithWillBeReferencedAuthorityAndNoRelatedItemFound() throws Exception {
-        String[] defaultConsumers = activateCrisConsumer();
-        try {
 
-            context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
 
-            createCollection(context, community)
-                .withEntityType("Person")
-                .withAdminGroup(eperson)
-                .build();
+        createCollection(context, community)
+            .withEntityType("Person")
+            .withAdminGroup(eperson)
+            .build();
 
-            Collection publications = createCollection(context, community)
-                .withSubmissionDefinition("publication")
-                .withAdminGroup(eperson)
-                .build();
+        Collection publications = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
 
-            context.commit();
-            context.restoreAuthSystemState();
+        context.commit();
+        context.restoreAuthSystemState();
 
-            String publicationCollectionId = publications.getID().toString();
-            String fileLocation = getXlsFilePath("create-publication-with-will-be-referenced-authority.xls");
-            String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
-            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        String publicationCollectionId = publications.getID().toString();
+        String fileLocation = getXlsFilePath("create-publication-with-will-be-referenced-authority.xls");
+        String[] args = new String[] { "bulk-import", "-c", publicationCollectionId, "-f", fileLocation, "-e" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
-            handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
-            assertThat("Expected no errors", handler.getErrorMessages(), empty());
-            assertThat("Expected no warnings", handler.getWarningMessages(), empty());
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        assertThat("Expected no warnings", handler.getWarningMessages(), empty());
 
-            List<String> infoMessages = handler.getInfoMessages();
-            assertThat("Expected 4 info messages", infoMessages, hasSize(4));
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
 
-            assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
-            assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
-            assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
-            assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 1 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - Item archived successfully"));
 
-            // verify created item (ROW 2)
-            String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
+        // verify created item (ROW 2)
+        String createdItemId = getItemUuidFromMessage(infoMessages.get(3));
 
-            Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
-            assertThat("Item expected to be created", createdItem, notNullValue());
+        Item createdItem = itemService.findByIdOrLegacyId(context, createdItemId);
+        assertThat("Item expected to be created", createdItem, notNullValue());
 
-            List<MetadataValue> metadata = createdItem.getMetadata();
-            assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null,
-                "will be referenced::ORCID::0000-0002-9079-593X", 0, -1)));
-            assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
-
-        } finally {
-            resetConsumers(defaultConsumers);
-        }
+        List<MetadataValue> metadata = createdItem.getMetadata();
+        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null,
+            "will be referenced::ORCID::0000-0002-9079-593X", 0, -1)));
+        assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
     @Test
@@ -1358,7 +1325,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat("Item expected to be created", publication, notNullValue());
 
         assertThat(publication.getMetadata(), hasItems(with("dc.contributor.author", "Walter White", null,
-            "will be referenced::ORCID::0000-0002-9079-593X", 0, 600)));
+            "will be referenced::ORCID::0000-0002-9079-593X", 0, -1)));
 
         String personsCollectionId = persons.getID().toString();
         fileLocation = getXlsFilePath("create-person.xls");
@@ -1385,26 +1352,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
     private WorkspaceItem findWorkspaceItem(Item item) throws SQLException {
         return workspaceItemService.findByItem(context, item);
-    }
-
-    private String[] activateCrisConsumer() {
-        ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        String[] consumers = configService.getArrayProperty("event.dispatcher.default.consumers");
-        if (!ArrayUtils.contains(consumers, CRIS_CONSUMER)) {
-            String newConsumers = consumers.length > 0 ? join(",", consumers) + "," + CRIS_CONSUMER : CRIS_CONSUMER;
-            configService.setProperty("event.dispatcher.default.consumers", newConsumers);
-            EventService eventService = EventServiceFactory.getInstance().getEventService();
-            eventService.reloadConfiguration();
-        }
-
-        return consumers;
-    }
-
-    private void resetConsumers(String[] consumers) {
-        ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        configService.setProperty("event.dispatcher.default.consumers", consumers);
-        EventService eventService = EventServiceFactory.getInstance().getEventService();
-        eventService.reloadConfiguration();
     }
 
     private Item findItemByMetadata(String schema, String element, String qualifier, String value) throws Exception {

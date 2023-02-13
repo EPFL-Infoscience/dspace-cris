@@ -57,6 +57,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.license.service.CreativeCommonsService;
+import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
@@ -106,6 +107,9 @@ public class SubmissionService {
     @Autowired
     private EntityTypeService entityTypeService;
 
+    @Autowired
+    private ResearcherProfileService researcherProfileService;
+
     private SubmissionConfigReader submissionConfigReader;
 
     public SubmissionService() throws SubmissionConfigReaderException {
@@ -141,7 +145,7 @@ public class SubmissionService {
         try {
             if (StringUtils.isNotBlank(collectionUUID)) {
                 collection = collectionService.find(context, UUID.fromString(collectionUUID));
-            } else if (StringUtils.isNotBlank(entityType))  {
+            } else {
                 final String type = entityType;
                 collection = collectionService.findAuthorizedOptimized(context,Constants.ADD).stream()
                     .filter(coll -> StringUtils.isBlank(type) ? true : type.equalsIgnoreCase(coll.getEntityType()))
@@ -328,7 +332,9 @@ public class SubmissionService {
         result.setRights(creativeCommonsService.getLicenseName(item));
 
         Bitstream licenseRdfBitstream = creativeCommonsService.getLicenseRdfBitstream(item);
-        result.setFile(converter.toRest(licenseRdfBitstream, Projection.DEFAULT));
+        if (licenseRdfBitstream != null) {
+            result.setFile(converter.toRest(licenseRdfBitstream, Projection.DEFAULT));
+        }
 
         return result;
     }
@@ -348,6 +354,10 @@ public class SubmissionService {
     public List<ErrorRest> uploadFileToInprogressSubmission(Context context, HttpServletRequest request,
             AInprogressSubmissionRest wsi, InProgressSubmission source, MultipartFile file) {
         List<ErrorRest> errors = new ArrayList<ErrorRest>();
+        // coauthors can upload files
+        if (researcherProfileService.isAuthorOf(context, context.getCurrentUser(), source.getItem())) {
+            context.turnOffAuthorisationSystem();
+        }
         SubmissionConfig submissionConfig =
             submissionConfigReader.getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
         List<Object[]> stepInstancesAndConfigs = new ArrayList<Object[]>();
@@ -386,6 +396,7 @@ public class SubmissionService {
                 err = uploadableStep.upload(context, this, (SubmissionStepConfig) stepInstanceAndCfg[1],
                         source, file);
             } catch (IOException e) {
+                context.restoreAuthSystemState();
                 throw new RuntimeException(e);
             }
             if (err != null) {
@@ -398,6 +409,7 @@ public class SubmissionService {
                 ((ListenerProcessingStep) uploadableStep).doPostProcessing(context, source);
             }
         }
+        context.restoreAuthSystemState();
         return errors;
     }
 
