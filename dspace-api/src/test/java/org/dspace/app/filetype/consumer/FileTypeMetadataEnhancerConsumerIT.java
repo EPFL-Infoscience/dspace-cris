@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.apache.commons.codec.binary.StringUtils;
@@ -38,7 +39,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 public class FileTypeMetadataEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase {
 
@@ -231,7 +231,8 @@ public class FileTypeMetadataEnhancerConsumerIT extends AbstractIntegrationTestW
                 .filter(metadataFilter(FileTypeMetadataEnhancerConsumer.entityTypeMetadata))
                 .findFirst()
                 .orElseThrow();
-        bitstream.getMetadata().remove(entityType);
+        this.bitstreamService.removeMetadataValues(context, bitstream, List.of(entityType));
+
         context.turnOffAuthorisationSystem();
 
         this.bitstreamService.update(context, bitstream);
@@ -242,8 +243,8 @@ public class FileTypeMetadataEnhancerConsumerIT extends AbstractIntegrationTestW
         bitstream = context.reloadEntity(bitstream);
         item = context.reloadEntity(item);
 
-        assertThat(bitstream.getMetadata(), not(hasItem(with("dc.type", Mockito.any()))));
-        assertThat(item.getMetadata(), not(hasItem(with("dspace.file.type", Mockito.any()))));
+        assertThat(bitstream.getMetadata(), not(hasItem(with("dc.type", type))));
+        assertThat(item.getMetadata(), not(hasItem(with("dspace.file.type", type))));
     }
 
     @Test
