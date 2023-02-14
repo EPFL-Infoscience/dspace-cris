@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;

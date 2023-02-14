@@ -156,7 +156,7 @@ public class SimpleJsonPathMetadataContributor implements MetadataContributor<St
         return metadata;
     }
 
-    private String getStringValue(JsonNode node) {
+    protected String getStringValue(JsonNode node) {
         if (node.isTextual()) {
             return node.textValue();
         }
@@ -167,7 +167,7 @@ public class SimpleJsonPathMetadataContributor implements MetadataContributor<St
         return StringUtils.EMPTY;
     }
 
-    private JsonNode convertStringJsonToJsonNode(String json) {
+    protected JsonNode convertStringJsonToJsonNode(String json) {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode body = null;
         try {

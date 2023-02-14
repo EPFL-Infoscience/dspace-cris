@@ -11,12 +11,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.util.SimpleMapConverter;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.com)

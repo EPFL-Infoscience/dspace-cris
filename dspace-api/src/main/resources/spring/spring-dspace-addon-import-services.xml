@@ -42,34 +42,6 @@
          </property>
     </bean>
 
-    <bean id="PubmedEuropeImportService" class="org.dspace.importer.external.pubmedeurope.PubmedEuropeMetadataSourceServiceImpl" scope="singleton">
-        <property name="metadataFieldMapping" ref="PubmedEuropeMetadataFieldMapping"/>
-    </bean>
-    <bean id="PubmedEuropeMetadataFieldMapping"
-          class="org.dspace.importer.external.pubmedeurope.PubmedEuropeFieldMapping">
-    </bean>
-
-    <bean id="ADSImportService" class="org.dspace.importer.external.ads.ADSImportMetadataSourceServiceImpl" scope="singleton">
-        <property name="metadataFieldMapping" ref="ADSMetadataFieldMapping"/>
-    </bean>
-    <bean id="ADSMetadataFieldMapping"
-          class="org.dspace.importer.external.ads.ADSFieldMapping">
-    </bean>
-
-    <bean id="CiniiImportService"
-          class="org.dspace.importer.external.cinii.CiniiImportMetadataSourceServiceImpl" scope="singleton">
-        <property name="metadataFieldMapping" ref="CiniiMetadataFieldMapping"/>
-    </bean>
-    <bean id="CiniiMetadataFieldMapping"
-          class="org.dspace.importer.external.cinii.CiniiFieldMapping">
-    </bean>
-
-    <bean id="CrossRefImportService" class="org.dspace.importer.external.crossref.CrossRefImportMetadataSourceServiceImpl" scope="singleton">
-        <property name="metadataFieldMapping" ref="CrossRefMetadataFieldMapping"/>
-        <property name="url" value="${crossref.url}"/>
-    </bean>
-    <bean id="CrossRefMetadataFieldMapping" class="org.dspace.importer.external.crossref.CrossRefFieldMapping"/>
-
     <bean id="ArXivImportService"
           class="org.dspace.importer.external.arxiv.service.ArXivImportMetadataSourceServiceImpl" scope="singleton">
         <property name="metadataFieldMapping" ref="ArXivMetadataFieldMapping"/>
@@ -212,15 +184,6 @@
         <property name="url" value="${cinii.url}"/>
         <property name="urlSearch" value="${cinii.url.search}"/>
     </bean>
-
-    <bean id="WosImportService" class="org.dspace.importer.external.wos.service.WOSImportMetadataSourceServiceImpl" scope="singleton">
-        <property name="metadataFieldMapping" ref="wosMetadataFieldMapping"/>
-        <property name="apiKey" value="${wos.apiKey}"/>
-        <property name="url" value="${wos.url}"/>
-        <property name="urlSearch" value="${wos.url.search}"/>
-    </bean>
-    <bean id="wosMetadataFieldMapping" class="org.dspace.importer.external.wos.service.WOSFieldMapping"/>
-
     <bean id="CiniiMetadataFieldMapping" class="org.dspace.importer.external.cinii.CiniiFieldMapping"/>
 
     <bean id="ADSImportService" class="org.dspace.importer.external.ads.ADSImportMetadataSourceServiceImpl" scope="singleton">

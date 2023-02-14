@@ -3,11 +3,7 @@
     <groupId>org.dspace</groupId>
     <artifactId>dspace-rest</artifactId>
     <packaging>war</packaging>
-<<<<<<< HEAD
-    <version>cris-2022.01.02</version>
-=======
     <version>cris-2022.03.01-SNAPSHOT</version>
->>>>>>> 4science-bitbucket/dspace-cris-7
     <name>DSpace (Deprecated) REST Webapp</name>
     <description>DSpace RESTful Web Services API. NOTE: this REST API is DEPRECATED.
         Please consider using the REST API in the dspace-server-webapp instead!</description>
@@ -16,11 +12,7 @@
     <parent>
         <groupId>org.dspace</groupId>
         <artifactId>dspace-parent</artifactId>
-<<<<<<< HEAD
-        <version>cris-2022.01.02</version>
-=======
         <version>cris-2022.03.01-SNAPSHOT</version>
->>>>>>> 4science-bitbucket/dspace-cris-7
         <relativePath>..</relativePath>
     </parent>
 

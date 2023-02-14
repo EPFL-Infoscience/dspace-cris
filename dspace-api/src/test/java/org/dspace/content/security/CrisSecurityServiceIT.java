@@ -277,19 +277,19 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         Item author = ItemBuilder.createItem(context, collection)
                 .withTitle("Author")
-                .withCrisOwner(thirdUser)
+            .withDspaceObjectOwner(thirdUser)
                 .withPersonMainAffiliation("Group2")
                 .build();
 
         Item editor = ItemBuilder.createItem(context, collection)
                 .withTitle("Editor")
-                .withCrisOwner(fourthUser)
+            .withDspaceObjectOwner(fourthUser)
                 .withPersonMainAffiliation("Group")
                 .build();
 
         Item item = ItemBuilder.createItem(context, collection)
                 .withTitle("Test item")
-                .withCrisOwner("Owner", owner.getID().toString())
+            .withDspaceObjectOwner("Owner", owner.getID().toString())
                 .withAuthor("Author", author.getID().toString())
                 .withEditor("Editor", editor.getID().toString())
                 .build();

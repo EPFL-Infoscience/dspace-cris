@@ -116,12 +116,12 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
         };
 
     private static final BiFunction<SolrInputDocument, String, Consumer<String>> simpleSolrIndexAdder =
-            (document, fieldName) -> value -> {
-                Collection<Object> fieldValues = document.getFieldValues(fieldName);
-                if (fieldValues == null || !fieldValues.contains(value)) {
-                    addField(document, fieldName, value);
-                }
-            };
+        (document, fieldName) -> value -> {
+            Collection<Object> fieldValues = document.getFieldValues(fieldName);
+            if (fieldValues == null || !fieldValues.contains(value)) {
+                addField(document, fieldName, value);
+            }
+        };
 
     private static final BiFunction<SolrInputDocument, String, Consumer<String>> bitstreamMetadataSolrIndexAdder =
         (document, fieldName) -> value -> {
