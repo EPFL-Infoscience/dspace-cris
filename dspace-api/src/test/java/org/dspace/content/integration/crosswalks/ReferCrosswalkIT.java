@@ -2300,6 +2300,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .build();
 
         context.restoreAuthSystemState();
+        context.setCurrentUser(admin);
 
         ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publications");
         assertThat(referCrossWalk, notNullValue());

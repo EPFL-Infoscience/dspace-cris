@@ -132,7 +132,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
         List<String> errorMessages = handler.getErrorMessages();
 
-        assertThat(errorMessages, hasSize(47));
+        assertThat(errorMessages, hasSize(49));
         assertThat(errorMessages, containsInAnyOrder(
             "The sheet tab has no ENTITY column",
             "The sheet tab has no LEADING column",

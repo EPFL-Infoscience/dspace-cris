@@ -877,7 +877,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             Item publication = findItemByOaiID("oai:test-harvest:Publications/3", collection);
             values = publication.getMetadata();
 
-            assertThat(values, hasSize(17 + 1));
+            assertThat(values, hasSize(19 + 1));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
             assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
