@@ -7,6 +7,8 @@
  */
 package org.dspace.content.enhancer.impl;
 
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.util.FunctionalUtils.throwingConsumerWrapper;
 
 import java.sql.SQLException;
@@ -16,7 +18,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.Item;
@@ -106,6 +107,10 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     private void performEnhancement(Context context, Item item) throws SQLException {
 
+        if (noEnhanceableMetadata(context, item)) {
+            return;
+        }
+
         for (MetadataValue metadataValue : getEnhanceableMetadataValue(item)) {
 
             if (wasValueAlreadyUsedForEnhancement(item, metadataValue)) {
@@ -114,19 +119,25 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
             Item relatedItem = findRelatedEntityItem(context, metadataValue);
             if (relatedItem == null) {
+                addVirtualField(context, item, new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
+                addVirtualSourceField(context, item, new MetadataValueVO(null, PLACEHOLDER_PARENT_METADATA_VALUE));
                 continue;
             }
 
-            getMetadataValues(relatedItem, relatedItemMetadataField)
-                .stream()
+            List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem, relatedItemMetadataField);
+            if (relatedItemMetadataValues.isEmpty()) {
+                addVirtualField(context, item, new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
+                addVirtualSourceField(context, item, new MetadataValueVO(metadataValue));
+                continue;
+            }
+
+            relatedItemMetadataValues.stream()
                 .map(relatedItemMetadataValue -> getRelatedItemValue(context, relatedItemMetadataValue))
-                    .filter(relatedItemValue -> relatedItemValue != null
-                            && StringUtils.isNotBlank(relatedItemValue.getValue()))
+                .filter(relatedItemValue -> relatedItemValue != null
+                    && StringUtils.isNotBlank(relatedItemValue.getValue()))
                 .forEach(
                     throwingConsumerWrapper(
-                        relatedItemValue -> enhanceVirtualFields(context, item, metadataValue, relatedItemValue)
-                    )
-                );
+                        relatedItemValue -> enhanceVirtualFields(context, item, metadataValue, relatedItemValue)));
         }
 
     }
@@ -134,16 +145,36 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     protected void enhanceVirtualFields(Context context, Item item, MetadataValue metadataValue,
             MetadataValueVO relatedItemMetadataValue) throws SQLException {
         addVirtualField(context, item, relatedItemMetadataValue);
-        addVirtualSourceField(context, item, metadataValue);
+        addVirtualSourceField(context, item, new MetadataValueVO(metadataValue));
     }
 
     protected MetadataValueVO getRelatedItemValue(Context context, MetadataValue relatedItemMetadataValue) {
         return new MetadataValueVO(relatedItemMetadataValue.getValue());
     }
 
+    private boolean noEnhanceableMetadata(Context context, Item item) {
+
+        return getEnhanceableMetadataValue(item)
+            .stream()
+            .noneMatch(metadataValue -> validAuthority(context, metadataValue));
+    }
+
+    private boolean validAuthority(Context context, MetadataValue metadataValue) {
+        // FIXME: we could find a more efficient way, here we are doing twice the same action
+        //  to understand if the enhanced item has at least an item whose references should be put in virtual fields.
+        Item relatedItem = findRelatedEntityItem(context, metadataValue);
+        if (relatedItem == null) {
+            return false;
+        }
+
+        return getMetadataValues(relatedItem, relatedItemMetadataField).stream()
+            .map(value -> getRelatedItemValue(context, value))
+            .anyMatch(relatedItemValue -> relatedItemValue != null && isNotBlank(relatedItemValue.getValue()));
+    }
+
     private List<MetadataValue> getEnhanceableMetadataValue(Item item) {
-        return getMetadataValues(item, sourceItemMetadataFields)
-            .filter(metadataValue -> StringUtils.isNotBlank(metadataValue.getAuthority()))
+        return sourceItemMetadataFields.stream()
+            .flatMap(sourceItemMetadataField -> getMetadataValues(item, sourceItemMetadataField).stream())
             .collect(Collectors.toList());
     }
 
@@ -170,19 +201,12 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         return itemService.getMetadataByMetadataString(item, metadataField);
     }
 
-    private Stream<MetadataValue> getMetadataValues(Item item, List<String> metadataFields) {
-        return Optional.ofNullable(metadataFields)
-                    .orElse(List.of())
-                    .stream()
-                    .flatMap(metadataField -> itemService.getMetadataByMetadataString(item, metadataField).stream());
-    }
-
     private void addVirtualField(Context context, Item item, MetadataValueVO value) throws SQLException {
         itemService.addMetadata(context, item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_METADATA_ELEMENT,
                 getVirtualQualifier(), null, value.getValue(), value.getAuthority(), value.getConfidence());
     }
 
-    private void addVirtualSourceField(Context context, Item item, MetadataValue sourceValue) throws SQLException {
+    private void addVirtualSourceField(Context context, Item item, MetadataValueVO sourceValue) throws SQLException {
         itemService.addMetadata(context, item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_SOURCE_METADATA_ELEMENT,
             getVirtualQualifier(), null, sourceValue.getAuthority());
     }
