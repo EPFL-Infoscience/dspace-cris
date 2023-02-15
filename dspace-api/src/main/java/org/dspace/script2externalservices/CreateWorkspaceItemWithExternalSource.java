@@ -247,13 +247,14 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private void performCreatingOfWorkspaceItems(LiveImportDataProvider dataProvider) throws SQLException {
 
+        int searchCount = 0;
         int totalRecordWorked = 0;
         int totalItemsProcessed = 0;
 
         try {
             Iterator<Item> itemIterator = findItems();
             handler.logInfo("Update start");
-            while (itemIterator.hasNext()) {
+            while (itemIterator.hasNext() && searchCount < searchLimit) {
                 Item item = itemIterator.next();
                 String id = buildID(item);
                 Optional<MetadataValue> owner = getOwner(item);
@@ -266,6 +267,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                         int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, item, id, owner);
                         userPublicationsProcessed[0] += resultFill[0];
                         userPublicationsProcessed[1] += resultFill[1];
+                        searchCount++;
                         currentRecord += LIMIT;
                     }
                     setLastImportMetadataValue(item);
@@ -288,7 +290,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private Optional<MetadataValue> getOwner(Item item) {
-        List<MetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(item, "cris.owner");
+        List<MetadataValue> metadataByMetadataString = itemService
+            .getMetadataByMetadataString(item, "dspace.object.owner");
         return metadataByMetadataString.size() > 0 ? Optional.of(metadataByMetadataString.get(0)) : Optional.empty();
     }
 

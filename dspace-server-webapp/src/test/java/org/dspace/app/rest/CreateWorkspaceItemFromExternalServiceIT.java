@@ -703,7 +703,8 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         assertThat(thirdPersonLastImport, notNullValue());
         assertThat(fourthPersonLastImport, notNullValue());
 
-        String[] args = new String[] { "import-publications", "-s", "scopus", "-e", admin.getEmail(), "-l", "4" };
+        String[] args = new String[] { "import-publications", "-s", "scopus", "-f", "item",
+            "-e", admin.getEmail(), "-l", "4" };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         nameToProvider.put("scopus", mockScopusProvider);
         createWorkspaceItemService.initialize(args, handler, admin);
@@ -764,7 +765,8 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         assertThat(thirdPersonLastImport, notNullValue());
         assertThat(fourthPersonLastImport, notNullValue());
 
-        String[] args = new String[] { "import-publications", "-s", "scopus", "-e", admin.getEmail(), "-l", "3" };
+        String[] args = new String[] { "import-publications", "-s", "scopus", "-f", "item",
+            "-e", admin.getEmail(), "-l", "3" };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         nameToProvider.put("scopus", mockScopusProvider);
         createWorkspaceItemService.initialize(args, handler, admin);

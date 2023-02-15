@@ -1087,7 +1087,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                             is("My Article")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
                                     ".sections.publication['dc.type'][0].value",
-                            is("article")))
+                            is("Controlled Vocabulary for Resource Type Genres::text::periodical"
+                                + "::journal::contribution to journal::journal article")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
                                     is(col1.getID().toString())))
@@ -1120,7 +1121,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                             is("My Article")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
                                     ".sections.publication['dc.type'][0].value",
-                            is("article")))
+                            is("Controlled Vocabulary for Resource Type Genres::text::periodical"
+                                + "::journal::contribution to journal::journal article")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
                                     is(col2.getID().toString())))

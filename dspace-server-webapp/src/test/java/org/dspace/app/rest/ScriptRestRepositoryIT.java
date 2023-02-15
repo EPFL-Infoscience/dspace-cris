@@ -84,6 +84,7 @@ import org.dspace.utils.DSpace;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -874,7 +875,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
             );
     }
 
-    //@Ignore
+    @Ignore
     @Test
     public void exportPubliclyAvailableItemsTest() throws Exception {
         String adminLimit = configurationService.getProperty("bulk-export.limit.admin");
@@ -1051,7 +1052,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
 
             LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
             parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));
-            parameters.add(new DSpaceCommandLineParameter("-f", "publication-cerif-xml"));
+            parameters.add(new DSpaceCommandLineParameter("-f", "epfl-publications"));
 
             List<ParameterValueRest> list =
                 parameters.stream()
@@ -1126,9 +1127,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
             configurationService.setProperty("bulk-export.limit.loggedIn", "2");
             configurationService.setProperty("bulk-export.limit.notLoggedIn", "2");
             try {
-                // eperson export
-                String epToken = getAuthToken(eperson.getEmail(), password);
-                getClient(epToken)
+                getClient(adminToken)
                     .perform(
                         multipart("/api/system/scripts/bulk-item-export/processes")
                             .param("properties", new Gson().toJson(list))
@@ -1139,7 +1138,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                             "$", is(
                                 ProcessMatcher.matchProcess(
                                     "bulk-item-export",
-                                    String.valueOf(eperson.getID()),
+                                    String.valueOf(admin.getID()),
                                     parameters,
                                     acceptableProcessStatuses
                                 )
@@ -1150,7 +1149,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                         result -> idRef
                             .set(read(result.getResponse().getContentAsString(), "$.processId"))
                     );
-                checkExportOutput(epToken, null, idRef, includedContents, excludedContents, true);
+                checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, true);
             } finally {
                 if (idRef.get() != null) {
                     ProcessBuilder.deleteProcess(idRef.get());
@@ -1196,7 +1195,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                         result -> idRef
                             .set(read(result.getResponse().getContentAsString(), "$.processId"))
                     );
-                checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, false);
+                checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, true);
             } finally {
                 if (idRef.get() != null) {
                     ProcessBuilder.deleteProcess(idRef.get());

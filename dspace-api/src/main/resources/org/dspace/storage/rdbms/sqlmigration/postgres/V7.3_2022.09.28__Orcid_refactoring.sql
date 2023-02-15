@@ -21,7 +21,7 @@ where NOT EXISTS (SELECT 1 from cris_layout_cell cell where cell.row = l_row.id)
 DELETE FROM cris_layout_tab tab
 where NOT EXISTS (SELECT 1 from cris_layout_row l_row where l_row.tab = tab.id);
 
--- REPLACE cris.owner with dspace.object.owner
+-- REPLACE dspace.object.owner with dspace.object.owner
 UPDATE metadatafieldregistry 
 SET element = 'object',
     qualifier ='owner',

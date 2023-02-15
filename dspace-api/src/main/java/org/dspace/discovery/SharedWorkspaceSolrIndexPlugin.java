@@ -55,7 +55,7 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
 
     /**
      *
-     * @param additionalReadMetadata metadata representing linked items for which, if present, cris.owner
+     * @param additionalReadMetadata metadata representing linked items for which, if present, dspace.object.owner
      *                               must have read permissions of indexed item.
      */
     public SharedWorkspaceSolrIndexPlugin(List<String> additionalReadMetadata) {
