@@ -892,7 +892,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             // The citation cover page contains the item title.
             // We will now verify that the pdf text contains this title.
             String pdfText = extractPDFText(content);
-            System.out.println(pdfText);
             assertTrue(StringUtils.contains(pdfText,"Public item citation cover page test 1"));
 
             // The dspace-api/src/test/data/dspaceFolder/assetstore/ConstitutionofIreland.pdf file contains 64 pages,

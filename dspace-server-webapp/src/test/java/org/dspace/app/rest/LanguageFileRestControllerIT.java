@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,7 +41,8 @@ public class LanguageFileRestControllerIT extends AbstractControllerIntegrationT
 
         context.restoreAuthSystemState();
         getClient().perform(multipart("/api/adminfile/languages")
-                   .file(pdfFile))
+                   .file(pdfFile)
+                   .param("lang", "en"))
                    .andExpect(status().isUnauthorized());
     }
 
@@ -57,14 +57,16 @@ public class LanguageFileRestControllerIT extends AbstractControllerIntegrationT
 
         String epersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(epersonToken).perform(multipart("/api/adminfile/languages")
-                               .file(pdfFile))
+                               .file(pdfFile)
+                               .param("lang", "en"))
                                .andExpect(status().isForbidden());
     }
 
     @Test
     public void uploadLanguageFileUnprocessableEntityTest() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(multipart("/api/adminfile/languages"))
+        getClient(adminToken).perform(multipart("/api/adminfile/languages")
+                             .param("lang", "en"))
                              .andExpect(status().isUnprocessableEntity());
     }
 
@@ -76,18 +78,18 @@ public class LanguageFileRestControllerIT extends AbstractControllerIntegrationT
         final MockMultipartFile pdfFile = new MockMultipartFile("file", "/local/path/simple-article.pdf",
                 "application/pdf", pdf);
 
-        Path path = Paths.get(pathWhereToSave + "file");
-        boolean exists = Files.exists(path);
-        assertFalse(exists);
+        Path path = Paths.get(pathWhereToSave + "en.json5");
+        // delet file
+        Files.deleteIfExists(path);
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(multipart("/api/adminfile/languages")
-                             .file(pdfFile))
+                             .file(pdfFile)
+                             .param("lang", "en"))
                              .andExpect(status().isOk());
 
-        exists = Files.exists(path);
-        assertTrue(exists);
+        assertTrue(Files.exists(path));
 
         // delet file
         Files.deleteIfExists(path);

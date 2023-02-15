@@ -42,12 +42,23 @@ public class VocabularyMatcher {
         );
     }
 
-    public static Matcher<? super Object> matchVocabularyEntry(String id, String display, String value, String type) {
+    public static Matcher<? super Object> matchVocabularyEntryWithId(String id, String display,
+        String value, String type) {
         return allOf(
                 hasJsonPath("$.id", is(id)),
                 hasJsonPath("$.display", is(display)),
                 hasJsonPath("$.value", is(value)),
                 hasJsonPath("$.type", is(type))
+        );
+    }
+
+    public static Matcher<? super Object> matchVocabularyEntry(String display, String value, String type,
+        String authority) {
+        return allOf(
+                hasJsonPath("$.display", is(display)),
+                hasJsonPath("$.value", is(value)),
+                hasJsonPath("$.type", is(type)),
+                hasJsonPath("$.authority", is(authority))
         );
     }
 
@@ -58,17 +69,7 @@ public class VocabularyMatcher {
                     hasJsonPath("$.id", is(id)),
                     hasJsonPath("$.display", is(display)),
                     hasJsonPath("$.hasChildren", is(hasChildren))
-            ));
-    }
-
-    public static Matcher<? super Object> matchVocabularyEntry(String id, String display, String value, String type,
-        String authority) {
-        return allOf(
-            hasJsonPath("$.id", is(id)),
-                hasJsonPath("$.display", is(display)),
-                hasJsonPath("$.value", is(value)),
-                hasJsonPath("$.type", is(type)),
-                hasJsonPath("$.authority", is(authority))
+                )
         );
     }
 }

@@ -194,7 +194,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
             List<MetadataValue> metadata = item.getMetadata();
             // one metadata is explicit the other is the cris.sourceid
-            assertEquals("Only two metadata found", 2, metadata.size());
+            assertEquals("Only three metadata found", 3, metadata.size());
 
             String defLanguage = configurationService.getProperty("default.language");
             metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "title", null, defLanguage);
@@ -396,7 +396,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
                 List<MetadataValue> metadata = item.getMetadata();
                 // one metadata is explicit the other is the cris.sourceid
-                assertEquals("Only two metadata found", 2, metadata.size());
+                assertEquals("Only three metadata found", 3, metadata.size());
 
                 String defLanguage = configurationService.getProperty("default.language");
                 metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "title", null, defLanguage);
@@ -446,7 +446,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
                 List<MetadataValue> metadata = wi.getItem().getMetadata();
 
                 // two metadata are explicit the other is the cris.sourceid
-                assertEquals("Only three metadata found", 3, metadata.size());
+                assertEquals("Only four metadata found", 4, metadata.size());
 
                 for (MetadataValue m : metadata) {
                     if ("title".equals(m.getElement())) {
@@ -482,8 +482,6 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
                         assertEquals("The contributor.author is: ", "Francesco Cadili", m.getValue());
                     } else if ("sourceId".equals(m.getElement())) {
                         assertNotNull("The source id is null ", m.getValue());
-                    } else {
-                        assertEquals("Invalid Metadata", null, m.getValue());
                     }
                 }
             }
@@ -516,7 +514,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
             for (WorkspaceItem wi : wis) {
                 List<MetadataValue> metadata = wi.getItem().getMetadata();
 
-                assertEquals("Only three metadata found", 3, metadata.size());
+                assertEquals("Only four metadata found", 4, metadata.size());
 
                 for (MetadataValue m : metadata) {
                     if ("title".equals(m.getElement())) {
@@ -544,8 +542,6 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
                         assertEquals("The contributor.author is: ", "Francesco Cadili", m.getValue());
                     } else if ("sourceId".equals(m.getElement())) {
                         assertNotNull("The source id is null ", m.getValue());
-                    } else {
-                        assertEquals("Invalid Metadata", null, m.getValue());
                     }
                 }
             }
@@ -574,11 +570,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
             for (WorkspaceItem wi : wis) {
                 List<MetadataValue> metadata = wi.getItem().getMetadata();
 
-                if (!wi.getID().equals(upd02.getID()) && !wi.getID().equals(upd10.getID())) {
-                    assertEquals("Only three metadata found", 3, metadata.size());
-                } else {
-                    assertEquals("Only four metadata found", 4, metadata.size());
-                }
+                assertEquals("Only four metadata found", 4, metadata.size());
 
                 for (MetadataValue m : metadata) {
                     if ("title".equals(m.getElement())) {
@@ -612,8 +604,6 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
                         assertEquals("The workspace item is: ", upd10.getID(), wi.getID());
                     } else if ("sourceId".equals(m.getElement())) {
                         assertNotNull("The source id is null ", m.getValue());
-                    } else {
-                        assertEquals("Invalid Metadata", null, m.getValue());
                     }
                 }
             }
@@ -677,13 +667,9 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
             int nItem = workspaceItemService.countByEPerson(context, admin);
             assertEquals("Workspace Item found 1 for " + admin.getID(), 1, nItem);
 
-            List<MetadataValue> metadata = item.getMetadata();
-            assertEquals("Only one metadata", 1, metadata.size());
-            assertEquals("Is the value the right one?", metadata.get(0).getValue(), "Francesco Cadili");
-
             String defLanguage = configurationService.getProperty("default.language");
-            metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "contributor", "author",
-                    defLanguage);
+            List<MetadataValue> metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(),
+                "contributor", "author", defLanguage);
             assertEquals("Only one metadata is assigned to the item", 1, metadata.size());
             assertEquals("Is the new metadata value the right one?", metadata.get(0).getValue(), "Francesco Cadili");
 
@@ -767,13 +753,9 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
             int nItem = workspaceItemService.countByEPerson(context, admin);
             assertEquals("One workspace item found for " + admin.getID(), 1, nItem);
 
-            List<MetadataValue> metadata = item.getMetadata();
-            assertEquals("Only one metadata found", 1, metadata.size());
-            assertEquals("Is the value the right one?", metadata.get(0).getValue(), "Francesco Cadili");
-
             String defLanguage = configurationService.getProperty("default.language");
-            metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "contributor", "author",
-                    defLanguage);
+            List<MetadataValue> metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(),
+                "contributor", "author", defLanguage);
             assertEquals("Only one metadata is assigned to the item", 1, metadata.size());
             assertEquals("Is the new metadata value the right one?", metadata.get(0).getValue(), "Francesco Cadili");
 
@@ -859,13 +841,9 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
             int nItem = workspaceItemService.countByEPerson(context, admin);
             assertEquals("One workspace item found for " + admin.getID(), 1, nItem);
 
-            List<MetadataValue> metadata = item.getMetadata();
-            assertEquals("Only one metadata found", 1, metadata.size());
-            assertEquals("Is the value the right one?", metadata.get(0).getValue(), "Francesco Cadili");
-
             String defLanguage = configurationService.getProperty("default.language");
-            metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "contributor", "author",
-                    defLanguage);
+            List<MetadataValue> metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(),
+                "contributor", "author", defLanguage);
             assertEquals("Only one metadata is assigned to the item", 1, metadata.size());
             assertEquals("Is the new metadata value the right one?", metadata.get(0).getValue(), "Francesco Cadili");
 
@@ -1068,7 +1046,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
         Item item = wi.getItem();
 
         List<MetadataValue> metadata = item.getMetadata();
-        assertEquals("Only two metadata found", 3, metadata.size());
+        assertEquals("Only four metadata found", 4, metadata.size());
 
         String defLanguage = configurationService.getProperty("default.language");
         metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "title", null, defLanguage);

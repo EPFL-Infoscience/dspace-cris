@@ -67,7 +67,11 @@ public class LanguageFileRestController {
             throw new UnprocessableEntityException("The language file must be provided!");
         }
         String pathWhereToSave = configurationService.getProperty("languages.file.dir");
-        file.transferTo(new File(pathWhereToSave + lang + FILE_EXT));
+        File languageFile = new File(pathWhereToSave, lang + FILE_EXT);
+        if (!languageFile.exists()) {
+            new File(pathWhereToSave).mkdirs();
+        }
+        file.transferTo(languageFile);
     }
 
 }

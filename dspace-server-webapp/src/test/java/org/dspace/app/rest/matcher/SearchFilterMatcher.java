@@ -207,4 +207,11 @@ public class SearchFilterMatcher {
                 checkOperators()
         );
     }
+
+    public static Matcher<? super Object> filter(String name, String type) {
+        return allOf(
+            hasJsonPath("$.filter", is(name)),
+            hasJsonPath("$.type", is(type)),
+            checkOperators());
+    }
 }
