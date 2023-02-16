@@ -203,11 +203,8 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
             String responseString = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), params);
             JsonNode jsonNode = convertStringJsonToJsonNode(responseString);
-            Iterator<JsonNode> nodes = jsonNode.at("/message/items").iterator();
-            while (nodes.hasNext()) {
-                JsonNode node = nodes.next();
-                results.add(transformSourceRecords(node.toString()));
-            }
+            JsonNode messageNode = jsonNode.at("/message");
+            results.add(transformSourceRecords(messageNode.toString()));
             return results;
         }
     }
