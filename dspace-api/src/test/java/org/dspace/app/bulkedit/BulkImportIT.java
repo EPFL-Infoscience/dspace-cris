@@ -19,6 +19,7 @@ import static org.dspace.builder.WorkspaceItemBuilder.createWorkspaceItem;
 import static org.dspace.core.Constants.READ;
 import static org.dspace.util.MultiFormatDateParser.parse;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -31,20 +32,15 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,9 +50,6 @@ import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -87,7 +80,6 @@ import org.dspace.event.service.EventService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -108,8 +100,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     private static final Pattern UUID_PATTERN = compile(
         "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}");
 
-    private static final String BITSTREAM_METADATA = "bitstream-metadata";
-
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
@@ -123,8 +113,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     private Community community;
 
     private Collection collection;
-
-    private static Set<String> temporaryFiles = new HashSet<>();
 
     @Before
     public void beforeTests() throws SQLException, AuthorizeException {
@@ -936,7 +924,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void testCreatePublicationInWorkspace() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1030,7 +1018,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void testUpdateWorkflowPatentWithValidWorkspaceItem() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1082,7 +1070,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void testUpdateWorkflowPatentWithInvalidWorkspaceItem() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1134,7 +1122,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void testUpdateWorkflowPatentWithoutWorkspaceItem() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1182,7 +1170,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void testUpdateArchivePatentWithWorkspaceItem() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1232,7 +1220,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void testUpdateArchivePatentWithWorkflowItem() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1281,7 +1269,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public void testUpdateArchivePatentWithAlreadyArchivedItem() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1458,12 +1446,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String fileName = "add-bitstream-to-item.xls";
         String fileLocation = getXlsFilePath(fileName);
-        String bitstreamLocation = "file://test.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
-                                                          null, Arrays.asList(bitstreamLocation));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -1499,16 +1482,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         String fileName = "add-multiple-bitstreams-to-items.xls";
         String fileLocation = getXlsFilePath(fileName);
 
-        String bitstreamLocation1 = "file://test.txt";
-        String bitstreamLocation2 = "file://test_2.txt";
-        String bitstreamLocation3 = "file://subfolder/test_3.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName, null,
-                                                              Arrays.asList(bitstreamLocation1,
-                                                                       bitstreamLocation2,
-                                                                       bitstreamLocation3));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -1579,20 +1553,10 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         context.commit();
         context.restoreAuthSystemState();
 
-        String fileName = "add-multiple-bitstreams-to-items.xls";
+        String fileName = "add-multiple-bitstreams-with-path-traversal-to-items.xls";
         String fileLocation = getXlsFilePath(fileName);
 
-        String bitstreamLocation1 = "file://../config/dspace.cfg";
-        String bitstreamLocation2 = "file:///home/ubuntu/.ssh/config";
-        // this is unusual but valid
-        String bitstreamLocation3 = "file://subfolder/../subfolder/test_3.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName, null,
-                                                              Arrays.asList(bitstreamLocation1,
-                                                                       bitstreamLocation2,
-                                                                       bitstreamLocation3));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -1647,6 +1611,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             .withTitle("Test Publication")
             .withAuthor("Luca G.")
             .withDescription("This is a test for bulk import")
+            .withIsniIdentifier("54321")
             .build();
 
         context.commit();
@@ -1654,13 +1619,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String fileName = "add-bitstream-to-item-update.xls";
         String fileLocation = getXlsFilePath(fileName);
-        String bitstreamLocation = "file://test.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
-                                                          Arrays.asList(publicationItem.getID().toString()),
-                                                          Arrays.asList(bitstreamLocation));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -1689,12 +1648,14 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             .withTitle("Test Publication")
             .withAuthor("Luca G.")
             .withDescription("This is a test for bulk import")
+            .withIsniIdentifier("54321")
             .build();
 
         Item publicationItem2 = createItem(context, publication)
             .withTitle("Test Publication 2")
             .withAuthor("Luca G.")
             .withDescription("This is a test for bulk import")
+            .withIsniIdentifier("98765")
             .build();
 
         context.commit();
@@ -1702,15 +1663,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String fileName = "add-bitstream-to-multiple-items-update.xls";
         String fileLocation = getXlsFilePath(fileName);
-        String bitstreamLocation = "file://test.txt";
-        String bitstreamLocation2 = "file://test_2.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
-                                                          Arrays.asList(publicationItem.getID().toString(),
-                                                                        publicationItem2.getID().toString()),
-                                                          Arrays.asList(bitstreamLocation, bitstreamLocation2));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -1750,6 +1703,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             .withTitle("Test Publication")
             .withAuthor("Luca G.")
             .withDescription("This is a test for bulk import")
+            .withIsniIdentifier("54321")
             .build();
 
         bundleService.create(context, publicationItem, "JM-BUNDLE");
@@ -1759,13 +1713,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String fileName = "add-bitstream-to-item-bundle.xls";
         String fileLocation = getXlsFilePath(fileName);
-        String bitstreamLocation = "file://test.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
-                                                          Arrays.asList(publicationItem.getID().toString()),
-                                                          Arrays.asList(bitstreamLocation));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -1802,28 +1750,23 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String fileName = "items-with-bitstreams.xlsx";
         String fileLocation = getXlsFilePath(fileName);
-        String bitstreamLocation = "file://test.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName, null,
-            Arrays.asList(bitstreamLocation));
-
-        String[] args = new String[] { "bulk-import", "-c", publications.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publications.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
         assertThat("Expected no errors", handler.getErrorMessages(), empty());
         assertThat("Expected no warnings", handler.getWarningMessages(), empty());
 
-        List<String> infoMessages = handler.getInfoMessages();
-        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
-
-        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
-        assertThat(infoMessages.get(1), containsString("Found 2 metadata groups to process"));
-        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
-        assertThat(infoMessages.get(3), containsString("Row 2 - WorkflowItem created successfully"));
+        assertThat(handler.getInfoMessages(), contains(
+            is("Start reading all the metadata group rows"),
+            is("Found 2 metadata groups to process"),
+            is("Start reading all the bitstream rows"),
+            is("Found 1 bitstreams to process"),
+            is("Found 1 items to process"),
+            containsString("Row 2 - WorkflowItem created successfully")));
 
         // verify created item (ROW 2)
-        String itemUuid = getItemUuidFromMessage(infoMessages.get(3));
+        String itemUuid = getItemUuidFromMessage(handler.getInfoMessages().get(5));
 
         Item createdItem = itemService.findByIdOrLegacyId(context, itemUuid);
         assertThat("Item expected to be created", createdItem, notNullValue());
@@ -1871,6 +1814,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
      * Test Bitstream format of created Bitstreams.
      */
     @Test
+    @SuppressWarnings("unchecked")
     public void testCreatePublicationInWorkspaceItemsWithBitstreams() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1885,28 +1829,23 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String fileName = "items-with-bitstreams.xlsx";
         String fileLocation = getXlsFilePath(fileName);
-        String bitstreamLocation = "file://test.txt";
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName, null,
-            Arrays.asList(bitstreamLocation));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
         assertThat("Expected no errors", handler.getErrorMessages(), empty());
         assertThat("Expected no warnings", handler.getWarningMessages(), empty());
 
-        List<String> infoMessages = handler.getInfoMessages();
-        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
-
-        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
-        assertThat(infoMessages.get(1), containsString("Found 2 metadata groups to process"));
-        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
-        assertThat(infoMessages.get(3), containsString("Row 2 - WorkflowItem created successfully"));
+        assertThat(handler.getInfoMessages(), contains(
+            is("Start reading all the metadata group rows"),
+            is("Found 2 metadata groups to process"),
+            is("Start reading all the bitstream rows"),
+            is("Found 1 bitstreams to process"),
+            is("Found 1 items to process"),
+            containsString("Row 2 - WorkflowItem created successfully")));
 
         // verify created item (ROW 2)
-        String itemUuid = getItemUuidFromMessage(infoMessages.get(3));
+        String itemUuid = getItemUuidFromMessage(handler.getInfoMessages().get(5));
 
         Item createdItem = itemService.findByIdOrLegacyId(context, itemUuid);
         assertThat("Item expected to be created", createdItem, notNullValue());
@@ -1950,47 +1889,36 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testUpdateAndDeleteBitstreamsOfItems() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
         Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
 
-        Collection publication =
-            createCollection(context, community)
+        Collection publication = createCollection(context, community)
                 .withSubmissionDefinition("publication")
                 .withAdminGroup(eperson)
                 .build();
 
-        Item publicationItemOne =
-            createItem(context, publication)
+        Item publicationItem = createItem(context, publication)
                 .withTitle("Test Publication")
                 .withAuthor("Eskander M.")
                 .withDescription("This is a test for bulk import")
-                .build();
-
-        Item publicationItemTwo =
-            createItem(context, publication)
-                .withTitle("Test Publication 2")
-                .withAuthor("Eskander M. 2")
-                .withDescription("This is a test for bulk import")
+                .withIsniIdentifier("54321")
                 .build();
 
         String bitstreamContent = "TEST CONTENT";
-        Bitstream bitstreamOne;
-        Bitstream bitstreamTwo;
         try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
-            bitstreamOne =
-                BitstreamBuilder.createBitstream(context, publicationItemOne, is)
-                                .withName("title")
-                                .withMimeType("text/plain")
-                                .build();
+            BitstreamBuilder.createBitstream(context, publicationItem, is)
+                .withName("title")
+                .withMimeType("text/plain")
+                .build();
 
-            bitstreamTwo =
-                BitstreamBuilder.createBitstream(context, publicationItemTwo, is)
-                                .withName("title")
-                                .withMimeType("text/plain")
-                                .build();
+            BitstreamBuilder.createBitstream(context, publicationItem, is)
+                .withName("title")
+                .withMimeType("text/plain")
+                .build();
         }
 
         context.commit();
@@ -1998,48 +1926,30 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String fileName = "update-delete-bitstreams-of-items.xls";
         String fileLocation = getXlsFilePath(fileName);
-        String bitstreamLocation = "file://test.txt";
-
-        List<String> bitstreamIds =
-            List.of(
-                bitstreamOne.getID().toString(),
-                bitstreamOne.getID().toString(),
-                bitstreamOne.getID().toString(),
-                bitstreamOne.getID().toString(),
-                bitstreamTwo.getID().toString()
-            );
-
-        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
-            List.of(publicationItemOne.getID().toString(), publicationItemTwo.getID().toString()),
-            bitstreamIds,
-            List.of(bitstreamLocation, bitstreamLocation, bitstreamLocation, bitstreamLocation));
-
-        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
-        assertThat("Expected 3 errors", handler.getErrorMessages(), hasSize(3));
         assertThat(handler.getErrorMessages(), containsInAnyOrder(
-            "Sheet bitstream-metadata - Row 2 - The provided ACCESS-CONDITION: INAVALID_NAME is not supported!",
+            "Sheet bitstream-metadata - Row 2 - Invalid ACCESS-CONDITION: [INAVALID_NAME]",
             "The access condition embargo requires a start date.",
             "The access condition embargo requires a start date."
         ));
         assertThat("Expected no warnings", handler.getWarningMessages(), empty());
 
-        List<String> infoMessages = handler.getInfoMessages();
-        assertThat("Expected 5 info messages", infoMessages, hasSize(5));
+        assertThat(handler.getInfoMessages(), contains(
+            is("Start reading all the metadata group rows"),
+            is("Found 4 metadata groups to process"),
+            is("Start reading all the bitstream rows"),
+            is("Found 4 bitstreams to process"),
+            is("Found 1 items to process"),
+            containsString("Row 2 - Item updated successfully")));
 
-        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
-        assertThat(infoMessages.get(1), containsString("Found 4 metadata groups to process"));
-        assertThat(infoMessages.get(2), containsString("Found 2 items to process"));
-        assertThat(infoMessages.get(3), containsString("Row 2 - Item updated successfully"));
-        assertThat(infoMessages.get(4), containsString("Row 3 - Item updated successfully"));
-
-        publicationItemOne = context.reloadEntity(publicationItemOne);
-        publicationItemTwo = context.reloadEntity(publicationItemTwo);
+        publicationItem = context.reloadEntity(publicationItem);
 
         List<Bitstream> bitstreams = new ArrayList<>();
-        bitstreamService.getItemBitstreams(context, publicationItemOne).forEachRemaining(bitstreams::add);
+        bitstreamService.getItemBitstreams(context, publicationItem).forEachRemaining(bitstreams::add);
+        assertThat(bitstreams, hasSize(1));
 
         Bitstream bitstream = getBitstreamByBundleName(bitstreams, "ORIGINAL");
         InputStream inputStream = bitstreamService.retrieve(context, bitstream);
@@ -2085,89 +1995,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(bf.getDescription(), is("Plain Text"));
 
         bitstreams.clear();
-        bitstreamService.getItemBitstreams(context, publicationItemTwo).forEachRemaining(bitstreams::add);
-        assertThat(bitstreams, empty());
-    }
-
-    /*
-     * Creates a temporary Excel file which is a copy of the one provided
-     * but set's the FILE_PATH column to the new bitstream path.
-     */
-    private String createTemporaryExcelFile(String excelFilePath, String excelFileName,
-                                            List<String> idList, List<String> bitstreamFilePaths) throws IOException {
-        XSSFWorkbook workbook = new XSSFWorkbook(excelFilePath);
-        setIdsToExcelFile(workbook, idList);
-        setBitstreamPathToExcelFile(workbook, bitstreamFilePaths);
-
-        // Write file to disk
-        File file = new File(getXlsFilePath("tmp_" + excelFileName));
-        FileOutputStream outputStream = new FileOutputStream(file);
-        workbook.write(outputStream);
-        outputStream.close();
-
-        temporaryFiles.add(file.getAbsolutePath());
-        return file.getAbsolutePath();
-    }
-
-    /**
-     * Create a temporary Excel file which is a copy of the one provided
-     * but set the FILE_PATH column to the new bitstream path.
-     */
-    private String createTemporaryExcelFile(String excelFilePath,
-                                            String excelFileName,
-                                            List<String> idList,
-                                            List<String> bitstreamIds,
-                                            List<String> bitstreamFilePaths) throws IOException {
-        XSSFWorkbook workbook = new XSSFWorkbook(excelFilePath);
-        setIdsToExcelFile(workbook, idList);
-        setBitstreamIdsToExcelFile(workbook, bitstreamIds);
-        setBitstreamPathToExcelFile(workbook, bitstreamFilePaths);
-
-        // Write file to disk
-        File file = new File(getXlsFilePath("tmp_" + excelFileName));
-        FileOutputStream outputStream = new FileOutputStream(file);
-        workbook.write(outputStream);
-        outputStream.close();
-
-        temporaryFiles.add(file.getAbsolutePath());
-        return file.getAbsolutePath();
-    }
-
-    private void setIdsToExcelFile(Workbook workbook, List<String> idList) {
-        if (idList == null) {
-            return;
-        }
-
-        Sheet sheet = workbook.getSheetAt(0);
-        for (int i = 0; i < idList.size(); i++) {
-            sheet.getRow(i + 1).getCell(0).setCellValue(idList.get(i));
-        }
-    }
-
-    private void setBitstreamIdsToExcelFile(Workbook workbook, List<String> bitstreamIds) {
-        if (bitstreamIds == null) {
-            return;
-        }
-
-        Sheet sheet = workbook.getSheet(BITSTREAM_METADATA);
-        for (int i = 0; i < bitstreamIds.size(); i++) {
-            sheet.getRow(i + 1).getCell(3).setCellValue(bitstreamIds.get(i));
-        }
-    }
-
-    private void setBitstreamPathToExcelFile(Workbook workbook, List<String> bitstreams) {
-        if (bitstreams == null) {
-            return;
-        }
-
-        Sheet sheet = workbook.getSheet(BITSTREAM_METADATA);
-        for (int i = 0; i < bitstreams.size(); i++) {
-            sheet.getRow(i + 1).getCell(1).setCellValue(bitstreams.get(i));
-        }
-    }
-
-    private void cleanUpTemporaryFiles() {
-        temporaryFiles.forEach(f -> new File(f).delete());
     }
 
     private Map<String, String> getMetadataFromBitStream(Bitstream bitstream) {
@@ -2207,11 +2034,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(resourcePolicy.getStartDate(), is(startDate));
         assertThat(resourcePolicy.getEndDate(), is(endDate));
         assertThat(resourcePolicy.getRpDescription(), is(description));
-    }
-
-    @After
-    public void cleanUp() {
-        cleanUpTemporaryFiles();
     }
 
 }

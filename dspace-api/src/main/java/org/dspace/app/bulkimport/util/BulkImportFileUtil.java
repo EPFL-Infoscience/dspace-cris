@@ -53,7 +53,7 @@ public class BulkImportFileUtil {
 
         if (UNKNOWN.equals(fileLocationType)) {
             handler.logWarning("File path is of UNKNOWN type: [" + path + "]");
-            return Optional.ofNullable(null);
+            return Optional.empty();
         }
 
         return getInputStream(path, fileLocationType);
@@ -90,7 +90,7 @@ public class BulkImportFileUtil {
             handler.logError(e.getMessage());
         }
 
-        return Optional.ofNullable(null);
+        return Optional.empty();
     }
 
 

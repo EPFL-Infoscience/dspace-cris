@@ -10,11 +10,11 @@ package org.dspace.content.integration.crosswalks;
 import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
 import static org.apache.commons.collections4.IteratorUtils.singletonListIterator;
 import static org.dspace.app.bulkedit.BulkImport.AUTHORITY_SEPARATOR;
-import static org.dspace.app.bulkedit.BulkImport.ID_CELL;
+import static org.dspace.app.bulkedit.BulkImport.ID_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_PREFIX;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_SUFFIX;
 import static org.dspace.app.bulkedit.BulkImport.METADATA_SEPARATOR;
-import static org.dspace.app.bulkedit.BulkImport.PARENT_ID_CELL;
+import static org.dspace.app.bulkedit.BulkImport.PARENT_ID_HEADER;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -194,7 +194,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private XlsCollectionSheet writeMainSheetHeader(Context context, Collection collection, Workbook workbook) {
         XlsCollectionSheet mainSheet = new XlsCollectionSheet(workbook, "items", false, collection);
-        mainSheet.appendHeader(ID_CELL);
+        mainSheet.appendHeader(ID_HEADER);
         List<String> metadataFields = getSubmissionFormMetadata(collection);
         for (String metadataField : metadataFields) {
             mainSheet.appendHeaderIfNotPresent(metadataField);
@@ -205,7 +205,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private XlsCollectionSheet writeNestedMetadataSheetHeader(Collection collection, Workbook workbook, String field) {
         XlsCollectionSheet nestedMetadataSheet = new XlsCollectionSheet(workbook, field, true, collection);
         List<String> nestedMetadataFields = getSubmissionFormMetadataGroup(collection, field);
-        nestedMetadataSheet.appendHeader(PARENT_ID_CELL);
+        nestedMetadataSheet.appendHeader(PARENT_ID_HEADER);
         for (String metadataField : nestedMetadataFields) {
             nestedMetadataSheet.appendHeader(metadataField);
         }
@@ -331,7 +331,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         List<String> headers = mainSheet.getHeaders();
         for (String header : headers) {
 
-            if (header.equals(ID_CELL)) {
+            if (header.equals(ID_HEADER)) {
                 mainSheet.setValueOnLastRow(header, item.getID().toString());
                 continue;
             }
@@ -361,7 +361,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
         for (String header : headers) {
 
-            if (header.equals(PARENT_ID_CELL)) {
+            if (header.equals(PARENT_ID_HEADER)) {
                 nestedMetadataSheet.setValueOnLastRow(header, item.getID().toString());
                 continue;
             }
