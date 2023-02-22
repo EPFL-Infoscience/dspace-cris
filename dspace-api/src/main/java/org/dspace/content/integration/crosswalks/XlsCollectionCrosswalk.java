@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,6 +39,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,6 +65,7 @@ import org.dspace.content.crosswalk.CrosswalkMode;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.integration.crosswalks.model.XlsCollectionSheet;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -98,6 +99,9 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     @Autowired
     private CollectionService collectionService;
+
+    @Autowired
+    private BitstreamService bitstreamService;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -226,6 +230,11 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
             bitstreamSheet.appendHeader(bitstreamSheetHeader);
         }
 
+        List<String> metadataFields = getMetadaFields(collection);
+        for (String metadataField : metadataFields) {
+            bitstreamSheet.appendHeaderIfNotPresent(metadataField);
+        }
+
         return bitstreamSheet;
     }
 
@@ -266,24 +275,16 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         Bitstream bitstream, String bundle, String position) {
         bitstreamSheet.appendRow();
         writeBitstreamBaseValues(context, bitstreamSheet, item, bitstream, bundle, position);
-        writeBitstreamMetadataValues(bitstreamSheet, getMetadataFromBitStream(bitstream));
+        writeBitstreamMetadataValues(bitstreamSheet, bitstream);
     }
 
-    private void writeBitstreamMetadataValues(XlsCollectionSheet bitstreamSheet, Map<String, String> metadataMap) {
-        metadataMap
-            .entrySet()
-            .stream()
-            .forEach(metadataEntry ->
-                    writeBitstreamMetadataItem(bitstreamSheet, metadataEntry)
-            );
-    }
-
-    private void writeBitstreamMetadataItem(XlsCollectionSheet bitstreamSheet, Entry<String, String> metadataEntry) {
-        bitstreamSheet.appendHeaderIfNotPresent(metadataEntry.getKey());
-        bitstreamSheet.setValueOnLastRow(
-                metadataEntry.getKey(),
-                metadataEntry.getValue()
-        );
+    private void writeBitstreamMetadataValues(XlsCollectionSheet bitstreamSheet, Bitstream bitstream) {
+        for (String header : bitstreamSheet.getHeaders()) {
+            if (isBitstreamMetadataFieldHeader(header)) {
+                bitstreamService.getMetadataByMetadataString(bitstream, header)
+                        .forEach(value -> writeMetadataValue(bitstreamSheet, header, value));
+            }
+        }
     }
 
     private void writeBitstreamBaseValues(Context context, XlsCollectionSheet bitstreamSheet,
@@ -373,7 +374,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
                 continue;
             }
 
-            getMetadataValues(item, header).forEach(value -> writeMetadataValue(item, mainSheet, header, value));
+            getMetadataValues(item, header).forEach(value -> writeMetadataValue(mainSheet, header, value));
         }
 
     }
@@ -417,13 +418,13 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
                 continue;
             }
 
-            writeMetadataValue(item, nestedMetadataSheet, header, metadata.get(groupIndex));
+            writeMetadataValue(nestedMetadataSheet, header, metadata.get(groupIndex));
 
         }
 
     }
 
-    private void writeMetadataValue(Item item, XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
+    private void writeMetadataValue(XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
 
         String language = metadataValue.getLanguage();
         if (StringUtils.isBlank(language)) {
@@ -452,6 +453,10 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         }
 
         return value + AUTHORITY_SEPARATOR + authority + AUTHORITY_SEPARATOR + confidence;
+    }
+
+    private boolean isBitstreamMetadataFieldHeader(String header) {
+        return !ArrayUtils.contains(BulkImport.BITSTREAMS_SHEET_HEADERS, header);
     }
 
     private Iterator<Item> convertToItemIterator(Iterator<? extends DSpaceObject> dsoIterator) {
@@ -542,24 +547,17 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private Map<String, String> getMetadataFromBitStream(Bitstream bitstream) {
-        return bitstream
-            .getMetadata()
-            .stream()
-            .filter(mv -> StringUtils.isNotBlank(mv.getValue()))
-            .collect(Collectors.toMap(this::getMetadataName, MetadataValue::getValue, (s1, s2) -> s1));
-    }
-
-    private String getMetadataName(MetadataValue m) {
-        if (StringUtils.isBlank(m.getQualifier())) {
-            return String.format("%s.%s", m.getSchema(), m.getElement());
-        }
-
-        return String.format("%s.%s.%s", m.getSchema(), m.getQualifier(), m.getElement()
-        );
-    }
-
     public void setReader(DCInputsReader reader) {
         this.reader = reader;
+    }
+
+    private List<String> getMetadaFields(Collection collection) {
+        List<String> metadataFields;
+        try {
+            metadataFields = reader.getUploadMetadataFieldsFromCollection(collection);
+        } catch (DCInputsReaderException e) {
+            throw new RuntimeException(e);
+        }
+        return metadataFields;
     }
 }

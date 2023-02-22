@@ -659,6 +659,8 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         Bitstream firstBitstream = createBitstream(context, firstBundle, getBitstreamSample("First bitstream"))
             .withName("test.txt")
             .withDescription("desc 1")
+            .withMetadata("dc", "date", null, "2023-02-23")
+            .withMetadata("dc", "contributor", null, "Unknown author")
             .build();
 
         Bitstream secondBitstream = createBitstream(context, firstBundle, getBitstreamSample("Second bitstream"))
@@ -705,11 +707,11 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         String thirdUrl = getBitstreamLocationUrl(thirdBitstream);
         String fourthUrl = getBitstreamLocationUrl(fourthBitstream);
 
-        String[] bitstreamHeaders = ArrayUtils.addAll(BITSTREAMS_SHEET_HEADERS, "dc.description", "dc.title");
-        String[] firstRow = { firstItemId, firstUrl, "TEST-BUNDLE", "1", "", "N", "desc 1", "test.txt" };
-        String[] secondRow = { firstItemId, secondUrl, "TEST-BUNDLE", "2", "openaccess", "N", "desc 2", "test2.txt" };
-        String[] thirdRow = { firstItemId, thirdUrl, "TEST-BUNDLE-2", "1", "", "N", "desc 3", "test3.txt" };
-        String[] fourthRow = { secondItemId, fourthUrl, "TEST-BUNDLE", "1", "", "N", "desc 4", "test4.txt" };
+        String[] bitstreamHeaders = ArrayUtils.addAll(BITSTREAMS_SHEET_HEADERS, "dc.title", "dc.description");
+        String[] firstRow = { firstItemId, firstUrl, "TEST-BUNDLE", "1", "", "N", "test.txt", "desc 1" };
+        String[] secondRow = { firstItemId, secondUrl, "TEST-BUNDLE", "2", "openaccess", "N", "test2.txt", "desc 2" };
+        String[] thirdRow = { firstItemId, thirdUrl, "TEST-BUNDLE-2", "1", "", "N", "test3.txt", "desc 3" };
+        String[] fourthRow = { secondItemId, fourthUrl, "TEST-BUNDLE", "1", "", "N", "test4.txt", "desc 4" };
 
         List<String[]> rows = List.of(firstRow, secondRow, thirdRow, fourthRow);
 
@@ -743,6 +745,8 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         Bitstream bitstream = createBitstream(context, bundle, getBitstreamSample("First bitstream sample"))
             .withName("test.txt")
             .withDescription("test description 1")
+            .withMetadata("dc", "date", null, "2023-02-23")
+            .withMetadata("dc", "contributor", null, "Unknown author")
             .build();
 
         ResourcePolicyBuilder.createResourcePolicy(context)
@@ -802,9 +806,9 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         String bitstreamLocation = getBitstreamLocationUrl(bitstream);
         String expectedPolicies = "administrator$$Test policy||embargo$$2025-03-25||lease$$2025-03-25$$Test";
 
-        String[] bitstreamHeaders = ArrayUtils.addAll(BITSTREAMS_SHEET_HEADERS, "dc.description", "dc.title");
+        String[] bitstreamHeaders = ArrayUtils.addAll(BITSTREAMS_SHEET_HEADERS, "dc.title", "dc.description");
         String[] firstRow = { firstItemId, bitstreamLocation, "TEST-BUNDLE", "1", expectedPolicies, "N",
-            "test description 1", "test.txt" };
+            "test.txt", "test description 1" };
 
         List<String[]> rowList = new ArrayList<>();
         rowList.add(firstRow);
