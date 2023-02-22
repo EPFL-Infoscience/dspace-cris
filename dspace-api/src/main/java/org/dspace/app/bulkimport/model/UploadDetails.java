@@ -26,6 +26,8 @@ public class UploadDetails implements ChildRow {
 
     private final String parentId;
 
+    private final int row;
+
     private final String filePath;
 
     private final String bundleName;
@@ -38,11 +40,12 @@ public class UploadDetails implements ChildRow {
 
     private final boolean additionalAccessCondition;
 
-    public UploadDetails(String parentId, String filePath, String bundleName, Integer bitstreamPosition,
+    public UploadDetails(String parentId, int row, String filePath, String bundleName, Integer bitstreamPosition,
         List<AccessCondition> accessConditions, boolean additionalAccessCondition,
         MultiValuedMap<String, MetadataValueVO> metadata) {
 
         this.parentId = parentId;
+        this.row = row + 1;
         this.filePath = filePath;
         this.bundleName = bundleName;
         this.metadata = metadata;
@@ -82,6 +85,10 @@ public class UploadDetails implements ChildRow {
 
     public boolean isNotAdditionalAccessCondition() {
         return !additionalAccessCondition;
+    }
+
+    public int getRow() {
+        return row;
     }
 
 }

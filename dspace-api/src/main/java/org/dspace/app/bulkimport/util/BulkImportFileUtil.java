@@ -104,11 +104,11 @@ public class BulkImportFileUtil {
         }
         File file = new File(path);
         String canonicalPath = file.getCanonicalPath();
+        if (!StringUtils.startsWith(canonicalPath, bulkUploadFolder)) {
+            throw new IOException("Access to the specified file " + orginalPath + " is not allowed");
+        }
         if (!file.exists()) {
             throw new IOException("file " + orginalPath + " is not found");
-        }
-        if (!StringUtils.startsWith(canonicalPath, bulkUploadFolder)) {
-            throw new IOException("Access to the specified file " + orginalPath + " is not allowed ");
         }
         return FileUtils.openInputStream(file);
     }

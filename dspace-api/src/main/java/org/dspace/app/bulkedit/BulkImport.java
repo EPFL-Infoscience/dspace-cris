@@ -15,6 +15,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
+import static org.dspace.authorize.ResourcePolicy.TYPE_INHERITED;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.util.WorkbookUtils.getCellValue;
 import static org.dspace.util.WorkbookUtils.getRows;
@@ -92,6 +93,8 @@ import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.factory.SubmitterServiceFactory;
 import org.dspace.submit.model.AccessConditionOption;
 import org.dspace.submit.model.UploadConfiguration;
@@ -169,6 +172,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private CollectionService collectionService;
 
+    private ConfigurationService configurationService;
+
     private ItemService itemService;
 
     private MetadataFieldService metadataFieldService;
@@ -241,6 +246,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         this.bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
         this.uploadConfigurationService = AuthorizeServiceFactory.getInstance().getUploadConfigurationService();
         this.resourcePolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
         try {
             this.reader = new DCInputsReader();
@@ -671,6 +677,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         String[] accessCondition = getAccessConditionValues(row);
 
         String parentId = getValueFromRow(row, PARENT_ID_HEADER);
+        int rowNumber = row.getRowNum();
         String filePath = getValueFromRow(row, FILE_PATH_HEADER);
         String bundleName = getValueFromRow(row, BUNDLE_HEADER);
         Integer bitstreamPosition = getBitstreamPosition(row);
@@ -678,8 +685,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         boolean additionalAccessCondition = BooleanUtils.toBoolean(getCellValue(row.getCell(5)));
         MultiValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
 
-        return new UploadDetails(parentId, filePath, bundleName, bitstreamPosition, accessConditions,
-            additionalAccessCondition, metadata);
+        return new UploadDetails(parentId, rowNumber, filePath, bundleName, bitstreamPosition,
+            accessConditions, additionalAccessCondition, metadata);
 
     }
 
@@ -724,15 +731,15 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         if (accessConditionOption.getHasStartDate() && accessConditionOption.getHasEndDate()) {
             startDate = accessCondition.length > 1 ? parseDate(accessCondition[1]) : null;
             endDate = accessCondition.length > 2 ? parseDate(accessCondition[2]) : null;
-            description = accessCondition.length == 4 ? accessCondition[3] : "";
+            description = accessCondition.length == 4 ? accessCondition[3] : null;
         } else if (accessConditionOption.getHasStartDate()) {
             startDate = accessCondition.length > 1 ? parseDate(accessCondition[1]) : null;
-            description = accessCondition.length == 3 ? accessCondition[2] : "";
+            description = accessCondition.length == 3 ? accessCondition[2] : null;
         } else if (accessConditionOption.getHasEndDate()) {
             endDate = accessCondition.length > 1 ? parseDate(accessCondition[1]) : null;
-            description = accessCondition.length == 3 ? accessCondition[2] : "";
+            description = accessCondition.length == 3 ? accessCondition[2] : null;
         } else {
-            description = accessCondition.length == 2 ? accessCondition[1] : "";
+            description = accessCondition.length == 2 ? accessCondition[1] : null;
         }
 
         return new AccessCondition(name, description, startDate, endDate);
@@ -843,11 +850,12 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             List<Bitstream> bitstreams = findBitstreamByBundleName(item, uploadDetails.getBundleName());
 
             if (bitstreamPosition >= bitstreams.size()) {
-                throw new BulkImportException("No bitstream found at position " + bitstreamPosition +
-                    " for Item with id " + item.getID());
+                handler.logError("Sheet " + BITSTREAMS_SHEET_NAME + " - Row " + uploadDetails.getRow() +
+                    " - No bitstream found at position " + bitstreamPosition + " for Item with id " + item.getID());
+                continue;
             }
 
-            updateOrDeleteBitstream(bitstreams.get(bitstreamPosition), uploadDetails);
+            updateOrDeleteBitstream(bitstreams.get(bitstreamPosition), item, uploadDetails);
 
         }
     }
@@ -862,25 +870,32 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
     }
 
-    private void updateOrDeleteBitstream(Bitstream bitstream, UploadDetails uploadDetails) {
+    private void updateOrDeleteBitstream(Bitstream bitstream, Item item, UploadDetails uploadDetails) {
         if (StringUtils.isEmpty(uploadDetails.getFilePath())) {
-            deleteBitstream(bitstream);
+            deleteBitstream(bitstream, uploadDetails);
         } else {
-            updateBitstream(bitstream, uploadDetails);
+            updateBitstream(bitstream, item, uploadDetails);
         }
     }
 
-    private void deleteBitstream(Bitstream bitstream) {
+    private void deleteBitstream(Bitstream bitstream, UploadDetails uploadDetails) {
         try {
             bitstreamService.delete(context, bitstream);
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
         }
+
+        handler.logInfo("Sheet " + BITSTREAMS_SHEET_NAME + " - Row " + uploadDetails.getRow()
+            + " - Bitstream deleted successfully - ID: " + bitstream.getID());
     }
 
-    private void updateBitstream(Bitstream bitstream, UploadDetails uploadDetails) {
+    private void updateBitstream(Bitstream bitstream, Item item, UploadDetails uploadDetails) {
+
         updateBitstreamMetadata(bitstream, uploadDetails);
-        updateBitstreamPolicies(bitstream, uploadDetails);
+        updateBitstreamPolicies(bitstream, item, uploadDetails);
+
+        handler.logInfo("Sheet " + BITSTREAMS_SHEET_NAME + " - Row " + uploadDetails.getRow()
+            + " - Bitstream updated successfully - ID: " + bitstream.getID());
     }
 
     private void updateBitstreamMetadata(Bitstream bitstream, UploadDetails uploadDetails) {
@@ -892,15 +907,29 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
     }
 
-    private void updateBitstreamPolicies(Bitstream bitstream, UploadDetails uploadDetails) {
+    private void updateBitstreamPolicies(Bitstream bitstream, Item item, UploadDetails uploadDetails) {
 
         if (uploadDetails.isNotAdditionalAccessCondition()) {
             removeAllAccessPolicies(bitstream);
+        } else if (isAppendModeDisabled() && item.isArchived()) {
+            removeInheritedPolicies(bitstream);
         }
 
-        uploadDetails.getAccessConditions()
-            .forEach(accessCondition -> createResourcePolicy(bitstream, accessCondition));
+        setBitstreamPolicies(bitstream, uploadDetails);
 
+    }
+
+    private void setBitstreamPolicies(Bitstream bitstream, UploadDetails uploadDetails) {
+        uploadDetails.getAccessConditions()
+            .forEach(accessCondition -> createResourcePolicy(bitstream, uploadDetails, accessCondition));
+    }
+
+    private void removeInheritedPolicies(Bitstream bitstream) {
+        try {
+            resourcePolicyService.removePolicies(context, bitstream, TYPE_INHERITED);
+        } catch (SQLException | AuthorizeException e) {
+            throw new BulkImportException(e);
+        }
     }
 
     private void removeAllAccessPolicies(Bitstream bitstream) {
@@ -911,7 +940,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
     }
 
-    private void createResourcePolicy(DSpaceObject obj, AccessCondition accessCondition) {
+    private void createResourcePolicy(DSpaceObject obj, UploadDetails uploadDetails, AccessCondition accessCondition) {
 
         String name = accessCondition.getName();
         String description = accessCondition.getDescription();
@@ -923,7 +952,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 try {
                     aco.createResourcePolicy(context, obj, name, description, startDate, endDate);
                 } catch (Exception e) {
-                    handler.logError(e.getMessage());
+                    handler.logError("Sheet " + BITSTREAMS_SHEET_NAME + " - Row "
+                        + uploadDetails.getRow() + " - " + e.getMessage());
                 }
                 break;
             }
@@ -944,13 +974,19 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         Bundle bundle = getBundle(item, uploadDetails);
 
+        Bitstream bitstream = createBitstream(bundle, inputStream.get());
+
         try {
-            Bitstream bitstream = createBitstream(bundle, inputStream.get());
             addMetadata(bitstream, uploadDetails.getMetadata());
-            setBitstreamFormat(bitstream);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
+
+        setBitstreamPolicies(bitstream, uploadDetails);
+        setBitstreamFormat(bitstream);
+
+        handler.logInfo("Sheet " + BITSTREAMS_SHEET_NAME + " - Row " + uploadDetails.getRow()
+            + " - Bitstream created successfully - ID: " + bitstream.getID());
 
     }
 
@@ -1438,6 +1474,10 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         } catch (SQLException e) {
             throw new BulkImportException(e);
         }
+    }
+
+    private boolean isAppendModeDisabled() {
+        return !configurationService.getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode");
     }
 
     @Override
