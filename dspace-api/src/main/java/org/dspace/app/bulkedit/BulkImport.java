@@ -15,6 +15,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
+import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.dspace.authorize.ResourcePolicy.TYPE_INHERITED;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.util.WorkbookUtils.getCellValue;
@@ -88,6 +89,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.vo.MetadataValueVO;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
@@ -692,7 +694,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private boolean isInvalidBitstreamPosition(String position) {
         try {
-            return isNotBlank(position) && Integer.valueOf(position) < 0;
+            return isNotBlank(position) && Integer.valueOf(position) < 1;
         } catch (NumberFormatException ex) {
             return true;
         }
@@ -839,6 +841,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private void addUploadsToItem(Item item, EntityRow entityRow) {
 
+        ArrayListValuedHashMap<String, Bitstream> bitstreamsByBundle = findBitstreamsGroupedByBundle(item);
+
         for (UploadDetails uploadDetails : entityRow.getUploadDetails()) {
 
             Integer bitstreamPosition = uploadDetails.getBitstreamPosition();
@@ -847,27 +851,27 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 continue;
             }
 
-            List<Bitstream> bitstreams = findBitstreamByBundleName(item, uploadDetails.getBundleName());
+            int zeroBasedPosition = bitstreamPosition - 1;
 
-            if (bitstreamPosition >= bitstreams.size()) {
+            List<Bitstream> bitstreams = bitstreamsByBundle.get(uploadDetails.getBundleName());
+
+            if (zeroBasedPosition >= bitstreams.size()) {
                 handler.logError("Sheet " + BITSTREAMS_SHEET_NAME + " - Row " + uploadDetails.getRow() +
                     " - No bitstream found at position " + bitstreamPosition + " for Item with id " + item.getID());
                 continue;
             }
 
-            updateOrDeleteBitstream(bitstreams.get(bitstreamPosition), item, uploadDetails);
+            updateOrDeleteBitstream(bitstreams.get(zeroBasedPosition), item, uploadDetails);
 
         }
     }
 
-    private List<Bitstream> findBitstreamByBundleName(Item item, String bundleName) {
-        try {
-            return itemService.getBundles(item, bundleName).stream()
-                .flatMap(bundle -> bundle.getBitstreams().stream())
-                .collect(Collectors.toList());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    private ArrayListValuedHashMap<String, Bitstream> findBitstreamsGroupedByBundle(Item item) {
+        ArrayListValuedHashMap<String, Bitstream> bitstreams = new ArrayListValuedHashMap<String, Bitstream>();
+        for (Bundle bundle : item.getBundles()) {
+            bitstreams.putAll(bundle.getName(), bundle.getBitstreams());
         }
+        return bitstreams;
     }
 
     private void updateOrDeleteBitstream(Bitstream bitstream, Item item, UploadDetails uploadDetails) {
@@ -910,9 +914,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
     private void updateBitstreamPolicies(Bitstream bitstream, Item item, UploadDetails uploadDetails) {
 
         if (uploadDetails.isNotAdditionalAccessCondition()) {
-            removeAllAccessPolicies(bitstream);
-        } else if (isAppendModeDisabled() && item.isArchived()) {
-            removeInheritedPolicies(bitstream);
+            removeReadPolicies(bitstream, TYPE_CUSTOM);
+        }
+
+        if (isAppendModeDisabled() && item.isArchived()) {
+            removeReadPolicies(bitstream, TYPE_INHERITED);
         }
 
         setBitstreamPolicies(bitstream, uploadDetails);
@@ -924,17 +930,9 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             .forEach(accessCondition -> createResourcePolicy(bitstream, uploadDetails, accessCondition));
     }
 
-    private void removeInheritedPolicies(Bitstream bitstream) {
+    private void removeReadPolicies(Bitstream bitstream, String type) {
         try {
-            resourcePolicyService.removePolicies(context, bitstream, TYPE_INHERITED);
-        } catch (SQLException | AuthorizeException e) {
-            throw new BulkImportException(e);
-        }
-    }
-
-    private void removeAllAccessPolicies(Bitstream bitstream) {
-        try {
-            resourcePolicyService.removeAllPolicies(context, bitstream);
+            resourcePolicyService.removePolicies(context, bitstream, type, Constants.READ);
         } catch (SQLException | AuthorizeException e) {
             throw new BulkImportException(e);
         }

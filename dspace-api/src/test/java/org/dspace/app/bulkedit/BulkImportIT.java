@@ -1797,6 +1797,11 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             .withMimeType("text/plain")
             .build();
 
+        Bitstream thirdBitstream = createBitstream(context, publicationItem, toInputStream("TEST CONTENT", UTF_8))
+            .withName("title 3")
+            .withMimeType("text/plain")
+            .build();
+
         context.commit();
         context.restoreAuthSystemState();
 
@@ -1817,18 +1822,19 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             is("Start reading all the metadata group rows"),
             is("Found 4 metadata groups to process"),
             is("Start reading all the bitstream rows"),
-            is("Found 4 bitstreams to process"),
+            is("Found 5 bitstreams to process"),
             is("Found 1 items to process"),
             containsString("Sheet bitstream-metadata - Row 3 - Bitstream updated successfully"),
             containsString("Sheet bitstream-metadata - Row 4 - Bitstream updated successfully"),
             containsString("Sheet bitstream-metadata - Row 5 - Bitstream updated successfully"),
             containsString("Sheet bitstream-metadata - Row 6 - Bitstream deleted successfully"),
+            containsString("Sheet bitstream-metadata - Row 7 - Bitstream updated successfully"),
             containsString("Row 2 - Item updated successfully")));
 
         publicationItem = context.reloadEntity(publicationItem);
 
         List<Bitstream> itemBitstreams = getItemBitstreams(publicationItem);
-        assertThat(itemBitstreams, contains(firstBitstream));
+        assertThat(itemBitstreams, contains(firstBitstream, thirdBitstream));
 
         assertThat(context.reloadEntity(secondBitstream).isDeleted(), is(true));
 
@@ -1840,11 +1846,14 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             matches(READ, anonymousGroup, "lease", TYPE_CUSTOM, null, "2023-02-01", "description here"),
             matches(READ, anonymousGroup, "embargo", TYPE_CUSTOM, "2023-01-12", null, "description here")));
 
+        thirdBitstream = context.reloadEntity(thirdBitstream);
+        assertThat(thirdBitstream, bitstreamWith("Test title 2", "description 2", "TEST CONTENT"));
+
     }
 
 
     @Test
-    public void testBitstreamDeleteWithWrongPosition() throws Exception {
+    public void testBitstreamUpdateAndDeleteWithWrongPosition() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Collection publication = createCollection(context, community)
@@ -1878,13 +1887,14 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             is("Sheet bitstream-metadata - Row 2 - Invalid ACCESS-CONDITION: [INAVALID_NAME]"),
             is("Sheet bitstream-metadata - Row 3 - The access condition embargo requires a start date."),
             is("Sheet bitstream-metadata - Row 4 - The access condition embargo requires a start date."),
-            containsString("Sheet bitstream-metadata - Row 6 - No bitstream found at position 1 for Item with id")));
+            containsString("Sheet bitstream-metadata - Row 6 - No bitstream found at position 2 for Item with id"),
+            containsString("Sheet bitstream-metadata - Row 7 - No bitstream found at position 3 for Item with id")));
 
         assertThat(handler.getInfoMessages(), contains(
             is("Start reading all the metadata group rows"),
             is("Found 4 metadata groups to process"),
             is("Start reading all the bitstream rows"),
-            is("Found 4 bitstreams to process"),
+            is("Found 5 bitstreams to process"),
             is("Found 1 items to process"),
             containsString("Sheet bitstream-metadata - Row 3 - Bitstream updated successfully"),
             containsString("Sheet bitstream-metadata - Row 4 - Bitstream updated successfully"),
@@ -1922,8 +1932,10 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
             .withUser(eperson)
             .withName("test")
             .withAction(READ)
+            .withPolicyType(TYPE_CUSTOM)
             .build();
 
+        context.commit();
         context.restoreAuthSystemState();
 
         String fileLocation = getXlsFilePath("update-bitstream-policies-without-additional-ac.xls");

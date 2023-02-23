@@ -9,7 +9,13 @@ package org.dspace.content.integration.crosswalks;
 
 import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
 import static org.apache.commons.collections4.IteratorUtils.singletonListIterator;
+import static org.dspace.app.bulkedit.BulkImport.ACCESS_CONDITION_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.ADDITIONAL_ACCESS_CONDITION_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.AUTHORITY_SEPARATOR;
+import static org.dspace.app.bulkedit.BulkImport.BITSTREAMS_SHEET_NAME;
+import static org.dspace.app.bulkedit.BulkImport.BITSTREAM_POSITION_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.BUNDLE_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.FILE_PATH_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.ID_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_PREFIX;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_SUFFIX;
@@ -20,12 +26,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
@@ -44,6 +52,8 @@ import org.dspace.app.bulkedit.BulkImport;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
@@ -55,14 +65,17 @@ import org.dspace.content.crosswalk.CrosswalkMode;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.integration.crosswalks.model.XlsCollectionSheet;
-import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.CrisConstants;
 import org.dspace.services.ConfigurationService;
+import org.dspace.submit.model.AccessConditionOption;
+import org.dspace.submit.model.UploadConfiguration;
+import org.dspace.submit.model.UploadConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.datetime.DateFormatter;
 
 /**
  * Implementation of {@link StreamDisseminationCrosswalk} to export all the item
@@ -76,18 +89,9 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private static Logger log = LogManager.getLogger(XlsCollectionCrosswalk.class);
 
-
-    private static final String COMMON_ERROR_MESSAGE = "An error has occurred trying to %s";
-    private static final String BITSTREAM_ITEM_ERROR_MESSAGE = "get bitstreams of item: %s";
-    private static final String BUNDLES_BITSTREAM_ERROR_MESSAGE = "get bundles of bitstream: %s";
-
-    private static final String BITSTREAM_SHEET = "bitstream-metadata";
-    private static final String PARENT_ID_COLUMN = "PARENT-ID";
-    private static final String FILE_PATH = "FILE-PATH";
-    private static final String BUNDLE_NAME = "BUNDLE-NAME";
     private static final String BITSTREAM_URL_FORMAT = "%s/api/core/bitstreams/%s/content";
 
-    protected static final List<String> BITSTREAM_BASE_HEADERS = Arrays.asList(PARENT_ID_COLUMN,FILE_PATH,BUNDLE_NAME);
+    private static final DateFormatter DATE_FORMATTER = new DateFormatter("yyyy-MM-dd");
 
     @Autowired
     private ItemService itemService;
@@ -96,10 +100,13 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private CollectionService collectionService;
 
     @Autowired
-    private BitstreamService bitstreamService;
+    private ConfigurationService configurationService;
 
     @Autowired
-    private ConfigurationService configurationService;
+    private ResourcePolicyService resourcePolicyService;
+
+    @Autowired
+    private UploadConfigurationService uploadConfigurationService;
 
     private DCInputsReader reader;
 
@@ -213,22 +220,17 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     }
 
     private XlsCollectionSheet writeBitstreamSheetHeader(Collection collection, Workbook workbook) {
-        XlsCollectionSheet bitstreamSheet = new XlsCollectionSheet(workbook, BITSTREAM_SHEET, true, collection);
+        XlsCollectionSheet bitstreamSheet = new XlsCollectionSheet(workbook, BITSTREAMS_SHEET_NAME, true, collection);
 
-        BITSTREAM_BASE_HEADERS
-            .stream()
-            .forEach(bitstreamSheet::appendHeader);
+        for (String bitstreamSheetHeader : BulkImport.BITSTREAMS_SHEET_HEADERS) {
+            bitstreamSheet.appendHeader(bitstreamSheetHeader);
+        }
 
         return bitstreamSheet;
     }
 
-    private void writeWorkbookContent(
-            Context context,
-            Iterator<Item> itemIterator,
-            XlsCollectionSheet mainSheet,
-            List<XlsCollectionSheet> nestedMetadataSheets,
-            XlsCollectionSheet bitstreamSheet
-    ) throws SQLException {
+    private void writeWorkbookContent(Context context, Iterator<Item> itemIterator, XlsCollectionSheet mainSheet,
+        List<XlsCollectionSheet> nestedMetadataSheets, XlsCollectionSheet bitstreamSheet) throws SQLException {
 
         while (itemIterator.hasNext()) {
 
@@ -249,16 +251,21 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     }
 
-    private void writeBitstreamSheet(Context context, Item item, XlsCollectionSheet bitstreamSheet) {
-        Iterator<Bitstream> itemBitstreams = getItemBitstreams(context, item);
-        while (itemBitstreams.hasNext()) {
-            writeBitstreamRow(bitstreamSheet, item, itemBitstreams.next());
+    private void writeBitstreamSheet(Context context, Item item, XlsCollectionSheet sheet) {
+        for (Bundle bundle : item.getBundles()) {
+            String bundleName = bundle.getName();
+            int bitstreamPosition = 1;
+            for (Bitstream bitstream : bundle.getBitstreams()) {
+                writeBitstreamRow(context, sheet, item, bitstream, bundleName, String.valueOf(bitstreamPosition));
+                bitstreamPosition++;
+            }
         }
     }
 
-    private void writeBitstreamRow(XlsCollectionSheet bitstreamSheet, Item item, Bitstream bitstream) {
+    private void writeBitstreamRow(Context context, XlsCollectionSheet bitstreamSheet, Item item,
+        Bitstream bitstream, String bundle, String position) {
         bitstreamSheet.appendRow();
-        writeBitstreamBaseValues(bitstreamSheet, item, bitstream);
+        writeBitstreamBaseValues(context, bitstreamSheet, item, bitstream, bundle, position);
         writeBitstreamMetadataValues(bitstreamSheet, getMetadataFromBitStream(bitstream));
     }
 
@@ -279,10 +286,14 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         );
     }
 
-    private void writeBitstreamBaseValues(XlsCollectionSheet bitstreamSheet, Item item, Bitstream bitstream) {
-        bitstreamSheet.setValueOnLastRow(PARENT_ID_COLUMN, item.getID().toString());
-        bitstreamSheet.setValueOnLastRow(FILE_PATH, getBitstreamLocationUrl(bitstream));
-        bitstreamSheet.setValueOnLastRow(BUNDLE_NAME, getBitstreamBundles(bitstream));
+    private void writeBitstreamBaseValues(Context context, XlsCollectionSheet bitstreamSheet,
+        Item item, Bitstream bitstream, String bundleName, String position) {
+        bitstreamSheet.setValueOnLastRow(PARENT_ID_HEADER, item.getID().toString());
+        bitstreamSheet.setValueOnLastRow(FILE_PATH_HEADER, getBitstreamLocationUrl(bitstream));
+        bitstreamSheet.setValueOnLastRow(BUNDLE_HEADER, bundleName);
+        bitstreamSheet.setValueOnLastRow(BITSTREAM_POSITION_HEADER, position);
+        bitstreamSheet.setValueOnLastRow(ACCESS_CONDITION_HEADER, getCustomResourcePolicies(context, bitstream));
+        bitstreamSheet.setValueOnLastRow(ADDITIONAL_ACCESS_CONDITION_HEADER, "N");
     }
 
     private String getBitstreamLocationUrl(Bitstream bitstream) {
@@ -293,35 +304,61 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         );
     }
 
-    private String getBitstreamBundles(Bitstream bitstream) {
+    private String getCustomResourcePolicies(Context context, Bitstream bitstream) {
+        List<AccessConditionOption> uploadAccessConditions = getUploadAccessConditionOptionNames();
+        List<ResourcePolicy> resourcePolicies = findCustomReadResourcePolicies(context, bitstream);
+        return composeResourcePolicies(resourcePolicies, uploadAccessConditions);
+    }
+
+    private List<ResourcePolicy> findCustomReadResourcePolicies(Context context, Bitstream bitstream) {
         try {
-            return bitstream.getBundles()
-                .stream()
-                .map(Bundle::getName)
-                .collect(Collectors.joining(","));
+            return resourcePolicyService.find(context, bitstream, Constants.READ, ResourcePolicy.TYPE_CUSTOM);
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    String.format(
-                            COMMON_ERROR_MESSAGE,
-                            String.format(BUNDLES_BITSTREAM_ERROR_MESSAGE, bitstream.getID())
-                    ),
-                    e
-            );
+            throw new RuntimeException(e);
         }
     }
 
-    private Iterator<Bitstream> getItemBitstreams(Context context, Item item) {
-        try {
-            return bitstreamService.getItemBitstreams(context, item);
-        } catch (SQLException e) {
-            throw new RuntimeException(
-                    String.format(
-                            COMMON_ERROR_MESSAGE,
-                            String.format(BITSTREAM_ITEM_ERROR_MESSAGE, item.getID())
-                    ),
-                    e
-            );
+    private String composeResourcePolicies(List<ResourcePolicy> policies, List<AccessConditionOption> options) {
+        return policies.stream()
+            .flatMap(resourcePolicy -> formatResourcePolicy(resourcePolicy, options).stream())
+            .collect(Collectors.joining(BulkImport.METADATA_SEPARATOR));
+    }
+
+    private Optional<String> formatResourcePolicy(ResourcePolicy policy, List<AccessConditionOption> options) {
+        return getAccessConditionByName(options, policy.getRpName())
+            .map(accessConditionOption -> formaResourcePolicy(policy, accessConditionOption));
+    }
+
+    private String formaResourcePolicy(ResourcePolicy policy, AccessConditionOption accessConditionOption) {
+
+        String resourcePolicyAsString = policy.getRpName();
+
+        Date startDate = policy.getStartDate();
+        if (accessConditionOption.getHasStartDate() && startDate != null) {
+            resourcePolicyAsString += BulkImport.ACCESS_CONDITION_ATTRIBUTES_SEPARATOR + formatDate(startDate);
         }
+
+        Date endDate = policy.getEndDate();
+        if (accessConditionOption.getHasEndDate() && endDate != null) {
+            resourcePolicyAsString += BulkImport.ACCESS_CONDITION_ATTRIBUTES_SEPARATOR + formatDate(endDate);
+        }
+
+        String description = policy.getRpDescription();
+        if (StringUtils.isNotBlank(description)) {
+            resourcePolicyAsString += BulkImport.ACCESS_CONDITION_ATTRIBUTES_SEPARATOR + description;
+        }
+
+        return resourcePolicyAsString;
+    }
+
+    private Optional<AccessConditionOption> getAccessConditionByName(List<AccessConditionOption> options, String name) {
+        return options.stream()
+            .filter(accessConditionOption -> accessConditionOption.getName().equals(name))
+            .findFirst();
+    }
+
+    private String formatDate(Date date) {
+        return DATE_FORMATTER.print(date, Locale.getDefault());
     }
 
     private void writeMainSheet(Context context, Item item, XlsCollectionSheet mainSheet) {
@@ -485,6 +522,14 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private void autoSizeColumns(List<XlsCollectionSheet> sheets) {
         sheets.forEach(sheet -> autoSizeColumns(sheet.getSheet()));
+    }
+
+    private List<AccessConditionOption> getUploadAccessConditionOptionNames() {
+        UploadConfiguration uploadConfiguration = uploadConfigurationService.getMap().get("upload");
+        if (uploadConfiguration == null) {
+            throw new IllegalStateException("No upload access conditions configuration found");
+        }
+        return uploadConfiguration.getOptions();
     }
 
     private void autoSizeColumns(Sheet sheet) {
