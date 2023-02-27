@@ -2024,7 +2024,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     private org.hamcrest.Matcher<? super Bitstream> hasTitleAndDescription(String title, String description) {
-        return DSpaceObjectMatcher.withMetadata(containsInAnyOrder(
+        return DSpaceObjectMatcher.withMetadata(hasItems(
             with("dc.title", title), with("dc.description", description)));
     }
 
