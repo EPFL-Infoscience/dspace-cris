@@ -35,12 +35,8 @@ public final class EntityRow {
     private final List<MetadataGroup> metadataGroups;
 
     private final List<UploadDetails> uploadDetails;
-    private String submitter;
 
-    public EntityRow(String id, String action, int row, MultiValuedMap<String, MetadataValueVO> metadata,
-        List<MetadataGroup> metadataGroups, List<UploadDetails> uploadDetails) {
-        this(id, action, row, metadata, metadataGroups, uploadDetails, null);
-    }
+    private final String submitter;
 
     public EntityRow(String id, String action, int row, MultiValuedMap<String, MetadataValueVO> metadata,
                      List<MetadataGroup> metadataGroups, List<UploadDetails> uploadDetails, String submitter) {
@@ -62,6 +58,10 @@ public final class EntityRow {
         return unmodifiableList(metadataGroups);
     }
 
+    public List<UploadDetails> getUploadDetails() {
+        return unmodifiableList(uploadDetails);
+    }
+
     public String getId() {
         return id;
     }
@@ -74,15 +74,7 @@ public final class EntityRow {
         return row;
     }
 
-    public List<UploadDetails> getUploadDetails() {
-        return uploadDetails;
-    }
-
     public String getSubmitter() {
         return submitter;
-    }
-
-    public void setSubmitter(String submitter) {
-        this.submitter = submitter;
     }
 }
