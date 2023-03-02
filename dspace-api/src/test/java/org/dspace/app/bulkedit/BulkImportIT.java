@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -51,11 +52,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.matcher.DSpaceObjectMatcher;
@@ -81,10 +77,6 @@ import org.dspace.core.CrisConstants;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
-import org.dspace.event.factory.EventServiceFactory;
-import org.dspace.event.service.EventService;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
 import org.junit.Before;
 import org.junit.Test;
@@ -1332,13 +1324,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(publication.getMetadata(), hasItems(with("dc.contributor.author", "Walter White", null,
             createdPerson.getID().toString(), 0, 600)));
 
-    private WorkspaceItem findWorkspaceItem(Item item) throws SQLException {
-        return workspaceItemService.findByItem(context, item);
-    }
-
-    private Item findItemByMetadata(String schema, String element, String qualifier, String value) throws Exception {
-        Iterator<Item> iterator = itemService.findArchivedByMetadataField(context, schema, element, qualifier, value);
-        return iterator.hasNext() ? iterator.next() : null;
     }
 
     private List<String> getItemUuidFromMessage(List<String> message) {
@@ -1991,10 +1976,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         return itemService.find(context, UUID.fromString(uuid));
     }
 
-    private String getXlsFilePath(String name) {
-        return new File(BASE_XLS_DIR_PATH, name).getAbsolutePath();
-    }
-
     private List<Bitstream> getItemBitstreamsByBundle(Item item, String bundleName) {
         try {
             return itemService.getBundles(context.reloadEntity(item), bundleName).stream()
@@ -2037,26 +2018,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         } catch (IOException | SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String[] activateCrisConsumer() {
-        ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        String[] consumers = configService.getArrayProperty("event.dispatcher.default.consumers");
-        if (!ArrayUtils.contains(consumers, CRIS_CONSUMER)) {
-            String newConsumers = consumers.length > 0 ? join(",", consumers) + "," + CRIS_CONSUMER : CRIS_CONSUMER;
-            configService.setProperty("event.dispatcher.default.consumers", newConsumers);
-            EventService eventService = EventServiceFactory.getInstance().getEventService();
-            eventService.reloadConfiguration();
-        }
-
-        return consumers;
-    }
-
-    private void resetConsumers(String[] consumers) {
-        ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        configService.setProperty("event.dispatcher.default.consumers", consumers);
-        EventService eventService = EventServiceFactory.getInstance().getEventService();
-        eventService.reloadConfiguration();
     }
 
 }
