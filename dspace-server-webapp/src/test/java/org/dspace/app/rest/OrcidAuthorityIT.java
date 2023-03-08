@@ -24,12 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Map;
 
-import org.dspace.app.orcid.client.OrcidClient;
-import org.dspace.app.orcid.client.OrcidConfiguration;
-import org.dspace.app.orcid.exception.OrcidClientException;
-import org.dspace.app.orcid.factory.OrcidServiceFactory;
-import org.dspace.app.orcid.factory.OrcidServiceFactoryImpl;
-import org.dspace.app.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.app.rest.matcher.ItemAuthorityMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
@@ -38,6 +32,14 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.authority.OrcidAuthority;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.core.service.PluginService;
+import org.dspace.orcid.client.OrcidClient;
+import org.dspace.orcid.client.OrcidConfiguration;
+import org.dspace.orcid.exception.OrcidClientException;
+import org.dspace.orcid.factory.OrcidServiceFactory;
+import org.dspace.orcid.factory.OrcidServiceFactoryImpl;
+import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.Matcher;
@@ -47,6 +49,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.orcid.jaxb.model.v3.release.search.expanded.ExpandedResult;
 import org.orcid.jaxb.model.v3.release.search.expanded.ExpandedSearch;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Integration tests for {@link OrcidAuthority}.
@@ -66,6 +69,12 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     private OrcidConfiguration orcidConfiguration = OrcidServiceFactory.getInstance().getOrcidConfiguration();
+
+    @Autowired
+    private PluginService pluginService;
+
+    @Autowired
+    private ChoiceAuthorityService choiceAuthorityService;
 
     private OrcidClient orcidClientMock = mock(OrcidClient.class);
 
@@ -92,6 +101,16 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
         orcidConfiguration.setClientId("DSPACE-CLIENT-ID");
         orcidConfiguration.setClientSecret("SECRET");
 
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+            new String[] { "org.dspace.content.authority.OrcidAuthority = AuthorAuthority" });
+
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "suggest");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("cris.ItemAuthority.AuthorAuthority.entityType", "Person");
+
+        pluginService.clearNamedPluginClasses();
+        choiceAuthorityService.clearCache();
+
         context.restoreAuthSystemState();
 
         ((OrcidServiceFactoryImpl) OrcidServiceFactory.getInstance()).setOrcidClient(orcidClientMock);
@@ -100,10 +119,15 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
 
     @After
     public void cleanUp() {
+
         OrcidAuthority.setAccessToken(null);
         orcidConfiguration.setClientId(originalClientId);
         orcidConfiguration.setClientSecret(originalClientSecret);
         ((OrcidServiceFactoryImpl) OrcidServiceFactory.getInstance()).setOrcidClient(orcidClient);
+
+        pluginService.clearNamedPluginClasses();
+        choiceAuthorityService.clearCache();
+
     }
 
     @Test

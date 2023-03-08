@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.suggestion.SuggestionProvider;
 import org.dspace.app.suggestion.SuggestionService;
@@ -107,6 +108,9 @@ public class ExternalDataServiceImpl implements ExternalDataService {
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
         Item item = workspaceItem.getItem();
         for (MetadataValueDTO metadataValueDTO : externalDataObject.getMetadata()) {
+            if (StringUtils.isBlank(metadataValueDTO.getValue())) {
+                continue;
+            }
             itemService.addMetadata(context, item, metadataValueDTO.getSchema(), metadataValueDTO.getElement(),
                                     metadataValueDTO.getQualifier(), metadataValueDTO.getLanguage(),
                                     metadataValueDTO.getValue());

@@ -17,7 +17,7 @@
    <parent>
       <groupId>org.dspace</groupId>
       <artifactId>modules</artifactId>
-      <version>cris-2022.01.02</version>
+      <version>cris-2022.03.01-SNAPSHOT</version>
       <relativePath>..</relativePath>
    </parent>
 
@@ -214,6 +214,57 @@
          </dependencies>
       </profile>
 
+      <profile>
+         <id>addon-iiif</id>
+         <activation>
+            <property>
+               <name>iiif.on</name>
+            </property>
+         </activation>
+         <dependencies>
+            <dependency>
+               <groupId>it.4science.dspace</groupId>
+               <artifactId>addon-iiif-api</artifactId>
+               <version>${addon-iiif.version}</version>
+               <type>jar</type>
+            </dependency>
+         </dependencies>
+      </profile>
+
+      <profile>
+         <id>addon-ocr</id>
+         <activation>
+            <property>
+               <name>ocr.on</name>
+            </property>
+         </activation>
+         <dependencies>
+            <dependency>
+               <groupId>it.4science.dspace</groupId>
+               <artifactId>addon-ocr-api</artifactId>
+               <version>${addon-ocr.version}</version>
+               <type>jar</type>
+            </dependency>
+         </dependencies>
+      </profile>
+
+      <profile>
+         <id>addon-document-viewer</id>
+         <activation>
+            <property>
+               <name>docviewer.on</name>
+            </property>
+         </activation>
+         <dependencies>
+            <dependency>
+               <groupId>it.4science.dspace</groupId>
+               <artifactId>addon-docviewer-api</artifactId>
+               <version>${addon-docviewer.version}</version>
+               <type>jar</type>
+            </dependency>
+         </dependencies>
+      </profile>
+
    </profiles>
 
    <!--
@@ -271,19 +322,6 @@
             <exclusion>
                <groupId>org.apache.commons</groupId>
                <artifactId>commons-text</artifactId>
-            </exclusion>
-            <!-- Newer Jetty version brought in via Parent POM -->
-            <exclusion>
-               <groupId>org.eclipse.jetty</groupId>
-               <artifactId>jetty-http</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>org.eclipse.jetty</groupId>
-               <artifactId>jetty-io</artifactId>
-            </exclusion>
-            <exclusion>
-               <groupId>org.eclipse.jetty</groupId>
-               <artifactId>jetty-util</artifactId>
             </exclusion>
          </exclusions>
       </dependency>

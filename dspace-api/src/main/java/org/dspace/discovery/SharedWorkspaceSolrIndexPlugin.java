@@ -55,7 +55,7 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
 
     /**
      *
-     * @param additionalReadMetadata metadata representing linked items for which, if present, cris.owner
+     * @param additionalReadMetadata metadata representing linked items for which, if present, dspace.object.owner
      *                               must have read permissions of indexed item.
      */
     public SharedWorkspaceSolrIndexPlugin(List<String> additionalReadMetadata) {
@@ -86,7 +86,7 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
         }
     }
 
-    private static void addReadToCollectionAdmin(SolrInputDocument document, WorkspaceItem workspaceItem) {
+    private void addReadToCollectionAdmin(SolrInputDocument document, WorkspaceItem workspaceItem) {
         Optional.ofNullable(workspaceItem.getCollection().getAdministrators())
                 .ifPresent(group -> document.addField("read", "g" + group.getID().toString()));
     }
@@ -101,7 +101,9 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
                 continue;
             }
             Item coAuthor = itemService.find(context, UUIDUtils.fromString(authority));
-            addRead(document, findOwner(context, coAuthor));
+            if (coAuthor != null) {
+                addRead(document, findOwner(context, coAuthor));
+            }
 
         }
     }
@@ -112,22 +114,15 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
                                      .map(mds -> itemService.getMetadataByMetadataString(item, mds))
                                      .flatMap(Collection::stream)
                                      .collect(Collectors.toList());
-
-//        List<MetadataValue> coworkers = new LinkedList<>();
-//        coworkers.addAll(
-//            itemService.getMetadataByMetadataString(item, "dc", "contributor", "author", null));
-//        coworkers.addAll(
-//            itemService.getMetadata(item, "dc", "contributor", "editor", null));
-//        return coworkers;
     }
 
-    private static void addRead(SolrInputDocument document, Optional<EPerson> subm) {
+    private void addRead(SolrInputDocument document, Optional<EPerson> subm) {
         subm.ifPresent(submitter -> document.addField("read", "e" + submitter.getID().toString()));
     }
 
     private Optional<EPerson> findOwner(Context context, Item source) throws SQLException {
         List<MetadataValue> metadata =
-            itemService.getMetadata(source, "cris", "owner", null, null);
+            itemService.getMetadata(source, "dspace", "object", "owner", null);
         if (metadata.isEmpty()) {
             return Optional.empty();
         }

@@ -98,7 +98,7 @@ public class AuthorityUtils {
         }
         VocabularyEntryDetailsRest entry = converter.toRest(choice, projection);
         entry.setVocabularyName(authorityName);
-        if (!fix) {
+        if (!fix && !StringUtils.startsWith(entry.getId(), authorityName)) {
             entry.setId(authorityName + ":" + entry.getId());
         }
         entry.setInHierarchicalVocabulary(isHierarchical);

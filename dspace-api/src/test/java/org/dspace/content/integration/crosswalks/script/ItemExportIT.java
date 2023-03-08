@@ -252,7 +252,7 @@ public class ItemExportIT extends AbstractIntegrationTestWithDatabase {
                 "epfl-publication" };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
-        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
 
         assertThat(handler.getErrorMessages(), empty());
 

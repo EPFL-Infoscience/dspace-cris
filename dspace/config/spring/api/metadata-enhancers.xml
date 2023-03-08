@@ -48,5 +48,33 @@
         <property name="virtualQualifier" value="epflgroupunits" />
     </bean>
 
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="relatedItemMetadataField" value="person.identifier.orcid" />
+        <property name="virtualQualifier" value="author-orcid" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
+        <property name="relatedItemMetadataField" value="person.identifier.orcid" />
+        <property name="virtualQualifier" value="editor-orcid" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="relatedItemMetadataField" value="person.identifier.orcid" />
+        <property name="virtualQualifier" value="author-orcid" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
+        <property name="relatedItemMetadataField" value="person.identifier.orcid" />
+        <property name="virtualQualifier" value="editor-orcid" />
+    </bean>
+    
 
 </beans>

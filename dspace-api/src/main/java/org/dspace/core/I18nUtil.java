@@ -365,7 +365,7 @@ public class I18nUtil {
             }
         }
 
-        if (fileNameL != null && !fileFound) {
+        if (!fileFound) {
             File fileTmp = new File(fileNameL + fileType);
             if (fileTmp.exists()) {
                 fileFound = true;

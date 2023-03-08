@@ -34,9 +34,9 @@ import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Implementation of {@link LiveImportClient}
+ * Implementation of {@link LiveImportClient}.
  *
- * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.com)
+ * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science dot com)
  */
 public class LiveImportClientImpl implements LiveImportClient {
 

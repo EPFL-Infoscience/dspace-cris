@@ -2681,12 +2681,12 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         Item userProfile = ItemBuilder.createItem(context, personCollection)
             .withTitle("User")
-            .withCrisOwner(user)
+            .withDspaceObjectOwner(user)
             .build();
 
         Item anotherUserProfile = ItemBuilder.createItem(context, personCollection)
             .withTitle("User")
-            .withCrisOwner(anotherUser)
+            .withDspaceObjectOwner(anotherUser)
             .build();
 
         WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)

@@ -31,6 +31,7 @@ import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
@@ -38,6 +39,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
@@ -544,6 +546,8 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
         createItem(collection, "My publication", "", "Publication");
         createItem(collection, "Walter White", "Science", "Person");
         createItem(collection, "John Smith", "Science", "Person");
+
+        EPerson member = createEPerson();
         context.restoreAuthSystemState();
         context.commit();
 
@@ -565,7 +569,15 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(handler.getInfoMessages(), hasItem("Found 3 items to export"));
         assertThat("The xml file should be created", xml.exists(), is(true));
 
+        // eperson is the collection admin, so the output will be the same as the admin.
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Found 3 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        // member is a newly created eperson, so it will be treated as a generic logged user.
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, member);
 
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getInfoMessages(), hasItem("Export will be limited to 2 items."));
@@ -589,6 +601,10 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
             .withSubject(subject)
             .withEntityType(entityType)
             .build();
+    }
+
+    private EPerson createEPerson() {
+        return EPersonBuilder.createEPerson(context).build();
     }
 
     private WorkspaceItem createWorkspaceItem(Collection collection, String title, String subject, String entityType) {

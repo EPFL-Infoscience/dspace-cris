@@ -199,6 +199,32 @@ public class SubmissionConfigReader {
         return submitDefns.size();
     }
 
+    /**
+     * Returns the Item Submission process config used for a particular collection,
+     * or the default if none is defined for the collection
+     *
+     * @param  collectionHandle                collection's unique Handle
+     * @return                                 the SubmissionConfig representing the
+     *                                         item submission config
+     * @throws SubmissionConfigReaderException if no default submission process
+     *                                         configuration defined
+     */
+    public SubmissionConfig getSubmissionConfigByCollection(String collectionHandle) {
+        // get the name of the submission process config for this collection
+        String submitName = collectionToSubmissionConfig
+            .get(collectionHandle);
+        if (submitName == null) {
+            submitName = collectionToSubmissionConfig
+                .get(DEFAULT_COLLECTION);
+        }
+        if (submitName == null) {
+            throw new IllegalStateException(
+                "No item submission process configuration designated as 'default' in 'submission-map' section of " +
+                    "'item-submission.xml'.");
+        }
+        return getSubmissionConfigByName(submitName);
+    }
+
 
     public SubmissionConfig getCorrectionSubmissionConfigByCollection(Collection collection) {
         CollectionService collService = ContentServiceFactory.getInstance().getCollectionService();

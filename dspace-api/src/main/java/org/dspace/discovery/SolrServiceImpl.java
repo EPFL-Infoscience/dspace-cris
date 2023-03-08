@@ -11,6 +11,8 @@ import static java.util.stream.Collectors.joining;
 import static org.dspace.discovery.DiscoverResult.FacetPivotResult.fromPivotFields;
 import static org.dspace.discovery.configuration.DiscoveryConfigurationParameters.TYPE_STANDARD;
 import static org.dspace.discovery.configuration.GraphDiscoverSearchFilterFacet.TYPE_PREFIX;
+import static org.dspace.discovery.indexobject.ItemIndexFactoryImpl.STATUS_FIELD;
+import static org.dspace.discovery.indexobject.ItemIndexFactoryImpl.STATUS_FIELD_PREDB;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -134,8 +136,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     }
 
-
-
     /**
      * If the handle for the "dso" already exists in the index, and the "dso"
      * has a lastModified timestamp that is newer than the document in the index
@@ -180,6 +180,24 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                           IndexableObject indexableObject) throws IOException, SQLException, SolrServerException {
         final SolrInputDocument solrInputDocument = indexableObjectService.buildDocument(context, indexableObject);
         indexableObjectService.writeDocument(context, indexableObject, solrInputDocument);
+    }
+
+    /**
+     * Update the given indexable object using a given service
+     * @param context                   The DSpace Context
+     * @param indexableObjectService    The service to index the object with
+     * @param indexableObject           The object to index
+     * @param preDB                     Add a "preDB" status to the document
+     */
+    protected void update(Context context, IndexFactory indexableObjectService, IndexableObject indexableObject,
+                          boolean preDB) throws IOException, SQLException, SolrServerException {
+        if (preDB) {
+            final SolrInputDocument solrInputDocument =
+                    indexableObjectService.buildNewDocument(context, indexableObject);
+            indexableObjectService.writeDocument(context, indexableObject, solrInputDocument);
+        } else {
+            update(context, indexableObjectService, indexableObject);
+        }
     }
 
     /**
@@ -352,6 +370,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     /**
      * Removes all documents from the Lucene index
      */
+    @Override
     public void deleteIndex() {
         try {
             final List<IndexFactory> indexableObjectServices = indexObjectServiceFactory.
@@ -469,6 +488,16 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             log.error(e, e);
             throw new SearchServiceException(e);
         }
+    }
+
+    @Override
+    public void atomicUpdate(Context context, String uniqueIndexId, String field, Map<String, Object> fieldModifier)
+            throws SolrServerException, IOException {
+        SolrInputDocument solrInputDocument = new SolrInputDocument();
+        solrInputDocument.addField(SearchUtils.RESOURCE_UNIQUE_ID, uniqueIndexId);
+        solrInputDocument.addField(field, fieldModifier);
+
+        solrSearchCore.getSolr().add(solrInputDocument);
     }
 
     // //////////////////////////////////
@@ -604,7 +633,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
                     locationQuery.append("m").append(community.getID());
 
-                    if (i != (communitiesPolicies.size() - 1)) {
+                    if (i != communitiesPolicies.size() - 1) {
                         locationQuery.append(" OR ");
                     }
                     allCollections.addAll(ContentServiceFactory.getInstance().getCommunityService()
@@ -702,7 +731,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     public String locationToName(Context context, String field, String value) throws SQLException {
         if ("location.comm".equals(field) || "location.coll".equals(field)) {
-            int type = ("location.comm").equals(field) ? Constants.COMMUNITY : Constants.COLLECTION;
+            int type = "location.comm".equals(field) ? Constants.COMMUNITY : Constants.COLLECTION;
             DSpaceObject commColl = null;
             if (StringUtils.isNotBlank(value)) {
                 commColl = contentServiceFactory.getDSpaceObjectService(type).find(context, UUID.fromString(value));
@@ -727,16 +756,21 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 discoveryQuery.addFilterQueries("location:l" + dso.getID());
             } else if (dso instanceof IndexableItem) {
                 discoveryQuery.addFilterQueries(SearchUtils.RESOURCE_UNIQUE_ID + ":" + dso.
-                        getUniqueIndexID());
+                    getUniqueIndexID());
             }
         }
         return search(context, discoveryQuery);
 
     }
 
+    @Override
+    public Iterator<Item> iteratorSearch(Context context, IndexableObject dso, DiscoverQuery query)
+        throws SearchServiceException {
+        return new SearchIterator(context, dso, query);
+    }
 
     @Override
-    public DiscoverResult search(Context context, DiscoverQuery discoveryQuery )
+    public DiscoverResult search(Context context, DiscoverQuery discoveryQuery)
         throws SearchServiceException {
         try {
             if (solrSearchCore.getSolr() == null) {
@@ -747,6 +781,72 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         } catch (Exception e) {
             throw new org.dspace.discovery.SearchServiceException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * This class implements an iterator over items that is specifically used to iterate over search results
+     */
+    private class SearchIterator implements Iterator<Item> {
+        private Context context;
+        private DiscoverQuery discoverQuery;
+        private DiscoverResult discoverResult;
+        private IndexableObject dso;
+        private int absoluteCursor;
+        private int relativeCursor;
+        private int pagesize;
+
+        SearchIterator(Context context, DiscoverQuery discoverQuery) throws SearchServiceException {
+            this.context = context;
+            this.discoverQuery = discoverQuery;
+            this.absoluteCursor = discoverQuery.getStart();
+            initialise();
+        }
+
+        SearchIterator(Context context, IndexableObject dso, DiscoverQuery discoverQuery)
+            throws SearchServiceException {
+            this.context = context;
+            this.dso = dso;
+            this.discoverQuery = discoverQuery;
+            initialise();
+        }
+
+        private void initialise() throws SearchServiceException {
+            this.relativeCursor = 0;
+            if (discoverQuery.getMaxResults() != -1) {
+                pagesize = discoverQuery.getMaxResults();
+            } else {
+                pagesize = 10;
+            }
+            discoverQuery.setMaxResults(pagesize);
+            this.discoverResult = search(context, dso, discoverQuery);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return absoluteCursor < discoverResult.getTotalSearchResults();
+        }
+
+        @Override
+        public Item next() {
+            //paginate getting results from the discoverquery.
+            if (relativeCursor == pagesize) {
+                //  get a new page of results when the last element of the previous page has been read
+                int offset = absoluteCursor;
+                // reset the position counter for getting element relativecursor on a page
+                relativeCursor = 0;
+                discoverQuery.setStart(offset);
+                try {
+                    discoverResult = search(context, dso, discoverQuery);
+                } catch (SearchServiceException e) {
+                    log.error("error while getting search results", e);
+                }
+            }
+            // get the element at position relativecursor on a page
+            IndexableObject res = discoverResult.getIndexableObjects().get(relativeCursor);
+            relativeCursor++;
+            absoluteCursor++;
+            return (Item) res.getIndexedObject();
         }
     }
 
@@ -770,6 +870,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         solrQuery.addField(SearchUtils.RESOURCE_TYPE_FIELD);
         solrQuery.addField(SearchUtils.RESOURCE_ID_FIELD);
         solrQuery.addField(SearchUtils.RESOURCE_UNIQUE_ID);
+        solrQuery.addField(STATUS_FIELD);
 
         if (discoveryQuery.isSpellCheck()) {
             solrQuery.setParam(SpellingParams.SPELLCHECK_Q, query);
@@ -909,7 +1010,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             // if we found a stale object then skip execution of the remaining code
             boolean zombieFound = false;
             // use zombieDocs to collect stale found objects
-            List<String> zombieDocs = new ArrayList<String>();
+            List<String> zombieDocs = new ArrayList<>();
             QueryResponse solrQueryResponse = solrSearchCore.getSolr().query(solrQuery,
                           solrSearchCore.REQUEST_METHOD);
             if (solrQueryResponse != null) {
@@ -933,8 +1034,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         // Enables solr to remove documents related to items not on database anymore (Stale)
                         // if maxAttemps is greater than 0 cleanup the index on each step
                         if (maxAttempts >= 0) {
-                            zombieDocs.add((String) doc.getFirstValue(SearchUtils.RESOURCE_UNIQUE_ID));
-                            zombieFound = true;
+
+                            Object statusObj = doc.getFirstValue(STATUS_FIELD);
+                            if (!(statusObj instanceof String && statusObj.equals(STATUS_FIELD_PREDB))) {
+                                zombieDocs.add((String) doc.getFirstValue(SearchUtils.RESOURCE_UNIQUE_ID));
+                                zombieFound = true;
+                            }
                         }
                         continue;
                     }
@@ -1145,7 +1250,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             // If any stale entries are found in the current page of results,
             // we remove those stale entries and rerun the same query again.
             // Otherwise, the query is valid and the results are returned.
-            if (zombieDocs.size() != 0) {
+            if (!zombieDocs.isEmpty()) {
                 log.info("Cleaning " + zombieDocs.size() + " stale objects from Discovery Index");
                 solrSearchCore.getSolr().deleteById(zombieDocs);
                 solrSearchCore.getSolr().commit();
@@ -1248,8 +1353,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
 
             if (operator.endsWith("equals")) {
-                final boolean isStandardField
-                        = Optional.ofNullable(config)
+                final boolean isStandardField =
+                    Optional.ofNullable(config)
                         .flatMap(c -> Optional.ofNullable(c.getSidebarFacet(field)))
                         .map(facet -> facet.getType().startsWith(TYPE_PREFIX) || facet.getType().equals(TYPE_STANDARD))
                         .orElse(false);
@@ -1284,7 +1389,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 //DO NOT ESCAPE RANGE QUERIES !
                 if (!value.matches("\\[.*TO.*\\]")) {
                     value = ClientUtils.escapeQueryChars(value);
-                    filterQuery.append("(").append(value).append(")");
+                    filterQuery.append("\"").append(value).append("\"");
                 } else {
                     filterQuery.append(value);
                 }
@@ -1311,13 +1416,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             //Add a comma separated list of the similar fields
             @SuppressWarnings("unchecked")
             java.util.Collection<String> similarityMetadataFields = CollectionUtils
-                .collect(mltConfig.getSimilarityMetadataFields(), new Transformer() {
-                    @Override
-                    public Object transform(Object input) {
-                        //Add the mlt appendix !
-                        return input + "_mlt";
-                    }
-                });
+                .collect(mltConfig.getSimilarityMetadataFields(), (Transformer) input -> input + "_mlt");
 
             solrQuery.setParam(MoreLikeThisParams.SIMILARITY_FIELDS, StringUtils.join(similarityMetadataFields, ','));
             solrQuery.setParam(MoreLikeThisParams.MIN_TERM_FREQ, String.valueOf(mltConfig.getMinTermFrequency()));
@@ -1509,6 +1608,28 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
     @Override
+    public void indexContent(Context context, IndexableObject indexableObject, boolean force,
+                             boolean commit, boolean preDb) throws SearchServiceException, SQLException {
+        if (preDb) {
+            try {
+                final IndexFactory indexableObjectFactory = indexObjectServiceFactory.
+                        getIndexableObjectFactory(indexableObject);
+                if (force || requiresIndexing(indexableObject.getUniqueIndexID(), indexableObject.getLastModified())) {
+                    update(context, indexableObjectFactory, indexableObject, true);
+                    log.info(LogHelper.getHeader(context, "indexed_object", indexableObject.getUniqueIndexID()));
+                }
+            } catch (IOException | SQLException | SolrServerException | SearchServiceException e) {
+                log.error(e.getMessage(), e);
+            }
+        } else {
+            indexContent(context, indexableObject, force);
+        }
+        if (commit) {
+            commit();
+        }
+    }
+
+    @Override
     public void commit() throws SearchServiceException {
         try {
             if (solrSearchCore.getSolr() != null) {
@@ -1593,7 +1714,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     public QueryResponse retriveSolrDocByUniqueID(String uniqueID) {
         SolrClient solrClient =  solrSearchCore.getSolr();
         SolrQuery q = new SolrQuery(SearchUtils.RESOURCE_UNIQUE_ID + ":Item-" + uniqueID);
-        QueryResponse queryResponse = null;;
+        QueryResponse queryResponse = null;
         try {
             queryResponse = solrClient.query(q);
         } catch (SolrServerException | IOException e) {

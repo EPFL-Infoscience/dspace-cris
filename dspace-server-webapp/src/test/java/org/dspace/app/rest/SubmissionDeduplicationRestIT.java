@@ -158,7 +158,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test reject patch operation with a workspace item
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace)
-                .withTitle("Sample submission").withIssueDate("2020-02-01")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         pdf.close();
         context.restoreAuthSystemState();
@@ -212,7 +212,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test verify patch operation with another workspace item
         pdf = getClass().getResourceAsStream("simple-article.pdf");
         witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace).withTitle("Sample submission")
-                .withIssueDate("2021-01-01").withFulltext("article.pdf", "/local/path/simple-article.pdf", pdf).build();
+                .withIssueDate("2020-01-31").withFulltext("article.pdf", "/local/path/simple-article.pdf", pdf).build();
         pdf.close();
         context.restoreAuthSystemState();
 
@@ -349,7 +349,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         context.setCurrentUser(reviewer);
 
         XmlWorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, colWorkflow)
-                .withTitle("Sample submission").withIssueDate("2017-10-17").withAuthor("Smith, Donald")
+                .withTitle("Sample submission").withIssueDate("2020-01-31").withAuthor("Smith, Donald")
                 .withAuthor("Doe, John").withSubject("ExtraEntry").build();
 
         // 4a. create workflow items with the second submitter
@@ -359,7 +359,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test reject patch operation with a workspace item
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace)
-                .withTitle("Sample submission").withIssueDate("2020-02-01")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         pdf.close();
         context.restoreAuthSystemState();
@@ -417,7 +417,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test verify patch operation with another workspace item
         pdf = getClass().getResourceAsStream("simple-article.pdf");
         witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace).withTitle("Sample submission")
-                .withIssueDate("2021-01-01").withFulltext("article.pdf", "/local/path/simple-article.pdf", pdf).build();
+                .withIssueDate("2020-01-31").withFulltext("article.pdf", "/local/path/simple-article.pdf", pdf).build();
         pdf.close();
         context.restoreAuthSystemState();
 
@@ -568,7 +568,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test reject patch operation with a workspace item
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace)
-                .withTitle("Sample submission").withIssueDate("2020-02-01")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         pdf.close();
         context.restoreAuthSystemState();
@@ -625,7 +625,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test verify patch operation with another workspace item
         pdf = getClass().getResourceAsStream("simple-article.pdf");
         witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace).withTitle("Sample submission")
-                .withIssueDate("2021-01-01").withFulltext("article.pdf", "/local/path/simple-article.pdf", pdf).build();
+                .withIssueDate("2020-01-31").withFulltext("article.pdf", "/local/path/simple-article.pdf", pdf).build();
         pdf.close();
         context.restoreAuthSystemState();
 
@@ -778,7 +778,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test reject patch operation with a workspace item
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace)
-                .withTitle("Sample submission").withIssueDate("2020-02-01")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         pdf.close();
         context.restoreAuthSystemState();
@@ -906,7 +906,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
 
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, colWorkflow, reviewer)
-                .withTitle("Sample submission").withIssueDate("2017-10-17")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         claimedTask.setStepID("editstep");
         claimedTask.setActionID("editaction");
@@ -979,7 +979,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test verify patch operation with another workspace item
         pdf = getClass().getResourceAsStream("simple-article.pdf");
         claimedTask = ClaimedTaskBuilder.createClaimedTask(context, colWorkflow, reviewer)
-                .withTitle("Sample submission").withIssueDate("2017-10-17")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         claimedTask.setStepID("editstep");
         claimedTask.setActionID("editaction");
@@ -1132,7 +1132,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // 3. a workflow item will all the required fields
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, colWorkflow, reviewer)
-                .withTitle("Sample submission").withIssueDate("2017-10-17")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         claimedTask.setStepID("editstep");
         claimedTask.setActionID("editaction");
@@ -1209,7 +1209,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test verify patch operation with another workspace item
         pdf = getClass().getResourceAsStream("simple-article.pdf");
         claimedTask = ClaimedTaskBuilder.createClaimedTask(context, colWorkflow, reviewer)
-                .withTitle("Sample submission").withIssueDate("2017-10-17")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         claimedTask.setStepID("editstep");
         claimedTask.setActionID("editaction");
@@ -1364,7 +1364,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // 3. a workflow item will all the required fields
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         XmlWorkflowItem witem = WorkflowItemBuilder.createWorkflowItem(context, colWorkflow)
-                .withTitle("Sample submission").withIssueDate("2017-10-17")
+                .withTitle("Sample submission").withIssueDate("2020-01-31")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).build();
         /*
          * ^ BUG: Since DSpaceObject.metadata is set to FetchType.LAZY here a
@@ -1505,7 +1505,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         // Test reject patch operation with a workspace item
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, colWorkspace).withTitle("Test")
-                .withIssueDate("2020-02-01").withSubject("Test")
+                .withIssueDate("2020-01-31").withSubject("Test")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf).grantLicense().build();
         pdf.close();
         context.restoreAuthSystemState();
@@ -1525,7 +1525,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.errors").doesNotExist())
                 .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher
-                        .matchItemWithTitleAndDateIssuedAndSubject(witem, "Sample submission", "2020-02-01", "Test"))));
+                        .matchItemWithTitleAndDateIssuedAndSubject(witem, "Sample submission", "2020-01-31", "Test"))));
         dedupService.commit();
         // check for duplicates
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID())).andExpect(status().isOk())

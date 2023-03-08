@@ -144,6 +144,9 @@ public class LayoutSecurityServiceImpl implements LayoutSecurityService {
     }
 
     private boolean isAuthorityEqualsTo(MetadataValue metadataValue, EPerson user) {
+        if (Objects.isNull(metadataValue) || Objects.isNull(user)) {
+            return false;
+        }
         return StringUtils.equals(metadataValue.getAuthority(), user.getID().toString());
     }
 

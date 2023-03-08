@@ -20,9 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.HashMap;
 import java.util.Map;
 
-import org.dspace.app.orcid.client.OrcidClient;
-import org.dspace.app.orcid.factory.OrcidServiceFactory;
-import org.dspace.app.orcid.factory.OrcidServiceFactoryImpl;
 import org.dspace.app.rest.matcher.ItemAuthorityMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
@@ -36,6 +33,9 @@ import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.core.service.PluginService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.orcid.client.OrcidClient;
+import org.dspace.orcid.factory.OrcidServiceFactory;
+import org.dspace.orcid.factory.OrcidServiceFactoryImpl;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -87,30 +87,30 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
         Item orgUnit_1 = ItemBuilder.createItem(context, col1)
                 .withTitle("OrgUnit_1")
-                .withEntityType("orgunit")
+                .withEntityType("OrgUnit")
                 .build();
 
         Item orgUnit_2 = ItemBuilder.createItem(context, col1)
                 .withTitle("OrgUnit_2")
-                .withEntityType("orgunit")
+                .withEntityType("OrgUnit")
                 .build();
 
         Item author_1 = ItemBuilder.createItem(context, col1)
                 .withTitle("Author 1")
-                .withEntityType("person")
+                .withEntityType("Person")
                 .withPersonMainAffiliation(orgUnit_1.getName(), orgUnit_1.getID().toString())
                 .build();
 
         Item author_2 = ItemBuilder.createItem(context, col1)
                 .withTitle("Author 2")
                 .withPersonMainAffiliation(orgUnit_1.getName(), orgUnit_1.getID().toString())
-                .withEntityType("person")
+                .withEntityType("Person")
                 .build();
 
         Item author_3 = ItemBuilder.createItem(context, col1)
                 .withTitle("Author 3")
                 .withPersonMainAffiliation(orgUnit_2.getName(), orgUnit_2.getID().toString())
-                .withEntityType("person")
+                .withEntityType("Person")
                 .build();
 
         context.restoreAuthSystemState();
@@ -236,7 +236,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
        Item author_1 = ItemBuilder.createItem(context, col1)
                                   .withTitle("Author 1")
-                                  .withEntityType("person")
+                                  .withEntityType("Person")
                                   .build();
 
        context.restoreAuthSystemState();
@@ -281,7 +281,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
        context.restoreAuthSystemState();
 
-       String token = getAuthToken(eperson.getEmail(), password);
+       String token = getAuthToken(admin.getEmail(), password);
        getClient(token).perform(get("/api/submission/vocabularies/EPersonAuthority/entries")
                        .param("filter", "Andrea"))
                        .andExpect(status().isOk())

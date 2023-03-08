@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.exception;
 
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.springframework.web.servlet.DispatcherServlet.EXCEPTION_ATTRIBUTE;
 
 import java.io.IOException;
@@ -20,14 +21,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.exception.ResourceAlreadyExistsException;
 import org.dspace.app.exception.ResourceConflictException;
-import org.dspace.app.orcid.exception.OrcidValidationException;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.model.RestModel;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
+import org.dspace.eperson.InvalidReCaptchaException;
+import org.dspace.orcid.exception.OrcidValidationException;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,7 +132,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
                           HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 
-    @ExceptionHandler( {UnprocessableEntityException.class})
+    @ExceptionHandler({ UnprocessableEntityException.class, ResourceAlreadyExistsException.class })
     protected void handleUnprocessableEntityException(HttpServletRequest request, HttpServletResponse response,
                                                       Exception ex) throws IOException {
         //422 is not defined in HttpServletResponse.  Its meaning is "Unprocessable Entity".
@@ -147,6 +150,12 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
                 HttpStatus.UNPROCESSABLE_ENTITY.value());
     }
 
+    /**
+     * Handle the {@link OrcidValidationException} returning the exception message
+     * in the response, that always contains only the validation error codes (usable
+     * for example to show specific messages to users). No other details are present
+     * in the exception message.
+     */
     @ExceptionHandler({ OrcidValidationException.class })
     protected void handleOrcidValidationException(HttpServletRequest request, HttpServletResponse response,
         OrcidValidationException ex) throws IOException {
@@ -168,6 +177,8 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         RESTEmptyWorkflowGroupException.class,
         EPersonNameNotProvidedException.class,
         GroupNameNotProvidedException.class,
+        GroupHasPendingWorkflowTasksException.class,
+        PasswordNotValidException.class,
     })
     protected void handleCustomUnprocessableEntityException(HttpServletRequest request, HttpServletResponse response,
                                                             TranslatableException ex) throws IOException {
@@ -201,6 +212,18 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         sendErrorResponse(request, response, null,
                           "A required parameter is missing",
                           HttpStatus.BAD_REQUEST.value());
+    }
+
+    @ExceptionHandler({WrongCurrentPasswordException.class})
+    protected void handleInvalidPasswordException(HttpServletRequest request, HttpServletResponse response,
+                                               Exception ex) throws IOException {
+        sendErrorResponse(request, response, ex, ex.getMessage(), HttpServletResponse.SC_FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidReCaptchaException.class)
+    protected void handleInvalidCaptchaTokenRequestException(HttpServletRequest request, HttpServletResponse response,
+                                                                                      Exception ex) throws IOException {
+        sendErrorResponse(request, response, ex, "Invalid captcha token", SC_FORBIDDEN);
     }
 
     @ExceptionHandler(ResourceConflictException.class)

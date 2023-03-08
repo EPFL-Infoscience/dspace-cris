@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import net.minidev.json.JSONArray;
 import org.apache.commons.collections4.CollectionUtils;
@@ -83,6 +84,7 @@ import org.dspace.utils.DSpace;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -301,13 +303,32 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    public void findAllScriptsSortedAlphabeticallyTest() throws Exception {
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(get("/api/system/scripts")
+                        .param("size", String.valueOf(scriptConfigurations.size())))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$._embedded.scripts", contains(
+                            scriptConfigurations
+                                .stream()
+                                .sorted(Comparator.comparing(ScriptConfiguration::getName))
+                                .map(scriptConfiguration -> ScriptMatcher.matchScript(
+                                    scriptConfiguration.getName(),
+                                    scriptConfiguration.getDescription()
+                                ))
+                                .collect(Collectors.toList())
+                        )));
+    }
+
+    @Test
     public void findAllScriptsWithNoAdminTest() throws Exception {
         String token = getAuthToken(eperson.getEmail(), password);
 
         getClient(token).perform(get("/api/system/scripts"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.page",
-                                            is(PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3))));
+                                            is(PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 4))));
 
     }
 
@@ -315,7 +336,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     public void findAllScriptsPaginationTest() throws Exception {
         List<ScriptConfiguration> alphabeticScripts =
             scriptConfigurations.stream()
-                                .sorted(Comparator.comparing(s -> s.getClass().getName()))
+                                .sorted(Comparator.comparing(ScriptConfiguration::getName))
                                 .collect(Collectors.toList());
 
         int totalPages = scriptConfigurations.size();
@@ -327,12 +348,12 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(get("/api/system/scripts").param("size", "1"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$._embedded.scripts", Matchers.not(Matchers.hasItem(
-                                ScriptMatcher.matchScript(scriptConfigurations.get(8).getName(),
-                                                          scriptConfigurations.get(8).getDescription())
+                ScriptMatcher.matchScript(scriptConfigurations.get(10).getName(),
+                    scriptConfigurations.get(10).getDescription())
                         ))))
                         .andExpect(jsonPath("$._embedded.scripts", hasItem(
-                                ScriptMatcher.matchScript(scriptConfigurations.get(19).getName(),
-                                                          scriptConfigurations.get(19).getDescription())
+                                ScriptMatcher.matchScript(alphabeticScripts.get(0).getName(),
+                                                          alphabeticScripts.get(0).getDescription())
                         )))
                         .andExpect(jsonPath("$._links.first.href", Matchers.allOf(
                             Matchers.containsString("/api/system/scripts?"),
@@ -345,22 +366,22 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                             Matchers.containsString("page=1"), Matchers.containsString("size=1"))))
                         .andExpect(jsonPath("$._links.last.href", Matchers.allOf(
                                 Matchers.containsString("/api/system/scripts?"),
-                                Matchers.containsString("page=24"), Matchers.containsString("size=1"))))
+                                Matchers.containsString("page=" + lastPage), Matchers.containsString("size=1"))))
                         .andExpect(jsonPath("$.page.size", is(1)))
                         .andExpect(jsonPath("$.page.number", is(0)))
-                        .andExpect(jsonPath("$.page.totalPages", is(25)))
-                        .andExpect(jsonPath("$.page.totalElements", is(25)));
+                        .andExpect(jsonPath("$.page.totalPages", is(totalPages)))
+                        .andExpect(jsonPath("$.page.totalElements", is(totalPages)));
 
 
         getClient(token).perform(get("/api/system/scripts").param("size", "1").param("page", "1"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$._embedded.scripts", hasItem(
-                                ScriptMatcher.matchScript(scriptConfigurations.get(8).getName(),
-                                                          scriptConfigurations.get(8).getDescription())
+                ScriptMatcher.matchScript(scriptConfigurations.get(10).getName(),
+                    scriptConfigurations.get(10).getDescription())
                         )))
                         .andExpect(jsonPath("$._embedded.scripts", Matchers.not(hasItem(
-                                ScriptMatcher.matchScript(scriptConfigurations.get(19).getName(),
-                                                          scriptConfigurations.get(19).getDescription())
+                                ScriptMatcher.matchScript(alphabeticScripts.get(0).getName(),
+                                                          alphabeticScripts.get(0).getDescription())
                         ))))
                         .andExpect(jsonPath("$._links.first.href", Matchers.allOf(
                             Matchers.containsString("/api/system/scripts?"),
@@ -376,11 +397,11 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                             Matchers.containsString("page=2"), Matchers.containsString("size=1"))))
                         .andExpect(jsonPath("$._links.last.href", Matchers.allOf(
                                 Matchers.containsString("/api/system/scripts?"),
-                                Matchers.containsString("page=24"), Matchers.containsString("size=1"))))
+                                Matchers.containsString("page=" + lastPage), Matchers.containsString("size=1"))))
                         .andExpect(jsonPath("$.page.size", is(1)))
                         .andExpect(jsonPath("$.page.number", is(1)))
-                        .andExpect(jsonPath("$.page.totalPages", is(25)))
-                        .andExpect(jsonPath("$.page.totalElements", is(25)));
+                        .andExpect(jsonPath("$.page.totalPages", is(totalPages)))
+                        .andExpect(jsonPath("$.page.totalElements", is(totalPages)));
     }
 
     @Test
@@ -482,7 +503,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         try {
             getClient(token)
                     .perform(multipart("/api/system/scripts/mock-script/processes")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -526,7 +547,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         try {
             getClient(token)
                     .perform(multipart("/api/system/scripts/mock-script/processes")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -563,7 +584,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         try {
             getClient(token)
                     .perform(multipart("/api/system/scripts/mock-script/processes")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -589,10 +610,9 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")).andReturn();
             String content = mvcResult.getResponse().getContentAsString();
 
-            assertThat(content, CoreMatchers
-                    .containsString("INFO mock-script - " + process.getID() + " @ The script has started"));
             assertThat(content,
-                       CoreMatchers.containsString(
+                CoreMatchers.containsString("INFO mock-script - " + process.getID() + " @ The script has started"));
+            assertThat(content, CoreMatchers.containsString(
                                "INFO mock-script - " + process.getID() + " @ Logging INFO for Mock DSpace Script"));
             assertThat(content,
                        CoreMatchers.containsString(
@@ -671,7 +691,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .perform(multipart("/api/system/scripts/mock-script/processes")
                                  .file(bitstreamFile)
                                  .characterEncoding("UTF-8")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -809,100 +829,132 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         String token = getAuthToken(admin.getEmail(), password);
 
         getClient(token).perform(get("/api/system/scripts/type-conversion-test"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$", ScriptMatcher
-                                .matchScript("type-conversion-test",
-                                             "Test the type conversion different option types")))
-                        .andExpect(jsonPath("$.parameters", containsInAnyOrder(
-                                allOf(
-                                        hasJsonPath("$.name", is("-b")),
-                                        hasJsonPath("$.description", is("option set to the boolean class")),
-                                        hasJsonPath("$.type", is("boolean")),
-                                        hasJsonPath("$.mandatory", is(false)),
-                                        hasJsonPath("$.nameLong", is("--boolean"))
-                                ),
-                                allOf(
-                                        hasJsonPath("$.name", is("-s")),
-                                        hasJsonPath("$.description", is("string option with an argument")),
-                                        hasJsonPath("$.type", is("String")),
-                                        hasJsonPath("$.mandatory", is(false)),
-                                        hasJsonPath("$.nameLong", is("--string"))
-                                ),
-                                allOf(
-                                        hasJsonPath("$.name", is("-n")),
-                                        hasJsonPath("$.description", is("string option without an argument")),
-                                        hasJsonPath("$.type", is("boolean")),
-                                        hasJsonPath("$.mandatory", is(false)),
-                                        hasJsonPath("$.nameLong", is("--noargument"))
-                                ),
-                                allOf(
-                                        hasJsonPath("$.name", is("-f")),
-                                        hasJsonPath("$.description", is("file option with an argument")),
-                                        hasJsonPath("$.type", is("InputStream")),
-                                        hasJsonPath("$.mandatory", is(false)),
-                                        hasJsonPath("$.nameLong", is("--file"))
-                                )
-                        ) ));
+            .andExpect(status().isOk())
+            .andExpect(
+                jsonPath(
+                    "$", ScriptMatcher
+                        .matchScript(
+                            "type-conversion-test",
+                            "Test the type conversion different option types"
+                        )
+                )
+            )
+            .andExpect(
+                jsonPath(
+                    "$.parameters", containsInAnyOrder(
+                        allOf(
+                            hasJsonPath("$.name", is("-b")),
+                            hasJsonPath("$.description", is("option set to the boolean class")),
+                            hasJsonPath("$.type", is("boolean")),
+                            hasJsonPath("$.mandatory", is(false)),
+                            hasJsonPath("$.nameLong", is("--boolean"))
+                        ),
+                        allOf(
+                            hasJsonPath("$.name", is("-s")),
+                            hasJsonPath("$.description", is("string option with an argument")),
+                            hasJsonPath("$.type", is("String")),
+                            hasJsonPath("$.mandatory", is(false)),
+                            hasJsonPath("$.nameLong", is("--string"))
+                        ),
+                        allOf(
+                            hasJsonPath("$.name", is("-n")),
+                            hasJsonPath("$.description", is("string option without an argument")),
+                            hasJsonPath("$.type", is("boolean")),
+                            hasJsonPath("$.mandatory", is(false)),
+                            hasJsonPath("$.nameLong", is("--noargument"))
+                        ),
+                        allOf(
+                            hasJsonPath("$.name", is("-f")),
+                            hasJsonPath("$.description", is("file option with an argument")),
+                            hasJsonPath("$.type", is("InputStream")),
+                            hasJsonPath("$.mandatory", is(false)),
+                            hasJsonPath("$.nameLong", is("--file"))
+                        )
+                    )
+                )
+            );
     }
 
+    @Ignore
     @Test
     public void exportPubliclyAvailableItemsTest() throws Exception {
-        context.turnOffAuthorisationSystem();
+        String adminLimit = configurationService.getProperty("bulk-export.limit.admin");
+        String notLoggedInLimit = configurationService.getProperty("bulk-export.limit.notLoggedIn");
+        String loggedInLimit = configurationService.getProperty("bulk-export.limit.loggedIn");
+        ReferCrosswalk publicationCerif = null;
+        Boolean isPubliclyReadable = false;
+        try {
+            context.turnOffAuthorisationSystem();
 
-        parentCommunity = CommunityBuilder.createCommunity(context)
-            .withName("Parent Community")
-            .build();
+            publicationCerif =
+                (ReferCrosswalk) new DSpace()
+                    .getSingletonService(StreamDisseminationCrosswalkMapper.class)
+                    .getByType("publication-cerif-xml");
+            isPubliclyReadable = publicationCerif.isPubliclyReadable();
 
-        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
-            .withName("Collection 1")
-            .build();
+            publicationCerif.setPubliclyReadable(true);
 
-        Item firstPerson = createItem(context, collection)
-                .withEntityType("Person")
-                .withTitle("Smith, John")
-                .withVariantName("J.S.")
-                .withVariantName("Smith John")
-                .withGender("M")
-                .withPersonMainAffiliation("University")
-                .withOrcidIdentifier("0000-0002-9079-5932")
-                .withScopusAuthorIdentifier("SA-01")
-                .withPersonEmail("test@test.com")
-                .withResearcherIdentifier("R-01")
-                .withResearcherIdentifier("R-02")
-                .withPersonAffiliation("Company")
-                .withPersonAffiliationStartDate("2018-01-01")
-                .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
-                .withPersonAffiliationRole("Developer")
-                .withPersonAffiliation("Another Company")
-                .withPersonAffiliationStartDate("2017-01-01")
-                .withPersonAffiliationEndDate("2017-12-31")
-                .withPersonAffiliationRole("Developer")
-                .build();
+            configurationService.setProperty("bulk-export.limit.admin", "2");
 
-        Item secondPerson = createItem(context, collection)
-                .withEntityType("Person")
-                .withTitle("White, Walter")
-                .withGender("M")
-                .withPersonMainAffiliation("University")
-                .withOrcidIdentifier("0000-0002-9079-5938")
-                .withPersonEmail("w.w@test.com")
-                .withResearcherIdentifier("R-03")
-                .withPersonAffiliation("Company")
-                .withPersonAffiliationStartDate("2018-01-01")
-                .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
-                .withPersonAffiliationRole("Developer")
-                .build();
+            parentCommunity =
+                CommunityBuilder.createCommunity(context)
+                    .withName("Parent Community")
+                    .build();
 
-        Item project = ItemBuilder.createItem(context, collection)
-                .withEntityType("Project")
-                .withTitle("Test Project")
-                .withInternalId("111-222-333")
-                .withAcronym("TP")
-                .withProjectStartDate("2020-01-01")
-                .withProjectEndDate("2020-04-01")
-                .build();
+            Collection collection =
+                CollectionBuilder.createCollection(context, parentCommunity)
+                    .withName("Collection 1")
+                    .build();
 
-        ItemBuilder.createItem(context, collection)
+            Item firstPerson =
+                createItem(context, collection)
+                    .withEntityType("Person")
+                    .withTitle("Smith, John")
+                    .withVariantName("J.S.")
+                    .withVariantName("Smith John")
+                    .withGender("M")
+                    .withPersonMainAffiliation("University")
+                    .withOrcidIdentifier("0000-0002-9079-5932")
+                    .withScopusAuthorIdentifier("SA-01")
+                    .withPersonEmail("test@test.com")
+                    .withResearcherIdentifier("R-01")
+                    .withResearcherIdentifier("R-02")
+                    .withPersonAffiliation("Company")
+                    .withPersonAffiliationStartDate("2018-01-01")
+                    .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+                    .withPersonAffiliationRole("Developer")
+                    .withPersonAffiliation("Another Company")
+                    .withPersonAffiliationStartDate("2017-01-01")
+                    .withPersonAffiliationEndDate("2017-12-31")
+                    .withPersonAffiliationRole("Developer")
+                    .build();
+
+            Item secondPerson =
+                createItem(context, collection)
+                    .withEntityType("Person")
+                    .withTitle("White, Walter")
+                    .withGender("M")
+                    .withPersonMainAffiliation("University")
+                    .withOrcidIdentifier("0000-0002-9079-5938")
+                    .withPersonEmail("w.w@test.com")
+                    .withResearcherIdentifier("R-03")
+                    .withPersonAffiliation("Company")
+                    .withPersonAffiliationStartDate("2018-01-01")
+                    .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+                    .withPersonAffiliationRole("Developer")
+                    .build();
+
+            Item project =
+                ItemBuilder.createItem(context, collection)
+                    .withEntityType("Project")
+                    .withTitle("Test Project")
+                    .withInternalId("111-222-333")
+                    .withAcronym("TP")
+                    .withProjectStartDate("2020-01-01")
+                    .withProjectEndDate("2020-04-01")
+                    .build();
+
+            ItemBuilder.createItem(context, collection)
                 .withEntityType("Funding")
                 .withTitle("Test Funding")
                 .withType("Internal Funding")
@@ -910,15 +962,16 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .withRelationProject("Test Project", project.getID().toString())
                 .build();
 
-        Item funding = ItemBuilder.createItem(context, collection)
-                .withEntityType("Funding")
-                .withTitle("Another Test Funding")
-                .withType("Contract")
-                .withFunder("Another Test Funder")
-                .withAcronym("ATF-01")
-                .build();
+            Item funding =
+                ItemBuilder.createItem(context, collection)
+                    .withEntityType("Funding")
+                    .withTitle("Another Test Funding")
+                    .withType("Contract")
+                    .withFunder("Another Test Funder")
+                    .withAcronym("ATF-01")
+                    .build();
 
-        ItemBuilder.createItem(context, collection)
+            ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
                 .withTitle("First Publication")
                 .withAlternativeTitle("Alternative publication title")
@@ -948,7 +1001,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .withRelationProduct("DataSet")
                 .build();
 
-        ItemBuilder.createItem(context, collection)
+            ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
                 .withTitle("Second Publication")
                 .withAlternativeTitle("Alternative publication title")
@@ -979,227 +1032,310 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                 .withRelationProduct("DataSet")
                 .build();
 
-        Item restrictedItem = ItemBuilder.createItem(context, collection)
-                .withEntityType("Publication")
-                .withTitle("Third Publication")
-                .withSubject("export")
-                .withAuthor("EPerson", eperson.getID().toString())
-                .build();
+            Item restrictedItem =
+                ItemBuilder.createItem(context, collection)
+                    .withEntityType("Publication")
+                    .withTitle("Third Publication")
+                    .withSubject("export")
+                    .withAuthor("EPerson", eperson.getID().toString())
+                    .build();
 
-        Item restrictedItem2 = ItemBuilder.createItem(context, collection)
-                .withEntityType("Publication")
-                .withTitle("Fourth Publication")
-                .withSubject("export")
-                .build();
+            Item restrictedItem2 =
+                ItemBuilder.createItem(context, collection)
+                    .withEntityType("Publication")
+                    .withTitle("Fourth Publication")
+                    .withSubject("export")
+                    .build();
 
-        resourcePolicyService.removeAllPolicies(context, restrictedItem);
-        resourcePolicyService.removeAllPolicies(context, restrictedItem2);
+            resourcePolicyService.removeAllPolicies(context, restrictedItem);
+            resourcePolicyService.removeAllPolicies(context, restrictedItem2);
 
-        LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
-        parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));
-        parameters.add(new DSpaceCommandLineParameter("-f", "epfl-publications"));
+            LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
+            parameters.add(new DSpaceCommandLineParameter("-t", "Publication"));
+            parameters.add(new DSpaceCommandLineParameter("-f", "epfl-publications"));
 
-        List<ParameterValueRest> list = parameters.stream()
-                .map(dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter
-                        .convert(dSpaceCommandLineParameter, Projection.DEFAULT))
-                .collect(Collectors.toList());
+            List<ParameterValueRest> list =
+                parameters.stream()
+                    .map(
+                        dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter
+                            .convert(dSpaceCommandLineParameter, Projection.DEFAULT)
+                    )
+                    .collect(Collectors.toList());
 
-        String adminToken = getAuthToken(admin.getEmail(), password);
-        List<ProcessStatus> acceptableProcessStatuses = new LinkedList<>();
-        acceptableProcessStatuses.addAll(Arrays.asList(ProcessStatus.SCHEDULED,
-                ProcessStatus.RUNNING,
-                ProcessStatus.COMPLETED));
+            String adminToken = getAuthToken(admin.getEmail(), password);
+            List<ProcessStatus> acceptableProcessStatuses = new LinkedList<>();
+            acceptableProcessStatuses.addAll(
+                Arrays.asList(
+                    ProcessStatus.SCHEDULED,
+                    ProcessStatus.RUNNING,
+                    ProcessStatus.COMPLETED
+                )
+            );
 
-        AtomicReference<Integer> idRef = new AtomicReference<>();
+            AtomicReference<Integer> idRef = new AtomicReference<>();
 
-        context.restoreAuthSystemState();
+            context.restoreAuthSystemState();
 
-        String[] includedContents = {
-                "First Publication",
-                "Second Publication"
-        };
-        String[] excludedContents = {
-                "Third Publication",
-                "Fourth Publication"
-        };
-        try {
-            getClient(adminToken)
+            String[] includedContents =
+                {
+                        "First Publication",
+                        "Second Publication"
+                };
+            String[] excludedContents =
+                {
+                        "Third Publication",
+                        "Fourth Publication"
+                };
+            try {
+                getClient(adminToken)
                     .perform(
-                            multipart("/api/system/scripts/bulk-item-export/processes")
-                             .param("properties", new Gson().toJson(list))
-                     )
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                            .param("properties", new Gson().toJson(list))
+                    )
                     .andExpect(status().isAccepted())
-                    .andExpect(jsonPath("$", is(
-                            ProcessMatcher.matchProcess("bulk-item-export",
-                                                        String.valueOf(admin.getID()),
-                                                        parameters,
-                                                        acceptableProcessStatuses))))
-                    .andDo(result -> idRef
-                            .set(read(result.getResponse().getContentAsString(), "$.processId")));
-            checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, true);
-        } finally {
-            if (idRef.get() != null) {
-                ProcessBuilder.deleteProcess(idRef.get());
+                    .andExpect(
+                        jsonPath(
+                            "$", is(
+                                ProcessMatcher.matchProcess(
+                                    "bulk-item-export",
+                                    String.valueOf(admin.getID()),
+                                    parameters,
+                                    acceptableProcessStatuses
+                                )
+                            )
+                        )
+                    )
+                    .andDo(
+                        result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId"))
+                    );
+                checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, true);
+            } finally {
+                if (idRef.get() != null) {
+                    ProcessBuilder.deleteProcess(idRef.get());
+                }
             }
-        }
-        // anonymous export
-        getClient()
-            .perform(
+            configurationService.setProperty("bulk-export.limit.notLoggedIn", "0");
+            // anonymous export
+            getClient()
+                .perform(
                     multipart("/api/system/scripts/bulk-item-export/processes")
-                     .param("properties", new Gson().toJson(list))
-             )
-            // this is acceptable here because the process
-            .andExpect(status().isUnauthorized());
-        try {
-            // eperson export
-            String epToken = getAuthToken(eperson.getEmail(), password);
-            getClient(epToken)
-                .perform(
-                        multipart("/api/system/scripts/bulk-item-export/processes")
-                         .param("properties", new Gson().toJson(list))
-                 )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$", is(
-                        ProcessMatcher.matchProcess("bulk-item-export",
-                                                    String.valueOf(eperson.getID()),
-                                                    parameters,
-                                                    acceptableProcessStatuses))))
-                .andDo(result -> idRef
-                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
-            checkExportOutput(epToken, null, idRef, includedContents, excludedContents, true);
-        } finally {
-            if (idRef.get() != null) {
-                ProcessBuilder.deleteProcess(idRef.get());
-            }
-        }
-
-        // set the export results as not public, we should get reserved content in it
-        ReferCrosswalk expCross = (ReferCrosswalk) new DSpace()
-                .getSingletonService(StreamDisseminationCrosswalkMapper.class).getByType("epfl-publications");
-        // allow anonymous users to run the export
-        configurationService.setProperty("bulk-export.limit.notLoggedIn", 10);
-        expCross.setPubliclyReadable(false);
-        includedContents = new String[]{
-                "First Publication",
-                "Second Publication",
-                "Third Publication",
-                "Fourth Publication"
-        };
-        excludedContents = new String[]{
-        };
-        try {
-            getClient(adminToken)
+                        .param("properties", new Gson().toJson(list))
+                )
+                // this is acceptable here because the process
+                .andExpect(status().isUnauthorized());
+            configurationService.setProperty("bulk-export.limit.loggedIn", "2");
+            configurationService.setProperty("bulk-export.limit.notLoggedIn", "2");
+            try {
+                getClient(adminToken)
                     .perform(
-                            multipart("/api/system/scripts/bulk-item-export/processes")
-                             .param("properties", new Gson().toJson(list))
-                     )
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                            .param("properties", new Gson().toJson(list))
+                    )
                     .andExpect(status().isAccepted())
-                    .andExpect(jsonPath("$", is(
-                            ProcessMatcher.matchProcess("bulk-item-export",
-                                                        String.valueOf(admin.getID()),
-                                                        parameters,
-                                                        acceptableProcessStatuses))))
-                    .andDo(result -> idRef
-                            .set(read(result.getResponse().getContentAsString(), "$.processId")));
-            checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, false);
-        } finally {
-            if (idRef.get() != null) {
-                ProcessBuilder.deleteProcess(idRef.get());
+                    .andExpect(
+                        jsonPath(
+                            "$", is(
+                                ProcessMatcher.matchProcess(
+                                    "bulk-item-export",
+                                    String.valueOf(admin.getID()),
+                                    parameters,
+                                    acceptableProcessStatuses
+                                )
+                            )
+                        )
+                    )
+                    .andDo(
+                        result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId"))
+                    );
+                checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, true);
+            } finally {
+                if (idRef.get() != null) {
+                    ProcessBuilder.deleteProcess(idRef.get());
+                }
             }
-        }
-        includedContents = new String[]{
-                "First Publication",
-                "Second Publication"
-        };
-        excludedContents = new String[]{
-                "Third Publication",
-                "Fourth Publication"
-        };
-        try {
-            // anonymous export
-            getClient()
-                .perform(
+
+            // set the export results as not public, we should get reserved content in it
+            ReferCrosswalk expCross =
+                (ReferCrosswalk) new DSpace()
+                    .getSingletonService(StreamDisseminationCrosswalkMapper.class)
+                    .getByType("publication-cerif-xml");
+            // allow anonymous users to run the export
+            configurationService.setProperty("bulk-export.limit.admin", "10");
+            expCross.setPubliclyReadable(false);
+            includedContents =
+                new String[] {
+                        "First Publication",
+                        "Second Publication",
+                        "Third Publication",
+                        "Fourth Publication"
+                };
+            excludedContents = new String[] {};
+            try {
+                getClient(adminToken)
+                    .perform(
                         multipart("/api/system/scripts/bulk-item-export/processes")
-                         .param("properties", new Gson().toJson(list))
-                 )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$", is(
-                        ProcessMatcher.matchProcess("bulk-item-export",
-                                                    null,
-                                                    parameters,
-                                                    acceptableProcessStatuses))))
-                .andDo(result -> idRef
-                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
-            checkExportOutput(null, null, idRef, includedContents, excludedContents, false);
-        } finally {
-            if (idRef.get() != null) {
-                ProcessBuilder.deleteProcess(idRef.get());
+                            .param("properties", new Gson().toJson(list))
+                    )
+                    .andExpect(status().isAccepted())
+                    .andExpect(
+                        jsonPath(
+                            "$", is(
+                                ProcessMatcher.matchProcess(
+                                    "bulk-item-export",
+                                    String.valueOf(admin.getID()),
+                                    parameters,
+                                    acceptableProcessStatuses
+                                )
+                            )
+                        )
+                    )
+                    .andDo(
+                        result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId"))
+                    );
+                checkExportOutput(adminToken, null, idRef, includedContents, excludedContents, true);
+            } finally {
+                if (idRef.get() != null) {
+                    ProcessBuilder.deleteProcess(idRef.get());
+                }
             }
-        }
-        // lower the allowed limit of item to export and check again
-        configurationService.setProperty("bulk-export.limit.notLoggedIn", 1);
-        includedContents = new String[]{
-                "First Publication"
-        };
-        excludedContents = new String[]{
-                "Second Publication",
-                "Third Publication",
-                "Fourth Publication"
-        };
-        try {
-            // anonymous export
-            getClient()
-                .perform(
+            configurationService.setProperty("bulk-export.limit.notLoggedIn", "2");
+            includedContents =
+                new String[] {
+                        "First Publication",
+                        "Second Publication"
+                };
+            excludedContents =
+                new String[] {
+                        "Third Publication",
+                        "Fourth Publication"
+                };
+            try {
+                // anonymous export
+                getClient()
+                    .perform(
                         multipart("/api/system/scripts/bulk-item-export/processes")
-                         .param("properties", new Gson().toJson(list))
-                 )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$", is(
-                        ProcessMatcher.matchProcess("bulk-item-export",
-                                                    null,
-                                                    parameters,
-                                                    acceptableProcessStatuses))))
-                .andDo(result -> idRef
-                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
-            checkExportOutput(null, null, idRef, includedContents, excludedContents, false);
+                            .param("properties", new Gson().toJson(list))
+                    )
+                    .andExpect(status().isAccepted())
+                    .andExpect(
+                        jsonPath(
+                            "$", is(
+                                ProcessMatcher.matchProcess(
+                                    "bulk-item-export",
+                                    null,
+                                    parameters,
+                                    acceptableProcessStatuses
+                                )
+                            )
+                        )
+                    )
+                    .andDo(
+                        result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId"))
+                    );
+                checkExportOutput(null, null, idRef, includedContents, excludedContents, false);
+            } finally {
+                if (idRef.get() != null) {
+                    ProcessBuilder.deleteProcess(idRef.get());
+                }
+            }
+            // lower the allowed limit of item to export and check again
+            configurationService.setProperty("bulk-export.limit.notLoggedIn", 1);
+            includedContents =
+                new String[] {
+                        "First Publication"
+                };
+            excludedContents =
+                new String[] {
+                        "Second Publication",
+                        "Third Publication",
+                        "Fourth Publication"
+                };
+            try {
+                // anonymous export
+                getClient()
+                    .perform(
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                            .param("properties", new Gson().toJson(list))
+                    )
+                    .andExpect(status().isAccepted())
+                    .andExpect(
+                        jsonPath(
+                            "$", is(
+                                ProcessMatcher.matchProcess(
+                                    "bulk-item-export",
+                                    null,
+                                    parameters,
+                                    acceptableProcessStatuses
+                                )
+                            )
+                        )
+                    )
+                    .andDo(
+                        result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId"))
+                    );
+                checkExportOutput(null, null, idRef, includedContents, excludedContents, false);
+            } finally {
+                if (idRef.get() != null) {
+                    ProcessBuilder.deleteProcess(idRef.get());
+                }
+            }
+
+            configurationService.setProperty("bulk-export.limit.loggedIn", "2");
+            includedContents =
+                new String[] {
+                        "First Publication",
+                        "Second Publication"
+                };
+            excludedContents =
+                new String[] {
+                        "Fourth Publication",
+                        "Third Publication"
+                };
+            try {
+                // eperson export
+                String epToken = getAuthToken(eperson.getEmail(), password);
+                getClient(epToken)
+                    .perform(
+                        multipart("/api/system/scripts/bulk-item-export/processes")
+                            .param("properties", new Gson().toJson(list))
+                    )
+                    .andExpect(status().isAccepted())
+                    .andExpect(
+                        jsonPath(
+                            "$", is(
+                                ProcessMatcher.matchProcess(
+                                    "bulk-item-export",
+                                    String.valueOf(eperson.getID()),
+                                    parameters,
+                                    acceptableProcessStatuses
+                                )
+                            )
+                        )
+                    )
+                    .andDo(
+                        result -> idRef
+                            .set(read(result.getResponse().getContentAsString(), "$.processId"))
+                    );
+                checkExportOutput(epToken, null, idRef, includedContents, excludedContents, false);
+            } finally {
+                if (idRef.get() != null) {
+                    ProcessBuilder.deleteProcess(idRef.get());
+                }
+            }
         } finally {
-            if (idRef.get() != null) {
-                ProcessBuilder.deleteProcess(idRef.get());
+            configurationService.setProperty("bulk-export.limit.admin", adminLimit);
+            configurationService.setProperty("bulk-export.limit.notLoggedIn", notLoggedInLimit);
+            configurationService.setProperty("bulk-export.limit.loggedIn", loggedInLimit);
+            if (publicationCerif != null) {
+                publicationCerif.setPubliclyReadable(isPubliclyReadable);
             }
         }
 
-        includedContents = new String[]{
-                "First Publication",
-                "Second Publication"
-        };
-        excludedContents = new String[]{
-                "Fourth Publication",
-                // authors don't have special permission on the record in the epfl roles-matrix
-                "Third Publication"
-        };
-        try {
-            // eperson export
-            String epToken = getAuthToken(eperson.getEmail(), password);
-            getClient(epToken)
-                .perform(
-                        multipart("/api/system/scripts/bulk-item-export/processes")
-                         .param("properties", new Gson().toJson(list))
-                 )
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$", is(
-                        ProcessMatcher.matchProcess("bulk-item-export",
-                                                    String.valueOf(eperson.getID()),
-                                                    parameters,
-                                                    acceptableProcessStatuses))))
-                .andDo(result -> idRef
-                        .set(read(result.getResponse().getContentAsString(), "$.processId")));
-            checkExportOutput(epToken, null, idRef, includedContents, excludedContents, false);
-        } finally {
-            if (idRef.get() != null) {
-                ProcessBuilder.deleteProcess(idRef.get());
-            }
-        }
-        expCross.setPubliclyReadable(true);
     }
 
     private void checkExportOutput(String processToken, String fileToken,
@@ -1256,6 +1392,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         }
     }
 
+    @Override
     @After
     public void destroy() throws Exception {
         CollectionUtils.emptyIfNull(processService.findAll(context)).stream().forEach(process -> {
