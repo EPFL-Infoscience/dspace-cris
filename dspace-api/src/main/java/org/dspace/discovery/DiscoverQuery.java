@@ -36,6 +36,7 @@ public class DiscoverQuery {
     private List<String> dspaceObjectFilters = new ArrayList<>();
     private final List<String> fieldPresentQueries;
     private boolean spellCheck;
+    private boolean includeNotDiscoverableOrWithdrawn;
 
     private int start = 0;
     private int maxResults = -1;
@@ -282,6 +283,24 @@ public class DiscoverQuery {
     }
 
     /**
+     * Gets the facet field offset
+     *
+     * @return the facet field offset
+     */
+    public int getFacetOffset() {
+        return facetOffset;
+    }
+
+    /**
+     * Sets the facet field offset, one facet offset will be used for all the facet fields
+     *
+     * @param facetOffset an integer representing the offset
+     */
+    public void setFacetOffset(int facetOffset) {
+        this.facetOffset = facetOffset;
+    }
+
+    /**
      * Sets the fields which you want Discovery to return in the search results.
      * It is HIGHLY recommended to limit the fields returned, as by default
      * some back-ends (like Solr) will return everything.
@@ -422,5 +441,13 @@ public class DiscoverQuery {
      */
     public void setDiscoveryConfigurationName(String discoveryConfigurationName) {
         this.discoveryConfigurationName = discoveryConfigurationName;
+    }
+
+    public boolean isIncludeNotDiscoverableOrWithdrawn() {
+        return includeNotDiscoverableOrWithdrawn;
+    }
+
+    public void setIncludeNotDiscoverableOrWithdrawn(boolean includeNotDiscoverableAndWithdrawn) {
+        this.includeNotDiscoverableOrWithdrawn = includeNotDiscoverableAndWithdrawn;
     }
 }

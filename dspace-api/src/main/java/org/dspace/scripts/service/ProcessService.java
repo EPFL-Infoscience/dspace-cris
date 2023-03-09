@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -35,13 +37,14 @@ public interface ProcessService {
      * @param ePerson       The ePerson for which this process will be created on
      * @param scriptName    The script name to be used for the process
      * @param parameters    The parameters to be used for the process
-     * @param specialGroups List Of special groups to be stored together with the process
+     * @param specialGroups Allows to set special groups, associated with application context when process is created,
+     *                      other than the ones derived from the eperson membership.
      * @return The created process
      * @throws SQLException If something goes wrong
      */
     public Process create(Context context, EPerson ePerson, String scriptName,
                           List<DSpaceCommandLineParameter> parameters,
-                          final List<Group> specialGroups) throws SQLException;
+                          final Set<Group> specialGroups) throws SQLException;
 
     /**
      * This method will retrieve a Process object from the Database with the given ID
@@ -129,6 +132,27 @@ public interface ProcessService {
      */
     public void appendFile(Context context, Process process, InputStream is, String type, String fileName)
         throws IOException, SQLException, AuthorizeException;
+
+    /**
+     * The method will create a bitstream from the given inputstream with the given type as metadata and given name
+     * as name and attach it to the given process
+     *
+     * @param context       The relevant DSpace context
+     * @param process       The process for which the bitstream will be made
+     * @param is            The inputstream for the bitstream
+     * @param type          The type of the bitstream
+     * @param fileName      The name of the bitstream
+     * @param groupPolicy   The map of groupPolicies
+     * @param userPolicy    The map of userPolicies
+     * @throws IOException  If something goes wrong
+     * @throws SQLException If something goes wrong
+     * @throws AuthorizeException   If something goes wrong
+     */
+    public default void appendFile(Context context, Process process, InputStream is, String type, String fileName,
+            Map<Integer, Group> groupPolicy, Map<Integer, EPerson> userPolicy)
+            throws IOException, SQLException, AuthorizeException {
+        this.appendFile(context, process, is, type, fileName);
+    }
 
     /**
      * This method will delete the given Process object from the database

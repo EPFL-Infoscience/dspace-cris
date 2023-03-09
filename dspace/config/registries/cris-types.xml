@@ -53,76 +53,6 @@
 
     <dc-type>
         <schema>cris</schema>
-        <element>owner</element>
-        <qualifier></qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>access-token</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>refresh-token</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>scope</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>sync-mode</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>sync-publications</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>sync-fundings</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>sync-profile</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>webhook</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>orcid</element>
-        <qualifier>authenticated</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>email</qualifier>
         <scope_note></scope_note>
@@ -221,8 +151,36 @@
 
     <dc-type>
         <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>author-orcid</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>editor-orcid</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>department</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>author-orcid</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>editor-orcid</qualifier>
         <scope_note></scope_note>
     </dc-type>
 
@@ -313,6 +271,13 @@
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>loader-pubmed</qualifier>
+        <scope_note></scope_note>
+    </dc-type>        
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>entity</element>
+        <qualifier>style</qualifier>
         <scope_note></scope_note>
     </dc-type>
 

@@ -10,13 +10,13 @@ package org.dspace.app.rest;
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.OrcidQueueMatcher.matches;
-import static org.dspace.app.orcid.OrcidOperation.DELETE;
-import static org.dspace.app.profile.OrcidEntitySyncPreference.ALL;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
 import static org.dspace.builder.OrcidHistoryBuilder.createOrcidHistory;
 import static org.dspace.builder.OrcidQueueBuilder.createOrcidQueue;
 import static org.dspace.core.Constants.WRITE;
+import static org.dspace.orcid.OrcidOperation.DELETE;
+import static org.dspace.profile.OrcidEntitySyncPreference.ALL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyOrNullString;
@@ -48,10 +48,6 @@ import javax.ws.rs.core.MediaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.CharEncoding;
-import org.dspace.app.orcid.OrcidHistory;
-import org.dspace.app.orcid.OrcidQueue;
-import org.dspace.app.orcid.service.OrcidHistoryService;
-import org.dspace.app.orcid.service.OrcidQueueService;
 import org.dspace.app.rest.matcher.BitstreamMatcher;
 import org.dspace.app.rest.matcher.BundleMatcher;
 import org.dspace.app.rest.matcher.CollectionMatcher;
@@ -95,6 +91,10 @@ import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.orcid.OrcidHistory;
+import org.dspace.orcid.OrcidQueue;
+import org.dspace.orcid.service.OrcidHistoryService;
+import org.dspace.orcid.service.OrcidQueueService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.service.VersioningService;
@@ -2144,7 +2144,10 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
 
         context.restoreAuthSystemState();
 
@@ -2213,7 +2216,9 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                 matchMetadata("dc.rights",
                                     "Custom Copyright Text"),
                                 matchMetadata("dc.title",
-                                    "Title Text")
+                                    "Title Text"),
+                                matchMetadata("dspace.entity.type",
+                                    "Publication")
                             )))));
 
         getClient(token).perform(post("/api/core/items?owningCollection=" +
@@ -2228,6 +2233,40 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             ItemBuilder.deleteItem(idRef);
             ItemBuilder.deleteItem(idRefNoEmbeds.get());
         }
+    }
+
+    @Test
+    public void testCreateItemWithNotConsistentEntityType() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ItemRest itemRest = new ItemRest();
+        itemRest.setName("Title Text");
+        itemRest.setInArchive(true);
+        itemRest.setDiscoverable(true);
+        itemRest.setWithdrawn(false);
+
+        itemRest.setMetadata(new MetadataRest()
+            .put("dc.title", new MetadataValueRest("Title Text"))
+            .put("dspace.entity.type", new MetadataValueRest("Patent")));
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(post("/api/core/items?owningCollection=" + collection.getID().toString())
+            .content(mapper.writeValueAsBytes(itemRest)).contentType(contentType))
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -3068,7 +3107,8 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         String token = getAuthToken(admin.getEmail(), password);
 
-        getClient(token).perform(get("/api/core/items/" + item.getID()))
+        getClient(token).perform(get("/api/core/items/" + item.getID())
+                            .param("projection", "allLanguages"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$", ItemMatcher.matchItemProperties(item)))
                    .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Public item 1")))
@@ -3883,9 +3923,9 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withCrisOwner(eperson)
+            .withDspaceObjectOwner(eperson.getFullName(), eperson.getID().toString())
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .build();
 
         Item publication = ItemBuilder.createItem(context, publicationCollection)
@@ -3933,26 +3973,38 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             .withEntityType("Publication")
             .build();
 
+        EPerson firstOwner = EPersonBuilder.createEPerson(context)
+            .withEmail("owner1@test.com")
+            .build();
+
+        EPerson secondOwner = EPersonBuilder.createEPerson(context)
+            .withEmail("owner2@test.com")
+            .build();
+
+        EPerson thirdOwner = EPersonBuilder.createEPerson(context)
+            .withEmail("owner3@test.com")
+            .build();
+
         Item firstProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withCrisOwner(eperson)
+            .withDspaceObjectOwner(firstOwner.getFullName(), firstOwner.getID().toString())
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", firstOwner)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
 
         Item secondProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withCrisOwner(eperson)
+            .withDspaceObjectOwner(secondOwner.getFullName(), secondOwner.getID().toString())
             .withOrcidIdentifier("4444-1111-2222-3333")
-            .withOrcidAccessToken("bb4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("bb4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .build();
 
         Item thirdProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withCrisOwner(eperson)
+            .withDspaceObjectOwner(thirdOwner.getFullName(), thirdOwner.getID().toString())
             .withOrcidIdentifier("5555-1111-2222-3333")
-            .withOrcidAccessToken("cb4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("cb4d18a0-8d9a-40f1-b601-a417255c8d20", thirdOwner)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
 
@@ -4008,26 +4060,38 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             .withEntityType("Funding")
             .build();
 
+        EPerson firstOwner = EPersonBuilder.createEPerson(context)
+            .withEmail("owner2@test.com")
+            .build();
+
+        EPerson secondOwner = EPersonBuilder.createEPerson(context)
+            .withEmail("owner3@test.com")
+            .build();
+
+        EPerson thirdOwner = EPersonBuilder.createEPerson(context)
+            .withEmail("owner1@test.com")
+            .build();
+
         Item firstProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withCrisOwner(eperson)
+            .withDspaceObjectOwner(firstOwner.getFullName(), firstOwner.getID().toString())
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", firstOwner)
             .withOrcidSynchronizationFundingsPreference(ALL)
             .build();
 
         Item secondProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withCrisOwner(eperson)
+            .withDspaceObjectOwner(secondOwner.getFullName(), secondOwner.getID().toString())
             .withOrcidIdentifier("4444-1111-2222-3333")
-            .withOrcidAccessToken("bb4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("bb4d18a0-8d9a-40f1-b601-a417255c8d20", secondOwner)
             .build();
 
         Item thirdProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withCrisOwner(eperson)
+            .withDspaceObjectOwner(thirdOwner.getFullName(), thirdOwner.getID().toString())
             .withOrcidIdentifier("5555-1111-2222-3333")
-            .withOrcidAccessToken("cb4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("cb4d18a0-8d9a-40f1-b601-a417255c8d20", thirdOwner)
             .withOrcidSynchronizationFundingsPreference(ALL)
             .build();
 
@@ -4168,6 +4232,8 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                  .andExpect(jsonPath("$.inArchive", Matchers.is(false)))
                  .andExpect(jsonPath("$._links.self.href",
                      Matchers.containsString("/api/core/items/" + item.getID().toString())))
+                 .andExpect(jsonPath("$._links.accessStatus.href",
+                     Matchers.containsString("/api/core/items/" + item.getID().toString() + "/accessStatus")))
                  .andExpect(jsonPath("$._links.bundles.href",
                      Matchers.containsString("/api/core/items/" + item.getID().toString() + "/bundles")))
                  .andExpect(jsonPath("$._links.mappedCollections.href",
@@ -4200,6 +4266,8 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                  .andExpect(jsonPath("$.inArchive", Matchers.is(false)))
                  .andExpect(jsonPath("$._links.self.href",
                      Matchers.containsString("/api/core/items/" + item.getID().toString())))
+                 .andExpect(jsonPath("$._links.accessStatus.href",
+                     Matchers.containsString("/api/core/items/" + item.getID().toString() + "/accessStatus")))
                  .andExpect(jsonPath("$._links.bundles.href",
                      Matchers.containsString("/api/core/items/" + item.getID().toString() + "/bundles")))
                  .andExpect(jsonPath("$._links.mappedCollections.href",
@@ -4233,6 +4301,8 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                        Matchers.containsString("/api/core/items/" + item.getID().toString())))
                    .andExpect(jsonPath("$._links.self.href",
                        Matchers.containsString("/api/core/items/" + item.getID().toString())))
+                   .andExpect(jsonPath("$._links.accessStatus.href",
+                       Matchers.containsString("/api/core/items/" + item.getID().toString() + "/accessStatus")))
                    .andExpect(jsonPath("$._links.bundles.href",
                        Matchers.containsString("/api/core/items/" + item.getID().toString() + "/bundles")))
                    .andExpect(jsonPath("$._links.mappedCollections.href",
@@ -5012,4 +5082,133 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             .andExpect(status().isInternalServerError());
 
     }
+
+    @Test
+    public void testSearchItemByCustomUrlWithSimilarUrls() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1").build();
+
+        Item firstItem = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 1")
+            .withCustomUrl("ThomasAlexander_Zimmermann")
+            .withOldCustomUrl("Zimmermann")
+            .build();
+
+        Item secondItem = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 2")
+            .withCustomUrl("Alexander_Zimmermann")
+            .build();
+
+        Item thirdItem = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 3")
+            .withCustomUrl("Alexander")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+            .param("q", "Alexander_Zimmermann"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.uuid", is(secondItem.getID().toString())));
+
+    }
+
+    @Test
+    public void testSearchNotDiscoverableItemByCustomUrl() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 1")
+            .withCustomUrl("my-custom-url")
+            .makeUnDiscoverable()
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+            .param("q", "my-custom-url"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.uuid", is(item.getID().toString())));
+
+    }
+
+    @Test
+    public void testSearchWithdrawnItemByCustomUrl() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 1")
+            .withCustomUrl("my-custom-url")
+            .withdrawn()
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+            .param("q", "my-custom-url"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.uuid", is(item.getID().toString())));
+
+    }
+
+    @Test
+    public void findAccessStatusForItemBadRequestTest() throws Exception {
+        getClient().perform(get("/api/core/items/{uuid}/accessStatus", "1"))
+                   .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void findAccessStatusForItemNotFoundTest() throws Exception {
+        UUID fakeUUID = UUID.randomUUID();
+        getClient().perform(get("/api/core/items/{uuid}/accessStatus", fakeUUID))
+                   .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void findAccessStatusForItemTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection owningCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                                                       .withName("Owning Collection")
+                                                       .build();
+        Item item = ItemBuilder.createItem(context, owningCollection)
+                               .withTitle("Test item")
+                               .build();
+        context.restoreAuthSystemState();
+        getClient().perform(get("/api/core/items/{uuid}/accessStatus", item.getID()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.status", notNullValue()));
+    }
+
 }

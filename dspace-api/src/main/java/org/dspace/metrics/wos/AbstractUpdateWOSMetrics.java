@@ -37,9 +37,6 @@ public abstract class AbstractUpdateWOSMetrics extends MetricsExternalServices {
     @Autowired
     protected CrisMetricsService crisMetricsService;
 
-    @Override
-    public abstract boolean updateMetric(Context context, Item item, String param);
-
     protected boolean updateWosMetric(Context context, Item currentItem, CrisMetricDTO metricDTO) {
         try {
             if (Objects.isNull(metricDTO) || StringUtils.isBlank(metricDTO.getMetricType())) {

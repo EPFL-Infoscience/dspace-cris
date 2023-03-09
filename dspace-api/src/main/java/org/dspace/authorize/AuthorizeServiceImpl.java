@@ -7,6 +7,9 @@
  */
 package org.dspace.authorize;
 
+import static org.dspace.app.util.AuthorizeUtil.canCollectionAdminManageAccounts;
+import static org.dspace.app.util.AuthorizeUtil.canCommunityAdminManageAccounts;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.authorize.relationship.RelationshipAuthorizer;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
@@ -27,6 +31,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.Relationship;
+import org.dspace.content.RelationshipType;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -78,6 +84,8 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     protected WorkflowItemService workflowItemService;
     @Autowired(required = true)
     private SearchService searchService;
+    @Autowired(required = true)
+    private List<RelationshipAuthorizer> relationshipAuthorizers;
 
 
     protected AuthorizeServiceImpl() {
@@ -917,6 +925,16 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         return discoverResult.getTotalSearchResults();
     }
 
+    @Override
+    public boolean isAccountManager(Context context) {
+        try {
+            return (canCommunityAdminManageAccounts() && isCommunityAdmin(context)
+                || canCollectionAdminManageAccounts() && isCollectionAdmin(context));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private boolean performCheck(Context context, String query) throws SQLException {
         if (context.getCurrentUser() == null) {
             return false;
@@ -977,13 +995,16 @@ public class AuthorizeServiceImpl implements AuthorizeService {
             return query + " AND ";
         }
     }
+
     @Override
-    public boolean isPartOfTheGroup(Context c, String egroup) throws SQLException {
-        EPerson e = c.getCurrentUser();
-        if (e == null) {
-            return false; // anonymous users can't be part of group
-        } else {
-            return groupService.isMember(c, egroup);
-        }
+    public boolean canHandleRelationship(Context context, RelationshipType type, Item leftItem, Item rightItem) {
+        return relationshipAuthorizers.stream()
+            .anyMatch(authorizer -> authorizer.canHandleRelationship(context, type, leftItem, rightItem));
+    }
+
+    @Override
+    public boolean canHandleRelationship(Context context, Relationship relationship) {
+        return canHandleRelationship(context, relationship.getRelationshipType(),
+            relationship.getLeftItem(), relationship.getRightItem());
     }
 }

@@ -7,8 +7,6 @@
  */
 package org.dspace.eperson;
 
-import static org.dspace.content.Item.ANY;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -47,6 +45,7 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.event.Event;
+import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
@@ -103,6 +102,8 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
     protected ClaimedTaskService claimedTaskService;
     @Autowired(required = true)
     protected MetadataSchemaService metadataSchemaService;
+    @Autowired
+    protected OrcidTokenService orcidTokenService;
 
     protected EPersonServiceImpl() {
         super();
@@ -386,6 +387,8 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
             group.getMembers().remove(ePerson);
         }
 
+        orcidTokenService.deleteByEPerson(context, ePerson);
+
         // Remove any subscriptions
         subscribeService.deleteByEPerson(context, ePerson);
 
@@ -579,10 +582,31 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
 
     @Override
     public EPerson findByProfileItem(Context context, Item profile) throws SQLException {
-        List<MetadataValue> crisOwners = itemService.getMetadata(profile, "cris", "owner", null, ANY);
-        if (CollectionUtils.isEmpty(crisOwners)) {
+        List<MetadataValue> owners = getDSpaceObjectOwnerMetadataValues(profile);
+        if (CollectionUtils.isEmpty(owners)) {
             return null;
         }
-        return find(context, UUIDUtils.fromString(crisOwners.get(0).getAuthority()));
+        return find(context, UUIDUtils.fromString(owners.get(0).getAuthority()));
+    }
+
+    @Override
+    public boolean isOwnerOfItem(EPerson user, Item item) {
+
+        if (user == null) {
+            return false;
+        }
+
+        return getDSpaceObjectOwnerMetadataValues(item).stream()
+            .anyMatch(metadataValue -> user.getID().toString().equals(metadataValue.getAuthority()));
+
+    }
+
+    private List<MetadataValue> getDSpaceObjectOwnerMetadataValues(Item item) {
+        return itemService.getMetadata(item, "dspace", "object", "owner", Item.ANY);
+    }
+
+    @Override
+    public String getName(EPerson dso) {
+        return dso.getName();
     }
 }

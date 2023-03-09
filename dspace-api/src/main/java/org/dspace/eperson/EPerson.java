@@ -74,6 +74,9 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
     @Column(name = "session_salt", length = 32)
     private String sessionSalt;
 
+    @Column(name = "machine_salt", length = 32)
+    private String machineSessionSalt;
+
     @Column(name = "digest_algorithm", length = 16)
     private String digestAlgorithm;
 
@@ -439,11 +442,23 @@ public class EPerson extends DSpaceObject implements DSpaceObjectLegacySupport {
         this.sessionSalt = sessionSalt;
     }
 
+    public String getMachineSessionSalt() {
+        return machineSessionSalt;
+    }
+
+    public void setMachineSessionSalt(String machineSalt) {
+        this.machineSessionSalt = machineSalt;
+    }
+
     public Date getPreviousActive() {
         if (previousActive == null) {
             return new Date(0);
         }
         return previousActive;
+    }
+
+    public boolean hasPasswordSet() {
+        return StringUtils.isNotBlank(getPassword());
     }
 
 }

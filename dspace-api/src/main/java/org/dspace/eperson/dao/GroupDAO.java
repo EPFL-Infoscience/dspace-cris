@@ -45,7 +45,7 @@ public interface GroupDAO extends DSpaceObjectDAO<Group>, DSpaceObjectLegacySupp
      * Find all groups ordered by the specified metadata fields ascending
      *
      * @param context            The DSpace context
-     * @param sortMetadataFields The metadata fields to sort on
+     * @param metadataSortFields The metadata fields to sort on
      * @param pageSize           how many results return
      * @param offset             the position of the first result to return
      * @return A list of all groups, ordered by metadata fields
@@ -112,6 +112,16 @@ public interface GroupDAO extends DSpaceObjectDAO<Group>, DSpaceObjectLegacySupp
      * @throws SQLException if database error
      */
     Group findByName(Context context, String name) throws SQLException;
+
+    /**
+     * Find the group with a name that has the given prefix
+     *
+     * @param  context      The relevant DSpace Context.
+     * @param  namePrefix   the prefix of the group name to search for
+     * @return              the named Group, or null if not found
+     * @throws SQLException if error
+     */
+    public Group findByNamePrefix(Context context, String namePrefix) throws SQLException;
 
     /**
      * Find a group by its name (fuzzy match)

@@ -45,7 +45,7 @@ public class ItemConverter
         item.setDiscoverable(obj.isDiscoverable());
         item.setWithdrawn(obj.isWithdrawn());
         item.setLastModified(obj.getLastModified());
-        item.setEntityType(itemService.getEntityType(obj));
+        item.setEntityType(itemService.getEntityTypeLabel(obj));
         return item;
     }
 
@@ -62,8 +62,12 @@ public class ItemConverter
     @Override
     public MetadataValueList getPermissionFilteredMetadata(Context context, Item item, Projection projection) {
         boolean preventSecurityCheck = preventSecurityCheck(projection);
+        if (projection.isAllLanguages()) {
+            return new MetadataValueList(
+                metadataSecurityService.getPermissionFilteredMetadataValues(context, item, preventSecurityCheck));
+        }
         return new MetadataValueList(
-            metadataSecurityService.getPermissionFilteredMetadataValues(context, item, preventSecurityCheck));
+            metadataSecurityService.getPermissionAndLangFilteredMetadataFields(context, item, preventSecurityCheck));
     }
 
     public boolean checkMetadataFieldVisibility(Context context, Item item, MetadataField metadataField) {

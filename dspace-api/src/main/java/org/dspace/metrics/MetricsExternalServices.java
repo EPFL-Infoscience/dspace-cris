@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * 
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
+ * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
  */
 public abstract class MetricsExternalServices {
 

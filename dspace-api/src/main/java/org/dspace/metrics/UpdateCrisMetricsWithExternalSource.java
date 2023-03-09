@@ -40,6 +40,7 @@ import org.dspace.utils.DSpace;
  * Implementation of {@link DSpaceRunnable} to update CrisMetrics with external service as SCOPUS
  * 
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
+ * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
  */
 public class UpdateCrisMetricsWithExternalSource extends
        DSpaceRunnable<UpdateCrisMetricsWithExternalSourceScriptConfiguration<UpdateCrisMetricsWithExternalSource>> {

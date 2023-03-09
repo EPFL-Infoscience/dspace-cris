@@ -111,7 +111,7 @@ public class UpdateItemReference
             String [] providerAndId = getProviderAndId(authority);
 
             if (Objects.nonNull(providerAndId)) {
-                Item searchedItem = itemSearcherMapper.search(context, providerAndId[1], providerAndId[2]);
+                Item searchedItem = itemSearcherMapper.search(context, providerAndId[1], providerAndId[2], item);
                 if (Objects.nonNull(searchedItem)) {
                     String searchedItemEntityType = itemService.getMetadataFirstValue(searchedItem,
                             "dspace", "entity", "type", Item.ANY);

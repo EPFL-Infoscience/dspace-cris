@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 import javax.xml.transform.Result;
@@ -116,6 +118,8 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
         TransformerFactory factory = TransformerFactory.newInstance();
         Transformer transformer = factory.newTransformer(getTemplate());
         transformer.setParameter("imageDir", getImageDir());
+        transformer.setParameter("dspaceDir", getDSpaceDir());
+        transformer.setParameter("currentDate", getCurrentDate());
 
         // Resulting SAX events (the generated FO) must be piped through to FOP
         Result res = new SAXResult(fop.getDefaultHandler());
@@ -123,6 +127,14 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
         // Start XSLT transformation and FOP processing
         // That's where the XML is first transformed to XSL-FO and then PDF is created
         transformer.transform(xmlSource, res);
+    }
+
+    private String getCurrentDate() {
+        return DateTimeFormatter.ISO_DATE.format(LocalDate.now());
+    }
+
+    private String getDSpaceDir() {
+        return configurationService.getProperty("dspace.dir");
     }
 
     private StreamSource getTemplate() {

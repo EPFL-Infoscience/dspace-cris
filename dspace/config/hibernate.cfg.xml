@@ -108,10 +108,11 @@
         <mapping class="org.dspace.layout.CrisLayoutMetric2Box" />
         <mapping class="org.dspace.layout.CrisMetadataGroup" />
 
-        <mapping class="org.dspace.app.orcid.OrcidQueue" />
-        <mapping class="org.dspace.app.orcid.OrcidHistory" />
+        <mapping class="org.dspace.orcid.OrcidQueue" />
+        <mapping class="org.dspace.orcid.OrcidHistory" />
         
         <mapping class="org.dspace.statistics.export.OpenURLTracker"/>
+        <mapping class="org.dspace.orcid.OrcidToken"/>
 
         <mapping class="org.dspace.app.metrics.CrisMetrics"/>
 
