@@ -730,6 +730,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         String authorAuthority = author.getAuthority();
         assertThat("The author should have the authority set", authorAuthority, equalTo(person.getID().toString()));
         assertThat("The author should have an ACCEPTED confidence", author.getConfidence(), equalTo(CF_ACCEPTED));
+        assertThat("The author should have Walter White as value", author.getValue(), equalTo("Walter White"));
+
         person = context.reloadEntity(person);
         List<MetadataValue> metadata = itemService.getMetadataByMetadataString(person, "dc.title");
         assertThat("The person item still have a single dc.title", metadata.size(), equalTo(1));
@@ -884,6 +886,39 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         String editorAuthority = editor.getAuthority();
         assertThat("The editor should have the authority null", editorAuthority, nullValue());
         assertThat("The editor should have an UNSET confidence", editor.getConfidence(), equalTo(CF_UNSET));
+    }
+
+    @Test
+    public void testItemWithWillBeReferencedAuthorityAndValueOverwriting() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        configurationService.setProperty("cris.item-reference-resolution.override-metadata-value", true);
+
+        Collection personCollection = createCollection("Collection of persons", "Person", subCommunity);
+
+        Item person = ItemBuilder.createItem(context, personCollection)
+            .withTitle("Walter White Original")
+            .withOrcidIdentifier("0000-0002-9079-593X")
+            .build();
+
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+            .withEntityType("Publication")
+            .withAuthor("Walter White", AuthorityValueService.REFERENCE + "ORCID::0000-0002-9079-593X")
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        String authToken = getAuthToken(submitter.getEmail(), password);
+        ItemRest item = getItemViaRestByID(authToken, publication.getID());
+
+        MetadataValueRest author = findSingleMetadata(item, "dc.contributor.author");
+
+        assertThat(author.getAuthority(), equalTo(person.getID().toString()));
+        assertThat(author.getConfidence(), equalTo(CF_ACCEPTED));
+        assertThat(author.getValue(), equalTo("Walter White Original"));
+
     }
 
     private ItemRest getItemViaRestByID(String authToken, UUID id) throws Exception {

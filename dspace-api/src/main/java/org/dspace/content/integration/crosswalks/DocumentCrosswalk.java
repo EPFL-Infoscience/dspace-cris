@@ -105,21 +105,19 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
     }
 
     private void transformToDocument(OutputStream out, ByteArrayInputStream xmlInputStream) throws Exception {
+
         // the XML file which provides the input
         StreamSource xmlSource = new StreamSource(xmlInputStream);
+
         // create an instance of fop factory
-        FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
+        FopFactory fopFactory = FopFactory.newInstance(getFopConfigurationFile());
         // a user agent is needed for transformation
         FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
         // Construct fop with desired output format
         Fop fop = fopFactory.newFop(getMIMEType(), foUserAgent, out);
 
         // Setup XSLT
-        TransformerFactory factory = TransformerFactory.newInstance();
-        Transformer transformer = factory.newTransformer(getTemplate());
-        transformer.setParameter("imageDir", getImageDir());
-        transformer.setParameter("dspaceDir", getDSpaceDir());
-        transformer.setParameter("currentDate", getCurrentDate());
+        Transformer transformer = setupXSLTransformerFactory();
 
         // Resulting SAX events (the generated FO) must be piped through to FOP
         Result res = new SAXResult(fop.getDefaultHandler());
@@ -127,6 +125,15 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
         // Start XSLT transformation and FOP processing
         // That's where the XML is first transformed to XSL-FO and then PDF is created
         transformer.transform(xmlSource, res);
+    }
+
+    private Transformer setupXSLTransformerFactory() throws Exception {
+        Transformer transformer = TransformerFactory.newInstance().newTransformer(getTemplateFile());
+        transformer.setParameter("imageDir", getImageDir());
+        transformer.setParameter("dspaceDir", getDSpaceDir());
+        transformer.setParameter("currentDate", getCurrentDate());
+        transformer.setParameter("fontFamily", getFontFamily());
+        return transformer;
     }
 
     private String getCurrentDate() {
@@ -137,10 +144,20 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
         return configurationService.getProperty("dspace.dir");
     }
 
-    private StreamSource getTemplate() {
-        String parent = configurationService.getProperty("dspace.dir") + File.separator + "config" + File.separator;
-        File templateFile = new File(parent, templateFileName);
-        return new StreamSource(templateFile);
+    private StreamSource getTemplateFile() {
+        return new StreamSource(new File(getConfigDir(), templateFileName));
+    }
+
+    private File getFopConfigurationFile() {
+        return new File(configurationService.getProperty("crosswalk.fop.configuration-path"));
+    }
+
+    private String getFontFamily() {
+        return String.join(",", configurationService.getArrayProperty("crosswalk.fop.font-family"));
+    }
+
+    private String getConfigDir() {
+        return getDSpaceDir() + File.separator + "config";
     }
 
     private String getImageDir() {
@@ -149,8 +166,7 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
     }
 
     private boolean hasExpectedEntityType(Item item) {
-        String itemEntityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
-        return Objects.equals(itemEntityType, entityType);
+        return Objects.equals(itemService.getEntityType(item), entityType);
     }
 
     public void setFileName(String fileName) {

@@ -14,10 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 
 import org.dspace.content.Item;
 import org.dspace.content.edit.EditItemMode;
 import org.dspace.content.edit.service.EditItemModeService;
+import org.dspace.content.edit.service.EditItemModeValidator;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -35,10 +37,19 @@ public class EditItemModeServiceImpl implements EditItemModeService {
 
     @Autowired
     private ItemService itemService;
+
     @Autowired
     private CrisSecurityService crisSecurityService;
 
+    @Autowired
+    private EditItemModeValidator editItemModeValidator;
+
     private Map<String, List<EditItemMode>> editModesMap;
+
+    @PostConstruct
+    private void validateEditModes() {
+        editItemModeValidator.validate(editModesMap);
+    }
 
     @Override
     public List<EditItemMode> findModes(Context context, Item item) throws SQLException {
