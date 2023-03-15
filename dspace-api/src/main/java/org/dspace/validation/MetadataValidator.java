@@ -77,7 +77,7 @@ public class MetadataValidator implements SubmissionStepValidator {
 
         String documentTypeAuthority = documentType.filter(metadataValue -> isNotBlank(metadataValue.getAuthority()))
             .map(MetadataValue::getAuthority)
-            .orElse("");
+            .orElse(documentTypeValue);
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type
         List<String> allowedFieldNames = inputConfig.populateAllowedFieldNames(documentTypeValue);
