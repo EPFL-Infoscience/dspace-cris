@@ -193,6 +193,11 @@
       <processing-class>org.dspace.app.rest.submit.step.AccessConditionStep</processing-class>
       <type>accessCondition</type>
     </step-definition>
+    <step-definition id="sherpaPolicies" mandatory="true">
+        <heading>submit.progressbar.sherpapolicy</heading>
+        <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
+        <type>sherpaPolicy</type>
+    </step-definition>
   </step-definitions>
   <submission-definitions>
     <submission-process name="product">
@@ -259,6 +264,7 @@
       <step id="publication_indexing" />
       <step id="publication_bibliographic_details" />
       <step id="publication_references" />
+      <step id="sherpaPolicies" />
       <step id="detect-duplicate" />
       <step id="upload-publication" />
       <step id="license" />
