@@ -60,6 +60,10 @@ public class S3ObjectStore implements ObjectStore {
 
         bucketName = configurationService.getProperty("replicate.s3.bucket-name");
 
+        if (StringUtils.isBlank(bucketName)) {
+            throw new IllegalStateException("No S3 bucket configured");
+        }
+
         if (!s3Service.doesBucketExistV2(bucketName)) {
             s3Service.createBucket(bucketName);
         }
