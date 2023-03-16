@@ -72,7 +72,7 @@ public class S3ObjectStore implements ObjectStore {
 
     @Override
     public boolean objectExists(String group, String id) throws IOException {
-        return s3Service.doesObjectExist(group, getKey(id, group));
+        return s3Service.doesObjectExist(bucketName, getKey(id, group));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class S3ObjectStore implements ObjectStore {
             return null;
         }
 
-        ObjectMetadata objectMetadata = s3Service.getObjectMetadata(group, getKey(id, group));
+        ObjectMetadata objectMetadata = s3Service.getObjectMetadata(bucketName, getKey(id, group));
         if (objectMetadata == null) {
             return null;
         }
@@ -99,7 +99,7 @@ public class S3ObjectStore implements ObjectStore {
     @Override
     public long fetchObject(String group, String id, File file) throws IOException {
 
-        GetObjectRequest getObjectRequest = new GetObjectRequest(group, getKey(id, group));
+        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, getKey(id, group));
 
         Download download = transferManager.download(getObjectRequest, file);
         try {
@@ -122,7 +122,7 @@ public class S3ObjectStore implements ObjectStore {
     @Override
     public long removeObject(String group, String id) throws IOException {
         long size = getFileSize(group, id);
-        s3Service.deleteObject(group, getKey(id, group));
+        s3Service.deleteObject(bucketName, getKey(id, group));
         return size;
     }
 
