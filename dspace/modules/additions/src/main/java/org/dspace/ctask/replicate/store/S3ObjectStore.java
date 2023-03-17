@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.ctask.replicate.ObjectStore;
+import org.dspace.curate.Utils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -82,18 +83,21 @@ public class S3ObjectStore implements ObjectStore {
             return null;
         }
 
+        if ("checksum".equals(attrName)) {
+            return calculateChecksum(group, id);
+        }
+
+        if (!"sizebytes".equals(attrName)) {
+            return null;
+        }
+
         ObjectMetadata objectMetadata = s3Service.getObjectMetadata(bucketName, getKey(id, group));
         if (objectMetadata == null) {
             return null;
         }
 
-        if ("sizebytes".equals(attrName)) {
-            return String.valueOf(objectMetadata.getContentLength());
-        } else if ("checksum".equals(attrName)) {
-            return objectMetadata.getContentMD5();
-        }
+        return String.valueOf(objectMetadata.getContentLength());
 
-        return null;
     }
 
     @Override
@@ -134,6 +138,20 @@ public class S3ObjectStore implements ObjectStore {
         s3Service.copyObject(bucketName, getKey(id, srcgroup), bucketName, getKey(id, destGroup));
 
         return fileSize;
+    }
+
+    private String calculateChecksum(String group, String id) throws IOException {
+
+        File tempFile = File.createTempFile("s3-checksum-calculation-", "temp");
+        tempFile.deleteOnExit();
+
+        try {
+            fetchObject(group, id, tempFile);
+            return Utils.checksum(tempFile, "MD5");
+        } finally {
+            tempFile.delete();
+        }
+
     }
 
     private long getFileSize(String group, String id) throws IOException {
