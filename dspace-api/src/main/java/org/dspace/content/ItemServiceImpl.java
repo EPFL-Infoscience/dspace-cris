@@ -7,8 +7,10 @@
  */
 package org.dspace.content;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +55,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.curate.Curator;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.SubscribeService;
@@ -910,6 +913,10 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
         log.info(LogHelper.getHeader(context, "delete_item", "item_id="
             + item.getID()));
+
+        if (isReplicationOnDeletionEnabled()) {
+            replicateItem(context, item);
+        }
 
         //remove subscription related with it
         subscribeService.deleteByDspaceObject(context, item);
@@ -1901,6 +1908,39 @@ prevent the generation of resource policy entry values with null dspace_object a
         for (OrcidQueue orcidQueueRecord : orcidQueueRecords) {
             orcidQueueService.delete(context, orcidQueueRecord);
         }
+    }
+
+    private boolean isReplicationOnDeletionEnabled() {
+        return configurationService.getBooleanProperty("epfl.item-deletion.replication-enabled");
+    }
+
+    private void replicateItem(Context context, Item item) throws IOException {
+
+        String taskName = "transmitaip";
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        Curator curator = new Curator();
+        curator.setReporter(new OutputStreamWriter(baos));
+        curator.addTask(taskName);
+
+        context.turnOffAuthorisationSystem();
+        try {
+            curator.curate(item);
+        } finally {
+            context.restoreAuthSystemState();
+        }
+
+        String message = new String(baos.toByteArray());
+
+        int status = curator.getStatus(taskName);
+        if (Curator.CURATE_SUCCESS != status) {
+            throw new IllegalStateException("An error occurs trying to trasmit AIP related to item "
+                + item.getID() + ". Status " + status + " - Details: " + message);
+        } else {
+            log.info("AIP transmitted with success for item with ID " + item.getID()
+                + " and handle " + item.getHandle());
+        }
+
     }
 
 }
