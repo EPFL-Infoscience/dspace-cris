@@ -78,7 +78,7 @@ public class S3ObjectStore implements ObjectStore {
     @Override
     public String objectAttribute(String group, String id, String attrName) throws IOException {
 
-        if (StringUtils.isBlank(attrName)) {
+        if (StringUtils.isBlank(attrName) || !objectExists(group, id)) {
             return null;
         }
 
@@ -105,7 +105,7 @@ public class S3ObjectStore implements ObjectStore {
         try {
             download.waitForCompletion();
         } catch (AmazonClientException | InterruptedException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
 
         return file.length();
