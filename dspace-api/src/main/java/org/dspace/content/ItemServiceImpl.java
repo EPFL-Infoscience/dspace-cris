@@ -914,7 +914,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         log.info(LogHelper.getHeader(context, "delete_item", "item_id="
             + item.getID()));
 
-        if (isReplicationOnDeletionEnabled()) {
+        if (item.isArchived() && isReplicationOnDeletionEnabled()) {
             replicateItem(context, item);
         }
 
