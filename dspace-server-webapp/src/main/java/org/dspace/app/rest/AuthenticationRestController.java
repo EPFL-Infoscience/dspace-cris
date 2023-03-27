@@ -39,6 +39,7 @@ import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.service.ClientInfoService;
+import org.dspace.services.ConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -86,6 +87,9 @@ public class AuthenticationRestController implements InitializingBean {
 
     @Autowired
     private ClientInfoService clientInfoService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Autowired
     private Utils utils;
@@ -222,7 +226,7 @@ public class AuthenticationRestController implements InitializingBean {
     @RequestMapping(value = "/machinetokens", method = RequestMethod.POST)
     public AuthenticationTokenResource machineToken(HttpServletRequest request) throws AuthorizeException {
 
-        if (isLoginAsFeatureUsed(request)) {
+        if (isLoginAsFeatureUsed(request) && isLoggedAsUserNotAllowedToModifyMachineTokens()) {
             throw new AuthorizeException("You're unable to use the 'login as' feature to generate a new machine token");
         }
 
@@ -243,7 +247,7 @@ public class AuthenticationRestController implements InitializingBean {
     @RequestMapping(value = "/machinetokens", method = RequestMethod.DELETE)
     public ResponseEntity<?> invalidateMachineToken(HttpServletRequest request) throws Exception {
 
-        if (isLoginAsFeatureUsed(request)) {
+        if (isLoginAsFeatureUsed(request) && isLoggedAsUserNotAllowedToModifyMachineTokens()) {
             throw new AuthorizeException("You're unable to use the login as feature to invalidate a machine token");
         }
 
@@ -350,6 +354,10 @@ public class AuthenticationRestController implements InitializingBean {
 
     private boolean isLoginAsFeatureUsed(HttpServletRequest request) {
         return StringUtils.isNotBlank(request.getHeader(ON_BEHALF_OF_REQUEST_PARAM));
+    }
+
+    private boolean isLoggedAsUserNotAllowedToModifyMachineTokens() {
+        return !configurationService.getBooleanProperty("epfl.machine-token.login-as-allowed", true);
     }
 
 }
