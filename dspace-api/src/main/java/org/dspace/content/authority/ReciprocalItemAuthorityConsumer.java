@@ -36,7 +36,7 @@ import org.dspace.utils.DSpace;
  * @version $Revision $
  */
 public class ReciprocalItemAuthorityConsumer implements Consumer {
-    
+
     private static final Logger log = LogManager.getLogger(ReciprocalItemAuthorityConsumer.class);
 
     private final Map<String, String> reciprocalMetadata = new ConcurrentHashMap<>();
@@ -44,7 +44,7 @@ public class ReciprocalItemAuthorityConsumer implements Consumer {
     private final transient Set<UUID> processedHandles = new HashSet<>();
 
     private final ItemService itemService;
-    
+
     public ReciprocalItemAuthorityConsumer() {
         ConfigurationService confService = new DSpace().getConfigurationService();
         itemService = ContentServiceFactory.getInstance().getItemService();
@@ -74,7 +74,7 @@ public class ReciprocalItemAuthorityConsumer implements Consumer {
             } else {
                 processedHandles.add(item.getID());
             }
-            
+
             if (!reciprocalMetadata.isEmpty()) {
                 for (String k : reciprocalMetadata.keySet()) {
                     String entityType = k.split("\\.", 2)[0];
@@ -93,7 +93,7 @@ public class ReciprocalItemAuthorityConsumer implements Consumer {
         if (!StringUtils.equalsIgnoreCase(itemService.getEntityType(item), entityType)) {
             return;
         }
-        
+
         List<MetadataValue> meta = itemService.getMetadataByMetadataString(item, metadata);
         if (meta != null) {
             for (MetadataValue md : meta) {
