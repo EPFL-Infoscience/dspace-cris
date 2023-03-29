@@ -7,8 +7,6 @@
  */
 package org.dspace.app.matcher;
 
-import java.util.List;
-
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataValue;
 import org.hamcrest.Description;
@@ -23,13 +21,13 @@ import org.hamcrest.TypeSafeMatcher;
  */
 public class DSpaceObjectMatcher extends TypeSafeMatcher<DSpaceObject> {
 
-    private final Matcher<? super List<MetadataValue>> metadataValuesMatcher;
+    private final Matcher<Iterable<? extends MetadataValue>> metadataValuesMatcher;
 
-    private DSpaceObjectMatcher(Matcher<? super List<MetadataValue>> metadataValuesMatcher) {
+    private DSpaceObjectMatcher(Matcher<Iterable<? extends MetadataValue>> metadataValuesMatcher) {
         this.metadataValuesMatcher = metadataValuesMatcher;
     }
 
-    public static DSpaceObjectMatcher withMetadata(Matcher<? super List<MetadataValue>> metadataValuesMatcher) {
+    public static DSpaceObjectMatcher withMetadata(Matcher<Iterable<? extends MetadataValue>> metadataValuesMatcher) {
         return new DSpaceObjectMatcher(metadataValuesMatcher);
     }
 

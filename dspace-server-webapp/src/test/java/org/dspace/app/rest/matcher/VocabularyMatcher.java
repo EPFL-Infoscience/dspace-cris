@@ -42,16 +42,6 @@ public class VocabularyMatcher {
         );
     }
 
-    public static Matcher<? super Object> matchVocabularyEntryWithId(String id, String display,
-        String value, String type) {
-        return allOf(
-                hasJsonPath("$.id", is(id)),
-                hasJsonPath("$.display", is(display)),
-                hasJsonPath("$.value", is(value)),
-                hasJsonPath("$.type", is(type))
-        );
-    }
-
     public static Matcher<? super Object> matchVocabularyEntry(String display, String value, String type,
         String authority) {
         return allOf(
@@ -59,6 +49,16 @@ public class VocabularyMatcher {
                 hasJsonPath("$.value", is(value)),
                 hasJsonPath("$.type", is(type)),
                 hasJsonPath("$.authority", is(authority))
+        );
+    }
+
+    public static Matcher<? super Object> matchVocabularyEntryWithAuthority(String id, String display, String value,
+                                                                            String type) {
+        return allOf(
+                hasJsonPath("$.id", is(id)),
+                hasJsonPath("$.display", is(display)),
+                hasJsonPath("$.value", is(value)),
+                hasJsonPath("$.type", is(type))
         );
     }
 

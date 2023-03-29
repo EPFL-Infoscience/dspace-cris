@@ -52,7 +52,7 @@ public class AuthorityUtils {
      * Please use the choice authority service directly. This method assumes that
      * you are looking only for general item configuration (no one collection and
      * dso type specific as value-pairs or controlled-vocabulary)
-     * 
+     *
      * @param schema
      * @param element
      * @param qualifier
