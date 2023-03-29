@@ -748,7 +748,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getErrorMessages(), containsInAnyOrder(
             "The sheet box2metadata contains an invalid RENDERING type at row 1: "
                 + "Rendering named thumbnail is not supported by field type 'METADATA'",
-            "The sheet box2metadata contains an unknown RENDERING type invalid at row 3", 
+            "The sheet box2metadata contains an unknown RENDERING type invalid at row 3",
             "The sheet box2metadata contains an invalid RENDERING type at row 7: "
                 + "Rendering named longtext is not supported by field type 'BITSTREAM'",
             "The sheet box2metadata contains an invalid RENDERING type at row 8: "
