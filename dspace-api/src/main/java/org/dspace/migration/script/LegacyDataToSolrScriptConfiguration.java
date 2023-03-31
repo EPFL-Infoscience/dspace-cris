@@ -1,4 +1,4 @@
-/*
+/**
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE and NOTICE files at the root of the source
  * tree and available online at
@@ -8,7 +8,6 @@
 
 package org.dspace.migration.script;
 
-import java.io.InputStream;
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Options;
