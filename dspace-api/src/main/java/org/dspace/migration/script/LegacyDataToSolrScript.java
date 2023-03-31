@@ -79,22 +79,22 @@ public class LegacyDataToSolrScript
             throw new RuntimeException("Bucket name must be specified");
         }
 
-        handler.logInfo("Starting iteration over s3 bucket" + bucketName);
+        handler.logInfo("Starting iteration over s3 bucket " + bucketName);
         Integer limit = Optional.ofNullable(commandLine.getOptionValue("l")).map(Integer::parseInt)
                                 .orElse(Integer.MAX_VALUE);
         String startFrom = commandLine.getOptionValue("f");
 
         Iterator<S3ObjectSummary> iterator = S3Objects.inBucket(s3Service, bucketName).iterator();
         Integer imported = 0;
-        while (iterator.hasNext() && imported < limit) {
+        while (iterator.hasNext() && imported++ < limit) {
             S3ObjectSummary summary = iterator.next();
             if (StringUtils.isNotBlank(startFrom) && !startFrom.equals(summary.getKey())) {
                 continue;
             }
             GetObjectRequest rq = new GetObjectRequest(bucketName, summary.getKey());
             File file = File.createTempFile("s3-import-download", "tmp");
-            file.deleteOnExit();
             try {
+                handler.logInfo("Downloading file from solr " + summary.getKey());
                 transferManager.download(rq, file);
                 handler.logInfo("Storing to solr content of file " + summary.getKey());
                 toSolr(file);
@@ -102,6 +102,7 @@ public class LegacyDataToSolrScript
                 imported++;
             } catch (Exception e) {
                 handler.logWarning("Error while importing content of file " + summary.getKey() + ": " + e.getMessage());
+
             } finally {
                 file.delete();
             }
@@ -117,7 +118,6 @@ public class LegacyDataToSolrScript
 
     private File metadataFile(File f) throws IOException {
         File file = File.createTempFile("s3-import-download-metadata", "tmp");
-        file.deleteOnExit();
         try (ZipFile zipFile = new ZipFile(f)) {
             System.out.println("parsing file:::" + f);
             String number = f.getName().substring(0, f.getName().indexOf(".zip"));
