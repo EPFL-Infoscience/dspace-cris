@@ -124,20 +124,19 @@ public class LegacyDataToSolrScript
         storeToSolr(document);
     }
 
-    private File metadataFile(File f, String legacyId) throws IOException {
-        File file = File.createTempFile("s3-import-download-metadata", "tmp");
+    private File metadataFile(File zip, String legacyId) throws IOException {
+        File file = File.createTempFile("s3-import-download-metadata", ".xml");
         file.deleteOnExit();
-        try (ZipFile zipFile = new ZipFile(f)) {
-            System.out.println("parsing file:::" + f.getName());
+        try (ZipFile zipFile = new ZipFile(zip)) {
+            handler.logInfo("parsing file:::" + zip.getName());
             String number = legacyId.substring(0, legacyId.indexOf(".zip"));
             ZipEntry entry = zipFile.getEntry(number + "/metadata.xml");
 
             FileUtils.copyInputStreamToFile(zipFile.getInputStream(entry), file);
             return file;
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
             file.delete();
+            throw new RuntimeException(e);
         }
     }
 
@@ -227,7 +226,6 @@ public class LegacyDataToSolrScript
                         document.addField("legacy_id", value);
                     }
                     document.addField("field-" + fieldName, value);
-//                    System.out.println(String.format("%s:%s", field, value));
                 } else if ("datafield".equals(node.getNodeName())) {
                     NodeList subfield = ((Element) node).getElementsByTagName("subfield");
 
