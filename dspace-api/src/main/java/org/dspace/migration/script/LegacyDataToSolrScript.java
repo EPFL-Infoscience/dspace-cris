@@ -101,7 +101,6 @@ public class LegacyDataToSolrScript
             File file = File.createTempFile("s3-import-download", ".zip");
             file.deleteOnExit();
             try {
-                handler.logInfo("Downloading file from solr " + summary.getKey());
                 Download download = transferManager.download(rq, file);
                 download.waitForCompletion();
                 handler.logInfo("Storing to solr content of file " + summary.getKey());
