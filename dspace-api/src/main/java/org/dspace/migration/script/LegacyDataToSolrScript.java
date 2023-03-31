@@ -76,7 +76,7 @@ public class LegacyDataToSolrScript
     public void internalRun() throws Exception {
 
         if (StringUtils.isBlank(bucketName)) {
-            throw new RuntimeException("Bucket name must be specified")
+            throw new RuntimeException("Bucket name must be specified");
         }
 
         handler.logInfo("Starting iteration over s3 bucket" + bucketName);
