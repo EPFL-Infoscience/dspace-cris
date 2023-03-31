@@ -846,6 +846,8 @@
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterAuthor" />
+                <ref bean="searchFilterUnit" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page -->
@@ -855,6 +857,8 @@
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterAuthor" />
+                <ref bean="searchFilterUnit" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2697,6 +2701,21 @@
         <property name="exposeMinAndMaxValue" value="true"/>
     </bean>
 
+    <bean id="searchFilterUnit" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="unit"/>
+        <property name="metadataFields">
+            <list>
+                <value>oairecerif.author.affiliation</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
+
     <bean id="searchFilterOrgUnitAsString" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
         <property name="indexFieldName" value="organization_s"/>
         <property name="metadataFields">
@@ -3622,12 +3641,12 @@
 	</bean>
 
     <bean id="sortUnitAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="dc.description.sponsorship" />
+        <property name="metadataField" value="oairecerif.author.affiliation" />
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <bean id="sortUnitDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="dc.description.sponsorship" />
+        <property name="metadataField" value="oairecerif.author.affiliation" />
         <property name="defaultSortOrder" value="desc"/>
     </bean>
     
