@@ -28,6 +28,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.iterable.S3Objects;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import org.apache.commons.cli.ParseException;
@@ -94,9 +95,11 @@ public class LegacyDataToSolrScript
             }
             GetObjectRequest rq = new GetObjectRequest(bucketName, summary.getKey());
             File file = File.createTempFile("s3-import-download", ".zip");
+            file.deleteOnExit();
             try {
                 handler.logInfo("Downloading file from solr " + summary.getKey());
-                transferManager.download(rq, file);
+                Download download = transferManager.download(rq, file);
+                download.waitForCompletion();
                 handler.logInfo("Storing to solr content of file " + summary.getKey());
                 toSolr(file);
                 handler.logInfo("Content of file " + summary.getKey() + " stored to solr");
@@ -118,7 +121,8 @@ public class LegacyDataToSolrScript
     }
 
     private File metadataFile(File f) throws IOException {
-        File file = File.createTempFile("s3-import-download-metadata", ".xml");
+        File file = File.createTempFile("s3-import-download-metadata", "tmp");
+        file.deleteOnExit();
         try (ZipFile zipFile = new ZipFile(f)) {
             System.out.println("parsing file:::" + f);
             String number = f.getName().substring(0, f.getName().indexOf(".zip"));
