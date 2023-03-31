@@ -10,6 +10,7 @@ package org.dspace.migration.script;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -86,13 +87,13 @@ public class LegacyDataToSolrScript
 
         Iterator<S3ObjectSummary> iterator = S3Objects.inBucket(s3Service, bucketName).iterator();
         Integer imported = 0;
-        while (iterator.hasNext() && imported++ < limit) {
+        while (iterator.hasNext() && imported < limit) {
             S3ObjectSummary summary = iterator.next();
             if (StringUtils.isNotBlank(startFrom) && !startFrom.equals(summary.getKey())) {
                 continue;
             }
             GetObjectRequest rq = new GetObjectRequest(bucketName, summary.getKey());
-            File file = File.createTempFile("s3-import-download", "tmp");
+            File file = File.createTempFile("s3-import-download", ".zip");
             try {
                 handler.logInfo("Downloading file from solr " + summary.getKey());
                 transferManager.download(rq, file);
@@ -117,7 +118,7 @@ public class LegacyDataToSolrScript
     }
 
     private File metadataFile(File f) throws IOException {
-        File file = File.createTempFile("s3-import-download-metadata", "tmp");
+        File file = File.createTempFile("s3-import-download-metadata", ".xml");
         try (ZipFile zipFile = new ZipFile(f)) {
             System.out.println("parsing file:::" + f);
             String number = f.getName().substring(0, f.getName().indexOf(".zip"));
@@ -157,6 +158,7 @@ public class LegacyDataToSolrScript
 
             addSubfields(solrInputDocument, subtypes);
 
+            solrInputDocument.addField("lastModified_dt", new Date());
             SolrClient solr = getSolr();
             solr.add(solrInputDocument);
             solr.commit();;

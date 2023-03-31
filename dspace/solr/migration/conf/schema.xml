@@ -525,6 +525,7 @@
        <!--field name="856_0_ _f" type="text" indexed="true" stored="true" omitNorms="true"/-->
 	       <!--field name="711_2_-_d" type="text" indexed="true" stored="true" omitNorms="true"/-->
 
+    <field name="lastModified_dt" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true" docValues="true"/>
     <dynamicField name="*_i"  type="int"    indexed="true"  stored="true" multiValued="true" docValues="true"/>
     <dynamicField name="*" type="string" multiValued="true"/>
 
