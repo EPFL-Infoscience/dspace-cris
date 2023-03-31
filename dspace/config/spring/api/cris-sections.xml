@@ -264,7 +264,7 @@
                                 </bean>
                                 <bean class="org.dspace.layout.CrisLayoutCountersComponent.CounterSettings">
                                     <property name="discoveryConfigurationName" value="researchoutputsoa"/>
-                                    <property name="label" value="publications"/>
+                                    <property name="label" value="publicationsoa"/>
                                     <property name="icon" value="far fa-file-alt fa-3x"/>
                                     <property name="link" value="/explore/researchoutputsoa"/>
                                 </bean>
