@@ -92,9 +92,11 @@ public class LegacyDataToSolrScript
 
         Iterator<S3ObjectSummary> iterator = S3Objects.inBucket(s3Service, bucketName).iterator();
         Integer imported = 0;
+        boolean startFound = false;
         while (iterator.hasNext() && imported < limit) {
             S3ObjectSummary summary = iterator.next();
-            if (StringUtils.isNotBlank(startFrom) && !startFrom.equals(summary.getKey())) {
+            if (StringUtils.isNotBlank(startFrom) && !startFrom.equals(summary.getKey()) && !startFound) {
+                startFound = true;
                 continue;
             }
             GetObjectRequest rq = new GetObjectRequest(bucketName, summary.getKey());
