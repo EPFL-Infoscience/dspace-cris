@@ -50,9 +50,13 @@ public class LegacyDataToSolrScriptConfiguration<T extends LegacyDataToSolrScrip
             options.getOption("l").setType(String.class);
             options.getOption("l").setRequired(false);
 
-            options.addOption("f", "from", true, "start from file named");
+            options.addOption("f", "from", true, "start from bucket file having name");
             options.getOption("f").setType(String.class);
             options.getOption("f").setRequired(false);
+
+            options.addOption("b", "bucket", true, "bucket name");
+            options.getOption("b").setType(String.class);
+            options.getOption("b").setRequired(true);
 
             super.options = options;
         }

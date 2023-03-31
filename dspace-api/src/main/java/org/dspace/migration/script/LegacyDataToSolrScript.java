@@ -52,7 +52,7 @@ public class LegacyDataToSolrScript
 
     private TransferManager transferManager = null;
 
-    private String bucketName = "";
+    private String bucketName;
     private HttpSolrClient solrClient;
 
     @Override
@@ -68,10 +68,17 @@ public class LegacyDataToSolrScript
                                                 .withAlwaysCalculateMultipartMd5(true)
                                                 .withS3Client(s3Service)
                                                 .build();
+
+        bucketName = commandLine.getOptionValue("b");
     }
 
     @Override
     public void internalRun() throws Exception {
+
+        if (StringUtils.isBlank(bucketName)) {
+            throw new RuntimeException("Bucket name must be specified")
+        }
+
         handler.logInfo("Starting iteration over s3 bucket" + bucketName);
         Integer limit = Optional.ofNullable(commandLine.getOptionValue("l")).map(Integer::parseInt)
                                 .orElse(Integer.MAX_VALUE);
@@ -240,7 +247,7 @@ public class LegacyDataToSolrScript
         if (solrClient == null) {
             String solrService = DSpaceServicesFactory.getInstance().getConfigurationService()
                                                       .getProperty("epfl.legacy-data.solr-url",
-                                                                   "http://localhost:8983/solr/suggestion");
+                                                                   "http://localhost:8983/solr/epflmigration");
             solrClient = new HttpSolrClient.Builder(solrService).build();
         }
         return solrClient;
