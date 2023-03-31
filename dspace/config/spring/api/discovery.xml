@@ -85,6 +85,7 @@
                 <entry key="backend" value-ref="backendConfiguration" />
                 <entry key="publication" value-ref="publication"/>
                 <entry key="researchoutputs" value-ref="researchoutputs"/>
+                <entry key="researchoutputsoa" value-ref="researchoutputsoa"/>
                 <entry key="person" value-ref="person"/>
                 <entry key="orgunit" value-ref="orgUnit"/>
                 <entry key="infrastructure" value-ref="infrastructure"/>
@@ -1581,6 +1582,18 @@
         <property name="spellCheckEnabled" value="true"/>
     </bean>
     
+    <bean id="researchoutputsoa" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype" parent="researchoutputs">
+        <property name="id" value="researchoutputsoa"/>
+        <property name="indexAlways" value="true"/>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <value>original_bundle_datacite_rights_keyword:openaccess</value>
+            </list>
+        </property>
+    </bean>
+
     <bean id="person" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype">
         <property name="id" value="person"/>
         <property name="indexAlways" value="true"/>
@@ -2448,8 +2461,7 @@
             queries done by discovery for this configuration-->
         <property name="defaultFilterQueries">
             <list>
-                <!--Only find items -->
-                <value>search.resourcetype:Item</value>
+                <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent)</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
