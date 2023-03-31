@@ -41,6 +41,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -49,6 +51,8 @@ import org.xml.sax.SAXException;
 
 public class LegacyDataToSolrScript
     extends DSpaceRunnable<LegacyDataToSolrScriptConfiguration<LegacyDataToSolrScript>> {
+
+    private static final Logger log = LoggerFactory.getLogger(LegacyDataToSolrScript.class);
 
     private AmazonS3 s3Service = null;
 
@@ -101,12 +105,12 @@ public class LegacyDataToSolrScript
                 Download download = transferManager.download(rq, file);
                 download.waitForCompletion();
                 handler.logInfo("Storing to solr content of file " + summary.getKey());
-                toSolr(file);
+                toSolr(file, summary.getKey());
                 handler.logInfo("Content of file " + summary.getKey() + " stored to solr");
                 imported++;
             } catch (Exception e) {
                 handler.logWarning("Error while importing content of file " + summary.getKey() + ": " + e.getMessage());
-
+                log.warn(e.getMessage(), e);
             } finally {
                 file.delete();
             }
@@ -114,18 +118,18 @@ public class LegacyDataToSolrScript
         handler.logInfo("Process finished: " + imported + " objects have been imported");
     }
 
-    private void toSolr(File file) throws IOException {
-        File metadataFile = metadataFile(file);
+    private void toSolr(File file, String legacyId) throws IOException {
+        File metadataFile = metadataFile(file, legacyId);
         Document document = readXMLDocumentFromFile(metadataFile);
         storeToSolr(document);
     }
 
-    private File metadataFile(File f) throws IOException {
+    private File metadataFile(File f, String legacyId) throws IOException {
         File file = File.createTempFile("s3-import-download-metadata", "tmp");
         file.deleteOnExit();
         try (ZipFile zipFile = new ZipFile(f)) {
-            System.out.println("parsing file:::" + f);
-            String number = f.getName().substring(0, f.getName().indexOf(".zip"));
+            System.out.println("parsing file:::" + f.getName());
+            String number = legacyId.substring(0, legacyId.indexOf(".zip"));
             ZipEntry entry = zipFile.getEntry(number + "/metadata.xml");
 
             FileUtils.copyInputStreamToFile(zipFile.getInputStream(entry), file);
