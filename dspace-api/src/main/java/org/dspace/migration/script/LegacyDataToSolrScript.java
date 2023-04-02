@@ -97,8 +97,9 @@ public class LegacyDataToSolrScript
             S3ObjectSummary summary = iterator.next();
             if (StringUtils.isNotBlank(startFrom) && !startFrom.equals(summary.getKey()) && !startFound) {
                 continue;
+            } else if (StringUtils.isNotBlank(startFrom) && summary.getKey().equals(startFrom)) {
+                startFound = true;
             }
-            startFound = StringUtils.isNotBlank(startFrom) && summary.getKey().equals(startFrom);
 
             GetObjectRequest rq = new GetObjectRequest(bucketName, summary.getKey());
             File file = File.createTempFile("s3-import-download", ".zip");
