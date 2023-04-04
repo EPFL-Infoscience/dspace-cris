@@ -19,6 +19,7 @@ import org.dspace.app.rest.utils.AuthorityUtils;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.DSpaceControlledVocabulary;
+import org.dspace.content.authority.ItemControlledVocabularyService;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class VocabularyEntryDetailsParentLinkRepository extends AbstractDSpaceRe
         if (StringUtils.isNotBlank(id) && authority != null && authority.isHierarchical()) {
             //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
             // build a vocabulary entry details ID
-            if (authority instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(id, vocabularyName)) {
+            if (dspaceOrItemControlledVocabulary(authority) && !StringUtils.startsWith(id, vocabularyName)) {
                 fix = true;
                 id = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + id;
             }
@@ -68,5 +69,9 @@ public class VocabularyEntryDetailsParentLinkRepository extends AbstractDSpaceRe
         }
         return authorityUtils.convertEntryDetails(fix, choice, vocabularyName, authority.isHierarchical(),
                 utils.obtainProjection());
+    }
+
+    private boolean dspaceOrItemControlledVocabulary(ChoiceAuthority authority) {
+        return authority instanceof DSpaceControlledVocabulary || authority instanceof ItemControlledVocabularyService;
     }
 }

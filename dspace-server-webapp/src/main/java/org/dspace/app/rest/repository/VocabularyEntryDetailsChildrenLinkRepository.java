@@ -22,6 +22,7 @@ import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.DSpaceControlledVocabulary;
+import org.dspace.content.authority.ItemControlledVocabularyService;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ public class VocabularyEntryDetailsChildrenLinkRepository extends AbstractDSpace
             //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
             // build a vocabulary entry details ID
             boolean fix = false;
-            if (authority instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(id, vocabularyName)) {
+            if (dspaceOrItemControlledVocabulary(authority) && !StringUtils.startsWith(id, vocabularyName)) {
                 id = vocabularyName + DSpaceControlledVocabulary.ID_SPLITTER + id;
                 fix = true;
             }
@@ -79,6 +80,10 @@ public class VocabularyEntryDetailsChildrenLinkRepository extends AbstractDSpace
         } else {
             throw new LinkNotFoundException(VocabularyRest.CATEGORY, VocabularyEntryDetailsRest.NAME, childId);
         }
+    }
+
+    private boolean dspaceOrItemControlledVocabulary(ChoiceAuthority authority) {
+        return authority instanceof DSpaceControlledVocabulary || authority instanceof ItemControlledVocabularyService;
     }
 }
 

@@ -30,21 +30,24 @@ public final class EntityRow {
 
     private final ImportAction action;
 
+    private final Boolean discoverable;
+
+    private final String submitter;
+
     private final MultiValuedMap<String, MetadataValueVO> metadata;
 
     private final List<MetadataGroup> metadataGroups;
 
     private final List<UploadDetails> uploadDetails;
 
-    private final String submitter;
-
-    public EntityRow(String id, String action, int row, MultiValuedMap<String, MetadataValueVO> metadata,
-                     List<MetadataGroup> metadataGroups, List<UploadDetails> uploadDetails, String submitter) {
-        super();
+    public EntityRow(String id, String action, int row, Boolean discoverable, String submitter,
+        MultiValuedMap<String, MetadataValueVO> metadata, List<MetadataGroup> metadataGroups,
+        List<UploadDetails> uploadDetails) {
         this.id = id;
         this.submitter = submitter;
         this.row = row + 1;
         this.action = isBlank(action) ? ImportAction.NOT_SPECIFIED : ImportAction.valueOf(action.toUpperCase());
+        this.discoverable = discoverable;
         this.metadata = metadata;
         this.metadataGroups = metadataGroups;
         this.uploadDetails = uploadDetails;
@@ -77,4 +80,9 @@ public final class EntityRow {
     public String getSubmitter() {
         return submitter;
     }
+
+    public Boolean getDiscoverable() {
+        return discoverable;
+    }
+
 }

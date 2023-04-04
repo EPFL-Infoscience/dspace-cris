@@ -25,6 +25,7 @@ import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.DSpaceControlledVocabulary;
+import org.dspace.content.authority.ItemControlledVocabularyService;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.InitializingBean;
@@ -81,14 +82,14 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
         //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
         // build a vocabulary entry details ID
         boolean fix = false;
-        if (source instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(vocabularyId, vocabularyName)) {
+        if (dspaceOrItemControlledVocabulary(source) && !StringUtils.startsWith(vocabularyId, vocabularyName)) {
             fix = true;
         }
         VocabularyEntryDetailsRest entryDetails = authorityUtils.convertEntryDetails(fix, choice, vocabularyName,
                 source.isHierarchical(), utils.obtainProjection());
         //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
         // build a vocabulary entry details ID
-        if (source instanceof DSpaceControlledVocabulary && !StringUtils.startsWith(vocabularyId, vocabularyName)
+        if (dspaceOrItemControlledVocabulary(source) && !StringUtils.startsWith(vocabularyId, vocabularyName)
                 && entryDetails != null) {
             entryDetails.setId(id);
         }
@@ -108,7 +109,7 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
             //FIXME hack to deal with an improper use on the angular side of the node id (otherinformation.id) to
             // build a vocabulary entry details ID
             boolean fix = false;
-            if (source instanceof DSpaceControlledVocabulary) {
+            if (dspaceOrItemControlledVocabulary(source)) {
                 //FIXME this will stop to work once angular starts to deal with the proper form of the entry id...
                 fix = true;
             }
@@ -121,6 +122,10 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
             return resources;
         }
         throw new LinkNotFoundException(VocabularyRest.CATEGORY, VocabularyEntryDetailsRest.NAME, vocabularyId);
+    }
+
+    private boolean dspaceOrItemControlledVocabulary(ChoiceAuthority source) {
+        return source instanceof DSpaceControlledVocabulary || source instanceof ItemControlledVocabularyService;
     }
 
     @Override
