@@ -255,7 +255,7 @@
                     <bean class="org.dspace.layout.CrisLayoutTextRowComponent">
                         <property name="contentType" value="text-metadata"/>
                         <property name="content" value="cris.cms.epfl-news"/>
-                        <property name="style" value="col-md-12 py-4 border"/>
+                        <property name="style" value="col-md-12 py-4"/>
                     </bean>
                 </list>
                 <list>
