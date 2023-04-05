@@ -207,6 +207,13 @@
 
     <dc-type>
         <schema>cris</schema>
+        <element>cms</element>
+        <qualifier>epfl-news</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
         <element>customurl</element>
         <scope_note></scope_note>
     </dc-type>
