@@ -99,7 +99,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -113,7 +113,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -127,7 +127,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -141,7 +141,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -155,7 +155,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -169,7 +169,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -183,7 +183,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -198,7 +198,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
@@ -213,7 +213,7 @@
             <list>
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
-                <ref bean="restricted"/>
+<!--                <ref bean="restricted"/>-->
                 <ref bean="administrator"/>
             </list>
         </property>
