@@ -27,13 +27,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.UUID;
 import java.util.function.Consumer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.rtf.RTFEditorKit;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
@@ -47,6 +48,9 @@ import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.CrisConstants;
 import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.storage.bitstore.DeleteOnCloseFileInputStream;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,9 +65,14 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
 
+    private static ConfigurationService configurationService = DSpaceServicesFactory.getInstance()
+        .getConfigurationService();
+
     private Community community;
 
     private Collection collection;
+
+    private String[] configuredFontFamilies;
 
     @Before
     public void setup() throws SQLException, AuthorizeException {
@@ -72,6 +81,11 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         community = createCommunity(context).build();
         collection = createCollection(context, community).withAdminGroup(eperson).build();
         context.restoreAuthSystemState();
+
+        configuredFontFamilies = configurationService.getArrayProperty("crosswalk.fop.font-family");
+
+        // required to read correctly the pdf content using PDFTextStripper
+        configurationService.setProperty("crosswalk.fop.font-family", "Times");
 
     }
 
@@ -717,6 +731,188 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    @Test
+    public void testPdfCrosswalkPublicationDisseminateWithNotEnglishCharacters() throws Exception {
+
+        configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
+
+        context.turnOffAuthorisationSystem();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Političeskaja religija v Svjaščennoe")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "publication-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, publication, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            String content = getPdfContent(out);
+            assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
+        }
+
+    }
+
+    @Test
+    public void testPdfCrosswalkPersonDisseminateWithNotEnglishCharacters() throws Exception {
+
+        configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
+
+        context.turnOffAuthorisationSystem();
+
+        Item person = ItemBuilder.createItem(context, collection)
+            .withEntityType("Person")
+            .withTitle("Političeskaja religija v Svjaščennoe")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "person-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, person, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            String content = getPdfContent(out);
+            assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
+        }
+
+    }
+
+    @Test
+    public void testPdfCrosswalkEquipmentDisseminateWithNotEnglishCharacters() throws Exception {
+
+        configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
+
+        context.turnOffAuthorisationSystem();
+
+        Item equipment = ItemBuilder.createItem(context, collection)
+            .withEntityType("Equipment")
+            .withTitle("Političeskaja religija v Svjaščennoe")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "equipment-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, equipment, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            String content = getPdfContent(out);
+            assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
+        }
+
+    }
+
+    @Test
+    public void testPdfCrosswalkOrgUnitDisseminateWithNotEnglishCharacters() throws Exception {
+
+        configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
+
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+            .withEntityType("OrgUnit")
+            .withTitle("Političeskaja religija v Svjaščennoe")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "orgUnit-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, orgUnit, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            String content = getPdfContent(out);
+            assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
+        }
+
+    }
+
+    @Test
+    public void testPdfCrosswalkProjectDisseminateWithNotEnglishCharacters() throws Exception {
+
+        configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
+
+        context.turnOffAuthorisationSystem();
+
+        Item project = ItemBuilder.createItem(context, collection)
+            .withEntityType("Project")
+            .withTitle("Političeskaja religija v Svjaščennoe")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "project-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, project, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            String content = getPdfContent(out);
+            assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
+        }
+
+    }
+
+    @Test
+    public void testPdfCrosswalkFundingDisseminateWithNotEnglishCharacters() throws Exception {
+
+        configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
+
+        context.turnOffAuthorisationSystem();
+
+        Item funding = ItemBuilder.createItem(context, collection)
+            .withEntityType("Funding")
+            .withTitle("Političeskaja religija v Svjaščennoe")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "funding-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, funding, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            String content = getPdfContent(out);
+            assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
+        }
+
+    }
+
+    @Test
+    public void testPdfCrosswalkPatentDisseminateWithNotEnglishCharacters() throws Exception {
+
+        configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
+
+        context.turnOffAuthorisationSystem();
+
+        Item patent = ItemBuilder.createItem(context, collection)
+            .withEntityType("Patent")
+            .withTitle("Političeskaja religija v Svjaščennoe")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "patent-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, patent, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            String content = getPdfContent(out);
+            assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
+        }
+
+    }
+
     private Item buildPersonItem() {
         Item item = createItem(context, collection)
             .withEntityType("Person")
@@ -795,11 +991,24 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(out.toString(), containsString("\\jpegblip"));
     }
 
-    private void assertThatPdfHasContent(ByteArrayOutputStream out, Consumer<String> assertConsumer)
-        throws InvalidPasswordException, IOException {
-        PDDocument document = PDDocument.load(out.toByteArray());
-        String content = new PDFTextStripper().getText(document);
-        assertConsumer.accept(content);
+    private void assertThatPdfHasContent(ByteArrayOutputStream out, Consumer<String> assertConsumer) {
+        assertConsumer.accept(getPdfContent(out));
+    }
+
+    private String getPdfContent(ByteArrayOutputStream out) {
+        try {
+            PDDocument document = PDDocument.load(createTempFile(out.toByteArray()));
+            return new PDFTextStripper().getText(document);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private FileInputStream createTempFile(byte[] content) throws IOException {
+        File tempFile = File.createTempFile("test-document-" + UUID.randomUUID(), "temp");
+        tempFile.deleteOnExit();
+        FileUtils.writeByteArrayToFile(tempFile, content);
+        return new DeleteOnCloseFileInputStream(tempFile);
     }
 
     private void assertThatPersonDocumentHasContent(String content) {

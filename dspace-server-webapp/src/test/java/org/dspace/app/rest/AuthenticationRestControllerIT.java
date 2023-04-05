@@ -1621,7 +1621,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     @Test
-    public void testGenerateMachineTokenForbiddenWithLoginAsFeature() throws Exception {
+    public void testGenerateMachineTokenWithLoginAsFeature() throws Exception {
 
         configurationService.setProperty("webui.user.assumelogin", "true");
 
@@ -1635,11 +1635,11 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 
         context.restoreAuthSystemState();
 
-        String adminToken = getAuthToken(user.getEmail(), password);
+        String adminToken = getAuthToken(admin.getEmail(), password);
 
         getClient(adminToken).perform(post("/api/authn/machinetokens")
             .header(ON_BEHALF_OF_REQUEST_PARAM, user.getID().toString()))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -1682,7 +1682,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     @Test
-    public void testDeleteMachineTokenForbiddenWithLoginAsFeature() throws Exception {
+    public void testDeleteMachineTokenWithLoginAsFeature() throws Exception {
 
         configurationService.setProperty("webui.user.assumelogin", "true");
 
@@ -1705,7 +1705,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 
         getClient(adminToken).perform(delete("/api/authn/machinetokens")
             .header(ON_BEHALF_OF_REQUEST_PARAM, user.getID().toString()))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isNoContent());
     }
 
     @Test

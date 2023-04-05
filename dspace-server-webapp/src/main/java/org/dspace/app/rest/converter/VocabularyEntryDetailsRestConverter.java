@@ -10,10 +10,11 @@ package org.dspace.app.rest.converter;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.VocabularyEntryDetailsRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.utils.AuthorityUtils;
 import org.dspace.content.authority.Choice;
 import org.springframework.stereotype.Component;
 
-/*
+/**
  * This is the converter from/to the Choice in the DSpace API data
  * model and the REST data model.
  *
