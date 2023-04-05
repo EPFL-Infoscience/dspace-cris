@@ -19,6 +19,8 @@ import org.apache.commons.validator.routines.ISSNValidator;
 import org.dspace.app.sherpa.SHERPAService;
 import org.dspace.app.sherpa.v2.SHERPAJournal;
 import org.dspace.app.sherpa.v2.SHERPAResponse;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.com)
  */
-public class SherpaAuthority implements ChoiceAuthority {
+public class SherpaAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
     private static final String  TYPE = "publication";
     private static final String  ISSN_FIELD = "issn";
@@ -41,6 +43,8 @@ public class SherpaAuthority implements ChoiceAuthority {
      * {@link NameAwarePlugin}
      **/
     private String authorityName;
+
+    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     private DSpace dspace = new DSpace();
     private SHERPAService sherpaService = dspace.getSingletonService(SHERPAService.class);
@@ -105,6 +109,16 @@ public class SherpaAuthority implements ChoiceAuthority {
     @Override
     public void setPluginInstanceName(String name) {
         this.authorityName = name;
+    }
+
+    @Override
+    public String getLinkedEntityType() {
+        return configurationService.getProperty("cris." + this.authorityName + ".entityType", "Journal");
+    }
+
+    @Override
+    public Map<String, String> getExternalSource() {
+        return Map.of();
     }
 
 }

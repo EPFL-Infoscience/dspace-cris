@@ -62,7 +62,7 @@ public class CrisLayoutToolRenderValidatorImpl implements CrisLayoutToolRenderVa
 
     }
 
-    private boolean isSubTypeNotSupported(String renderType) {
+    protected boolean isSubTypeNotSupported(String renderType) {
         String subType = renderType.split("\\.")[1];
         return isNotEmpty(subTypes) && !subTypes.contains(subType);
     }
