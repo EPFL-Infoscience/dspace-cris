@@ -154,8 +154,8 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.itemexport.ItemExportCLI"/>
     </bean>
 
-    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">
-        <property name="description" value="Script to import legacy data to a solr core"/>
-        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>
-    </bean>
+<!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
+<!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
+<!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
+<!--    </bean>-->
 </beans>

@@ -75,7 +75,7 @@
     <bean id="inlineRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
         <property name="name" value="inline"/>
         <property name="fieldType" value="METADATAGROUP"/>
-        <property name="subTypeValidationRule" value="NOT_ALLOWED"/>
+        <property name="subTypeValidationRule" value="ALLOWED"/>
     </bean>
 
     <bean id="linkRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
@@ -138,6 +138,52 @@
     </bean>
 
     <bean id="valuePairSupplier" class="org.dspace.layout.script.supplier.ValuePairSupplier"/>
+
+    <bean id="mapRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
+        <property name="name" value="map"/>
+        <property name="fieldType" value="METADATA"/>
+        <property name="subTypeValidationRule" value="NOT_ALLOWED"/>
+    </bean>
+
+    <bean id="markdownRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
+        <property name="name" value="markdown"/>
+        <property name="fieldType" value="METADATA"/>
+        <property name="subTypeValidationRule" value="NOT_ALLOWED"/>
+    </bean>
+
+    <bean id="htmlRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
+        <property name="name" value="html"/>
+        <property name="fieldType" value="METADATA"/>
+        <property name="subTypeValidationRule" value="NOT_ALLOWED"/>
+    </bean>
+
+    <bean id="browseRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
+        <property name="name" value="browse"/>
+        <property name="fieldType" value="METADATA"/>
+        <property name="subTypeValidationRule" value="MANDATORY"/>
+        <property name="subTypes" ref="browseSupplier"/>
+    </bean>
+
+    <bean id="tagBrowseRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
+        <property name="name" value="tag-browse"/>
+        <property name="fieldType" value="METADATA"/>
+        <property name="subTypeValidationRule" value="MANDATORY"/>
+        <property name="subTypes" ref="browseSupplier"/>
+    </bean>
+
+    <bean id="browseSupplier" class="org.dspace.layout.script.supplier.BrowseSupplier"/>
+
+    <bean id="searchRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderSearchValidatorImpl">
+        <property name="name" value="search"/>
+        <property name="fieldType" value="METADATA"/>
+        <property name="subTypeValidationRule" value="MANDATORY"/>
+    </bean>
+
+    <bean id="tagSearchRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderSearchValidatorImpl">
+        <property name="name" value="tag-search"/>
+        <property name="fieldType" value="METADATA"/>
+        <property name="subTypeValidationRule" value="MANDATORY"/>
+    </bean>
 
 </beans>
 
