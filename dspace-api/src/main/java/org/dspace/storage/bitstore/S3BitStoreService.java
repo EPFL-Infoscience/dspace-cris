@@ -361,7 +361,6 @@ public class S3BitStoreService extends BaseBitStoreService {
                 // Read through a digest input stream that will work out the MD5
 //                DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA));
             ) {
-                in.close();
                 byte[] md5Digest = MessageDigest.getInstance(CSA).digest(IOUtils.toByteArray(in));
                 String md5Base64 = Utils.toHex(md5Digest);
                 attrs.put("checksum", md5Base64);
