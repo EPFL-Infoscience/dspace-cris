@@ -359,11 +359,11 @@ public class S3BitStoreService extends BaseBitStoreService {
             try (
                 InputStream in = get(bitstream);
                 // Read through a digest input stream that will work out the MD5
-                DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA));
+//                DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA));
             ) {
                 in.close();
-                byte[] md5Digest = dis.getMessageDigest().digest();
-                String md5Base64 = Base64.encodeBase64String(md5Digest);
+                byte[] md5Digest = MessageDigest.getInstance(CSA).digest(IOUtils.toByteArray(in));
+                String md5Base64 = Utils.toHex(md5Digest);
                 attrs.put("checksum", md5Base64);
                 attrs.put("checksum_algorithm", CSA);
             } catch (NoSuchAlgorithmException nsae) {
