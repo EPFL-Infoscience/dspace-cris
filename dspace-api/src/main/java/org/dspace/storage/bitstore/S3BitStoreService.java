@@ -43,6 +43,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -363,6 +364,7 @@ public class S3BitStoreService extends BaseBitStoreService {
             ) {
                 byte[] md5Digest = MessageDigest.getInstance(CSA).digest(IOUtils.toByteArray(in));
                 String md5Base64 = Utils.toHex(md5Digest);
+                in.close();
                 attrs.put("checksum", md5Base64);
                 attrs.put("checksum_algorithm", CSA);
             } catch (NoSuchAlgorithmException nsae) {
