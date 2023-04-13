@@ -53,7 +53,7 @@
                             <property name="name" value="FULL" />
                             <property name="security">
                                 <value type="org.dspace.content.security.CrisSecurity">
-                                    ITEM_ADMIN
+                                    SUBMITTER_GROUP
                                 </value>
                             </property>
                             <property name="submissionDefinition" value="admin-person-edit" />
