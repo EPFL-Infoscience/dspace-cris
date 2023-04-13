@@ -76,7 +76,7 @@
           <dc-schema>oaire</dc-schema>
           <dc-element>licenseCondition</dc-element>
           <label>License</label>
-          <input-type value-pairs-name="licenses">dropdown</input-type>
+          <input-type value-pairs-name="licenses">opendropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -122,7 +122,7 @@
           <dc-schema>oaire</dc-schema>
           <dc-element>licenseCondition</dc-element>
           <label>License</label>
-          <input-type value-pairs-name="licenses">dropdown</input-type>
+          <input-type value-pairs-name="licenses">opendropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -168,7 +168,7 @@
           <dc-schema>oaire</dc-schema>
           <dc-element>licenseCondition</dc-element>
           <label>License</label>
-          <input-type value-pairs-name="licenses">dropdown</input-type>
+          <input-type value-pairs-name="licenses">opendropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
