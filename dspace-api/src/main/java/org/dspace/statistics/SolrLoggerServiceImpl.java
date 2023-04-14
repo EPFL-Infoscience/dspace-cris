@@ -202,21 +202,15 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public void postView(DSpaceObject dspaceObject, HttpServletRequest request,
                          EPerson currentUser) {
-
-        log.info("PostView called with request");
-
         if (solr == null || locationService == null) {
-            log.warn("SolrLoggerService - Solr = " + solr, " LocationService= " + locationService);
             return;
         }
-
         initSolrYearCores();
 
 
         try {
             SolrInputDocument doc1 = getCommonSolrDoc(dspaceObject, request, currentUser);
             if (doc1 == null) {
-                log.warn("SolrLoggerService - SolrInputDocument null");
                 return;
             }
             if (dspaceObject instanceof Bitstream) {
@@ -231,9 +225,6 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
 
             solr.add(doc1);
-
-            log.info("PostView - Document added");
-
             // commits are executed automatically using the solr autocommit
             boolean useAutoCommit = configurationService.getBooleanProperty("solr-statistics.autoCommit", true);
             if (!useAutoCommit) {
@@ -252,21 +243,15 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public void postView(DSpaceObject dspaceObject,
                          String ip, String userAgent, String xforwardedfor, EPerson currentUser) {
-
-        log.info("PostView called");
-
         if (solr == null || locationService == null) {
-            log.warn("SolrLoggerService - Solr = " + solr, " LocationService= " + locationService);
             return;
         }
-
         initSolrYearCores();
 
         try {
             SolrInputDocument doc1 = getCommonSolrDoc(dspaceObject, ip, userAgent, xforwardedfor,
                                                       currentUser);
             if (doc1 == null) {
-                log.warn("SolrLoggerService - SolrInputDocument null");
                 return;
             }
             if (dspaceObject instanceof Bitstream) {
@@ -280,9 +265,6 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             doc1.addField("statistics_type", StatisticsType.VIEW.text());
 
             solr.add(doc1);
-
-            log.info("PostView - Document added");
-
             // commits are executed automatically using the solr autocommit
             boolean useAutoCommit = configurationService.getBooleanProperty("solr-statistics.autoCommit", true);
             if (!useAutoCommit) {
