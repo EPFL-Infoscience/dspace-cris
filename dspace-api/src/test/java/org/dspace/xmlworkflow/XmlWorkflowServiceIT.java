@@ -111,6 +111,14 @@ public class XmlWorkflowServiceIT extends AbstractIntegrationTestWithDatabase {
             .withName("Collection WITH workflow")
             .withWorkflowGroup(1, submitter)
             .build();
+        Collection person = CollectionBuilder.createCollection(context, community).withEntityType("Person")
+                                             .build();
+        Item personAuthor1 = ItemBuilder.createItem(context, person)
+                                        .withGivenName("Vincenzo").withFamilyName("Mecca")
+                                        .withDspaceObjectOwner(author1).build();
+        Item personAuthor2 = ItemBuilder.createItem(context, person)
+                                        .withGivenName("Vincenzo").withFamilyName("4science")
+                                        .withDspaceObjectOwner(author2).build();
         XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(colWithWorkflow);
         ClaimedTaskBuilder.createClaimedTask(context, colWithWorkflow, submitter)
             .withTitle("Test workflow item to reject")
@@ -119,8 +127,8 @@ public class XmlWorkflowServiceIT extends AbstractIntegrationTestWithDatabase {
             .build();
         Item item = ItemBuilder.createItem(context, colWithWorkflow)
             .withTitle("Test workflow item to reject")
-            .withAuthor("Vincenzo, Mecca", author1.getID().toString())
-            .withAuthor("Vincenzo, 4science", author2.getID().toString())
+            .withAuthor("Vincenzo, Mecca", personAuthor1.getID().toString())
+            .withAuthor("Vincenzo, 4science", personAuthor2.getID().toString())
             .build();
         context.restoreAuthSystemState();
         try (MockedStatic<Email> mockedEmail = Mockito.mockStatic(Email.class)) {

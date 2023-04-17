@@ -778,7 +778,13 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
 
     public EPerson findPerson(Context context, MetadataValue metadata) throws SQLException {
-        return this.ePersonService.find(context, UUIDUtils.fromString(metadata.getAuthority()));
+        Item author = itemService.find(context, UUIDUtils.fromString(metadata.getAuthority()));
+        List<MetadataValue> owner =
+            itemService.getMetadataByMetadataString(author, "dspace.object.owner");
+        if (owner.isEmpty()) {
+            return null;
+        }
+        return this.ePersonService.find(context, UUIDUtils.fromString(owner.get(0).getAuthority()));
     }
 
     // send notices of curation activity
