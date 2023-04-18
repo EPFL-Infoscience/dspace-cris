@@ -567,7 +567,9 @@
                 <ref bean="graphPublicationByDate" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterJournal" />
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterEntityType"/>
                 <ref bean="searchFilterLanguage" />
@@ -603,6 +605,8 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterDataciteAvailable" />
                 <ref bean="searchFilterFileType" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterJournal" />
             </list>
         </property>
         <!--The sort filters for the discovery search (same as defaultConfiguration above)-->
