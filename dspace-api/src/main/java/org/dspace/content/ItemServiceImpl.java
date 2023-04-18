@@ -2010,7 +2010,7 @@ prevent the generation of resource policy entry values with null dspace_object a
 
         context.turnOffAuthorisationSystem();
         try {
-            curator.curate(item);
+            curator.curate(context, item);
         } finally {
             context.restoreAuthSystemState();
         }
