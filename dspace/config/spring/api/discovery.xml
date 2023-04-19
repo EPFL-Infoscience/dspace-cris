@@ -2728,7 +2728,7 @@
         <property name="indexFieldName" value="journal"/>
         <property name="metadataFields">
             <list>
-                <value>dc.relation.ispartof</value>
+                <value>dc.relation.journal</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
