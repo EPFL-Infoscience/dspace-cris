@@ -19,30 +19,37 @@ public class MetadataValueVO {
 
     private final String value;
 
+    private final String language;
+
     private final String authority;
 
     private final int confidence;
 
     private final Integer securityLevel;
 
+    public static MetadataValueVO withValueAndLanguage(String value, String language) {
+        return new MetadataValueVO(value, language, null, -1, null);
+    }
+
     public MetadataValueVO(String value) {
-        this(value, null, -1, null);
+        this(value, null, null, -1, null);
     }
 
     public MetadataValueVO(String value, String authority) {
-        this(value, authority, 600, null);
+        this(value, null, authority, 600, null);
     }
 
-    public MetadataValueVO(String value, String authority, int confidence, Integer securityLevel) {
+    public MetadataValueVO(String value, String language, String authority, int confidence, Integer securityLevel) {
         this.value = value;
+        this.language = language;
         this.authority = authority;
         this.confidence = confidence;
         this.securityLevel = securityLevel;
     }
 
     public MetadataValueVO(MetadataValue metadataValue) {
-        this(metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence(),
-            metadataValue.getSecurityLevel());
+        this(metadataValue.getValue(), metadataValue.getLanguage(), metadataValue.getAuthority(),
+            metadataValue.getConfidence(), metadataValue.getSecurityLevel());
     }
 
     public String getValue() {
@@ -59,6 +66,10 @@ public class MetadataValueVO {
 
     public Integer getSecurityLevel() {
         return securityLevel;
+    }
+
+    public String getLanguage() {
+        return language;
     }
 
 }

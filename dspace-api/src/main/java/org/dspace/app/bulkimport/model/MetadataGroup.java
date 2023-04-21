@@ -7,10 +7,11 @@
  */
 package org.dspace.app.bulkimport.model;
 
-import static org.apache.commons.collections4.multimap.UnmodifiableMultiValuedMap.unmodifiableMultiValuedMap;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.collections4.ListValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.vo.MetadataValueVO;
 
@@ -20,19 +21,19 @@ public class MetadataGroup implements ChildRow {
 
     private final String name;
 
-    private final MultiValuedMap<String, MetadataValueVO> metadata;
+    private final Map<String, MetadataValueVO> metadata;
 
     private final String validationError;
 
     public MetadataGroup(String parentId, String name, String validationError) {
         super();
-        this.metadata = new HashSetValuedHashMap<>();
+        this.metadata = new HashMap<>();
         this.parentId = parentId;
         this.name = name;
         this.validationError = validationError;
     }
 
-    public MetadataGroup(String parentId, String name, MultiValuedMap<String, MetadataValueVO> metadata) {
+    public MetadataGroup(String parentId, String name, Map<String, MetadataValueVO> metadata) {
         super();
         this.metadata = metadata;
         this.parentId = parentId;
@@ -40,8 +41,12 @@ public class MetadataGroup implements ChildRow {
         this.validationError = null;
     }
 
-    public MultiValuedMap<String, MetadataValueVO> getMetadata() {
-        return unmodifiableMultiValuedMap(metadata);
+    public Map<String, MetadataValueVO> getMetadata() {
+        return metadata;
+    }
+
+    public ListValuedMap<String, MetadataValueVO> getMetadataAsMultiValuedMap() {
+        return new ArrayListValuedHashMap<String, MetadataValueVO>(metadata);
     }
 
     public String getParentId() {

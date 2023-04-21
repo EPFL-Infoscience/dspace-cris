@@ -50,6 +50,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.app.bulkedit.BulkImport;
+import org.dspace.app.bulkimport.model.BulkImportSheet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
@@ -65,7 +66,6 @@ import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkMode;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
-import org.dspace.content.integration.crosswalks.model.XlsCollectionSheet;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
@@ -94,6 +94,10 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private static final String BITSTREAM_URL_FORMAT = "%s/api/core/bitstreams/%s/content";
 
     private static final DateFormatter DATE_FORMATTER = new DateFormatter("yyyy-MM-dd");
+
+    /****
+     * REMEMBER TO: - uncache item one by one
+     */
 
     @Autowired
     private ItemService itemService;
@@ -181,13 +185,13 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
         try (Workbook workbook = new XSSFWorkbook()) {
 
-            XlsCollectionSheet mainSheet = writeMainSheetHeader(context, collection, workbook);
-            List<XlsCollectionSheet> nestedMetadataSheets = writeNestedMetadataSheetsHeader(collection, workbook);
-            XlsCollectionSheet bitstreamSheet = writeBitstreamSheetHeader(collection, workbook);
+            BulkImportSheet mainSheet = writeMainSheetHeader(context, collection, workbook);
+            List<BulkImportSheet> nestedMetadataSheets = writeNestedMetadataSheetsHeader(collection, workbook);
+            BulkImportSheet bitstreamSheet = writeBitstreamSheetHeader(collection, workbook);
 
             writeWorkbookContent(context, itemIterator, mainSheet, nestedMetadataSheets, bitstreamSheet);
 
-            List<XlsCollectionSheet> sheets = new ArrayList<XlsCollectionSheet>(nestedMetadataSheets);
+            List<BulkImportSheet> sheets = new ArrayList<BulkImportSheet>(nestedMetadataSheets);
             sheets.add(mainSheet);
             sheets.add(bitstreamSheet);
             autoSizeColumns(sheets);
@@ -198,14 +202,14 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     }
 
-    private List<XlsCollectionSheet> writeNestedMetadataSheetsHeader(Collection collection, Workbook workbook) {
+    private List<BulkImportSheet> writeNestedMetadataSheetsHeader(Collection collection, Workbook workbook) {
         return getSubmissionFormMetadataGroups(collection).stream()
             .map(metadataGroup -> writeNestedMetadataSheetHeader(collection, workbook, metadataGroup))
             .collect(Collectors.toList());
     }
 
-    private XlsCollectionSheet writeMainSheetHeader(Context context, Collection collection, Workbook workbook) {
-        XlsCollectionSheet mainSheet = new XlsCollectionSheet(workbook, "items", false, collection);
+    private BulkImportSheet writeMainSheetHeader(Context context, Collection collection, Workbook workbook) {
+        BulkImportSheet mainSheet = new BulkImportSheet(workbook, "items", false, collection);
         mainSheet.appendHeader(ID_HEADER);
         mainSheet.appendHeader(DISCOVERABLE_HEADER);
         List<String> metadataFields = getSubmissionFormMetadata(collection);
@@ -215,8 +219,8 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         return mainSheet;
     }
 
-    private XlsCollectionSheet writeNestedMetadataSheetHeader(Collection collection, Workbook workbook, String field) {
-        XlsCollectionSheet nestedMetadataSheet = new XlsCollectionSheet(workbook, field, true, collection);
+    private BulkImportSheet writeNestedMetadataSheetHeader(Collection collection, Workbook workbook, String field) {
+        BulkImportSheet nestedMetadataSheet = new BulkImportSheet(workbook, field, true, collection);
         List<String> nestedMetadataFields = getSubmissionFormMetadataGroup(collection, field);
         nestedMetadataSheet.appendHeader(PARENT_ID_HEADER);
         for (String metadataField : nestedMetadataFields) {
@@ -225,8 +229,8 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         return nestedMetadataSheet;
     }
 
-    private XlsCollectionSheet writeBitstreamSheetHeader(Collection collection, Workbook workbook) {
-        XlsCollectionSheet bitstreamSheet = new XlsCollectionSheet(workbook, BITSTREAMS_SHEET_NAME, true, collection);
+    private BulkImportSheet writeBitstreamSheetHeader(Collection collection, Workbook workbook) {
+        BulkImportSheet bitstreamSheet = new BulkImportSheet(workbook, BITSTREAMS_SHEET_NAME, true, collection);
 
         for (String bitstreamSheetHeader : BulkImport.BITSTREAMS_SHEET_HEADERS) {
             bitstreamSheet.appendHeader(bitstreamSheetHeader);
@@ -240,8 +244,8 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         return bitstreamSheet;
     }
 
-    private void writeWorkbookContent(Context context, Iterator<Item> itemIterator, XlsCollectionSheet mainSheet,
-        List<XlsCollectionSheet> nestedMetadataSheets, XlsCollectionSheet bitstreamSheet) throws SQLException {
+    private void writeWorkbookContent(Context context, Iterator<Item> itemIterator, BulkImportSheet mainSheet,
+        List<BulkImportSheet> nestedMetadataSheets, BulkImportSheet bitstreamSheet) throws SQLException {
 
         while (itemIterator.hasNext()) {
 
@@ -262,7 +266,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     }
 
-    private void writeBitstreamSheet(Context context, Item item, XlsCollectionSheet sheet) {
+    private void writeBitstreamSheet(Context context, Item item, BulkImportSheet sheet) {
         for (Bundle bundle : item.getBundles()) {
             String bundleName = bundle.getName();
             int bitstreamPosition = 1;
@@ -273,14 +277,14 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private void writeBitstreamRow(Context context, XlsCollectionSheet bitstreamSheet, Item item,
+    private void writeBitstreamRow(Context context, BulkImportSheet bitstreamSheet, Item item,
         Bitstream bitstream, String bundle, String position) {
         bitstreamSheet.appendRow();
         writeBitstreamBaseValues(context, bitstreamSheet, item, bitstream, bundle, position);
         writeBitstreamMetadataValues(bitstreamSheet, bitstream);
     }
 
-    private void writeBitstreamMetadataValues(XlsCollectionSheet bitstreamSheet, Bitstream bitstream) {
+    private void writeBitstreamMetadataValues(BulkImportSheet bitstreamSheet, Bitstream bitstream) {
         for (String header : bitstreamSheet.getHeaders()) {
             if (isBitstreamMetadataFieldHeader(header)) {
                 bitstreamService.getMetadataByMetadataString(bitstream, header)
@@ -289,7 +293,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private void writeBitstreamBaseValues(Context context, XlsCollectionSheet bitstreamSheet,
+    private void writeBitstreamBaseValues(Context context, BulkImportSheet bitstreamSheet,
         Item item, Bitstream bitstream, String bundleName, String position) {
         bitstreamSheet.setValueOnLastRow(PARENT_ID_HEADER, item.getID().toString());
         bitstreamSheet.setValueOnLastRow(FILE_PATH_HEADER, getBitstreamLocationUrl(bitstream));
@@ -364,7 +368,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         return DATE_FORMATTER.print(date, Locale.getDefault());
     }
 
-    private void writeMainSheet(Context context, Item item, XlsCollectionSheet mainSheet) {
+    private void writeMainSheet(Context context, Item item, BulkImportSheet mainSheet) {
 
         mainSheet.appendRow();
 
@@ -386,7 +390,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     }
 
-    private void writeNestedMetadataSheet(Item item, XlsCollectionSheet nestedMetadataSheet) {
+    private void writeNestedMetadataSheet(Item item, BulkImportSheet nestedMetadataSheet) {
 
         String groupName = nestedMetadataSheet.getSheet().getSheetName();
         int groupSize = getMetadataGroupSize(item, groupName);
@@ -399,7 +403,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     }
 
-    private void writeNestedMetadataRow(Item item, XlsCollectionSheet nestedMetadataSheet,
+    private void writeNestedMetadataRow(Item item, BulkImportSheet nestedMetadataSheet,
         Map<String, List<MetadataValue>> metadataValues, List<String> headers, int groupIndex) {
 
         nestedMetadataSheet.appendRow();
@@ -431,7 +435,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     }
 
-    private void writeMetadataValue(XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
+    private void writeMetadataValue(BulkImportSheet sheet, String header, MetadataValue metadataValue) {
 
         String language = metadataValue.getLanguage();
         if (StringUtils.isBlank(language)) {
@@ -538,7 +542,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         return itemService.getMetadataByMetadataString(item, metadataField);
     }
 
-    private void autoSizeColumns(List<XlsCollectionSheet> sheets) {
+    private void autoSizeColumns(List<BulkImportSheet> sheets) {
         sheets.forEach(sheet -> autoSizeColumns(sheet.getSheet()));
     }
 

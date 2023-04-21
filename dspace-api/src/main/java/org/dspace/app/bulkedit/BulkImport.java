@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.ArrayUtils;
@@ -76,6 +78,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -428,7 +431,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         for (String metadataField : metadataFields) {
 
-            String metadata = getMetadataField(metadataField);
+            String metadata = getMetadataFieldFromHeader(metadataField);
 
             if (StringUtils.isBlank(metadata)) {
                 invalidMetadataMessages.add("Empty metadata");
@@ -548,7 +551,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         Boolean discoverable = headers.containsKey(DISCOVERABLE_HEADER) ? getDiscoverableFromRow(row) : null;
 
-        MultiValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
+        ListValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
         List<MetadataGroup> ownMetadataGroup = getOwnChildRows(row, metadataGroups);
         List<UploadDetails> ownUploadDetails = getOwnChildRows(row, uploadDetails);
 
@@ -685,8 +688,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private MetadataGroup buildMetadataGroup(Row row, Map<String, Integer> headers) {
         String parentId = getParentIdFromRow(row);
-        MultiValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
-        return new MetadataGroup(parentId, row.getSheet().getSheetName(), metadata);
+        ListValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
+        return new MetadataGroup(parentId, row.getSheet().getSheetName(), toSingleValueMap(metadata));
     }
 
     private List<UploadDetails> getUploadDetails(Workbook workbook) {
@@ -772,7 +775,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         Integer bitstreamPosition = getBitstreamPosition(row);
         List<AccessCondition> accessConditions = buildAccessConditions(row, accessCondition);
         boolean additionalAccessCondition = BooleanUtils.toBoolean(getCellValue(row.getCell(5)));
-        MultiValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
+        ListValuedMap<String, MetadataValueVO> metadata = getMetadataFromRow(row, headers);
 
         return new UploadDetails(parentId, rowNumber, filePath, bundleName, bitstreamPosition,
             accessConditions, additionalAccessCondition, metadata);
@@ -1267,7 +1270,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         List<MetadataGroup> metadataGroups = entityRow.getMetadataGroups();
         for (MetadataGroup metadataGroup : metadataGroups) {
-            addMetadata(item, metadataGroup.getMetadata());
+            addMetadata(item, metadataGroup.getMetadataAsMultiValuedMap());
         }
 
     }
@@ -1279,16 +1282,16 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         Iterable<String> metadataFields = metadata.keySet();
         for (String field : metadataFields) {
-            String lang = getMetadataLanguage(field);
-            MetadataField metadataField = metadataFieldService.findByString(context, getMetadataField(field), '.');
+            MetadataField metadataField = metadataFieldService.findByString(context, field, '.');
             for (MetadataValueVO metadataValue : metadata.get(field)) {
                 metadataValue = bulkImportTransformerService.converter(context, field, metadataValue);
                 String authority = metadataValue.getAuthority();
                 int confidence = metadataValue.getConfidence();
                 String value = metadataValue.getValue();
+                String language = metadataValue.getLanguage();
                 Integer security = metadataValue.getSecurityLevel();
                 if (StringUtils.isNotEmpty(value)) {
-                    dSpaceObjectService.addSecuredMetadata(context, dso, metadataField, lang, value,
+                    dSpaceObjectService.addSecuredMetadata(context, dso, metadataField, language, value,
                         authority, confidence, security);
                 }
             }
@@ -1302,39 +1305,43 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         List<MetadataGroup> metadataGroups = entityRow.getMetadataGroups();
         for (MetadataGroup metadataGroup : metadataGroups) {
-            removeMetadata(item, metadataGroup.getMetadata());
+            removeMetadata(item, metadataGroup.getMetadataAsMultiValuedMap());
         }
     }
 
-    private void removeMetadata(DSpaceObject dso, MultiValuedMap<String, MetadataValueVO> metadata)
+    private void removeMetadata(DSpaceObject dso, ListValuedMap<String, MetadataValueVO> metadata)
         throws SQLException {
 
-        Iterable<String> fields = metadata.keySet();
-        for (String field : fields) {
-            String language = getMetadataLanguage(field);
-            MetadataField metadataField = metadataFieldService.findByString(context, getMetadataField(field), '.');
-            removeSingleMetadata(dso, metadataField, language);
+        Iterable<String> metadataFields = metadata.keySet();
+        for (String metadataField : metadataFields) {
+            List<MetadataValueVO> metadataValues = metadata.get(metadataField);
+            for (MetadataValueVO metadataValue : metadataValues) {
+                removeMetadataValues(dso, metadataField, metadataValue.getLanguage());
+            }
         }
 
     }
 
-    private void removeSingleMetadata(DSpaceObject dso, MetadataField field, String language) throws SQLException {
+    private void removeMetadataValues(DSpaceObject dso, String field, String language) throws SQLException {
 
         DSpaceObjectService<DSpaceObject> dSpaceObjectService = ContentServiceFactory.getInstance()
             .getDSpaceObjectService(dso);
 
-        List<MetadataValue> metadata = dSpaceObjectService.getMetadata(dso, field.getMetadataSchema().getName(),
-            field.getElement(), field.getQualifier(), language);
+        MetadataFieldName metadataField = new MetadataFieldName(field);
+
+        List<MetadataValue> metadata = dSpaceObjectService.getMetadata(dso, metadataField.schema,
+            metadataField.element, metadataField.qualifier, language);
+
         dSpaceObjectService.removeMetadataValues(context, dso, metadata);
     }
 
-    private String getMetadataField(String field) {
-        return field.contains(LANGUAGE_SEPARATOR_PREFIX) ? split(field, LANGUAGE_SEPARATOR_PREFIX)[0] : field;
+    private String getMetadataFieldFromHeader(String header) {
+        return header.contains(LANGUAGE_SEPARATOR_PREFIX) ? split(header, LANGUAGE_SEPARATOR_PREFIX)[0] : header;
     }
 
-    private String getMetadataLanguage(String field) {
-        if (field.contains(LANGUAGE_SEPARATOR_PREFIX)) {
-            return split(field, LANGUAGE_SEPARATOR_PREFIX)[1].replace(LANGUAGE_SEPARATOR_SUFFIX, "");
+    private String getMetadataLanguageFromHeader(String header) {
+        if (header.contains(LANGUAGE_SEPARATOR_PREFIX)) {
+            return split(header, LANGUAGE_SEPARATOR_PREFIX)[1].replace(LANGUAGE_SEPARATOR_SUFFIX, "");
         }
         return null;
     }
@@ -1379,9 +1386,9 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     }
 
-    private MultiValuedMap<String, MetadataValueVO> getMetadataFromRow(Row row, Map<String, Integer> headers) {
+    private ListValuedMap<String, MetadataValueVO> getMetadataFromRow(Row row, Map<String, Integer> headers) {
 
-        MultiValuedMap<String, MetadataValueVO> metadata = new ArrayListValuedHashMap<String, MetadataValueVO>();
+        ListValuedMap<String, MetadataValueVO> metadata = new ArrayListValuedHashMap<String, MetadataValueVO>();
 
         int firstMetadataIndex = getFirstMetadataIndex(row.getSheet());
         boolean isMetadataGroupsSheet = isMetadataGroupsSheet(row.getSheet());
@@ -1393,25 +1400,26 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 String cellValue = WorkbookUtils.getCellValue(row, index);
                 String[] values = isNotBlank(cellValue) ? split(cellValue, METADATA_SEPARATOR) : new String[] { "" };
 
+                String metadataField = getMetadataFieldFromHeader(header);
+                String language = getMetadataLanguageFromHeader(header);
+
                 List<MetadataValueVO> metadataValues = Arrays.stream(values)
-                    .map(value -> buildMetadataValueVO(row, value, isMetadataGroupsSheet))
+                    .map(value -> buildMetadataValueVO(row, value, language, isMetadataGroupsSheet))
                     .collect(Collectors.toList());
 
-                metadata.putAll(header, metadataValues);
+                metadata.putAll(metadataField, metadataValues);
             }
         }
 
         return metadata;
     }
 
-    private MetadataValueVO buildMetadataValueVO(Row row, String metadataValue, boolean isMetadataGroup) {
+    private MetadataValueVO buildMetadataValueVO(Row row, String metadataValue, String language,
+        boolean isMetadataGroup) {
 
         if (isBlank(metadataValue)) {
-            return new MetadataValueVO(isMetadataGroup ? PLACEHOLDER_PARENT_METADATA_VALUE : metadataValue);
-        }
-
-        if (!metadataValue.contains(METADATA_ATTRIBUTES_SEPARATOR)) {
-            return new MetadataValueVO(metadataValue);
+            String value = isMetadataGroup ? PLACEHOLDER_PARENT_METADATA_VALUE : metadataValue;
+            return MetadataValueVO.withValueAndLanguage(value, language);
         }
 
         String[] valueAttributes = StringUtils.split(metadataValue, METADATA_ATTRIBUTES_SEPARATOR);
@@ -1446,7 +1454,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             }
         }
 
-        return new MetadataValueVO(value, authority, confidence, securityLevel);
+        return new MetadataValueVO(value, language, authority, confidence, securityLevel);
     }
 
     private Integer parseSecurityLevel(String securityLevel) {
@@ -1640,6 +1648,17 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         for (UUID uuid : handler.getSpecialGroups()) {
             context.setSpecialGroup(uuid);
         }
+    }
+
+    private Map<String, MetadataValueVO> toSingleValueMap(ListValuedMap<String, MetadataValueVO> metadata) {
+        Map<String, MetadataValueVO> metadataValueVOs = new HashMap<String, MetadataValueVO>();
+        for (String field : metadata.keys()) {
+            List<MetadataValueVO> metadataValues = metadata.get(field);
+            if (CollectionUtils.isNotEmpty(metadataValues)) {
+                metadataValueVOs.put(field, metadataValues.get(0));
+            }
+        }
+        return metadataValueVOs;
     }
 
     private Date parseDate(String date) {

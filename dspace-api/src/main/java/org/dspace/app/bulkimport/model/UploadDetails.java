@@ -9,11 +9,10 @@
 package org.dspace.app.bulkimport.model;
 
 import static java.util.Collections.unmodifiableList;
-import static org.apache.commons.collections4.multimap.UnmodifiableMultiValuedMap.unmodifiableMultiValuedMap;
 
 import java.util.List;
 
-import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.vo.MetadataValueVO;
 
@@ -32,7 +31,7 @@ public class UploadDetails implements ChildRow {
 
     private final String bundleName;
 
-    private final MultiValuedMap<String, MetadataValueVO> metadata;
+    private final ListValuedMap<String, MetadataValueVO> metadata;
 
     private final Integer bitstreamPosition;
 
@@ -42,7 +41,7 @@ public class UploadDetails implements ChildRow {
 
     public UploadDetails(String parentId, int row, String filePath, String bundleName, Integer bitstreamPosition,
         List<AccessCondition> accessConditions, boolean additionalAccessCondition,
-        MultiValuedMap<String, MetadataValueVO> metadata) {
+        ListValuedMap<String, MetadataValueVO> metadata) {
 
         this.parentId = parentId;
         this.row = row + 1;
@@ -67,8 +66,8 @@ public class UploadDetails implements ChildRow {
         return StringUtils.isNotBlank(bundleName) ? bundleName : ORIGINAL_BUNDLE;
     }
 
-    public MultiValuedMap<String, MetadataValueVO> getMetadata() {
-        return unmodifiableMultiValuedMap(metadata);
+    public ListValuedMap<String, MetadataValueVO> getMetadata() {
+        return metadata;
     }
 
     public Integer getBitstreamPosition() {
