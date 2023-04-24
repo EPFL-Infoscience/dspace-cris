@@ -734,8 +734,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, workspace and accepted for workflow -->
-                <value>latestVersion:true</value>
-                <value>search.resourcetype:Item OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
+                <value>(latestVersion:true AND search.resourcetype:Item) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
             </list>
         </property>
         <!--Default result per page  -->
