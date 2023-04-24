@@ -86,6 +86,7 @@ public class AuthorityUtils {
      *                      if the vocabulary entry was requested using just one occurrence of the name
      *                      FIXME hack to deal with an improper use on the angular side of the node id
      *                      (otherinformation.id) to build a vocabulary entry details ID
+
      * @param choice
      * @param authorityName
      * @param projection    the name of the projection to use, or {@code null}.
