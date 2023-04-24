@@ -10,10 +10,10 @@ package org.dspace.app.bulkimport.service;
 import java.util.Iterator;
 
 import org.apache.poi.ss.usermodel.Workbook;
-import org.dspace.app.bulkimport.converter.ItemDTOConverter;
 import org.dspace.app.bulkimport.model.EntityRow;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.converter.ItemDTOConverter;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.core.Context;
 

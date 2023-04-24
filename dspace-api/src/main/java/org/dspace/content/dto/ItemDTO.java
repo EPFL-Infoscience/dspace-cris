@@ -10,6 +10,15 @@ package org.dspace.content.dto;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This class acts as Data transfer object in which we can store data like in a
+ * regular Item object, but this one isn't saved in the DB. This can freely be
+ * used to represent Item without it being saved in the database, this will
+ * typically be used when transferring data.
+ *
+ * @author Luca Giamminonni (luca.giamminonni at 4Science)
+ *
+ */
 public class ItemDTO {
 
     private final String id;

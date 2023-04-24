@@ -11,6 +11,15 @@ import java.util.Date;
 
 import org.dspace.authorize.ResourcePolicy;
 
+/**
+ * This class acts as Data transfer object in which we can store data like in a
+ * regular ResourcePolicy object, but this one isn't saved in the DB. This can
+ * freely be used to represent ResourcePolicy without it being saved in the
+ * database, this will typically be used when transferring data.
+ *
+ * @author Luca Giamminonni (luca.giamminonni at 4Science)
+ *
+ */
 public class ResourcePolicyDTO {
 
     private String name;

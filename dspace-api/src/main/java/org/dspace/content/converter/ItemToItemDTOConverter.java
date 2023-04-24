@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.bulkimport.converter;
+package org.dspace.content.converter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -27,6 +27,13 @@ import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Implementation of {@link ItemDTOConverter} that converts an instance of
+ * {@link Item} to an instance of {@link ItemDTO}.
+ * 
+ * @author Luca Giamminonni (luca.giamminonni at 4Science)
+ *
+ */
 public class ItemToItemDTOConverter implements ItemDTOConverter<Item> {
 
     private static final String BITSTREAM_URL_FORMAT = "%s/api/core/bitstreams/%s/content";

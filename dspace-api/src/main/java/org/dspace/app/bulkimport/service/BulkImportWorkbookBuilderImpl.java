@@ -24,14 +24,11 @@ import static org.dspace.app.bulkedit.BulkImport.PARENT_ID_HEADER;
 
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -45,14 +42,14 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.app.bulkedit.BulkImport;
-import org.dspace.app.bulkimport.converter.ItemDTOConverter;
-import org.dspace.app.bulkimport.converter.ItemToItemDTOConverter;
 import org.dspace.app.bulkimport.model.BulkImportSheet;
 import org.dspace.app.bulkimport.model.BulkImportWorkbook;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.converter.ItemDTOConverter;
+import org.dspace.content.converter.ItemToItemDTOConverter;
 import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
@@ -112,7 +109,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
     }
 
     @Override
-    public Workbook build(Context context, Collection collection, Iterator<ItemDTO> entities) {
+    public Workbook build(Context context, Collection collection, Iterator<ItemDTO> items) {
 
         Workbook workbook = new XSSFWorkbook();
 
@@ -122,7 +119,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
 
         BulkImportWorkbook bulkImportWorkbook = new BulkImportWorkbook(mainSheet, nestedSheets, bitstreamSheet);
 
-        writeWorkbookContent(entities, bulkImportWorkbook);
+        writeWorkbookContent(items, bulkImportWorkbook);
 
         autoSizeColumns(bulkImportWorkbook.getAllSheets());
 
@@ -172,11 +169,11 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         return bitstreamSheet;
     }
 
-    private void writeWorkbookContent(Iterator<ItemDTO> entities, BulkImportWorkbook workbook) {
+    private void writeWorkbookContent(Iterator<ItemDTO> items, BulkImportWorkbook workbook) {
 
-        while (entities.hasNext()) {
+        while (items.hasNext()) {
 
-            ItemDTO item = entities.next();
+            ItemDTO item = items.next();
 
             writeMainSheet(item, workbook.getMainSheet());
             workbook.getNestedMetadataSheets().forEach(sheet -> writeNestedMetadataSheet(item, sheet));
@@ -209,35 +206,28 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
     }
 
     private void writeNestedMetadataSheet(ItemDTO item, BulkImportSheet nestedMetadataSheet) {
+
         String groupName = nestedMetadataSheet.getSheet().getSheetName();
         int groupSize = getMetadataGroupSize(item, groupName);
-        List<String> headers = nestedMetadataSheet.getHeaders();
 
-        Map<String, List<MetadataValueDTO>> metadataValues = new HashMap<>();
+        for (int groupIndex = 0; groupIndex < groupSize; groupIndex++) {
+            writeNestedMetadataRow(item, nestedMetadataSheet, groupIndex);
+        }
 
-        IntStream.range(0, groupSize).forEach(
-            groupIndex -> writeNestedMetadataRow(item, nestedMetadataSheet, metadataValues, headers, groupIndex));
     }
 
-    private void writeNestedMetadataRow(ItemDTO item, BulkImportSheet nestedMetadataSheet,
-        Map<String, List<MetadataValueDTO>> metadataValues, List<String> headers, int groupIndex) {
+    private void writeNestedMetadataRow(ItemDTO item, BulkImportSheet nestedMetadataSheet, int groupIndex) {
 
         nestedMetadataSheet.appendRow();
 
-        for (String header : headers) {
+        for (String header : nestedMetadataSheet.getHeaders()) {
 
             if (header.equals(PARENT_ID_HEADER)) {
                 nestedMetadataSheet.setValueOnLastRow(header, item.getId());
                 continue;
             }
 
-            List<MetadataValueDTO> metadata = null;
-            if (metadataValues.containsKey(header)) {
-                metadata = metadataValues.get(header);
-            } else {
-                metadata = item.getMetadataValues(header);
-                metadataValues.put(header, metadata);
-            }
+            List<MetadataValueDTO> metadata = item.getMetadataValues(header);
 
             if (metadata.size() <= groupIndex) {
                 LOGGER.warn("The cardinality of group with nested metadata " + header + " is inconsistent "

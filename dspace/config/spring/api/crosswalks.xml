@@ -714,7 +714,7 @@
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLNestedGenerator" />
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLWebServiceGenerator" />
     
-    <bean class="org.dspace.app.bulkimport.converter.ItemToItemDTOConverter" />
+    <bean class="org.dspace.content.converter.ItemToItemDTOConverter" />
     <bean class="org.dspace.app.bulkimport.service.BulkImportWorkbookBuilderImpl" />
 
 </beans>
