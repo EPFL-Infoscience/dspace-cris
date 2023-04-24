@@ -7,11 +7,10 @@
  */
 package org.dspace.app.bulkimport.converter;
 
-import org.dspace.app.bulkimport.model.EntityRow;
-import org.dspace.content.Collection;
+import org.dspace.content.dto.ItemDTO;
 import org.dspace.core.Context;
 
-public interface EntityRowConverter<T> {
+public interface ItemDTOConverter<T> {
 
-    EntityRow convert(Context context, Collection collection, T source);
+    ItemDTO convert(Context context, T source);
 }

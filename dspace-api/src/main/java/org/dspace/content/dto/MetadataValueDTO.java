@@ -8,6 +8,7 @@
 package org.dspace.content.dto;
 
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
@@ -89,6 +90,10 @@ public class MetadataValueDTO {
         this.element = metadata.getElement();
         this.qualifier = metadata.getQualifier();
         this.value = metadata.getValue();
+    }
+
+    public String getMetadataField() {
+        return new MetadataFieldName(schema, element, qualifier).toString();
     }
 
     public String getSchema() {

@@ -7,9 +7,14 @@
  */
 package org.dspace.app.bulkimport.service;
 
-import static org.apache.commons.lang3.StringUtils.split;
+import static com.google.common.collect.Iterators.transform;
+import static org.dspace.app.bulkedit.BulkImport.ACCESS_CONDITION_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.ADDITIONAL_ACCESS_CONDITION_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.BITSTREAMS_SHEET_NAME;
+import static org.dspace.app.bulkedit.BulkImport.BITSTREAM_POSITION_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.BUNDLE_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.DISCOVERABLE_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.FILE_PATH_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.ID_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_PREFIX;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_SUFFIX;
@@ -17,33 +22,50 @@ import static org.dspace.app.bulkedit.BulkImport.METADATA_ATTRIBUTES_SEPARATOR;
 import static org.dspace.app.bulkedit.BulkImport.METADATA_SEPARATOR;
 import static org.dspace.app.bulkedit.BulkImport.PARENT_ID_HEADER;
 
-import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 
-import com.google.common.collect.Iterators;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.app.bulkedit.BulkImport;
-import org.dspace.app.bulkimport.converter.EntityRowConverter;
+import org.dspace.app.bulkimport.converter.ItemDTOConverter;
+import org.dspace.app.bulkimport.converter.ItemToItemDTOConverter;
 import org.dspace.app.bulkimport.model.BulkImportSheet;
 import org.dspace.app.bulkimport.model.BulkImportWorkbook;
-import org.dspace.app.bulkimport.model.EntityRow;
-import org.dspace.app.bulkimport.model.MetadataGroup;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.content.Collection;
-import org.dspace.content.vo.MetadataValueVO;
+import org.dspace.content.Item;
+import org.dspace.content.dto.BitstreamDTO;
+import org.dspace.content.dto.ItemDTO;
+import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.dto.ResourcePolicyDTO;
+import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.core.CrisConstants;
+import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.submit.model.AccessConditionOption;
+import org.dspace.submit.model.UploadConfiguration;
+import org.dspace.submit.model.UploadConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.datetime.DateFormatter;
 
 /**
  * Implementation of {@link BulkImportWorkbookBuilder}.
@@ -52,6 +74,19 @@ import org.dspace.core.CrisConstants;
  *
  */
 public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder {
+
+    private static final Logger LOGGER = LogManager.getLogger(BulkImportWorkbookBuilderImpl.class);
+
+    private static final DateFormatter DATE_FORMATTER = new DateFormatter("yyyy-MM-dd");
+
+    @Autowired
+    private UploadConfigurationService uploadConfigurationService;
+
+    @Autowired
+    private ItemToItemDTOConverter itemToItemDTOConverter;
+
+    @Autowired
+    private CollectionService collectionService;
 
     private DCInputsReader reader;
 
@@ -65,39 +100,37 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
     }
 
     @Override
-    public <T> Workbook build(Context context, Collection collection, Iterator<T> sources,
-        EntityRowConverter<T> converter) {
-
-        Iterator<EntityRow> entityRowIterator = Iterators.transform(sources,
-            source -> converter.convert(context, collection, source));
-
-        return build(context, collection, entityRowIterator);
+    public <T> Workbook build(Context ctx, Collection collection, Iterator<T> sources, ItemDTOConverter<T> converter) {
+        Iterator<ItemDTO> itemIterator = transform(sources, source -> converter.convert(ctx, source));
+        return build(ctx, collection, itemIterator);
     }
 
     @Override
-    public Workbook build(Context context, Collection collection, Iterator<EntityRow> entities) {
-
-        try (Workbook workbook = new XSSFWorkbook()) {
-
-            BulkImportSheet mainSheet = writeMainSheetHeader(context, collection, workbook);
-            List<BulkImportSheet> nestedMetadataSheets = writeNestedMetadataSheetsHeader(collection, workbook);
-            BulkImportSheet bitstreamSheet = writeBitstreamSheetHeader(collection, workbook);
-
-            BulkImportWorkbook bulkImportWorkbook = new BulkImportWorkbook(mainSheet,
-                nestedMetadataSheets, bitstreamSheet);
-
-            writeWorkbookContent(context, entities, bulkImportWorkbook);
-
-            autoSizeColumns(bulkImportWorkbook.getAllSheets());
-
-            return workbook;
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public Workbook buildForItems(Context context, Collection collection, Iterator<Item> items) {
+        Iterator<ItemDTO> itemIterator = transform(items, item -> convertItem(context, collection, item));
+        return build(context, collection, itemIterator);
     }
 
-    private BulkImportSheet writeMainSheetHeader(Context context, Collection collection, Workbook workbook) {
+    @Override
+    public Workbook build(Context context, Collection collection, Iterator<ItemDTO> entities) {
+
+        Workbook workbook = new XSSFWorkbook();
+
+        BulkImportSheet mainSheet = writeMainSheetHeader(collection, workbook);
+        List<BulkImportSheet> nestedSheets = writeNestedMetadataSheetsHeader(collection, workbook);
+        BulkImportSheet bitstreamSheet = writeBitstreamSheetHeader(collection, workbook);
+
+        BulkImportWorkbook bulkImportWorkbook = new BulkImportWorkbook(mainSheet, nestedSheets, bitstreamSheet);
+
+        writeWorkbookContent(entities, bulkImportWorkbook);
+
+        autoSizeColumns(bulkImportWorkbook.getAllSheets());
+
+        return workbook;
+
+    }
+
+    private BulkImportSheet writeMainSheetHeader(Collection collection, Workbook workbook) {
         BulkImportSheet mainSheet = new BulkImportSheet(workbook, "items", false, collection);
         mainSheet.appendHeader(ID_HEADER);
         mainSheet.appendHeader(DISCOVERABLE_HEADER);
@@ -139,21 +172,21 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         return bitstreamSheet;
     }
 
-    private void writeWorkbookContent(Context context, Iterator<EntityRow> entities, BulkImportWorkbook workbook) {
+    private void writeWorkbookContent(Iterator<ItemDTO> entities, BulkImportWorkbook workbook) {
 
         while (entities.hasNext()) {
 
-            EntityRow entity = entities.next();
+            ItemDTO item = entities.next();
 
-            writeMainSheet(context, entity, workbook.getMainSheet());
-            writeNestedMetadataSheets(context, entity, workbook);
-            writeBitstreamSheet(context, entity, workbook.getBitstreamSheet());
+            writeMainSheet(item, workbook.getMainSheet());
+            workbook.getNestedMetadataSheets().forEach(sheet -> writeNestedMetadataSheet(item, sheet));
+            writeBitstreamSheet(item, workbook.getBitstreamSheet());
 
         }
 
     }
 
-    private void writeMainSheet(Context context, EntityRow entity, BulkImportSheet mainSheet) {
+    private void writeMainSheet(ItemDTO item, BulkImportSheet mainSheet) {
 
         mainSheet.appendRow();
 
@@ -161,56 +194,141 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         for (String header : headers) {
 
             if (header.equals(ID_HEADER)) {
-                mainSheet.setValueOnLastRow(header, entity.getId().toString());
+                mainSheet.setValueOnLastRow(header, item.getId().toString());
                 continue;
             }
 
             if (header.equals(DISCOVERABLE_HEADER)) {
-                mainSheet.setValueOnLastRow(header, entity.getDiscoverableValue());
+                mainSheet.setValueOnLastRow(header, item.isDiscoverable() ? "Y" : "N");
                 continue;
             }
 
-            entity.getMetadata(header).forEach(value -> writeMetadataValue(mainSheet, header, value));
+            item.getMetadataValues(header).forEach(value -> writeMetadataValue(mainSheet, header, value));
         }
 
     }
 
-    private void writeNestedMetadataSheets(Context context, EntityRow entity, BulkImportWorkbook workbook) {
+    private void writeNestedMetadataSheet(ItemDTO item, BulkImportSheet nestedMetadataSheet) {
+        String groupName = nestedMetadataSheet.getSheet().getSheetName();
+        int groupSize = getMetadataGroupSize(item, groupName);
+        List<String> headers = nestedMetadataSheet.getHeaders();
 
-        for (MetadataGroup metadataGroup : entity.getMetadataGroups()) {
+        Map<String, List<MetadataValueDTO>> metadataValues = new HashMap<>();
 
-            String metadataField = metadataGroup.getName();
+        IntStream.range(0, groupSize).forEach(
+            groupIndex -> writeNestedMetadataRow(item, nestedMetadataSheet, metadataValues, headers, groupIndex));
+    }
 
-            BulkImportSheet nestedSheet = workbook.getNestedMetadataSheetByName(metadataField)
-                .orElseThrow(() -> new IllegalArgumentException("The entity " + entity.getId() +
-                    " has a metadata field group " + metadataField + " not supported for the given collection"));
+    private void writeNestedMetadataRow(ItemDTO item, BulkImportSheet nestedMetadataSheet,
+        Map<String, List<MetadataValueDTO>> metadataValues, List<String> headers, int groupIndex) {
 
-            writeNestedMetadataSheet(context, metadataGroup, nestedSheet);
+        nestedMetadataSheet.appendRow();
+
+        for (String header : headers) {
+
+            if (header.equals(PARENT_ID_HEADER)) {
+                nestedMetadataSheet.setValueOnLastRow(header, item.getId());
+                continue;
+            }
+
+            List<MetadataValueDTO> metadata = null;
+            if (metadataValues.containsKey(header)) {
+                metadata = metadataValues.get(header);
+            } else {
+                metadata = item.getMetadataValues(header);
+                metadataValues.put(header, metadata);
+            }
+
+            if (metadata.size() <= groupIndex) {
+                LOGGER.warn("The cardinality of group with nested metadata " + header + " is inconsistent "
+                    + "for item with id " + item.getId());
+                continue;
+            }
+
+            writeMetadataValue(nestedMetadataSheet, header, metadata.get(groupIndex));
 
         }
 
     }
 
-    private void writeNestedMetadataSheet(Context context, MetadataGroup metadataGroup, BulkImportSheet nestedSheet) {
+    private void writeBitstreamSheet(ItemDTO item, BulkImportSheet sheet) {
+        for (BitstreamDTO bitstream : item.getBitstreams()) {
+            writeBitstreamRow(sheet, item, bitstream);
+        }
+    }
 
-        nestedSheet.appendRow();
+    private void writeBitstreamRow(BulkImportSheet bitstreamSheet, ItemDTO item, BitstreamDTO bitstream) {
+        bitstreamSheet.appendRow();
+        writeBitstreamBaseValues(bitstreamSheet, item, bitstream);
+        writeBitstreamMetadataValues(bitstreamSheet, bitstream);
+    }
 
-        Map<String, MetadataValueVO> metadata = metadataGroup.getMetadata();
+    private void writeBitstreamMetadataValues(BulkImportSheet bitstreamSheet, BitstreamDTO bitstream) {
+        for (String header : bitstreamSheet.getHeaders()) {
+            if (isBitstreamMetadataFieldHeader(header)) {
+                bitstream.getMetadataValues(header)
+                    .forEach(value -> writeMetadataValue(bitstreamSheet, header, value));
+            }
+        }
+    }
 
-        for (String metadataField : metadata.keySet()) {
-            writeMetadataValue(nestedSheet, metadataField, metadata.get(metadataField));
+    private void writeBitstreamBaseValues(BulkImportSheet bitstreamSheet, ItemDTO item, BitstreamDTO bitstream) {
+        bitstreamSheet.setValueOnLastRow(PARENT_ID_HEADER, item.getId());
+        bitstreamSheet.setValueOnLastRow(FILE_PATH_HEADER, bitstream.getLocation());
+        bitstreamSheet.setValueOnLastRow(BUNDLE_HEADER, bitstream.getBundleName());
+        bitstreamSheet.setValueOnLastRow(BITSTREAM_POSITION_HEADER, String.valueOf(bitstream.getPosition()));
+        bitstreamSheet.setValueOnLastRow(ACCESS_CONDITION_HEADER, getCustomResourcePolicies(bitstream));
+        bitstreamSheet.setValueOnLastRow(ADDITIONAL_ACCESS_CONDITION_HEADER, "N");
+    }
+
+    private String getCustomResourcePolicies(BitstreamDTO bitstream) {
+        List<AccessConditionOption> uploadAccessConditions = getUploadAccessConditionOptionNames();
+        List<ResourcePolicyDTO> resourcePolicies = bitstream.getResourcePolicies();
+        return composeResourcePolicies(resourcePolicies, uploadAccessConditions);
+    }
+
+    private String composeResourcePolicies(List<ResourcePolicyDTO> policies, List<AccessConditionOption> options) {
+        return policies.stream()
+            .flatMap(resourcePolicy -> formatResourcePolicy(resourcePolicy, options).stream())
+            .collect(Collectors.joining(BulkImport.METADATA_SEPARATOR));
+    }
+
+    private Optional<String> formatResourcePolicy(ResourcePolicyDTO policy, List<AccessConditionOption> options) {
+        return getAccessConditionByName(options, policy.getName())
+            .map(accessConditionOption -> formaResourcePolicy(policy, accessConditionOption));
+    }
+
+    private String formaResourcePolicy(ResourcePolicyDTO policy, AccessConditionOption accessConditionOption) {
+
+        String resourcePolicyAsString = policy.getName();
+
+        Date startDate = policy.getStartDate();
+        if (accessConditionOption.getHasStartDate() && startDate != null) {
+            resourcePolicyAsString += BulkImport.ACCESS_CONDITION_ATTRIBUTES_SEPARATOR + formatDate(startDate);
         }
 
+        Date endDate = policy.getEndDate();
+        if (accessConditionOption.getHasEndDate() && endDate != null) {
+            resourcePolicyAsString += BulkImport.ACCESS_CONDITION_ATTRIBUTES_SEPARATOR + formatDate(endDate);
+        }
+
+        String description = policy.getDescription();
+        if (StringUtils.isNotBlank(description)) {
+            resourcePolicyAsString += BulkImport.ACCESS_CONDITION_ATTRIBUTES_SEPARATOR + description;
+        }
+
+        return resourcePolicyAsString;
     }
 
-    private void writeBitstreamSheet(Context context, EntityRow entity, BulkImportSheet bitstreamSheet) {
-        // TODO Auto-generated method stub
-
+    private Optional<AccessConditionOption> getAccessConditionByName(List<AccessConditionOption> options, String name) {
+        return options.stream()
+            .filter(accessConditionOption -> accessConditionOption.getName().equals(name))
+            .findFirst();
     }
 
-    private void writeMetadataValue(BulkImportSheet sheet, String header, MetadataValueVO metadataValue) {
+    private void writeMetadataValue(BulkImportSheet sheet, String header, MetadataValueDTO metadataValue) {
 
-        String language = getMetadataLanguage(header);
+        String language = metadataValue.getLanguage();
         if (StringUtils.isBlank(language)) {
             sheet.appendValueOnLastRow(header, formatMetadataValue(metadataValue), METADATA_SEPARATOR);
             return;
@@ -224,14 +342,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
 
     }
 
-    private String getMetadataLanguage(String field) {
-        if (field.contains(LANGUAGE_SEPARATOR_PREFIX)) {
-            return split(field, LANGUAGE_SEPARATOR_PREFIX)[1].replace(LANGUAGE_SEPARATOR_SUFFIX, "");
-        }
-        return null;
-    }
-
-    private String formatMetadataValue(MetadataValueVO metadata) {
+    private String formatMetadataValue(MetadataValueDTO metadata) {
 
         String value = metadata.getValue();
 
@@ -296,8 +407,64 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         return metadataFields;
     }
 
+    private List<AccessConditionOption> getUploadAccessConditionOptionNames() {
+        UploadConfiguration uploadConfiguration = uploadConfigurationService.getMap().get("upload");
+        if (uploadConfiguration == null) {
+            throw new IllegalStateException("No upload access conditions configuration found");
+        }
+        return uploadConfiguration.getOptions();
+    }
+
+    private String formatDate(Date date) {
+        return DATE_FORMATTER.print(date, Locale.getDefault());
+    }
+
+    private boolean isBitstreamMetadataFieldHeader(String header) {
+        return !ArrayUtils.contains(BulkImport.BITSTREAMS_SHEET_HEADERS, header);
+    }
+
+    private int getMetadataGroupSize(ItemDTO item, String metadataGroupFieldName) {
+        return item.getMetadataValues(metadataGroupFieldName).size();
+    }
+
     private void autoSizeColumns(List<BulkImportSheet> sheets) {
         sheets.forEach(sheet -> autoSizeColumns(sheet.getSheet()));
+    }
+
+    private ItemDTO convertItem(Context context, Collection collection, Item item) {
+
+        if (isNotInCollection(context, item, collection)) {
+            throw new IllegalArgumentException("It is not possible to export items from two different collections: "
+                + "item " + item.getID() + " is not in collection " + collection.getID());
+        }
+
+        ItemDTO itemDTO = itemToItemDTOConverter.convert(context, item);
+
+        try {
+            context.uncacheEntity(item);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+
+        return itemDTO;
+    }
+
+    private boolean isNotInCollection(Context context, Item item, Collection collection) {
+        return !collection.equals(findCollection(context, item));
+    }
+
+    private Collection findCollection(Context context, Item item) {
+        try {
+
+            Collection collection = collectionService.findByItem(context, item);
+            if (collection == null) {
+                throw new IllegalArgumentException("No collection found for item with id: " + item.getID());
+            }
+            return collection;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void autoSizeColumns(Sheet sheet) {

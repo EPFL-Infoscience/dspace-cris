@@ -10,9 +10,11 @@ package org.dspace.app.bulkimport.service;
 import java.util.Iterator;
 
 import org.apache.poi.ss.usermodel.Workbook;
-import org.dspace.app.bulkimport.converter.EntityRowConverter;
+import org.dspace.app.bulkimport.converter.ItemDTOConverter;
 import org.dspace.app.bulkimport.model.EntityRow;
 import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.content.dto.ItemDTO;
 import org.dspace.core.Context;
 
 /**
@@ -34,16 +36,26 @@ public interface BulkImportWorkbookBuilder {
      * @param  converter  the converter between the source and the {@link EntityRow}
      * @return            the workbook
      */
-    <T> Workbook build(Context context, Collection collection, Iterator<T> sources, EntityRowConverter<T> converter);
+    <T> Workbook build(Context context, Collection collection, Iterator<T> sources, ItemDTOConverter<T> converter);
 
     /**
-     * Build a workbook containing the given entities.
+     * Build a workbook containing the given items.
      *
      * @param  context    the DSpace context
      * @param  collection the collection related to the given entities
-     * @param  entities   the entities to be placed inside the generated workbook
+     * @param  items      the items to be placed inside the generated workbook
      * @return            the workbook
      */
-    Workbook build(Context context, Collection collection, Iterator<EntityRow> entities);
+    Workbook build(Context context, Collection collection, Iterator<ItemDTO> items);
+
+    /**
+     * Build a workbook containing the given items.
+     *
+     * @param  context    the DSpace context
+     * @param  collection the collection related to the given entities
+     * @param  items      the items to be placed inside the generated workbook
+     * @return            the workbook
+     */
+    Workbook buildForItems(Context context, Collection collection, Iterator<Item> items);
 
 }
