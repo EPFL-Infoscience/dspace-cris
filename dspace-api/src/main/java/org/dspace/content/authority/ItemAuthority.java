@@ -185,7 +185,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), text,
+            choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), text,
                 onlyExactMatches);
             Choice[] results = new Choice[choiceList.size()];
             results = choiceList.toArray(results);
