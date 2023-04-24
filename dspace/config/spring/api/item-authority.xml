@@ -11,52 +11,34 @@
 	<bean id="itemAuthorityServiceFactory"
 		  class="org.dspace.content.authority.factory.ItemAuthorityServiceFactory">
 
-		<property name="itemAthorityEntityTypeMap">
+		<property name="authorityServiceImplMap">
 			<map>
-			    <!-- Specify here any services to use with the relative entity type -->
-				<entry key="person" value-ref="personItemAuthorityService" />
-				<entry key="default" value-ref="itemAuthorityService" />
-			</map>
-		</property>
-
-	</bean>
-
-	<bean name="personItemAuthorityService" class="org.dspace.content.authority.PersonItemAuthorityService" />
-	<bean name="itemAuthorityService" class="org.dspace.content.authority.ItemAuthorityServiceImpl" />
-
-	<bean id="itemControlledVocabularyFactory"
-		  class="org.dspace.content.authority.factory.ItemControlledVocabularyFactory">
-
-		<property name="entityMapping">
-			<map>
-				<!-- Specify here any Item based controlled vocabulary configuration,
-				  vocabulary names are defined in item.controlled.vocabularies key-->
-				<entry key="orgunits" value-ref="orgunitsControlledVocabulary" />
+			    <!-- Specify here any services to use with the relative authority name -->
+				<entry key="AuthorAuthority" value-ref="personItemAuthorityFilter" />
+				<entry key="EditorAuthority" value-ref="personItemAuthorityFilter" />
+				<entry key="AuthorCoarseMatchAuthority" value-ref="personItemAuthorityCoarseMatchFilter" />
+				<entry key="AuthorStrictMatchAuthority" value-ref="personItemAuthorityStrictMatchFilter" />
+				<entry key="default" value-ref="itemAuthorityFilter" />
 			</map>
 		</property>
 	</bean>
 
-	<bean name="orgunitsControlledVocabulary" class="org.dspace.content.authority.ItemControlledVocabulary">
-		<property name="entityType" value="OrgUnit"/>
-		<property name="parentQuery" value="entityType:OrgUnit AND -organization.parentOrganization:*"/>
-		<property name="childrenQuery" value="organization.parentOrganization_authority:{0}"/>
-		<!-- Value mapping -->
-		<property name="parentMetadata" value="organization.parentOrganization"/>
-		<property name="selectableMetadata" value=""/>
-		<property name="labelMetadata" value="dc.title"/>
-		<property name="authorityMetadata" value=""/>
-		<property name="extraValuesMapper" ref="orgunitsExtraValuesMapper"/>
-		<!-- <field_name> <order> - If empty no sorting is made -->
-		<property name="sortFieldAndOrder" value="dc.title_sort asc"/>
+	<bean name="personItemAuthorityFilter" class="org.dspace.content.authority.ItemAuthorityServiceImpl" >
+		<property name="customAuthorityFilter" ref="personAuthoritySolrFilter" />
+	</bean>
+	<bean name="personItemAuthorityCoarseMatchFilter" class="org.dspace.content.authority.ItemAuthorityServiceImpl" >
+		<property name="customAuthorityFilter" ref="personCoarseCustomSolrFilter" />
+	</bean>
+	<bean name="personItemAuthorityStrictMatchFilter" class="org.dspace.content.authority.ItemAuthorityServiceImpl" >
+		<property name="customAuthorityFilter" ref="personStrictCustomSolrFilter" />
+	</bean>
+	<bean name="itemAuthorityFilter" class="org.dspace.content.authority.ItemAuthorityServiceImpl">
+		<property name="customAuthorityFilter" ref="itemAuthorityCustomSolrFilter" />
 	</bean>
 
-	<bean name="orgunitsExtraValuesMapper" class="org.dspace.content.authority.mapper.impl.SimpleMetadataMapper">
-		<property name="extraValues">
-			<map>
-				<entry key="display" value="dc.title" />
-				<entry key="note" value="dc.description.abstract" />
-			</map>
-		</property>
-	</bean>
+	<bean name="itemAuthorityCustomSolrFilter" class="org.dspace.content.authority.ItemAuthorityCustomSolrFilterImpl" />
+	<bean name="personAuthoritySolrFilter" class="org.dspace.content.authority.PersonAuthoritySolrFilterImpl" />
+	<bean name="personStrictCustomSolrFilter" class="org.dspace.content.authority.PersonStrictCustomSolrFilterImpl" />
+	<bean name="personCoarseCustomSolrFilter" class="org.dspace.content.authority.PersonCoarseCustomSolrFilterImpl" />
 
 </beans>
