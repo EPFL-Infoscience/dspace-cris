@@ -266,9 +266,13 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         bitstreamSheet.setValueOnLastRow(PARENT_ID_HEADER, item.getId());
         bitstreamSheet.setValueOnLastRow(FILE_PATH_HEADER, bitstream.getLocation());
         bitstreamSheet.setValueOnLastRow(BUNDLE_HEADER, bitstream.getBundleName());
-        bitstreamSheet.setValueOnLastRow(BITSTREAM_POSITION_HEADER, String.valueOf(bitstream.getPosition()));
+        bitstreamSheet.setValueOnLastRow(BITSTREAM_POSITION_HEADER, getBitstreamPosition(bitstream));
         bitstreamSheet.setValueOnLastRow(ACCESS_CONDITION_HEADER, getCustomResourcePolicies(bitstream));
         bitstreamSheet.setValueOnLastRow(ADDITIONAL_ACCESS_CONDITION_HEADER, "N");
+    }
+
+    private String getBitstreamPosition(BitstreamDTO bitstream) {
+        return bitstream.getPosition() != null ? String.valueOf(bitstream.getPosition()) : "";
     }
 
     private String getCustomResourcePolicies(BitstreamDTO bitstream) {

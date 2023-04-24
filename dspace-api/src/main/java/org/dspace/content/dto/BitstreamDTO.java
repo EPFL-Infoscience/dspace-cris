@@ -7,6 +7,8 @@
  */
 package org.dspace.content.dto;
 
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +25,7 @@ public class BitstreamDTO {
 
     private final String bundleName;
 
-    private final int position;
+    private final Integer position;
 
     private final String location;
 
@@ -31,13 +33,22 @@ public class BitstreamDTO {
 
     private final List<ResourcePolicyDTO> resourcePolicies;
 
-    public BitstreamDTO(String bundleName, int position, String location, List<MetadataValueDTO> metadataValues,
+    public BitstreamDTO(String bundleName, String location, List<MetadataValueDTO> metadataValues) {
+        this(bundleName, null, location, metadataValues, List.of());
+    }
+
+    public BitstreamDTO(String bundleName, String location, List<MetadataValueDTO> metadataValues,
+        List<ResourcePolicyDTO> resourcePolicies) {
+        this(bundleName, null, location, metadataValues, resourcePolicies);
+    }
+
+    public BitstreamDTO(String bundleName, Integer position, String location, List<MetadataValueDTO> metadataValues,
         List<ResourcePolicyDTO> resourcePolicies) {
         this.bundleName = bundleName;
         this.position = position;
         this.location = location;
-        this.metadataValues = metadataValues;
-        this.resourcePolicies = resourcePolicies;
+        this.metadataValues = emptyIfNull(metadataValues);
+        this.resourcePolicies = emptyIfNull(resourcePolicies);
     }
 
     public String getBundleName() {
@@ -46,6 +57,10 @@ public class BitstreamDTO {
 
     public String getLocation() {
         return location;
+    }
+
+    public Integer getPosition() {
+        return position;
     }
 
     public List<MetadataValueDTO> getMetadataValues() {
@@ -60,10 +75,6 @@ public class BitstreamDTO {
         return metadataValues.stream()
             .filter(metadataValue -> metadataValue.getMetadataField().equals(metadataField))
             .collect(Collectors.toList());
-    }
-
-    public int getPosition() {
-        return position;
     }
 
 }

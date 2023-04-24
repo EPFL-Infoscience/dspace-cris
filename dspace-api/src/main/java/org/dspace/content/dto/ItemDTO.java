@@ -7,6 +7,8 @@
  */
 package org.dspace.content.dto;
 
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,12 +35,16 @@ public class ItemDTO {
         this(id, true, metadataValues, List.of());
     }
 
+    public ItemDTO(String id, List<MetadataValueDTO> metadataValues, List<BitstreamDTO> bitstreams) {
+        this(id, true, metadataValues, bitstreams);
+    }
+
     public ItemDTO(String id, boolean discoverable, List<MetadataValueDTO> metadataValues,
         List<BitstreamDTO> bitstreams) {
         this.id = id;
         this.discoverable = discoverable;
-        this.metadataValues = metadataValues;
-        this.bitstreams = bitstreams;
+        this.metadataValues = emptyIfNull(metadataValues);
+        this.bitstreams = emptyIfNull(bitstreams);
     }
 
     public List<MetadataValueDTO> getMetadataValues(String metadataField) {
