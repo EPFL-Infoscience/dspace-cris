@@ -40,7 +40,6 @@ import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.orcid.jaxb.model.v3.release.search.expanded.ExpandedSearch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -640,7 +639,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
         context.turnOffAuthorisationSystem();
 
         configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
-                                         new String[] { "org.dspace.content.authority.ItemAuthority = PersonAuthority" });
+                                 new String[] { "org.dspace.content.authority.ItemAuthority = PersonAuthority" });
         configurationService.setProperty("choices.plugin.dc.contributor.author", "PersonAuthority");
         configurationService.setProperty("choices.presentation.dc.contributor.author", "suggest");
         configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
