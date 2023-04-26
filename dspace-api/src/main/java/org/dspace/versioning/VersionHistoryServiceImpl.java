@@ -18,7 +18,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.dao.VersionHistoryDAO;
 import org.dspace.versioning.service.VersionHistoryService;

@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.dspace.app.rest.authorization.impl.CanCreateVersionFeature;
 import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.matcher.AuthorizationMatcher;
-import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.projection.Projection;
