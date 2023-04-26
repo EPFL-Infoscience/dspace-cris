@@ -47,7 +47,8 @@ public class ItemToItemDTOConverter implements ItemDTOConverter<Item> {
         String id = item.getID().toString();
         List<MetadataValueDTO> metadataValues = getMetadataValues(item);
         List<BitstreamDTO> bitstreams = getBitstreams(context, item);
-        return new ItemDTO(id, item.isDiscoverable(), metadataValues, bitstreams);
+        String submitter = item.getSubmitter() != null ? item.getSubmitter().getEmail() : null;
+        return new ItemDTO(id, submitter, item.isDiscoverable(), metadataValues, bitstreams);
     }
 
     private List<MetadataValueDTO> getMetadataValues(DSpaceObject dso) {

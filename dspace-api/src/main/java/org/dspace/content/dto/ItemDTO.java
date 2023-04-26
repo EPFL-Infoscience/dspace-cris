@@ -25,6 +25,8 @@ public class ItemDTO {
 
     private final String id;
 
+    private final String submitter;
+
     private final boolean discoverable;
 
     private final List<MetadataValueDTO> metadataValues;
@@ -32,16 +34,17 @@ public class ItemDTO {
     private final List<BitstreamDTO> bitstreams;
 
     public ItemDTO(String id, List<MetadataValueDTO> metadataValues) {
-        this(id, true, metadataValues, List.of());
+        this(id, null, true, metadataValues, List.of());
     }
 
     public ItemDTO(String id, List<MetadataValueDTO> metadataValues, List<BitstreamDTO> bitstreams) {
-        this(id, true, metadataValues, bitstreams);
+        this(id, null, true, metadataValues, bitstreams);
     }
 
-    public ItemDTO(String id, boolean discoverable, List<MetadataValueDTO> metadataValues,
+    public ItemDTO(String id, String submitter, boolean discoverable, List<MetadataValueDTO> metadataValues,
         List<BitstreamDTO> bitstreams) {
         this.id = id;
+        this.submitter = submitter;
         this.discoverable = discoverable;
         this.metadataValues = emptyIfNull(metadataValues);
         this.bitstreams = emptyIfNull(bitstreams);
@@ -67,6 +70,10 @@ public class ItemDTO {
 
     public List<BitstreamDTO> getBitstreams() {
         return bitstreams;
+    }
+
+    public String getSubmitter() {
+        return submitter;
     }
 
 }

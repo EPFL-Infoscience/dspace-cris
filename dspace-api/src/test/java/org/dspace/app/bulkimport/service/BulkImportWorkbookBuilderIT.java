@@ -170,7 +170,7 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
         bitstreams.add(new BitstreamDTO("MY BUNDLE", storeInTempLocation("Fourth bitstream content"),
             List.of(new MetadataValueDTO("dc", "title", null, "Bitstream 4")), policies));
 
-        ItemDTO secondItemDTO = new ItemDTO("DOI::98765", false, metadata, bitstreams);
+        ItemDTO secondItemDTO = new ItemDTO("DOI::98765", null, false, metadata, bitstreams);
 
         Workbook workbook = builder.build(context, publications, List.of(firstItemDTO, secondItemDTO).iterator());
 

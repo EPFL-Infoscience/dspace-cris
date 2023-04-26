@@ -21,6 +21,7 @@ import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_SUFFIX;
 import static org.dspace.app.bulkedit.BulkImport.METADATA_ATTRIBUTES_SEPARATOR;
 import static org.dspace.app.bulkedit.BulkImport.METADATA_SEPARATOR;
 import static org.dspace.app.bulkedit.BulkImport.PARENT_ID_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.SUBMITTER_HEADER;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -133,6 +134,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         BulkImportSheet mainSheet = new BulkImportSheet(workbook, "items", false, collection);
         mainSheet.appendHeader(ID_HEADER);
         mainSheet.appendHeader(DISCOVERABLE_HEADER);
+        mainSheet.appendHeader(SUBMITTER_HEADER);
         List<String> metadataFields = getSubmissionFormMetadata(collection);
         for (String metadataField : metadataFields) {
             mainSheet.appendHeaderIfNotPresent(metadataField);
@@ -198,6 +200,11 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
 
             if (header.equals(DISCOVERABLE_HEADER)) {
                 mainSheet.setValueOnLastRow(header, item.isDiscoverable() ? "Y" : "N");
+                continue;
+            }
+
+            if (header.equals(SUBMITTER_HEADER)) {
+                mainSheet.setValueOnLastRow(header, item.getSubmitter());
                 continue;
             }
 
