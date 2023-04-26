@@ -7,44 +7,31 @@
  */
 package org.dspace.epfl.script;
 
-import static org.dspace.content.Item.ANY;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.dspace.app.bulkimport.exception.BulkImportException;
+import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilder;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
-import org.dspace.content.Item;
-import org.dspace.content.MetadataFieldName;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.WorkspaceItem;
+import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
-import org.dspace.content.service.InstallItemService;
-import org.dspace.content.service.ItemService;
-import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResult;
-import org.dspace.discovery.IndexableObject;
-import org.dspace.discovery.SearchService;
-import org.dspace.discovery.SearchServiceException;
-import org.dspace.discovery.SearchUtils;
-import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.epfl.script.model.OrgUnitTSV;
@@ -57,7 +44,8 @@ import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScriptConfiguration<OrgUnitTSVImportScript>> {
+public class OrgUnitTSVImportScript
+    extends DSpaceRunnable<OrgUnitTSVImportScriptConfiguration<OrgUnitTSVImportScript>> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrgUnitTSVImportScript.class);
 
@@ -69,14 +57,7 @@ public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScrip
 
     private ConfigurationService configurationService;
 
-    private SearchService searchService;
-
-    private ItemService itemService;
-
-    private WorkspaceItemService workspaceItemService;
-
-    private InstallItemService installItemService;
-
+    private BulkImportWorkbookBuilder workbookBuilder;
 
     private String collectionId;
 
@@ -97,13 +78,11 @@ public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScrip
     @Override
     public void setup() throws ParseException {
 
+        this.workbookBuilder = new DSpace().getServiceManager()
+            .getServicesByType(BulkImportWorkbookBuilder.class).get(0);
         this.collectionService = ContentServiceFactory.getInstance().getCollectionService();
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-        this.itemService = ContentServiceFactory.getInstance().getItemService();
-        this.searchService = SearchUtils.getSearchService();
-        this.installItemService = ContentServiceFactory.getInstance().getInstallItemService();
-        this.workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
         this.orgUnitTSVParser = new DSpace().getServiceManager().getServicesByType(OrgUnitTSVParser.class).get(0);
 
         collectionId = commandLine.getOptionValue('c');
@@ -136,7 +115,7 @@ public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScrip
         }
 
         try {
-            performImport(inputStream);
+            buildWorkbook(inputStream);
             context.complete();
             context.restoreAuthSystemState();
         } catch (Exception e) {
@@ -146,92 +125,61 @@ public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScrip
 
     }
 
-    private void performImport(InputStream inputStream) throws IOException {
+    private void buildWorkbook(InputStream inputStream) throws Exception {
+
         OrgUnitTSV orgUnitTSV = orgUnitTSVParser.parseTSV(inputStream);
-        importTSV(orgUnitTSV);
+
+        Workbook workbook = buildWorkbook(orgUnitTSV);
+
+        writeWorkbook(workbook);
+
     }
 
-    private void importTSV(OrgUnitTSV orgUnitTSV) {
+    private Workbook buildWorkbook(OrgUnitTSV orgUnitTSV) {
 
         handler.logInfo("Found " + orgUnitTSV.getRows().size() + " OrgUnits to be imported");
 
-        orgUnitTSV.getRows().forEach(this::importOrgUnitRow);
+        List<ItemDTO> items = readOrgUnits(orgUnitTSV);
 
-        handler.logInfo("Import completed. OrgUnit imported with success: " + importedOrgUnitsCount
+        Workbook workbook = workbookBuilder.build(context, getCollection(), items.iterator());
+
+        handler.logInfo("Import completed. OrgUnits written with success: " + importedOrgUnitsCount
             + ". Errors: " + errorsCount);
+
+        return workbook;
 
     }
 
-    private void importOrgUnitRow(OrgUnitRow orgUnitRow) {
+    private void writeWorkbook(Workbook workbook) throws IOException, SQLException, AuthorizeException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        workbook.write(bos);
+        InputStream is = new ByteArrayInputStream(bos.toByteArray());
+        handler.writeFilestream(context, "orgUnits.xls", is, "application/vnd.ms-excel", false);
+    }
+
+    private List<ItemDTO> readOrgUnits(OrgUnitTSV orgUnitTSV) {
+        return orgUnitTSV.getRows().stream()
+            .flatMap(orgUnitRow -> readOrgUnit(orgUnitRow).stream())
+            .collect(Collectors.toList());
+    }
+
+    private Optional<ItemDTO> readOrgUnit(OrgUnitRow orgUnitRow) {
 
         try {
 
             String orgUnitAcronym = getOrgUnitAcronym(orgUnitRow);
 
-            Item orgUnit = findOrgUnitByAcronym(orgUnitAcronym);
-
-            if (orgUnit == null) {
-                orgUnit = createOrgUnit(orgUnitRow);
-            } else {
-                orgUnit = updateOrgUnit(orgUnit, orgUnitRow);
-            }
+            List<MetadataValueDTO> metadataValues = getMetadataValues(orgUnitRow);
 
             importedOrgUnitsCount++;
 
-            context.commit();
+            return Optional.of(new ItemDTO("ACRONYM::" + orgUnitAcronym, metadataValues));
 
         } catch (Exception ex) {
             handleRowException(orgUnitRow, ex);
+            return Optional.empty();
         }
 
-    }
-
-    @SuppressWarnings("rawtypes")
-    private Item findOrgUnitByAcronym(String orgUnitAcronym) throws SearchServiceException {
-
-        String acronymMetadataField = getOrgUnitAcronymMetadataField();
-        if (StringUtils.isBlank(acronymMetadataField)) {
-            return null;
-        }
-
-        String query = acronymMetadataField + ":" + orgUnitAcronym;
-        DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
-        discoverQuery.addFilterQueries(query);
-
-        DiscoverResult discoverResult = searchService.search(context, discoverQuery);
-
-        List<IndexableObject> indexableObjects = discoverResult.getIndexableObjects();
-
-        if (CollectionUtils.isEmpty(indexableObjects)) {
-            return null;
-        }
-
-        return indexableObjects.stream()
-            .map(indexableObject -> (Item) indexableObject.getIndexedObject())
-            .filter(item -> hasAcronym(item, orgUnitAcronym))
-            .findFirst()
-            .orElse(null);
-    }
-
-    private Item createOrgUnit(OrgUnitRow orgUnitRow) throws AuthorizeException, SQLException {
-
-        WorkspaceItem workspaceItem = workspaceItemService.create(context, getCollection(), true);
-        Item item = workspaceItem.getItem();
-
-        addMetadataValues(orgUnitRow, item);
-
-        item = installItemService.installItem(context, workspaceItem);
-
-        handler.logInfo("Row " + orgUnitRow.getIndex() + " - Imported OrgUnit with acronym "
-            + getOrgUnitAcronym(orgUnitRow) + ". Created item with UUID: " + item.getID());
-
-        return item;
-    }
-
-    private void addMetadataValues(OrgUnitRow orgUnitRow, Item item) throws SQLException {
-        List<MetadataValueDTO> metadataValues = getMetadataValues(orgUnitRow);
-        addMetadataValues(item, metadataValues);
     }
 
     private List<MetadataValueDTO> getMetadataValues(OrgUnitRow orgUnitRow) {
@@ -240,18 +188,6 @@ public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScrip
         } else {
             return getMetadataValuesFromOrgUnitRow(orgUnitRow);
         }
-    }
-
-    private void addMetadataValues(Item item, List<MetadataValueDTO> metadataValues) throws SQLException {
-        for (MetadataValueDTO metadataValue : metadataValues) {
-            itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
-                metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
-                metadataValue.getAuthority(), metadataValue.getConfidence());
-        }
-    }
-
-    private boolean isOrgUnitActive(OrgUnitRow orgUnitRow) {
-        return orgUnitRow.getValue(activeOrgUnitAcronymHeader).isPresent();
     }
 
     private List<MetadataValueDTO> getMetadataValuesFromAPI(OrgUnitRow orgUnitRow) {
@@ -268,39 +204,8 @@ public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScrip
         return null;
     }
 
-    private Item updateOrgUnit(Item item, OrgUnitRow orgUnitRow) throws SQLException, AuthorizeException {
-
-        removeItemMetadataValues(item);
-
-        addMetadataValues(orgUnitRow, item);
-
-        itemService.update(context, item);
-
-        handler.logInfo("Row " + orgUnitRow.getIndex() + " - Imported OrgUnit with acronym "
-            + getOrgUnitAcronym(orgUnitRow) + ". Updated item with UUID: " + item.getID());
-
-        return item;
-    }
-
-    private void removeItemMetadataValues(Item item) throws SQLException {
-
-        Set<String> metadataFieldsToKeep = getMetadataFieldsToKeep();
-
-        List<MetadataValue> metadataToRemove = item.getMetadata().stream()
-            .filter(value -> !metadataFieldsToKeep.contains(value.getMetadataField().toString('.')))
-            .collect(Collectors.toList());
-
-        itemService.removeMetadataValues(context, item, metadataToRemove);
-
-    }
-
-    private Set<String> getMetadataFieldsToKeep() {
-        return Set.of(configurationService.getArrayProperty("epfl.orgunit-import.update.metadata-to-keep"));
-    }
-
-    private boolean hasAcronym(Item item, String acronym) {
-        MetadataFieldName metadataFieldName = new MetadataFieldName(getOrgUnitAcronymMetadataField());
-        return acronym.equals(itemService.getMetadataFirstValue(item, metadataFieldName, ANY));
+    private boolean isOrgUnitActive(OrgUnitRow orgUnitRow) {
+        return orgUnitRow.getValue(activeOrgUnitAcronymHeader).isPresent();
     }
 
     private String getOrgUnitAcronym(OrgUnitRow orgUnitRow) {
@@ -308,10 +213,6 @@ public class OrgUnitTSVImportScript extends DSpaceRunnable<OrgUnitTSVImportScrip
             .or(() -> orgUnitRow.getValue(inactiveOrgUnitAcronymHeader))
             .orElseThrow(() -> new IllegalArgumentException("No acronym found for the given row. Both "
                 + activeOrgUnitAcronymHeader + " and " + inactiveOrgUnitAcronymHeader + " fields are unset"));
-    }
-
-    private String getOrgUnitAcronymMetadataField() {
-        return configurationService.getProperty("epfl.orgunit-import.metadata-fields." + activeOrgUnitAcronymHeader);
     }
 
     private String getActiveOrgUnitAcronymHeader() {
