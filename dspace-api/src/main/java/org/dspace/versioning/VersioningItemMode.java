@@ -1,0 +1,95 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+
+package org.dspace.versioning;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.dspace.content.security.AccessItemMode;
+import org.dspace.content.security.CrisSecurity;
+
+public class VersioningItemMode implements AccessItemMode {
+    private List<CrisSecurity> securities;
+    /**
+     * Contains the list of groups metadata for CUSTOM security or the groups
+     * name/uuid for the GROUP security
+     */
+    private List<String> groups = new ArrayList<String>();
+
+    /**
+     * Contains the list of users metadata for CUSTOM security
+     */
+    private List<String> users = new ArrayList<String>();
+
+    /**
+     * Contains the list of users metadata for CUSTOM security
+     */
+    private List<String> items = new ArrayList<String>();
+
+    @Override
+    public List<CrisSecurity> getSecurities() {
+        return securities;
+    }
+
+    @Override
+    public List<String> getGroupMetadataFields() {
+        return groups;
+    }
+
+    @Override
+    public List<String> getUserMetadataFields() {
+        return users;
+    }
+
+    @Override
+    public List<String> getItemMetadataFields() {
+        return items;
+    }
+
+    @Override
+    public List<String> getGroups() {
+        return groups;
+    }
+
+//    public void setGroupMetadataFields(List<String> groupMetadataFields) {
+//        this.groups = groupMetadataFields;
+//    }
+
+    public void setGroups(List<String> groups) {
+        this.groups = groups;
+    }
+
+//    public void setItemMetadataFields(List<String> itemMetadataFields) {
+//        this.items = itemMetadataFields;
+//    }
+
+    public void setSecurities(List<CrisSecurity> securities) {
+        this.securities = securities;
+    }
+
+//    public void setUserMetadataFields(List<String> userMetadataFields) {
+//        this.userMetadataFields = userMetadataFields;
+//    }
+
+    public List<String> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<String> users) {
+        this.users = users;
+    }
+
+    public List<String> getItems() {
+        return items;
+    }
+
+    public void setItems(List<String> items) {
+        this.items = items;
+    }
+}

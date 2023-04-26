@@ -20,6 +20,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
+import org.dspace.versioning.service.VersioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,9 @@ public class CanCreateVersionFeature implements AuthorizationFeature {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private VersioningService versioningService;
+
     @Override
     @SuppressWarnings("rawtypes")
     public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException {
@@ -60,10 +64,7 @@ public class CanCreateVersionFeature implements AuthorizationFeature {
                 if (authorizeService.isAdmin(context, item)) {
                     return true;
                 }
-                if (configurationService.getBooleanProperty("versioning.submitterCanCreateNewVersion")) {
-                    EPerson submitter = item.getSubmitter();
-                    return Objects.nonNull(submitter) && currentUser.getID().equals(submitter.getID());
-                }
+                return versioningService.canCreateVersion(context, item);
             }
         }
         return false;

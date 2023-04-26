@@ -110,11 +110,10 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
             throw new UnprocessableEntityException("The given URI list could not be properly parsed to one result");
         }
 
-        EPerson submitter = item.getSubmitter();
         boolean isAdmin = authorizeService.isAdmin(context);
-        boolean canCreateVersion = configurationService.getBooleanProperty("versioning.submitterCanCreateNewVersion");
+        boolean canCreateVersion = isAdmin || versioningService.canCreateVersion(context, item);
 
-        if (!isAdmin && !(canCreateVersion && Objects.equals(submitter, context.getCurrentUser()))) {
+        if (!canCreateVersion) {
             throw new AuthorizeException("The logged user doesn't have the rights to create a new version.");
         }
 

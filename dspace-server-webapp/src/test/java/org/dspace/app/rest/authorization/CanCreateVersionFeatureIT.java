@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.dspace.app.rest.authorization.impl.CanCreateVersionFeature;
 import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.matcher.AuthorizationMatcher;
+import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.projection.Projection;
@@ -29,6 +30,7 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
+import org.dspace.util.UUIDUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -144,6 +146,44 @@ public class CanCreateVersionFeatureIT extends AbstractControllerIntegrationTest
                          .andExpect(status().isOk())
                          .andExpect(jsonPath("$.page.totalElements", greaterThan(0)))
                          .andExpect(jsonPath("$._embedded").exists());
+    }
+
+    @Test
+    public void authorItemSuccessTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Collection col = CollectionBuilder.createCollection(context, communityA)
+                                          .withName("Collection 1")
+                                          .withEntityType("Publication")
+                                          .build();
+
+        Collection people = CollectionBuilder.createCollection(context, communityA)
+                                             .withName("People")
+                                             .withEntityType("Person")
+                                             .build();
+
+        Item author = ItemBuilder.createItem(context, people).withFullName("Doe, John")
+                                 .withDspaceObjectOwner(user).build();
+        String authorAuthority = UUIDUtils.toString(author.getID());
+        Item item = ItemBuilder.createItem(context, col)
+                                .withTitle("Public item")
+                                .withIssueDate("2021-04-19")
+                                .withAuthor("Doe, John", authorAuthority, 600)
+                                .withSubject("ExtraEntry")
+                                .build();
+
+        ItemRest itemRest = itemConverter.convert(item, Projection.DEFAULT);
+
+        context.restoreAuthSystemState();
+
+        String userToken = getAuthToken(user.getEmail(), password);
+        getClient(userToken).perform(get("/api/authz/authorizations/search/object")
+                                         .param("embed", "feature")
+                                         .param("feature", feature)
+                                         .param("uri", utils.linkToSingleResource(itemRest, "self").getHref()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.page.totalElements", greaterThan(0)))
+                            .andExpect(jsonPath("$._embedded").exists());
     }
 
     @Test
@@ -346,6 +386,57 @@ public class CanCreateVersionFeatureIT extends AbstractControllerIntegrationTest
 
         getClient(tokenEPerson).perform(get("/api/authz/authorizations/" + eperson2ItemA.getID()))
                                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void authorCanCreateVersionFeatureTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Collection col = CollectionBuilder.createCollection(context, communityA)
+                                          .withName("Collection 1")
+                                          .withEntityType("Publication")
+                                          .build();
+
+        Collection people = CollectionBuilder.createCollection(context, communityA)
+                                          .withName("People")
+                                          .withEntityType("Person")
+                                          .build();
+
+        Item author = ItemBuilder.createItem(context, people).withFullName("Doe, John")
+            .withDspaceObjectOwner(eperson).build();
+        String authorAuthority = UUIDUtils.toString(author.getID());
+        Item itemA = ItemBuilder.createItem(context, col)
+                                .withTitle("Public item")
+                                .withIssueDate("2021-04-19")
+                                .withAuthor("Doe, John", authorAuthority, 600)
+                                .withSubject("ExtraEntry")
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        ItemRest itemRestA = itemConverter.convert(itemA, DefaultProjection.DEFAULT);
+
+        String tokenEPerson = getAuthToken(eperson.getEmail(), password);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        String tokenUser = getAuthToken(user.getEmail(), password);
+
+        // define authorization that we know not exists
+        Authorization user2ItemA = new Authorization(user, canCreateVersionFeature, itemRestA);
+        Authorization admin2ItemA = new Authorization(admin, canCreateVersionFeature, itemRestA);
+        Authorization eperson2ItemA = new Authorization(eperson, canCreateVersionFeature, itemRestA);
+
+        getClient(tokenAdmin).perform(get("/api/authz/authorizations/" + admin2ItemA.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$", Matchers.is(
+                                 AuthorizationMatcher.matchAuthorization(admin2ItemA))));
+
+        getClient(tokenUser).perform(get("/api/authz/authorizations/" + user2ItemA.getID()))
+                            .andExpect(status().isNotFound());
+
+        getClient(tokenEPerson).perform(get("/api/authz/authorizations/" + eperson2ItemA.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$", Matchers.is(
+                                 AuthorizationMatcher.matchAuthorization(eperson2ItemA))));
     }
 
 }
