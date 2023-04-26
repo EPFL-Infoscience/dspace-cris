@@ -8,9 +8,6 @@
 
 package org.dspace.content.authority;
 
-import static org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars;
-import static org.dspace.discovery.SolrServiceBestMatchIndexingPlugin.BEST_MATCH_INDEX;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +36,7 @@ import org.dspace.content.authority.service.ItemAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.NameAwarePlugin;
 import org.dspace.discovery.SearchService;
 import org.dspace.external.factory.ExternalServiceFactory;
 import org.dspace.external.provider.ExternalDataProvider;
@@ -94,6 +92,15 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         return getMatches(text, 0, 2, locale, onlyExactMatches);
     }
 
+    private boolean isForceInternalTitle() {
+        boolean defaultBehaviour = configurationService
+            .getBooleanProperty("cris.ItemAuthority.forceInternalName",
+                true);
+        return configurationService
+            .getBooleanProperty("cris.ItemAuthority." + authorityName + ".forceInternalName",
+                defaultBehaviour);
+    }
+
     /**
      * Match a proposed value against existent DSpace item applying an optional
      * filter query to limit the scope only to specific item types
@@ -144,11 +151,19 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         String query = "";
 
+//        if (onlyExactMatches) {
+//            String valueToMatch = isPersonItemAuthority() ? removeComma(text) : text;
+//            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(valueToMatch);
+//        } else {
+//            ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
+//            query = itemAuthorityService.getSolrQuery(text);
+//        }
+        ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(authorityName);
+
+
         if (onlyExactMatches) {
-            String valueToMatch = isPersonItemAuthority() ? removeComma(text) : text;
-            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(valueToMatch);
+            query = itemAuthorityService.getSolrQueryExactMatch(text);
         } else {
-            ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
             query = itemAuthorityService.getSolrQuery(text);
         }
 
@@ -167,11 +182,16 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            choiceList = getChoiceListFromQueryResults(queryResponse.getResults());
-
+            choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), text,
+                onlyExactMatches);
+            Choice[] results = new Choice[choiceList.size()];
+            results = choiceList.toArray(results);
             long numFound = queryResponse.getResults().getNumFound();
 
-            return buildChoices(choiceList, start, (int) numFound, limit);
+            int confidenceValue = itemAuthorityService.getConfidenceForChoices(results);
+
+            return new Choices(results, start, (int) numFound, confidenceValue,
+                               numFound > (start + limit), 0);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -186,13 +206,19 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         return new Choices(results, start, total, calculateConfidence(results), total > (start + limit), 0);
     }
 
-    private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results) {
+    private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results, String searchTitle,
+        boolean onlyExactMatches) {
         return results
         .stream()
         .map(doc ->  {
-            Object fieldValue = doc.getFieldValue("dc.title");
-            String title = fieldValue instanceof String ? (String) fieldValue :
-                ((ArrayList<String>) fieldValue).get(0);
+            String title;
+            if (onlyExactMatches && isForceInternalTitle() || !onlyExactMatches) {
+                Object fieldValue = doc.getFieldValue("dc.title");
+                title = fieldValue instanceof String ? (String) fieldValue
+                    : ((ArrayList<String>) fieldValue).get(0);
+            } else {
+                title = searchTitle;
+            }
             Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(), doc);
             return new Choice((String) doc.getFieldValue("search.resourceid"),
                 title,
@@ -288,7 +314,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults());
+            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), key, false);
             if (choiceList.isEmpty()) {
                 log.warn("No documents found for key=" + key);
                 return new HashMap<String, String>();
