@@ -22,22 +22,28 @@ import org.dspace.authorize.ResourcePolicy;
  */
 public class ResourcePolicyDTO {
 
-    private String name;
+    private final String name;
 
-    private String description;
+    private final String description;
 
-    private Date startDate;
+    private final int action;
 
-    private Date endDate;
+    private final String type;
+
+    private final Date startDate;
+
+    private final Date endDate;
 
     public ResourcePolicyDTO(ResourcePolicy resourcePolicy) {
-        this(resourcePolicy.getRpName(), resourcePolicy.getRpDescription(),
-            resourcePolicy.getStartDate(), resourcePolicy.getEndDate());
+        this(resourcePolicy.getRpName(), resourcePolicy.getRpDescription(), resourcePolicy.getAction(),
+            resourcePolicy.getRpType(), resourcePolicy.getStartDate(), resourcePolicy.getEndDate());
     }
 
-    public ResourcePolicyDTO(String name, String description, Date startDate, Date endDate) {
+    public ResourcePolicyDTO(String name, String description, int action, String type, Date startDate, Date endDate) {
         this.name = name;
         this.description = description;
+        this.action = action;
+        this.type = type;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -56,6 +62,14 @@ public class ResourcePolicyDTO {
 
     public String getDescription() {
         return description;
+    }
+
+    public int getAction() {
+        return action;
+    }
+
+    public String getType() {
+        return type;
     }
 
 }

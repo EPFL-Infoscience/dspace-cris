@@ -15,6 +15,7 @@ import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.core.Constants.READ;
+import static org.dspace.core.Constants.WRITE;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -162,10 +163,12 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
         bitstreams.add(new BitstreamDTO("ORIGINAL", storeInTempLocation("Third bitstream content"),
             List.of(new MetadataValueDTO("dc", "title", null, "Bitstream 3"))));
 
-        ResourcePolicyDTO policy = new ResourcePolicyDTO("embargo", "Test policy", parseDate("2025-02-12"), null);
+        List<ResourcePolicyDTO> policies = new ArrayList<>();
+        policies.add(new ResourcePolicyDTO("embargo", "Test policy", READ, TYPE_CUSTOM, parseDate("2025-02-12"), null));
+        policies.add(new ResourcePolicyDTO("lease", "My policy", WRITE, TYPE_CUSTOM, null, parseDate("2025-02-12")));
 
         bitstreams.add(new BitstreamDTO("MY BUNDLE", storeInTempLocation("Fourth bitstream content"),
-            List.of(new MetadataValueDTO("dc", "title", null, "Bitstream 4")), List.of(policy)));
+            List.of(new MetadataValueDTO("dc", "title", null, "Bitstream 4")), policies));
 
         ItemDTO secondItemDTO = new ItemDTO("DOI::98765", false, metadata, bitstreams);
 
@@ -235,7 +238,7 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
 
         Bitstream bitstream = secondItemBitstreams.get(0);
         assertThat(bitstream, bitstreamWith("Bitstream 4", "Fourth bitstream content"));
-        assertThat(bitstream.getResourcePolicies(), hasItems(
+        assertThat(bitstream.getResourcePolicies(), contains(
             matches(READ, anonymousGroup, "embargo", TYPE_CUSTOM, "2025-02-12", null, "Test policy")));
 
     }

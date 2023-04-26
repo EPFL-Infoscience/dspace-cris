@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -22,7 +21,6 @@ import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.dto.ResourcePolicyDTO;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +63,7 @@ public class ItemToItemDTOConverter implements ItemDTOConverter<Item> {
         for (Bundle bundle : item.getBundles()) {
 
             String bundleName = bundle.getName();
-            int position = 1;
+            int position = 0;
 
             for (Bitstream bitstream : bundle.getBitstreams()) {
                 bitstreams.add(buildBitstreamDTO(context, bitstream, bundleName, position++));
@@ -79,7 +77,7 @@ public class ItemToItemDTOConverter implements ItemDTOConverter<Item> {
     private BitstreamDTO buildBitstreamDTO(Context context, Bitstream bitstream, String bundleName, int position) {
         String location = getBitstreamLocationUrl(bitstream);
         List<MetadataValueDTO> metadataValues = getMetadataValues(bitstream);
-        List<ResourcePolicyDTO> policies = getCustomReadResourcePolicies(context, bitstream);
+        List<ResourcePolicyDTO> policies = getResourcePolicies(context, bitstream);
         return new BitstreamDTO(bundleName, position, location, metadataValues, policies);
     }
 
@@ -88,9 +86,9 @@ public class ItemToItemDTOConverter implements ItemDTOConverter<Item> {
         return String.format(BITSTREAM_URL_FORMAT, dspaceServerUrl, bitstream.getID().toString());
     }
 
-    private List<ResourcePolicyDTO> getCustomReadResourcePolicies(Context context, Bitstream bitstream) {
+    private List<ResourcePolicyDTO> getResourcePolicies(Context context, Bitstream bitstream) {
         try {
-            return resourcePolicyService.find(context, bitstream, Constants.READ, ResourcePolicy.TYPE_CUSTOM).stream()
+            return resourcePolicyService.find(context, bitstream).stream()
                 .map(ResourcePolicyDTO::new)
                 .collect(Collectors.toList());
         } catch (SQLException e) {

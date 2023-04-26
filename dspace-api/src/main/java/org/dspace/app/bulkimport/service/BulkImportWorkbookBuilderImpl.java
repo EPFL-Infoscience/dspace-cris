@@ -46,6 +46,7 @@ import org.dspace.app.bulkimport.model.BulkImportSheet;
 import org.dspace.app.bulkimport.model.BulkImportWorkbook;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.converter.ItemDTOConverter;
@@ -55,6 +56,7 @@ import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.dto.ResourcePolicyDTO;
 import org.dspace.content.service.CollectionService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.CrisConstants;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -187,8 +189,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
 
         mainSheet.appendRow();
 
-        List<String> headers = mainSheet.getHeaders();
-        for (String header : headers) {
+        for (String header : mainSheet.getHeaders()) {
 
             if (header.equals(ID_HEADER)) {
                 mainSheet.setValueOnLastRow(header, item.getId().toString());
@@ -267,18 +268,25 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         bitstreamSheet.setValueOnLastRow(FILE_PATH_HEADER, bitstream.getLocation());
         bitstreamSheet.setValueOnLastRow(BUNDLE_HEADER, bitstream.getBundleName());
         bitstreamSheet.setValueOnLastRow(BITSTREAM_POSITION_HEADER, getBitstreamPosition(bitstream));
-        bitstreamSheet.setValueOnLastRow(ACCESS_CONDITION_HEADER, getCustomResourcePolicies(bitstream));
+        bitstreamSheet.setValueOnLastRow(ACCESS_CONDITION_HEADER, getResourcePoliciesAsString(bitstream));
         bitstreamSheet.setValueOnLastRow(ADDITIONAL_ACCESS_CONDITION_HEADER, "N");
     }
 
     private String getBitstreamPosition(BitstreamDTO bitstream) {
-        return bitstream.getPosition() != null ? String.valueOf(bitstream.getPosition()) : "";
+        return bitstream.getPosition() != null ? String.valueOf(bitstream.getPosition() + 1) : "";
     }
 
-    private String getCustomResourcePolicies(BitstreamDTO bitstream) {
+    private String getResourcePoliciesAsString(BitstreamDTO bitstream) {
         List<AccessConditionOption> uploadAccessConditions = getUploadAccessConditionOptionNames();
-        List<ResourcePolicyDTO> resourcePolicies = bitstream.getResourcePolicies();
+        List<ResourcePolicyDTO> resourcePolicies = getCustomReadResourcePolicies(bitstream);
         return composeResourcePolicies(resourcePolicies, uploadAccessConditions);
+    }
+
+    private List<ResourcePolicyDTO> getCustomReadResourcePolicies(BitstreamDTO bitstream) {
+        return bitstream.getResourcePolicies().stream()
+            .filter(resourcePolicy -> ResourcePolicy.TYPE_CUSTOM.equals(resourcePolicy.getType()))
+            .filter(resourcePolicy -> Constants.READ == resourcePolicy.getAction())
+            .collect(Collectors.toList());
     }
 
     private String composeResourcePolicies(List<ResourcePolicyDTO> policies, List<AccessConditionOption> options) {
