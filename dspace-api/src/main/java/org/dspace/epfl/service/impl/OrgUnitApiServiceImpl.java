@@ -12,7 +12,9 @@ import static org.dspace.authority.service.AuthorityValueService.GENERATE;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -36,9 +38,22 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
     @Autowired
     private ConfigurationService configurationService;
 
+    private Map<String, Boolean> activeOrgUnits = new HashMap<>();
+
+    public void clearActiveOrgUnitsCache() {
+        this.activeOrgUnits.clear();
+    }
+
     @Override
     public boolean isOrgUnitActive(String acronym) {
-        return orgUnitApiClient.isOrgUnitActive(acronym);
+
+        if (activeOrgUnits.containsKey(acronym)) {
+            return activeOrgUnits.get(acronym);
+        }
+
+        boolean isActive = orgUnitApiClient.isOrgUnitActive(acronym);
+        activeOrgUnits.put(acronym, isActive);
+        return isActive;
     }
 
     @Override
@@ -116,19 +131,19 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
         if (StringUtils.isBlank(fullName)) {
             return Optional.empty();
         }
-        
+
         String authority = null;
         int confidence = Choices.CF_UNSET;
-        
+
         String sciperId = head.getSciper();
-        
-        if(StringUtils.isNotBlank(sciperId)) {
+
+        if (StringUtils.isNotBlank(sciperId)) {
             authority = getOrgUnitHeadAuthorityPrefix()
                 .map(prefix -> prefix + sciperId)
                 .orElse(sciperId);
             confidence = Choices.CF_AMBIGUOUS;
         }
-        
+
         return Optional.of(new MetadataValueDTO(field, fullName, authority, confidence));
 
     }
@@ -200,11 +215,12 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
     }
 
     private Optional<String> getOrgUnitParentMetadataField() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.head"));
+        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.parent-orgunit"));
     }
 
     private Optional<String> getOrgUnitParentAuthorityPrefix() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.head.authority"));
+        return ofNullable(configurationService
+            .getProperty("epfl.orgunit-import.api.metadata-field.parent-orgunit.authority"));
     }
 
     private Optional<String> getOrgUnitAcronymMetadataField() {
@@ -216,7 +232,7 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
     }
 
     private String getFrenchMetadataFieldLanguage() {
-        return configurationService.getProperty("epfl.orgunit-import.metadata-field-language.english", "fr");
+        return configurationService.getProperty("epfl.orgunit-import.metadata-field-language.french", "fr");
     }
 
 }

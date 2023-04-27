@@ -48,6 +48,7 @@ import org.dspace.epfl.script.model.OrgUnitTSV;
 import org.dspace.epfl.script.model.OrgUnitTSV.OrgUnitRow;
 import org.dspace.epfl.script.service.OrgUnitTSVParser;
 import org.dspace.epfl.service.OrgUnitApiService;
+import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -164,6 +165,8 @@ public class OrgUnitTSVImportScript
 
         handler.logInfo("Import completed. OrgUnits written with success: " + importedOrgUnitsCount
             + ". Errors: " + errorsCount);
+
+        ((OrgUnitApiServiceImpl) orgUnitApiService).clearActiveOrgUnitsCache();
 
         return workbook;
 

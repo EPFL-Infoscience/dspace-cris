@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.dspace.epfl.client.model.OrgUnitDTO;
@@ -66,18 +67,30 @@ public class OrgUnitApiClientImpl implements OrgUnitApiClient {
 
     private HttpResponse performGetRequest(String acronym, Language language) {
         try {
+
             HttpUriRequest httpUriRequest = buildGetRequest(acronym, language);
+
             return HttpClientBuilder.create().build().execute(httpUriRequest);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private HttpUriRequest buildGetRequest(String acronym, Language language) {
+
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectTimeout(15 * 1000)
+            .setConnectionRequestTimeout(15 * 1000)
+            .setSocketTimeout(15 * 1000)
+            .build();
+
         return get(getOrgUnitApiUrl())
             .addParameter("acro", acronym)
             .addParameter("hl", language.name().toLowerCase())
+            .setConfig(requestConfig)
             .build();
+
     }
 
     private OrgUnitDTO parseResponse(HttpResponse response) {
