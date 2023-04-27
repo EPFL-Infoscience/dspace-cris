@@ -196,6 +196,10 @@
 
     <bean class="org.dspace.authorize.ValidatePasswordServiceImpl"/>
     <bean class="org.dspace.authorize.RegexPasswordValidator" />
+    
+    <bean class="org.dspace.epfl.script.service.impl.OrgUnitTSVParserImpl" />
+    <bean class="org.dspace.epfl.client.OrgUnitApiClientImpl" />
+    <bean class="org.dspace.epfl.service.impl.OrgUnitApiServiceImpl" />
 
 </beans>
 

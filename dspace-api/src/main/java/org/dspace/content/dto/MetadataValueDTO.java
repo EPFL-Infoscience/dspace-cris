@@ -99,6 +99,33 @@ public class MetadataValueDTO {
         this.value = value;
     }
 
+    public MetadataValueDTO(String metadataField, String value) {
+        MetadataFieldName fieldName = new MetadataFieldName(metadataField);
+        this.schema = fieldName.schema;
+        this.element = fieldName.element;
+        this.qualifier = fieldName.qualifier;
+        this.value = value;
+    }
+
+    public MetadataValueDTO(String metadataField, String language, String value) {
+        MetadataFieldName fieldName = new MetadataFieldName(metadataField);
+        this.schema = fieldName.schema;
+        this.element = fieldName.element;
+        this.qualifier = fieldName.qualifier;
+        this.language = language;
+        this.value = value;
+    }
+
+    public MetadataValueDTO(String metadataField, String value, String authority, int confidence) {
+        MetadataFieldName fieldName = new MetadataFieldName(metadataField);
+        this.schema = fieldName.schema;
+        this.element = fieldName.element;
+        this.qualifier = fieldName.qualifier;
+        this.authority = authority;
+        this.value = value;
+        this.confidence = confidence;
+    }
+
     public MetadataValueDTO(MetadatumDTO metadata) {
         this.schema = metadata.getSchema();
         this.element = metadata.getElement();

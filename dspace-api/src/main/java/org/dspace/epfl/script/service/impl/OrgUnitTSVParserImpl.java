@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.epfl.script.service;
+package org.dspace.epfl.script.service.impl;
 
 import static org.apache.commons.lang3.ArrayUtils.contains;
 
@@ -22,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.dspace.epfl.script.model.OrgUnitTSV;
 import org.dspace.epfl.script.model.OrgUnitTSV.OrgUnitRow;
+import org.dspace.epfl.script.service.OrgUnitTSVParser;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 

@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,8 +45,13 @@ public class OrgUnitTSV {
             this.index = index;
         }
 
+        public Set<String> getHeaders() {
+            return values.keySet();
+        }
+
         public Optional<String> getValue(String header) {
-            return Optional.ofNullable(values.get(header))
+            return Optional.ofNullable(header)
+                .map(values::get)
                 .filter(StringUtils::isNotBlank);
         }
 
