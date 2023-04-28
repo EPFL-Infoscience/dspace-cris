@@ -7,18 +7,25 @@
  */
 package org.dspace.epfl.client;
 
+import java.io.InputStream;
 import java.util.Optional;
 
 import org.dspace.epfl.client.model.OrgUnitDTO;
+import org.dspace.epfl.client.model.PersonDTO;
 
-public interface OrgUnitApiClient {
+public interface EpflApiClient {
 
     boolean isOrgUnitActive(String acronym);
 
     Optional<OrgUnitDTO> getOrgUnit(String acronym, Language language);
 
+    Optional<PersonDTO> getPerson(String sciper, Language language);
+
+    Optional<InputStream> getPersonalPicture(String sciper);
+
     public enum Language {
         EN,
         FR;
     }
+
 }

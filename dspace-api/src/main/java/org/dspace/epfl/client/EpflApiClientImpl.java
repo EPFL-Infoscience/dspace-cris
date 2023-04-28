@@ -10,24 +10,37 @@ package org.dspace.epfl.client;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.http.client.methods.RequestBuilder.get;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.epfl.client.model.OrgUnitDTO;
+import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class OrgUnitApiClientImpl implements OrgUnitApiClient {
+public class EpflApiClientImpl implements EpflApiClient {
+
+    private static final Logger LOGGER = LogManager.getLogger(EpflApiClientImpl.class);
+
+    private static final String PERSONAL_PICTURE_URL = "https://people.epfl.ch/private/common/photos/links/%s.jpg";
 
     @Autowired
     private ConfigurationService configurationService;
@@ -47,7 +60,7 @@ public class OrgUnitApiClientImpl implements OrgUnitApiClient {
     @Override
     public Optional<OrgUnitDTO> getOrgUnit(String acronym, Language language) {
 
-        HttpResponse response = performGetRequest(acronym, language);
+        HttpResponse response = performGetRequest(getOrgUnitApiUrl(), "acro", acronym, language);
 
         if (isNotFound(response)) {
             return Optional.empty();
@@ -59,16 +72,62 @@ public class OrgUnitApiClientImpl implements OrgUnitApiClient {
             throw new RuntimeException(message);
         }
 
-        OrgUnitDTO orgUnit = parseResponse(response);
+        OrgUnitDTO orgUnit = parseResponse(response, OrgUnitDTO.class);
 
         return Optional.ofNullable(orgUnit)
             .filter(OrgUnitDTO::isNotEmpty);
     }
 
-    private HttpResponse performGetRequest(String acronym, Language language) {
+    @Override
+    public Optional<PersonDTO> getPerson(String sciper, Language language) {
+
+        HttpResponse response = performGetRequest(getPersonApiUrl(), "q", sciper, language);
+
+        if (isNotFound(response)) {
+            return Optional.empty();
+        }
+
+        if (isNotSuccessfull(response)) {
+            String message = "Not successfully response incoming from OrgUnit API. "
+                + "Status: " + getStatusCode(response) + " - Content: " + getContent(response);
+            throw new RuntimeException(message);
+        }
+
+        PersonDTO[] persons = parseResponse(response, PersonDTO[].class);
+
+        if (ArrayUtils.isEmpty(persons)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(persons[0]);
+
+    }
+
+    @Override
+    public Optional<InputStream> getPersonalPicture(String sciper) {
+
+        String url = String.format(PERSONAL_PICTURE_URL, sciper);
+
+        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+
+            CloseableHttpResponse response = client.execute(new HttpGet(url));
+            if (isNotSuccessfull(response)) {
+                LOGGER.error("Unexpected response coming during public "
+                    + "document download: " + getContent(response));
+                return Optional.empty();
+            }
+
+            return getContentInputStream(response);
+
+        } catch (UnsupportedOperationException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private HttpResponse performGetRequest(String url, String param, String value, Language language) {
         try {
 
-            HttpUriRequest httpUriRequest = buildGetRequest(acronym, language);
+            HttpUriRequest httpUriRequest = buildGetRequest(url, param, value, language);
 
             return HttpClientBuilder.create().build().execute(httpUriRequest);
 
@@ -77,7 +136,7 @@ public class OrgUnitApiClientImpl implements OrgUnitApiClient {
         }
     }
 
-    private HttpUriRequest buildGetRequest(String acronym, Language language) {
+    private HttpUriRequest buildGetRequest(String url, String param, String value, Language language) {
 
         RequestConfig requestConfig = RequestConfig.custom()
             .setConnectTimeout(15 * 1000)
@@ -85,17 +144,26 @@ public class OrgUnitApiClientImpl implements OrgUnitApiClient {
             .setSocketTimeout(15 * 1000)
             .build();
 
-        return get(getOrgUnitApiUrl())
-            .addParameter("acro", acronym)
+        return get(url)
+            .addParameter(param, value)
             .addParameter("hl", language.name().toLowerCase())
             .setConfig(requestConfig)
             .build();
 
     }
 
-    private OrgUnitDTO parseResponse(HttpResponse response) {
+    private <T> T parseResponse(HttpResponse response, Class<T> clazz) {
         try {
-            return objectMapper.readValue(getContent(response), OrgUnitDTO.class);
+            return objectMapper.readValue(getContent(response), clazz);
+        } catch (UnsupportedOperationException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Optional<InputStream> getContentInputStream(HttpResponse response) {
+        try {
+            byte[] content = IOUtils.toByteArray(response.getEntity().getContent());
+            return Optional.of(new ByteArrayInputStream(content));
         } catch (UnsupportedOperationException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -125,6 +193,10 @@ public class OrgUnitApiClientImpl implements OrgUnitApiClient {
 
     private String getOrgUnitApiUrl() {
         return configurationService.getProperty("epfl.orgunit-import.api-url");
+    }
+
+    private String getPersonApiUrl() {
+        return configurationService.getProperty("epfl.person-import.api-url");
     }
 
 }

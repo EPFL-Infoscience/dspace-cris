@@ -22,8 +22,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
-import org.dspace.epfl.client.OrgUnitApiClient;
-import org.dspace.epfl.client.OrgUnitApiClient.Language;
+import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.EpflApiClient.Language;
 import org.dspace.epfl.client.model.OrgUnitDTO;
 import org.dspace.epfl.client.model.OrgUnitDTO.OrgUnitHeadDTO;
 import org.dspace.epfl.client.model.OrgUnitDTO.OrgUnitPathDTO;
@@ -33,8 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class OrgUnitApiServiceImpl implements OrgUnitApiService {
 
+    private static final String ORGUNIT_MAPPING_PREFIX = "epfl.orgunit-import.api.metadata-field.";
+
     @Autowired
-    private OrgUnitApiClient orgUnitApiClient;
+    private EpflApiClient apiClient;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -52,7 +54,7 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
             return activeOrgUnits.get(acronym);
         }
 
-        boolean isActive = orgUnitApiClient.isOrgUnitActive(acronym);
+        boolean isActive = apiClient.isOrgUnitActive(acronym);
         activeOrgUnits.put(acronym, isActive);
         return isActive;
     }
@@ -60,8 +62,8 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
     @Override
     public List<MetadataValueDTO> getMetadataValues(String orgUnitAcronym) {
 
-        Optional<OrgUnitDTO> orgUnitEnglish = orgUnitApiClient.getOrgUnit(orgUnitAcronym, Language.EN);
-        Optional<OrgUnitDTO> orgUnitFrench = orgUnitApiClient.getOrgUnit(orgUnitAcronym, Language.FR);
+        Optional<OrgUnitDTO> orgUnitEnglish = apiClient.getOrgUnit(orgUnitAcronym, Language.EN);
+        Optional<OrgUnitDTO> orgUnitFrench = apiClient.getOrgUnit(orgUnitAcronym, Language.FR);
 
         if (orgUnitEnglish.isEmpty() && orgUnitFrench.isEmpty()) {
             return List.of();
@@ -240,36 +242,35 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
     }
 
     private Optional<String> getOrgUnitNameMetadataField() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.name"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "name"));
     }
 
     private Optional<String> getOrgUnitCodeMetadataField() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.code"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "code"));
     }
 
     private Optional<String> getOrgUnitLevelMetadataField() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.level"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "level"));
     }
 
     private Optional<String> getOrgUnitHeadMetadataField() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.head"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "head"));
     }
 
     private Optional<String> getOrgUnitHeadAuthorityPrefix() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.head.authority"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "head.authority"));
     }
 
     private Optional<String> getOrgUnitParentMetadataField() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.parent-orgunit"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "parent-orgunit"));
     }
 
     private Optional<String> getOrgUnitParentAuthorityPrefix() {
-        return ofNullable(configurationService
-            .getProperty("epfl.orgunit-import.api.metadata-field.parent-orgunit.authority"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "parent-orgunit.authority"));
     }
 
     private Optional<String> getOrgUnitAcronymMetadataField() {
-        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.acronym"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + ".acronym"));
     }
 
     private String getEnglishMetadataFieldLanguage() {
