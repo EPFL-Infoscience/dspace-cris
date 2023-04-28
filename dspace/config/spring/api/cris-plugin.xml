@@ -16,6 +16,7 @@
 				</entry>
                 <entry key="ORCID" value-ref="orcidImportFiller" />
                 <entry key="ISSN" value-ref="sherpaImportFiller" />
+                <entry key="ACRONYM" value-ref="orgUnitImportFiller" />
 			</map>
 		</property>
 	</bean>
@@ -100,6 +101,8 @@
 			</map>
 		</property>
 	</bean>
+	
+	<bean class="org.dspace.authority.filler.OrgUnitImportFiller" id="orgUnitImportFiller" />
 	
 	<bean class="org.dspace.authority.filler.ExternalDataProviderImportFiller" id="orcidImportFiller" >
 	   <constructor-arg name="externalDataProvider" ref="org.dspace.external.provider.impl.OrcidV3AuthorDataProvider"/>
