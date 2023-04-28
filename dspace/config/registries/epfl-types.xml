@@ -33,4 +33,10 @@
         <qualifier>active</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>level</qualifier>
+    </dc-type>
+
 </dspace-dc-types>

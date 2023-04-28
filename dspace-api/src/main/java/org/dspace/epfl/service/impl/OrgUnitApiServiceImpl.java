@@ -12,6 +12,7 @@ import static org.dspace.authority.service.AuthorityValueService.GENERATE;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,8 +117,48 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
             .flatMap(field -> getParentMetadataValue(orgUnit, field))
             .ifPresent(metadataValues::add);
 
+        getOrgUnitLevelMetadataField()
+            .flatMap(field -> getLevelMetadataValue(orgUnit, field))
+            .ifPresent(metadataValues::add);
+
         return metadataValues;
 
+    }
+
+    private Optional<MetadataValueDTO> getLevelMetadataValue(OrgUnitDTO orgUnit, String field) {
+
+        int level = -1;
+
+        OrgUnitPathDTO[] path = orgUnit.getPath();
+        if (ArrayUtils.isNotEmpty(path)) {
+            level = findLevelOfOrgUnit(path, orgUnit.getAcronym());
+        } else if (StringUtils.isNotBlank(orgUnit.getUnitPath())) {
+            String[] unitPath = orgUnit.getUnitPath().split(" ");
+            level = findLevelOfOrgUnit(unitPath, orgUnit.getAcronym());
+        }
+
+        if (level == -1) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new MetadataValueDTO(field, String.valueOf(level)));
+
+    }
+
+    private int findLevelOfOrgUnit(OrgUnitPathDTO[] path, String acronym) {
+        String[] unitPath = Arrays.stream(path)
+            .map(OrgUnitPathDTO::getAcronym)
+            .toArray(String[]::new);
+        return findLevelOfOrgUnit(unitPath, acronym);
+    }
+
+    private int findLevelOfOrgUnit(String[] path, String acronym) {
+        for (int i = 0; i < path.length; i++) {
+            if (path[i].equals(acronym)) {
+                return i + 1;
+            }
+        }
+        return -1;
     }
 
     private Optional<MetadataValueDTO> getHeadMetadataValue(OrgUnitDTO orgUnit, String field) {
@@ -204,6 +245,10 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
 
     private Optional<String> getOrgUnitCodeMetadataField() {
         return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.code"));
+    }
+
+    private Optional<String> getOrgUnitLevelMetadataField() {
+        return ofNullable(configurationService.getProperty("epfl.orgunit-import.api.metadata-field.level"));
     }
 
     private Optional<String> getOrgUnitHeadMetadataField() {
