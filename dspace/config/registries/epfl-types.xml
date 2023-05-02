@@ -1,0 +1,54 @@
+<dspace-dc-types>
+
+    <dspace-header>
+        <title>EPFL types</title>
+    </dspace-header>
+
+    <dc-schema>
+        <name>epfl</name>
+        <namespace>http://dspace.org/epfl</namespace>
+    </dc-schema>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>unit</element>
+        <qualifier>code</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>unit</element>
+        <qualifier>infoscienceCode</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>status</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>active</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>level</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>sciper</element>
+        <qualifier>active</qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>epfl</schema>
+        <element>sciperId</element>
+        <qualifier></qualifier>
+    </dc-type>
+
+</dspace-dc-types>

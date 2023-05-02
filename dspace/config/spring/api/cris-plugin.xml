@@ -16,6 +16,8 @@
 				</entry>
                 <entry key="ORCID" value-ref="orcidImportFiller" />
                 <entry key="ISSN" value-ref="sherpaImportFiller" />
+                <entry key="ACRONYM" value-ref="orgUnitImportFiller" />
+                <entry key="SCIPER-ID" value-ref="personImportFiller" />
 			</map>
 		</property>
 	</bean>
@@ -101,6 +103,9 @@
 		</property>
 	</bean>
 	
+	<bean class="org.dspace.authority.filler.OrgUnitImportFiller" id="orgUnitImportFiller" />
+    <bean class="org.dspace.authority.filler.PersonImportFiller" id="personImportFiller" />
+	
 	<bean class="org.dspace.authority.filler.ExternalDataProviderImportFiller" id="orcidImportFiller" >
 	   <constructor-arg name="externalDataProvider" ref="org.dspace.external.provider.impl.OrcidV3AuthorDataProvider"/>
 	   <constructor-arg name="authorityIdentifier" value="ORCID"/>
@@ -123,6 +128,8 @@
 				<entry key="DOI" value-ref="itemSearcherByDOI"/>
 				<entry key="URL" value-ref="itemSearcherByURL"/>
                 <entry key="ISSN" value-ref="itemSearcherByISSN"/>
+                <entry key="ACRONYM" value-ref="itemSearcherByAcronym"/>
+                <entry key="SCIPER-ID" value-ref="itemSearcherBySciper"/>
 				<entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
 				<entry key="SCOPUS-AUTHOR-ID" value-ref="itemSearcherByScopusAuthorId"/>
 			</map>
@@ -161,8 +168,18 @@
         <constructor-arg value="dc.identifier.issn"></constructor-arg>
         <constructor-arg value="ISSN"></constructor-arg>
     </bean>
-	
-	<bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByLegacyId">
+    
+    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByAcronym">
+        <constructor-arg value="oairecerif.acronym"></constructor-arg>
+        <constructor-arg value="ACRONYM"></constructor-arg>
+    </bean>
+    
+    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherBySciper">
+        <constructor-arg value="epfl.sciperId"></constructor-arg>
+        <constructor-arg value="SCIPER-ID"></constructor-arg>
+    </bean>
+    
+    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByLegacyId">
 		<constructor-arg value="cris.legacyId"></constructor-arg>
 		<constructor-arg value="LEGACY-ID"></constructor-arg>
 	</bean>

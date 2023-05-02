@@ -2307,8 +2307,9 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>title</dc-element>
           <label>Organization name</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>You must enter the oganization name.</required>
+          <language value-pairs-name="supported_languages" >true</language>
           <hint />
         </field>
       </row>
@@ -2318,8 +2319,9 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>acronym</dc-element>
           <label>Acronym or short form of title</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
+          <language value-pairs-name="supported_languages" >true</language>
           <hint />
         </field>
       </row>
@@ -2431,7 +2433,78 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Type</label>
           <input-type value-pairs-name="orgunit_types">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required>You must specify the organisation type</required>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>cris</dc-schema>
+          <dc-element>legacyId</dc-element>
+          <label>Legacy ID</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>unit</dc-element>
+          <dc-qualifier>infoscienceCode</dc-qualifier>
+          <label>InfoScience Code</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>unit</dc-element>
+          <dc-qualifier>code</dc-qualifier>
+          <label>Unit Code</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>active</dc-qualifier>
+          <label>Active</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>status</dc-qualifier>
+          <label>Status</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>level</dc-qualifier>
+          <label>Level</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
           <hint />
         </field>
       </row>
@@ -5094,6 +5167,16 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Proposal</displayed-value>
         <stored-value>proposal</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="supported_languages" dc-term="supported_languages">
+      <pair>
+        <displayed-value>English</displayed-value>
+        <stored-value>en</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>French</displayed-value>
+        <stored-value>fr</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>
