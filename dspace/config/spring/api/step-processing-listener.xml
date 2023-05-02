@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-	<bean id="org.dspace.submit.listener.MetadataListener" class="org.dspace.submit.listener.SimpleMetadataListener">
+	<bean id="org.dspace.submit.listener.MetadataListener" class="org.dspace.submit.listener.arxiv ">
         <property name="externalDataProvidersMap">
 	        <map>
 <!--                 <entry key="dc.identifier.pmid">
@@ -16,13 +16,13 @@
                     <list>
                         <ref bean="scopusLiveImportDataProvider"/>
                     </list>
-                </entry>
+                </entry> -->
                 <entry key="dc.identifier.arxiv">
                     <list>
                         <ref bean="arxivLiveImportDataProvider"/>
                     </list>
                 </entry>
- -->                <entry key="dc.identifier.doi">
+                <entry key="dc.identifier.doi">
                     <list>
                         <ref bean="crossRefLiveImportDataProvider"/>
                     </list>

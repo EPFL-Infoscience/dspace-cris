@@ -85,7 +85,7 @@
                 <value>none</value>
             </list>
         </property>
-    </bean>
+    </bean> -->
 
     <bean id="arxivLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="ArXivImportService"/>
@@ -96,7 +96,7 @@
                 <value>Publication</value>
             </list>
         </property>
-    </bean> -->
+    </bean>
 
     <bean id="scopusLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="ScopusImportService"/>
