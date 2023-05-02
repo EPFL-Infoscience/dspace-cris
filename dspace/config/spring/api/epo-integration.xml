@@ -25,7 +25,7 @@
         <entry key-ref="epo.dc.contributor" value-ref="epoApplicantContrib"/>
         <entry key-ref="epo.dc.contributor.author" value-ref="epoInventorContrib"/>
         <entry key-ref="epo.dc.title" value-ref="epoInventionTitleContrib"/>
-        <entry key-ref="epo.dc.subject" value-ref="epoIpcContrib"/>
+<!--        <entry key-ref="epo.dc.subject" value-ref="epoIpcContrib"/>-->
         <entry key-ref="epo.dc.description.abstract" value-ref="epoAbstractContrib"/>
     </util:map>
         
