@@ -270,7 +270,7 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
     }
 
     private Optional<String> getOrgUnitAcronymMetadataField() {
-        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + ".acronym"));
+        return ofNullable(configurationService.getProperty(ORGUNIT_MAPPING_PREFIX + "acronym"));
     }
 
     private String getEnglishMetadataFieldLanguage() {
