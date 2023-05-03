@@ -53,7 +53,7 @@
         <property name="outcomes">
             <util:map>
                 <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
-                       value-ref="editstep"/>
+                       value-ref="reviewstep"/>
             </util:map>
         </property>
         <property name="actions">
@@ -76,7 +76,7 @@
         <property name="outcomes">
             <util:map>
                 <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
-                       value-ref="editstep"/>
+                       value-ref="checkcorrectionstep"/>
             </util:map>
         </property>
         <property name="actions">
