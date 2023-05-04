@@ -39,6 +39,22 @@
 					   </list>
 					</property>
 				</bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">GROUP</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>Administrator</value>
+                           <value>Curators</value>
+                       </list>
+                    </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
+                    </property>
+                </bean>
 			</list>
 		</entry> 
 		<entry key="Person">
@@ -111,6 +127,26 @@
                 </bean>
 			</list>
 		</entry> 
+        <entry key="Product">
+            <list>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">GROUP</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>Administrator</value>
+                           <value>Curators</value>
+                       </list>
+                    </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
+                    </property>
+                </bean>
+            </list>
+        </entry>
 		<entry key="Patent">
 			<list>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
@@ -121,6 +157,22 @@
                        <list>
                            <value>cris.virtual.epflgroupunits</value>
                        </list>
+                    </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">GROUP</value>
+                    </property>
+                    <property name="groups">
+                       <list>
+                           <value>Administrator</value>
+                           <value>Curators</value>
+                       </list>
+                    </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
                     </property>
                 </bean>
 			</list>

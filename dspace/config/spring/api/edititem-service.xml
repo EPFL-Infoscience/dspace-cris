@@ -13,15 +13,6 @@
                 <entry key="publication">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="FULLSUB" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    SUBMITTER
-                                </value>
-                            </property>
-                            <property name="submissionDefinition" value="publication-edit" />
-                        </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="FULLAUTH" />
                             <property name="security">
                                 <value type="org.dspace.content.security.CrisSecurity">
