@@ -7,91 +7,119 @@
  */
 package org.dspace.authenticate.service;
 
-import static java.lang.String.valueOf;
+import static org.apache.commons.collections.IteratorUtils.toList;
+import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 
 import java.sql.SQLException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
-import org.dspace.content.service.InstallItemService;
+import org.dspace.content.MetadataFieldName;
+import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.ItemService;
-import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResult;
-import org.dspace.discovery.IndexableObject;
-import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
-import org.dspace.eperson.service.GroupService;
+import org.dspace.eperson.service.EPersonService;
+import org.dspace.epfl.service.PersonApiService;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProfileInitializer {
-
-    private static Logger log = LoggerFactory.getLogger(ProfileInitializer.class);
 
     @Autowired
     private ResearcherProfileService researcherProfileService;
 
     @Autowired
-    private EpflClient client;
-
-    @Autowired
     private ItemService itemService;
 
     @Autowired
-    private GroupService groupService;
+    private PersonApiService personApiService;
 
     @Autowired
-    private WorkspaceItemService workspaceItemService;
+    private EPersonService ePersonService;
 
-    @Autowired
-    private InstallItemService installItemService;
+    public void initialize(Context context, EPerson eperson) {
 
-    @Autowired
-    private SearchService searchService;
-
-    public boolean initialize(Context context, EPerson eperson) {
-
-        if (eperson == null) {
-            return false;
+        Optional<String> sciper = getSciperId(eperson);
+        if (sciper.isPresent()) {
+            initialize(context, eperson, sciper.get());
+        } else {
+            createPrivateProfile(context, eperson);
         }
 
-        context.turnOffAuthorisationSystem();
-        try {
-            ResearcherProfile profile = findProfile(context, eperson)
-                    .orElseGet(() -> createPrivateProfile(context, eperson));
-            Optional<String> persid = getPersid(eperson);
-            if (persid.isPresent()) {
-                return enrichProfile(context, persid.get(), profile.getItem());
-            } else {
-                return false;
-            }
-        } finally {
-            context.restoreAuthSystemState();
-        }
+    }
+
+    private void initialize(Context context, EPerson eperson, String sciper) {
+
+        ResearcherProfile researcherProfile = findProfile(context, eperson)
+            .or(() -> findProfileBySciper(context, eperson, sciper))
+            .orElseGet(() -> createPrivateProfile(context, eperson));
+
+        enrichProfile(context, sciper, researcherProfile.getItem());
     }
 
     public Optional<ResearcherProfile> findProfile(Context context, EPerson eperson) {
         try {
             return Optional.ofNullable(researcherProfileService.findById(context, eperson.getID()));
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper) {
+
+        String sciperMetadataField = personApiService.getSciperMetadataField();
+
+        List<Item> items = findArchivedByMetadataField(context, sciperMetadataField, sciper);
+        if (items.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (items.size() > 1) {
+            throw new IllegalStateException("Found many items with sciper " + sciper);
+        }
+
+        Item item = items.get(0);
+
+        EPerson owner = getOwner(context, item);
+
+        if (owner != null && !owner.equals(eperson)) {
+            throw new IllegalStateException("An item with the sciper " + sciper + " is already linked "
+                + "to another eperson: " + eperson.getID());
+        }
+
+        addOwner(context, item, eperson);
+
+        return Optional.of(new ResearcherProfile(item));
+
+    }
+
+    private void addOwner(Context context, Item item, EPerson ePerson) {
+        try {
+            itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(),
+                ePerson.getID().toString(), CF_ACCEPTED);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private EPerson getOwner(Context context, Item item) {
+        try {
+            return ePersonService.findByProfileItem(context, item);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Item> findArchivedByMetadataField(Context context, String sciperMetadataField, String sciper) {
+        try {
+            return toList(itemService.findArchivedByMetadataField(context, sciperMetadataField, sciper));
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }
@@ -109,160 +137,47 @@ public class ProfileInitializer {
         }
     }
 
-    private boolean enrichProfile(Context context, String persid, Item item) {
-        try {
-            boolean profileNeedSave = false;
-            String legacyId = itemService.getMetadataFirstValue(item, "cris", "legacyId", null, Item.ANY);
-            if (!StringUtils.equals(legacyId, persid)) {
-                profileNeedSave = true;
-                itemService.clearMetadata(context, item, "cris", "legacyId", null, Item.ANY);
-                addMetadata(context, item, "cris", "legacyId", null, persid);
-            }
-
-            EpflResponse accred = client.getAccred(persid);
-            if (accred == null || CollectionUtils.isEmpty(accred.getResult())) {
-                log.warn("No accred found by persid " + persid);
-                return false;
-            }
-
-            Long unitId = accred.getResult().get(0).getUnitid();
-            String currUnitName = itemService.getMetadataFirstValue(item,  "person", "affiliation", "name", Item.ANY);
-            if (unitId == null) {
-                log.warn("No unitid found by persid " + persid);
-                if (currUnitName != null) {
-                    profileNeedSave = true;
-                    itemService.clearMetadata(context, item, "person", "affiliation", "name", Item.ANY);
-                }
-            } else {
-                Item unit = findOrgUnitByCrisLegacyId(context, unitId)
-                    .orElseGet(() -> createOrgUnit(context, unitId));
-
-                Group groupUnit = findGroupUnit(context, unitId)
-                        .orElseGet(() -> createGroup(context, unitId));
-                String unitName = getUnitName(unitId);
-                if (!StringUtils.equals(unitName, currUnitName)) {
-                    profileNeedSave = true;
-                    itemService.clearMetadata(context, item, "person", "affiliation", "name", Item.ANY);
-                    addMetadata(context, item, "person", "affiliation", "name", unitName, unit.getID().toString());
-                }
-            }
-            if (profileNeedSave) {
-                itemService.update(context, item);
-            }
-            return profileNeedSave;
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException(e);
-        }
+    private void enrichProfile(Context context, String sciper, Item item) {
+        List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(sciper);
+        replaceMetadataValues(context, item, metadataValues);
     }
 
-    public Optional<Group> findGroupUnit(Context ctx, Long unitId) {
+    private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {
+        clearMetadataValues(context, item, metadataValues);
+        metadataValues.forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
+    }
+
+    private void addMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
         try {
-            return Optional.ofNullable(groupService.findByName(ctx, getUnitName(unitId)));
+            itemService.addSecuredMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
+                metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
+                metadataValue.getAuthority(), metadataValue.getConfidence(), metadataValue.getSecurityLevel());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Optional<Item> findOrgUnitByCrisLegacyId(Context ctx, Long unitId) {
+    private void clearMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {
+        metadataValues.stream()
+            .map(metadataValue -> metadataValue.getMetadataField())
+            .distinct()
+            .forEach(metadataField -> clearMetadataValues(context, item, metadataField));
+    }
+
+    private void clearMetadataValues(Context context, Item item, String metadataField) {
+        MetadataFieldName metadataFieldName = new MetadataFieldName(metadataField);
         try {
-            return streamOf(itemService.findArchivedByMetadataField(ctx, "cris.legacyId", valueOf(unitId)))
-                .filter(item -> "OrgUnit".equals(itemService.getEntityType(item)))
-                .findFirst();
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Item createOrgUnit(Context context, Long unitId) {
-
-        Collection collection = findOrgUnitCollection(context);
-
-        try {
-            WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
-            Item item = workspaceItem.getItem();
-            String value = getUnitName(unitId);
-            addMetadata(context, item, "dc", "title", null, value);
-            addMetadata(context, item, "cris", "legacyId", null, String.valueOf(unitId));
-            return installItemService.installItem(context, workspaceItem);
-        } catch (AuthorizeException | SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private Group createGroup(Context context, Long unitId) {
-        try {
-            Group group = groupService.create(context);
-            groupService.setName(group, getUnitName(unitId));
-            groupService.update(context, group);
-            context.setSpecialGroup(group.getID());
-            return group;
-        } catch (AuthorizeException | SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-    private String getUnitName(Long unitId) {
-        String value = "UNIT " + unitId;
-        return value;
-    }
-
-    @SuppressWarnings("rawtypes")
-    private Collection findOrgUnitCollection(Context context) {
-
-        DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setDSpaceObjectFilter(IndexableCollection.TYPE);
-        discoverQuery.addFilterQueries("dspace.entity.type: OrgUnit");
-
-        try {
-
-            DiscoverResult discoverResult = searchService.search(context, discoverQuery);
-            List<IndexableObject> indexableObjects = discoverResult.getIndexableObjects();
-
-            if (CollectionUtils.isEmpty(indexableObjects)) {
-                throw new RuntimeException("No OrgUnit collection found");
-            }
-
-            return (Collection) indexableObjects.get(0).getIndexedObject();
-
-        } catch (SearchServiceException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private Stream<Item> streamOf(Iterator<Item> iterator) {
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
-    }
-
-    private void addMetadata(Context ctx, Item item, String schema, String element, String qualifier, String value) {
-        try {
-            itemService.addMetadata(ctx, item, schema, element, qualifier, null, value);
+            itemService.clearMetadata(context, item, metadataFieldName.schema,
+                metadataFieldName.element, metadataFieldName.qualifier, Item.ANY);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void addMetadata(Context ctx, Item item, String schema, String element, String qualifier,
-        String value, String authority) {
-        try {
-            itemService.addMetadata(ctx, item, schema, element, qualifier, null, value, authority, 600);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Optional<String> getPersid(EPerson eperson) {
-        return Optional.ofNullable(eperson.getNetid())
+    private Optional<String> getSciperId(EPerson eperson) {
+        return Optional.ofNullable(eperson)
+            .map(ePerson -> ePerson.getNetid())
             .map(netId -> StringUtils.substringBefore(netId, "@"));
-    }
-
-    public EpflClient getClient() {
-        return client;
-    }
-
-    public void setClient(EpflClient client) {
-        this.client = client;
     }
 
 }

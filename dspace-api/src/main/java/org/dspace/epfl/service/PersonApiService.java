@@ -19,4 +19,6 @@ public interface PersonApiService {
 
     public Optional<InputStream> getPersonalPicture(String sciper);
 
+    public String getSciperMetadataField();
+
 }

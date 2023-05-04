@@ -224,4 +224,10 @@ public class PersonApiServiceImpl implements PersonApiService {
         return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.authority"));
     }
 
+    @Override
+    public String getSciperMetadataField() {
+        return getPersonSciperMetadataField()
+            .orElseThrow(() -> new IllegalStateException("No Sciper metadata field configured"));
+    }
+
 }
