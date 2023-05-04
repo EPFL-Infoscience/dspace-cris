@@ -281,7 +281,8 @@ public class StatisticsDatasetDisplay {
     public String composeQueryWithInverseRelation(DSpaceObject dSpaceObject, List<String> default_queries ) {
         return composeQueryWithInverseRelation(dSpaceObject, default_queries, "id");
     }
-    public String composeQueryWithInverseRelation(DSpaceObject dSpaceObject, List<String> default_queries, String joinField ) {
+    public String composeQueryWithInverseRelation(DSpaceObject dSpaceObject, List<String> default_queries,
+                                                  String joinField ) {
         StringBuilder query = new StringBuilder();
         query.append("{!join from=search.resourceid to=");
         query.append(joinField);
