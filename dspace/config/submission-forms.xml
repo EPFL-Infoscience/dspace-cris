@@ -2312,6 +2312,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>url</dc-element>
+          <label>External url(s)</label>
+          <input-type value-pairs-name="person_external_urls">qualdrop_value</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="orgunit">
       <row>
@@ -5190,6 +5201,32 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>French</displayed-value>
         <stored-value>fr</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="person_external_urls" dc-term="person_external_urls">
+      <pair>
+        <displayed-value>arXiv</displayed-value>
+        <stored-value>arxiv</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Zenodo</displayed-value>
+        <stored-value>zenodo</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>GitHub</displayed-value>
+        <stored-value>github</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>GitLab</displayed-value>
+        <stored-value>gitlab</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>C4science</displayed-value>
+        <stored-value>cforscience</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Other</displayed-value>
+        <stored-value>other</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>
