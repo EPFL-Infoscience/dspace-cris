@@ -1754,13 +1754,8 @@ prevent the generation of resource policy entry values with null dspace_object a
             return true;
         }
 
-        if (context.getCurrentUser() != null
-                && context.getCurrentUser().equals(item.getSubmitter())) {
-            return configurationService.getPropertyAsType(
-                    "versioning.submitterCanCreateNewVersion", false);
-        }
+        return versioningService.canCreateVersion(context, item);
 
-        return false;
     }
 
     /**

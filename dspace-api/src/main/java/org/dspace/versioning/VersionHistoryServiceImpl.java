@@ -18,7 +18,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.dao.VersionHistoryDAO;
 import org.dspace.versioning.service.VersionHistoryService;
@@ -224,14 +223,15 @@ public class VersionHistoryServiceImpl implements VersionHistoryService {
     public boolean canSeeDraftVersion(Context context, VersionHistory versionHistory) throws SQLException {
         Version version = this.getLatestVersion(context, versionHistory);
         if (Objects.nonNull(version)) {
-            EPerson submitter = version.getItem().getSubmitter();
-            boolean isAdmin = authorizeService.isAdmin(context);
-            boolean canCreateVersion = configurationService
-                    .getBooleanProperty("versioning.submitterCanCreateNewVersion");
-            if (!isAdmin && !(canCreateVersion && Objects.equals(submitter, context.getCurrentUser()))) {
-                return false;
-            }
-            return true;
+            return versioningService.canCreateVersion(context, version.getItem());
+//            EPerson submitter = version.getItem().getSubmitter();
+//            boolean isAdmin = authorizeService.isAdmin(context);
+//            boolean canCreateVersion = configurationService
+//                    .getBooleanProperty("versioning.submitterCanCreateNewVersion");
+//            if (!isAdmin && !(canCreateVersion && Objects.equals(submitter, context.getCurrentUser()))) {
+//                return false;
+//            }
+//            return true;
         }
         return false;
     }
