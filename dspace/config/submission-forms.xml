@@ -928,6 +928,19 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint>The editors of this publication.</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>approved</dc-qualifier>
+          <label>Approved</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+      </row>
     </form>
     <form name="green">
       <row>
@@ -2294,6 +2307,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>knowsLanguage</dc-element>
           <label>Written Language(s)</label>
           <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>url</dc-element>
+          <label>External url(s)</label>
+          <input-type value-pairs-name="person_external_urls">qualdrop_value</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
@@ -5177,6 +5201,32 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>French</displayed-value>
         <stored-value>fr</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="person_external_urls" dc-term="person_external_urls">
+      <pair>
+        <displayed-value>arXiv</displayed-value>
+        <stored-value>arxiv</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Zenodo</displayed-value>
+        <stored-value>zenodo</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>GitHub</displayed-value>
+        <stored-value>github</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>GitLab</displayed-value>
+        <stored-value>gitlab</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>C4science</displayed-value>
+        <stored-value>cforscience</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Other</displayed-value>
+        <stored-value>other</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>
