@@ -164,6 +164,13 @@
         <property name="dsoType" value="0"/>
     </bean>
 
+    <bean id="topResearchOutputsDownloadGenerator" class="org.dspace.app.rest.statistics.TopItemsGenerator">
+        <property name="viewMode" value="table"/>
+        <property name="maxResults" value="20"/>
+        <property name="dsoType" value="0"/>
+        <property name="relation" value="RELATION.Site.researchoutputs" />
+    </bean>
+
     <!--generator supporting relation between orgunit and rppublications-->
     <bean id="topItemsGeneratorRelationOrgUnitRppublications" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
@@ -631,8 +638,18 @@
                 <entry key="TopDownloadsContinents" value-ref="topSiteDownloadContinentsGenerator"/>
                 <entry key="TopDownloadsCountries" value-ref="topSiteDownloadCountriesGenerator"/>
                 <entry key="TopDownloadsCities" value-ref="topSiteDownloadCitiesGenerator"/>
-                <entry key="TotalDownloads" value-ref="topItemsDownloadGenerator"/>
+<!--                <entry key="TotalDownloads" value-ref="topItemsDownloadGenerator"/>-->
+<!--                <entry key="TopDownloadsItems" value-ref="topResearchOutputsDownloadGenerator"/>-->
                 <entry key="TotalDownloadsPerMonth" value-ref="totalSiteDownloadPerPeriod"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="site-top20Reports" class="org.dspace.app.rest.model.UsageReportCategoryRest">
+        <property name="categoryType" value="top20reports"/>
+        <property name="reports">
+            <map>
+                <entry key="TopDownloadsItems" value-ref="topResearchOutputsDownloadGenerator"/>
             </map>
         </property>
     </bean>
@@ -644,6 +661,7 @@
                     <list>
                         <ref bean="site-mainReports"/>
                         <ref bean="site-downloadReports"/>
+                        <ref bean="site-top20Reports"/>
                     </list>
                 </entry>
                 <entry key="community">
