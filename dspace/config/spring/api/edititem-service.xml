@@ -13,21 +13,6 @@
                 <entry key="publication">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="FULLAUTH" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    CUSTOM
-                                </value>
-                            </property>
-                            <property name="items">
-                                <list>
-                                    <value>dc.contributor.author</value>
-                                    <value>dc.contributor.editor</value>
-                                </list>
-                            </property>
-                            <property name="submissionDefinition" value="publication-edit" />
-                        </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="FULLADMIN" />
                             <property name="security">
                                 <value type="org.dspace.content.security.CrisSecurity">
