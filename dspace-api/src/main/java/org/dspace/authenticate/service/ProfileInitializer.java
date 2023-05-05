@@ -10,11 +10,13 @@ package org.dspace.authenticate.service;
 import static org.apache.commons.collections.IteratorUtils.toList;
 import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
@@ -24,6 +26,8 @@ import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.epfl.client.model.PersonDTO;
+import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
@@ -39,6 +43,9 @@ public class ProfileInitializer {
 
     @Autowired
     private PersonApiService personApiService;
+
+    @Autowired
+    private OrgUnitApiService orgUnitApiService;
 
     @Autowired
     private EPersonService ePersonService;
@@ -60,7 +67,10 @@ public class ProfileInitializer {
             .or(() -> findProfileBySciper(context, eperson, sciper))
             .orElseGet(() -> createPrivateProfile(context, eperson));
 
-        enrichProfile(context, sciper, researcherProfile.getItem());
+        personApiService.getPerson(sciper)
+            .filter(person -> isMainAffiliationActive(person))
+            .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem()));
+
     }
 
     public Optional<ResearcherProfile> findProfile(Context context, EPerson eperson) {
@@ -137,9 +147,24 @@ public class ProfileInitializer {
         }
     }
 
-    private void enrichProfile(Context context, String sciper, Item item) {
-        List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(sciper);
+    private boolean isMainAffiliationActive(PersonDTO person) {
+        if (ArrayUtils.isEmpty(person.getAccreds())) {
+            return false;
+        }
+        return orgUnitApiService.isOrgUnitActive(person.getAccreds()[0].getAcronym());
+    }
+
+    private void enrichProfile(Context context, PersonDTO person, Item item) {
+
+        List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(person);
         replaceMetadataValues(context, item, metadataValues);
+
+        personApiService.getPersonalPicture(person.getSciper())
+            .ifPresent(inputStream -> replacePersonalPicture(context, item, person, inputStream));
+    }
+
+    private void replacePersonalPicture(Context context, Item item, PersonDTO person, InputStream inputStream) {
+
     }
 
     private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {

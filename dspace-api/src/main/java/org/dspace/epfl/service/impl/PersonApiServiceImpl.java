@@ -45,8 +45,13 @@ public class PersonApiServiceImpl implements PersonApiService {
     private ConfigurationService configurationService;
 
     @Override
+    public Optional<PersonDTO> getPerson(String sciper) {
+        return apiClient.getPerson(sciper, Language.EN);
+    }
+
+    @Override
     public List<MetadataValueDTO> getMetadataValues(String sciper) {
-        return apiClient.getPerson(sciper, Language.EN)
+        return getPerson(sciper)
             .map(person -> getMetadataValues(person))
             .orElse(getInactiveMetadataField());
     }
@@ -56,7 +61,8 @@ public class PersonApiServiceImpl implements PersonApiService {
         return apiClient.getPersonalPicture(sciper);
     }
 
-    private List<MetadataValueDTO> getMetadataValues(PersonDTO person) {
+    @Override
+    public List<MetadataValueDTO> getMetadataValues(PersonDTO person) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
