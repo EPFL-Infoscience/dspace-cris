@@ -773,9 +773,20 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
                 + "Rendering named identifier requires a sub type",
             "The sheet metadatagroups contains an invalid RENDERING type at row 6: "
                 + "Rendering named identifier don't supports the configured sub type",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled",
             "The box2hierarchicalvocabulary sheet is missing",
-            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
-
+            "The sheet box2metadata contains an unknown RENDERING type more.fake at row 15",
+            "The sheet box2metadata contains an unknown RENDERING type less.fake at row 16",
+            "The sheet box2metadata contains an invalid RENDERING type at row 17: " +
+                "Rendering named browse don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 18: " +
+                "Rendering named search don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 19: " +
+                "Rendering named tag-browse don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 20: " +
+                "Rendering named tag-search don't supports the configured sub type",
+            "The sheet box2metadata contains an unknown RENDERING type more.5 at row 21",
+            "The sheet box2metadata contains an unknown RENDERING type less.5less at row 22"));
     }
 
     private void assertThatMetadataFieldHas(CrisLayoutField field, String label, String rowStyle, String cellStyle,

@@ -102,4 +102,16 @@ public interface VersioningService {
      */
     public int countVersionsByHistoryWithItem(Context context, VersionHistory versionHistory) throws SQLException;
 
+    /**
+     * Checks wether or not current user can create a new version of a given item.
+     * If user is administrator, or submitter with 'versioning.submitterCanCreateNewVersion'
+     * property enabled (for backward compatibility), or if user passes CRIS security checks defined
+     * in configuration file `versionitem-security.xml'
+     *
+     * @param context The relevant DSpace Context
+     * @param item DSpace Item against which check is performed
+     * @return
+     */
+    boolean canCreateVersion(Context context, Item item);
+
 }

@@ -16,15 +16,19 @@ import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.security.AccessItemMode;
+import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.dao.VersionDAO;
 import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author Fabio Bolognesi (fabio at atmire dot com)
@@ -44,6 +48,15 @@ public class VersioningServiceImpl implements VersioningService {
     private WorkspaceItemService workspaceItemService;
     @Autowired(required = true)
     protected WorkflowItemService workflowItemService;
+
+    @Autowired
+    private CrisSecurityService crisSecurityService;
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Autowired
+    @Qualifier("createVersionAccessModesList")
+    private List<AccessItemMode> createVersionAccessModes;
 
     private DefaultItemVersionProvider provider;
 
@@ -237,7 +250,32 @@ public class VersioningServiceImpl implements VersioningService {
         return versionDAO.findVersionsWithItems(c, vh, offset, limit);
     }
 
-// **** PROTECTED METHODS!!
+    @Override
+    public boolean canCreateVersion(Context context, Item item) {
+
+        // for DSpace compatibility
+        boolean submitterCanCreateNewVersion =
+            configurationService.getBooleanProperty("versioning.submitterCanCreateNewVersion", false);
+
+        if (submitterCanCreateNewVersion) {
+            return context.getCurrentUser().equals(item.getSubmitter());
+        }
+
+        return createVersionAccessModes.stream()
+                                .anyMatch(am -> isHasAccess(context, item, am));
+    }
+
+    private boolean isHasAccess(Context context, Item item, AccessItemMode accessItemMode) {
+        try {
+            return crisSecurityService.hasAccess(context, item,
+                                                 context.getCurrentUser(),
+                                                 accessItemMode);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // **** PROTECTED METHODS!!
 
     protected Version createVersion(Context c, VersionHistory vh, Item item, String summary, Date date)
         throws SQLException {

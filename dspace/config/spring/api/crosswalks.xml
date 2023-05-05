@@ -665,13 +665,13 @@
 	<bean name="mapConverterDataciteToPublicationLicense" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-datacitePublicationLicense.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="Unspecified"/>
+		<property name="defaultValue" value=""/>
 	</bean>
 
 	<bean name="mapConverterDataciteToPublicationAccessRights" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-datacitePublicationRights.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="Unspecified"/>
+		<property name="defaultValue" value=""/>
 	</bean>
 	
     <bean name="mapConverterOpenAccessScopus" class="org.dspace.util.SimpleMapConverter" init-method="init">
@@ -713,5 +713,8 @@
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory" />
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLNestedGenerator" />
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLWebServiceGenerator" />
+    
+    <bean class="org.dspace.content.converter.ItemToItemDTOConverter" />
+    <bean class="org.dspace.app.bulkimport.service.BulkImportWorkbookBuilderImpl" />
 
 </beans>

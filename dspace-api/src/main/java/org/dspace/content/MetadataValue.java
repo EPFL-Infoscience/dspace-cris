@@ -19,6 +19,7 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
@@ -176,6 +177,14 @@ public class MetadataValue implements ReloadableEntity<Integer> {
 
     public void setMetadataField(MetadataField metadataField) {
         this.metadataField = metadataField;
+    }
+
+    /**
+     * @return {@code MetadataField#getID()}
+     */
+    @Transient
+    protected Integer getMetadataFieldId() {
+        return getMetadataField().getID();
     }
 
     /**

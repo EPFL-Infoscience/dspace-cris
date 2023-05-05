@@ -20,6 +20,7 @@ import org.dspace.app.rest.model.ResearcherProfileRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
 import org.dspace.util.UUIDUtils;
@@ -41,11 +42,18 @@ public class ResearcherProfileRestPermissionEvaluatorPlugin extends RestObjectPe
     @Autowired
     private RequestService requestService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
         DSpaceRestPermission restPermission) {
 
         if (!READ.equals(restPermission) && !WRITE.equals(restPermission) && !DELETE.equals(restPermission)) {
+            return false;
+        }
+
+        if (onlyAdminCanManageProfiles() && (DELETE.equals(restPermission) || WRITE.equals(restPermission))) {
             return false;
         }
 
@@ -71,6 +79,10 @@ public class ResearcherProfileRestPermissionEvaluatorPlugin extends RestObjectPe
         }
 
         return false;
+    }
+
+    private boolean onlyAdminCanManageProfiles() {
+        return configurationService.getBooleanProperty("epfl.researcher-profile.admin-only");
     }
 
 }

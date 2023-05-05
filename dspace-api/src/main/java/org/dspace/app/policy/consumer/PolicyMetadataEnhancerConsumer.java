@@ -33,6 +33,7 @@ import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -69,6 +70,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final MetadataFieldName dataciteRightsMetadata = new MetadataFieldName("datacite", "rights");
     private static final MetadataFieldName dataciteAvailableMetadata = new MetadataFieldName("datacite", "available");
+    private static final MetadataFieldName viewerMetadata = new MetadataFieldName("bitstream", "viewer", "provider");
     private static final MetadataFieldName oaireLicenseMetadata = new MetadataFieldName("oaire", "licenseCondition");
     private static final List<MetadataFieldName> bitstreamToItemMetadatas = List.of(
         oaireLicenseMetadata,
@@ -305,11 +307,31 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                         .orElse(null);
 
         this.addOrRemoveMetadataWithValue(
-                this.bitstreamService,
-                ctx,
-                formattedDate,
-                bitstream,
-                dataciteAvailable
+            this.bitstreamService,
+            ctx,
+            formattedDate,
+            bitstream,
+            dataciteAvailable,
+            dataciteAvailableMetadata
+        );
+
+        BitstreamFormat format = bitstream.getFormat(ctx);
+        String mimeType = Optional.ofNullable(format).map(f -> f.getMIMEType()).orElse(null);
+        String value = null;
+        if (Objects.nonNull(mimeType)) {
+            if (mimeType.contains("image")) {
+                value = "iiif";
+            } else if ("application/pdf".equals(mimeType)) {
+                value = "pdf";
+            }
+        }
+        this.addOrRemoveMetadataWithValue(
+            this.bitstreamService,
+            ctx,
+            value,
+            bitstream,
+            this.getMetadata(bitstream, viewerMetadata),
+            viewerMetadata
         );
 
         this.handleDataciteRightsMetadata(this.bitstreamService, ctx, policyValue, bitstream, dataciteRights);
@@ -353,11 +375,11 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     }
 
     private <T extends DSpaceObject> void addOrRemoveMetadataWithValue(
-            DSpaceObjectService<T> dspaceObjectService,
-            Context ctx,
-            String metadataValue,
-            T dspaceObject,
-            Optional<MetadataValue> metadataOptional
+        DSpaceObjectService<T> dspaceObjectService,
+        Context ctx,
+        String metadataValue,
+        T dspaceObject,
+        Optional<MetadataValue> metadataOptional, MetadataFieldName metadataFieldName
     ) throws SQLException {
         if (metadataValue == null) {
             if (metadataOptional.isPresent()) {
@@ -371,7 +393,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 dspaceObjectService.setMetadataSingleValue(
                     ctx,
                     dspaceObject,
-                    dataciteAvailableMetadata,
+                    metadataFieldName,
                     null,
                     metadataValue
                 );

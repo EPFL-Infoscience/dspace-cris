@@ -355,6 +355,23 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
+    @Test
+    public void testCreateAndReturnWithAdminOnly() throws Exception {
+
+        configurationService.setProperty("epfl.researcher-profile.admin-only", true);
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(post("/api/eperson/profiles/")
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isForbidden());
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(post("/api/eperson/profiles/")
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isCreated());
+
+    }
+
     /**
      * Verify that an admin can call the createAndReturn endpoint to store a new
      * researcher profile related to another user.
@@ -643,6 +660,33 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
 
         getClient(userToken).perform(get("/api/eperson/profiles/{id}", id))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testDeleteWithAdminOnly() throws Exception {
+
+        configurationService.setProperty("epfl.researcher-profile.admin-only", true);
+
+        context.turnOffAuthorisationSystem();
+
+        Item userProfile = ItemBuilder.createItem(context, personCollection)
+            .withDspaceObjectOwner(user)
+            .build();
+
+        Item adminProfile = ItemBuilder.createItem(context, personCollection)
+            .withDspaceObjectOwner(admin)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(delete("/api/eperson/profiles/{id}", adminProfile.getID()))
+            .andExpect(status().isNoContent());
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(delete("/api/eperson/profiles/{id}", userProfile.getID()))
+            .andExpect(status().isForbidden());
+
     }
 
     /**

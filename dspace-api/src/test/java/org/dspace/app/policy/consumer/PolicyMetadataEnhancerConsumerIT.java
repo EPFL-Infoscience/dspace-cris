@@ -469,4 +469,44 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
     }
+
+    @Test
+    public void testBitstreamViewerProvider()
+        throws SQLException, AuthorizeException, IOException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        Bitstream pdfBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test"))
+                                                 .withMimeType("application/pdf")
+                                                 .build();
+        Bitstream jpgBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test2"))
+                                                 .withMimeType("image/jpeg")
+                                                 .build();
+        Bitstream pngBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test3"))
+                                                 .withMimeType("image/png")
+                                                 .build();
+
+        Bitstream txtBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test4"))
+                                                 .withMimeType("text/plain")
+                                                 .build();
+
+        Bitstream noMimeTypeBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test4"))
+                                                 .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        pdfBitstream = context.reloadEntity(pdfBitstream);
+        jpgBitstream = context.reloadEntity(jpgBitstream);
+        pngBitstream = context.reloadEntity(pngBitstream);
+        txtBitstream = context.reloadEntity(txtBitstream);
+        noMimeTypeBitstream = context.reloadEntity(noMimeTypeBitstream);
+
+        assertThat(pdfBitstream.getMetadata(), hasItem(with("bitstream.viewer.provider", "pdf")));
+        assertThat(jpgBitstream.getMetadata(), hasItem(with("bitstream.viewer.provider", "iiif")));
+        assertThat(pngBitstream.getMetadata(), hasItem(with("bitstream.viewer.provider", "iiif")));
+        assertThat(txtBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "iiif"))));
+        assertThat(txtBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "pdf"))));
+        assertThat(noMimeTypeBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "iiif"))));
+        assertThat(noMimeTypeBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "pdf"))));
+    }
 }

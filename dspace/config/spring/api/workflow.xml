@@ -10,10 +10,7 @@
     <bean class="org.dspace.xmlworkflow.XmlWorkflowFactoryImpl">
         <property name="workflowMapping">
             <util:map>
-                <entry key="defaultWorkflow"
-                       value-ref="defaultWorkflow"/>
-                <entry key="123456789/82"
-                       value-ref="epflWorkflow"/>
+                <entry key="defaultWorkflow" value-ref="epflWorkflow"/>
 <!--                <entry key="123456789/4" value-ref="selectSingleReviewer"/>-->
 <!--                <entry key="123456789/5" value-ref="scoreReview"/>-->
             </util:map>
@@ -56,7 +53,7 @@
         <property name="outcomes">
             <util:map>
                 <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
-                       value-ref="editstep"/>
+                       value-ref="reviewstep"/>
             </util:map>
         </property>
         <property name="actions">
@@ -79,7 +76,7 @@
         <property name="outcomes">
             <util:map>
                 <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
-                       value-ref="editstep"/>
+                       value-ref="checkcorrectionstep"/>
             </util:map>
         </property>
         <property name="actions">
