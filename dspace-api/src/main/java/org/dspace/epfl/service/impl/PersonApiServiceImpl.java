@@ -207,11 +207,11 @@ public class PersonApiServiceImpl implements PersonApiService {
     }
 
     private Optional<String> getPersonAffiliationStartMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.startDate"));
+        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.start"));
     }
 
     private Optional<String> getPersonAffiliationEndMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.endDate"));
+        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.end"));
     }
 
     private Optional<String> getPersonUrlMetadataField() {
@@ -228,6 +228,14 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     private Optional<String> getPersonAffiliationAuthorityPrefix() {
         return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.authority"));
+    }
+
+    public EpflApiClient getApiClient() {
+        return apiClient;
+    }
+
+    public void setApiClient(EpflApiClient apiClient) {
+        this.apiClient = apiClient;
     }
 
     @Override

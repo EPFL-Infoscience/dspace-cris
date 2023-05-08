@@ -11,24 +11,17 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authority.service.AuthorityValueService;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -47,9 +40,6 @@ public class PersonImportFiller implements AuthorityImportFiller {
 
     @Autowired
     private BitstreamService bitstreamService;
-
-    @Autowired
-    private BundleService bundleService;
 
     @Override
     public List<MetadataValueDTO> getMetadataListByRelatedItemAndMetadata(Context context, Item relatedItem,
@@ -105,37 +95,7 @@ public class PersonImportFiller implements AuthorityImportFiller {
             .forEach(metadataValue -> addMetadata(context, item, metadataValue));
 
         personApiService.getPersonalPicture(sciper)
-            .ifPresent(inputstream -> storePersonalPicture(context, item, sciper, inputstream));
-
-    }
-
-    private void storePersonalPicture(Context context, Item item, String sciper, InputStream inputStream) {
-
-        try {
-
-            Bundle bundle = getOriginalBundle(context, item);
-
-            Bitstream bitstream = bitstreamService.create(context, bundle, inputStream);
-            bitstream.setName(context, sciper + ".jpg");
-
-            bitstreamService.setMetadataSingleValue(context, bitstream, "dc", "type", null, null, "personal picture");
-
-            bitstreamService.update(context, bitstream);
-
-        } catch (SQLException | AuthorizeException | IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private Bundle getOriginalBundle(Context context, Item item) throws SQLException, AuthorizeException {
-        List<Bundle> bundles = itemService.getBundles(item, "ORIGINAL");
-
-        if (CollectionUtils.isEmpty(bundles)) {
-            return bundleService.create(context, item, "ORIGINAL");
-        } else {
-            return bundles.iterator().next();
-        }
+            .ifPresent(content -> bitstreamService.replacePersonalPicture(context, item, sciper + ".jpg", content));
 
     }
 

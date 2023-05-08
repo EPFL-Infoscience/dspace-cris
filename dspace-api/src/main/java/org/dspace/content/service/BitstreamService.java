@@ -245,4 +245,6 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
     List<Bitstream> findByItemAndBundleAndMetadata(Context context, Item item, String bundleName,
         Map<String, String> filterMetadata);
 
+    void replacePersonalPicture(Context context, Item item, String name, InputStream content);
+
 }

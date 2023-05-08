@@ -7,20 +7,20 @@
  */
 package org.dspace.authenticate.service;
 
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.collections.IteratorUtils.toList;
 import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
@@ -42,6 +42,9 @@ public class ProfileInitializer {
     private ItemService itemService;
 
     @Autowired
+    private BitstreamService bitstreamService;
+
+    @Autowired
     private PersonApiService personApiService;
 
     @Autowired
@@ -52,11 +55,19 @@ public class ProfileInitializer {
 
     public void initialize(Context context, EPerson eperson) {
 
-        Optional<String> sciper = getSciperId(eperson);
-        if (sciper.isPresent()) {
-            initialize(context, eperson, sciper.get());
-        } else {
-            createPrivateProfile(context, eperson);
+        context.turnOffAuthorisationSystem();
+
+        try {
+
+            Optional<String> sciper = getSciperId(eperson);
+            if (sciper.isPresent()) {
+                initialize(context, eperson, sciper.get());
+            } else {
+                createPrivateProfile(context, eperson);
+            }
+
+        } finally {
+            context.restoreAuthSystemState();
         }
 
     }
@@ -100,17 +111,18 @@ public class ProfileInitializer {
 
         if (owner != null && !owner.equals(eperson)) {
             throw new IllegalStateException("An item with the sciper " + sciper + " is already linked "
-                + "to another eperson: " + eperson.getID());
+                + "to another eperson: " + owner.getID());
         }
 
-        addOwner(context, item, eperson);
+        setOwner(context, item, eperson);
 
         return Optional.of(new ResearcherProfile(item));
 
     }
 
-    private void addOwner(Context context, Item item, EPerson ePerson) {
+    private void setOwner(Context context, Item item, EPerson ePerson) {
         try {
+            itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
             itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(),
                 ePerson.getID().toString(), CF_ACCEPTED);
         } catch (SQLException e) {
@@ -148,10 +160,9 @@ public class ProfileInitializer {
     }
 
     private boolean isMainAffiliationActive(PersonDTO person) {
-        if (ArrayUtils.isEmpty(person.getAccreds())) {
-            return false;
-        }
-        return orgUnitApiService.isOrgUnitActive(person.getAccreds()[0].getAcronym());
+        return person.getMainAffiliation()
+            .map(accred -> orgUnitApiService.isOrgUnitActive(accred.getAcronym()))
+            .orElse(false);
     }
 
     private void enrichProfile(Context context, PersonDTO person, Item item) {
@@ -159,11 +170,10 @@ public class ProfileInitializer {
         List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(person);
         replaceMetadataValues(context, item, metadataValues);
 
-        personApiService.getPersonalPicture(person.getSciper())
-            .ifPresent(inputStream -> replacePersonalPicture(context, item, person, inputStream));
-    }
+        String sciper = person.getSciper();
 
-    private void replacePersonalPicture(Context context, Item item, PersonDTO person, InputStream inputStream) {
+        personApiService.getPersonalPicture(sciper)
+            .ifPresent(content -> bitstreamService.replacePersonalPicture(context, item, sciper + ".jpg", content));
 
     }
 
@@ -200,8 +210,8 @@ public class ProfileInitializer {
     }
 
     private Optional<String> getSciperId(EPerson eperson) {
-        return Optional.ofNullable(eperson)
-            .map(ePerson -> ePerson.getNetid())
+        return ofNullable(eperson)
+            .flatMap(ePerson -> ofNullable(ePerson.getNetid()))
             .map(netId -> StringUtils.substringBefore(netId, "@"));
     }
 
