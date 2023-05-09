@@ -281,4 +281,12 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
         return configurationService.getProperty("epfl.orgunit-import.metadata-field-language.french", "fr");
     }
 
+    public EpflApiClient getApiClient() {
+        return apiClient;
+    }
+
+    public void setApiClient(EpflApiClient apiClient) {
+        this.apiClient = apiClient;
+    }
+
 }

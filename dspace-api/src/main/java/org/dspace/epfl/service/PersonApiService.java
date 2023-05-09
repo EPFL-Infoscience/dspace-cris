@@ -12,11 +12,18 @@ import java.util.List;
 import java.util.Optional;
 
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.epfl.client.model.PersonDTO;
 
 public interface PersonApiService {
+
+    public Optional<PersonDTO> getPerson(String sciper);
+
+    public List<MetadataValueDTO> getMetadataValues(PersonDTO person);
 
     public List<MetadataValueDTO> getMetadataValues(String sciper);
 
     public Optional<InputStream> getPersonalPicture(String sciper);
+
+    public String getSciperMetadataField();
 
 }

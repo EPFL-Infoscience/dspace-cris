@@ -7,38 +7,36 @@
  */
 package org.dspace.authenticate.service;
 
+import static org.dspace.app.matcher.MetadataValueMatcher.with;
+import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertThrows;
 
 import java.sql.SQLException;
-import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.ItemBuilder;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataFieldName;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
-import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.GroupService;
+import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
+import org.dspace.epfl.service.impl.PersonApiServiceImpl;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
-import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
@@ -49,15 +47,22 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
     private ProfileInitializer profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
 
     private ResearcherProfileService researcherProfileService = new DSpace()
-        .getServiceManager().getServicesByType(ResearcherProfileService.class).get(0);
+        .getSingletonService(ResearcherProfileService.class);
 
-    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
-    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    private PersonApiServiceImpl personApiService = new DSpace().getServiceManager()
+        .getServicesByType(PersonApiServiceImpl.class).get(0);
 
-    private EpflClient epflClient;
+    private OrgUnitApiServiceImpl orgUnitApiService = new DSpace().getServiceManager()
+        .getServicesByType(OrgUnitApiServiceImpl.class).get(0);
 
-    private EpflClient mockEpflClient = mock(EpflClient.class);
+    private EpflApiClient apiClient = new DSpace().getServiceManager()
+        .getServicesByType(EpflApiClient.class).get(0);
+
+//    private EpflApiClient mockApiClient;
+
+    private Collection profiles;
 
     @Before
     public void setup() throws Exception {
@@ -68,176 +73,240 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             .withName("Parent Community")
             .build();
 
-        CollectionBuilder.createCollection(context, parentCommunity)
+        profiles = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Profile Collection")
             .withEntityType("Person")
-            .withTemplateItem()
-            .build();
-
-        CollectionBuilder.createCollection(context, parentCommunity)
-            .withName("OrgUnit Collection")
-            .withEntityType("OrgUnit")
-            .withTemplateItem()
             .build();
 
         context.restoreAuthSystemState();
 
-        epflClient = profileInitializer.getClient();
-        profileInitializer.setClient(mockEpflClient);
+//        mockApiClient = mock(EpflApiClient.class);
+
+//        personApiService.setApiClient(mockApiClient);
+//        orgUnitApiService.setApiClient(mockApiClient);
 
     }
 
     @After
-    public void after() {
-        profileInitializer.setClient(epflClient);
+    public void after() throws Exception {
+
+        personApiService.setApiClient(apiClient);
+        orgUnitApiService.setApiClient(apiClient);
+
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testProfileCreation() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();
 
-        EPerson user = EPersonBuilder.createEPerson(context)
-            .withEmail("user@example.com")
-            .withNameInMetadata("User", "Example")
-            .withPassword(password)
-            .withNetId("123456@epfl.ch ")
-            .build();
-
-        EPerson anotherUser = EPersonBuilder.createEPerson(context)
-            .withEmail("another@example.com")
-            .withNameInMetadata("Another User", "Example")
-            .withPassword(password)
-            .withNetId("99999@test.ch ")
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
             .build();
 
         context.restoreAuthSystemState();
 
-        when(mockEpflClient.getAccred("123456")).thenReturn(createEpflResponse());
-        when(mockEpflClient.getAccred("99999")).thenReturn(createEpflResponse());
+        profileInitializer.initialize(context, eperson);
 
-        boolean initialized = profileInitializer.initialize(context, user);
-        assertThat(initialized, is(true));
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
 
-        ResearcherProfile profile = researcherProfileService.findById(context, user.getID());
-        assertThat(profile, notNullValue());
-        assertThat(profile.isVisible(), is(false));
-        context.commit();
+        Item profile = researcherProfile.getItem();
+        assertThat(profile.getMetadata(), hasItems(
+            with("dc.title", "Al Hassanieh, Haitham"),
+            with("person.givenName", "Haitham"),
+            with("person.familyName", "Al Hassanieh"),
+            with("person.email", "haitham.alhassanieh@epfl.ch"),
+            with("epfl.sciper.active", "true"),
+            with("epfl.sciperId", "352234"),
+            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
+            with("oairecerif.affiliation.role", "Associate Professor"),
+            with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
+                "will be generated::ACRONYM::SENS", 400),
+            with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("oairecerif.affiliation.role", "Associate Professor", 1),
+            with("oairecerif.person.affiliation", "SSC - Teaching", "will be generated::ACRONYM::SSC-ENS", 1, 400),
+            with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
+            with("oairecerif.affiliation.role", "Associate Professor", 2),
+            with("oairecerif.person.affiliation", "SIN - Teaching", "will be generated::ACRONYM::SIN-ENS", 2, 400),
+            with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
-        Item profileItem = profile.getItem();
-        assertThat(getMetadataValue(profileItem, "dc.title"), is("User Example"));
-        assertThat(getMetadataValue(profileItem, "dspace.entity.type"), is("Person"));
-        assertThat(getMetadataValue(profileItem, "cris.legacyId"), is("123456"));
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
-        List<MetadataValue> affiliations = itemService.getMetadataByMetadataString(profileItem,
-            "person.affiliation.name");
+    }
 
-        assertThat(affiliations, hasSize(1));
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testInitializeWithPersonWithThatSciperAlreadyExisting() throws SQLException, AuthorizeException {
 
-        MetadataValue affiliation = affiliations.get(0);
-        assertThat(affiliation.getValue(), is("UNIT 14214"));
-        assertThat(affiliation.getAuthority(), notNullValue());
-
-        Item orgUnit = itemService.find(context, UUIDUtils.fromString(affiliation.getAuthority()));
-        assertThat(orgUnit, notNullValue());
-        assertThat(getMetadataValue(orgUnit, "dc.title"), is("UNIT 14214"));
-        assertThat(getMetadataValue(orgUnit, "dspace.entity.type"), is("OrgUnit"));
-        assertThat(getMetadataValue(orgUnit, "cris.legacyId"), is("14214"));
-
-        // verify that we have created the group and added it to the current context special group
-        Group group = groupService.findByName(context, "UNIT 14214");
-        assertThat(group, notNullValue());
-        assertThat(context.getSpecialGroups().contains(group), is(true));
-
-        verify(mockEpflClient).getAccred("123456");
-        verifyNoMoreInteractions(mockEpflClient);
-
-        initialized = profileInitializer.initialize(context, user);
-        assertThat(initialized, is(false));
-        verify(mockEpflClient, times(2)).getAccred("123456");
-        verifyNoMoreInteractions(mockEpflClient);
-
-        // update the main affiliation to check if the profile initializer will fix it back
         context.turnOffAuthorisationSystem();
-        profileItem = context.reloadEntity(profileItem);
-        itemService.clearMetadata(context, profileItem, "person", "affiliation", "name", Item.ANY);
-        itemService.update(context, profileItem);
-        context.commit();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
+            .build();
+
+        Item person = ItemBuilder.createItem(context, profiles)
+            .withTitle("My User")
+            .withBirthDate("1992-06-26")
+            .withMetadata("epfl", "sciperId", null, "352234")
+            .build();
+
         context.restoreAuthSystemState();
-        initialized = profileInitializer.initialize(context, user);
-        context.commit();
-        verify(mockEpflClient, times(3)).getAccred("123456");
-        verifyNoMoreInteractions(mockEpflClient);
-        assertThat(initialized, is(true));
-        profileItem = context.reloadEntity(profileItem);
-        affiliations = itemService.getMetadataByMetadataString(profileItem,
-                "person.affiliation.name");
-        assertThat(affiliations, hasSize(1));
-        affiliation = affiliations.get(0);
-        assertThat(affiliation.getValue(), is("UNIT 14214"));
-        assertThat(affiliation.getAuthority(), notNullValue());
 
-        // test with the other profile
-        initialized = profileInitializer.initialize(context, anotherUser);
-        assertThat(initialized, is(true));
+        profileInitializer.initialize(context, eperson);
 
-        context.commit();
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
 
-        profile = researcherProfileService.findById(context, anotherUser.getID());
-        assertThat(profile, notNullValue());
-        assertThat(profile.isVisible(), is(false));
+        Item profile = researcherProfile.getItem();
+        assertThat(profile, is(person));
 
-        profileItem = profile.getItem();
-        assertThat(getMetadataValue(profileItem, "dc.title"), is("Another User Example"));
-        assertThat(getMetadataValue(profileItem, "dspace.entity.type"), is("Person"));
-        assertThat(getMetadataValue(profileItem, "cris.legacyId"), is("99999"));
+        person = context.reloadEntity(person);
 
-        affiliations = itemService.getMetadataByMetadataString(profileItem, "person.affiliation.name");
+        assertThat(person.getMetadata(), hasItems(
+            with("dc.title", "Al Hassanieh, Haitham"),
+            with("person.givenName", "Haitham"),
+            with("person.familyName", "Al Hassanieh"),
+            with("person.email", "haitham.alhassanieh@epfl.ch"),
+            with("person.birthDate", "1992-06-26"),
+            with("epfl.sciper.active", "true"),
+            with("epfl.sciperId", "352234"),
+            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
+            with("oairecerif.affiliation.role", "Associate Professor"),
+            with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
+                "will be generated::ACRONYM::SENS", 400),
+            with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("oairecerif.affiliation.role", "Associate Professor", 1),
+            with("oairecerif.person.affiliation", "SSC - Teaching", "will be generated::ACRONYM::SSC-ENS", 1, 400),
+            with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
+            with("oairecerif.affiliation.role", "Associate Professor", 2),
+            with("oairecerif.person.affiliation", "SIN - Teaching", "will be generated::ACRONYM::SIN-ENS", 2, 400),
+            with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
-        assertThat(affiliations, hasSize(1));
-        assertThat(affiliations.get(0).getValue(), is("UNIT 14214"));
-        assertThat(affiliations.get(0).getAuthority(), is(orgUnit.getID().toString()));
-
-        verify(mockEpflClient).getAccred("99999");
-        verifyNoMoreInteractions(mockEpflClient);
-
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
     }
 
-    private String getMetadataValue(Item item, String metadataField) {
-        return itemService.getMetadataFirstValue(item, new MetadataFieldName(metadataField), Item.ANY);
+    @Test
+    public void testInitializeWithResearcherProfile() throws SQLException, AuthorizeException {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
+            .build();
+
+        Item person = ItemBuilder.createItem(context, profiles)
+            .withTitle("My User")
+            .withBirthDate("1992-06-26")
+            .withDspaceObjectOwner(eperson)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        profileInitializer.initialize(context, eperson);
+
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+
+        Item profile = researcherProfile.getItem();
+        assertThat(profile, is(person));
+
+        person = context.reloadEntity(person);
+        assertThat(person.getMetadata(), hasSize(27));
+
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+
     }
 
-    private EpflResponse createEpflResponse() {
-        String json = "{\n" +
-            "  \"result\": [\n" +
-            "    {\n" +
-            "      \"author\": 248177,\n" +
-            "      \"classid\": 4,\n" +
-            "      \"comment\": \"\",\n" +
-            "      \"creator\": \"000000\",\n" +
-            "      \"datecreat\": \"2022-06-09 00:40:18\",\n" +
-            "      \"datedeb\": \"2022-06-09 00:40:18\",\n" +
-            "      \"datefin\": \"\",\n" +
-            "      \"datereval\": \"\",\n" +
-            "      \"debval\": \"2022-07-07 10:50:12\",\n" +
-            "      \"duree\": \"\",\n" +
-            "      \"finval\": \"\",\n" +
-            "      \"ordre\": 1,\n" +
-            "      \"origine\": \"p\",\n" +
-            "      \"persid\": 360892,\n" +
-            "      \"posid\": 1070,\n" +
-            "      \"revalman\": \"n\",\n" +
-            "      \"statusid\": 1,\n" +
-            "      \"unitid\": 14214\n" +
-            "    }\n" +
-            "  ]\n" +
-            "}";
-        try {
-            return new ObjectMapper().readValue(json, EpflResponse.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    @Test
+    public void testInitializeWithResearcherProfileAssignedToAnotherEPerson() throws SQLException, AuthorizeException {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
+            .build();
+
+        ItemBuilder.createItem(context, profiles)
+            .withTitle("My User")
+            .withMetadata("epfl", "sciperId", null, "352234")
+            .withDspaceObjectOwner(admin)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> profileInitializer.initialize(context, eperson));
+
+        assertThat(exception.getMessage(), is("An item with the sciper 352234 is already linked "
+            + "to another eperson: " + admin.getID()));
+
+    }
+
+    @Test
+    public void testInitializeWithUpdate() throws SQLException, AuthorizeException {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        profileInitializer.initialize(context, eperson);
+
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+
+        Item profile = researcherProfile.getItem();
+        assertThat(profile.getMetadata(), hasSize(25));
+
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+
+        profileInitializer.initialize(context, eperson);
+
+        researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+
+        Item updatedProfile = researcherProfile.getItem();
+        assertThat(updatedProfile, is(profile));
+
+        assertThat(updatedProfile.getMetadata(), hasSize(25));
+
+        Bitstream newPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(newPicture, notNullValue());
+        assertThat(newPicture, is(not(picture)));
+        assertThat(newPicture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+
+        assertThat(bitstreamService.getBitstreamByBundleName(updatedProfile, "ORIGINAL"), hasSize(1));
+
     }
 
 }

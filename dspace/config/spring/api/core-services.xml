@@ -192,7 +192,6 @@
     <bean class="org.dspace.authenticate.oidc.impl.OidcClientImpl" />
     
     <bean id="org.dspace.authenticate.service.ProfileInitializer" class="org.dspace.authenticate.service.ProfileInitializer"/>
-    <bean id="org.dspace.authenticate.service.EpflClient" class="org.dspace.authenticate.service.EpflClient"/>
 
     <bean class="org.dspace.authorize.ValidatePasswordServiceImpl"/>
     <bean class="org.dspace.authorize.RegexPasswordValidator" />
