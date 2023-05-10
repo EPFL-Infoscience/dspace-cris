@@ -573,6 +573,28 @@
 				<entry key="picture" value="personal picture" />
 			</map>
 		</constructor-arg>
+		<constructor-arg name="bitstreamMIMETypeMap">
+			<map>
+				<entry key="image">
+					<set>
+						<value>image/jpeg</value>
+						<value>image/png</value>
+						<value>image/gif</value>
+					</set>
+				</entry>
+				<entry key="pdf">
+					<set>
+						<value>application/pdf</value>
+						<value>application/x-pdf</value>
+					</set>
+				</entry>
+				<entry key="txt">
+					<set>
+						<value>text/plain</value>
+					</set>
+				</entry>
+			</map>
+		</constructor-arg>
 	</bean>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMapConverter" id="virtualFieldMapConverter">
 		<constructor-arg name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
