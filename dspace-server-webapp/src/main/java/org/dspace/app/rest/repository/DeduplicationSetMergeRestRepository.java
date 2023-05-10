@@ -236,7 +236,7 @@ public class DeduplicationSetMergeRestRepository
                 Optional<DCInput> dcInput = dcInputSet.getField(field);
                 if (dcInput.isPresent()) {
 
-                    if (dcInputSet.hasParent(field)) {
+                    if (dcInputSet.findParent(field).isPresent()) {
                         continue;
                     }
 
