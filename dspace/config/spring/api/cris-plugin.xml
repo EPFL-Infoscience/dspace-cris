@@ -16,7 +16,6 @@
 				</entry>
                 <entry key="ORCID" value-ref="orcidImportFiller" />
                 <entry key="ISSN" value-ref="sherpaImportFiller" />
-                <entry key="OPENAIRE-PROJECT-ID" value-ref="openaireProjectImportFiller" />
                 <entry key="ACRONYM" value-ref="orgUnitImportFiller" />
                 <entry key="SCIPER-ID" value-ref="personImportFiller" />
 			</map>
@@ -118,11 +117,6 @@
     </bean>
 
 
-    <bean class="org.dspace.authority.filler.ExternalDataProviderImportFiller" id="openaireProjectImportFiller" >
-       <constructor-arg name="externalDataProvider" ref="openaireLiveImportDataProvider"/>
-       <constructor-arg name="authorityIdentifier" value="OPENAIRE-PROJECT-ID"/>
-    </bean>
-
 	<bean class="org.dspace.authority.service.ItemSearcherMapper" name="org.dspace.authority.service.ItemSearcherMapper">
 		<constructor-arg index="0">
 			<map>
@@ -135,7 +129,6 @@
 				<entry key="DOI" value-ref="itemSearcherByDOI"/>
 				<entry key="URL" value-ref="itemSearcherByURL"/>
                 <entry key="ISSN" value-ref="itemSearcherByISSN"/>
-                <entry key="OPENAIRE-PROJECT-ID" value-ref="itemSearcherByOpenaireProjectId"/>
                 <entry key="ACRONYM" value-ref="itemSearcherByAcronym"/>
                 <entry key="SCIPER-ID" value-ref="itemSearcherBySciper"/>
 				<entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
@@ -175,11 +168,6 @@
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByISSN">
         <constructor-arg value="dc.identifier.issn"></constructor-arg>
         <constructor-arg value="ISSN"></constructor-arg>
-    </bean>
-
-    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByOpenaireProjectId">
-        <constructor-arg value="oairecerif.funding.identifier"></constructor-arg>
-        <constructor-arg value="OPENAIRE-PROJECT-ID"></constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByAcronym">
