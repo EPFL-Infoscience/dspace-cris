@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -107,18 +108,8 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     private void init() {
         List<String> values = metadataAuthorityService.getAuthorityMetadata();
         for (String value : values) {
-            authorityMetadataFields.add(getElementsFilled(value));
+            authorityMetadataFields.add(getElements(value));
         }
-    }
-
-    private String[] getElementsFilled(String fieldName) {
-        String[] elements = getElements(fieldName);
-        for (int i = 0; i < elements.length; i++) {
-            if (StringUtils.isBlank(elements[i])) {
-                elements[i] = Item.ANY;
-            }
-        }
-        return elements;
     }
 
     private String[] getElements(String fieldName) {
@@ -225,7 +216,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
         for (DeduplicationMetadataDTO metadataDTO : metadataList) {
             metadataValues = getMetadataValues(context, metadataDTO);
-            fields = getElementsFilled(metadataDTO.getMetadataField());
+            fields = getElements(metadataDTO.getMetadataField());
 
             itemService.clearMetadata(context, targetItem, fields[0], fields[1], fields[2], null);
 
@@ -251,7 +242,9 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 Item item = itemService.find(context, getUUIDFromUri(source.getItem()));
                 MetadataValue metadataValue = getMatchedMetadataValueFromItem(item, source.getPlace(),
                     metadataDTO.getMetadataField());
-                metadataValues.add(metadataValue);
+                if (!Objects.isNull(metadataValue)) {
+                    metadataValues.add(metadataValue);
+                }
             }
         }
 
@@ -531,7 +524,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                     updateItemMetaDataValues(
                         context, targetItem,
                         entry.getValue(),
-                        getElementsFilled(entry.getKey())
+                        getElements(entry.getKey())
                     );
                 } catch (SQLException | AuthorizeException e) {
                     throw new RuntimeException("Error while replacing metadata for deduplication!", e);
@@ -546,7 +539,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
             updateItemMetaDataValues(
                 context, targetItem,
                 getItemsMetadataValues(mergedItems, metadataField),
-                getElementsFilled(metadataField)
+                getElements(metadataField)
             );
         }
     }
@@ -563,7 +556,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 metadataValues = new ArrayList<>();
                 metadataValues.addAll(itemMetadataValues);
                 metadataValues.addAll(getItemsMetadataValues(mergedItems, metadataField));
-                updateItemMetaDataValues(context, targetItem, metadataValues, getElementsFilled(metadataField));
+                updateItemMetaDataValues(context, targetItem, metadataValues, getElements(metadataField));
             }
         }
     }
@@ -588,7 +581,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     }
 
     private List<MetadataValue> getItemMetadataValues(Item item, String metadataFiled) {
-        String[] elements = getElementsFilled(metadataFiled);
+        String[] elements = getElements(metadataFiled);
         return itemService.getMetadata(item, elements[0], elements[1], elements[2], null);
     }
 
