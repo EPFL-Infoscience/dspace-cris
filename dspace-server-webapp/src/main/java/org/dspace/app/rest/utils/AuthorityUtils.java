@@ -49,23 +49,19 @@ public class AuthorityUtils {
     private ConverterService converter;
 
     /**
-     * Please use the choice authority service directly. This method assumes that
-     * you are looking only for general item configuration (no one collection and
-     * dso type specific as value-pairs or controlled-vocabulary)
      * 
      * @param schema
      * @param element
      * @param qualifier
      * @return
      */
-    @Deprecated
-    public boolean isChoice(String schema, String element, String qualifier) {
+    public boolean isChoice(String schema, String element, String qualifier, String formname) {
         return cas.isChoicesConfigured(org.dspace.core.Utils.standardize(schema, element, qualifier, "_"),
-                Constants.ITEM, null);
+                Constants.ITEM, formname);
     }
 
-    public String getAuthorityName(String schema, String element, String qualifier) {
-        return cas.getChoiceAuthorityName(schema, element, qualifier, Constants.ITEM, null);
+    public String getAuthorityName(String schema, String element, String qualifier, String formName) {
+        return cas.getChoiceAuthorityName(schema, element, qualifier, formName);
     }
 
     public boolean isClosed(String schema, String element, String qualifier) {

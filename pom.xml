@@ -4,7 +4,7 @@
     <groupId>org.dspace</groupId>
     <artifactId>dspace-parent</artifactId>
     <packaging>pom</packaging>
-    <version>cris-2022.03.01-SNAPSHOT</version>
+    <version>cris-2023.01.00-SNAPSHOT</version>
     <name>DSpace Parent Project</name>
     <description>
    	DSpace-CRIS is an open source extension of DSpace (http://www.dspace.org) providing out of box support for the CRIS / RIMS and moder Institution Repository use cases with advanced features and optimized configurations
@@ -61,8 +61,9 @@
         <jersey.version>2.35</jersey.version>
 
         <!--=== ADDON DEPENDENCIES ===-->
-        <addon-iiif.version>[CRIS-7.0-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-iiif.version>
-        <addon-ocr.version>[CRIS-7.0-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-ocr.version>
+        <addon-iiif.version>[CRIS-7.1-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-iiif.version>
+        <addon-ocr.version>[CRIS-7.1-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-ocr.version>
+        <addon-docviewer.version>[CRIS-7.0-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-docviewer.version>
 
         <!--=== MAVEN SETTINGS ===-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -897,6 +898,26 @@
             </dependencyManagement>
         </profile>
 
+        <!--
+            Builds Document Viewer addon for DSpace
+        -->
+        <profile>
+            <id>addon-document-viewer</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                         <groupId>it.4science.dspace</groupId>
+                         <artifactId>addon-docviewer-api</artifactId>
+                         <version>${addon-docviewer.version}</version>
+                         <type>jar</type>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+
        <!-- REST Jersey (Deprecated REST API from DSpace 6.x or below) -->
        <!-- As this module is deprecated, it only builds if you activate it via -Pdspace-rest -->
        <profile>
@@ -916,14 +937,14 @@
                    <dependency>
                        <groupId>org.dspace</groupId>
                        <artifactId>dspace-rest</artifactId>
-                       <version>cris-2022.03.01-SNAPSHOT</version>
+                       <version>cris-2023.01.00-SNAPSHOT</version>
                        <type>jar</type>
                        <classifier>classes</classifier>
                    </dependency>
                    <dependency>
                        <groupId>org.dspace</groupId>
                        <artifactId>dspace-rest</artifactId>
-                       <version>cris-2022.03.01-SNAPSHOT</version>
+                       <version>cris-2023.01.00-SNAPSHOT</version>
                        <type>war</type>
                    </dependency>
                </dependencies>
@@ -1074,69 +1095,69 @@
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-api</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-api</artifactId>
                 <type>test-jar</type>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.dspace.modules</groupId>
                 <artifactId>additions</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-sword</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-swordv2</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-oai</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-services</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
                 <type>test-jar</type>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-rdf</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-iiif</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
                 <type>jar</type>
                 <classifier>classes</classifier>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
-                <version>cris-2022.03.01-SNAPSHOT</version>
+                <version>cris-2023.01.00-SNAPSHOT</version>
                 <type>war</type>
             </dependency>
             <!-- DSpace API Localization Packages -->

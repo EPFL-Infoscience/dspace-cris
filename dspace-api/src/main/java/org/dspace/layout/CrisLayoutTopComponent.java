@@ -27,6 +27,8 @@ public class CrisLayoutTopComponent implements CrisLayoutSectionComponent {
 
     private Integer numberOfItems;
 
+    private Boolean showThumbnails;
+
     /**
      * @return the discoveryConfigurationName
      */
@@ -108,5 +110,13 @@ public class CrisLayoutTopComponent implements CrisLayoutSectionComponent {
 
     public void setNumberOfItems(Integer numberOfItems) {
         this.numberOfItems = numberOfItems;
+    }
+
+    public Boolean getShowThumbnails() {
+        return showThumbnails;
+    }
+
+    public void setShowThumbnails(Boolean showThumbnails) {
+        this.showThumbnails = showThumbnails;
     }
 }

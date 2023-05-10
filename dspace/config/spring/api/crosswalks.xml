@@ -499,6 +499,28 @@
 				<entry key="picture" value="personal picture" />
 			</map>
 		</constructor-arg>
+		<constructor-arg name="bitstreamMIMETypeMap">
+			<map>
+				<entry key="image">
+					<set>
+						<value>image/jpeg</value>
+						<value>image/png</value>
+						<value>image/gif</value>
+					</set>
+				</entry>
+				<entry key="pdf">
+					<set>
+						<value>application/pdf</value>
+						<value>application/x-pdf</value>
+					</set>
+				</entry>
+				<entry key="txt">
+					<set>
+						<value>text/plain</value>
+					</set>
+				</entry>
+			</map>
+		</constructor-arg>
 	</bean>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMapConverter" id="virtualFieldMapConverter">
 		<constructor-arg name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
@@ -508,6 +530,9 @@
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldVocabulary" id="virtualFieldVocabulary"/>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMetric" id="virtualFieldMetric"/>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldCitations" id="virtualFieldCitations"/>
+    
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.FirstSelectedCitationsPostProcessor" />
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.GroupByTypeCitationsPostProcessor" />
 	
 	<!-- MapConverter configuration -->
 
@@ -614,5 +639,8 @@
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory" />
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLNestedGenerator" />
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLWebServiceGenerator" />
+    
+    <bean class="org.dspace.content.converter.ItemToItemDTOConverter" />
+    <bean class="org.dspace.app.bulkimport.service.BulkImportWorkbookBuilderImpl" />
 
 </beans>
