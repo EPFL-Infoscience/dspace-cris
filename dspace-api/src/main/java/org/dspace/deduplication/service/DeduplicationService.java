@@ -62,4 +62,6 @@ public interface DeduplicationService {
 
     public Deduplication uniqueDeduplicationByFirstAndSecond(Context context, UUID firstId, UUID secondId)
             throws SQLException;
+
+    public void delete(Context context, Deduplication dedup) throws SQLException;
 }
