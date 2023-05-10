@@ -105,12 +105,12 @@
 	
 	<bean class="org.dspace.authority.filler.OrgUnitImportFiller" id="orgUnitImportFiller" />
     <bean class="org.dspace.authority.filler.PersonImportFiller" id="personImportFiller" />
-	
+
 	<bean class="org.dspace.authority.filler.ExternalDataProviderImportFiller" id="orcidImportFiller" >
 	   <constructor-arg name="externalDataProvider" ref="org.dspace.external.provider.impl.OrcidV3AuthorDataProvider"/>
 	   <constructor-arg name="authorityIdentifier" value="ORCID"/>
 	</bean>
-    
+
     <bean class="org.dspace.authority.filler.ExternalDataProviderImportFiller" id="sherpaImportFiller" >
        <constructor-arg name="externalDataProvider" ref="org.dspace.external.provider.impl.SHERPAv2JournalISSNDataProvider"/>
        <constructor-arg name="authorityIdentifier" value="ISSN"/>
@@ -163,22 +163,22 @@
 		<constructor-arg value="person.identifier.isni"></constructor-arg>
 		<constructor-arg value="ISNI"></constructor-arg>
 	</bean>
-    
+
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByISSN">
         <constructor-arg value="dc.identifier.issn"></constructor-arg>
         <constructor-arg value="ISSN"></constructor-arg>
     </bean>
-    
+
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByAcronym">
         <constructor-arg value="oairecerif.acronym"></constructor-arg>
         <constructor-arg value="ACRONYM"></constructor-arg>
     </bean>
-    
+
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherBySciper">
         <constructor-arg value="epfl.sciperId"></constructor-arg>
         <constructor-arg value="SCIPER-ID"></constructor-arg>
     </bean>
-    
+
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByLegacyId">
 		<constructor-arg value="cris.legacyId"></constructor-arg>
 		<constructor-arg value="LEGACY-ID"></constructor-arg>
