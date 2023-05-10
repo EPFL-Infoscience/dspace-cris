@@ -8,23 +8,25 @@
 package org.dspace.app.rest.model;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * Root rest object for the /api/config/submissionrepeatablefields endpoint
+ * Root rest object for the /api/config/submissionfields endpoint
  *
  * @author Mohamed Eskander (mohamed.eskander at 4science.com)
  */
-public class SubmissionRepeatableFieldsRest extends BaseObjectRest<UUID> {
+public class SubmissionFieldsRest extends BaseObjectRest<UUID> {
 
-    public static final String NAME = "submissionrepeatablefield";
+    public static final String NAME = "submissionfield";
     public static final String CATEGORY = "config";
-    public static final String PLURAL = "submissionrepeatablefields";
+    public static final String PLURAL = "submissionfields";
 
     private String itemId;
     private List<String> repeatableFields;
+    private Map<String, List<String>> nestedFields;
 
     @JsonIgnore
     @Override
@@ -41,7 +43,7 @@ public class SubmissionRepeatableFieldsRest extends BaseObjectRest<UUID> {
     }
 
     public Class getController() {
-        return SubmissionRepeatableFieldsRest.class;
+        return SubmissionFieldsRest.class;
     }
 
     public String getItemId() {
@@ -58,5 +60,13 @@ public class SubmissionRepeatableFieldsRest extends BaseObjectRest<UUID> {
 
     public void setRepeatableFields(List<String> repeatableFields) {
         this.repeatableFields = repeatableFields;
+    }
+
+    public Map<String, List<String>> getNestedFields() {
+        return nestedFields;
+    }
+
+    public void setNestedFields(Map<String, List<String>> nestedFields) {
+        this.nestedFields = nestedFields;
     }
 }

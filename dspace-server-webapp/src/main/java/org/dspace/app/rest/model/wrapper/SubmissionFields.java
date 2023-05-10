@@ -8,19 +8,24 @@
 package org.dspace.app.rest.model.wrapper;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author Mohamed Eskander (mohamed.eskander at 4science.it)
  */
-public class SubmissionRepeatableFields {
+public class SubmissionFields {
 
     private String itemId;
     private List<String> repeatableFields;
+    private Map<String, List<String>> nestedFields;
 
-    public SubmissionRepeatableFields(String itemId, List<String> repeatableFields) {
+    public SubmissionFields(String itemId,
+                            List<String> repeatableFields,
+                            Map<String, List<String>> nestedFields) {
         this.itemId = itemId;
         this.repeatableFields = repeatableFields;
+        this.nestedFields = nestedFields;
     }
 
     public String getItemId() {
@@ -37,5 +42,13 @@ public class SubmissionRepeatableFields {
 
     public void setRepeatableFields(List<String> repeatableFields) {
         this.repeatableFields = repeatableFields;
+    }
+
+    public Map<String, List<String>> getNestedFields() {
+        return nestedFields;
+    }
+
+    public void setNestedFields(Map<String, List<String>> nestedFields) {
+        this.nestedFields = nestedFields;
     }
 }
