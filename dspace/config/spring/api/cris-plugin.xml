@@ -117,6 +117,7 @@
     </bean>
 
 
+
 	<bean class="org.dspace.authority.service.ItemSearcherMapper" name="org.dspace.authority.service.ItemSearcherMapper">
 		<constructor-arg index="0">
 			<map>
