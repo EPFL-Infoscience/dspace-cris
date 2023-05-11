@@ -554,8 +554,6 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus) throws Exception {
-        String groupIsClosed = "true";
-
         context.turnOffAuthorisationSystem();
 
         Group adminParentGroup = GroupBuilder
@@ -572,7 +570,7 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
         groupService.addMetadata(
-            context, childClosedGroup, MetadataSchemaEnum.EPFL.getName(), "group", "closed", Item.ANY, groupIsClosed
+            context, childClosedGroup, MetadataSchemaEnum.EPFL.getName(), "group", "closed", Item.ANY, "true"
         );
 
         context.restoreAuthSystemState();
