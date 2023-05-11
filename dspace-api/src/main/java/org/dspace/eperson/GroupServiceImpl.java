@@ -32,6 +32,7 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.DSpaceObjectServiceImpl;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
@@ -263,6 +264,10 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
             return true;
 
         } else {
+            if (isGroupClosed(group)) {
+                return false;
+            }
+
             Boolean cachedGroupMembership = context.getCachedGroupMembership(group, ePerson);
 
             if (cachedGroupMembership != null) {
@@ -301,6 +306,10 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
 
             }
         }
+    }
+
+    private boolean isGroupClosed(Group group) {
+        return Boolean.parseBoolean(getMetadataFirstValue(group, "epfl", "group", "closed", Item.ANY));
     }
 
     private boolean isAuthenticatedUser(final Context context, final EPerson ePerson) {
