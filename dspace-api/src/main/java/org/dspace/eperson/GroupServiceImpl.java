@@ -600,7 +600,16 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
     public void update(Context context, Group group) throws SQLException, AuthorizeException {
 
         super.update(context, group);
-        // FIXME: Check authorisation
+
+        // If the group is open only members of the group can update it
+        // If the group is closed only members of ADMIN group can update it
+        // Only members of ADMIN group can open / close groups
+        if (group.getName() != null && !Group.ADMIN.equals(group.getName())
+            && !isMember(context, group)
+            && !isDirectMember(findByName(context, Group.ADMIN), context.getCurrentUser())) {
+            throw new AuthorizeException("User unauthorized to update group " + group.getName());
+        }
+
         groupDAO.save(context, group);
 
         if (group.isMetadataModified()) {
@@ -680,8 +689,11 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
                 Group childGroup = find(context, child);
 
 
-                if (parentGroup != null && childGroup != null && group2GroupCacheDAO
-                    .find(context, parentGroup, childGroup) == null) {
+                if (parentGroup != null && childGroup != null
+                    && group2GroupCacheDAO.find(context, parentGroup, childGroup) == null
+                    && !isGroupClosed(parentGroup)
+                    && !isGroupClosed(childGroup)) {
+
                     Group2GroupCache group2GroupCache = group2GroupCacheDAO.create(context, new Group2GroupCache());
                     group2GroupCache.setParent(parentGroup);
                     group2GroupCache.setChild(childGroup);
