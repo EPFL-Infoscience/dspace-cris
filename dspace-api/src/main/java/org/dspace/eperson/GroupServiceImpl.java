@@ -604,8 +604,7 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
         // If the group is open only members of the group can update it
         // If the group is closed only members of ADMIN group can update it
         // Only members of ADMIN group can open / close groups
-        if (group.getName() != null && !Group.ADMIN.equals(group.getName())
-            && !isMember(context, group)
+        if (isGroupClosed(group) && !isMember(context, group)
             && !isDirectMember(findByName(context, Group.ADMIN), context.getCurrentUser())) {
             throw new AuthorizeException("User unauthorized to update group " + group.getName());
         }
