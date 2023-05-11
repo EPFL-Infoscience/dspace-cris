@@ -163,7 +163,7 @@ public class DCInputSet {
     }
 
     public List<String> getMetadataFields() {
-        List<String > metadataFields = new ArrayList<>();
+        List<String> metadataFields = new ArrayList<>();
         for (int i = 0; i < inputs.length; i++) {
             for (int j = 0; j < inputs[i].length; j++) {
                 DCInput field = inputs[i][j];
