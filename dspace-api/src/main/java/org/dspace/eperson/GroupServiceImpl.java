@@ -253,21 +253,16 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
     }
 
     @Override
-    public boolean isMember(Context context, EPerson ePerson, Group group)
-        throws SQLException {
-        if (group == null) {
+    public boolean isMember(Context context, EPerson ePerson, Group group) throws SQLException {
+        if (group == null || isGroupClosed(group)) {
             return false;
-
-            // special, everyone is member of group 0 (anonymous)
-        } else if (StringUtils.equals(group.getName(), Group.ANONYMOUS) ||
-                   isParentOf(context, group, findByName(context, Group.ANONYMOUS))) {
+        }
+        // special, everyone is member of group 0 (anonymous)
+        if (StringUtils.equals(group.getName(), Group.ANONYMOUS)
+            || isParentOf(context, group, findByName(context, Group.ANONYMOUS))) {
             return true;
 
         } else {
-            if (isGroupClosed(group)) {
-                return false;
-            }
-
             Boolean cachedGroupMembership = context.getCachedGroupMembership(group, ePerson);
 
             if (cachedGroupMembership != null) {
@@ -606,6 +601,8 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
         // Only members of ADMIN group can open / close groups
         if (isGroupClosed(group) && !isMember(context, group)
             && !isDirectMember(findByName(context, Group.ADMIN), context.getCurrentUser())) {
+
+            log.error("Attempt to update closed Group {}", group::getName);
             throw new AuthorizeException("User unauthorized to update group " + group.getName());
         }
 
