@@ -114,11 +114,13 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
             GroupRest groupRestNoEmbeds = new GroupRest();
             String groupName = "testGroup1";
             String groupDescription = "test description";
+            String groupIsClosed = "false";
             String groupNameNoEmbeds = "testGroup2";
 
             groupRest.setName(groupName);
             MetadataRest metadata = new MetadataRest();
             metadata.put("dc.description", new MetadataValueRest(groupDescription));
+            metadata.put("epfl.group.closed", new MetadataValueRest(groupIsClosed));
             groupRest.setMetadata(metadata);
 
             groupRestNoEmbeds.setName(groupNameNoEmbeds);
@@ -155,6 +157,10 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
             assertEquals(
                     groupService.getMetadata(group, "dc.description"),
                     groupDescription
+            );
+            assertEquals(
+                groupService.getMetadata(group, "epfl.group.closed"),
+                groupIsClosed
             );
 
         } finally {
@@ -535,6 +541,44 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
         String token = getAuthToken(asUser.getEmail(), password);
 
         new MetadataPatchSuite().runWith(getClient(token), "/api/eperson/groups/" + group.getID(), expectedStatus);
+    }
+
+    @Test
+    public void patchClosedGroupMetadataAuthorized() throws Exception {
+        runPatchMetadataOnClosedGroupTests(admin, 200);
+    }
+
+    @Test
+    public void patchClosedGroupMetadataUnauthorized() throws Exception {
+        runPatchMetadataOnClosedGroupTests(eperson, 403);
+    }
+
+    private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus) throws Exception {
+        String groupIsClosed = "true";
+
+        context.turnOffAuthorisationSystem();
+
+        Group adminParentGroup = GroupBuilder
+            .createGroup(context)
+            .withName("Administrator")
+            .addMember(admin)
+            .build();
+        Group childClosedGroup = GroupBuilder
+            .createGroup(context)
+            .withName("Group")
+            .withParent(adminParentGroup)
+            .addMember(eperson)
+            .build();
+
+        GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+        groupService.addMetadata(
+            context, childClosedGroup, MetadataSchemaEnum.EPFL.getName(), "group", "closed", Item.ANY, groupIsClosed
+        );
+
+        context.restoreAuthSystemState();
+        String token = getAuthToken(asUser.getEmail(), password);
+
+        new MetadataPatchSuite().runWith(getClient(token), "/api/eperson/groups/" + childClosedGroup.getID(), expectedStatus);
     }
 
     @Test
