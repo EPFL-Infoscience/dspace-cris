@@ -5031,6 +5031,10 @@ it, please enter the types and the actual numbers or codes.</hint>
         <displayed-value>Published version</displayed-value>
         <stored-value>published version</stored-value>
       </pair>
+      <pair>
+        <displayed-value>Thumbnail</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
     </value-pairs>
     <value-pairs value-pairs-name="product_bitstream_types" dc-term="product_bitstream_types">
       <pair>
@@ -5089,6 +5093,10 @@ it, please enter the types and the actual numbers or codes.</hint>
         <displayed-value>Published version</displayed-value>
         <stored-value>published version</stored-value>
       </pair>
+      <pair>
+        <displayed-value>Thumbnail</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
     </value-pairs>
     <value-pairs value-pairs-name="patent_bitstream_types" dc-term="patent_bitstream_types">
       <pair>
@@ -5106,6 +5114,10 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Image</displayed-value>
         <stored-value>image</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Thumbnail</displayed-value>
+        <stored-value>logo</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="orgunit_bitstream_types" dc-term="orgunit_bitstream_types">
