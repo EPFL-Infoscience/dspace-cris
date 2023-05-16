@@ -1240,7 +1240,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-qualifier>iso</dc-qualifier>
           <label>Language</label>
           <input-type value-pairs-name="common_iso_languages">opendropdown</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint>Select the language of the main content of the item.  If the language does not appear in the list, please select 'Other'.  If the content does not really have a language (for example, if it is a dataset or an image) please select 'N/A'.</hint>
         </field>
@@ -3276,44 +3276,56 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="common_identifiers" dc-term="common_identifiers">
       <pair>
+        <displayed-value>Ark</displayed-value>
+        <stored-value>ark</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>arXiv</displayed-value>
+        <stored-value>arxiv</stored-value>
+      </pair>
+      <pair>
         <displayed-value>DOI</displayed-value>
         <stored-value>doi</stored-value>
       </pair>
       <pair>
-        <displayed-value>Scopus ID</displayed-value>
-        <stored-value>scopus</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>WOS ID</displayed-value>
-        <stored-value>isi</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Pubmed ID</displayed-value>
-        <stored-value>pmid</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>arXiv ID</displayed-value>
-        <stored-value>arxiv</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Other</displayed-value>
-        <stored-value>other</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>ISMN</displayed-value>
-        <stored-value>ismn</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Gov't Doc #</displayed-value>
-        <stored-value>govdoc</stored-value>
+        <displayed-value>Handle</displayed-value>
+        <stored-value>hdl</stored-value>
       </pair>
       <pair>
         <displayed-value>ISBN</displayed-value>
         <stored-value>isbn</stored-value>
       </pair>
       <pair>
-        <displayed-value>Ads Code</displayed-value>
-        <stored-value>adsbibcode</stored-value>
+        <displayed-value>ISSN</displayed-value>
+        <stored-value>issn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Life Science ID</displayed-value>
+        <stored-value>lsid</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Pubmed ID</displayed-value>
+        <stored-value>pmid</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Purl</displayed-value>
+        <stored-value>purl</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Scopus ID</displayed-value>
+        <stored-value>scopus</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URL</displayed-value>
+        <stored-value>url</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URN</displayed-value>
+        <stored-value>urn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>WOS ID</displayed-value>
+        <stored-value>isi</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="common_types" dc-term="common_types">
@@ -5031,6 +5043,10 @@ it, please enter the types and the actual numbers or codes.</hint>
         <displayed-value>Published version</displayed-value>
         <stored-value>published version</stored-value>
       </pair>
+      <pair>
+        <displayed-value>Thumbnail</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
     </value-pairs>
     <value-pairs value-pairs-name="product_bitstream_types" dc-term="product_bitstream_types">
       <pair>
@@ -5089,6 +5105,10 @@ it, please enter the types and the actual numbers or codes.</hint>
         <displayed-value>Published version</displayed-value>
         <stored-value>published version</stored-value>
       </pair>
+      <pair>
+        <displayed-value>Thumbnail</displayed-value>
+        <stored-value>logo</stored-value>
+      </pair>
     </value-pairs>
     <value-pairs value-pairs-name="patent_bitstream_types" dc-term="patent_bitstream_types">
       <pair>
@@ -5106,6 +5126,10 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Image</displayed-value>
         <stored-value>image</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Thumbnail</displayed-value>
+        <stored-value>logo</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="orgunit_bitstream_types" dc-term="orgunit_bitstream_types">
