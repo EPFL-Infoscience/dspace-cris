@@ -623,10 +623,10 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
 
     private boolean isMemberOfOpenAdminGroup(Context context, EPerson ePerson) throws SQLException {
         return isDirectMember(findByName(context, Group.ADMIN), ePerson)
-            || ePerson.getGroups().stream()
-                      .filter(g -> !isGroupClosed(g))
-                      .anyMatch(g -> g.getParentGroups().stream()
-                                      .anyMatch(parentGroup -> Group.ADMIN.equals(parentGroup.getName())));
+            || allMemberGroups(context, ePerson).stream()
+                    .filter(g -> !isGroupClosed(g))
+                    .anyMatch(g -> g.getParentGroups().stream()
+                                    .anyMatch(parentGroup -> Group.ADMIN.equals(parentGroup.getName())));
     }
 
 
