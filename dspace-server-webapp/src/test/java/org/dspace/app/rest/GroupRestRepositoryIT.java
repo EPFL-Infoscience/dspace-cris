@@ -562,17 +562,13 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
         runPatchMetadataOnClosedGroupTests(asUser, expectedStatus, false);
     }
 
-    private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus, boolean isAuthorisedIndirectly)
+    private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus, boolean isAuthorizedIndirectly)
         throws Exception {
 
         context.turnOffAuthorisationSystem();
         GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
-        Group adminParentGroup = GroupBuilder
-            .createGroup(context)
-            .withName("Administrator")
-            .addMember(admin)
-            .build();
+        Group adminParentGroup = groupService.findByName(context, Group.ADMIN);
         Group childClosedGroup = GroupBuilder
             .createGroup(context)
             .withName("Group closed")
@@ -580,7 +576,7 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
             .addMember(eperson)
             .build();
 
-        if (isAuthorisedIndirectly) {
+        if (isAuthorizedIndirectly) {
             GroupBuilder.createGroup(context)
                         .withName("Group open")
                         .withParent(adminParentGroup)
