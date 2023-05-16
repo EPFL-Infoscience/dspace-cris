@@ -288,6 +288,12 @@
     <scope_note>Other links</scope_note>
   </dc-type>
   <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>urn</qualifier>
+    <scope_note>URN</scope_note>
+  </dc-type>
+  <dc-type>
 	<schema>dc</schema>
     <element>identifier</element>
     <qualifier>doi</qualifier>
@@ -318,6 +324,20 @@
   <dc-type>
         <schema>dc</schema>
         <element>identifier</element>
+        <qualifier>purl</qualifier>
+        <scope_note>Purl Identifier</scope_note>
+   </dc-type>
+
+  <dc-type>
+        <schema>dc</schema>
+        <element>identifier</element>
+        <qualifier>lsid</qualifier>
+        <scope_note>Life Science ID</scope_note>
+   </dc-type>
+
+  <dc-type>
+        <schema>dc</schema>
+        <element>identifier</element>
         <qualifier>adsbibcode</qualifier>
         <scope_note>ADS Identifier</scope_note>
   </dc-type>
@@ -328,6 +348,21 @@
         <qualifier>arxiv</qualifier>
         <scope_note>arXiv Identifier</scope_note>
   </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>ark</qualifier>
+    <scope_note>ark Identifier</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>hdl</qualifier>
+    <scope_note>handle Identifier</scope_note>
+  </dc-type>
+
   <!-- Used by system: do not remove -->
   <dc-type>
 	<schema>dc</schema>
