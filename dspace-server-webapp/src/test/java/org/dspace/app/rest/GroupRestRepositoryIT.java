@@ -553,7 +553,18 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
         runPatchMetadataOnClosedGroupTests(eperson, 403);
     }
 
+    @Test
+    public void patchClosedGroupMetadataAuthorizedIndirectly() throws Exception {
+        runPatchMetadataOnClosedGroupTests(eperson, 200, true);
+    }
+
     private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus) throws Exception {
+        runPatchMetadataOnClosedGroupTests(asUser, expectedStatus, false);
+    }
+
+    private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus, boolean isAuthorisedIndirectly)
+        throws Exception {
+
         context.turnOffAuthorisationSystem();
         GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
@@ -564,10 +575,18 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
             .build();
         Group childClosedGroup = GroupBuilder
             .createGroup(context)
-            .withName("Group")
+            .withName("Group closed")
             .withParent(adminParentGroup)
             .addMember(eperson)
             .build();
+
+        if (isAuthorisedIndirectly) {
+            GroupBuilder.createGroup(context)
+                        .withName("Group open")
+                        .withParent(adminParentGroup)
+                        .addMember(eperson)
+                        .build();
+        }
 
         groupService.addMetadata(
             context, childClosedGroup, MetadataSchemaEnum.EPFL.getName(), "group", "closed", Item.ANY, "true"
