@@ -234,7 +234,7 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
     @Override
     public boolean isDirectMember(Group group, EPerson ePerson) {
         // special, group 0 is anonymous
-        return StringUtils.equals(group.getName(), Group.ANONYMOUS) || group.contains(ePerson);
+        return StringUtils.equals(group.getName(), Group.ANONYMOUS) || group.contains(ePerson) && !isGroupClosed(group);
     }
 
     @Override
@@ -262,6 +262,8 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
             || isParentOf(context, group, findByName(context, Group.ANONYMOUS))) {
             return true;
 
+        } else if (StringUtils.equals(group.getName(), Group.ADMIN)) {
+            return isMemberOfOpenAdminGroup(context, ePerson);
         } else {
             Boolean cachedGroupMembership = context.getCachedGroupMembership(group, ePerson);
 
@@ -290,7 +292,8 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
                     while (it.hasNext() && !isMember) {
                         Group specialGroup = it.next();
                         //Check if the special group matches the given group or if it is a subgroup (with 1 query)
-                        if (specialGroup.equals(group) || isParentOf(context, group, specialGroup)) {
+                        if ((specialGroup.equals(group) || isParentOf(context, group, specialGroup))
+                            && !isGroupClosed(specialGroup)) {
                             isMember = true;
                         }
                     }
@@ -596,12 +599,7 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
 
         super.update(context, group);
 
-        // If the group is open only members of the group can update it
-        // If the group is closed only members of ADMIN group can update it
-        // Only members of ADMIN group can open / close groups
-        if (isGroupClosed(group) && !isMember(context, group)
-            && !isDirectMember(findByName(context, Group.ADMIN), context.getCurrentUser())) {
-
+        if (isGroupClosed(group) && !authorizeService.isAdmin(context)) {
             log.error("Attempt to update closed Group {}", group::getName);
             throw new AuthorizeException("User unauthorized to update group " + group.getName());
         }
@@ -623,10 +621,19 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
             + group.getID()));
     }
 
+    private boolean isMemberOfOpenAdminGroup(Context context, EPerson ePerson) throws SQLException {
+        return isDirectMember(findByName(context, Group.ADMIN), ePerson)
+            || ePerson.getGroups().stream()
+                      .filter(g -> !isGroupClosed(g))
+                      .anyMatch(g -> g.getParentGroups().stream()
+                                      .anyMatch(parentGroup -> Group.ADMIN.equals(parentGroup.getName())));
+    }
+
 
     protected boolean isEPersonInGroup(Context context, Group group, EPerson ePerson)
         throws SQLException {
-        return groupDAO.findByIdAndMembership(context, group.getID(), ePerson) != null;
+        Group g = groupDAO.findByIdAndMembership(context, group.getID(), ePerson);
+        return g != null && !isGroupClosed(g);
     }
 
 
