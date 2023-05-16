@@ -2742,7 +2742,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void patchItemMetadataByClosedGroupAdminAuthorizedIndirectly() throws Exception {
-        runPatchMetadataByClosedGroupAdminTests(admin, 200, true);
+        runPatchMetadataByClosedGroupAdminTests(eperson, 200, true);
     }
 
     private void runPatchMetadataByClosedGroupAdminTests(EPerson asUser, int expectedStatus) throws Exception {
