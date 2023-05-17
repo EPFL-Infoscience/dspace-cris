@@ -74,7 +74,7 @@ public class PersonImportFiller implements AuthorityImportFiller {
     private Optional<String> getSciperFromMetadataValue(MetadataValue metadataValue) {
         return Optional.ofNullable(metadataValue.getAuthority())
             .filter(this::isWillBeGeneratedAuthority)
-            .map(authority -> removeWillBeGeneratedPrefix(authority));
+            .map(this::removeWillBeGeneratedPrefix);
     }
 
     private boolean isWillBeGeneratedAuthority(String authority) {
@@ -91,7 +91,7 @@ public class PersonImportFiller implements AuthorityImportFiller {
 
     private void enrichItem(Context context, Item item, String sciper) {
 
-        personApiService.getMetadataValues(sciper).stream()
+        personApiService.getMetadataValues(sciper)
             .forEach(metadataValue -> addMetadata(context, item, metadataValue));
 
         personApiService.getPersonalPicture(sciper)
