@@ -197,6 +197,10 @@ public class PersonApiServiceImpl implements PersonApiService {
         return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + fieldName));
     }
 
+    public EpflApiClient getApiClient() {
+        return apiClient;
+    }
+
     public void setApiClient(EpflApiClient apiClient) {
         this.apiClient = apiClient;
     }
