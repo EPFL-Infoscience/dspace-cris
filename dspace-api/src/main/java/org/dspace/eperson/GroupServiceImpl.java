@@ -32,6 +32,7 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.DSpaceObjectServiceImpl;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
@@ -233,7 +234,7 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
     @Override
     public boolean isDirectMember(Group group, EPerson ePerson) {
         // special, group 0 is anonymous
-        return StringUtils.equals(group.getName(), Group.ANONYMOUS) || group.contains(ePerson);
+        return StringUtils.equals(group.getName(), Group.ANONYMOUS) || group.contains(ePerson) && !isGroupClosed(group);
     }
 
     @Override
@@ -252,16 +253,17 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
     }
 
     @Override
-    public boolean isMember(Context context, EPerson ePerson, Group group)
-        throws SQLException {
-        if (group == null) {
+    public boolean isMember(Context context, EPerson ePerson, Group group) throws SQLException {
+        if (group == null || isGroupClosed(group)) {
             return false;
-
-            // special, everyone is member of group 0 (anonymous)
-        } else if (StringUtils.equals(group.getName(), Group.ANONYMOUS) ||
-                   isParentOf(context, group, findByName(context, Group.ANONYMOUS))) {
+        }
+        // special, everyone is member of group 0 (anonymous)
+        if (StringUtils.equals(group.getName(), Group.ANONYMOUS)
+            || isParentOf(context, group, findByName(context, Group.ANONYMOUS))) {
             return true;
 
+        } else if (StringUtils.equals(group.getName(), Group.ADMIN)) {
+            return isMemberOfOpenAdminGroup(context, ePerson);
         } else {
             Boolean cachedGroupMembership = context.getCachedGroupMembership(group, ePerson);
 
@@ -290,7 +292,8 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
                     while (it.hasNext() && !isMember) {
                         Group specialGroup = it.next();
                         //Check if the special group matches the given group or if it is a subgroup (with 1 query)
-                        if (specialGroup.equals(group) || isParentOf(context, group, specialGroup)) {
+                        if ((specialGroup.equals(group) || isParentOf(context, group, specialGroup))
+                            && !isGroupClosed(specialGroup)) {
                             isMember = true;
                         }
                     }
@@ -301,6 +304,10 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
 
             }
         }
+    }
+
+    private boolean isGroupClosed(Group group) {
+        return Boolean.parseBoolean(getMetadataFirstValue(group, "epfl", "group", "closed", Item.ANY));
     }
 
     private boolean isAuthenticatedUser(final Context context, final EPerson ePerson) {
@@ -591,7 +598,12 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
     public void update(Context context, Group group) throws SQLException, AuthorizeException {
 
         super.update(context, group);
-        // FIXME: Check authorisation
+
+        if (isGroupClosed(group) && !authorizeService.isAdmin(context)) {
+            log.error("Attempt to update closed Group {}", group::getName);
+            throw new AuthorizeException("User unauthorized to update group " + group.getName());
+        }
+
         groupDAO.save(context, group);
 
         if (group.isMetadataModified()) {
@@ -609,10 +621,19 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
             + group.getID()));
     }
 
+    private boolean isMemberOfOpenAdminGroup(Context context, EPerson ePerson) throws SQLException {
+        return isDirectMember(findByName(context, Group.ADMIN), ePerson)
+            || allMemberGroups(context, ePerson).stream()
+                    .filter(g -> !isGroupClosed(g))
+                    .anyMatch(g -> g.getParentGroups().stream()
+                                    .anyMatch(parentGroup -> Group.ADMIN.equals(parentGroup.getName())));
+    }
+
 
     protected boolean isEPersonInGroup(Context context, Group group, EPerson ePerson)
         throws SQLException {
-        return groupDAO.findByIdAndMembership(context, group.getID(), ePerson) != null;
+        Group g = groupDAO.findByIdAndMembership(context, group.getID(), ePerson);
+        return g != null && !isGroupClosed(g);
     }
 
 
@@ -671,8 +692,11 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
                 Group childGroup = find(context, child);
 
 
-                if (parentGroup != null && childGroup != null && group2GroupCacheDAO
-                    .find(context, parentGroup, childGroup) == null) {
+                if (parentGroup != null && childGroup != null
+                    && group2GroupCacheDAO.find(context, parentGroup, childGroup) == null
+                    && !isGroupClosed(parentGroup)
+                    && !isGroupClosed(childGroup)) {
+
                     Group2GroupCache group2GroupCache = group2GroupCacheDAO.create(context, new Group2GroupCache());
                     group2GroupCache.setParent(parentGroup);
                     group2GroupCache.setChild(childGroup);
