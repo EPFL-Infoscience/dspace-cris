@@ -122,9 +122,20 @@ public class PersonApiServiceImpl implements PersonApiService {
             return List.of();
         }
 
-        return Arrays.stream(accreds)
-            .flatMap(accred -> getAffiliationValues(accred, positionField.get(), affiliationField.get()).stream())
-            .collect(Collectors.toList());
+        List<MetadataValueDTO> affiliationMetadataValues =
+            Arrays.stream(accreds)
+                  .flatMap(accred -> getAffiliationValues(accred, positionField.get(), affiliationField.get()).stream())
+                  .collect(Collectors.toList());
+
+        Arrays.stream(accreds)
+              .filter(accred -> accred.getRank() == 0)
+              .map(Accred::getName)
+              .findFirst()
+              .flatMap(mainAffiliationName -> getPersonMetadataField("affiliation.main")
+                  .flatMap(field -> getMetadataValue(mainAffiliationName, field)))
+              .ifPresent(affiliationMetadataValues::add);
+
+        return affiliationMetadataValues;
     }
 
     private List<MetadataValueDTO> getAffiliationValues(Accred accred, String positionField, String affiliationField) {
