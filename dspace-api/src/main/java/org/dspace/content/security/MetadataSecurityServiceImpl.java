@@ -127,7 +127,7 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
     private List<MetadataValue> getPermissionFilteredMetadata(Context context, Item item,
         List<MetadataValue> metadataValues, boolean preventBoxSecurityCheck) {
 
-        if (item.isWithdrawn() && isNotAdmin(context)) {
+        if (item.isWithdrawn() && isNotAdmin(context, item)) {
             return new ArrayList<MetadataValue>();
         }
 
@@ -169,7 +169,7 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         if (CollectionUtils.isNotEmpty(boxes)) {
             return isMetadataFieldVisibleByBoxes(context, boxes, item, metadataField, preventBoxSecurityCheck);
         }
-        return isNotAdmin(context) ? isNotHidden(context, metadataField) : true;
+        return isNotAdmin(context, item) ? isNotHidden(context, metadataField) : true;
     }
 
     private boolean isMetadataValueReturnAllowed(Context context, Item item, MetadataValue metadataValue) {
@@ -276,9 +276,9 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         }
     }
 
-    private boolean isNotAdmin(Context context) {
+    private boolean isNotAdmin(Context context, Item item) {
         try {
-            return context == null || !authorizeService.isAdmin(context);
+            return context == null || !authorizeService.isAdmin(context, item);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }

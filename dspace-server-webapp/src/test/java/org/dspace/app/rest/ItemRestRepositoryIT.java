@@ -5437,4 +5437,52 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                    .andExpect(jsonPath("$.status", notNullValue()));
     }
 
+    @Test
+    public void administratorOfWithdrawnItemCanSeeItsMetadataTest() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        EPerson colAdmin = EPersonBuilder.createEPerson(context).withEmail("coladmin@example.com")
+                                         .withNameInMetadata("Col", "Admin").withPassword(password).build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .withAdminGroup(colAdmin)
+                                           .build();
+        Item item = ItemBuilder.createItem(context, col1)
+                               .withTitle("Test Publication")
+                               .build();
+
+        context.restoreAuthSystemState();
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(epersonToken).perform(get("/api/core/items/" + item.getID()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Test Publication")));
+
+        List<Operation> ops = new ArrayList<Operation>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/withdrawn", true);
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
+
+        String colAdminToken = getAuthToken(colAdmin.getEmail(), password);
+        getClient(colAdminToken).perform(patch("/api/core/items/" + item.getID())
+                                     .content(patchBody)
+                                     .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                        .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
+                        .andExpect(jsonPath("$.inArchive", Matchers.is(false)));
+
+        getClient(colAdminToken).perform(get("/api/core/items/" + item.getID()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Test Publication")));
+
+        getClient(epersonToken).perform(get("/api/core/items/" + item.getID()))
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$.metadata", matchMetadataDoesNotExist("dc.title")));
+
+    }
 }
