@@ -114,11 +114,13 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
             GroupRest groupRestNoEmbeds = new GroupRest();
             String groupName = "testGroup1";
             String groupDescription = "test description";
+            String groupIsClosed = "false";
             String groupNameNoEmbeds = "testGroup2";
 
             groupRest.setName(groupName);
             MetadataRest metadata = new MetadataRest();
             metadata.put("dc.description", new MetadataValueRest(groupDescription));
+            metadata.put("epfl.group.closed", new MetadataValueRest(groupIsClosed));
             groupRest.setMetadata(metadata);
 
             groupRestNoEmbeds.setName(groupNameNoEmbeds);
@@ -155,6 +157,10 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
             assertEquals(
                     groupService.getMetadata(group, "dc.description"),
                     groupDescription
+            );
+            assertEquals(
+                groupService.getMetadata(group, "epfl.group.closed"),
+                groupIsClosed
             );
 
         } finally {
@@ -535,6 +541,58 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
         String token = getAuthToken(asUser.getEmail(), password);
 
         new MetadataPatchSuite().runWith(getClient(token), "/api/eperson/groups/" + group.getID(), expectedStatus);
+    }
+
+    @Test
+    public void patchClosedGroupMetadataAuthorized() throws Exception {
+        runPatchMetadataOnClosedGroupTests(admin, 200);
+    }
+
+    @Test
+    public void patchClosedGroupMetadataUnauthorized() throws Exception {
+        runPatchMetadataOnClosedGroupTests(eperson, 403);
+    }
+
+    @Test
+    public void patchClosedGroupMetadataAuthorizedIndirectly() throws Exception {
+        runPatchMetadataOnClosedGroupTests(eperson, 200, true);
+    }
+
+    private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus) throws Exception {
+        runPatchMetadataOnClosedGroupTests(asUser, expectedStatus, false);
+    }
+
+    private void runPatchMetadataOnClosedGroupTests(EPerson asUser, int expectedStatus, boolean isAuthorizedIndirectly)
+        throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+
+        Group adminParentGroup = groupService.findByName(context, Group.ADMIN);
+        Group childClosedGroup = GroupBuilder
+            .createGroup(context)
+            .withName("Group closed")
+            .withParent(adminParentGroup)
+            .addMember(eperson)
+            .build();
+
+        if (isAuthorizedIndirectly) {
+            GroupBuilder.createGroup(context)
+                        .withName("Group open")
+                        .withParent(adminParentGroup)
+                        .addMember(eperson)
+                        .build();
+        }
+
+        groupService.addMetadata(
+            context, childClosedGroup, MetadataSchemaEnum.EPFL.getName(), "group", "closed", Item.ANY, "true"
+        );
+
+        context.restoreAuthSystemState();
+        String token = getAuthToken(asUser.getEmail(), password);
+
+        new MetadataPatchSuite().runWith(getClient(token),
+                                         "/api/eperson/groups/" + childClosedGroup.getID(), expectedStatus);
     }
 
     @Test

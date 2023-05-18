@@ -135,8 +135,6 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
 
         private Integer numberOfItems;
 
-        private boolean showThumbnails;
-
         private boolean showAsCard;
 
         private boolean showLayoutSwitch;
@@ -150,6 +148,8 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
         private String itemListStyle;
 
         private boolean showAllResults;
+
+        private boolean showThumbnails;
 
         public String getDiscoveryConfigurationName() {
             return discoveryConfigurationName;
@@ -210,14 +210,6 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
          */
         public Integer getNumberOfItems() {
             return numberOfItems;
-        }
-
-        public boolean isShowThumbnails() {
-            return showThumbnails;
-        }
-
-        public void setShowThumbnails(boolean showThumbnails) {
-            this.showThumbnails = showThumbnails;
         }
 
         /**
@@ -318,6 +310,14 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
             this.showAllResults = showAllResults;
         }
 
+
+        public boolean isShowThumbnails() {
+            return showThumbnails;
+        }
+
+        public void setShowThumbnails(boolean showThumbnails) {
+            this.showThumbnails = showThumbnails;
+        }
     }
 
     public static class CrisLayoutFacetComponentRest implements CrisLayoutSectionComponentRest {

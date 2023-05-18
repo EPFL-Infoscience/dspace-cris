@@ -63,4 +63,10 @@ public class DeduplicationServiceImpl implements DeduplicationService {
             throws SQLException {
         return deduplicationDAO.uniqueByFirstAndSecond(context, firstId, secondId);
     }
+
+    @Override
+    public void delete(Context context, Deduplication deduplication)
+            throws SQLException {
+        deduplicationDAO.delete(context, deduplication);
+    }
 }
