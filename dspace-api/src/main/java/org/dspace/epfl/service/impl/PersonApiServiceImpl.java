@@ -52,7 +52,7 @@ public class PersonApiServiceImpl implements PersonApiService {
     @Override
     public List<MetadataValueDTO> getMetadataValues(String sciper) {
         return getPerson(sciper)
-            .map(person -> getMetadataValues(person))
+            .map(this::getMetadataValues)
             .orElse(getInactiveMetadataField());
     }
 
@@ -66,31 +66,31 @@ public class PersonApiServiceImpl implements PersonApiService {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
-        getPersonNameMetadataField()
+        getPersonMetadataField("name")
             .flatMap(field -> getMetadataValue(person.getFullName(), field))
             .ifPresent(metadataValues::add);
 
-        getPersonFirstNameMetadataField()
+        getPersonMetadataField("first-name")
             .flatMap(field -> getMetadataValue(person.getFirstname(), field))
             .ifPresent(metadataValues::add);
 
-        getPersonLastNameMetadataField()
+        getPersonMetadataField("last-name")
             .flatMap(field -> getMetadataValue(person.getName(), field))
             .ifPresent(metadataValues::add);
 
-        getPersonEmailMetadataField()
+        getPersonMetadataField("email")
             .flatMap(field -> getMetadataValue(person.getEmail(), field))
             .ifPresent(metadataValues::add);
 
-        getPersonActiveMetadataField()
+        getPersonMetadataField("active")
             .flatMap(field -> getMetadataValue("true", field))
             .ifPresent(metadataValues::add);
 
-        getPersonSciperMetadataField()
+        getPersonMetadataField("sciper")
             .flatMap(field -> getMetadataValue(person.getSciper(), field))
             .ifPresent(metadataValues::add);
 
-        getPersonUrlMetadataField()
+        getPersonMetadataField("url")
             .flatMap(field -> getUrlMetadataValue(person.getProfile(), field))
             .ifPresent(metadataValues::add);
 
@@ -101,7 +101,7 @@ public class PersonApiServiceImpl implements PersonApiService {
     }
 
     private List<MetadataValueDTO> getInactiveMetadataField() {
-        return getPersonActiveMetadataField()
+        return getPersonMetadataField("active")
             .flatMap(field -> getMetadataValue("false", field))
             .map(List::of)
             .orElse(List.of());
@@ -115,16 +115,27 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     private List<MetadataValueDTO> getAffiliationMetadataValues(Accred[] accreds) {
 
-        Optional<String> positionField = getPersonAffiliationPositionMetadataField();
-        Optional<String> affiliationField = getPersonAffiliationOrgUnitMetadataField();
+        Optional<String> positionField = getPersonMetadataField("affiliation.position");
+        Optional<String> affiliationField = getPersonMetadataField("affiliation.orgunit");
 
         if (positionField.isEmpty() || affiliationField.isEmpty()) {
             return List.of();
         }
 
-        return Arrays.stream(accreds)
-            .flatMap(accred -> getAffiliationValues(accred, positionField.get(), affiliationField.get()).stream())
-            .collect(Collectors.toList());
+        List<MetadataValueDTO> affiliationMetadataValues =
+            Arrays.stream(accreds)
+                  .flatMap(accred -> getAffiliationValues(accred, positionField.get(), affiliationField.get()).stream())
+                  .collect(Collectors.toList());
+
+        Arrays.stream(accreds)
+              .filter(accred -> accred.getRank() == 0)
+              .map(Accred::getName)
+              .findFirst()
+              .flatMap(mainAffiliationName -> getPersonMetadataField("affiliation.main")
+                  .flatMap(field -> getMetadataValue(mainAffiliationName, field)))
+              .ifPresent(affiliationMetadataValues::add);
+
+        return affiliationMetadataValues;
     }
 
     private List<MetadataValueDTO> getAffiliationValues(Accred accred, String positionField, String affiliationField) {
@@ -148,11 +159,11 @@ public class PersonApiServiceImpl implements PersonApiService {
             metadataValues.add(new MetadataValueDTO(affiliationField, name, authority, confidence));
         }
 
-        getPersonAffiliationStartMetadataField()
+        getPersonMetadataField("affiliation.start")
             .flatMap(field -> getMetadataValue(PLACEHOLDER_PARENT_METADATA_VALUE, field))
             .ifPresent(metadataValues::add);
 
-        getPersonAffiliationEndMetadataField()
+        getPersonMetadataField("affiliation.end")
             .flatMap(field -> getMetadataValue(PLACEHOLDER_PARENT_METADATA_VALUE, field))
             .ifPresent(metadataValues::add);
 
@@ -172,7 +183,7 @@ public class PersonApiServiceImpl implements PersonApiService {
             return null;
         }
 
-        return getPersonAffiliationAuthorityPrefix()
+        return getPersonMetadataField("affiliation.authority")
             .map(prefix -> isOrgUnitActive(acronym) ? GENERATE + prefix : REFERENCE + prefix)
             .map(prefix -> prefix + acronym)
             .orElse(acronym);
@@ -182,52 +193,8 @@ public class PersonApiServiceImpl implements PersonApiService {
         return orgUnitApiService.isOrgUnitActive(acronym);
     }
 
-    private Optional<String> getPersonNameMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "name"));
-    }
-
-    private Optional<String> getPersonFirstNameMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "first-name"));
-    }
-
-    private Optional<String> getPersonLastNameMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "last-name"));
-    }
-
-    private Optional<String> getPersonEmailMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "email"));
-    }
-
-    private Optional<String> getPersonAffiliationPositionMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.position"));
-    }
-
-    private Optional<String> getPersonAffiliationOrgUnitMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.orgunit"));
-    }
-
-    private Optional<String> getPersonAffiliationStartMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.start"));
-    }
-
-    private Optional<String> getPersonAffiliationEndMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.end"));
-    }
-
-    private Optional<String> getPersonUrlMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "url"));
-    }
-
-    private Optional<String> getPersonActiveMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "active"));
-    }
-
-    private Optional<String> getPersonSciperMetadataField() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "sciper"));
-    }
-
-    private Optional<String> getPersonAffiliationAuthorityPrefix() {
-        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + "affiliation.authority"));
+    private Optional<String> getPersonMetadataField(String fieldName) {
+        return ofNullable(configurationService.getProperty(PERSON_MAPPING_PREFIX + fieldName));
     }
 
     public EpflApiClient getApiClient() {
@@ -240,7 +207,7 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     @Override
     public String getSciperMetadataField() {
-        return getPersonSciperMetadataField()
+        return getPersonMetadataField("sciper")
             .orElseThrow(() -> new IllegalStateException("No Sciper metadata field configured"));
     }
 

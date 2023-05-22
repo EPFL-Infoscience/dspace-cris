@@ -79,7 +79,7 @@ public class ProfileInitializer {
             .orElseGet(() -> createPrivateProfile(context, eperson));
 
         personApiService.getPerson(sciper)
-            .filter(person -> isMainAffiliationActive(person))
+            .filter(this::isMainAffiliationActive)
             .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem()));
 
     }
@@ -194,7 +194,7 @@ public class ProfileInitializer {
 
     private void clearMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {
         metadataValues.stream()
-            .map(metadataValue -> metadataValue.getMetadataField())
+            .map(MetadataValueDTO::getMetadataField)
             .distinct()
             .forEach(metadataField -> clearMetadataValues(context, item, metadataField));
     }
