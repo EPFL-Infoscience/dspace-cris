@@ -24,9 +24,13 @@ import org.dspace.app.deduplication.model.DuplicateDecisionValue;
 import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.deduplication.utils.DuplicateItemInfo;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.InProgressSubmission;
+import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.validation.model.ValidationError;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +49,9 @@ public class DetectPotentialDuplicateValidator implements SubmissionStepValidato
     @Autowired
     private DedupUtils dedupUtils;
 
+    @Autowired
+    private ItemService itemService;
+
     private String name;
 
     @Override
@@ -54,18 +61,19 @@ public class DetectPotentialDuplicateValidator implements SubmissionStepValidato
 
         List<DuplicateItemInfo> duplicates = findDuplicates(context, obj);
 
-        if (atLeastOneDecisionHasNotBeenMade(obj, duplicates)) {
+        if (atLeastOneDecisionHasNotBeenMade(context, obj, duplicates)) {
             addError(errors, ERROR_VALIDATION_DUPLICATION, "/" + OPERATION_PATH_SECTIONS + "/" + config.getId());
         }
 
         return errors;
     }
 
-    private boolean atLeastOneDecisionHasNotBeenMade(InProgressSubmission<?> obj, List<DuplicateItemInfo> duplicates) {
+    private boolean atLeastOneDecisionHasNotBeenMade(Context context, InProgressSubmission<?> obj,
+        List<DuplicateItemInfo> duplicates) {
 
         DuplicateDecisionType decisionType = isNotWorkspaceItem(obj) ? WORKFLOW : WORKSPACE;
 
-        return getDistinctDecisions(duplicates, decisionType).stream()
+        return getDistinctDecisions(context, duplicates, decisionType).stream()
             .anyMatch(decision -> decision == null);
 
     }
@@ -84,14 +92,20 @@ public class DetectPotentialDuplicateValidator implements SubmissionStepValidato
 
     }
 
-    private java.util.Collection<DuplicateDecisionValue> getDistinctDecisions(List<DuplicateItemInfo> duplicates,
-        DuplicateDecisionType decisionType) {
+    private java.util.Collection<DuplicateDecisionValue> getDistinctDecisions(Context context,
+        List<DuplicateItemInfo> duplicates, DuplicateDecisionType decisionType) {
 
         Map<UUID, DuplicateDecisionValue> decisions = new HashMap<UUID, DuplicateDecisionValue>();
 
         for (DuplicateItemInfo duplicate : duplicates) {
 
             DuplicateDecisionValue decision = duplicate.getDecision(decisionType);
+
+            DSpaceObject duplicateItem = duplicate.getDuplicateItem();
+
+            if (isNotLastVersion(context, (Item) duplicateItem)) {
+                continue;
+            }
 
             UUID itemUuid = duplicate.getDuplicateItem().getID();
 
@@ -103,6 +117,14 @@ public class DetectPotentialDuplicateValidator implements SubmissionStepValidato
 
         return decisions.values();
 
+    }
+
+    private boolean isNotLastVersion(Context context, Item item) {
+        try {
+            return !itemService.isLatestVersion(context, item);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
     private boolean isNotWorkspaceItem(InProgressSubmission<?> obj) {
