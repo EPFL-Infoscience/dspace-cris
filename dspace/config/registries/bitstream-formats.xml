@@ -791,4 +791,41 @@
         <extension>mp3</extension>
     </bitstream-type>
 
+    <bitstream-type>
+        <mimetype>text/x-python</mimetype>
+        <short_description>Python</short_description>
+        <description>Python source code</description>
+        <support_level>1</support_level>
+        <internal>false</internal>
+        <extension>py</extension>
+    </bitstream-type>
+
+    <bitstream-type>
+        <mimetype>application/x-bibtex</mimetype>
+        <short_description>BibTeX</short_description>
+        <description>BibTeX Bibliographic Citation File</description>
+        <support_level>1</support_level>
+        <internal>false</internal>
+        <extension>bib</extension>
+        <extension>bibtex</extension>
+    </bitstream-type>
+
+    <bitstream-type>
+        <mimetype>application/x-Research-Info-Systems</mimetype>
+        <short_description>RIS</short_description>
+        <description>Research Information Systems Citation File</description>
+        <support_level>1</support_level>
+        <internal>false</internal>
+        <extension>ris</extension>
+    </bitstream-type>
+
+    <bitstream-type>
+        <mimetype>application/zip</mimetype>
+        <short_description>ZIP</short_description>
+        <description>ZIP archive</description>
+        <support_level>1</support_level>
+        <internal>false</internal>
+        <extension>zip</extension>
+    </bitstream-type>
+
 </dspace-bitstream-types>
