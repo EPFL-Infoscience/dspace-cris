@@ -35,8 +35,8 @@ public class PersonAuthority extends ItemAuthority {
     private static final String DATA_EDITOR_AFFILIATION = "data-oairecerif_editor_affiliation";
 
     private final PersonApiService personApiService = dspace.getSingletonService(PersonApiServiceImpl.class);
-    private final ItemAuthorityServiceFactory itemAuthorityServiceFactory =
-        dspace.getSingletonService(ItemAuthorityServiceFactory.class);
+    private final ItemAuthorityServiceFactory itemAuthorityServiceFactory = dspace.getServiceManager()
+            .getServiceByName("itemAuthorityServiceFactory", ItemAuthorityServiceFactory.class);
     private final ConfigurationService configurationService =
         DSpaceServicesFactory.getInstance().getConfigurationService();
 
@@ -47,7 +47,7 @@ public class PersonAuthority extends ItemAuthority {
         super.setPluginInstanceName(authorityName);
         Choices solrChoices = super.getMatches(text, start, limit, locale);
 
-        return solrChoices.values.length == 0 ? solrChoices : getEpflApiMatches(text, start, limit);
+        return solrChoices.values.length == 0 ? getEpflApiMatches(text, start, limit) : solrChoices;
     }
 
     private Choices getEpflApiMatches(String text, int start, int limit) {
@@ -90,12 +90,12 @@ public class PersonAuthority extends ItemAuthority {
 
     private void buildAuthorExtras(Map<String, String> extras, Accred accred) {
         extras.put(DATA_AUTHOR_AFFILIATION, composePersonAffiliationValue(accred));
-        extras.put(AUTHOR_AFFILIATION, composePersonAffiliationValue(accred));
+        extras.put(AUTHOR_AFFILIATION, accred.getName());
     }
 
     private void buildEditorExtras(Map<String, String> extras, Accred accred) {
         extras.put(DATA_EDITOR_AFFILIATION, composePersonAffiliationValue(accred));
-        extras.put(EDITOR_AFFILIATION, composePersonAffiliationValue(accred));
+        extras.put(EDITOR_AFFILIATION, accred.getName());
     }
 
     private String composeAuthorityValue(String sciper) {
