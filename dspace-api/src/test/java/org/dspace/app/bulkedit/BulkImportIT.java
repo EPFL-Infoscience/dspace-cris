@@ -688,7 +688,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         context.turnOffAuthorisationSystem();
 
-        Item person = ItemBuilder.createItem(context, collection)
+        ItemBuilder.createItem(context, collection)
             .withEntityType("Person")
             .withTitle("Walter White")
             .withOrcidIdentifier("0000-0002-9079-593X")
@@ -723,10 +723,8 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Item createdItem = getItemFromMessage(infoMessages.get(3));
         assertThat("Item expected to be created", createdItem, notNullValue());
 
-        String personId = person.getID().toString();
-
         List<MetadataValue> metadata = createdItem.getMetadata();
-        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
+        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null,  "will be generated::ORCID::0000-0002-9079-593X", 0, 600)));
         assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
@@ -769,13 +767,11 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Item createdItem = getItemFromMessage(infoMessages.get(3));
         assertThat("Item expected to be created", createdItem, notNullValue());
 
-        Item relatedPersonItem = findItemByMetadata("dc", "title", null, "Walter White");
+        Item relatedPersonItem = findItemByMetadata("dc", "contributor", "author", "Walter White");
         assertThat("Related Person item expected to be created", relatedPersonItem, notNullValue());
 
-        String personId = relatedPersonItem.getID().toString();
-
         List<MetadataValue> metadata = createdItem.getMetadata();
-        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
+        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null,  "will be generated::ORCID::0000-0002-9079-593X", 0, 600)));
         assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
@@ -784,7 +780,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         context.turnOffAuthorisationSystem();
 
-        Item person = ItemBuilder.createItem(context, collection)
+        ItemBuilder.createItem(context, collection)
             .withEntityType("Person")
             .withTitle("Walter White")
             .withOrcidIdentifier("0000-0002-9079-593X")
@@ -819,10 +815,8 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Item createdItem = getItemFromMessage(infoMessages.get(3));
         assertThat("Item expected to be created", createdItem, notNullValue());
 
-        String personId = person.getID().toString();
-
         List<MetadataValue> metadata = createdItem.getMetadata();
-        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, personId, 0, 600)));
+        assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null, "will be referenced::ORCID::0000-0002-9079-593X", 0, 600)));
         assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
@@ -867,7 +861,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValue> metadata = createdItem.getMetadata();
         assertThat(metadata, hasItems(with("dc.contributor.author", "Walter White", null,
-            "will be referenced::ORCID::0000-0002-9079-593X", 0, -1)));
+            "will be referenced::ORCID::0000-0002-9079-593X", 0, 600)));
         assertThat(metadata, hasItems(with("dc.title", "Wonderful Publication")));
     }
 
@@ -1302,7 +1296,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat("Item expected to be created", publication, notNullValue());
 
         assertThat(publication.getMetadata(), hasItems(with("dc.contributor.author", "Walter White", null,
-            "will be referenced::ORCID::0000-0002-9079-593X", 0, -1)));
+            "will be referenced::ORCID::0000-0002-9079-593X", 0, 600)));
 
         String personsCollectionId = persons.getID().toString();
         fileLocation = getXlsFilePath("create-person.xls");
@@ -1322,7 +1316,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Item createdPerson = getItemFromMessage(handler.getInfoMessages().get(3));
         publication = context.reloadEntity(publication);
 
-        assertThat(publication.getMetadata(), hasItems(with("dc.contributor.author", "Walter White", null,
+        assertThat(publication.getMetadata(), hasItems(with("dc.contributor.author", "White, Walter", null,
             createdPerson.getID().toString(), 0, 600)));
 
     }
