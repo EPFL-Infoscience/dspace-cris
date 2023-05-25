@@ -111,6 +111,11 @@ public class PersonAuthority extends ItemAuthority {
     }
 
     @Override
+    public String getLinkedEntityType() {
+        return configurationService.getProperty("researcher-profile.type", "Person");
+    }
+
+    @Override
     public void setPluginInstanceName(String name) {
         authorityName = name;
     }
