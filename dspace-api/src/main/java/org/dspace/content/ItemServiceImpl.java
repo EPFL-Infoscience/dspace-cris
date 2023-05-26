@@ -92,6 +92,9 @@ import org.dspace.orcid.service.OrcidSynchronizationService;
 import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.VersionHistory;
+import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
@@ -181,6 +184,9 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Autowired(required = true)
     private ResearcherProfileService researcherProfileService;
+
+    @Autowired
+    private VersionHistoryService versionHistoryService;
 
     @Autowired
     private List<ItemSearcherByMetadata> itemSearcherByMetadata;
@@ -2057,6 +2063,42 @@ prevent the generation of resource policy entry values with null dspace_object a
         return authorities.stream()
             .map(authority -> field.replaceAll("_", ".") + "_allauthority: \"" + authority + "\"")
             .collect(Collectors.joining(" OR "));
+    }
+
+    @Override
+    public boolean isLatestVersion(Context context, Item item) throws SQLException {
+
+        VersionHistory history = versionHistoryService.findByItem(context, item);
+        if (history == null) {
+            // not all items have a version history
+            // if an item does not have a version history, it is by definition the latest
+            // version
+            return true;
+        }
+
+        // start with the very latest version of the given item (may still be in
+        // workspace)
+        Version latestVersion = versionHistoryService.getLatestVersion(context, history);
+
+        // find the latest version of the given item that is archived
+        while (latestVersion != null && !latestVersion.getItem().isArchived()) {
+            latestVersion = versionHistoryService.getPrevious(context, history, latestVersion);
+        }
+
+        // could not find an archived version of the given item
+        if (latestVersion == null) {
+            // this scenario should never happen, but let's err on the side of showing too
+            // many items vs. to little
+            // (see discovery.xml, a lot of discovery configs filter out all items that are
+            // not the latest version)
+            return true;
+        }
+
+        // sanity check
+        assert latestVersion.getItem().isArchived();
+
+        return item.equals(latestVersion.getItem());
+
     }
 
 }
