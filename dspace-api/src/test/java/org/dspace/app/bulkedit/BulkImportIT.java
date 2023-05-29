@@ -1322,7 +1322,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Item createdPerson = getItemFromMessage(handler.getInfoMessages().get(3));
         publication = context.reloadEntity(publication);
 
-        assertThat(publication.getMetadata(), hasItems(with("dc.contributor.author", "Walter White", null,
+        assertThat(publication.getMetadata(), hasItems(with("dc.contributor.author", "White, Walter", null,
             createdPerson.getID().toString(), 0, 600)));
 
     }

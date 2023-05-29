@@ -890,4 +890,14 @@ public interface ItemService
     public Iterator<Item> findRelatedItemsByAuthorityControlledFields(Context context,
                                                                       Item item, List<String> authorities);
 
+    /**
+     * Check whether the given item is the latest version. If the latest item cannot
+     * be determined, because either the version history or the latest version is
+     * not present, assume the item is latest.
+     * @param  context the DSpace context.
+     * @param  item    the item that should be checked.
+     * @return         true if the item is the latest version, false otherwise.
+     */
+    public boolean isLatestVersion(Context context, Item item) throws SQLException;
+
 }
