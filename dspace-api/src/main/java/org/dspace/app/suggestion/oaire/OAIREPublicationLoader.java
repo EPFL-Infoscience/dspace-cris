@@ -103,6 +103,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
      * @throws SolrServerException
      * @throws IOException
      */
+    @Override
     public void importAuthorRecords(Context context, Item researcher)
             throws SolrServerException, IOException {
         List<ExternalDataObject> metadata = getImportRecords(researcher);
@@ -214,7 +215,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
      * @param researcher DSpace item
      * @return list of metadata values
      */
-    private List<String> searchMetadataValues(Item researcher) {
+    protected List<String> searchMetadataValues(Item researcher) {
         List<String> authors = new ArrayList<String>();
         for (String name : names) {
             String value = itemService.getMetadata(researcher, name);

@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.external.model.ExternalDataObject;
@@ -137,4 +138,9 @@ public abstract class SolrSuggestionProvider implements SuggestionProvider {
      */
     protected abstract boolean isExternalDataObjectPotentiallySuggested(Context context,
             ExternalDataObject externalDataObject);
+
+    public void importAuthorRecords(Context context,
+                                    Item researcher) throws SolrServerException, IOException {
+
+    }
 }

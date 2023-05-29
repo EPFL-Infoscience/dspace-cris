@@ -9,6 +9,7 @@ package org.dspace.content.factory;
 
 import java.util.List;
 
+import org.dspace.app.suggestion.SolrSuggestionStorageService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.InProgressSubmission;
@@ -35,7 +36,9 @@ import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
+import org.dspace.external.service.ExternalDataService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 
@@ -113,6 +116,12 @@ public abstract class ContentServiceFactory {
     public abstract RelationshipMetadataService getRelationshipMetadataService();
 
     public abstract ResourcePolicyService getResourcePolicyService();
+
+    public abstract SolrSuggestionStorageService getSolrSuggestionStorageService();
+
+    public abstract ExternalDataService getExternalDataService();
+
+    public abstract WorkflowService getWorkflowService();
 
     public InProgressSubmissionService getInProgressSubmissionService(InProgressSubmission inProgressSubmission) {
         if (inProgressSubmission instanceof WorkspaceItem) {
