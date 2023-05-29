@@ -38,7 +38,7 @@ public class DeduplicationSetItemsLinkRepository extends AbstractDSpaceRestRepos
     @Autowired
     private DedupUtils dedupUtils;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     public Page<ItemRest> getItems(@Nullable HttpServletRequest request, String id,
         @Nullable Pageable optionalPageable, Projection projection) {
         try {

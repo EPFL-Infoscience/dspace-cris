@@ -64,9 +64,9 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$._embedded.signatures", Matchers.hasSize(is(signaturesSize))))
             .andExpect(jsonPath("$._embedded.signatures[*].id",
-                Matchers.containsInAnyOrder("title", "identifier")))
+                Matchers.containsInAnyOrder("titleAndYear", "identifier")))
             .andExpect(jsonPath("$._embedded.signatures[*].signatureType",
-                Matchers.containsInAnyOrder("title", "identifier")))
+                Matchers.containsInAnyOrder("titleAndYear", "identifier")))
             .andExpect(jsonPath("$._embedded.signatures[*].type",
                 Matchers.containsInAnyOrder("signature", "signature")))
             .andExpect(jsonPath("$._embedded.signatures[*].groupReviewerCheck", Matchers.containsInAnyOrder(0, 0)))
@@ -107,7 +107,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
     @Test
     public void findOneTitleDefaultTest() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -157,7 +157,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         // 2. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -169,7 +169,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -301,7 +301,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         // 2. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .withIdentifierDoi("10.1234/123456789")
             .build();
@@ -316,7 +316,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -363,7 +363,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         // 2. Three public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("First Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -381,7 +381,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -467,7 +467,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkspaceItem item1 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         WorkspaceItem item2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
@@ -482,7 +482,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -532,7 +532,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkflowItem item1 = WorkflowItemBuilder.createWorkflowItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         WorkflowItem item2 = WorkflowItemBuilder.createWorkflowItem(context, collection)
@@ -550,7 +550,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters and reviewers
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -621,7 +621,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters and reviewers
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -692,7 +692,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters and reviewers
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -760,7 +760,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters and reviewers
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -815,7 +815,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
             .build();
         WorkspaceItem item2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2015-12-18")
+            .withIssueDate("2010-12-18")
             .build();
 
         // Step 1: submitter rejects item1 and item2 duplicate matching
@@ -825,7 +825,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -875,7 +875,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkflowItem item1 = WorkflowItemBuilder.createWorkflowItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         WorkflowItem item2 = WorkflowItemBuilder.createWorkflowItem(context, collection)
@@ -893,7 +893,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters and reviewers
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -964,7 +964,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters, reviewers and administrators
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -1035,7 +1035,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters, reviewers and administrators
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -1103,7 +1103,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters and reviewers
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -1153,7 +1153,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkflowItem item1 = WorkflowItemBuilder.createWorkflowItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         WorkflowItem item2 = WorkflowItemBuilder.createWorkflowItem(context, collection)
@@ -1168,7 +1168,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters, reviewers and administrators
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -1236,7 +1236,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters, reviewers and administrators
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -1286,7 +1286,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkflowItem item1 = WorkflowItemBuilder.createWorkflowItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         WorkflowItem item2 = WorkflowItemBuilder.createWorkflowItem(context, collection)
@@ -1301,7 +1301,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters, reviewers and administrators
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -1369,7 +1369,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters, reviewers and administrators
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -1434,7 +1434,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         // 0 groups for submitters, reviewers and administrators
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
@@ -2746,7 +2746,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkspaceItem item1 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .withIdentifierDoi("10.1234/123456789")
             .build();
@@ -2764,7 +2764,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -2831,7 +2831,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
             .build();
         WorkspaceItem item2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2015-12-18")
+            .withIssueDate("2010-12-18")
             .withIdentifierDoi("10.1234/123456789")
             .build();
 
@@ -2846,7 +2846,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -2932,7 +2932,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -2994,7 +2994,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkspaceItem item1 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         WorkspaceItem item2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
@@ -3018,7 +3018,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -3081,7 +3081,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.setCurrentUser(submitter);
         WorkspaceItem item1 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         WorkspaceItem item2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
@@ -3111,7 +3111,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -3210,7 +3210,7 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title";
+        String id = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/signatures/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))

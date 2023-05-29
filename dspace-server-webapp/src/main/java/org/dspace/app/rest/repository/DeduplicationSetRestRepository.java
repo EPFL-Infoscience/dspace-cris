@@ -44,7 +44,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
         return DeduplicationSetRest.class;
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     public Page<DeduplicationSetRest> findAll(Context context, Pageable pageable) {
         try {
@@ -55,7 +55,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     public DeduplicationSetRest findOne(Context context, String id) {
         try {
@@ -69,7 +69,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @SearchRestMethod(name = "findBySignature")
     public Page<DeduplicationSetRest> findBySignature(
             @Parameter(value = "signature-id", required = true) String signatureId,
@@ -89,7 +89,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @SearchRestMethod(name = "findBySignatureAndRule")
     public Page<DeduplicationSetRest> findBySignatureAndRule(
             @Parameter(value = "signature-id", required = true) String signatureId,
@@ -110,7 +110,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     protected void delete(Context context, String id) throws AuthorizeException {
         DuplicateInfo duplicateInfo = null;
