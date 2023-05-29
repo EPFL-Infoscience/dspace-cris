@@ -11,6 +11,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.SQLException;
+
 import org.dspace.app.rest.authorization.impl.CanDeleteVersionFeature;
 import org.dspace.app.rest.converter.VersionConverter;
 import org.dspace.app.rest.matcher.AuthorizationMatcher;
@@ -89,18 +91,23 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
         WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, version.getItem());
         installItemService.installItem(context, workspaceItem);
 
+        EPerson otherEperson =
+            EPersonBuilder.createEPerson(context).withEmail("other@example.com").withPassword(password).build();
+
         context.restoreAuthSystemState();
 
         VersionRest versionRest = versionConverter.convert(version, DefaultProjection.DEFAULT);
 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        String tokenEPerson = getAuthToken(eperson.getEmail(), password);
+        String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
+        String tokenOther = getAuthToken(otherEperson.getEmail(), password);
 
         // define authorizations that we know must exists
         Authorization admin2Version = new Authorization(admin, canDeleteVersionFeature, versionRest);
+        Authorization submitter2Version = new Authorization(eperson, canDeleteVersionFeature, versionRest);
 
         // define authorization that we know not exists
-        Authorization eperson2Version = new Authorization(eperson, canDeleteVersionFeature, versionRest);
+        Authorization other2Version = new Authorization(otherEperson, canDeleteVersionFeature, versionRest);
         Authorization anonymous2Version = new Authorization(null, canDeleteVersionFeature, versionRest);
 
         getClient(tokenAdmin).perform(get("/api/authz/authorizations/" + admin2Version.getID()))
@@ -108,7 +115,13 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
                              .andExpect(jsonPath("$",
                                         Matchers.is(AuthorizationMatcher.matchAuthorization(admin2Version))));
 
-        getClient(tokenEPerson).perform(get("/api/authz/authorizations/" + eperson2Version.getID()))
+        // ePerson is the submitter, by configuration enabled to delete a new version
+        getClient(tokenSubmitter).perform(get("/api/authz/authorizations/" + submitter2Version.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$",
+                                         Matchers.is(AuthorizationMatcher.matchAuthorization(submitter2Version))));
+
+        getClient(tokenOther).perform(get("/api/authz/authorizations/" + other2Version.getID()))
                                .andExpect(status().isNotFound());
 
         getClient().perform(get("/api/authz/authorizations/" + anonymous2Version.getID()))
@@ -286,9 +299,12 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
         String tokenEPerson = getAuthToken(eperson.getEmail(), password);
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
 
-        // define authorization that we know not exists
-        Authorization admin2ItemA = new Authorization(admin, canDeleteVersionFeature, versionRest);
+        // eperson is a submitter, can delete the version
         Authorization eperson2ItemA = new Authorization(eperson, canDeleteVersionFeature, versionRest);
+        // admin is authorized
+        Authorization admin2ItemA = new Authorization(admin, canDeleteVersionFeature, versionRest);
+
+        // define authorization that we know not exists
         Authorization anonymous2ItemA = new Authorization(null, canDeleteVersionFeature, versionRest);
 
         getClient(tokenAdmin).perform(get("/api/authz/authorizations/" + admin2ItemA.getID()))
@@ -297,7 +313,9 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
                                         AuthorizationMatcher.matchAuthorization(admin2ItemA))));
 
         getClient(tokenEPerson).perform(get("/api/authz/authorizations/" + eperson2ItemA.getID()))
-                               .andExpect(status().isNotFound());
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$", Matchers.is(
+                                   AuthorizationMatcher.matchAuthorization(eperson2ItemA))));
 
         getClient().perform(get("/api/authz/authorizations/" + anonymous2ItemA.getID()))
                    .andExpect(status().isNotFound());

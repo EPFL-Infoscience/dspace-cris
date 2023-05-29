@@ -899,6 +899,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "person", "email", null, email);
     }
 
+    public ItemBuilder withSubmitter(EPerson eperson) {
+        item.setSubmitter(eperson);
+        return this;
+    }
+
     @Override
     public Item build() {
         try {
@@ -985,5 +990,4 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
             c.complete();
         }
     }
-
 }
