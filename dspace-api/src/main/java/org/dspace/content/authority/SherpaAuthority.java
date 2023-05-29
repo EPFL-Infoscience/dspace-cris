@@ -28,7 +28,7 @@ import org.dspace.utils.DSpace;
 /**
  * Implementation of {@link ChoiceAuthority} that search Journals using the
  * SHERPA API.
- * 
+ *
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.com)
  * @author Luca Giamminonni (luca.giamminonni at 4science.com)
  */

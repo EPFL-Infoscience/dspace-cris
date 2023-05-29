@@ -45,6 +45,11 @@ public class PersonApiServiceImpl implements PersonApiService {
     private ConfigurationService configurationService;
 
     @Override
+    public List<PersonDTO> getPersons(String query) {
+        return apiClient.getPersons(query, Language.EN);
+    }
+
+    @Override
     public Optional<PersonDTO> getPerson(String sciper) {
         return apiClient.getPerson(sciper, Language.EN);
     }

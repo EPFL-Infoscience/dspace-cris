@@ -13,6 +13,7 @@ import static org.apache.http.client.methods.RequestBuilder.get;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 
@@ -76,6 +77,23 @@ public class EpflApiClientImpl implements EpflApiClient {
 
         return Optional.ofNullable(orgUnit)
             .filter(OrgUnitDTO::isNotEmpty);
+    }
+
+    @Override
+    public List<PersonDTO> getPersons(String query, Language language) {
+        HttpResponse response = performGetRequest(getPersonApiUrl(), "q", query, language);
+
+        if (isNotFound(response)) {
+            return List.of();
+        }
+
+        if (isNotSuccessfull(response)) {
+            String message = "Not successfully response incoming from Person API. "
+                    + "Status: " + getStatusCode(response) + " - Content: " + getContent(response);
+            throw new RuntimeException(message);
+        }
+
+        return List.of(parseResponse(response, PersonDTO[].class));
     }
 
     @Override
