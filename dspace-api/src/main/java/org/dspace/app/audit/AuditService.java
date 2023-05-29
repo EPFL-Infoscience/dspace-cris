@@ -14,9 +14,11 @@ package org.dspace.app.audit;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -142,6 +144,12 @@ public class AuditService {
         }
         audit.setSubjectType(event.getSubjectTypeAsString());
         audit.setSubjectUUID(event.getSubjectID());
+        audit.setDetail(Arrays.stream(event.getDetail().split(", "))
+                              .map(String::trim)
+                              .collect(Collectors.toSet())
+                              .toString()
+                              .replaceAll("[]\\[]", "")
+        );
         return audit;
     }
     /**
