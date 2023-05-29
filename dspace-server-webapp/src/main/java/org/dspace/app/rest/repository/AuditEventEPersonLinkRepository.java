@@ -39,7 +39,7 @@ public class AuditEventEPersonLinkRepository extends AbstractDSpaceRestRepositor
     @Autowired
     private EPersonService epersonService;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGE_ACCESS_GROUP')")
     public EPersonRest getEperson(@Nullable HttpServletRequest request,
                                                UUID auditId,
                                                @Nullable Pageable optionalPageable,

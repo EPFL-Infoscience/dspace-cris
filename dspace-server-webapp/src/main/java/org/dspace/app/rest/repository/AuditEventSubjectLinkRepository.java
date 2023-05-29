@@ -39,7 +39,7 @@ public class AuditEventSubjectLinkRepository extends AbstractDSpaceRestRepositor
     @Autowired
     private DSpaceObjectUtils dspaceObjectUtil;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGE_ACCESS_GROUP')")
     public DSpaceObjectRest getSubject(@Nullable HttpServletRequest request,
                                                UUID auditId,
                                                @Nullable Pageable optionalPageable,
