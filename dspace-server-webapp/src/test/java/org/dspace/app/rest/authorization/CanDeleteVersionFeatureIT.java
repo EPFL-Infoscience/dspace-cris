@@ -11,8 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.sql.SQLException;
-
 import org.dspace.app.rest.authorization.impl.CanDeleteVersionFeature;
 import org.dspace.app.rest.converter.VersionConverter;
 import org.dspace.app.rest.matcher.AuthorizationMatcher;
