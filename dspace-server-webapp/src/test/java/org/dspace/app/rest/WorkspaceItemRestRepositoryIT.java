@@ -2303,13 +2303,13 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         String authToken = getAuthToken(eperson.getEmail(), password);
 
         WorkspaceItem workspaceItem1 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("First Workspace Item")
                 .withIssueDate("2017-10-17")
                 .grantLicense()
                 .build();
 
         WorkspaceItem workspaceItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 2")
+                .withTitle("Second Workspace Item")
                 .grantLicense()
                 .build();
 
@@ -2750,7 +2750,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + workspaceItem1.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist());
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.required')]").doesNotExist());
 
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + workspaceItem2.getID()))
             .andExpect(status().isOk())
@@ -3489,14 +3489,14 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         String authToken = getAuthToken(eperson.getEmail(), password);
 
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("First Workspace Item")
                 .withIssueDate("2017-10-17")
                 .withSubject("ExtraEntry")
                 .grantLicense()
                 .build();
 
         WorkspaceItem witemMultipleSubjects = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("Second Workspace Item")
                 .withIssueDate("2017-10-17")
                 .withSubject("Subject1")
                 .withSubject("Subject2")
@@ -3506,7 +3506,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .build();
 
         WorkspaceItem witemWithTitleDateAndSubjects = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("Third Workspace Item")
                 .withIssueDate("2017-10-17")
                 .withSubject("Subject1")
                 .withSubject("Subject2")
@@ -4311,17 +4311,17 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         String authToken = getAuthToken(eperson.getEmail(), password);
 
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Test WorkspaceItem")
+                .withTitle("First Test WorkspaceItem")
                 .withIssueDate("2017-10-17")
                 .build();
 
         WorkspaceItem witem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Test WorkspaceItem 2")
+                .withTitle("Second Test WorkspaceItem")
                 .withIssueDate("2017-10-17")
                 .build();
 
         WorkspaceItem witem3 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Test WorkspaceItem 3")
+                .withTitle("Third Test WorkspaceItem")
                 .withIssueDate("2017-10-17")
                 .build();
 

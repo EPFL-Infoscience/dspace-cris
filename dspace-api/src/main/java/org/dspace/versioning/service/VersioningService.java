@@ -10,6 +10,7 @@ package org.dspace.versioning.service;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -113,5 +114,17 @@ public interface VersioningService {
      * @return
      */
     boolean canCreateVersion(Context context, Item item);
+
+    /**
+     * Check if the given two items are different versions of the same entity.
+     *
+     * @param  context        The relevant DSpace Context.
+     * @param  firstItemUuid  the first item uuid
+     * @param  secondItemUuid the second item uuid
+     * @return                true if the two items are a different version of the
+     *                        same entity, false otherwise
+     */
+    public boolean areDifferentVersionsOfSameItem(Context context, UUID firstItemUuid, UUID secondItemUuid)
+        throws SQLException;
 
 }

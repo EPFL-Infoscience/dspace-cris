@@ -16,6 +16,8 @@ import org.dspace.epfl.client.model.PersonDTO;
 
 public interface PersonApiService {
 
+    public List<PersonDTO> getPersons(String query);
+
     public Optional<PersonDTO> getPerson(String sciper);
 
     public List<MetadataValueDTO> getMetadataValues(PersonDTO person);
