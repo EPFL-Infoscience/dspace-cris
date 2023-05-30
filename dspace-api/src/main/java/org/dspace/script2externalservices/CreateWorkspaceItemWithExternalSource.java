@@ -366,6 +366,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     for (List<MetadataValueDTO> metadataList : metadataValueToAdd(wsItem.getItem())) {
                         addMetadata(wsItem.getItem(), metadataList);
                     }
+                    itemService.addMetadata(context, wsItem.getItem(), "cris", "source", "name", null, this.service);
                     owner.ifPresent(mv -> updateSubmitter(wsItem.getItem(), mv));
                     if (!StringUtils.equals(this.finalState, WORKSPACE_STATE)) {
                         makeFinalState(wsItem);
