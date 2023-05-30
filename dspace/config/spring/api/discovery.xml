@@ -879,6 +879,7 @@
                 <ref bean="searchFilterObjectNamedType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterSubmitter" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterUnit" />
@@ -890,6 +891,7 @@
                 <ref bean="searchFilterObjectNamedType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterSubmitter" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterUnit" />
