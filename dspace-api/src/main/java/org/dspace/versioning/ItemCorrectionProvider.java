@@ -161,7 +161,8 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
 
                 for (MetadataValue metadataValue : metadataValues) {
                     bitstreamService.addMetadata(c, nativeBitstream, metadataValue.getMetadataField(),
-                                                 metadataValue.getLanguage(), metadataValue.getValue(), metadataValue.getAuthority(),
+                                                 metadataValue.getLanguage(), metadataValue.getValue(),
+                                                 metadataValue.getAuthority(),
                                                  metadataValue.getConfidence());
                 }
                 bitstreamService.update(c, nativeBitstream);
@@ -184,8 +185,8 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
                     authorizeService.findPoliciesByDSOAndType(c, nativeBitstream, ResourcePolicy.TYPE_CUSTOM);
                 authorizeService.addPolicies(c, bitstreamPolicies, bitstreamNew);
 
-                if (correctedDefaultBundle.getPrimaryBitstream() != null && correctedDefaultBundle.getPrimaryBitstream()
-                                                                                                  .equals(nativeBitstream)) {
+                if (correctedDefaultBundle.getPrimaryBitstream() != null &&
+                    correctedDefaultBundle.getPrimaryBitstream().equals(nativeBitstream)) {
                     nativeDefaultBundle.setPrimaryBitstreamID(bitstreamNew);
                 }
 
