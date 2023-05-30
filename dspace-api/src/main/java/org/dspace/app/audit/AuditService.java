@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -121,6 +122,7 @@ public class AuditService {
         }
         try {
             getSolr().add(solrInDoc);
+            getSolr().commit();
         } catch (SolrServerException | IOException e) {
             log.error(e.getMessage(), e);
         }
@@ -144,14 +146,22 @@ public class AuditService {
         }
         audit.setSubjectType(event.getSubjectTypeAsString());
         audit.setSubjectUUID(event.getSubjectID());
+        addDetails(event, audit);
+        return audit;
+    }
+
+    private static void addDetails(Event event, AuditEvent audit) {
+        if (Objects.isNull(audit.getDetail())) {
+            audit.setDetail("-");
+        }
         audit.setDetail(Arrays.stream(event.getDetail().split(", "))
                               .map(String::trim)
                               .collect(Collectors.toSet())
                               .toString()
                               .replaceAll("[]\\[]", "")
         );
-        return audit;
     }
+
     /**
      * Shortcut for
      * {@link #findEvents(Context, UUID, Date, Date, int, int, boolean)} with

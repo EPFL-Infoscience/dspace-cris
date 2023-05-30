@@ -15,6 +15,7 @@ import org.dspace.app.rest.model.BaseObjectRest;
 import org.dspace.app.rest.model.SiteRest;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,9 @@ public class CuratorOfFeature implements AuthorizationFeature {
 
     public static final String NAME = "curatorOf";
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     private static final String CURATORS_GROUP_NAME = "Curators";
 
     @Autowired
@@ -31,10 +35,11 @@ public class CuratorOfFeature implements AuthorizationFeature {
 
     @Override
     public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException {
+        String curatorsGroupName = configurationService.getProperty("epfl.curators-group.name", CURATORS_GROUP_NAME);
         return object instanceof SiteRest && context.getCurrentUser()
                                                     .getGroups()
                                                     .stream()
-                                                    .anyMatch(group -> group.getName().equals(CURATORS_GROUP_NAME));
+                                                    .anyMatch(group -> group.getName().equals(curatorsGroupName));
     }
 
     @Override
