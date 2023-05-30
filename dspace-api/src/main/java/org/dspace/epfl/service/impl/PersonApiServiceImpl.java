@@ -62,6 +62,14 @@ public class PersonApiServiceImpl implements PersonApiService {
     }
 
     @Override
+    public List<String> getMetadataFields() {
+        return configurationService.getPropertyKeys(PERSON_MAPPING_PREFIX).stream()
+            .map(key -> configurationService.getProperty(key))
+            .filter(property -> isMetadataField(property))
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<InputStream> getPersonalPicture(String sciper) {
         return apiClient.getPersonalPicture(sciper);
     }
@@ -99,7 +107,7 @@ public class PersonApiServiceImpl implements PersonApiService {
             .flatMap(field -> getUrlMetadataValue(person.getProfile(), field))
             .ifPresent(metadataValues::add);
 
-        metadataValues.addAll(getAffiliationMetadataValues(person.getAccreds()));
+        metadataValues.addAll(getAffiliationMetadataValues(person));
 
         return metadataValues;
 
@@ -118,7 +126,7 @@ public class PersonApiServiceImpl implements PersonApiService {
             .map(metadataValue -> new MetadataValueDTO(field, metadataValue));
     }
 
-    private List<MetadataValueDTO> getAffiliationMetadataValues(Accred[] accreds) {
+    private List<MetadataValueDTO> getAffiliationMetadataValues(PersonDTO person) {
 
         Optional<String> positionField = getPersonMetadataField("affiliation.position");
         Optional<String> affiliationField = getPersonMetadataField("affiliation.orgunit");
@@ -128,16 +136,12 @@ public class PersonApiServiceImpl implements PersonApiService {
         }
 
         List<MetadataValueDTO> affiliationMetadataValues =
-            Arrays.stream(accreds)
+            Arrays.stream(person.getAccreds())
                   .flatMap(accred -> getAffiliationValues(accred, positionField.get(), affiliationField.get()).stream())
                   .collect(Collectors.toList());
 
-        Arrays.stream(accreds)
-              .filter(accred -> accred.getRank() == 0)
-              .map(Accred::getName)
-              .findFirst()
-              .flatMap(mainAffiliationName -> getPersonMetadataField("affiliation.main")
-                  .flatMap(field -> getMetadataValue(mainAffiliationName, field)))
+        person.getMainAffiliation()
+            .flatMap(mainAffiliation -> getMainAffiliationMetadataValue(mainAffiliation))
               .ifPresent(affiliationMetadataValues::add);
 
         return affiliationMetadataValues;
@@ -175,6 +179,21 @@ public class PersonApiServiceImpl implements PersonApiService {
         return metadataValues;
     }
 
+    private Optional<MetadataValueDTO> getMainAffiliationMetadataValue(Accred mainAffiliation) {
+
+        String name = mainAffiliation.getName();
+        if (StringUtils.isBlank(name)) {
+            return Optional.empty();
+        }
+
+        String authority = getOrgUnitAuthority(mainAffiliation.getAcronym());
+        int confidence = StringUtils.isBlank(authority) ? Choices.CF_UNSET : Choices.CF_AMBIGUOUS;
+
+        return getPersonMetadataField("affiliation.main")
+            .map(field -> new MetadataValueDTO(field, name, authority, confidence));
+
+    }
+
     private Optional<MetadataValueDTO> getUrlMetadataValue(String profile, String field) {
         return Optional.ofNullable(profile)
             .filter(StringUtils::isNotBlank)
@@ -196,6 +215,10 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     private boolean isOrgUnitActive(String acronym) {
         return orgUnitApiService.isOrgUnitActive(acronym);
+    }
+
+    private boolean isMetadataField(String property) {
+        return property != null && property.contains(".");
     }
 
     private Optional<String> getPersonMetadataField(String fieldName) {

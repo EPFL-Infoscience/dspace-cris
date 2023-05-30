@@ -28,4 +28,6 @@ public interface PersonApiService {
 
     public String getSciperMetadataField();
 
+    public List<String> getMetadataFields();
+
 }

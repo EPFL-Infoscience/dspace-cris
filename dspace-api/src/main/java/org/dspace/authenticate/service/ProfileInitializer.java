@@ -175,10 +175,16 @@ public class ProfileInitializer {
         personApiService.getPersonalPicture(sciper)
             .ifPresent(content -> bitstreamService.replacePersonalPicture(context, item, sciper + ".jpg", content));
 
+        try {
+            itemService.update(context, item);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {
-        clearMetadataValues(context, item, metadataValues);
+        clearMetadataValues(context, item);
         metadataValues.forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
     }
 
@@ -192,10 +198,8 @@ public class ProfileInitializer {
         }
     }
 
-    private void clearMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {
-        metadataValues.stream()
-            .map(MetadataValueDTO::getMetadataField)
-            .distinct()
+    private void clearMetadataValues(Context context, Item item) {
+        personApiService.getMetadataFields()
             .forEach(metadataField -> clearMetadataValues(context, item, metadataField));
     }
 
