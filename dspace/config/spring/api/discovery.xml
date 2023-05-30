@@ -3937,11 +3937,11 @@
         <property name="defaultSortOrder" value="asc"/>
     </bean>
     <bean id="sortCitations" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="metric.scopus.citation"/>
+        <property name="metadataField" value="metric.scopusCitation"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
     <bean id="sortCitationsAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="metric.scopus.citation"/>
+        <property name="metadataField" value="metric.scopusCitation"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
