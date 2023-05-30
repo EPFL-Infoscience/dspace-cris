@@ -116,6 +116,17 @@ public interface VersioningService {
     boolean canCreateVersion(Context context, Item item);
 
     /**
+     *
+     * Checks if an user can delete a version of an item. Involved item must not be in workflow
+     * or workspace status.
+     *
+     * @param context The relevant DSpace Context
+     * @param item DSpace Item against which check is performed
+     * @return
+     */
+    boolean canDeleteItemVersion(Context context, Item item);
+
+    /**
      * Check if the given two items are different versions of the same entity.
      *
      * @param  context        The relevant DSpace Context.

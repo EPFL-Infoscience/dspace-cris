@@ -14,15 +14,36 @@
                 <list>
                     <value>ADMIN</value>
                     <value>CUSTOM</value>
+                    <value>GROUP</value>
                     <value>SUBMITTER</value>
                 </list>
             </property>
             <property name="items" ref="itemsMetadata" />
+            <property name="groups" ref="groupList" />
         </bean>
     </util:list>
 
     <util:list id="itemsMetadata" value-type="java.lang.String">
         <value>dc.contributor.author</value>
+    </util:list>
+
+    <util:list id="groupList" value-type="java.lang.String">
+        <value>Curators</value>
+    </util:list>
+
+    <util:list id="deleteVersionAccessModesList">
+        <bean class="org.dspace.versioning.VersioningItemMode">
+            <property name="securities">
+                <list>
+                    <value>ADMIN</value>
+                    <value>CUSTOM</value>
+                    <value>GROUP</value>
+                    <value>SUBMITTER</value>
+                </list>
+            </property>
+            <property name="items" ref="itemsMetadata" />
+            <property name="groups" ref="groupList" />
+        </bean>
     </util:list>
 
 </beans>

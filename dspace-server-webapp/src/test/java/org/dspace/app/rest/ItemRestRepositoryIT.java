@@ -62,6 +62,7 @@ import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.repository.ItemRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.test.MetadataPatchSuite;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
@@ -87,7 +88,9 @@ import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -130,6 +133,11 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
+    @Autowired
+    private InstallItemService installItemService;
 
     private Item publication1;
     private Item author1;
@@ -1867,6 +1875,108 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(get("/api/core/items/" + workspaceItem.getItem().getID()))
                     .andExpect(status().isOk());
     }
+
+    @Test
+    public void deleteVersionAsAdmin() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("To be versioned")
+                               .build();
+        Version version = newVersion(item);
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(delete("/api/core/items/" + version.getItem().getID()))
+                             .andExpect(status().isNoContent());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                        .andExpect(status().isOk());
+
+        getClient().perform(get("/api/core/items/" + version.getItem().getID()))
+                   .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void deleteVersionAsSubmitter() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("To be versioned")
+                               .build();
+        Version version = newVersion(item);
+        context.restoreAuthSystemState();
+
+        String submitterToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(submitterToken).perform(delete("/api/core/items/" + version.getItem().getID()))
+                             .andExpect(status().isNoContent());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                   .andExpect(status().isOk());
+
+        getClient().perform(get("/api/core/items/" + version.getItem().getID()))
+                   .andExpect(status().isNotFound());
+    }
+
+    // delete version as unauthorized returns 403
+    @Test
+    public void deleteVersionAsUnauthorized() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("To be versioned")
+                               .build();
+        Version version = newVersion(item);
+        EPerson otherEPerson = EPersonBuilder.createEPerson(context).withEmail("other@example.com")
+                                             .withPassword(password).build();
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(otherEPerson.getEmail(), password);
+
+        getClient(authToken).perform(delete("/api/core/items/" + version.getItem().getID()))
+                                 .andExpect(status().isForbidden());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                   .andExpect(status().isOk());
+
+        getClient().perform(get("/api/core/items/" + version.getItem().getID()))
+                   .andExpect(status().isOk());
+    }
+
+    @Test
+    public void submitterCannotDeleteANotVersionedItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("Test publication")
+                               .build();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(authToken).perform(delete("/api/core/items/" + item.getID()))
+                            .andExpect(status().isForbidden());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                   .andExpect(status().isOk());
+    }
+    private Collection createCollection() {
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection collection = CollectionBuilder
+            .createCollection(context, parentCommunity)
+            .withEntityType("Publication")
+            .build();
+        return collection;
+    }
+
+    private Version newVersion(Item item) throws SQLException, AuthorizeException {
+        Version version = VersionBuilder.createVersion(context, item, "new version").build();
+        installItemService.installItem(context, workspaceItemService.findByItem(context, version.getItem()));
+        return version;
+    }
+
+
 
     @Test
     public void embargoAccessTest() throws Exception {

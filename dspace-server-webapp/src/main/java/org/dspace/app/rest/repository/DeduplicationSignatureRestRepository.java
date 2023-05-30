@@ -35,7 +35,7 @@ public class DeduplicationSignatureRestRepository extends DSpaceRestRepository<D
         return DeduplicationSignatureRest.class;
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     public Page<DeduplicationSignatureRest> findAll(Context context, Pageable pageable) {
         try {
@@ -46,7 +46,7 @@ public class DeduplicationSignatureRestRepository extends DSpaceRestRepository<D
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     public DeduplicationSignatureRest findOne(Context context, String id) {
         try {
