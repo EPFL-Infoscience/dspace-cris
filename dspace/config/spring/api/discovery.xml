@@ -879,6 +879,7 @@
                 <ref bean="searchFilterObjectNamedType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterSubmitter" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterUnit" />
@@ -890,6 +891,7 @@
                 <ref bean="searchFilterObjectNamedType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterSubmitter" />
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterUnit" />
@@ -3040,6 +3042,23 @@
         <property name="metadataFields">
             <list>
                 <value>dc.date.issued</value>
+            </list>
+        </property>
+        <property name="type" value="date"/>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="false"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+
+    </bean>
+
+    <bean id="searchFilterCreated" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="dateCreated"/>
+        <property name="metadataFields">
+            <list>
+                <value>dc.date.created</value>
             </list>
         </property>
         <property name="type" value="date"/>

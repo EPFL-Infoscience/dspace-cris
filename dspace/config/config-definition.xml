@@ -42,6 +42,12 @@
         <properties fileName="local.cfg" throwExceptionOnMissing="false" config-name="local" config-optional="true"
                     encoding="UTF-8" config-reload="true" reloadingRefreshDelay="5000"/>
 
+        <properties fileName="node-1.cfg" throwExceptionOnMissing="false" config-name="node-1" config-optional="true"
+                    encoding="UTF-8" config-reload="true" reloadingRefreshDelay="5000"/>
+
+        <properties fileName="node-2.cfg" throwExceptionOnMissing="false" config-name="node-2" config-optional="true"
+                    encoding="UTF-8" config-reload="true" reloadingRefreshDelay="5000"/>
+
         <!-- Load our dspace.cfg (which in turn loads all module configs via "include=" statements) -->
         <!-- Check for reload every 5 seconds (5,000ms) -->
         <properties fileName="dspace.cfg" throwExceptionOnMissing="true" encoding="UTF-8" config-reload="true"

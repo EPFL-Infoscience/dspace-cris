@@ -59,6 +59,10 @@ public class VersioningServiceImpl implements VersioningService {
     @Qualifier("createVersionAccessModesList")
     private List<AccessItemMode> createVersionAccessModes;
 
+    @Autowired
+    @Qualifier("deleteVersionAccessModesList")
+    private List<AccessItemMode> deleteVersionAccessModes;
+
     private DefaultItemVersionProvider provider;
 
     @Autowired(required = true)
@@ -264,6 +268,28 @@ public class VersioningServiceImpl implements VersioningService {
 
         return createVersionAccessModes.stream()
                                 .anyMatch(am -> isHasAccess(context, item, am));
+    }
+
+    @Override
+    public boolean canDeleteItemVersion(Context context, Item item) {
+        if (!configurationService.getBooleanProperty("versioning.enabled", true)) {
+            return false;
+        }
+        try {
+            if (workspaceOrWorkflow(context, item)) {
+                return false;
+            }
+            return Objects.nonNull(versionHistoryService.findByItem(context, item))
+                && deleteVersionAccessModes.stream()
+                                           .anyMatch(am -> isHasAccess(context, item, am));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean workspaceOrWorkflow(Context context, Item item) throws SQLException {
+        return Objects.nonNull(workflowItemService.findByItem(context, item)) ||
+            Objects.nonNull(workspaceItemService.findByItem(context, item));
     }
 
     private boolean isHasAccess(Context context, Item item, AccessItemMode accessItemMode) {

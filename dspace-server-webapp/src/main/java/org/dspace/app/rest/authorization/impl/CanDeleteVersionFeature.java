@@ -54,6 +54,11 @@ public class CanDeleteVersionFeature extends DeleteFeature {
             }
             Version version = versioningService.getVersion(context, ((VersionRest)object).getId());
             if (Objects.nonNull(version) && Objects.nonNull(version.getItem())) {
+                boolean canDelete = versioningService.canDeleteItemVersion(context, version.getItem());
+                if (canDelete) {
+                    return true;
+                }
+                // fallback for compatibility with DSpace 7
                 ItemRest itemRest = itemConverter.convert(version.getItem(), DefaultProjection.DEFAULT);
                 return super.isAuthorized(context, itemRest);
             }

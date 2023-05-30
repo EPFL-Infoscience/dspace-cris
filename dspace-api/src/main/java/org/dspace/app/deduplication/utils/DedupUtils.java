@@ -46,7 +46,11 @@ import org.dspace.core.Context;
 import org.dspace.deduplication.Deduplication;
 import org.dspace.deduplication.service.DeduplicationService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -432,9 +436,9 @@ public class DedupUtils {
         if (firstId == secondId) {
             return false;
         }
-        if (!AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context)) {
+        if (unauthorized(context)) {
             throw new AuthorizeException(
-                    "Only the administrator can reject the duplicate in the administrative section");
+                    "Only the administrator or a curator can reject the duplicate in the administrative section");
         }
         UUID[] sortedIds = new UUID[] { firstId, secondId };
         Arrays.sort(sortedIds);
@@ -465,6 +469,17 @@ public class DedupUtils {
             log.error(ex.getMessage(), ex);
         }
         return false;
+    }
+
+    private boolean unauthorized(Context context) throws SQLException {
+//        return !AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context);
+        GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+        if (groupService.isMember(context, Group.ADMIN)) {
+            return false;
+        }
+        String curators =
+            DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("epfl.curators-group.name");
+        return !groupService.isMember(context, curators);
     }
 
     /**

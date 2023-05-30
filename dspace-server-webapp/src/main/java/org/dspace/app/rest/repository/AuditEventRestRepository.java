@@ -52,7 +52,7 @@ public class AuditEventRestRepository extends DSpaceRestRepository<AuditEventRes
     protected ConverterService converter;
 
     @Override
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     public AuditEventRest findOne(Context context, UUID id) {
         returnNotFoundIfDisabled();
         AuditEvent audit = auditService.findEvent(context, id);
@@ -60,7 +60,7 @@ public class AuditEventRestRepository extends DSpaceRestRepository<AuditEventRes
     }
 
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @SearchRestMethod(name = "findByObject")
     public Page<AuditEventRest> findByObject(@Parameter(value = "object", required = true) UUID uuid,
             Pageable pageable) throws AuthorizeException, SQLException {

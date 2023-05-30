@@ -15,19 +15,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.UUID;
+
 import org.dspace.app.rest.repository.SubmissionFieldsRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.VersionBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItem;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -40,6 +46,9 @@ public class SubmissionFieldsRestRepositoryIT extends AbstractControllerIntegrat
     private Collection collection;
 
     private Item item;
+
+    @Autowired
+    private VersioningService versioningService;
 
     @Before
     public void setUp() throws Exception {
@@ -127,11 +136,47 @@ public class SubmissionFieldsRestRepositoryIT extends AbstractControllerIntegrat
 
         String epersonToken = getAuthToken(eperson.getEmail(), password);
 
+        checkFieldsReturned(epersonToken, item.getID());
+    }
+
+    @Test
+    public void testFindByPreviousVersionItemId() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        item = ItemBuilder.createItem(context, collection)
+                          .withTitle("item title")
+                          .withSubject("item subject")
+                          .withAuthor("Smith")
+                          .withAuthorAffiliation("Author-Affiliation")
+                          .withEditor("Arnold")
+                          .withEditorAffiliation("Editor-Affiliation")
+                          .withSubject("item subject 2")
+                          .withEntityType("Publication")
+                          .withAlternativeTitle("item alternative title")
+                          .build();
+
+        Version newVersion = VersionBuilder.createVersion(context, item, "new version").build();
+        //versioning consumer unarchives the previous version
+        item.setArchived(false);
+
+
+        context.restoreAuthSystemState();
+
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+
+        checkFieldsReturned(epersonToken, newVersion.getItem().getID());
+
+        checkFieldsReturned(epersonToken, item.getID());
+    }
+
+    private void checkFieldsReturned(String epersonToken, UUID itemID) throws Exception {
         getClient(epersonToken).perform(get(
-                "/api/config/submissionfields/search/findByItem")
-                                   .param("uuid", item.getID().toString()))
+                                   "/api/config/submissionfields/search/findByItem")
+                                            .param("uuid", itemID.toString()))
                                .andExpect(status().isOk())
-                               .andExpect(jsonPath("$.itemId", is(item.getID().toString())))
+                               .andExpect(jsonPath("$.itemId", is(itemID.toString())))
                                .andExpect(jsonPath("$.repeatableFields", containsInAnyOrder(
                                    "dc.identifier.arxiv",
                                    "dc.identifier.ismn",
@@ -164,8 +209,8 @@ public class SubmissionFieldsRestRepositoryIT extends AbstractControllerIntegrat
                                .andExpect(jsonPath("$.nestedFields['dc.contributor.editor']", contains(
                                    "oairecerif.editor.affiliation")))
                                .andExpect(jsonPath("$._links.self.href",
-                                   containsString("/api/config/submissionfields/search/findByItem" +
-                                       "?uuid=" + item.getID().toString())));
+                                                   containsString("/api/config/submissionfields/search/findByItem" +
+                                                                      "?uuid=" + itemID.toString())));
     }
 
     @Test

@@ -8,9 +8,9 @@
 ## {5}  Email of the rejector
 ## {6}  Link to 'My DSpace' page
 ##
-#set($subject = 'DSpace: Template 1 subject')
+#set($subject = 'DSpace: Additional information required')
 Dear ${params[2]}
-I need more information about your submission ${params[0]} in the collection ${params[1]}...
+I need more information about your submission ${params[0]} in the collection ${params[1]}
 
 Please reach me at ${params[5]}
 Best regards, 

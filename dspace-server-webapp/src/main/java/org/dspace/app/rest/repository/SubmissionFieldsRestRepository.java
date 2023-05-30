@@ -35,6 +35,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,9 @@ public class SubmissionFieldsRestRepository extends DSpaceRestRepository<Submiss
 
     @Autowired
     private WorkflowItemService workflowItemService;
+
+    @Autowired
+    private VersionHistoryService versionHistoryService;
 
     @Autowired
     private ItemService itemService;
@@ -120,20 +124,20 @@ public class SubmissionFieldsRestRepository extends DSpaceRestRepository<Submiss
 
     private Collection findCollectionByItem(Context context, Item item) throws SQLException {
 
-        Collection collection = null;
-
         WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
-        WorkflowItem workflowItem = workflowItemService.findByItem(context, item);
 
         if (workspaceItem != null) {
-            collection = workspaceItem.getCollection();
-        } else if (workflowItem != null) {
-            collection = workflowItem.getCollection();
-        } else if (item.isArchived()) {
-            collection = item.getOwningCollection();
+            return workspaceItem.getCollection();
+        }
+        WorkflowItem workflowItem = workflowItemService.findByItem(context, item);
+        if (workflowItem != null) {
+            return workflowItem.getCollection();
+        }
+        if (item.isArchived() || !versionHistoryService.isLastVersion(context, item)) {
+            return item.getOwningCollection();
         }
 
-        return collection;
+        return null;
 
     }
 
