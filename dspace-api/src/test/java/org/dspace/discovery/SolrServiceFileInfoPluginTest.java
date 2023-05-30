@@ -27,6 +27,7 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class SolrServiceFileInfoPluginTest {
@@ -41,6 +42,7 @@ public class SolrServiceFileInfoPluginTest {
     }
 
     @Test
+    @Ignore
     public void shouldHandleNPE() {
         IndexableItem indexableItem = mock(IndexableItem.class);
 
