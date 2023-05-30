@@ -8,9 +8,9 @@
 ## {5}  Email of the rejector
 ## {6}  Link to 'My DSpace' page
 ##
-#set($subject = 'DSpace: Template 2 subject toward rejection')
+#set($subject = 'DSpace: Data correction needed')
 Dear ${params[2]}
-I found some mistake in your submission ${params[0]} done in the collection ${params[1]}...
+I found some mistake in your submission ${params[0]} done in the collection ${params[1]}
 please fix them and submit your record again.
 
 You can find your item back into your workspace
