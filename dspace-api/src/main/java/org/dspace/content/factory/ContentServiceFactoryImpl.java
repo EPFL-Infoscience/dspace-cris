@@ -34,8 +34,8 @@ import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.external.service.ExternalDataService;
-import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.WorkflowItemService;
+import org.dspace.workflow.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
