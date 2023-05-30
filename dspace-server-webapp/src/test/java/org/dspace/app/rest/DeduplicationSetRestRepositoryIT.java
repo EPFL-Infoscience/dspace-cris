@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.deduplication.utils.MD5ValueSignature;
+import org.dspace.app.deduplication.utils.TitleWithDigitAndYearSignature;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -29,6 +30,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -38,6 +40,18 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
     private DedupUtils dedupUtils;
 
     private MD5ValueSignature md5Signature = new MD5ValueSignature();
+
+    @Autowired
+    private TitleWithDigitAndYearSignature titleWithDigitAndYearSignature;
+
+
+    @Before
+    public void initSignature() throws Exception {
+//        titleWithDigitAndYearSignature.setMetadataYear("dc.date.issued");
+//        titleWithDigitAndYearSignature.setMetadata("dc.title");
+//        titleWithDigitAndYearSignature.setResourceTypeID(2);
+//        titleWithDigitAndYearSignature.setSignatureType("titleAndYear");
+    }
 
     @Test
     public void findAllUnauthorizedTest() throws Exception {
@@ -179,7 +193,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         // 3. Three public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -277,7 +291,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -287,14 +301,14 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
 
         // Set up MD5ValueSignature state to produce the same signature
         setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
-        String checksum = md5Signature.getSignature(publicItem1, context).get(0);
+        String checksum = titleWithDigitAndYearSignature.getSignature(publicItem1, context).get(0);
 
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:" + checksum;
-        String signatureId = "title";
+        String id = "titleAndYear:" + checksum;
+        String signatureId = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -348,7 +362,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2015-12-18")
+            .withIssueDate("2010-12-18")
             .build();
         Item publicItem3 = ItemBuilder.createItem(context, collection)
             .withTitle("Another Test")
@@ -359,18 +373,16 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .withIssueDate("2015-12-18")
             .build();
 
-        // Set up MD5ValueSignature state to produce the same signature
-        setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
-        String checksum1 = md5Signature.getSignature(publicItem1, context).get(0);
-        String checksum2 = md5Signature.getSignature(publicItem3, context).get(0);
+        String checksum1 = titleWithDigitAndYearSignature.getSignature(publicItem1, context).get(0);
+        String checksum2 = titleWithDigitAndYearSignature.getSignature(publicItem3, context).get(0);
 
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = "title:" + checksum1;
-        String signatureId = "title";
+        String id = "titleAndYear:" + checksum1;
+        String signatureId = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -381,8 +393,8 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .andExpect(jsonPath("$._links.items.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id + "/items")))
             .andExpect(jsonPath("$._links.self.href", Matchers.containsString("http://localhost/api/deduplications/sets/" + id)));
 
-        id = "title:" + checksum2;
-        signatureId = "title";
+        id = "titleAndYear:" + checksum2;
+        signatureId = "titleAndYear";
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -832,7 +844,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -844,7 +856,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String signatureId = "title";
+        String signatureId = "titleAndYear";
         getClient(adminToken).perform(
                 get("/api/deduplications/sets/search/findBySignature")
                     .param("signature-id", signatureId))
@@ -1115,7 +1127,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -1127,7 +1139,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String signatureId = "title";
+        String signatureId = "titleAndYear";
         String rule = "reviewer";
         getClient(adminToken).perform(
                 get("/api/deduplications/sets/search/findBySignatureAndRule")
@@ -1333,18 +1345,18 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2015-12-18")
+            .withIssueDate("2010-12-18")
             .build();
 
         // Set up MD5ValueSignature state to produce the same signature
         setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
-        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+        String signature = titleWithDigitAndYearSignature.getSignature(publicItem1, context).get(0);
 
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:" + signature;
+        String id = "titleAndYear:" + signature;
 
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id))
             .andExpect(status().isNoContent());
@@ -1484,7 +1496,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -1494,13 +1506,13 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
 
         // Set up MD5ValueSignature state to produce the same signature
         setMD5ValueSignatureInstance("dc.title", null, "title", new ArrayList<>(), "[^\\p{L}]");
-        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+        String signature = titleWithDigitAndYearSignature.getSignature(publicItem1, context).get(0);
 
         // Restore the authorization system
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:" + signature;
+        String id = "titleAndYear:" + signature;
         getClient(adminToken).perform(get("/api/deduplications/sets/" + id + "/items"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._links.self.href",

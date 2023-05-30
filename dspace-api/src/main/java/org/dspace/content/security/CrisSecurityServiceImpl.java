@@ -9,8 +9,10 @@ package org.dspace.content.security;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -197,7 +199,8 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             throw new SQLRuntimeException(e.getMessage(), e);
         }
 
-        List<Group> userGroups = user.getGroups();
+        List<Group> userGroups = Optional.ofNullable(user).map(EPerson::getGroups)
+                                         .orElseGet(Collections::emptyList);
         if (CollectionUtils.isEmpty(userGroups)) {
             return false;
         }

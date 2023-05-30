@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
 import org.dspace.app.deduplication.utils.MD5ValueSignature;
+import org.dspace.app.deduplication.utils.TitleWithDigitAndYearSignature;
 import org.dspace.app.rest.converter.BitstreamConverter;
 import org.dspace.app.rest.converter.DSpaceConverter;
 import org.dspace.app.rest.converter.ItemConverter;
@@ -84,6 +85,9 @@ import org.springframework.http.MediaType;
 public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegrationTest {
 
     private MD5ValueSignature md5Signature = new MD5ValueSignature();
+
+    @Autowired
+    private TitleWithDigitAndYearSignature titleWithDigitAndYearSignature;
 
     @Autowired
     private ItemConverter itemConverter;
@@ -173,7 +177,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withTitle("Test")
                            .withIdentifierDoi("10.1234/123456789")
                            .withAlternativeTitle("item1 title1")
-                           .withIssueDate("2010-10-17")
+                           .withIssueDate("2015-10-17")
                            .withAuthor("Smith, Donald")
                            .withEditor("editor")
                            .withType("text1")
@@ -728,7 +732,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(jsonPath("$.page.number", is(0)))
                              .andExpect(jsonPath("$.page.size", is(20)))
                              .andExpect(jsonPath("$.page.totalPages", is(1)))
-                             .andExpect(jsonPath("$.page.totalElements", is(5)));
+                             .andExpect(jsonPath("$.page.totalElements", is(3)));
 
     }
 
@@ -939,9 +943,9 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
     private String createTitleSetId(Item item) {
         // Set up MD5ValueSignature state to produce the same signature
-        setMD5ValueSignatureInstance("dc.title", null, "title",
-            new ArrayList<>(), "[^\\p{L}]");
-        return "title:" + md5Signature.getSignature(item, context).get(0);
+//        setMD5ValueSignatureInstance("dc.title", null, "title",
+//            new ArrayList<>(), "[^\\p{L}]");
+        return "titleAndYear:" + titleWithDigitAndYearSignature.getSignature(item, context).get(0);
     }
 
     private String createIdentifierSetId(Item item) {

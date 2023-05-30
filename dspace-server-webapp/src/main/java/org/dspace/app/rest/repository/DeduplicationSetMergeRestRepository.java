@@ -117,7 +117,7 @@ public class DeduplicationSetMergeRestRepository
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     public DeduplicationSetMergeRest put(Context context, HttpServletRequest request,
                                             String apiCategory, String model, UUID uuid, JsonNode jsonNode) {
         ObjectMapper mapper = new ObjectMapper();
@@ -145,7 +145,7 @@ public class DeduplicationSetMergeRestRepository
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @SearchRestMethod(name = "findTargets")
     public DeduplicationMergeTargetRest findTargets(@Parameter(value = "uuid", required = true) UUID[] uuids) {
 
