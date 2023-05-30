@@ -11,6 +11,7 @@ package org.dspace.versioning;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
@@ -112,11 +113,42 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
         List<Bundle> correctedBundles = itemNew.getBundles(Constants.DEFAULT_BUNDLE_NAME);
         Bundle correctedDefaultBundle = CollectionUtils.isNotEmpty(correctedBundles) ? correctedBundles.get(0) : null;
 
-        if (correctedDefaultBundle == null || nativeDefaultBundle == null) {
+        if (correctedDefaultBundle == null && nativeDefaultBundle == null) {
             return;
         }
+        if (Objects.isNull(nativeDefaultBundle)) {
+            nativeDefaultBundle = bundleService.create(c, nativeItem, Constants.DEFAULT_BUNDLE_NAME);
+        }
+        if (Objects.isNull(correctedDefaultBundle)) {
+            correctedDefaultBundle = bundleService.create(c, itemNew, Constants.DEFAULT_BUNDLE_NAME);
+        }
 
-        List<Bitstream> nativeBitstreams = nativeDefaultBundle.getBitstreams();
+//        List<Bitstream> nativeBitstreams = nativeDefaultBundle.getBitstreams();
+        updateBitstreams(c, nativeDefaultBundle, correctedDefaultBundle);
+        deleteBitstreams(nativeDefaultBundle, correctedDefaultBundle);
+        bundleService.update(c, nativeDefaultBundle);
+        if (nativeDefaultBundle.getBitstreams().isEmpty()) {
+            bundleService.delete(c, nativeDefaultBundle);
+        }
+    }
+
+    private void deleteBitstreams(Bundle nativeDefaultBundle, Bundle correctedDefaultBundle) {
+        for (Bitstream bitstream : nativeDefaultBundle.getBitstreams()) {
+            if (contains(correctedDefaultBundle, bitstream)) {
+                continue;
+            }
+            nativeDefaultBundle.removeBitstream(bitstream);
+        }
+    }
+
+    private boolean contains(Bundle bundle, Bitstream bitstream) {
+        return bundle.getBitstreams().stream()
+            .map(Bitstream::getChecksum)
+            .anyMatch(cs -> bitstream.getChecksum().equals(cs));
+    }
+
+    private void updateBitstreams(Context c, Bundle nativeDefaultBundle, Bundle correctedDefaultBundle)
+        throws SQLException, AuthorizeException, IOException {
         for (Bitstream bitstreamCorrected : correctedDefaultBundle.getBitstreams()) {
             // check if new bitstream exists in native bundle
             Bitstream nativeBitstream = findBitstreamByChecksum(nativeDefaultBundle, bitstreamCorrected.getChecksum());
@@ -129,8 +161,8 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
 
                 for (MetadataValue metadataValue : metadataValues) {
                     bitstreamService.addMetadata(c, nativeBitstream, metadataValue.getMetadataField(),
-                        metadataValue.getLanguage(), metadataValue.getValue(), metadataValue.getAuthority(),
-                        metadataValue.getConfidence());
+                                                 metadataValue.getLanguage(), metadataValue.getValue(), metadataValue.getAuthority(),
+                                                 metadataValue.getConfidence());
                 }
                 bitstreamService.update(c, nativeBitstream);
             } else {
@@ -153,7 +185,7 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
                 authorizeService.addPolicies(c, bitstreamPolicies, bitstreamNew);
 
                 if (correctedDefaultBundle.getPrimaryBitstream() != null && correctedDefaultBundle.getPrimaryBitstream()
-                                                                              .equals(nativeBitstream)) {
+                                                                                                  .equals(nativeBitstream)) {
                     nativeDefaultBundle.setPrimaryBitstreamID(bitstreamNew);
                 }
 
@@ -161,7 +193,6 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
             }
 
         }
-        bundleService.update(c, nativeDefaultBundle);
     }
 
     protected Bitstream findBitstreamByChecksum(Bundle bundle, String bitstreamChecksum) {
