@@ -7,6 +7,8 @@
  */
 package org.dspace.app.audit;
 
+import java.util.Objects;
+
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
@@ -39,9 +41,13 @@ public class AuditConsumer implements Consumer {
      * @param event Content event
      */
     public void consume(Context ctx, Event event) throws Exception {
-        if (configurationService.getBooleanProperty("audit.enabled", false)) {
+        if (configurationService.getBooleanProperty("audit.enabled", false) && detailedModifyMetadata(event)) {
             auditService.store(ctx, event);
         }
+    }
+
+    private static boolean detailedModifyMetadata(Event event) {
+        return event.getEventType() != Event.MODIFY_METADATA || Objects.nonNull(event.getDetail());
     }
 
     public void end(Context ctx) throws Exception {
