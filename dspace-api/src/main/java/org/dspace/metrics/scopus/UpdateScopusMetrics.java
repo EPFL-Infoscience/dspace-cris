@@ -28,6 +28,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.importer.external.service.DoiCheck;
 import org.dspace.metrics.MetricsExternalServices;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -139,7 +140,7 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
     }
 
     private String buildQuery(Map<String, Item> queryMap, Item item) {
-        String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
+        String doi = doi(item);
         String pmid = itemService.getMetadataFirstValue(item, "dc", "identifier", "pmid", Item.ANY);
         String scopus = itemService.getMetadataFirstValue(item, "dc", "identifier", "scopus", Item.ANY);
         return List.of(
@@ -155,8 +156,13 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
                 .orElse(null);
     }
 
+    private String doi(Item item) {
+        String value = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
+        return DoiCheck.isDoi(value) ? DoiCheck.purgeDoiValue(value) : "";
+    }
+
     private String buildQuery(Item item) {
-        String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
+        String doi = doi(item);
         String pmid = itemService.getMetadataFirstValue(item, "dc", "identifier", "pmid", Item.ANY);
         String scopus = itemService.getMetadataFirstValue(item, "dc", "identifier", "scopus", Item.ANY);
         return List.of(

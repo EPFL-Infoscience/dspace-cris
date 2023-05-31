@@ -20,6 +20,7 @@
         <entry key-ref="scopus.doi" value-ref="scopusDoiContrib"/>
         <entry key-ref="scopus.title" value-ref="scopusTitleContrib"/>
         <entry key-ref="scopus.type" value-ref="scopusTypeContrib"/>
+        <entry key-ref="scopus.innerType" value-ref="innerScopusTypeContrib"/>
         <entry key-ref="scopus.isbn" value-ref="scopusIsbnContrib"/>
         <entry key-ref="scopus.issn" value-ref="scopusIssnContrib"/>
         <entry key-ref="scopus.date" value-ref="scopusDateContrib"/>
@@ -29,10 +30,11 @@
         <entry key-ref="scopus.authkeywords" value-ref="scopusAuthkeywordsContrib"/>        
         <entry key-ref="scopus.openaccessFlag" value-ref="scopusOpenaccessFlagContrib"/>
         <entry key-ref="scopus.ispartof" value-ref="scopusIspartofContrib"/>
-        <entry key-ref="scopus.ispartofseries" value-ref="scopusIspartofseriesContrib"/>
+        <entry key-ref="scopus.startPage" value-ref="scopusPageRangeContrib"/>
+<!--        <entry key-ref="scopus.ispartofseries" value-ref="scopusIspartofseriesContrib"/>-->
         <entry key-ref="scopus.authname" value-ref="scopusAuthorMetadataContrib"/>
         <!--   <entry key-ref="scopus.source" value-ref="scopusSourceContrib"/>            -->
-        <!--   <entry key-ref="scopus.abstract" value-ref="scopusAbstractContrib"/>        -->
+           <entry key-ref="scopus.abstract" value-ref="scopusAbstractContrib"/>
         <!--   <entry key-ref="scopus.author" value-ref="scopusAuthorsContrib"/>           -->
     </util:map>
     
@@ -102,14 +104,25 @@
         <constructor-arg value="dc.source"/>
     </bean>
 
-    <bean id="scopusTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+
+    <bean id="scopusTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.MappedMetadataContributor">
+        <constructor-arg name="innerContributor" ref="innerScopusTypeContrib"/>
+        <constructor-arg name="mapConverter" ref="mapConverterScopusToCoarTypes"/>
         <property name="field" ref="scopus.type"/>
-        <property name="query" value="prism:aggregationType"/>
-        <property name="prefixToNamespaceMapping" ref="scopusPrism"/>
+    </bean>
+
+    <bean id="innerScopusTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+        <property name="field" ref="scopus.innerType"/>
+        <property name="query" value="ns:subtype"/>
+        <property name="prefixToNamespaceMapping" ref="scopusNs"/>
     </bean>
 
     <bean id="scopus.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.type"/>
+    </bean>
+
+    <bean id="scopus.innerType" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="local.scopus.sourceType"/>
     </bean>
 
     <bean id="scopusTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
@@ -127,7 +140,7 @@
         <property name="prefixToNamespaceMapping" ref="scopusPrism"/>
     </bean>
     <bean id="scopus.doi" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.identifier"/>
+        <constructor-arg value="dc.identifier.doi"/>
     </bean>
 
     <bean id="scopusVolumeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
@@ -180,6 +193,14 @@
         <constructor-arg value="dc.contributor.author"/>
     </bean>
 
+    <bean id="scopusPageRangeContrib" class="org.dspace.importer.external.metadatamapping.contributor.PageRangeXPathMetadataContributor">
+        <property name="field" ref="scopus.startPage"/>
+        <property name="startPageMetadata" ref="scopus.startPage"/>
+        <property name="endPageMetadata" ref="scopus.endPage"/>
+        <property name="query" value="pageRange"/>
+        <property name="prefixToNamespaceMapping" ref="scopusPrism"/>
+    </bean>
+
     <bean id="scopus.startPage" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="oaire.citation.startPage"/>
     </bean>
@@ -195,7 +216,7 @@
     </bean>
 
     <bean id="scopus.ispartof" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.relation.ispartof"/>
+        <constructor-arg value="dc.relation.journal"/>
     </bean>
 
     <bean id="scopusIspartofseriesContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">

@@ -1,14 +1,15 @@
-%0 @virtual.reftype.endnote@
-%A @virtual.authors@
-%T @dc.title@
-%D @dc.date.issued@
-%I @dc.publisher@
-%J @dc.relation.ispartof@
-%V @oaire.citation.volume@
-%N @oaire.citation.issue@
-%X @dc.description.abstract@
-%K @dc.subject@
-%U @dc.identifier.uri@
-%R @dc.identifier.doi@
-%P @virtual.fullpage@
-%G @dc.language.iso@
+TY  - @virtual.mapConverter.coar2endnote.dc-type@
+AU  - @virtual.authors@
+TI  - @dc.title@
+DA  - @dc.date.issued@
+PB  - @dc.publisher@
+T1  - @dc.relation.ispartof@
+VL  - @oaire.citation.volume@
+IS  - @oaire.citation.issue@
+AB  - @dc.description.abstract@
+KW  - @dc.subject@
+UR  - @dc.identifier.uri@
+DO  - @dc.identifier.doi@
+SP  - @oaire.citation.startPage@
+EP  - @oaire.citation.endPage@
+LA  - @dc.language.iso@

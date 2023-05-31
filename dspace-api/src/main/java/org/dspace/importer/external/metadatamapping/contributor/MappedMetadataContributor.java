@@ -8,8 +8,10 @@
 package org.dspace.importer.external.metadatamapping.contributor;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.util.SimpleMapConverter;
@@ -26,6 +28,8 @@ public class MappedMetadataContributor<T> implements MetadataContributor<T> {
 
     private final SimpleMapConverter mapConverter;
 
+    private MetadataFieldConfig fieldConfig;
+
     public MappedMetadataContributor(MetadataContributor<T> innerContributor,
                                      SimpleMapConverter mapConverter) {
         this.innerContributor = innerContributor;
@@ -38,6 +42,10 @@ public class MappedMetadataContributor<T> implements MetadataContributor<T> {
 
     }
 
+    public void setField(MetadataFieldConfig fieldConfig) {
+        this.fieldConfig = fieldConfig;
+    }
+
     @Override
     public Collection<MetadatumDTO> contributeMetadata(final T t) {
         final Collection<MetadatumDTO> metadata = innerContributor.contributeMetadata(t);
@@ -47,6 +55,11 @@ public class MappedMetadataContributor<T> implements MetadataContributor<T> {
                 continue;
             }
             metadatum.setValue(mapConverter.getValue(metadatum.getValue()));
+            if (Objects.nonNull(fieldConfig)) {
+                metadatum.setSchema(fieldConfig.getSchema());
+                metadatum.setElement(fieldConfig.getElement());
+                metadatum.setQualifier(fieldConfig.getQualifier());
+            }
         }
         return metadata;
     }
