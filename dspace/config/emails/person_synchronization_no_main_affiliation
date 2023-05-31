@@ -1,0 +1,6 @@
+## E-mail sent to administrators during the users synchronization when EPFL LDAP web service did not return information about main affiliation 
+##
+## Parameters: {0} is the sciper id, {1} is the user name
+##
+#set($subject = 'Error during user synchronization')
+For user having sciper ${params[0]} (${params[1]}) EPFL LDAP web service did not return information about main affiliation.

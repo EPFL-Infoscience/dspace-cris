@@ -10,12 +10,16 @@ package org.dspace.authenticate.service;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.collections.IteratorUtils.toList;
 import static org.dspace.content.authority.Choices.CF_ACCEPTED;
+import static org.dspace.core.I18nUtil.getEmailFilename;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import javax.mail.MessagingException;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
@@ -23,6 +27,7 @@ import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.Email;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
@@ -31,9 +36,14 @@ import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
+import org.dspace.services.ConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProfileInitializer {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(ProfileInitializer.class);
 
     @Autowired
     private ResearcherProfileService researcherProfileService;
@@ -52,6 +62,9 @@ public class ProfileInitializer {
 
     @Autowired
     private EPersonService ePersonService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     public void initialize(Context context, EPerson eperson) {
 
@@ -79,6 +92,7 @@ public class ProfileInitializer {
             .orElseGet(() -> createPrivateProfile(context, eperson));
 
         personApiService.getPerson(sciper)
+            .map(person -> sendEmailIfSomethingIsWrong(context, person))
             .filter(this::isMainAffiliationActive)
             .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem()));
 
@@ -90,6 +104,17 @@ public class ProfileInitializer {
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private PersonDTO sendEmailIfSomethingIsWrong(Context context, PersonDTO person) {
+
+        if (ArrayUtils.isEmpty(person.getAccreds())) {
+            sendEmailForNoAffiliations(context, person);
+        } else if (person.getMainAffiliation().isEmpty()) {
+            sendEmailForNoMainAffiliation(context, person);
+        }
+
+        return person;
     }
 
     private Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper) {
@@ -181,6 +206,26 @@ public class ProfileInitializer {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private void sendEmailForNoAffiliations(Context context, PersonDTO person) {
+        sendEmail(context, person, "person_synchronization_no_affiliations");
+    }
+
+    private void sendEmailForNoMainAffiliation(Context context, PersonDTO person) {
+        sendEmail(context, person, "person_synchronization_no_main_affiliation");
+    }
+
+    private void sendEmail(Context context, PersonDTO person, String templateName) {
+        try {
+            Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(), templateName));
+            email.addRecipient(configurationService.getProperty("mail.admin"));
+            email.addArgument(person.getSciper());
+            email.addArgument(person.getFullName());
+            email.send();
+        } catch (IOException | MessagingException e) {
+            LOGGER.error("An error occurs sending the email related to the user synchronization", e);
+        }
     }
 
     private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {
