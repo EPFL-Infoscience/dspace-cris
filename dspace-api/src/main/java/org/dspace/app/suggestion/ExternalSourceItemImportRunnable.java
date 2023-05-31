@@ -26,11 +26,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -67,6 +74,9 @@ public class ExternalSourceItemImportRunnable
     private String collectionId;
     private String email;
     private String limit;
+    private EPersonService ePersonService;
+    private AuthorizeService authorizeService;
+    private ItemService itemService;
 
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -82,6 +92,9 @@ public class ExternalSourceItemImportRunnable
         this.collectionService = ContentServiceFactory.getInstance().getCollectionService();
         this.externalDataService = ContentServiceFactory.getInstance().getExternalDataService();
         this.workflowService = ContentServiceFactory.getInstance().getWorkflowService();
+        this.ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+        this.itemService = ContentServiceFactory.getInstance().getItemService();
 
         source = commandLine.getOptionValue("p");
         score = commandLine.getOptionValue("s");
@@ -181,6 +194,7 @@ public class ExternalSourceItemImportRunnable
                 Item target = suggestion.getTarget();
                 if (Objects.nonNull(target)
                     && StringUtils.isNotBlank(target.getName())) {
+                    getOwner(target).ifPresent(owner -> updateSubmitter(workspaceItem.getItem(), owner));
                     workspaceItem.getItem().getMetadata().stream()
                         .filter(mv -> target.getName().equals(mv.getValue()))
                         .findFirst()
@@ -197,6 +211,34 @@ public class ExternalSourceItemImportRunnable
             }
         }
         return countDataObjects;
+    }
+
+    private Optional<MetadataValue> getOwner(Item item) {
+        List<MetadataValue> metadataByMetadataString = itemService
+            .getMetadataByMetadataString(item, "dspace.object.owner");
+        return metadataByMetadataString.size() > 0 ? Optional.of(metadataByMetadataString.get(0)) : Optional.empty();
+    }
+
+    private void updateSubmitter(Item item, MetadataValue submitter) {
+        if (StringUtils.isBlank(submitter.getAuthority())) {
+            return;
+        }
+        try {
+            EPerson ePerson = ePersonService.findByIdOrLegacyId(context, submitter.getAuthority());
+            if (Objects.isNull(ePerson) || ePerson.equals(item.getSubmitter())) {
+                return;
+            }
+            EPerson previousSubmitter = item.getSubmitter();
+            item.setSubmitter(ePerson);
+            int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
+            for (int actionId : actionIds) {
+                authorizeService.removeEPersonPolicies(context, item, previousSubmitter);
+                authorizeService.addPolicy(context, item, actionId, item.getSubmitter(),
+                                           ResourcePolicy.TYPE_SUBMISSION);
+            }
+        } catch (Exception e) {
+            handler.logWarning("Unable to update submitter for item " + item.getID() + " : " + e.getMessage());
+        }
     }
 
     private int getLimit(String limit) {
@@ -228,6 +270,8 @@ public class ExternalSourceItemImportRunnable
 
         try {
             ExternalDataObject dataObject = getExternalDataObjectFromUriList(uri);
+            dataObject.addMetadata(new MetadataValueDTO("cris", "source", "name",
+                                                        source));
             Collection collection = collectionService.find(context, UUID.fromString(collectionId));
             return externalDataService.createWorkspaceItemFromExternalDataObject(context, dataObject, collection);
         } catch (AuthorizeException | SQLException e) {
