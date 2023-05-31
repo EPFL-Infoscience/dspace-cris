@@ -1182,6 +1182,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 installItem(entityRow, item);
                 break;
             default:
+                itemService.update(context, item);
                 break;
         }
 
