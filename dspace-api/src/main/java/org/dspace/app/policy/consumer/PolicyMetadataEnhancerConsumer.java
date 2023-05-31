@@ -319,9 +319,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         String mimeType = Optional.ofNullable(format).map(f -> f.getMIMEType()).orElse(null);
         String value = null;
         if (Objects.nonNull(mimeType)) {
-            if (mimeType.contains("image")) {
-                value = "iiif";
-            } else if ("application/pdf".equals(mimeType)) {
+            if ("application/pdf".equals(mimeType)) {
                 value = "pdf";
             }
         }
