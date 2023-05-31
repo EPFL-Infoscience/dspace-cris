@@ -55,16 +55,24 @@ public class EpoGeneratorExternalId implements ExternalIdGenerator {
         // second case
         if (StringUtils.equals(metadata, PATENT_METADATA)) {
             List<MetadataValue> patentNumberValue = itemService.getMetadataByMetadataString(item, PATENT_METADATA);
-            return CollectionUtils.isNotEmpty(patentNumberValue) ? patentNumberValue.get(0).getValue() : EMPTY;
+            return CollectionUtils.isNotEmpty(patentNumberValue) ? getValue(patentNumberValue) : EMPTY;
         }
         return EMPTY;
+    }
+
+    private static String getValue(List<MetadataValue> metadataValues) {
+        String value = metadataValues.get(0).getValue();
+        if (!value.contains(" ")) {
+            return value;
+        }
+        return value.substring(0, value.indexOf(" ")).trim();
     }
 
     private String generateApplicationNumberAndFilledDateID(Item item, String dateFilled, String applicationNumber) {
         List<MetadataValue> dateFilledValue = itemService.getMetadataByMetadataString(item, dateFilled);
         List<MetadataValue> applicationNumberValue = itemService.getMetadataByMetadataString(item, applicationNumber);
         if (CollectionUtils.isNotEmpty(dateFilledValue) && CollectionUtils.isNotEmpty(applicationNumberValue)) {
-            return applicationNumberValue.get(0).getValue() + APP_NO_DATE_SEPARATOR + dateFilledValue.get(0).getValue();
+            return getValue(applicationNumberValue) + APP_NO_DATE_SEPARATOR + getValue(dateFilledValue);
         }
         return EMPTY;
     }
