@@ -29,6 +29,18 @@
     <qualifier>sourceType</qualifier>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>arxiv</element>
+    <qualifier>sourceCategory</qualifier>
+  </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>epo</element>
+    <qualifier>sourceType</qualifier>
+  </dc-type>
+
 <!--
   <dc-type>
     <schema>local</schema>
