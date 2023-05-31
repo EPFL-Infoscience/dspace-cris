@@ -8,6 +8,7 @@
 package org.dspace.app.rest.authorization.impl;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 import org.dspace.app.rest.authorization.AuthorizationFeature;
 import org.dspace.app.rest.authorization.AuthorizationFeatureDocumentation;
@@ -35,6 +36,9 @@ public class CuratorOfFeature implements AuthorizationFeature {
 
     @Override
     public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException {
+        if (Objects.isNull(context.getCurrentUser()) || Objects.isNull(context.getCurrentUser().getGroups())) {
+            return false;
+        }
         String curatorsGroupName = configurationService.getProperty("epfl.curators-group.name", CURATORS_GROUP_NAME);
         return object instanceof SiteRest && context.getCurrentUser()
                                                     .getGroups()

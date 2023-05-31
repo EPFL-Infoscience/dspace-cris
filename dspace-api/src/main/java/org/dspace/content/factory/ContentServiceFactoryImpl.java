@@ -9,6 +9,7 @@ package org.dspace.content.factory;
 
 import java.util.List;
 
+import org.dspace.app.suggestion.SolrSuggestionStorageService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.RelationshipMetadataService;
@@ -32,7 +33,9 @@ import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
+import org.dspace.external.service.ExternalDataService;
 import org.dspace.workflow.WorkflowItemService;
+import org.dspace.workflow.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -90,6 +93,12 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private EntityService entityService;
     @Autowired(required = true)
     private ResourcePolicyService resourcePolicyService;
+    @Autowired(required = true)
+    private SolrSuggestionStorageService solrSuggestionStorageService;
+    @Autowired(required = true)
+    private ExternalDataService externalDataService;
+    @Autowired(required = true)
+    private WorkflowService workflowService;
 
     @Override
     public List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices() {
@@ -204,4 +213,19 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
         return resourcePolicyService;
     }
 
+
+    @Override
+    public SolrSuggestionStorageService getSolrSuggestionStorageService() {
+        return solrSuggestionStorageService;
+    }
+
+    @Override
+    public ExternalDataService getExternalDataService() {
+        return externalDataService;
+    }
+
+    @Override
+    public WorkflowService getWorkflowService() {
+        return workflowService;
+    }
 }

@@ -25,6 +25,8 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.external.model.ExternalDataObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -36,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public class AuthorNamesScorer implements EvidenceScorer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthorNamesScorer.class);
 
     private List<String> contributorMetadata;
 
@@ -81,40 +85,47 @@ public class AuthorNamesScorer implements EvidenceScorer {
      * and try to match them with values extract from ImportRecord using metadata keys defined
      * in names.
      * ImportRecords which don't match will be discarded.
-     * 
+     *
      * @param importRecord the import record to check
      * @param researcher DSpace item
      * @return the generated evidence or null if the record must be discarded
      */
     @Override
     public SuggestionEvidence computeEvidence(Item researcher, ExternalDataObject importRecord) {
+
         List<String[]> names = searchMetadataValues(researcher);
-        int maxNameLenght = names.stream().mapToInt(n -> n[0].length()).max().orElse(1);
-        List<String> metadataAuthors = new ArrayList<>();
-        for (String contributorMetadatum : contributorMetadata) {
-            metadataAuthors.addAll(getAllEntriesByMetadatum(importRecord, contributorMetadatum));
-        }
-        List<String> normalizedMetadataAuthors = metadataAuthors.stream().map(x -> normalize(x))
-                .collect(Collectors.toList());
-        int idx = 0;
-        for (String nMetadataAuthor : normalizedMetadataAuthors) {
-            Optional<String[]> found = names.stream()
-                    .filter(a -> StringUtils.equalsIgnoreCase(a[0], nMetadataAuthor)).findFirst();
-            if (found.isPresent()) {
-                return new SuggestionEvidence(this.getClass().getSimpleName(),
-                        100 * ((double) nMetadataAuthor.length() / (double) maxNameLenght),
-                        "The author " + metadataAuthors.get(idx) + " at position " + (idx + 1)
-                                + " in the authors list matches the name " + found.get()[1]
-                                + " in the researcher profile");
+        try {
+            int maxNameLenght = names.stream().mapToInt(n -> n[0].length()).max().orElse(1);
+            List<String> metadataAuthors = new ArrayList<>();
+            for (String contributorMetadatum : contributorMetadata) {
+                metadataAuthors.addAll(getAllEntriesByMetadatum(importRecord, contributorMetadatum));
             }
-            idx++;
+            List<String> normalizedMetadataAuthors = metadataAuthors.stream().map(x -> normalize(x))
+                    .collect(Collectors.toList());
+            int idx = 0;
+            for (String nMetadataAuthor : normalizedMetadataAuthors) {
+                Optional<String[]> found = names.stream()
+                        .filter(a -> StringUtils.equalsIgnoreCase(a[0], nMetadataAuthor)).findFirst();
+                if (found.isPresent()) {
+                    return new SuggestionEvidence(this.getClass().getSimpleName(),
+                            100 * ((double) nMetadataAuthor.length() / (double) maxNameLenght),
+                            "The author " + metadataAuthors.get(idx) + " at position " + (idx + 1)
+                                    + " in the authors list matches the name " + found.get()[1]
+                                    + " in the researcher profile");
+                }
+                idx++;
+            }
+
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
+
         return null;
     }
 
     /**
      * Return list of Item metadata values starting from metadata keys defined in class level variable names.
-     * 
+     *
      * @param researcher DSpace item
      * @return list of metadata values
      */
@@ -132,16 +143,21 @@ public class AuthorNamesScorer implements EvidenceScorer {
     }
 
     private String normalize(String value) {
-        String norm = Normalizer.normalize(value, Normalizer.NFD);
-        CharsetDetector cd = new CharsetDetector();
-        cd.setText(value.getBytes());
-        CharsetMatch detect = cd.detect();
-        if (detect != null && detect.getLanguage() != null) {
-            norm = norm.replaceAll("[^\\p{L}]", " ").toLowerCase(new Locale(detect.getLanguage()));
-        } else {
-            norm = norm.replaceAll("[^\\p{L}]", " ").toLowerCase();
+        try {
+            String norm = Normalizer.normalize(value, Normalizer.NFD);
+            CharsetDetector cd = new CharsetDetector();
+            cd.setText(value.getBytes());
+            CharsetMatch detect = cd.detect();
+            if (detect != null && detect.getLanguage() != null) {
+                norm = norm.replaceAll("[^\\p{L}]", " ").toLowerCase(new Locale(detect.getLanguage()));
+            } else {
+                norm = norm.replaceAll("[^\\p{L}]", " ").toLowerCase();
+            }
+            return Arrays.asList(norm.split("\\s+")).stream().sorted().collect(Collectors.joining());
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
-        return Arrays.asList(norm.split("\\s+")).stream().sorted().collect(Collectors.joining());
+        return null;
     }
 
 }

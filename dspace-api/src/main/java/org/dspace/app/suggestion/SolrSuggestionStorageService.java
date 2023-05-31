@@ -148,6 +148,40 @@ public interface SolrSuggestionStorageService {
         int pageSize, long offset, boolean ascending) throws SolrServerException, IOException;
 
     /**
+     * Find all the unprocessed suggestions related to the given source and have score
+     * greater than or equal to given score.
+     * @param  context             the DSpace Context
+     * @param  source              the source name
+     * @param  score               the score
+     * @param  pageSize            the page size
+     * @param  offset              the page offset
+     * @param  ascending           true to retrieve the suggestions ordered by score
+     *                             ascending
+     * @return                     the found suggestions
+     * @throws SolrServerException
+     * @throws IOException
+     */
+    List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScore(Context context, String source, String score,
+        int pageSize, long offset, boolean ascending) throws SolrServerException, IOException;
+
+    /**
+     * Find all the unprocessed suggestions related to the given source.
+     *
+     * @param  context             the DSpace Context
+     * @param  source              the source name
+     * @param  pageSize            the page size
+     * @param  offset              the page offset
+     * @param  ascending           true to retrieve the suggestions ordered by score
+     *                             ascending
+     * @return                     the found suggestions
+     * @throws SolrServerException
+     * @throws IOException
+     */
+    List<Suggestion> findAllUnprocessedSuggestionsBySource(Context context, String source,
+                                                           int pageSize, long offset, boolean ascending)
+        throws SolrServerException, IOException;
+
+    /**
      *
      * Find all the suggestion targets related to the given source.
      *

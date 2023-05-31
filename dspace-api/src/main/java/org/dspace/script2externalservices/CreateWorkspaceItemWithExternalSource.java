@@ -79,6 +79,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private static final Logger log = LogManager.getLogger(CreateWorkspaceItemWithExternalSource.class);
 
+    public static final String WOS = "wos";
+    public static final String SCOPUS = "scopus";
+    public static final String CROSSREF = "crossref";
     private static final String WORKFLOW_STATE = "workflow";
     private static final String WORKSPACE_STATE = "workspace";
     private static final String ARCHIVED_ITEM_STATE = "item";
@@ -130,15 +133,15 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         externalDataService = serviceManager
                              .getServiceByName(ExternalDataServiceImpl.class.getName(), ExternalDataServiceImpl.class);
         if (serviceManager.isServiceExists("scopusLiveImportDataProvider")) {
-            nameToProvider.put("scopus",
+            nameToProvider.put(SCOPUS,
                     serviceManager.getServiceByName("scopusLiveImportDataProvider", LiveImportDataProvider.class));
         }
         if (serviceManager.isServiceExists("wosLiveImportDataProvider")) {
-            nameToProvider.put("wos",
+            nameToProvider.put(WOS,
                     serviceManager.getServiceByName("wosLiveImportDataProvider", LiveImportDataProvider.class));
         }
         if (serviceManager.isServiceExists("crossRefLiveImportDataProvider")) {
-            nameToProvider.put("crossref",
+            nameToProvider.put(CROSSREF,
                     serviceManager.getServiceByName("crossRefLiveImportDataProvider", LiveImportDataProvider.class));
         }
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
@@ -214,11 +217,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             return UUID.fromString(collectionUuid);
         }
         switch (this.service) {
-            case "scopus":
+            case SCOPUS:
                 return getUuid("scopus.importworkspaceitem.collection-id");
-            case "wos":
+            case WOS:
                 return getUuid("wos.importworkspaceitem.collection-id");
-            case "crossref":
+            case CROSSREF:
                 return getUuid("crossref.importworkspaceitem.collection-id");
             default:
         }
@@ -264,7 +267,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
-                        int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, item, id, owner);
+                        int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, id, owner);
                         userPublicationsProcessed[0] += resultFill[0];
                         userPublicationsProcessed[1] += resultFill[1];
                         searchCount++;
@@ -319,20 +322,20 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private String buildID(Item item) {
         StringBuilder id = new StringBuilder();
         switch (this.service) {
-            case "crossref":
+            case CROSSREF:
                 String orcid = itemService.getMetadataFirstValue(item, "person", "identifier", "orcid", Item.ANY);
                 if (StringUtils.isNotBlank(orcid)) {
                     id.append(orcid);
                 }
                 break;
-            case "scopus":
+            case SCOPUS:
                 String scopusId = itemService.getMetadataFirstValue(
                                   item, "person", "identifier", "scopus-author-id", Item.ANY);
                 if (StringUtils.isNotBlank(scopusId)) {
                     id.append("AU-ID(").append(scopusId).append(")");
                 }
                 break;
-            case "wos":
+            case WOS:
                 String orcidId = itemService.getMetadataFirstValue(item, "person", "identifier", "orcid", Item.ANY);
                 String rid = itemService.getMetadataFirstValue(item, "person", "identifier", "rid", Item.ANY);
                 if (StringUtils.isNotBlank(orcidId) && StringUtils.isNotBlank(rid)) {
@@ -352,7 +355,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private int[] fillWorkspaceItems(Context context, int record, LiveImportDataProvider dataProvider,
-                                   Item item, String id, Optional<MetadataValue> owner) throws SQLException {
+                                     String id, Optional<MetadataValue> owner) throws SQLException {
         int countDataObjects = 0;
         int imported = 0;
         try {
@@ -363,6 +366,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     for (List<MetadataValueDTO> metadataList : metadataValueToAdd(wsItem.getItem())) {
                         addMetadata(wsItem.getItem(), metadataList);
                     }
+                    itemService.addMetadata(context, wsItem.getItem(), "cris", "source", "name", null, this.service);
                     owner.ifPresent(mv -> updateSubmitter(wsItem.getItem(), mv));
                     if (!StringUtils.equals(this.finalState, WORKSPACE_STATE)) {
                         makeFinalState(wsItem);
@@ -455,17 +459,17 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private MetadataValueDTO getMetadataToChech() {
         MetadataValueDTO metadata = new MetadataValueDTO();
         switch (this.service) {
-            case "scopus":
+            case SCOPUS:
                 metadata.setSchema("dc");
                 metadata.setElement("identifier");
-                metadata.setQualifier("scopus");
+                metadata.setQualifier(SCOPUS);
                 break;
-            case "wos":
+            case WOS:
                 metadata.setSchema("dc");
                 metadata.setElement("identifier");
                 metadata.setQualifier("isi");
                 break;
-            case "crossref":
+            case CROSSREF:
                 metadata.setSchema("dc");
                 metadata.setElement("identifier");
                 metadata.setQualifier("doi");
@@ -532,13 +536,13 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private void setFilterQueries(DiscoverQuery discoverQuery) {
 
         discoverQuery.addFilterQueries("search.entitytype:Person");
-        if ("scopus".equals(service)) {
+        if (SCOPUS.equals(service)) {
             discoverQuery.addFilterQueries("person.identifier.scopus-author-id:*");
         }
-        if ("wos".equals(service)) {
+        if (WOS.equals(service)) {
             discoverQuery.addFilterQueries("person.identifier.orcid:* OR person.identifier.rid:*");
         }
-        if ("crossref".equals(service)) {
+        if (CROSSREF.equals(service)) {
             discoverQuery.addFilterQueries("person.identifier.orcid:*");
         }
 
@@ -546,11 +550,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private List<List<MetadataValueDTO>> metadataValueToAdd(Item item) {
         switch (this.service) {
-            case "crossref":
+            case CROSSREF:
                 return Collections.singletonList(metadataList(item, "orcid"));
-            case "scopus":
+            case SCOPUS:
                 return Collections.singletonList(metadataList(item, "scopus-author-id"));
-            case "wos":
+            case WOS:
                 return Arrays.asList(metadataList(item, "orcid"), metadataList(item, "rid"));
             default:
                 return Collections.emptyList();
@@ -591,10 +595,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         discoverQuery.setMaxResults(1);
         discoverQuery.addFilterQueries("search.entitytype:Publication");
         Iterator<Collection> collections = new DiscoverResultIterator<Collection, UUID>(context, discoverQuery);
-        while (collections.hasNext()) {
-            return collections.next();
-        }
-        return null;
+        return collections.hasNext() ? collections.next() : null;
     }
 
     private Integer getDefaultSearchLimit() {
