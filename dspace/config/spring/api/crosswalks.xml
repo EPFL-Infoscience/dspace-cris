@@ -647,6 +647,7 @@
 				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
 				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
 				<entry key="coar2endnote" value-ref="mapConverterCoarToEndnoteTypes" />
+				<entry key="scopus2coar" value-ref="mapConverterScopusToCoarTypes" />
 			</map>
 		</constructor-arg>
 	</bean>
@@ -739,6 +740,12 @@
 		<property name="converterNameFile" value="mapConverter-coarToEndnoteTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value="GEN"/>
+	</bean>
+
+	<bean name="mapConverterScopusToCoarTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-scopusToCoarTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="other"/>
 	</bean>
 
 	<!-- CONDITION EVALUATORS CONFIGURATION -->
