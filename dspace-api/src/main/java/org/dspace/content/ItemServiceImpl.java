@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -480,6 +481,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         update(context, item);
         //Also fire a modified event since the item HAS been modified
         context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, getIdentifiers(context, item)));
+
+        setLastModifiedDateMetadata(context, item);
     }
 
     @Override
@@ -2063,6 +2066,24 @@ prevent the generation of resource policy entry values with null dspace_object a
         return authorities.stream()
             .map(authority -> field.replaceAll("_", ".") + "_allauthority: \"" + authority + "\"")
             .collect(Collectors.joining(" OR "));
+    }
+
+    private void setLastModifiedDateMetadata(Context context, Item item) throws SQLException, AuthorizeException {
+        MetadataField metadataField =
+                metadataFieldService.findByElement(context, "dc", "date", "modified");
+
+        if (metadataField == null) {
+            MetadataSchema metadataSchema = metadataSchemaService.find(context, "dc");
+            try {
+                metadataFieldService.create(context, metadataSchema, "date", "modified", null);
+            } catch (NonUniqueMetadataException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.modified"),
+                               context.getCurrentLocale().toString(),
+                               new SimpleDateFormat("yyyy-MM-dd").format(item.getLastModified()));
     }
 
     @Override
