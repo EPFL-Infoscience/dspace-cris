@@ -62,6 +62,8 @@ public class EmailAction extends AcceptEditRejectAction {
                     return processSubmitterIsDeletedPage(c, wfi, request);
                 case SUBMIT_MAIL:
                     return processMail(c, wfi, request);
+                case SUBMIT_REJECT:
+                    return processRejectPage(c, wfi, request);
                 default:
                     return new ActionResult(ActionResult.TYPE.TYPE_CANCEL);
             }
@@ -73,6 +75,7 @@ public class EmailAction extends AcceptEditRejectAction {
     public List<String> getOptions() {
         List<String> options = new ArrayList<>();
         options.add(SUBMIT_APPROVE);
+        options.add(SUBMIT_REJECT);
         options.add(ProcessingAction.SUBMIT_EDIT_METADATA);
         options.add(SUBMIT_MAIL);
         return options;
