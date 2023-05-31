@@ -18,6 +18,13 @@
 
     <dc-type>
         <schema>cris</schema>
+        <element>source</element>
+        <qualifier>name</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
         <element>policy</element>
         <qualifier>eperson</qualifier>
         <scope_note>Default metadata for custom policies rule</scope_note>
@@ -315,6 +322,20 @@
         <qualifier>wos-publication</qualifier>
         <scope_note></scope_note>
     </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>loader-oaire</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>loader-pubmed</qualifier>
+        <scope_note></scope_note>
+    </dc-type>        
 
     <dc-type>
         <schema>cris</schema>
