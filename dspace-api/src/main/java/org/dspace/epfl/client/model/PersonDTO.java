@@ -7,7 +7,9 @@
  */
 package org.dspace.epfl.client.model;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,6 +30,15 @@ public class PersonDTO {
     private String profile;
 
     private Accred[] accreds;
+
+    public Optional<Accred> getMainAffiliation() {
+        if (accreds == null) {
+            return Optional.empty();
+        }
+        return Arrays.stream(accreds)
+            .filter(accred -> accred.getRank() != null && 0 == accred.getRank())
+            .findFirst();
+    }
 
     public String getFullName() {
         return Stream.of(name, firstname)

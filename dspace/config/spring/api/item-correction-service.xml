@@ -52,6 +52,17 @@
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items">
+                        <list>
+                            <value>dc.contributor.author</value>
+                            <value>dc.contributor.editor</value>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
                     </property>
                 </bean>

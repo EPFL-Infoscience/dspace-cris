@@ -93,4 +93,10 @@
         <qualifier>other</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>group</element>
+        <qualifier>closed</qualifier>
+    </dc-type>
+
 </dspace-dc-types>

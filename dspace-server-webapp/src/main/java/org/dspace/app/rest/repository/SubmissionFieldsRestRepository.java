@@ -1,0 +1,196 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.app.rest.repository;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.rest.Parameter;
+import org.dspace.app.rest.SearchRestMethod;
+import org.dspace.app.rest.converter.ConverterService;
+import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
+import org.dspace.app.rest.model.SubmissionFieldsRest;
+import org.dspace.app.rest.model.wrapper.SubmissionFields;
+import org.dspace.app.util.DCInput;
+import org.dspace.app.util.DCInputSet;
+import org.dspace.app.util.DCInputsReader;
+import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Context;
+import org.dspace.versioning.service.VersionHistoryService;
+import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.WorkflowItemService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
+
+/**
+ * This is the repository responsible to manage SubmissionFields Rest object
+ *
+ * @author Mohamed Eskander (mohamed.eskander at 4science.it)
+ */
+@Component(SubmissionFieldsRest.CATEGORY + "." + SubmissionFieldsRest.NAME)
+public class SubmissionFieldsRestRepository extends DSpaceRestRepository<SubmissionFieldsRest, UUID> {
+
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
+
+    @Autowired
+    private WorkflowItemService workflowItemService;
+
+    @Autowired
+    private VersionHistoryService versionHistoryService;
+
+    @Autowired
+    private ItemService itemService;
+
+    @Autowired
+    protected ConverterService converter;
+
+    private DCInputsReader dcInputsReader;
+
+    @PostConstruct
+    private void setup() throws DCInputsReaderException {
+        this.dcInputsReader = new DCInputsReader();
+    }
+
+    /**
+     * The findOne method is not supported in this repository
+     */
+    @PreAuthorize("permitAll()")
+    @Override
+    public SubmissionFieldsRest findOne(Context context, UUID uuid) {
+        throw new RepositoryMethodNotImplementedException(SubmissionFieldsRest.NAME, "findOne");
+    }
+
+    /**
+     * The findAll method is not supported in this repository
+     */
+    @Override
+    public Page<SubmissionFieldsRest> findAll(Context context, Pageable pageable) {
+        throw new RepositoryMethodNotImplementedException(SubmissionFieldsRest.NAME, "findAll");
+    }
+
+    @Override
+    public Class<SubmissionFieldsRest> getDomainClass() {
+        return SubmissionFieldsRest.class;
+    }
+
+    @SearchRestMethod(name = "findByItem")
+    public SubmissionFieldsRest findByItem(@Parameter(value = "uuid", required = true) UUID uuid)
+        throws SQLException, DCInputsReaderException {
+
+        Context context = obtainContext();
+        List<String> repeatableFields = new ArrayList<>();
+        Map<String, List<String>> nestedFields = new HashMap<>();
+
+        Item item = itemService.find(context, uuid);
+
+        if (item == null) {
+            throw new ResourceNotFoundException(
+                "The given uuid did not resolve to an item on the server: " + uuid);
+        }
+
+        Collection collation = findCollectionByItem(context, item);
+
+        appendRepeatableAndNestedFields(repeatableFields, nestedFields, collation);
+
+        SubmissionFields submissionFields =
+            new SubmissionFields(uuid.toString(), repeatableFields, nestedFields);
+
+        return converter.toRest(submissionFields, utils.obtainProjection());
+    }
+
+    private Collection findCollectionByItem(Context context, Item item) throws SQLException {
+
+        WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
+
+        if (workspaceItem != null) {
+            return workspaceItem.getCollection();
+        }
+        WorkflowItem workflowItem = workflowItemService.findByItem(context, item);
+        if (workflowItem != null) {
+            return workflowItem.getCollection();
+        }
+        if (item.isArchived() || !versionHistoryService.isLastVersion(context, item)) {
+            return item.getOwningCollection();
+        }
+
+        return null;
+
+    }
+
+    private void appendRepeatableAndNestedFields(List<String> repeatableFields,
+                                                 Map<String, List<String>> nestedFields,
+                                                 Collection collation) throws DCInputsReaderException {
+
+        List<DCInputSet> dcInputSets = dcInputsReader.getInputsByCollection(collation);
+
+        for (String metadataField : getDistinctMetadataFields(dcInputSets)) {
+            for (DCInputSet dcInputSet : dcInputSets) {
+                if (dcInputSet.isFieldPresent(metadataField)) {
+                    Optional<DCInput> parentDcInputOptional = dcInputSet.findParent(metadataField);
+                    if (parentDcInputOptional.isPresent()) {
+                        repeatableFields.add(metadataField);
+                        fillNestedFields(nestedFields, parentDcInputOptional.get(), metadataField);
+                    } else if (dcInputSet.getField(metadataField).get().isRepeatable()) {
+                        repeatableFields.add(metadataField);
+                    }
+                }
+            }
+        }
+    }
+
+    private void fillNestedFields(Map<String, List<String>> nestedFields,
+                                  DCInput ParentDcInput, String metadataField) {
+
+        String parentMetadataField =
+            StringUtils.joinWith(
+                ".", ParentDcInput.getSchema(), ParentDcInput.getElement(), ParentDcInput.getQualifier()
+            );
+
+        if (!parentMetadataField.equals(metadataField)) {
+            List<String> fields;
+            if (nestedFields.containsKey(parentMetadataField)) {
+                fields = nestedFields.get(parentMetadataField);
+            } else {
+                fields = new ArrayList<>();
+            }
+
+            fields.add(metadataField);
+            nestedFields.put(parentMetadataField, fields);
+        }
+    }
+
+    private Set<String> getDistinctMetadataFields(List<DCInputSet> dcInputSets) {
+        return
+            dcInputSets
+                .stream()
+                .flatMap(dcInputSet ->
+                    dcInputSet.getMetadataFields().stream()
+                )
+                .collect(Collectors.toSet());
+    }
+
+}

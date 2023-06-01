@@ -1,0 +1,55 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.app.rest.authorization.impl;
+
+import java.sql.SQLException;
+import java.util.Objects;
+
+import org.dspace.app.rest.authorization.AuthorizationFeature;
+import org.dspace.app.rest.authorization.AuthorizationFeatureDocumentation;
+import org.dspace.app.rest.model.BaseObjectRest;
+import org.dspace.app.rest.model.SiteRest;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+@AuthorizationFeatureDocumentation(name = CuratorOfFeature.NAME, description = "Curator Authorization Feature")
+public class CuratorOfFeature implements AuthorizationFeature {
+
+    public static final String NAME = "curatorOf";
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    private static final String CURATORS_GROUP_NAME = "Curators";
+
+    @Autowired
+    AuthorizeService authService;
+
+    @Override
+    public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException {
+        if (Objects.isNull(context.getCurrentUser()) || Objects.isNull(context.getCurrentUser().getGroups())) {
+            return false;
+        }
+        String curatorsGroupName = configurationService.getProperty("epfl.curators-group.name", CURATORS_GROUP_NAME);
+        return object instanceof SiteRest && context.getCurrentUser()
+                                                    .getGroups()
+                                                    .stream()
+                                                    .anyMatch(group -> group.getName().equals(curatorsGroupName));
+    }
+
+    @Override
+    public String[] getSupportedTypes() {
+        return new String[] {
+            SiteRest.CATEGORY + "." + SiteRest.NAME
+        };
+    }
+}

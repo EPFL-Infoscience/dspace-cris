@@ -26,6 +26,7 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
+import org.dspace.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -75,6 +76,10 @@ public class ResourcePolicyGroupReplaceRestController {
 
         Group newGroup = (Group) dsoList.get(0);
         resourcePolicy.setGroup(newGroup);
+        context.addEvent(new Event(Event.MODIFY,
+                                   resourcePolicy.getdSpaceObject().getType(),
+                                   resourcePolicy.getdSpaceObject().getID(),
+                                   "Updated resource policy " + resourcePolicy.getID()));
         context.commit();
         return ControllerUtils.toEmptyResponse(HttpStatus.NO_CONTENT);
     }

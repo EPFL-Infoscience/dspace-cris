@@ -27,6 +27,8 @@ public class CrisLayoutTopComponent implements CrisLayoutSectionComponent {
 
     private Integer numberOfItems;
 
+    private Boolean showThumbnails;
+
     private boolean showAsCard;
 
     private boolean showLayoutSwitch;
@@ -122,6 +124,14 @@ public class CrisLayoutTopComponent implements CrisLayoutSectionComponent {
 
     public void setNumberOfItems(Integer numberOfItems) {
         this.numberOfItems = numberOfItems;
+    }
+
+    public Boolean getShowThumbnails() {
+        return showThumbnails;
+    }
+
+    public void setShowThumbnails(Boolean showThumbnails) {
+        this.showThumbnails = showThumbnails;
     }
 
     /**

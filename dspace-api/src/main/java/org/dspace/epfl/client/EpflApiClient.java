@@ -8,6 +8,7 @@
 package org.dspace.epfl.client;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 
 import org.dspace.epfl.client.model.OrgUnitDTO;
@@ -18,6 +19,8 @@ public interface EpflApiClient {
     boolean isOrgUnitActive(String acronym);
 
     Optional<OrgUnitDTO> getOrgUnit(String acronym, Language language);
+
+    List<PersonDTO> getPersons(String query, Language language);
 
     Optional<PersonDTO> getPerson(String sciper, Language language);
 

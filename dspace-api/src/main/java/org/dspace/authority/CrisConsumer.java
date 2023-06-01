@@ -186,19 +186,13 @@ public class CrisConsumer implements Consumer {
     }
 
     private boolean isMetadataSkippable(MetadataValue metadata) {
-
         String authority = metadata.getAuthority();
 
         if (isNestedMetadataPlaceholder(metadata) || isAuthoritySet(authority) || isAuthorityNotAllowed(metadata)) {
             return true;
         }
 
-        if (isBlank(authority) && isMetadataWithEmptyAuthoritySkippable(metadata)) {
-            return true;
-        }
-
-        return false;
-
+        return isBlank(authority) && isMetadataWithEmptyAuthoritySkippable(metadata);
     }
 
     private boolean isAuthoritySet(String authority) {
@@ -312,10 +306,8 @@ public class CrisConsumer implements Consumer {
     }
 
     private boolean hasEntityType(DSpaceObject dsObject, String entityType) {
-        return dsObject.getMetadata().stream().anyMatch(metadataValue -> {
-            return "dspace.entity.type".equals(metadataValue.getMetadataField().toString('.')) &&
-                entityType.equals(metadataValue.getValue());
-        });
+        return dsObject.getMetadata().stream().anyMatch(metadataValue ->
+            "dspace.entity.type".equals(metadataValue.getMetadataField().toString('.')) &&
+            entityType.equals(metadataValue.getValue()));
     }
-
 }

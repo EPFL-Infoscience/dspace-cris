@@ -25,6 +25,7 @@
 				<entry key="person-cerif-xml" value-ref="referCrosswalkPersonCerifXml"></entry>
 				<entry key="person-json" value-ref="referCrosswalkPersonJson"></entry>
 				<entry key="person-pdf" value-ref="pdfCrosswalkPerson"></entry>
+				<entry key="person-cv-pdf" value-ref="pdfCrosswalkPersonCv"></entry>
 				<entry key="person-rtf" value-ref="rtfCrosswalkPerson"></entry>
 				<entry key="person-csv" value-ref="csvCrosswalkPerson"></entry>
 				<entry key="person-xls" value-ref="xlsCrosswalkPerson"></entry>
@@ -114,6 +115,16 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
 	</bean>
+
+    <bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPersonCvXml">
+        <property name="templateFileName" value="crosswalks/template/person-cv-xml.template"/>
+        <property name="mimeType" value="application/xml; charset=UTF-8"/>
+        <property name="fileName" value="person.xml"/>
+        <property name="entityType" value="Person"/>
+        <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+        <property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
+        <property name="converter" ref="xmlValueConverter" />
+    </bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPersonCerifXml">
 		<property name="templateFileName" value="crosswalks/template/person-cerif-xml.template"/>
@@ -335,7 +346,15 @@
 		<property name="entityType" value="Person"/>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
-	
+
+    <bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkPersonCv">
+        <property name="templateFileName" value="crosswalks/template/person-cv-template.xsl"/>
+        <property name="fileName" value="person.pdf"/>
+        <property name="mimeType" value="application/pdf"/>
+        <property name="entityType" value="Person"/>
+        <property name="referCrosswalk" ref="referCrosswalkPersonCvXml"/>
+    </bean>
+
 	<bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="rtfCrosswalkPerson">
 		<property name="templateFileName" value="crosswalks/template/person-template.xsl"/>
 		<property name="fileName" value="person.rtf"/>
@@ -573,6 +592,28 @@
 				<entry key="picture" value="personal picture" />
 			</map>
 		</constructor-arg>
+		<constructor-arg name="bitstreamMIMETypeMap">
+			<map>
+				<entry key="image">
+					<set>
+						<value>image/jpeg</value>
+						<value>image/png</value>
+						<value>image/gif</value>
+					</set>
+				</entry>
+				<entry key="pdf">
+					<set>
+						<value>application/pdf</value>
+						<value>application/x-pdf</value>
+					</set>
+				</entry>
+				<entry key="txt">
+					<set>
+						<value>text/plain</value>
+					</set>
+				</entry>
+			</map>
+		</constructor-arg>
 	</bean>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMapConverter" id="virtualFieldMapConverter">
 		<constructor-arg name="itemService" ref="org.dspace.content.ItemServiceImpl"/>
@@ -604,6 +645,11 @@
 				<entry key="type2datacite" value-ref="mapConverterDataciteToPublicationTypes" />
 				<entry key="right2licenseUrl" value-ref="mapConverterDataciteToPublicationLicense" />
 				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
+				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
+				<entry key="coar2endnote" value-ref="mapConverterCoarToEndnoteTypes" />
+				<entry key="scopus2coar" value-ref="mapConverterScopusToCoarTypes" />
+				<entry key="arxivSubjects" value-ref="mapConverterArxivSubjects" />
+				<entry key="epo2coarTypes" value-ref="mapConverterEpoToCoarTypes" />
 			</map>
 		</constructor-arg>
 	</bean>
@@ -690,6 +736,30 @@
 		<property name="converterNameFile" value="mapConverter-pubmedToCoarPublicationTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value=""/>
+	</bean>
+
+	<bean name="mapConverterCoarToEndnoteTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-coarToEndnoteTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="GEN"/>
+	</bean>
+
+	<bean name="mapConverterScopusToCoarTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-scopusToCoarTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="other"/>
+	</bean>
+
+	<bean name="mapConverterArxivSubjects" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-arxivSubject.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value=""/>
+	</bean>
+
+	<bean name="mapConverterEpoToCoarTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-epoToCoarTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="patent"/>
 	</bean>
 
 	<!-- CONDITION EVALUATORS CONFIGURATION -->

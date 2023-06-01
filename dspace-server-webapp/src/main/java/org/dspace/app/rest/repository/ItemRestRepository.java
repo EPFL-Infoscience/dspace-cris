@@ -56,6 +56,7 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.util.UUIDUtils;
+import org.dspace.versioning.service.VersioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -111,6 +112,9 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
 
     @Autowired
     private CustomUrlService customUrlService;
+
+    @Autowired
+    private VersioningService versioningService;
 
     public ItemRestRepository(ItemService dsoService) {
         super(dsoService);
@@ -169,7 +173,7 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     }
 
     @Override
-    @PreAuthorize("hasPermission(#id, 'ITEM', 'DELETE')")
+    @PreAuthorize("hasPermission(#id, 'ITEM', 'DELETE') || @versioningSecurity.canDeleteVersion(#id)")
     protected void delete(Context context, UUID id) throws AuthorizeException {
         String[] copyVirtual =
             requestService.getCurrentRequest().getServletRequest()
@@ -195,9 +199,14 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
         }
         try {
             deleteMultipleRelationshipsCopyVirtualMetadata(context, copyVirtual, item);
+            if (versioningService.canDeleteItemVersion(context, item)) {
+                context.turnOffAuthorisationSystem();
+            }
             itemService.delete(context, item);
         } catch (SQLException | IOException e) {
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            context.restoreAuthSystemState();
         }
     }
 

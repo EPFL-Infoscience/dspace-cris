@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Spliterators;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -229,8 +230,6 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 
     @Override
     public void setFormat(Context context, Bitstream bitstream, BitstreamFormat bitstreamFormat) throws SQLException {
-        // FIXME: Would be better if this didn't throw an SQLException,
-        // but we need to find the unknown format!
         if (bitstreamFormat == null) {
             // Use "Unknown" format
             bitstreamFormat = bitstreamFormatService.findUnknown(context);
@@ -320,12 +319,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         List<Bundle> bundles = bitstream.getBundles();
         if (CollectionUtils.isNotEmpty(bundles)) {
             // the ADMIN action is not allowed on Bundle object so skip to the item
-            Item item = (Item) bundleService.getParentObject(context, bundles.iterator().next());
-            if (item != null) {
-                return item;
-            } else {
-                return null;
-            }
+            return bundleService.getParentObject(context, bundles.iterator().next());
         } else if (bitstream.getCommunity() != null) {
             return bitstream.getCommunity();
         } else if (bitstream.getCollection() != null) {
@@ -386,11 +380,9 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     @Override
     public Bitstream getBitstreamByName(Item item, String bundleName, String bitstreamName) throws SQLException {
         List<Bundle> bundles = itemService.getBundles(item, bundleName);
-        for (int i = 0; i < bundles.size(); i++) {
-            Bundle bundle = bundles.get(i);
+        for (Bundle bundle : bundles) {
             List<Bitstream> bitstreams = bundle.getBitstreams();
-            for (int j = 0; j < bitstreams.size(); j++) {
-                Bitstream bitstream = bitstreams.get(j);
+            for (Bitstream bitstream : bitstreams) {
                 if (StringUtils.equals(bitstream.getName(), bitstreamName)) {
                     return bitstream;
                 }
@@ -533,6 +525,57 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 
         } catch (SQLException ex) {
             throw new SQLRuntimeException(ex);
+        }
+
+    }
+
+    @Override
+    public void replacePersonalPicture(Context context, Item item, String name, InputStream content) {
+        try {
+            Bundle bundle = getOriginalBundle(context, item);
+
+            getPersonalPicture(bundle)
+                .ifPresent(bitstream -> deleteBitstream(context, bitstream));
+
+            Bitstream bitstream = create(context, bundle, content);
+            bitstream.setName(context, name);
+
+            setFormat(context, bitstream, bitstreamFormatService.guessFormat(context, bitstream));
+            setMetadataSingleValue(context, bitstream, "dc", "type", null, null, "personal picture");
+
+            update(context, bitstream);
+
+        } catch (SQLException | AuthorizeException | IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void deleteBitstream(Context context, Bitstream bitstream) {
+        try {
+            delete(context, bitstream);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Optional<Bitstream> getPersonalPicture(Bundle bundle) {
+        return bundle.getBitstreams().stream()
+            .filter(bitstream -> "personal picture".equals(getType(bitstream)))
+            .findFirst();
+    }
+
+    private String getType(Bitstream bitstream) {
+        return getMetadataFirstValue(bitstream, "dc", "type", null, Item.ANY);
+    }
+
+    private Bundle getOriginalBundle(Context context, Item item) throws SQLException, AuthorizeException {
+        List<Bundle> bundles = itemService.getBundles(item, "ORIGINAL");
+
+        if (CollectionUtils.isEmpty(bundles)) {
+            return bundleService.create(context, item, "ORIGINAL");
+        } else {
+            return bundles.iterator().next();
         }
 
     }

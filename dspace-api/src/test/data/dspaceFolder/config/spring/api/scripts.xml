@@ -141,6 +141,16 @@
         <property name="dspaceRunnableClass" value="org.dspace.scripts.impl.MockDSpaceRunnableScript"/>
     </bean>
 
+    <bean id="import-loader-suggestions" class="org.dspace.app.suggestion.PublicationLoaderScriptConfiguration" primary="true">
+        <property name="description" value="Import and store locally metadata from loader"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.PublicationLoaderRunnable"/>
+    </bean>
+
+    <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import and store items from external source"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnable"/>
+	</bean>        
+
     <bean id="import" class="org.dspace.app.itemimport.ItemImportCLIScriptConfiguration" primary="true">
         <property name="description" value="Batch Import from Simple Archive Format (SAF)" />
         <property name="dspaceRunnableClass" value="org.dspace.app.itemimport.ItemImportCLI"/>
@@ -151,9 +161,14 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.itemexport.ItemExportCLI"/>
     </bean>
 
+    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeCliScriptConfiguration">
+        <property name="description" value="merge items into target item" />
+        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnableCli"/>
+    </bean>
+
     <bean id="orgunit-tsv-import" class="org.dspace.epfl.script.OrgUnitTSVImportScriptConfiguration" primary="true">
         <property name="description" value="Import the OrgUnits present in the given TSV file"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitTSVImportScript"/>
     </bean>
-    
+
 </beans>

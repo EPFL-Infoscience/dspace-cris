@@ -113,15 +113,15 @@ public class CollectionExportIT extends AbstractIntegrationTestWithDatabase {
 
             Sheet sheet = workbook.getSheetAt(0);
             assertThat(sheet.getPhysicalNumberOfRows(), equalTo(2));
-            assertThat(getRowValues(sheet.getRow(0), 19), contains("ID", "DISCOVERABLE", "dc.title",
-                "dcterms.dateAccepted", "dc.date.issued", "dc.contributor.author", "dcterms.rightsHolder",
-                "dc.publisher", "dc.identifier.patentno", "dc.identifier.patentnumber", "dc.type",
-                "dc.identifier.applicationnumber", "dc.date.filled", "dc.language.iso",
+            assertThat(getRowValues(sheet.getRow(0), 20), contains("ID", "DISCOVERABLE", "SUBMITTER",
+                "dc.title", "dcterms.dateAccepted", "dc.date.issued", "dc.contributor.author",
+                "dcterms.rightsHolder", "dc.publisher", "dc.identifier.patentno", "dc.identifier.patentnumber",
+                "dc.type", "dc.identifier.applicationnumber", "dc.date.filled", "dc.language.iso",
                 "dc.subject", "dc.description.abstract", "dc.relation", "dc.relation.patent",
                 "dc.relation.references"));
-            assertThat(getRowValues(sheet.getRow(1), 19), contains(item.getID().toString(), "Y", "Test patent", "",
-                "2020-01-01", "White, Walter", "", "", "", "", "", "", "", "it", "test||export", "", "", "",
-                ""));
+            assertThat(getRowValues(sheet.getRow(1), 20), contains(item.getID().toString(), "Y", "test@email.com",
+                "Test patent", "", "2020-01-01", "White, Walter", "", "", "", "", "", "", "", "it", "test||export", "",
+                "", "", ""));
 
         }
 

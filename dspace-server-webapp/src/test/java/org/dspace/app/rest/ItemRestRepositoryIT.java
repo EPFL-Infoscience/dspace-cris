@@ -12,6 +12,7 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.OrcidQueueMatcher.matches;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
+import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataNotEmpty;
 import static org.dspace.builder.OrcidHistoryBuilder.createOrcidHistory;
 import static org.dspace.builder.OrcidQueueBuilder.createOrcidQueue;
 import static org.dspace.core.Constants.WRITE;
@@ -62,6 +63,7 @@ import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.repository.ItemRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.test.MetadataPatchSuite;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
@@ -82,14 +84,18 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.orcid.OrcidHistory;
 import org.dspace.orcid.OrcidQueue;
@@ -128,6 +134,11 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
+    @Autowired
+    private InstallItemService installItemService;
 
     private Item publication1;
     private Item author1;
@@ -1867,6 +1878,108 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    public void deleteVersionAsAdmin() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("To be versioned")
+                               .build();
+        Version version = newVersion(item);
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(delete("/api/core/items/" + version.getItem().getID()))
+                             .andExpect(status().isNoContent());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                        .andExpect(status().isOk());
+
+        getClient().perform(get("/api/core/items/" + version.getItem().getID()))
+                   .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void deleteVersionAsSubmitter() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("To be versioned")
+                               .build();
+        Version version = newVersion(item);
+        context.restoreAuthSystemState();
+
+        String submitterToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(submitterToken).perform(delete("/api/core/items/" + version.getItem().getID()))
+                             .andExpect(status().isNoContent());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                   .andExpect(status().isOk());
+
+        getClient().perform(get("/api/core/items/" + version.getItem().getID()))
+                   .andExpect(status().isNotFound());
+    }
+
+    // delete version as unauthorized returns 403
+    @Test
+    public void deleteVersionAsUnauthorized() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("To be versioned")
+                               .build();
+        Version version = newVersion(item);
+        EPerson otherEPerson = EPersonBuilder.createEPerson(context).withEmail("other@example.com")
+                                             .withPassword(password).build();
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(otherEPerson.getEmail(), password);
+
+        getClient(authToken).perform(delete("/api/core/items/" + version.getItem().getID()))
+                                 .andExpect(status().isForbidden());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                   .andExpect(status().isOk());
+
+        getClient().perform(get("/api/core/items/" + version.getItem().getID()))
+                   .andExpect(status().isOk());
+    }
+
+    @Test
+    public void submitterCannotDeleteANotVersionedItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, createCollection())
+                               .withTitle("Test publication")
+                               .build();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(authToken).perform(delete("/api/core/items/" + item.getID()))
+                            .andExpect(status().isForbidden());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                   .andExpect(status().isOk());
+    }
+    private Collection createCollection() {
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection collection = CollectionBuilder
+            .createCollection(context, parentCommunity)
+            .withEntityType("Publication")
+            .build();
+        return collection;
+    }
+
+    private Version newVersion(Item item) throws SQLException, AuthorizeException {
+        Version version = VersionBuilder.createVersion(context, item, "new version").build();
+        installItemService.installItem(context, workspaceItemService.findByItem(context, version.getItem()));
+        return version;
+    }
+
+
+
+    @Test
     public void embargoAccessTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -2728,6 +2841,62 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         new MetadataPatchSuite().runWith(getClient(token), "/api/core/items/" + item.getID(), expectedStatus);
     }
 
+    @Test
+    public void patchItemMetadataByClosedGroupAdminAuthorized() throws Exception {
+        runPatchMetadataByClosedGroupAdminTests(admin, 200);
+    }
+
+    @Test
+    public void patchItemMetadataByClosedGroupAdminUnauthorized() throws Exception {
+        runPatchMetadataByClosedGroupAdminTests(eperson, 403);
+    }
+
+    @Test
+    public void patchItemMetadataByClosedGroupAdminAuthorizedIndirectly() throws Exception {
+        runPatchMetadataByClosedGroupAdminTests(eperson, 200, true);
+    }
+
+    private void runPatchMetadataByClosedGroupAdminTests(EPerson asUser, int expectedStatus) throws Exception {
+        runPatchMetadataByClosedGroupAdminTests(asUser, expectedStatus, false);
+    }
+
+    private void runPatchMetadataByClosedGroupAdminTests(EPerson asUser, int expectedStatus,
+                                                         boolean isAuthorizedIndirectly) throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+
+        Group adminParentGroup = groupService.findByName(context, Group.ADMIN);
+        Group childClosedGroup = GroupBuilder
+            .createGroup(context)
+            .withName("Group closed")
+            .withParent(adminParentGroup)
+            .addMember(eperson)
+            .build();
+
+        if (isAuthorizedIndirectly) {
+            GroupBuilder.createGroup(context)
+                        .withName("Group open")
+                        .withParent(adminParentGroup)
+                        .addMember(eperson)
+                        .build();
+        }
+
+        groupService.addMetadata(
+            context, childClosedGroup, MetadataSchemaEnum.EPFL.getName(), "group", "closed", Item.ANY, "true"
+        );
+
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Item item = ItemBuilder.createItem(context, col1).build();
+        context.restoreAuthSystemState();
+        String token = getAuthToken(asUser.getEmail(), password);
+
+        new MetadataPatchSuite().runWith(getClient(token), "/api/core/items/" + item.getID(), expectedStatus);
+    }
+
     /**
      * This test will try creating an item with the InArchive property set to false. This endpoint does not allow
      * us to create Items which aren't final (final means that they'd be in archive) and thus it'll throw a
@@ -3222,7 +3391,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                        BitstreamMatcher.matchBitstreamEntryWithoutEmbed(bitstream2.getID(), bitstream2.getSizeBytes())
                    )))
                    .andExpect(jsonPath("$._embedded.owningCollection._embedded.mappedItems." +
-                                           "_embedded.mappedItems[0]_embedded.relationships").doesNotExist())
+                                           "_embedded.mappedItems[0]._embedded.relationships").doesNotExist())
                    .andExpect(jsonPath("$._embedded.owningCollection._embedded.mappedItems" +
                                            "._embedded.mappedItems[0]._embedded.bundles._embedded.bundles[0]." +
                                            "_embedded.primaryBitstream").doesNotExist())
@@ -5377,6 +5546,102 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient().perform(get("/api/core/items/{uuid}/accessStatus", item.getID()))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.status", notNullValue()));
+    }
+
+    @Test
+    public void administratorOfWithdrawnItemCanSeeItsMetadataTest() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        EPerson colAdmin = EPersonBuilder.createEPerson(context).withEmail("coladmin@example.com")
+                                         .withNameInMetadata("Col", "Admin").withPassword(password).build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .withAdminGroup(colAdmin)
+                                           .build();
+        Item item = ItemBuilder.createItem(context, col1)
+                               .withTitle("Test Publication")
+                               .build();
+
+        context.restoreAuthSystemState();
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(epersonToken).perform(get("/api/core/items/" + item.getID()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Test Publication")));
+
+        List<Operation> ops = new ArrayList<Operation>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/withdrawn", true);
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
+
+        String colAdminToken = getAuthToken(colAdmin.getEmail(), password);
+        getClient(colAdminToken).perform(patch("/api/core/items/" + item.getID())
+                                     .content(patchBody)
+                                     .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                        .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
+                        .andExpect(jsonPath("$.inArchive", Matchers.is(false)));
+
+        getClient(colAdminToken).perform(get("/api/core/items/" + item.getID()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Test Publication")));
+
+        getClient(epersonToken).perform(get("/api/core/items/" + item.getID()))
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$.metadata", matchMetadataDoesNotExist("dc.title")));
+
+    }
+
+    @Test
+    public void testProvenanceVisibility() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Group curators = GroupBuilder.createGroup(context)
+            .withName("Curators")
+            .build();
+
+        EPerson curator = EPersonBuilder.createEPerson(context)
+            .withEmail("curator@example.com")
+            .withPassword(password)
+            .withGroupMembership(curators)
+            .withCanLogin(true)
+            .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Test Publication")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", matchMetadataNotEmpty("dc.description.provenance")));
+
+        getClient(getAuthToken(curator.getEmail(), password))
+            .perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", matchMetadataNotEmpty("dc.description.provenance")));
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+            .perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", matchMetadataDoesNotExist("dc.description.provenance")));
+
     }
 
 }

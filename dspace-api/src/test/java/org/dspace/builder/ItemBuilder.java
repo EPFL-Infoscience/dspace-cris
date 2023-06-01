@@ -96,6 +96,18 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "other", identifierOther);
     }
 
+    public ItemBuilder withIdentifierDoi(final String identifierDoi) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "doi", identifierDoi);
+    }
+
+    public ItemBuilder withIdentifierArxiv(final String identifierArxiv) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "arxiv", identifierArxiv);
+    }
+
+    public ItemBuilder withIdentifierPmid(final String identifierPmid) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "pmid", identifierPmid);
+    }
+
     public ItemBuilder withAuthor(final String authorName) {
         return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "contributor", "author", authorName);
     }
@@ -773,6 +785,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "cris", "lastimport", "scopus-publication", date);
     }
 
+    public ItemBuilder withLoaderPubmedLastImport(String date) {
+        return addMetadataValue(item, "cris", "lastimport", "loader-pubmed", date);
+    }
+
     public ItemBuilder withHandle(String handle) {
         this.handle = handle;
         return this;
@@ -887,6 +903,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "person", "email", null, email);
     }
 
+    public ItemBuilder withSubmitter(EPerson eperson) {
+        item.setSubmitter(eperson);
+        return this;
+    }
+
     @Override
     public Item build() {
         try {
@@ -973,5 +994,4 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
             c.complete();
         }
     }
-
 }

@@ -22,7 +22,7 @@
         <property name="description" value="export metadata from a discovery search" />
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkedit.MetadataExportSearchCli" />
     </bean>
-    
+
     <bean id="retry-tracker" class="org.dspace.statistics.export.RetryFailedOpenUrlTrackerScriptConfiguration" scope="prototype">
         <property name="description" value="Retry all failed commits to the OpenURLTracker"/>
         <property name="dspaceRunnableClass" value="org.dspace.statistics.export.RetryFailedOpenUrlTracker"/>
@@ -90,6 +90,16 @@
        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.OAIREPublicationLoaderRunnableCli"/>
     </bean>
 
+    <bean id="import-loader-suggestions" class="org.dspace.app.suggestion.PublicationLoaderCliScriptConfiguration" primary="true">
+        <property name="description" value="Import and store locally metadata from loader"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.PublicationLoaderRunnableCli"/>
+    </bean>
+
+    <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportCliScriptConfiguration" primary="true">
+        <property name="description" value="Import and store items from external source"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnableCli"/>
+    </bean>
+
     <bean id="import-nbevents" class="org.dspace.app.nbevent.NBEventsCliScriptConfiguration" primary="true">
         <property name="description" value="Import new openAIRE notification broker events"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.nbevent.NBEventsRunnableCli"/>
@@ -138,7 +148,7 @@
         <property name="description" value="Perform the media filtering to extract full text from documents and to create thumbnails"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
     </bean>
-    
+
     <bean id="solr-database-resync" class="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCliScriptConfiguration">
         <property name="description" value="Update the database status of Items in solr"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCli"/>
@@ -153,6 +163,12 @@
         <property name="description" value="Batch Export to Simple Archive Format (SAF)"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.itemexport.ItemExportCLI"/>
     </bean>
+
+    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeCliScriptConfiguration">
+        <property name="description" value="merge items into target item" />
+        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnableCli"/>
+    </bean>
+
 
     <bean id="orgunit-tsv-import" class="org.dspace.epfl.script.OrgUnitTSVImportScriptConfiguration" primary="true">
         <property name="description" value="Import the OrgUnits present in the given TSV file"/>

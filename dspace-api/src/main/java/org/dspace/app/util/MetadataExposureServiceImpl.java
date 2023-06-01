@@ -99,7 +99,7 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
 
         if (hidden && context != null) {
             // the administrator's override
-            hidden = !authorizeService.isAdmin(context);
+            hidden = !(authorizeService.isAdmin(context) || authorizeService.isCurator(context));
         }
 
         return hidden;

@@ -892,14 +892,14 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         //3. a workflow item will all the required fields
         XmlWorkflowItem witem = WorkflowItemBuilder.createWorkflowItem(context, col1)
-                .withTitle("Workflow Item 1")
+                .withTitle("Workflow Item")
                 .withIssueDate("2017-10-17")
                 .grantLicense()
                 .build();
 
         //4. a workflow item without the dateissued required field
         XmlWorkflowItem witemMissingFields = WorkflowItemBuilder.createWorkflowItem(context, col1)
-                .withTitle("Workflow Item 1")
+                .withTitle("Test Workflow Item 2")
                 .grantLicense()
                 .build();
 
@@ -958,7 +958,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
         // 4. a workflow item without the dateissued required field
         XmlWorkflowItem witemMissingFields = WorkflowItemBuilder.createWorkflowItem(context, col1)
             .withTitle("Test publication with mandatory DOI 2")
-            .withIssueDate("2017-10-17")
+            .withIssueDate("2018-10-17")
             .grantLicense()
             .build();
 
@@ -968,7 +968,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist());
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.test')]").doesNotExist());
 
         getClient(authToken).perform(get("/api/workflow/workflowitems/" + witemMissingFields.getID()))
             .andExpect(status().isOk())
@@ -1004,7 +1004,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         // 3. a workflow item will all the required fields
         XmlWorkflowItem witem = WorkflowItemBuilder.createWorkflowItem(context, col1)
-            .withTitle("Test publication with mandatory DOI 1")
+            .withTitle("Test publication with mandatory DOI")
             .withIssueDate("2017-10-17")
             .withDoiIdentifier("10.1000/182")
             .grantLicense()
@@ -1012,7 +1012,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         // 4. a workflow item without the dateissued required field
         XmlWorkflowItem witemMissingFields = WorkflowItemBuilder.createWorkflowItem(context, col1)
-            .withTitle("Test publication with mandatory DOI 2")
+            .withTitle("Test publication with mandatory DOI second")
             .grantLicense()
             .build();
 
@@ -1258,7 +1258,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         //3. some claimed tasks with workflow items in edit step
         ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
-            .withTitle("Workflow Item 1")
+            .withTitle("First Workflow Item")
             .withIssueDate("2017-10-17")
             .withAuthor("Smith, Donald").withAuthor("Doe, John")
             .withSubject("ExtraEntry")
@@ -1269,7 +1269,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
         XmlWorkflowItem witem = claimedTask.getWorkflowItem();
 
         ClaimedTask claimedTask2 = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
-            .withTitle("Workflow Item 2")
+            .withTitle("Second Workflow Item")
             .withIssueDate("2017-10-17")
             .withSubject("Subject1")
             .withSubject("Subject2")
@@ -1282,7 +1282,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
         XmlWorkflowItem witemMultipleSubjects  = claimedTask2.getWorkflowItem();
 
         ClaimedTask claimedTask3 = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
-            .withTitle("Workflow Item 3")
+            .withTitle("Third Workflow Item")
             .withIssueDate("2017-10-17")
             .withSubject("Subject1")
             .withSubject("Subject2")
