@@ -9,6 +9,9 @@ package org.dspace.content;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +174,10 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
                         metadataValueFromTemplate.getConfidence());
                 }
             }
+        }
+
+        if (!hasDateCreatedMetadataField(item)) {
+            addDateCreatedMetadata(context, item);
         }
 
         itemService.update(context, item);
@@ -364,6 +371,17 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
         return !authorizeService.isAdmin(context)
             && (submitter == null || (currentUser == null) || (!submitter.getID().equals(currentUser.getID())))
             && !authorizeService.authorizeActionBoolean(context, item, Constants.DELETE);
+    }
+
+    private boolean hasDateCreatedMetadataField(Item item) {
+        return item.getMetadata().stream()
+                   .anyMatch(metadataValue -> metadataValue.getMetadataField().toString().equals("dc_date_created"));
+    }
+
+    private void addDateCreatedMetadata(Context context, Item item) throws SQLException {
+        itemService.setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.created"),
+                                           context.getCurrentLocale().toString(),
+                                           ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
     }
 
 }
