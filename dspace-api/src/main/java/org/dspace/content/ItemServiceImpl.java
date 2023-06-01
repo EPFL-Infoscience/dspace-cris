@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -781,6 +783,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         if (item.isMetadataModified() || item.isModified()) {
             // Set the last modified date
             item.setLastModified(new Date());
+            setLastModifiedDateMetadata(context, item);
 
             itemDAO.save(context, item);
 
@@ -2083,7 +2086,7 @@ prevent the generation of resource policy entry values with null dspace_object a
 
         setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.modified"),
                                context.getCurrentLocale().toString(),
-                               new SimpleDateFormat("yyyy-MM-dd").format(item.getLastModified()));
+                               ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
     }
 
     @Override

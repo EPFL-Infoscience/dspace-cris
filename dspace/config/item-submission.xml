@@ -237,6 +237,7 @@
     </submission-process>
     <submission-process name="orgunit-edit">
       <step id="orgunit" />
+      <step id="custom-url" />
       <step id="detect-duplicate" />
       <step id="upload-orgunit" />
     </submission-process>
