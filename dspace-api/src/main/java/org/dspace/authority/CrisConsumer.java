@@ -13,8 +13,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.content.MetadataSchemaEnum.CRIS;
 
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -32,7 +30,6 @@ import org.dspace.authority.service.ItemSearchService;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
@@ -140,9 +137,6 @@ public class CrisConsumer implements Consumer {
     }
 
     private void consumeItem(Context context, Item item) throws Exception {
-        if (!hasDateCreatedMetadataField(item)) {
-            addDateCreatedMetadata(context, item);
-        }
 
         for (MetadataValue metadata : item.getMetadata()) {
 
@@ -312,20 +306,8 @@ public class CrisConsumer implements Consumer {
     }
 
     private boolean hasEntityType(DSpaceObject dsObject, String entityType) {
-        return dsObject.getMetadata().stream().anyMatch(metadataValue -> {
-            return "dspace.entity.type".equals(metadataValue.getMetadataField().toString('.')) &&
-                entityType.equals(metadataValue.getValue());
-        });
-    }
-
-    private boolean hasDateCreatedMetadataField(Item item) {
-        return item.getMetadata().stream()
-                   .anyMatch(metadataValue -> metadataValue.getMetadataField().toString().equals("dc_date_created"));
-    }
-
-    private void addDateCreatedMetadata(Context context, Item item) throws SQLException {
-        itemService.setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.created"),
-                                           context.getCurrentLocale().toString(),
-                                           new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        return dsObject.getMetadata().stream().anyMatch(metadataValue ->
+            "dspace.entity.type".equals(metadataValue.getMetadataField().toString('.')) &&
+            entityType.equals(metadataValue.getValue()));
     }
 }

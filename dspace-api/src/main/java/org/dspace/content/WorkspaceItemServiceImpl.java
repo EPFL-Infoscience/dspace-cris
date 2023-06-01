@@ -9,7 +9,12 @@ package org.dspace.content;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -171,6 +176,10 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
                         metadataValueFromTemplate.getConfidence());
                 }
             }
+        }
+
+        if (!hasDateCreatedMetadataField(item)) {
+            addDateCreatedMetadata(context, item);
         }
 
         itemService.update(context, item);
@@ -364,6 +373,17 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
         return !authorizeService.isAdmin(context)
             && (submitter == null || (currentUser == null) || (!submitter.getID().equals(currentUser.getID())))
             && !authorizeService.authorizeActionBoolean(context, item, Constants.DELETE);
+    }
+
+    private boolean hasDateCreatedMetadataField(Item item) {
+        return item.getMetadata().stream()
+                   .anyMatch(metadataValue -> metadataValue.getMetadataField().toString().equals("dc_date_created"));
+    }
+
+    private void addDateCreatedMetadata(Context context, Item item) throws SQLException {
+        itemService.setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.created"),
+                                           context.getCurrentLocale().toString(),
+                                           new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
     }
 
 }
