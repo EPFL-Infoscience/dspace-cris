@@ -783,6 +783,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         if (item.isMetadataModified() || item.isModified()) {
             // Set the last modified date
             item.setLastModified(new Date());
+            setLastModifiedDateMetadata(context, item);
 
             itemDAO.save(context, item);
 
