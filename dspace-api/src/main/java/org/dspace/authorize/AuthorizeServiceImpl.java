@@ -48,6 +48,7 @@ import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -86,6 +87,8 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     private SearchService searchService;
     @Autowired(required = true)
     private List<RelationshipAuthorizer> relationshipAuthorizers;
+    @Autowired(required = true)
+    protected ConfigurationService configurationService;
 
 
     protected AuthorizeServiceImpl() {
@@ -1012,5 +1015,10 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     public boolean canHandleRelationship(Context context, Relationship relationship) {
         return canHandleRelationship(context, relationship.getRelationshipType(),
             relationship.getLeftItem(), relationship.getRightItem());
+    }
+
+    @Override
+    public boolean isCurator(Context context) throws SQLException {
+        return groupService.isMember(context, configurationService.getProperty("epfl.curators-group.name"));
     }
 }

@@ -11,9 +11,8 @@ package org.dspace.app.rest.security;
 import java.sql.SQLException;
 
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
-import org.dspace.eperson.service.GroupService;
-import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +23,12 @@ import org.springframework.stereotype.Component;
 public class GroupsSecurityBean {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupsSecurityBean.class);
+
     @Autowired
-    private GroupService groupService;
+    private AuthorizeService authorizeService;
 
     @Autowired
     private RequestService requestService;
-
-    @Autowired
-    private ConfigurationService configurationService;
 
     public boolean isCurator() {
 
@@ -39,7 +36,7 @@ public class GroupsSecurityBean {
             requestService.getCurrentRequest().getHttpServletRequest());
 
         try {
-            return groupService.isMember(context, configurationService.getProperty("epfl.curators-group.name"));
+            return authorizeService.isCurator(context);
         } catch (SQLException e) {
             logger.error("Unable to check authorization based on membership to curators group", e);
             return false;

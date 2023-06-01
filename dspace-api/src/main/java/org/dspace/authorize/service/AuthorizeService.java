@@ -657,4 +657,6 @@ public interface AuthorizeService {
      */
     boolean isAccountManager(Context context);
 
+    boolean isCurator(Context context) throws SQLException;
+
 }
