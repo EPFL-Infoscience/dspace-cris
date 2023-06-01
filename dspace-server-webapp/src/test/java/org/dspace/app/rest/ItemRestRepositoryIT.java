@@ -12,6 +12,7 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.OrcidQueueMatcher.matches;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
+import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataNotEmpty;
 import static org.dspace.builder.OrcidHistoryBuilder.createOrcidHistory;
 import static org.dspace.builder.OrcidQueueBuilder.createOrcidQueue;
 import static org.dspace.core.Constants.WRITE;
@@ -5595,4 +5596,52 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                .andExpect(jsonPath("$.metadata", matchMetadataDoesNotExist("dc.title")));
 
     }
+
+    @Test
+    public void testProvenanceVisibility() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Group curators = GroupBuilder.createGroup(context)
+            .withName("Curators")
+            .build();
+
+        EPerson curator = EPersonBuilder.createEPerson(context)
+            .withEmail("curator@example.com")
+            .withPassword(password)
+            .withGroupMembership(curators)
+            .withCanLogin(true)
+            .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Test Publication")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", matchMetadataNotEmpty("dc.description.provenance")));
+
+        getClient(getAuthToken(curator.getEmail(), password))
+            .perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", matchMetadataNotEmpty("dc.description.provenance")));
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+            .perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", matchMetadataDoesNotExist("dc.description.provenance")));
+
+    }
+
 }
