@@ -9,10 +9,12 @@ package org.dspace.content;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -381,7 +383,7 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
     private void addDateCreatedMetadata(Context context, Item item) throws SQLException {
         itemService.setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.created"),
                                            context.getCurrentLocale().toString(),
-                                           ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+                                           new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
     }
 
 }
