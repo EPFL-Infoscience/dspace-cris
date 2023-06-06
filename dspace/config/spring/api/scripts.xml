@@ -175,6 +175,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitTSVImportScript"/>
     </bean>
 
+    <bean id="items-import-from-s3" class="org.dspace.epfl.script.ItemsImportFromS3ScriptConfiguration" primary="true">
+        <property name="description" value="Import items from S3"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsImportFromS3Script"/>
+    </bean>
+
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
