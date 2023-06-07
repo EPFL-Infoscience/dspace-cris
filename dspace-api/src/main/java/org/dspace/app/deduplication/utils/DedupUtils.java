@@ -762,57 +762,6 @@ public class DedupUtils {
         return result;
     }
 
-    private DuplicateSignatureInfo findPotentialMatchByID(Context context, String signatureType, int resourceType,
-            UUID itemID) throws SearchServiceException, SQLException {
-        return findPotentialMatchByID(context, signatureType, null, resourceType, itemID);
-    }
-
-    private DuplicateSignatureInfo findPotentialMatchByID(Context context, String signatureType,
-        String groupChecksum, int resourceType, UUID itemID) throws SearchServiceException, SQLException {
-        if (StringUtils.isNotEmpty(signatureType)) {
-            if (!StringUtils.contains(signatureType, "_signature")) {
-                signatureType += "_signature";
-            }
-        }
-        SolrQuery solrQuery = new SolrQuery();
-
-        if (itemID != null) {
-            solrQuery.setQuery(SolrDedupServiceImpl.RESOURCE_IDS_FIELD + ":" + itemID);
-        }
-
-        solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_SIGNATURETYPE_FIELD + ":" + signatureType);
-        solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_RESOURCETYPE_FIELD + ":" + resourceType);
-        solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
-                + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription());
-
-        if (StringUtils.isNotBlank(groupChecksum)) {
-            solrQuery.addFilterQuery(SolrDedupServiceImpl.RESOURCE_SIGNATURE_FIELD + ":" + groupChecksum);
-        }
-
-        QueryResponse response = getDedupService().search(solrQuery);
-
-        SolrDocumentList solrDocumentList = response.getResults();
-
-        DuplicateSignatureInfo dsi = new DuplicateSignatureInfo(signatureType);
-        for (SolrDocument solrDocument : solrDocumentList) {
-
-            String signatureTypeString = (String) ((List) (solrDocument.getFieldValue(signatureType))).get(0);
-
-            dsi.setGroupChecksum(signatureTypeString);
-
-            List<String> ids = (List<String>) solrDocument.getFieldValue(SolrDedupServiceImpl.RESOURCE_IDS_FIELD);
-
-            for (String obj : ids) {
-                Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(obj));
-                if (!(dsi.getItems().contains(item))) {
-                    dsi.getItems().add(item);
-                }
-            }
-        }
-
-        return dsi;
-    }
-
     public DedupService getDedupService() {
         return dedupService;
     }
