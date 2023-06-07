@@ -288,7 +288,12 @@ public class DedupUtils {
         }
 
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-        List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();
+        List<DuplicateItemInfo> dupsInfo = new ArrayList<>();
+
+        if (checkIfTargetItemIsCorrection(context, targetItemID)) {
+            return dupsInfo;
+        }
+
         QueryResponse response = dedupService.search(findDuplicateBySignature);
         SolrDocumentList solrDocumentList = response.getResults();
         for (SolrDocument solrDocument : solrDocumentList) {
@@ -760,6 +765,16 @@ public class DedupUtils {
         }
 
         return result;
+    }
+
+    private boolean checkIfTargetItemIsCorrection(Context context, UUID targetItemID) throws SQLException {
+        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+        ItemCorrectionService itemCorrectionService =
+            new DSpace().getServiceManager()
+                        .getServiceByName(ItemCorrectionService.class.getName(), ItemCorrectionService.class);
+
+        Item item = itemService.find(context, targetItemID);
+        return itemCorrectionService.checkIfIsCorrectionItem(context, item);
     }
 
     public DedupService getDedupService() {
