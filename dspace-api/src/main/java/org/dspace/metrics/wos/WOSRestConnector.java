@@ -57,7 +57,6 @@ public class WOSRestConnector {
             httpGet.setHeader("X-ApiKey", apiKey);
             httpGet.setHeader("Accept", "application/json");
 
-            log.info("URL: " + httpGet.getURI());
             HttpResponse response = httpClient.execute(httpGet);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
