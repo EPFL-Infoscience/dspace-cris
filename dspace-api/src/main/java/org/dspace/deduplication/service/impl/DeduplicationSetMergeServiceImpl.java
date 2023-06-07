@@ -468,7 +468,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, setId);
         if (duplicateInfo != null) {
             for (Item item : duplicateInfo.getItems()) {
-                dedupUtils.rejectAdminDups(context, duplicateInfo, item.getID(), Constants.ITEM);
+                dedupUtils.rejectAdminDups(context, duplicateInfo, item.getID());
             }
         }
     }

@@ -69,7 +69,7 @@ public class DeduplicationSetRestController {
             throw new ResourceNotFoundException("Could not find item with id " + uuid);
         }
 
-        dedupUtils.rejectAdminDups(context, duplicateInfo, uuid, Constants.ITEM);
+        dedupUtils.rejectAdminDups(context, duplicateInfo, uuid);
 
         context.complete();
         response.setStatus(SC_NO_CONTENT);

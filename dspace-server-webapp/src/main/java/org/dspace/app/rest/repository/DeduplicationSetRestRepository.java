@@ -113,7 +113,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     protected void delete(Context context, String id) throws AuthorizeException {
-        DuplicateInfo duplicateInfo = null;
+        DuplicateInfo duplicateInfo;
         try {
             duplicateInfo = dedupUtils.findGroup(context, id);
             if (duplicateInfo == null) {
@@ -123,7 +123,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
             throw new RuntimeException("Could not find set with id: " + id, e);
         }
         try {
-            dedupUtils.rejectAdminDups(context, duplicateInfo, Constants.ITEM);
+            dedupUtils.rejectAdminDups(context, duplicateInfo);
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException("Something went wrong trying to delete set with id: " + id, e);
         }
