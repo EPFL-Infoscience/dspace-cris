@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mapping>
+
+    <item-xpath>/record</item-xpath>
+    
+    <metadata-fields>
+        <metadata-field>
+            <field>dc.title</field>
+            <xpath>./datafield[@tag = '245']/subfield[@code = 'a' or @code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>cris.legacyId</field>
+            <xpath>./controlfield[@tag = '001']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.version</field>
+            <xpath>./datafield[@tag = '251']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.version</field>
+            <xpath>./datafield[@tag = '251']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.publisher.place</field>
+            <xpath>./datafield[@tag = '260']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.publisher</field>
+            <xpath>./datafield[@tag = '260']/subfield[@code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.date.issued</field>
+            <xpath>./datafield[@tag = '260']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.size</field>
+            <xpath>./datafield[@tag = '300']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.format.extent</field>
+            <xpath>./datafield[@tag = '300']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.legacy.itemtype</field>
+            <xpath>./datafield[@tag = '336']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.datatype</field>
+            <xpath>./datafield[@tag = '336']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description</field>
+            <xpath>./datafield[@tag = '340' or @tag = '500']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.jury</field>
+            <xpath>./datafield[@tag = '502']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.abstract</field>
+            <xpath>./datafield[@tag = '520']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+    </metadata-fields>
+    
+</mapping>

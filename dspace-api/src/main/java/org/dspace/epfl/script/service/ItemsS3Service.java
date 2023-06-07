@@ -14,6 +14,8 @@ public interface ItemsS3Service {
 
     Stream<String> getAllItemsKeys();
 
+    Stream<String> getItemsKeys(Integer limit, String startAfter);
+
     InputStream getObject(String key);
 
 }

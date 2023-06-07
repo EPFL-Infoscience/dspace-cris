@@ -9,6 +9,7 @@ package org.dspace.epfl.client;
 
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.List;
 import javax.annotation.PostConstruct;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -17,6 +18,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.iterable.S3Objects;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 public class EpflItemsClientImpl implements EpflItemsClient {
 
@@ -52,6 +55,22 @@ public class EpflItemsClientImpl implements EpflItemsClient {
     }
 
     @Override
+    public List<S3ObjectSummary> getObjects(Integer limit, String startAfter) {
+
+        Assert.notNull(limit, "The limit is mandatory");
+
+        ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
+        listObjectsV2Request.setBucketName(getBucketName());
+        listObjectsV2Request.setMaxKeys(limit);
+
+        if (StringUtils.isNotBlank(startAfter)) {
+            listObjectsV2Request.setStartAfter(startAfter);
+        }
+
+        return s3Service.listObjectsV2(listObjectsV2Request).getObjectSummaries();
+    }
+
+    @Override
     public InputStream get(String key) {
         S3Object s3Object = s3Service.getObject(getBucketName(), key);
         return s3Object.getObjectContent().getDelegateStream();
@@ -71,18 +90,18 @@ public class EpflItemsClientImpl implements EpflItemsClient {
     }
 
     private String getBucketName() {
-        return configurationService.getProperty("epfl.publication-import.aws.bucket");
+        return configurationService.getProperty("epfl.items-import.aws.bucket");
     }
 
     private String getAwsAccessKey() {
-        return configurationService.getProperty("epfl.publication-import.aws.key");
+        return configurationService.getProperty("epfl.items-import.aws.key");
     }
 
     private String getAwsAccessRegion() {
-        return configurationService.getProperty("epfl.publication-import.aws.region");
+        return configurationService.getProperty("epfl.items-import.aws.region");
     }
 
     private String getAwsSecretKey() {
-        return configurationService.getProperty("epfl.publication-import.aws.secret-key");
+        return configurationService.getProperty("epfl.items-import.aws.secret-key");
     }
 }

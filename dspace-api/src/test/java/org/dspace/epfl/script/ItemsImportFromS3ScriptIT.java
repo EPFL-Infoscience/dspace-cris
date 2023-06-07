@@ -13,6 +13,7 @@ import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 
+import java.io.File;
 import java.sql.SQLException;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
@@ -44,7 +45,12 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
     @Test
     public void testPublicationsImport() throws Exception {
 
-        String[] args = new String[] { "items-import-from-s3", "-c", collection.getID().toString() };
+        File file = new File("items.xls");
+        file.deleteOnExit();
+
+        String[] args = new String[] { "items-import-from-s3", "-c", collection.getID().toString(),
+            "-l", "10", "-a", "100012.zip" };
+
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);

@@ -9,12 +9,15 @@ package org.dspace.epfl.client;
 
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.List;
 
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 public interface EpflItemsClient {
 
     Iterator<S3ObjectSummary> iterateObjects();
+
+    List<S3ObjectSummary> getObjects(Integer limit, String startAfter);
 
     InputStream get(String key);
 

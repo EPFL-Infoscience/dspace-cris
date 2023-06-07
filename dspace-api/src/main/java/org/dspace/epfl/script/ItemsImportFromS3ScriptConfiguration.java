@@ -44,6 +44,14 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("k").setType(String.class);
             options.getOption("k").setRequired(false);
 
+            options.addOption("l", "limit", true, "the number of items to download");
+            options.getOption("l").setType(Integer.class);
+            options.getOption("l").setRequired(false);
+
+            options.addOption("a", "after", true, "the key from which to start the download");
+            options.getOption("a").setType(String.class);
+            options.getOption("a").setRequired(false);
+
             super.options = options;
         }
         return options;

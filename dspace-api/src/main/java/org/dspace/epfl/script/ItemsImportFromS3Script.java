@@ -7,9 +7,12 @@
  */
 package org.dspace.epfl.script;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,15 +22,21 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
+import javax.xml.bind.JAXBContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.CollectionUtils;
@@ -47,10 +56,16 @@ import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.epfl.script.model.ItemsImportMapping;
+import org.dspace.epfl.script.reader.ItemsImportMetadataFieldReader;
 import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class ItemsImportFromS3Script
     extends DSpaceRunnable<ItemsImportFromS3ScriptConfiguration<ItemsImportFromS3Script>> {
@@ -58,16 +73,29 @@ public class ItemsImportFromS3Script
 
     private CollectionService collectionService;
 
+    private ConfigurationService configurationService;
+
     private BulkImportWorkbookBuilder workbookBuilder;
 
     private ItemsS3Service itemsS3Service;
-    
+
     private DocumentBuilder documentBuilder;
+
+
+    private Map<String, ItemsImportMetadataFieldReader> readers;
+
+    private ItemsImportMapping mapping;
+
+    private XPath xPath;
 
 
     private Context context;
 
     private String collectionId;
+
+    private Integer limit;
+
+    private String startAfter;
 
     private List<String> keys = new ArrayList<>();
 
@@ -79,11 +107,17 @@ public class ItemsImportFromS3Script
     @Override
     public void setup() throws ParseException {
 
+        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.collectionService = ContentServiceFactory.getInstance().getCollectionService();
         this.workbookBuilder = new DSpace().getServiceManager()
             .getServicesByType(BulkImportWorkbookBuilder.class).get(0);
         this.itemsS3Service = new DSpace().getServiceManager()
             .getServicesByType(ItemsS3Service.class).get(0);
+
+        readers = new DSpace().getServiceManager().getServicesByType(ItemsImportMetadataFieldReader.class)
+            .stream().collect(toMap(ItemsImportMetadataFieldReader::getReaderName, Function.identity()));
+
+        mapping = parseMapping();
 
         try {
             this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -91,11 +125,19 @@ public class ItemsImportFromS3Script
             throw new RuntimeException(e);
         }
 
+        xPath = XPathFactory.newInstance().newXPath();
+
         collectionId = commandLine.getOptionValue('c');
-        
+
         if (commandLine.hasOption('k')) {
             keys = Arrays.asList(commandLine.getOptionValues('k'));
         }
+
+        if (commandLine.hasOption('l')) {
+            limit = Integer.valueOf(commandLine.getOptionValue('l'));
+        }
+
+        startAfter = commandLine.getOptionValue('a');
 
     }
 
@@ -152,6 +194,10 @@ public class ItemsImportFromS3Script
             return keys.stream();
         }
 
+        if (limit != null) {
+            return itemsS3Service.getItemsKeys(limit, startAfter);
+        }
+
         return itemsS3Service.getAllItemsKeys();
     }
 
@@ -169,7 +215,7 @@ public class ItemsImportFromS3Script
     }
 
     private ItemDTO parseZip(String key, InputStream data) throws Exception {
-        
+
         File tempFile = createTempFile(key, data);
 
         try {
@@ -178,7 +224,7 @@ public class ItemsImportFromS3Script
         } finally {
             tempFile.delete();
         }
-        
+
     }
 
     private File createTempFile(String key, InputStream data) {
@@ -213,12 +259,54 @@ public class ItemsImportFromS3Script
             throw new IllegalStateException("No metadata read from entry with key " + key);
         }
 
-        return new ItemDTO("LEGACY-ID::" + id, metadataValues, bitstreams);
+        String legacyId = getCrisLegacyId(metadataValues)
+            .orElse(id);
+
+        return new ItemDTO("LEGACY-ID::" + legacyId, metadataValues, bitstreams);
+    }
+
+    private Optional<String> getCrisLegacyId(List<MetadataValueDTO> metadataValues) {
+        return metadataValues.stream()
+            .filter(metadata -> metadata.getMetadataField().equals("cris.legacyId"))
+            .map(MetadataValueDTO::getValue)
+            .findFirst();
     }
 
     private List<? extends MetadataValueDTO> readMetadata(InputStream metadataXml) throws Exception {
+
         Document document = documentBuilder.parse(metadataXml);
-        return null;
+
+        Node record = getNode(document, mapping.getItemXPath());
+
+        return getMetadataValues(record);
+
+    }
+
+    private List<MetadataValueDTO> getMetadataValues(Node node) throws Exception {
+
+        List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
+
+        for (ItemsImportMapping.MetadataField metadataField : mapping.getMetadataFields().getMetadataFields()) {
+
+            ItemsImportMetadataFieldReader reader = readers.get(metadataField.getReader());
+
+            NodeList nodeList = getNodeList(node, metadataField.getXPath());
+
+            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
+
+            metadataValues.addAll(values);
+        }
+
+        metadataValues.forEach(System.out::println);
+
+        System.out.println("---------------------------");
+
+        return metadataValues;
+
+    }
+
+    private NodeList getNodeList(Object item, String expression) throws XPathExpressionException {
+        return (NodeList) xPath.compile(expression).evaluate(item, XPathConstants.NODESET);
     }
 
     private ZipFile parseZip(File file) throws Exception {
@@ -226,10 +314,37 @@ public class ItemsImportFromS3Script
     }
 
     private void writeWorkbook(Workbook workbook) throws IOException, SQLException, AuthorizeException {
+        context.setMode(Mode.READ_WRITE);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         workbook.write(bos);
         InputStream is = new ByteArrayInputStream(bos.toByteArray());
-        handler.writeFilestream(context, "orgUnits.xls", is, "application/vnd.ms-excel", false);
+        handler.writeFilestream(context, "items.xls", is, "application/vnd.ms-excel", false);
+    }
+
+    private Node getNode(Object item, String expression) throws XPathExpressionException {
+        return (Node) xPath.compile(expression).evaluate(item, XPathConstants.NODE);
+    }
+
+    private ItemsImportMapping parseMapping() {
+
+        String config = configurationService
+            .getProperty("epfl.items-import.mapping-configuration.path");
+
+        if (StringUtils.isBlank(config)) {
+            throw new IllegalArgumentException("No import mapping configuration defined");
+        }
+
+        if (!new File(config).exists()) {
+            throw new IllegalStateException("No mapping file present for the import configuration");
+        }
+
+        try (FileReader mappingReader = new FileReader(config)) {
+            JAXBContext jaxbContext = JAXBContext.newInstance(ItemsImportMapping.class);
+            return (ItemsImportMapping) jaxbContext.createUnmarshaller().unmarshal(mappingReader);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+
     }
 
     private Collection getCollection() {

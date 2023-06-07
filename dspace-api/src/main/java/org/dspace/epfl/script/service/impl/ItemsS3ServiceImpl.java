@@ -32,6 +32,12 @@ public class ItemsS3ServiceImpl implements ItemsS3Service {
     }
 
     @Override
+    public Stream<String> getItemsKeys(Integer limit, String startAfter) {
+        return itemsClient.getObjects(limit, startAfter).stream()
+            .map(S3ObjectSummary::getKey);
+    }
+
+    @Override
     public InputStream getObject(String key) {
         return itemsClient.get(key);
     }
