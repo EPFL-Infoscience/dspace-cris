@@ -48,8 +48,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         File file = new File("items.xls");
         file.deleteOnExit();
 
-        String[] args = new String[] { "items-import-from-s3", "-c", collection.getID().toString(),
-            "-l", "10", "-a", "100012.zip" };
+        String[] args = new String[] { "items-import-from-s3", "-c", collection.getID().toString() };
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 

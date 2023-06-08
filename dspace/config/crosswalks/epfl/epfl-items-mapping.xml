@@ -5,12 +5,42 @@
     
     <metadata-fields>
         <metadata-field>
-            <field>dc.title</field>
-            <xpath>./datafield[@tag = '245']/subfield[@code = 'a' or @code = 'b']</xpath>
-        </metadata-field>
-        <metadata-field>
             <field>cris.legacyId</field>
             <xpath>./controlfield[@tag = '001']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.identifier.patentno</field>
+            <xpath>./datafield[@tag = '013']</xpath>
+            <reader>patentNumber</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.isbn</field>
+            <xpath>./datafield[@tag = '021']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.issn</field>
+            <xpath>./datafield[@tag = '022']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.identifier</field>
+            <xpath>./datafield[@tag = '024' and @ind1 = '7' and @ind2 = ' ']</xpath>
+            <reader>identifier</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.legacy.submissionform</field>
+            <xpath>./datafield[@tag = '037']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.language.iso</field>
+            <xpath>./datafield[@tag = '041']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.number</field>
+            <xpath>./datafield[@tag = '088']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.title</field>
+            <xpath>./datafield[@tag = '245']/subfield[@code = 'a' or @code = 'b']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.description.version</field>
@@ -59,6 +89,56 @@
         <metadata-field>
             <field>dc.description.abstract</field>
             <xpath>./datafield[@tag = '520']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.rights.accessRights</field>
+            <xpath>./datafield[@tag = '542']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.award</field>
+            <xpath>./datafield[@tag = '586']</xpath>
+            <reader>award</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.subject</field>
+            <xpath>./datafield[@tag = '650']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor.author</field>
+            <xpath>./datafield[@tag = '700']</xpath>
+            <reader>author</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.faculty</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.section</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.institute</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.doctoralSchool</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'd']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.originalUnit</field>
+            <xpath>./datafield[@tag = '919']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.publicDefenseYear</field>
+            <xpath>./datafield[@tag = '920']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.date.accepted</field>
+            <xpath>./datafield[@tag = '920']/subfield[@code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.curator.email</field>
+            <xpath>./datafield[@tag = '961']/subfield[@code = 'a']</xpath>
         </metadata-field>
     </metadata-fields>
     

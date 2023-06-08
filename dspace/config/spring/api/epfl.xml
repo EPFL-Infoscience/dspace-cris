@@ -23,4 +23,51 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportSimpleReader" />
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportIdentifierReader">
+        <property name="qualifierXPath" value="./subfield[@code = '2']"/>
+        <property name="valueXPath" value="./subfield[@code = 'a']"/>
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="patentNumber" />
+        <property name="metadataFieldsPaths">
+            <util:map>
+                <entry key="dc.identifier.patentno" value="./subfield[@code = 'a']"/>
+                <entry key="oairecerif.patent.country" value="./subfield[@code = 'b']"/>
+                <entry key="epfl.patent.kindcode" value="./subfield[@code = 'c']"/>
+                <entry key="dc.date.issued" value="./subfield[@code = 'd']"/>
+            </util:map>
+        </property>
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="award" />
+        <property name="metadataFieldsPaths">
+            <util:map>
+                <entry key="epfl.award" value="./subfield[@code = 'a']"/>
+                <entry key="epfl.award.year" value="./subfield[@code = 'b']"/>
+            </util:map>
+        </property>
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="author" />
+        <property name="metadataFieldsPaths">
+            <util:map>
+                <entry key="dc.contributor.author" value="./subfield[@code = 'a']"/>
+                <entry key="epfl.legacy.contributorauthnum" value="./subfield[@code = '0']"/>
+            </util:map>
+        </property>
+        <property name="authorityPaths">
+            <util:map>
+                <entry key="dc.contributor.author" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.author" value="will be generated::SCIPER-ID"/>
+            </util:map>
+        </property>
+    </bean>
+    
 </beans>

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -57,6 +58,7 @@ import org.dspace.core.Context.Mode;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.epfl.script.model.ItemsImportMapping;
+import org.dspace.epfl.script.model.ItemsImportMapping.MetadataField;
 import org.dspace.epfl.script.reader.ItemsImportMetadataFieldReader;
 import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.scripts.DSpaceRunnable;
@@ -338,13 +340,30 @@ public class ItemsImportFromS3Script
             throw new IllegalStateException("No mapping file present for the import configuration");
         }
 
+        ItemsImportMapping importMapping = readMappingConfiguration(config);
+        validateMapping(importMapping);
+        return importMapping;
+
+    }
+
+    private ItemsImportMapping readMappingConfiguration(String config) {
         try (FileReader mappingReader = new FileReader(config)) {
             JAXBContext jaxbContext = JAXBContext.newInstance(ItemsImportMapping.class);
             return (ItemsImportMapping) jaxbContext.createUnmarshaller().unmarshal(mappingReader);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
 
+    private void validateMapping(ItemsImportMapping importMapping) {
+        List<String> unknownReaders = importMapping.getMetadataFields().getMetadataFields().stream()
+            .map(MetadataField::getReader)
+            .filter(reader -> !readers.containsKey(reader))
+            .collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(unknownReaders)) {
+            throw new IllegalStateException("The following configured readers are not defined: " + unknownReaders);
+        }
     }
 
     private Collection getCollection() {
