@@ -43,7 +43,6 @@ public class ItemsImportIdentifierReader implements ItemsImportMetadataFieldRead
 
             metadataValues.add(new MetadataValueDTO(identifierField, value));
 
-
         }
 
         return metadataValues;

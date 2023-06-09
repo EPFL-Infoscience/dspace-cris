@@ -264,6 +264,8 @@ public class ItemsImportFromS3Script
         String legacyId = getCrisLegacyId(metadataValues)
             .orElse(id);
 
+        importedItemsCount++;
+
         return new ItemDTO("LEGACY-ID::" + legacyId, metadataValues, bitstreams);
     }
 

@@ -63,9 +63,69 @@
                 <entry key="dc.contributor.author" value="./subfield[@code = 'g']"/>
             </util:map>
         </property>
-        <property name="authorityPrefixes">
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="editor" />
+        <property name="metadataFieldsPaths">
             <util:map>
-                <entry key="dc.contributor.author" value="will be generated::SCIPER-ID"/>
+                <entry key="dc.contributor.editor" value="./subfield[@code = 'a']"/>
+                <entry key="epfl.legacy.contributorauthnum" value="./subfield[@code = '0']"/>
+            </util:map>
+        </property>
+        <property name="authorityPaths">
+            <util:map>
+                <entry key="dc.contributor.editor" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="advisor" />
+        <property name="metadataFieldsPaths">
+            <util:map>
+                <entry key="dc.contributor.advisor" value="./subfield[@code = 'a']"/>
+                <entry key="epfl.legacy.contributorauthnum" value="./subfield[@code = '0']"/>
+            </util:map>
+        </property>
+        <property name="authorityPaths">
+            <util:map>
+                <entry key="dc.contributor.advisor" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="scientificeditor" />
+        <property name="metadataFieldsPaths">
+            <util:map>
+                <entry key="dc.contributor.scientificeditor" value="./subfield[@code = 'a']"/>
+                <entry key="epfl.legacy.contributorauthnum" value="./subfield[@code = '0']"/>
+            </util:map>
+        </property>
+        <property name="authorityPaths">
+            <util:map>
+                <entry key="dc.contributor.scientificeditor" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="relatedPublication" />
+        <property name="metadataFieldsPaths">
+            <util:map>
+                <entry key="dc.relation.type" value="./subfield[@code = 'e']"/>
+                <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
+            </util:map>
+        </property>
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
+        <property name="readerName" value="relatedProduct" />
+        <property name="metadataFieldsPaths">
+            <util:map>
+                <entry key="dc.relation.type" value="./subfield[@code = '2']"/>
+                <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
     </bean>

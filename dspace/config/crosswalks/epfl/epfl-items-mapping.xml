@@ -109,6 +109,79 @@
             <reader>author</reader>
         </metadata-field>
         <metadata-field>
+            <field>dc.contributor</field>
+            <xpath>./datafield[@tag = '710']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.conference</field>
+            <xpath>./datafield[@tag = '711' and @ind1 = '7']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.conferencePlace</field>
+            <xpath>./datafield[@tag = '711' and @ind1 = '7']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.conferenceDate</field>
+            <xpath>./datafield[@tag = '711' and @ind1 = '7']/subfield[@code = 'd']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor.editor</field>
+            <xpath>./datafield[@tag = '720' and @ind2 = ' ']</xpath>
+            <reader>editor</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor.scientificeditor</field>
+            <xpath>./datafield[@tag = '720' and @ind2 = '1']</xpath>
+            <reader>scientificeditor</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor.advisor</field>
+            <xpath>./datafield[@tag = '720' and @ind2 = '2']</xpath>
+            <reader>advisor</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.identifier.standardno</field>
+            <xpath>./datafield[@tag = '740']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.part.name</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'e']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.part.number</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'f']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.volume</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'j']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.issue</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'k']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.startPage</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'q']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.part.section</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 's']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.publication</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.publication</field>
+            <xpath>./datafield[@tag = '787']</xpath>
+            <reader>relatedPublication</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.publication</field>
+            <xpath>./datafield[@tag = '790']</xpath>
+            <reader>relatedProduct</reader>
+        </metadata-field>
+        <metadata-field>
             <field>epfl.thesis.faculty</field>
             <xpath>./datafield[@tag = '918']/subfield[@code = 'a']</xpath>
         </metadata-field>

@@ -81,7 +81,7 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
             return Optional.empty();
         }
 
-        String prefix = authorityPrefixes.getOrDefault(nestedMetadataField, AuthorityValueService.REFERENCE);
+        String prefix = authorityPrefixes.getOrDefault(nestedMetadataField, AuthorityValueService.GENERATE);
         if (!StringUtils.endsWith(prefix, AuthorityValueService.SPLIT)) {
             prefix = prefix + AuthorityValueService.SPLIT;
         }
