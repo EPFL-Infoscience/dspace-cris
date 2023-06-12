@@ -102,6 +102,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     private static final String SOLR_POSTFIX_YEAR = ".year";
     private static final MetadataFieldName METADATA_DATACITE_RIGHTS = new MetadataFieldName("datacite", "rights");
     private static final MetadataFieldName METADATA_DATACITE_AVAILABLE = new MetadataFieldName("datacite", "available");
+    private static final MetadataFieldName METADATA_EPFL_LICENSENAME = new MetadataFieldName("epfl", "licenseName");
     private static final MetadataFieldName METADATA_LICENSE_CONDITION =
         new MetadataFieldName("oaire", "licenseCondition");
 
@@ -174,7 +175,8 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
         Stream.of(
             Map.entry(METADATA_LICENSE_CONDITION.toString(), OAIRE_LICENSE_MAPPER),
             Map.entry(METADATA_DATACITE_RIGHTS.toString(), DATACITE_RIGHTS_MAPPER),
-            Map.entry(METADATA_DATACITE_AVAILABLE.toString(), DATACITE_AVAILABLE_MAPPER)
+            Map.entry(METADATA_DATACITE_AVAILABLE.toString(), DATACITE_AVAILABLE_MAPPER),
+            Map.entry(METADATA_EPFL_LICENSENAME.toString(), OAIRE_LICENSE_MAPPER)
         )
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
