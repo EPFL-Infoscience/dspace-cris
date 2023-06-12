@@ -7,6 +7,7 @@
  */
 package org.dspace.discovery;
 
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
@@ -115,6 +116,17 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
             }
         };
+    private static final BiFunction<SolrInputDocument, String, Consumer<String>> oaireSolrIndexAdder =
+        (document, fieldName) -> value -> {
+            if (!isValidURL(value)) {
+                Collection<Object> fieldValues = document.getFieldValues(fieldName);
+                if (fieldValues == null || !fieldValues.contains(value)) {
+                    addField(document, fieldName, value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                }
+            }
+        };
 
     private static final BiFunction<SolrInputDocument, String, Consumer<String>> simpleSolrIndexAdder =
         (document, fieldName) -> value -> {
@@ -156,7 +168,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     private static final SolrFieldMetadataMapper<String> OAIRE_LICENSE_MAPPER =
         new SolrFieldMetadataMapper<String>(
             SOLR_FIELD_NAME_FOR_OAIRE_LICENSE_CONDITION,
-            defaultSolrIndexAdder
+            oaireSolrIndexAdder
         );
 
     private static final SolrFieldMetadataMapper<String> DATACITE_RIGHTS_MAPPER =
@@ -291,4 +303,14 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
         StringUtils.equals(metadataFieldName.element, metadata.getElement()) &&
         StringUtils.equals(metadataFieldName.qualifier, metadata.getQualifier());
     }
+
+    public static boolean isValidURL(String url) {
+        try {
+            new URL(url).toURI();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
