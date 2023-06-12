@@ -941,17 +941,6 @@ it, please enter the types and the actual numbers or codes.</hint>
           <visibility>workflow</visibility>
         </field>
       </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>url</dc-element>
-          <label>Supplementary url(s)</label>
-          <input-type value-pairs-name="supplementary_external_urls">qualdrop_value</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
     </form>
     <form name="green">
       <row>
@@ -1531,6 +1520,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>Enter the name of the conference where the item has been presented, if any.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>url</dc-element>
+          <label>Supplementary url(s)</label>
+          <input-type value-pairs-name="supplementary_external_urls">qualdrop_value</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
         </field>
       </row>
       <row>
