@@ -304,7 +304,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
         StringUtils.equals(metadataFieldName.qualifier, metadata.getQualifier());
     }
 
-    public static boolean isValidURL(String url) {
+    private static boolean isValidURL(String url) {
         try {
             new URL(url).toURI();
             return true;
