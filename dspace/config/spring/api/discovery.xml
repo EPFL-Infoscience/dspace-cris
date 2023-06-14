@@ -2008,6 +2008,7 @@
                 <ref bean="searchFilterOrganizationAddressCountry"/>
                 <ref bean="searchFilterOrganizationAddressLocality"/>
                 <ref bean="searchFilterOrganizationFoundingDate"/>
+                <ref bean="searchFilterEpflOuActive"/>
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
@@ -2017,6 +2018,9 @@
                 <ref bean="searchFilterOrganizationAddressCountry"/>
                 <ref bean="searchFilterOrganizationAddressLocality"/>
                 <ref bean="searchFilterOrganizationFoundingDate"/>
+                <ref bean="searchFilterEpflOuDirector"/>
+                <ref bean="searchFilterTypes"/>
+                <ref bean="searchFilterEpflOuActive"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2704,6 +2708,30 @@
         <property name="metadataFields">
             <list>
                 <value>dc.title</value>
+            </list>
+        </property>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+
+    <bean id="searchFilterEpflOuTitle" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+        <property name="indexFieldName" value="ouTitle"/>
+        <property name="metadataFields">
+            <list>
+                <value>dc.title</value>
+                <value>epfl.orgUnit.alias</value>
+                <value>oairecerif.acronym</value>
+            </list>
+        </property>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+
+    <bean id="searchFilterEpflOuDirector" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+        <property name="indexFieldName" value="ouDirector"/>
+        <property name="metadataFields">
+            <list>
+                <value>crisou.director</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
@@ -4375,6 +4403,20 @@
         <property name="metadataFields">
             <list>
                 <value>epfl.sciper.active</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="2"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+
+    <bean id="searchFilterEpflOuActive" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="ouActive"/>
+        <property name="metadataFields">
+            <list>
+                <value>epfl.orgUnit.active</value>
             </list>
         </property>
         <property name="facetLimit" value="2"/>
