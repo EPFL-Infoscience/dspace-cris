@@ -1766,6 +1766,7 @@
                 <ref bean="searchFilterKnowsLanguage"/>
                 <ref bean="searchFilterPersonOrgUnit"/>
                 <ref bean="searchFilterBirthdate"/>
+                <ref bean="searchFilterEpflResearcherActive"/>
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
@@ -1773,11 +1774,14 @@
             <list>
                 <ref bean="searchFilterFamilyName"/>
                 <ref bean="searchFilterGivenName"/>
+                <ref bean="searchFilterName"/>
                 <ref bean="searchFilterJobtitle"/>
                 <ref bean="searchFilterKnowsLanguage"/>
                 <ref bean="searchFilterPersonOrgUnit"/>
                 <ref bean="searchFilterBirthdate"/>
                 <ref bean="searchFilterOrcid"/>
+                <ref bean="searchFilterPersonIdentifier"/>
+                <ref bean="searchFilterEpflResearcherActive"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3438,6 +3442,19 @@
         <property name="pageSize" value="10"/>
     </bean>
 
+    <bean id="searchFilterName" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+        <property name="indexFieldName" value="name"/>
+        <property name="metadataFields">
+            <list>
+                <value>person.familyName</value>
+                <value>person.givenName</value>
+                <value>crisrp.name.variant</value>
+            </list>
+        </property>
+        <property name="isOpenByDefault" value="false"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+
     <bean id="searchFilterIsOrgUnitOfPersonRelation" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
         <property name="indexFieldName" value="isOrgUnitOfPerson"/>
         <property name="metadataFields">
@@ -4268,6 +4285,19 @@
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
     </bean>
+    <bean id="searchFilterPersonIdentifier" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+        <property name="indexFieldName" value="personIdentifier"/>
+        <property name="metadataFields">
+            <list>
+                <value>person.identifier.orcid</value>
+                <value>person.identifier.scopus-author-id</value>
+                <value>person.identifier.rid</value>
+                <value>person.identifier.rid</value>
+            </list>
+        </property>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
     <bean id="searchFilterLegacyId" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
         <property name="indexFieldName" value="legacy-id"/>
         <property name="metadataFields">
@@ -4338,6 +4368,20 @@
         <property name="facetLimit" value="5"/>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
+    </bean>
+
+    <bean id="searchFilterEpflResearcherActive" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="researcherActive"/>
+        <property name="metadataFields">
+            <list>
+                <value>epfl.sciper.active</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="2"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
     </bean>
 
     <bean id="searchFilterFullText" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
