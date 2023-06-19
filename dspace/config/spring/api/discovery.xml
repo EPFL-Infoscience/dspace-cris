@@ -1647,17 +1647,8 @@
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterAuthor" />
-                <ref bean="searchFilterEditor" />
+                <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterOrgUnit" />
-                <ref bean="searchFilterSubject" />
-                <ref bean="searchFilterFunding" />
-                <ref bean="searchFilterContentInOriginalBundle"/>
-                <ref bean="searchFilterEntityType"/>
-                <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterDataciteRights" />
-                <ref bean="searchFilterDataciteAvailable" />
-                <ref bean="searchFilterFileType" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -1666,32 +1657,18 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTitle" />
-                <ref bean="searchFilterAuthor" />
-                <ref bean="searchFilterEditor" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
-                <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
-                <ref bean="searchFilterSubject" />
-                <ref bean="searchFilterFunding" />
-                <ref bean="searchFilterFunderName" />
-                <ref bean="searchFilterContentInOriginalBundle"/>
-                <ref bean="searchFilterFileNameInOriginalBundle" />
-                <ref bean="searchFilterFileDescriptionInOriginalBundle" />
-                <ref bean="searchFilterEntityType"/>
-                <ref bean="searchFilterJournal"/>
-                <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterDoi"/>
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterDataciteRights" />
-                <ref bean="searchFilterDataciteAvailable" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterFileType" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterAccessioned" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
                 <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterIdentifier"/>
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterSubject" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -4321,6 +4298,17 @@
                 <value>person.identifier.scopus-author-id</value>
                 <value>person.identifier.rid</value>
                 <value>person.identifier.rid</value>
+            </list>
+        </property>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+    <bean id="searchFilterFundingName" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+        <property name="indexFieldName" value="fundingname"/>
+        <property name="metadataFields">
+            <list>
+                <value>oairecerif.funder</value>
+                <value>oairecerif.funding.identifier</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
