@@ -1739,26 +1739,19 @@
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterJobtitle"/>
-                <ref bean="searchFilterKnowsLanguage"/>
                 <ref bean="searchFilterPersonOrgUnit"/>
-                <ref bean="searchFilterBirthdate"/>
                 <ref bean="searchFilterEpflResearcherActive"/>
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
-                <ref bean="searchFilterFamilyName"/>
-                <ref bean="searchFilterGivenName"/>
-                <ref bean="searchFilterName"/>
-                <ref bean="searchFilterJobtitle"/>
-                <ref bean="searchFilterKnowsLanguage"/>
-                <ref bean="searchFilterPersonOrgUnit"/>
-                <ref bean="searchFilterBirthdate"/>
-                <ref bean="searchFilterOrcid"/>
-                <ref bean="searchFilterPersonIdentifier"/>
-                <ref bean="searchFilterEpflResearcherActive"/>
+                <ref bean="searchFilterName" />
+                <ref bean="searchFilterRole" />
+                <ref bean="searchFilterPersonOrgUnit" />
+                <ref bean="searchFilterPersonIdentifier" />
+                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterEpflResearcherActive" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -4309,6 +4302,16 @@
             <list>
                 <value>oairecerif.funder</value>
                 <value>oairecerif.funding.identifier</value>
+            </list>
+        </property>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+    <bean id="searchFilterRole" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+        <property name="indexFieldName" value="role"/>
+        <property name="metadataFields">
+            <list>
+                <value>oairecerif.affiliation.role</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
