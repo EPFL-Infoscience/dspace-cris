@@ -1975,21 +1975,16 @@
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterOrganizationAddressCountry"/>
-                <ref bean="searchFilterOrganizationAddressLocality"/>
-                <ref bean="searchFilterOrganizationFoundingDate"/>
                 <ref bean="searchFilterEpflOuActive"/>
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
-                <ref bean="searchFilterOrganizationLegalName"/>
-                <ref bean="searchFilterOrganizationAddressCountry"/>
-                <ref bean="searchFilterOrganizationAddressLocality"/>
-                <ref bean="searchFilterOrganizationFoundingDate"/>
-                <ref bean="searchFilterEpflOuDirector"/>
                 <ref bean="searchFilterTypes"/>
+                <ref bean="searchFilterEpflOuTitle"/>
+                <ref bean="searchFilterSubject"/>
+                <ref bean="searchFilterEpflOuDirector"/>
                 <ref bean="searchFilterEpflOuActive"/>
             </list>
         </property>
