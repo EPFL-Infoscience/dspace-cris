@@ -75,8 +75,6 @@ public class ProfileInitializer {
             Optional<String> sciper = getSciperId(eperson);
             if (sciper.isPresent()) {
                 initialize(context, eperson, sciper.get());
-            } else {
-                createPrivateProfile(context, eperson);
             }
 
         } finally {

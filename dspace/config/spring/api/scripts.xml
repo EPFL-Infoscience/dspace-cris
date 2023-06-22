@@ -175,6 +175,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitTSVImportScript"/>
     </bean>
 
+    <bean id="epfl-user-synchronization" class="org.dspace.epfl.script.sync.EpflUserSynchronizationScriptConfiguration" primary="true">
+        <property name="description" value="Import the OrgUnits present in the given TSV file"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.sync.EpflUserSynchronizationScript"/>
+    </bean>
+
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->

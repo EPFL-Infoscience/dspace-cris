@@ -8,7 +8,6 @@
 package org.dspace.epfl.service.impl;
 
 import static java.util.Optional.ofNullable;
-import static org.dspace.authority.service.AuthorityValueService.GENERATE;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 
@@ -208,7 +207,7 @@ public class PersonApiServiceImpl implements PersonApiService {
         }
 
         return getPersonMetadataField("affiliation.authority")
-            .map(prefix -> isOrgUnitActive(acronym) ? GENERATE + prefix : REFERENCE + prefix)
+            .map(prefix -> REFERENCE + prefix)
             .map(prefix -> prefix + acronym)
             .orElse(acronym);
     }
