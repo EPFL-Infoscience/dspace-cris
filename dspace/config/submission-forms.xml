@@ -585,6 +585,7 @@
           <label>Role</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
+          <readonly>all</readonly>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
@@ -596,6 +597,7 @@
           <label>Organisation name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
+          <readonly>all</readonly>
           <required>You must enter at least the organisation of your affiliation.</required>
           <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
@@ -607,6 +609,7 @@
           <label>Start Date</label>
           <input-type>date</input-type>
           <repeatable>false</repeatable>
+          <readonly>all</readonly>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
@@ -618,6 +621,7 @@
           <label>End Date</label>
           <input-type>date</input-type>
           <repeatable>false</repeatable>
+          <readonly>all</readonly>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
@@ -2156,6 +2160,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Main Affiliation</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
+          <readonly>all</readonly>
           <required />
           <hint />
         </field>
@@ -2276,6 +2281,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Affiliation(s)</label>
           <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
+          <readonly>all</readonly>
           <required />
           <hint />
         </field>
