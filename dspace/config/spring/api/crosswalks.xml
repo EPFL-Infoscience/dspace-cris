@@ -564,6 +564,7 @@
 		<constructor-arg>
 			<map>
 				<entry key="id" value-ref="virtualFieldId" />
+				<entry key="config" value-ref="virtualFieldConfigProps" />
 				<entry key="authority" value-ref="virtualFieldAuthority" />
 				<entry key="reftype" value-ref="virtualFieldRefererType" />
 				<entry key="authors" value-ref="virtualFieldAuthors" />
@@ -573,14 +574,17 @@
 				<entry key="personName" value-ref="virtualFieldPersonName" />
 				<entry key="date" value-ref="virtualFieldDateFormatter" />
 				<entry key="vocabulary" value-ref="virtualFieldVocabulary" />
-                <entry key="metric" value-ref="virtualFieldMetric" />
-                <entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
-                <entry key="citations" value-ref="virtualFieldCitations" />
+				<entry key="metric" value-ref="virtualFieldMetric" />
+				<entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
+				<entry key="citations" value-ref="virtualFieldCitations" />
 			</map>
 		</constructor-arg>
 	</bean>
 	
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldId" id="virtualFieldId"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldConfigProperties" id="virtualFieldConfigProps">
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+	</bean>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthority" id="virtualFieldAuthority"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldRefererType" id="virtualFieldRefererType"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthors" id="virtualFieldAuthors"/>
