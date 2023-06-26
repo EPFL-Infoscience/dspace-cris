@@ -160,8 +160,7 @@
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="epflPublicationsMarcXml">
 		<property name="templateFileName" value="crosswalks/template/epfl-publication-marc-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
-		<property name="fileName" value="publication.xml"/>
-		<property name="entityType" value="Publication"/>
+		<property name="fileName" value="publications.xml"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/epfl-publications-marc-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -563,6 +562,7 @@
 		<constructor-arg>
 			<map>
 				<entry key="id" value-ref="virtualFieldId" />
+				<entry key="config" value-ref="virtualFieldConfigProps" />
 				<entry key="authority" value-ref="virtualFieldAuthority" />
 				<entry key="reftype" value-ref="virtualFieldRefererType" />
 				<entry key="authors" value-ref="virtualFieldAuthors" />
@@ -572,14 +572,17 @@
 				<entry key="personName" value-ref="virtualFieldPersonName" />
 				<entry key="date" value-ref="virtualFieldDateFormatter" />
 				<entry key="vocabulary" value-ref="virtualFieldVocabulary" />
-                <entry key="metric" value-ref="virtualFieldMetric" />
-                <entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
-                <entry key="citations" value-ref="virtualFieldCitations" />
+				<entry key="metric" value-ref="virtualFieldMetric" />
+				<entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
+				<entry key="citations" value-ref="virtualFieldCitations" />
 			</map>
 		</constructor-arg>
 	</bean>
 	
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldId" id="virtualFieldId"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldConfigProperties" id="virtualFieldConfigProps">
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+	</bean>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthority" id="virtualFieldAuthority"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldRefererType" id="virtualFieldRefererType"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthors" id="virtualFieldAuthors"/>
