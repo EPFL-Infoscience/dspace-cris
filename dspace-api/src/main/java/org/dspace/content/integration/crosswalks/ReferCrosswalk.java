@@ -512,7 +512,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private boolean hasExpectedEntityType(Item item) {
         String itemEntityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
-        return Objects.equals(itemEntityType, entityType);
+        return StringUtils.isEmpty(entityType) || Objects.equals(itemEntityType, entityType);
     }
 
     private boolean isMemberOfGroupNamed(Context context, EPerson ePerson, String groupName) {
