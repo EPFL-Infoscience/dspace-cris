@@ -17,7 +17,8 @@
         </div>
         <div class="col-md-2 text-right mt-4 mt-md-0">
             <p class="infoscience_detailed_record_link">
-                <a href="@virtual.config.dspace-ui-url/items/@virtual.id@" class="btn btn-secondary btn-sm" target="_blank">Detailed record</a>
+                <a href="@virtual.config.dspace-ui-url@/items/
+@virtual.id@" class="btn btn-secondary btn-sm" target="_blank">Detailed record</a>
             </p>
             <p class="text-muted small mb-0">
                 <a class="text-muted" href="https://dx.doi.org/@dc.identifier.doi@" target="_blank">View at publisher</a>
