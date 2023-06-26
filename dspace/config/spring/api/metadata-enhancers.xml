@@ -41,6 +41,15 @@
         <value>dc.contributor.editor</value>
     </util:list>
 
+    <util:list id="peopleAffiliationSourceMetadata" value-type="java.lang.String">
+        <value>oairecerif.author.affiliation</value>
+        <value>oairecerif.editor.affiliation</value>
+    </util:list>
+
+    <util:list id="sponsorshipSourceMetadata" value-type="java.lang.String">
+        <value>dc.description.sponsorship</value>
+    </util:list>
+
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityGroupItemEnhancer" >
         <property name="sourceEntityType" value="Publication" />
         <property name="sourceItemMetadataField" ref="sourceItemRelatedEntityGroupItemEnhancer" />
@@ -75,6 +84,33 @@
         <property name="relatedItemMetadataField" value="person.identifier.orcid" />
         <property name="virtualQualifier" value="editor-orcid" />
     </bean>
-    
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" ref="sourceItemRelatedEntityGroupItemEnhancer" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="contributor-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataField" ref="sourceItemRelatedEntityGroupItemEnhancer" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="contributor-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" ref="peopleAffiliationSourceMetadata" />
+        <property name="relatedItemMetadataField" value="epfl.unit.code" />
+        <property name="virtualQualifier" value="contributor-unitId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" ref="sponsorshipSourceMetadata" />
+        <property name="relatedItemMetadataField" value="epfl.unit.code" />
+        <property name="virtualQualifier" value="sponsor-unitId" />
+    </bean>
 
 </beans>
