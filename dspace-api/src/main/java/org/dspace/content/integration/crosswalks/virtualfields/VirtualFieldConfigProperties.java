@@ -13,4 +13,7 @@ public class VirtualFieldConfigProperties implements VirtualField {
         return new String[] { configurationService.getProperty(fieldName.split("\\.")[2].replaceAll("-", ".")) };
     }
 
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 }

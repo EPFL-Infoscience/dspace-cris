@@ -46,30 +46,37 @@
         <subfield code="a">@dc.identifier.pmid@</subfield>
     </datafield>
     @group.dc-identifier-pmid.end@
-    @if.epfl-legacy-submission-form.start@
+    @if.metadata.epfl-legacy-submissionform.start@
     <datafield tag="037" ind1=" " ind2=" ">
-        <subfield code="a">@epfl.legacy.submission.form@</subfield>
+        <subfield code="a">@epfl.legacy.submissionform@</subfield>
     </datafield>
-    @if.epfl-legacy-submission-form.end@
+    @if.metadata.epfl-legacy-submissionform.end@
     @group.dc-date-created.start@
     <datafield tag="039" ind1=" " ind2="9">
         <subfield code="y">@dc.date.created@</subfield>
         <subfield code="a">@dc.date.modified@</subfield>
     </datafield>
     @group.dc-date-created.end@
+    @group.dc-language-iso.start@
     <datafield tag="041" ind1=" " ind2=" ">
         <subfield code="a">@dc.language.iso@</subfield>
     </datafield>
+    @group.dc-language-iso.end@
+    @group.epfl-thesis-number.start@
     <datafield tag="088" ind1=" " ind2=" ">
         <subfield code="a">@epfl.thesis.number@</subfield>
     </datafield>
+    @group.epfl-thesis-number.end@
+    @group.dc-title.start@
     <datafield tag="245" ind1=" " ind2=" ">
         <subfield code="a">@dc.title@</subfield>
-        <subfield code="b">@dc.title@</subfield>
     </datafield>
+    @group.dc-title.end@
+    @group.dc-description-version.start@
     <datafield tag="251" ind1=" " ind2=" ">
         <subfield code="a">@dc.description.version@</subfield>
     </datafield>
+    @group.dc-description-version.end@
     @group.dc-date-issued.start@
     <datafield tag="260" ind1=" " ind2=" ">
         <subfield code="a">@dc.publisher.place@</subfield>
@@ -127,7 +134,7 @@
     </datafield>
     @group.epfl-award.end@
     @group.dc-subject.start@
-    <datafield tag="650" ind1=" " ind2=" "
+    <datafield tag="650" ind1=" " ind2=" ">
         <subfield code="a">@dc.subject@</subfield>
     </datafield>
     @group.dc-subject.end@
@@ -138,7 +145,7 @@
     @group.dc-subject.end@
     @group.dc-contributor-author.start@
     <datafield tag="700" ind1=" " ind2=" ">
-        <subfield code="0">@epfl.legacy.contributor.authnum@</subfield>
+        <subfield code="0">@epfl.legacy.contributorauthnum@</subfield>
         <subfield code="a">@dc.contributor.author@</subfield>
     </datafield>
     @group.dc-contributor-author.end@
@@ -154,25 +161,27 @@
     @group.dc-relation-conference.end@
     @group.dc-contributor-editor.start@
     <datafield tag="720" ind1=" " ind2=" ">
-        <subfield code="0">@epfl.legacy.contributor.authno@</subfield>
+        <subfield code="0">@epfl.legacy.contributorauthno@</subfield>
         <subfield code="a">@dc.contributor.author@</subfield>
     </datafield>
     @group.dc-contributor-editor.end@
     @group.dc-contributor-scientificeditor.start@
     <datafield tag="720" ind1=" " ind2="1">
-        <subfield code="0">@epfl.legacy.contributor.authno@</subfield>
+        <subfield code="0">@epfl.legacy.contributorauthno@</subfield>
         <subfield code="a">@dc.contributor.scientificeditor@</subfield>
     </datafield>
     @group.dc-contributor-scientificeditor.end@
     @group.dc-contributor-advisor.start@
     <datafield tag="720" ind1=" " ind2="2">
-        <subfield code="0">@epfl.legacy.contributor.authno@</subfield>
+        <subfield code="0">@epfl.legacy.contributorauthno@</subfield>
         <subfield code="a">@dc.contributor.author@</subfield>
     </datafield>
     @group.dc-contributor-advisor.end@
+    @group.dc-identifier-stadardno.start@
     <datafield tag="740" ind1=" " ind2=" ">
         <subfield code="a">@dc.identifier.stadardno@</subfield>
     </datafield>
+    @group.dc-identifier-stadardno.end@
 
     @if.metadata.dc-relation-ispartof.start@
     <datafield tag="773" ind1=" " ind2=" ">
@@ -199,14 +208,16 @@
         <subfield code="w">@dc.relation.product@</subfield>
     </datafield>
     @if.metadata.dc-relation-product.end@
+    @if.metadata.epfl-lastmodified-email.start@
     <datafield tag="856" ind1="0" ind2=" ">
         <subfield code="f">@epfl.lastmodified.email@</subfield>
     </datafield>
+    @if.metadata.epfl-lastmodified-email.end@
     @group.bundle-original.start@
     <datafield tag="856" ind1="4" ind2=" ">
         <subfield code="0">@virtual.bitstreamData.original.metadata.dc-type@</subfield>
         <subfield code="s">@virtual.bitstreamData.original.data.sizeBytes@</subfield>
-        <subfield code="u">@virtual.config.dspace-server-url@/bitstreams/@virtual.bitstreamData.original.data.id@/download</subfield>
+        <subfield code="u">@virtual.bitstreamData.original.download-path@</subfield>
         <subfield code="e">@virtual.bitstreamData.original.metadata.datacite-rights@</subfield>
         <subfield code="1">@virtual.bitstreamData.original.metadata.oaire-licenseCondition@</subfield>
         <subfield code="y">@virtual.bitstreamData.original.metadata.dc-description@</subfield>
@@ -240,39 +251,53 @@
 		    <subfield code="0">@epfl.relation.orgunit@/@epfl.relation.rejectedOrgUnit@</subfield>
     </datafield>
 	  @group.epfl-relation-orgunit.end@
+	 @group.epfl-thesis-faculty.start@
     <datafield tag="918" ind1=" " ind2=" ">
 		    <subfield code="a">@epfl.thesis.faculty@</subfield>
 		    <subfield code="b">@epfl.thesis.section@</subfield>
 		    <subfield code="c">@epfl.thesis.institute@</subfield>
 		    <subfield code="d">@epfl.thesis.doctoralSchool@</subfield>
     </datafield>
+    @group.epfl-thesis-faculty.end@
     @group.epfl-thesis-originalUnit.start@
     <datafield tag="919" ind1=" " ind2=" ">
 		    <subfield code="a">@epfl.thesis.originalUnit@</subfield>
     </datafield>
-	  @group.epfl-thesis-originalUnit.end@
+	@group.epfl-thesis-originalUnit.end@
+	@group.epfl-thesis-publicDefenseYear.start@
     <datafield tag="920" ind1=" " ind2=" ">
 		    <subfield code="a">@epfl.thesis.publicDefenseYear@</subfield>
 		    <subfield code="b">@dc.date.accepted@</subfield>
     </datafield>
+	@group.epfl-thesis-publicDefenseYear.end@
+	@group.dc-audience.start@
     <datafield tag="954" ind1=" " ind2=" ">
 		    <subfield code="a">@dc.audience@</subfield>
     </datafield>
+	@group.dc-audience.end@
+	@group.epfl-curator-email.start@
     <datafield tag="961" ind1=" " ind2=" ">
 		    <subfield code="a">@epfl.curator.email@</subfield>
     </datafield>
+	@group.epfl-curator-email.end@
+	@group.epfl-writtenat.start@
     <datafield tag="973" ind1=" " ind2=" ">
 		    <subfield code="a">@epfl.writtenat@</subfield>
 		    <subfield code="r">@epfl.peerreviewed@</subfield>
 		    <subfield code="s">@oaire.version@</subfield>
     </datafield>
+	@group.epfl-writtenat.end@
+	@group.datacite-geoLocation.start@
     <datafield tag="975" ind1=" " ind2=" ">
 		    <subfield code="a">@datacite.geoLocation@</subfield>
     </datafield>
+	@group.datacite-geoLocation.end@
+	@group.dc-source.start@
     <datafield tag="980" ind1=" " ind2=" ">
 		    <subfield code="a">@dc.source@</subfield>
-		    <subfield code="b">@epfl.thesis.degree.level@</subfield>
+		    <subfield code="b">@epfl.thesis.degreelevel@</subfield>
     </datafield>
+	@group.dc-source.end@
     @group.epfl-relation-orgunit.start@
     <datafield tag="999" ind1="C" ind2="0">
 		    <subfield code="0">@epfl.relation.orgunit@/@epfl.relation.pendingOrgUnit@</subfield>
