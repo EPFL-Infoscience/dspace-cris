@@ -82,6 +82,17 @@
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>licenseName</dc-element>
+          <label>EPFL license</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="bitstream-metadata-product">
       <row>
@@ -128,6 +139,17 @@
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>licenseName</dc-element>
+          <label>EPFL license</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="bitstream-metadata-patent">
       <row>
@@ -169,6 +191,17 @@
           <dc-element>licenseCondition</dc-element>
           <label>License</label>
           <input-type value-pairs-name="licenses">opendropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>licenseName</dc-element>
+          <label>EPFL license</label>
+          <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -864,7 +897,7 @@
           <repeatable>true</repeatable>
           <required />
           <hint>If the item has any identification numbers or codes associated with
-it, please enter the types and the actual numbers or codes.</hint>
+            it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
       <row>
@@ -900,8 +933,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required>You must enter at least the year.</required>
           <hint>Please give the date of previous publication or public distribution.
-                        You can leave out the day and/or month if they aren't
-                        applicable.</hint>
+            You can leave out the day and/or month if they aren't
+            applicable.</hint>
         </field>
       </row>
       <row>
@@ -934,6 +967,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>workflow</dc-element>
           <dc-qualifier>approved</dc-qualifier>
           <label>Approved</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>lateReview</dc-qualifier>
+          <label>Review later</label>
           <input-type value-pairs-name="truefalse">list</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -1231,7 +1275,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
     </form>
-    
+
     <form name="publication_indexing">
       <row>
         <field>
@@ -1591,7 +1635,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>If the item has any identification numbers or codes associated with
-it, please enter the types and the actual numbers or codes.</hint>
+            it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
       <row>
@@ -1663,6 +1707,30 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required>You must select a product type</required>
           <hint>Select the type(s) of content of the item.</hint>
           <vocabulary>product-coar-types</vocabulary>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>approved</dc-qualifier>
+          <label>Approved</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>lateReview</dc-qualifier>
+          <label>Review later</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
         </field>
       </row>
     </form>
@@ -1948,6 +2016,30 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required>You must select a patent type</required>
           <hint>Select the type of content of the patent.</hint>
           <vocabulary>patent-coar-types</vocabulary>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>approved</dc-qualifier>
+          <label>Approved</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>lateReview</dc-qualifier>
+          <label>Review later</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
         </field>
       </row>
     </form>

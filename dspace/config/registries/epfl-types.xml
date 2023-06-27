@@ -56,6 +56,12 @@
         <element>workflow</element>
         <qualifier>approved</qualifier>
     </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>lateReview</qualifier>
+    </dc-type>
     
     <dc-type>
         <schema>epfl</schema>
@@ -97,6 +103,11 @@
         <schema>epfl</schema>
         <element>group</element>
         <qualifier>closed</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>licenseName</element>
     </dc-type>
 
 </dspace-dc-types>

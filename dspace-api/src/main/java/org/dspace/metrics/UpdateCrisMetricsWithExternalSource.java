@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -212,6 +213,11 @@ public class UpdateCrisMetricsWithExternalSource extends
             if (count == 20) {
                 context.commit();
                 count = 0;
+            }
+            try {
+                Thread.sleep((Math.abs(new Random().nextLong()) % 500) + 1000L);
+            } catch (InterruptedException e) {
+                log.warn(e.getMessage());
             }
         }
 

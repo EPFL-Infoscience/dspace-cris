@@ -27,11 +27,13 @@ public class WOSProvider {
     private WOSRestConnector wosRestConnector;
 
     public CrisMetricDTO getWOSObject(String id) {
+        log.debug("looking for wos metrics for DOI: " + id);
         String wosResponse = wosRestConnector.get(id);
         if (StringUtils.isNotBlank(wosResponse)) {
             return exstractMetricCount(wosResponse);
         }
-        log.error("The DOI : " + id + " is wrong!");
+        log.debug("WOS Response: " + wosResponse);
+        log.debug("The DOI : " + id + " is wrong!");
         return null;
     }
 
