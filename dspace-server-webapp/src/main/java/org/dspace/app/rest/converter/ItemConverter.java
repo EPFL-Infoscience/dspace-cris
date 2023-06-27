@@ -111,7 +111,8 @@ public class ItemConverter
             context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
         }
         try {
-            if (context != null && authorizeService.isAdmin(context, item)) {
+            if (context != null &&
+                (authorizeService.isAdmin(context, item) || item.getSubmitter().equals(context.getCurrentUser()))) {
                 EPerson submitter = item.getSubmitter();
                 if (submitter != null) {
                     itemRest.setSubmitterName(submitter.getFullName());
