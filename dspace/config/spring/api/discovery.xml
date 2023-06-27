@@ -3137,7 +3137,7 @@
                 <value>dc.date.created</value>
             </list>
         </property>
-        <property name="type" value="date"/>
+        <property name="type" value="datepicker"/>
         <property name="facetLimit" value="5"/>
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
