@@ -60,6 +60,8 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
 
     private CrosswalkMode crosswalkMode;
 
+    private String entityType;
+
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
         return dso.getType() == Constants.ITEM && isPublication((Item) dso);
@@ -130,7 +132,8 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
     }
 
     private boolean isPublication(Item item) {
-        return "Publication".equals(itemService.getEntityType(item));
+        return Optional.ofNullable(this.entityType).orElse("Publication")
+                       .equals(itemService.getEntityType(item));
     }
 
     public void setMimeType(String mimeType) {
@@ -159,7 +162,11 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
 
     @Override
     public Optional<String> getEntityType() {
-        return Optional.of("Publication");
+        return Optional.ofNullable(this.entityType).map(Optional::of)
+                           .orElse(Optional.of("Publication"));
     }
 
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
 }

@@ -10,15 +10,21 @@
 		<constructor-arg>
 			<map>
 				<entry key="bibtex" value-ref="cslItemDataCrosswalkBibtex"></entry>
-				<entry key="endnote" value-ref="referCrosswalkEndnote"></entry>
-				
+				<entry key="product-bibtex" value-ref="cslItemDataCrosswalkProductBibtex"></entry>
+				<entry key="patent-bibtex" value-ref="cslItemDataCrosswalkPatentBibtex"></entry>
+
+
+				<entry key="RIS (Endnote)" value-ref="referCrosswalkEndnote"></entry>
+				<entry key="RIS(Endnote)" value-ref="referCrosswalkEndnoteProduct"></entry>
+				<entry key="RIS  (Endnote)" value-ref="referCrosswalkEndnotePatent"></entry>
+
 				<entry key="publication-cerif-xml" value-ref="referCrosswalkPublicationCerifXml"></entry>
 				<entry key="publication-json" value-ref="cslItemDataCrosswalkJson"></entry>
 				<entry key="publication-pdf" value-ref="pdfCrosswalkPublication"></entry>
 				<entry key="publication-csv" value-ref="csvCrosswalkPublication"></entry>
 				<entry key="publication-xls" value-ref="xlsCrosswalkPublication"></entry>
-				<entry key="publication-apa" value-ref="cslItemDataCrosswalkApa"></entry>
-				<entry key="publication-chicago" value-ref="cslItemDataCrosswalkChicago"></entry>
+<!--				<entry key="publication-apa" value-ref="cslItemDataCrosswalkApa"></entry>-->
+<!--				<entry key="publication-chicago" value-ref="cslItemDataCrosswalkChicago"></entry>-->
 				<entry key="publication-datacite-xml" value-ref="referCrosswalkPublicationDataciteXml"></entry>
 
 				<entry key="person-xml" value-ref="referCrosswalkPersonXml"></entry>
@@ -60,10 +66,15 @@
 				<entry key="patent-pdf" value-ref="pdfCrosswalkPatent"></entry>
 				<entry key="patent-csv" value-ref="csvCrosswalkPatent"></entry>
 				<entry key="patent-xls" value-ref="xlsCrosswalkPatent"></entry>
+				<entry key="patent-datacite-xml" value-ref="referCrosswalkPatentDataciteXml"></entry>
 				
 				<entry key="product-cerif-xml" value-ref="referCrosswalkDatasetCerifXml"></entry>
 				<entry key="product-datacite-xml" value-ref="referCrosswalkDatasetDataciteXml"></entry>
-				
+				<entry key="product-json" value-ref="referCrosswalkProductJson"></entry>
+				<entry key="product-pdf" value-ref="pdfCrosswalkProduct"></entry>
+				<entry key="product-csv" value-ref="csvCrosswalkProduct"></entry>
+				<entry key="product-xls" value-ref="xlsCrosswalkProduct"></entry>
+
 				<entry key="event-cerif-xml" value-ref="referCrosswalkEventCerifXml"></entry>
 				
 				<entry key="collection-xls" value-ref="xlsCrosswalkCollection"></entry>
@@ -81,6 +92,25 @@
 		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
+		<property name="entityType" value="Publication"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkPatentBibtex">
+		<property name="style" value="bibtex.csl"/>
+		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="references.bib"/>
+		<property name="entityType" value="Patent"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkProductBibtex">
+		<property name="style" value="bibtex.csl"/>
+		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="references.bib"/>
+		<property name="entityType" value="Product"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 	
@@ -173,8 +203,24 @@
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnote">
 		<property name="templateFileName" value="crosswalks/template/endnote.template"/>
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
-		<property name="fileName" value="publication"/>
+		<property name="fileName" value="publication.ris"/>
 		<property name="entityType" value="Publication"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnoteProduct">
+		<property name="templateFileName" value="crosswalks/template/endnote.template"/>
+		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
+		<property name="fileName" value="product.ris"/>
+		<property name="entityType" value="Product"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnotePatent">
+		<property name="templateFileName" value="crosswalks/template/endnote.template"/>
+		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
+		<property name="fileName" value="patent.ris"/>
+		<property name="entityType" value="Patent"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 	
@@ -293,6 +339,17 @@
 		<property name="linesPostProcessor" ref="jsonPostProcessor" />
 	</bean>
 
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkProductJson">
+		<property name="templateFileName" value="crosswalks/template/product-json.template"/>
+		<property name="mimeType" value="application/json; charset=UTF-8"/>
+		<property name="fileName" value="product.json"/>
+		<property name="entityType" value="Product"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/products-json.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="jsonValueConverter" />
+		<property name="linesPostProcessor" ref="jsonPostProcessor" />
+	</bean>
+
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkDatasetCerifXml">
 		<property name="templateFileName" value="crosswalks/template/product-cerif-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
@@ -371,11 +428,28 @@
 		<property name="referCrosswalk" ref="referCrosswalkPublicationCerifXml"/>
 	</bean>
 
+	<bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkProduct">
+		<property name="templateFileName" value="crosswalks/template/product-template.xsl"/>
+		<property name="fileName" value="product.pdf"/>
+		<property name="mimeType" value="application/pdf"/>
+		<property name="entityType" value="Product"/>
+		<property name="referCrosswalk" ref="referCrosswalkDatasetCerifXml"/>
+	</bean>
+
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPublicationDataciteXml">
 		<property name="templateFileName" value="crosswalks/template/publication-datacite-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="datacite44.xml"/>
 		<property name="entityType" value="Publication"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
+		<property name="converter" ref="xmlValueConverter" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPatentDataciteXml">
+		<property name="templateFileName" value="crosswalks/template/patent-datacite-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="datacite44.xml"/>
+		<property name="entityType" value="Patent"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
 	</bean>
@@ -439,7 +513,14 @@
 		<property name="templateFileName" value="crosswalks/template/publication-table.template"/>
 		<property name="fileName" value="publications.csv"/>
 		<property name="entityType" value="Publication"/>
-		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkProduct">
+		<property name="templateFileName" value="crosswalks/template/product-table.template"/>
+		<property name="fileName" value="products.csv"/>
+		<property name="entityType" value="Product"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkPublication">
@@ -447,6 +528,14 @@
 		<property name="fileName" value="publications.xls"/>
 		<property name="sheetName" value="Publications"/>
 		<property name="entityType" value="Publication"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkProduct">
+		<property name="templateFileName" value="crosswalks/template/product-table.template"/>
+		<property name="fileName" value="products.xls"/>
+		<property name="sheetName" value="Products"/>
+		<property name="entityType" value="Product"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -514,7 +603,7 @@
 		<property name="templateFileName" value="crosswalks/template/patent-table.template"/>
 		<property name="fileName" value="patents.csv"/>
 		<property name="entityType" value="Patent"/>
-		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkPatent">
