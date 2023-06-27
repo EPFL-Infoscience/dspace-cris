@@ -15,7 +15,9 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -132,8 +134,11 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
     }
 
     private boolean isPublication(Item item) {
-        return Optional.ofNullable(this.entityType).orElse("Publication")
-                       .equals(itemService.getEntityType(item));
+        if (StringUtils.isBlank(this.entityType) || "all".equals(this.entityType)) {
+            return Stream.of("Publication", "Product", "Patent")
+                .anyMatch(s -> s.equals(itemService.getEntityType(item)));
+        }
+        return this.entityType.equals(itemService.getEntityType(item));
     }
 
     public void setMimeType(String mimeType) {
