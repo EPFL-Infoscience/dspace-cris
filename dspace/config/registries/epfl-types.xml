@@ -99,4 +99,9 @@
         <qualifier>closed</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>licenseName</element>
+    </dc-type>
+
 </dspace-dc-types>
