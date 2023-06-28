@@ -39,7 +39,7 @@ public class ResearcherProfileVisibleReplaceOperation extends PatchOperation<Res
     protected AuthorizeService authorizeService;
 
     /**
-     * Path in json body of patch that uses this operation.
+     * Path in json body of patch that uses this operation .
      */
     public static final String OPERATION_VISIBLE_CHANGE = "/visible";
 
