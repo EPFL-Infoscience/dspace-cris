@@ -9,7 +9,6 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.matcher.ItemAuthorityMatcher.matchItemAuthorityProperties;
 import static org.dspace.app.rest.matcher.ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations;
-import static org.dspace.authority.service.AuthorityValueService.GENERATE;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

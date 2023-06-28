@@ -8,9 +8,6 @@
 
 package org.dspace.content.authority;
 
-import static org.dspace.authority.service.AuthorityValueService.GENERATE;
-import static org.dspace.authority.service.AuthorityValueService.SPLIT;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
