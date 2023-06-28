@@ -9,10 +9,12 @@ package org.dspace.app.rest.repository.patch.operation;
 
 import java.sql.SQLException;
 
+import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
@@ -33,6 +35,8 @@ public class ResearcherProfileVisibleReplaceOperation extends PatchOperation<Res
 
     @Autowired
     private ResearcherProfileService researcherProfileService;
+    @Autowired(required = true)
+    protected AuthorizeService authorizeService;
 
     /**
      * Path in json body of patch that uses this operation.
@@ -42,7 +46,11 @@ public class ResearcherProfileVisibleReplaceOperation extends PatchOperation<Res
     @Override
     public ResearcherProfile perform(Context context, ResearcherProfile profile, Operation operation)
         throws SQLException {
-
+        if (!authorizeService.isAdmin(context)) {
+            throw new DSpaceBadRequestException(
+                "This operation is not supported."
+            );
+        }
         Object value = operation.getValue();
         if (value == null | !(value instanceof Boolean)) {
             throw new UnprocessableEntityException("The /visible value must be a boolean (true|false)");

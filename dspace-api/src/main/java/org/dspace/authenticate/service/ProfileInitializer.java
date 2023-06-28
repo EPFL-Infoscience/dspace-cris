@@ -76,7 +76,7 @@ public class ProfileInitializer {
             if (sciper.isPresent()) {
                 initialize(context, eperson, sciper.get());
             } else {
-                createPrivateProfile(context, eperson);
+                createPublicProfile(context, eperson);
             }
 
         } finally {
@@ -89,7 +89,7 @@ public class ProfileInitializer {
 
         ResearcherProfile researcherProfile = findProfile(context, eperson)
             .or(() -> findProfileBySciper(context, eperson, sciper))
-            .orElseGet(() -> createPrivateProfile(context, eperson));
+            .orElseGet(() -> createPublicProfile(context, eperson));
 
         personApiService.getPerson(sciper)
             .map(person -> sendEmailIfSomethingIsWrong(context, person))
@@ -172,11 +172,11 @@ public class ProfileInitializer {
         }
     }
 
-    private ResearcherProfile createPrivateProfile(Context context, EPerson eperson) {
+    private ResearcherProfile createPublicProfile(Context context, EPerson eperson) {
         try {
             ResearcherProfile profile = researcherProfileService.createAndReturn(context, eperson);
             if (profile.isVisible()) {
-                researcherProfileService.changeVisibility(context, profile, false);
+                researcherProfileService.changeVisibility(context, profile, true);
             }
             return profile;
         } catch (AuthorizeException | SQLException | SearchServiceException e) {
