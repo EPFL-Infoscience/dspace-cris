@@ -7,6 +7,8 @@
  */
 package org.dspace.importer.external.crossref;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,8 +84,8 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
 
     @Override
     public Collection<ImportRecord> getRecords(String query, int start, int count) throws MetadataSourceException {
-        String id = getID(query.toString());
-        return StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id))
+        String id = getID(query);
+        return StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id, count, start))
                                           : retry(new SearchByQueryCallable(query, count, start));
     }
 
@@ -194,20 +196,35 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             query.addParameter("id", id);
         }
 
+        private SearchByIdCallable(String id, Integer maxResult, Integer start) {
+            query = new Query();
+            query.addParameter("id", id);
+            query.addParameter("count", maxResult);
+            query.addParameter("start", start);
+        }
+
         @Override
         public List<ImportRecord> call() throws Exception {
             List<ImportRecord> results = new ArrayList<>();
-            String ID = URLDecoder.decode(query.getParameterAsClass("id", String.class), "UTF-8");
+            Integer count = query.getParameterAsClass("count", Integer.class);
+            Integer start = query.getParameterAsClass("start", Integer.class);
+
+            String ID = URLDecoder.decode(query.getParameterAsClass("id", String.class), UTF_8);
             String separator = ID.contains("filter=") ? "?" : "/";
             URIBuilder uriBuilder = new URIBuilder(url + separator + ID);
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
-            String responseString = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), params);
-            JsonNode jsonNode = convertStringJsonToJsonNode(responseString);
-            Iterator<JsonNode> nodes = jsonNode.at("/message/items").iterator();
-            while (nodes.hasNext()) {
-                JsonNode node = nodes.next();
-                results.add(transformSourceRecords(node.toString()));
+
+            if (Objects.nonNull(count)) {
+                uriBuilder.addParameter("rows", count.toString());
             }
+            if (Objects.nonNull(start)) {
+                uriBuilder.addParameter("offset", start.toString());
+            }
+
+            Map<String, Map<String, String>> params = new HashMap<>();
+            String response = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), params);
+            convertStringJsonToJsonNode(response)
+                .at("/message/items")
+                .forEach(node -> results.add(transformSourceRecords(node.toString())));
             return results;
         }
     }
