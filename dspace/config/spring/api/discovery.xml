@@ -1969,6 +1969,7 @@
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
+                <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterEpflOuActive"/>
             </list>
         </property>
