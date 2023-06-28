@@ -108,8 +108,8 @@ public class ItemChangeSubmitterController {
         Collection collection = (Collection) itemService.getParentObject(context, item);
 
         // returns forbidden if the collection is null or if the user is not the
-        // collection admin
-        if (!authorizeService.isAdmin(context, collection)) {
+        // collection admin and not the current submitter of the item
+        if (!authorizeService.isAdmin(context, collection) && !(item.getSubmitter().equals(context.getCurrentUser()))) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
