@@ -28,7 +28,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OrgUnitAuthorityIT extends AbstractControllerIntegrationTest {
+public class RorOrgUnitAuthorityIT extends AbstractControllerIntegrationTest {
 
     private Collection collection;
 
@@ -51,7 +51,7 @@ public class OrgUnitAuthorityIT extends AbstractControllerIntegrationTest {
                                      .param("filter", "windEurope"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                                rorOrgUnitEntry("WindEurope", GENERATE, "https://ror.org/00qkeey15"))))
+                                rorOrgUnitEntry("WindEurope", "ROR-ID:", "https://ror.org/00qkeey15"))))
                         .andExpect(jsonPath("$.page.size", Matchers.is(20)))
                         .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
                         .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
@@ -95,7 +95,7 @@ public class OrgUnitAuthorityIT extends AbstractControllerIntegrationTest {
     }
 
     private Matcher<? super Object> rorOrgUnitEntry(String title, String authorityPrefix, String rorId) {
-        String authority = authorityPrefix + "ROR-ID::" + rorId;
+        String authority = authorityPrefix + rorId;
         return matchItemAuthorityWithOtherInformations(authority, title, title, "vocabularyEntry", Map.of());
     }
 }

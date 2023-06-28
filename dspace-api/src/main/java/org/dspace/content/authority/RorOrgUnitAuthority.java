@@ -23,7 +23,7 @@ import org.dspace.ror.service.RORApiServiceImpl;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
-public class OrgUnitAuthority extends ItemAuthority {
+public class RorOrgUnitAuthority extends ItemAuthority {
 
     private final RORApiService rorApiService = dspace.getSingletonService(RORApiServiceImpl.class);
     private final ItemAuthorityServiceFactory itemAuthorityServiceFactory =
@@ -68,9 +68,10 @@ public class OrgUnitAuthority extends ItemAuthority {
         return new HashMap<>();
     }
 
+    //FIXME: currently we do not need to generate internal orgunit
     private String composeAuthorityValue(String rorId) {
-        String prefix = configurationService.getProperty("ror.authority.prefix", GENERATE + "ROR-ID" + SPLIT);
-        return prefix.endsWith(SPLIT) ? prefix + rorId : prefix + SPLIT + rorId;
+        String prefix = configurationService.getProperty("ror.authority.prefix", "ROR-ID:");
+        return prefix + rorId;
     }
 
     @Override

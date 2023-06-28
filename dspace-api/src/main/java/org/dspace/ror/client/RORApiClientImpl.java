@@ -22,6 +22,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -47,7 +48,7 @@ public class RORApiClientImpl implements RORApiClient {
 
     @Override
     public List<ROROrgUnitDTO> searchOrganizations(String text) {
-        HttpResponse response = performGetRequest(buildGetWithQueryExact(getRORApiUrl(), text.trim()));
+        RorResponse response = performGetRequest(buildGetWithQueryExact(getRORApiUrl(), text.trim()));
 
         if (isNotFound(response)) {
             return Collections.emptyList();
@@ -55,7 +56,7 @@ public class RORApiClientImpl implements RORApiClient {
 
         if (isNotSuccessful(response)) {
             String message = "ROR API request was not successful. "
-                + "Status: " + getStatusCode(response) + " - Content: " + getContent(response);
+                + "Status: " + response.getStatusCode() + " - Content: " + response.getContent();
             throw new RuntimeException(message);
         }
 
@@ -66,7 +67,7 @@ public class RORApiClientImpl implements RORApiClient {
 
     @Override
     public Optional<ROROrgUnitDTO> findOrganizationByRORId(String rorId) {
-        HttpResponse response = performGetRequest(buildGetWithRORId(getRORApiUrl(), rorId));
+        RorResponse response = performGetRequest(buildGetWithRORId(getRORApiUrl(), rorId));
 
         if (isNotFound(response)) {
             return Optional.empty();
@@ -74,7 +75,7 @@ public class RORApiClientImpl implements RORApiClient {
 
         if (isNotSuccessful(response)) {
             String message = "ROR API request was not successful. "
-                + "Status: " + getStatusCode(response) + " - Content: " + getContent(response);
+                + "Status: " + response.getStatusCode() + " - Content: " + response.getContent();
             throw new RuntimeException(message);
         }
 
@@ -83,9 +84,13 @@ public class RORApiClientImpl implements RORApiClient {
         return Optional.ofNullable(orgUnit);
     }
 
-    private HttpResponse performGetRequest(HttpUriRequest request) {
+    private RorResponse performGetRequest(HttpUriRequest request) {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            return httpClient.execute(request);
+            CloseableHttpResponse httpResponse = httpClient.execute(request);
+            int statusCode = getStatusCode(httpResponse);
+            HttpEntity entity = httpResponse.getEntity();
+            return new RorResponse(statusCode, getContent(httpResponse));
+//            return httpResponse;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -103,9 +108,9 @@ public class RORApiClientImpl implements RORApiClient {
         return get(url).addParameter("query", "\"" + value + "\"").setConfig(requestConfig).build();
     }
 
-    private <T> T parseResponse(HttpResponse response, Class<T> clazz) {
+    private <T> T parseResponse(RorResponse response, Class<T> clazz) {
         try {
-            return objectMapper.readValue(getContent(response), clazz);
+            return objectMapper.readValue(response.getContent(), clazz);
         } catch (UnsupportedOperationException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -120,13 +125,13 @@ public class RORApiClientImpl implements RORApiClient {
         }
     }
 
-    private boolean isNotSuccessful(HttpResponse response) {
-        int statusCode = getStatusCode(response);
+    private boolean isNotSuccessful(RorResponse response) {
+        int statusCode = response.getStatusCode();
         return statusCode < 200 || statusCode > 299;
     }
 
-    private boolean isNotFound(HttpResponse response) {
-        return getStatusCode(response) == HttpStatus.SC_NOT_FOUND;
+    private boolean isNotFound(RorResponse response) {
+        return response.getStatusCode() == HttpStatus.SC_NOT_FOUND;
     }
 
     private int getStatusCode(HttpResponse response) {
@@ -135,5 +140,24 @@ public class RORApiClientImpl implements RORApiClient {
 
     private String getRORApiUrl() {
         return configurationService.getProperty("ror.orgunit-import.api-url");
+    }
+
+    private static class RorResponse {
+        private final int statusCode;
+        private final String content;
+
+        public RorResponse(int statusCode, String content) {
+
+            this.statusCode = statusCode;
+            this.content = content;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public String getContent() {
+            return content;
+        }
     }
 }
