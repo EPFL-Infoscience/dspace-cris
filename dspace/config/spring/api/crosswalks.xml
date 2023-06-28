@@ -84,6 +84,11 @@
 				<entry key="epfl-publication" value-ref="epflPublicationsHtml"></entry>
 				<entry key="epfl-publications" value-ref="epflPublicationsHtml"></entry>
 				<entry key="epfl-publication-marc-xml" value-ref="epflPublicationsMarcXml"></entry>
+
+				<entry key="cerif-xml" value-ref="referCrosswalkCerifXml"></entry>
+				<entry key="json" value-ref="referCrosswalkJson"></entry>
+				<entry key="csv" value-ref="csvCrosswalk"></entry>
+				<entry key="xls" value-ref="xlsCrosswalk"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -187,6 +192,16 @@
 		<property name="entityType" value="Publication"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/publications-xml.template"/>
+		<property name="converter" ref="xmlValueConverter" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkCerifXml">
+		<property name="templateFileName" value="crosswalks/template/item-cerif-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="cerif.xml"/>
+		<property name="entityType" value="all"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/items-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
 	</bean>
 
@@ -348,6 +363,17 @@
 		<property name="fileName" value="product.json"/>
 		<property name="entityType" value="Product"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/products-json.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="jsonValueConverter" />
+		<property name="linesPostProcessor" ref="jsonPostProcessor" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkJson">
+		<property name="templateFileName" value="crosswalks/template/item-json.template"/>
+		<property name="mimeType" value="application/json; charset=UTF-8"/>
+		<property name="fileName" value="items.json"/>
+		<property name="entityType" value="all"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/items-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
 		<property name="linesPostProcessor" ref="jsonPostProcessor" />
@@ -527,6 +553,13 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
+	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalk">
+		<property name="templateFileName" value="crosswalks/template/item-table.template"/>
+		<property name="fileName" value="items.csv"/>
+		<property name="entityType" value="all"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
 	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkProduct">
 		<property name="templateFileName" value="crosswalks/template/product-table.template"/>
 		<property name="fileName" value="products.csv"/>
@@ -539,6 +572,14 @@
 		<property name="fileName" value="publications.xls"/>
 		<property name="sheetName" value="Publications"/>
 		<property name="entityType" value="Publication"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalk">
+		<property name="templateFileName" value="crosswalks/template/item-table.template"/>
+		<property name="fileName" value="items.xls"/>
+		<property name="sheetName" value="Items"/>
+		<property name="entityType" value="all"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 

@@ -10,5 +10,5 @@ URL = dc.identifier.uri
 Version = dc.description.version
 License = virtual.mapConverter.right2licenseUrl.oaire-licenseCondition
 Rights = virtual.mapConverter.right2conceptUrl.datacite-rights
-Description = @dc.description.abstract
-Other Description =  @dc.description@
+Description = dc.description.abstract
+Other Description =  dc.description
