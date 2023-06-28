@@ -110,4 +110,34 @@
         <element>licenseName</element>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>writtenAt</element>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>faculty</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>section</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>institute</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>doctoralSchool</qualifier>
+    </dc-type>
+
+
 </dspace-dc-types>

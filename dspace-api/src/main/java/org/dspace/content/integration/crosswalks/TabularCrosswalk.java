@@ -21,9 +21,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -327,8 +327,13 @@ public abstract class TabularCrosswalk implements ItemExportCrosswalk {
     }
 
     private boolean hasExpectedEntityType(Item item) {
-        String itemEntityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
-        return Objects.equals(itemEntityType, entityType);
+        if (StringUtils.isBlank(this.entityType) || "all".equals(this.entityType)) {
+            return Stream.of("Publication", "Product", "Patent")
+                         .anyMatch(s -> s.equals(itemService.getEntityType(item)));
+        }
+        return this.entityType.equals(itemService.getEntityType(item));
+//        String itemEntityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
+//        return Objects.equals(itemEntityType, entityType);
     }
 
     public void setTemplateFileName(String templateFileName) {
