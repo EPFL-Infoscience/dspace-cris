@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import javax.el.MethodNotFoundException;
@@ -175,8 +174,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             if (Objects.nonNull(start)) {
                 uriBuilder.addParameter("offset", start.toString());
             }
-            Map<String, Map<String, String>> params = new HashMap<>();
-            String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
+            String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
             convertStringJsonToJsonNode(response)
                 .at("/message/items")
                 .forEach(node -> results.add(transformSourceRecords(node.toString())));
@@ -227,8 +225,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
                 uriBuilder.addParameter("offset", start.toString());
             }
 
-            Map<String, Map<String, String>> params = new HashMap<>();
-            String response = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), params);
+            String response = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), new HashMap<>());
             convertStringJsonToJsonNode(response)
                 .at("/message/items")
                 .forEach(node -> results.add(transformSourceRecords(node.toString())));
@@ -279,8 +276,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             if (Objects.nonNull(bibliographics)) {
                 uriBuilder.addParameter("query.bibliographic", bibliographics);
             }
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
-            String resp = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
+            String resp = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
             convertStringJsonToJsonNode(resp)
                 .at("/message/items")
                 .forEach(node -> results.add(transformSourceRecords(node.toString())));
@@ -314,8 +310,8 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
         public Integer call() throws Exception {
             URIBuilder uriBuilder = new URIBuilder(url);
             uriBuilder.addParameter("query", query.getParameterAsClass("query", String.class));
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
-            String responseString = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
+            String responseString =
+                liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
             return convertStringJsonToJsonNode(responseString).at("/message/total-results").asInt();
         }
     }
@@ -339,11 +335,11 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
 
         @Override
         public Integer call() throws Exception {
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
             String id = query.getParameterAsClass("id", String.class);
             String separator = id.contains("filter=") ? "?" : "/";
             URIBuilder uriBuilder = new URIBuilder(url + separator + id);
-            String responseString = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
+            String responseString =
+                liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
             return convertStringJsonToJsonNode(responseString).at("/message/total-results").asInt();
         }
     }
