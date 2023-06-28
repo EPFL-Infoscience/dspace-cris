@@ -176,7 +176,7 @@
     </bean>
 
     <bean id="epfl-user-synchronization" class="org.dspace.epfl.script.sync.EpflUserSynchronizationScriptConfiguration" primary="true">
-        <property name="description" value="Import the OrgUnits present in the given TSV file"/>
+        <property name="description" value="Synchronize users at dSpace with epfl side. Optional query - CSV file in format: sciper,...,sciper"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.sync.EpflUserSynchronizationScript"/>
     </bean>
 
