@@ -96,7 +96,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
 
     /**
      * Save a List of ImportRecord into Solr.
-     * ImportRecord will be translate into a SolrDocument by the method translateImportRecordToSolrDocument.
+     * ImportRecord will be translated into a SolrDocument by the method translateImportRecordToSolrDocument.
      *
      * @param context the DSpace Context
      * @param researcher a DSpace Item
@@ -106,7 +106,17 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
     @Override
     public void importAuthorRecords(Context context, Item researcher)
             throws SolrServerException, IOException {
-        List<ExternalDataObject> metadata = getImportRecords(researcher);
+        saveRecordsInSolr(researcher, getImportRecords(researcher));
+    }
+
+    public void importAuthorRecords(Context context, Item researcher, String extraQuery)
+        throws SolrServerException, IOException {
+        saveRecordsInSolr(researcher, getImportRecords(researcher, extraQuery));
+    }
+
+    private void saveRecordsInSolr(Item researcher, List<ExternalDataObject> metadata)
+        throws SolrServerException, IOException {
+
         List<Suggestion> records = reduceAndTransform(researcher, metadata);
         for (Suggestion record : records) {
             solrSuggestionStorageService.addSuggestion(record, false, false);
@@ -164,8 +174,16 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         for (String searchValue : searchValues) {
             matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue, 0, 9999));
         }
-        List<ExternalDataObject> toReturn = removeDuplicates(matchingRecords);
-        return toReturn;
+        return removeDuplicates(matchingRecords);
+    }
+
+    private List<ExternalDataObject> getImportRecords(Item researcher, String extraQuery) {
+        List<String> searchValues = searchMetadataValues(researcher);
+        List<ExternalDataObject> matchingRecords = new ArrayList<>();
+        for (String searchValue : searchValues) {
+            matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue + extraQuery, 0, 9999));
+        }
+        return removeDuplicates(matchingRecords);
     }
 
     /**
