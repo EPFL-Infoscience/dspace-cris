@@ -33,7 +33,7 @@
 				<entry key="person-pdf" value-ref="pdfCrosswalkPerson"></entry>
 				<entry key="person-cv-pdf" value-ref="pdfCrosswalkPersonCv"></entry>
 				<entry key="person-rtf" value-ref="rtfCrosswalkPerson"></entry>
-				<entry key="person-docx" value-ref="docxCrosswalkPerson"></entry>
+				<entry key="person-doc" value-ref="docxCrosswalkPerson"></entry>
 				<entry key="person-csv" value-ref="csvCrosswalkPerson"></entry>
 				<entry key="person-xls" value-ref="xlsCrosswalkPerson"></entry>
 
@@ -425,7 +425,7 @@
 
 	<bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="docxCrosswalkPerson">
 		<property name="templateFileName" value="crosswalks/template/person-template.xsl"/>
-		<property name="fileName" value="person.docx"/>
+		<property name="fileName" value="person.doc"/>
 		<property name="mimeType" value="application/rtf"/>
 		<property name="entityType" value="Person"/>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
