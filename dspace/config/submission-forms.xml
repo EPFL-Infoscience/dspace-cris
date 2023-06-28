@@ -973,6 +973,17 @@
           <hint />
           <visibility>workflow</visibility>
         </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>lateReview</dc-qualifier>
+          <label>Review later</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
       </row>
       <row>
         <field>
@@ -1698,6 +1709,30 @@
           <vocabulary>product-coar-types</vocabulary>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>approved</dc-qualifier>
+          <label>Approved</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>lateReview</dc-qualifier>
+          <label>Review later</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+      </row>
     </form>
     <form name="product_indexing">
       <row>
@@ -1983,6 +2018,30 @@
           <vocabulary>patent-coar-types</vocabulary>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>approved</dc-qualifier>
+          <label>Approved</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>lateReview</dc-qualifier>
+          <label>Review later</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+      </row>
     </form>
     <form name="patent_indexing">
       <row>
@@ -2031,6 +2090,18 @@
           <repeatable>false</repeatable>
           <required />
           <hint>Enter the description of the patent.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>conference</dc-qualifier>
+          <label>Conference</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the name of the conference where the item has been presented, if any.</hint>
         </field>
       </row>
     </form>

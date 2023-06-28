@@ -56,6 +56,12 @@
         <element>workflow</element>
         <qualifier>approved</qualifier>
     </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>lateReview</qualifier>
+    </dc-type>
     
     <dc-type>
         <schema>epfl</schema>
