@@ -1641,8 +1641,13 @@
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -1663,6 +1668,9 @@
                 <ref bean="searchFilterIdentifier"/>
                 <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterOaireLicense" />
+                <ref bean="searchFilterSource" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
