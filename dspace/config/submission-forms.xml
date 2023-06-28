@@ -2092,6 +2092,18 @@
           <hint>Enter the description of the patent.</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>conference</dc-qualifier>
+          <label>Conference</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the name of the conference where the item has been presented, if any.</hint>
+        </field>
+      </row>
     </form>
     <form name="patent_references">
       <row>
