@@ -118,14 +118,25 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
         throw new MethodNotFoundException("This method is not implemented for CrossRef");
     }
 
-    public String getID(String id) {
+    public String getID(String query) {
+        StringBuilder idBuilder = new StringBuilder();
+
+        query = query.trim();
+        String id = query.split("\\s")[0];
+        String extraQuery = query.length() > id.length()
+            ? query.substring(id.length()).trim()
+            : null;
+
         if (DoiCheck.isDoi(id)) {
-            return "filter=doi:" + id;
+            idBuilder.append("filter=doi:").append(id);
         }
         if (OrcidCheck.isOrcid(id)) {
-            return "filter=orcid:" + id;
+            idBuilder.append("filter=orcid:").append(id);
         }
-        return StringUtils.EMPTY;
+        if (StringUtils.isNotEmpty(extraQuery)) {
+            idBuilder.append("&query=").append(extraQuery);
+        }
+        return idBuilder.toString();
     }
 
     /**
