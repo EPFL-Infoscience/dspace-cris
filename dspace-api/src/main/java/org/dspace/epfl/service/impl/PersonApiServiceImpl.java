@@ -8,10 +8,13 @@
 package org.dspace.epfl.service.impl;
 
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.collections.IteratorUtils.toList;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
+import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,14 +22,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.client.EpflApiClient.Language;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
+import org.dspace.profile.ResearcherProfile;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,6 +52,12 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private EPersonService ePersonService;
+
+    @Autowired
+    private ItemService itemService;
 
     @Override
     public List<PersonDTO> getPersons(String query) {
@@ -238,4 +254,57 @@ public class PersonApiServiceImpl implements PersonApiService {
             .orElseThrow(() -> new IllegalStateException("No Sciper metadata field configured"));
     }
 
+    public Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper) {
+
+        String sciperMetadataField = getSciperMetadataField();
+
+        List<Item> items = findArchivedByMetadataField(context, sciperMetadataField, sciper);
+        if (items.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (items.size() > 1) {
+            throw new IllegalStateException("Found many items with sciper " + sciper);
+        }
+
+        Item item = items.get(0);
+
+        EPerson owner = getOwner(context, item);
+
+        if (owner != null && !owner.equals(eperson)) {
+            throw new IllegalStateException("An item with the sciper " + sciper + " is already linked "
+                                                + "to another eperson: " + owner.getID());
+        }
+
+        setOwner(context, item, eperson);
+
+        return Optional.of(new ResearcherProfile(item));
+
+    }
+    private void setOwner(Context context, Item item, EPerson ePerson) {
+        try {
+            itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
+            itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(),
+                                    ePerson.getID().toString(), CF_ACCEPTED);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private EPerson getOwner(Context context, Item item) {
+        try {
+            return ePersonService.findByProfileItem(context, item);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Item> findArchivedByMetadataField(Context context, String sciperMetadataField, String sciper) {
+        try {
+            return toList(itemService.findArchivedByMetadataField(context, sciperMetadataField, sciper));
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

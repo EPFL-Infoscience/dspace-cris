@@ -8,14 +8,19 @@
 package org.dspace.authenticate.service;
 
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.collections.IteratorUtils.toList;
 import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 import static org.dspace.core.I18nUtil.getEmailFilename;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +28,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -30,7 +36,6 @@ import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.service.EPersonService;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
@@ -61,9 +66,6 @@ public class ProfileInitializer {
     private OrgUnitApiService orgUnitApiService;
 
     @Autowired
-    private EPersonService ePersonService;
-
-    @Autowired
     private ConfigurationService configurationService;
 
     public void initialize(Context context, EPerson eperson) {
@@ -73,9 +75,7 @@ public class ProfileInitializer {
         try {
 
             Optional<String> sciper = getSciperId(eperson);
-            if (sciper.isPresent()) {
-                initialize(context, eperson, sciper.get());
-            }
+            sciper.ifPresent(s -> initialize(context, eperson, s));
 
         } finally {
             context.restoreAuthSystemState();
@@ -86,13 +86,13 @@ public class ProfileInitializer {
     private void initialize(Context context, EPerson eperson, String sciper) {
 
         ResearcherProfile researcherProfile = findProfile(context, eperson)
-            .or(() -> findProfileBySciper(context, eperson, sciper))
+            .or(() -> personApiService.findProfileBySciper(context, eperson, sciper))
             .orElseGet(() -> createPrivateProfile(context, eperson));
 
         personApiService.getPerson(sciper)
             .map(person -> sendEmailIfSomethingIsWrong(context, person))
             .filter(this::isMainAffiliationActive)
-            .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem()));
+            .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(), eperson));
 
     }
 
@@ -115,63 +115,12 @@ public class ProfileInitializer {
         return person;
     }
 
-    private Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper) {
-
-        String sciperMetadataField = personApiService.getSciperMetadataField();
-
-        List<Item> items = findArchivedByMetadataField(context, sciperMetadataField, sciper);
-        if (items.isEmpty()) {
-            return Optional.empty();
-        }
-
-        if (items.size() > 1) {
-            throw new IllegalStateException("Found many items with sciper " + sciper);
-        }
-
-        Item item = items.get(0);
-
-        EPerson owner = getOwner(context, item);
-
-        if (owner != null && !owner.equals(eperson)) {
-            throw new IllegalStateException("An item with the sciper " + sciper + " is already linked "
-                + "to another eperson: " + owner.getID());
-        }
-
-        setOwner(context, item, eperson);
-
-        return Optional.of(new ResearcherProfile(item));
-
-    }
-
-    private void setOwner(Context context, Item item, EPerson ePerson) {
-        try {
-            itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
-            itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(),
-                ePerson.getID().toString(), CF_ACCEPTED);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private EPerson getOwner(Context context, Item item) {
-        try {
-            return ePersonService.findByProfileItem(context, item);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Item> findArchivedByMetadataField(Context context, String sciperMetadataField, String sciper) {
-        try {
-            return toList(itemService.findArchivedByMetadataField(context, sciperMetadataField, sciper));
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private ResearcherProfile createPrivateProfile(Context context, EPerson eperson) {
         try {
+            if (eperson.getEmail() == null) {
+                throw new RuntimeException("person does not have email");
+            }
             ResearcherProfile profile = researcherProfileService.createAndReturn(context, eperson);
             if (profile.isVisible()) {
                 researcherProfileService.changeVisibility(context, profile, false);
@@ -188,10 +137,10 @@ public class ProfileInitializer {
             .orElse(false);
     }
 
-    private void enrichProfile(Context context, PersonDTO person, Item item) {
+    private void enrichProfile(Context context, PersonDTO person, Item item, EPerson ePerson) {
 
         List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(person);
-        replaceMetadataValues(context, item, metadataValues);
+        replaceMetadataValues(context, item, metadataValues, person, ePerson);
 
         String sciper = person.getSciper();
 
@@ -226,9 +175,65 @@ public class ProfileInitializer {
         }
     }
 
-    private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues) {
+    private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues,
+                                       PersonDTO epflPerson, EPerson ePerson) {
+        List<String> ePersonUniqueAccredsNames = getAccredsAcronymsThatInEPersonButNotInEpflPerson(item, epflPerson);
         clearMetadataValues(context, item);
+        addEndDateToExpierdedAccreds(context, item, ePersonUniqueAccredsNames, ePerson);
         metadataValues.forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
+    }
+
+    private void addEndDateToExpierdedAccreds(Context context, Item item, List<String> ePersonUniqueAccredsNames,
+                                              EPerson ePerson) {
+        try {
+            itemService.clearMetadata(context, item, "oairecerif", "affiliation", "endDate", Item.ANY);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        ePersonUniqueAccredsNames.stream()
+                                 .map(name -> item.getMetadata()
+                                                  .stream()
+                                                  .filter(metadataValue -> metadataValue
+                                                      .getValue()
+                                                      .equals(name))
+                                                  .map(MetadataValue::getPlace)
+                                                  .collect(Collectors.toList()))
+                                 .flatMap(Collection::stream)
+                                 .forEach(place -> addEndDateMetadata(place, context, item, ePerson));
+    }
+
+    private void addEndDateMetadata(int place, Context context, Item item, EPerson ePerson) {
+        try {
+
+            itemService.addMetadata(context, item,
+                                    "oairecerif", "affiliation", "endDate",
+                                    null, getYesterday(),
+                                    ePerson.getID().toString(), CF_ACCEPTED, place);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private String getYesterday() {
+        final Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -1);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        return dateFormat.format(cal.getTime());
+    }
+    private List<String> getAccredsAcronymsThatInEPersonButNotInEpflPerson(Item item, PersonDTO epflPerson) {
+        List<String> ePersonAccredsAcronym = item.getMetadata().stream()
+                                                              .filter(metadataValue -> metadataValue
+                                                                  .getMetadataField()
+                                                                  .toString('.')
+                                                                  .equals("oairecerif.person.affiliation"))
+                                                              .map(metadataValue -> metadataValue.getAuthority()
+                                                                                                 .split("::")[2])
+                                                              .collect(Collectors.toList());
+
+        List<String> epflPersonAccredsAcronym = Arrays.stream(epflPerson.getAccreds()).map(PersonDTO.Accred::getAcronym)
+                                                      .collect(Collectors.toList());
+
+        ePersonAccredsAcronym.removeAll(epflPersonAccredsAcronym);
+        return ePersonAccredsAcronym;
     }
 
     private void addMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
@@ -242,8 +247,13 @@ public class ProfileInitializer {
     }
 
     private void clearMetadataValues(Context context, Item item) {
+        List<String> scipMetadata =
+            List.of("oairecerif_affiliation_role", "oairecerif_person_affiliation",
+                    "oairecerif_affiliation_startDate", "oairecerif_affiliation_endDate");
+
         personApiService.getMetadataFields()
-            .forEach(metadataField -> clearMetadataValues(context, item, metadataField));
+                        .stream().filter(field -> !scipMetadata.contains(field))
+                        .forEach(metadataField -> clearMetadataValues(context, item, metadataField));
     }
 
     private void clearMetadataValues(Context context, Item item, String metadataField) {

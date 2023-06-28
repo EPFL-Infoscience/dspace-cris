@@ -12,7 +12,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.epfl.client.model.PersonDTO;
+import org.dspace.profile.ResearcherProfile;
 
 public interface PersonApiService {
 
@@ -29,5 +32,7 @@ public interface PersonApiService {
     public String getSciperMetadataField();
 
     public List<String> getMetadataFields();
+
+    public Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper);
 
 }

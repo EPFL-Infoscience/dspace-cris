@@ -14,15 +14,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 
 import org.apache.commons.cli.ParseException;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.ItemServiceImpl;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.eperson.EPerson;
@@ -32,6 +37,10 @@ import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.script.parser.CSVParserImpl;
+import org.dspace.epfl.service.PersonApiService;
+import org.dspace.epfl.service.impl.PersonApiServiceImpl;
+import org.dspace.profile.ResearcherProfile;
+import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -47,10 +56,13 @@ public class EpflUserSynchronizationScript
     private int updatedPersonCount = 0;
 
     private Context context;
+    private ResearcherProfileService researcherProfileService;
     private EPersonServiceImpl ePersonService;
     private EpflApiClientImpl epflApiClient;
     private ProfileInitializer profileInitializer;
     private ConfigurationService configurationService;
+    private PersonApiService personApiService;
+    private ItemService itemService;
 
 
     @Override
@@ -70,7 +82,9 @@ public class EpflUserSynchronizationScript
                                                       EpflApiClientImpl.class);
         profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-
+        personApiService = new DSpace().getSingletonService(PersonApiServiceImpl.class);
+        researcherProfileService = new DSpace().getSingletonService(ResearcherProfileService.class);
+        itemService = new DSpace().getSingletonService(ItemServiceImpl.class);
         query = commandLine.getOptionValue('f');
 
         log = "";
@@ -103,7 +117,6 @@ public class EpflUserSynchronizationScript
                 Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper, EpflApiClient.Language.EN);
                 if (epflPerson.isPresent()) {
                     syncEPerson(epflPerson.get(), ePerson);
-                    updatedPersonCount++;
                 }
             }
         }
@@ -118,37 +131,84 @@ public class EpflUserSynchronizationScript
                 EPerson ePerson = ePersonService.findByNetid(context, epflPerson.getSciper() + "@epfl.ch");
                 if (ePerson == null) {
                     createAndSyncEPerson(epflPerson);
-                    createdPersonCount++;
                 } else {
                     syncEPerson(epflPerson, ePerson);
-                    updatedPersonCount++;
                 }
             }
         }
     }
 
     private void syncEPerson(PersonDTO epflPerson, EPerson ePerson) throws SQLException, AuthorizeException {
-        ePerson.setEmail(epflPerson.getEmail());
-        ePerson.setFirstName(context, epflPerson.getFirstname());
-        ePerson.setLastName(context, epflPerson.getName());
+        boolean needsToBEUpdated = false;
 
-        ePersonService.setMetadataSingleValue(context, ePerson,
-                                              "epfl", "synchronization",
-                                              "date", null,
-                                              new Timestamp(new Date().getTime()).toString());
-        ePersonService.update(context, ePerson);
-        if (epflPerson.getAccreds() != null && epflPerson.getAccreds().length != 0) {
-            profileInitializer.initialize(context, ePerson);
+        if (isValueNeedsToBeUpdated(ePerson.getEmail(), epflPerson.getEmail())) {
+            ePerson.setEmail(epflPerson.getEmail());
+            needsToBEUpdated = true;
+        }
+        if (isValueNeedsToBeUpdated(ePerson.getFirstName(), epflPerson.getFirstname())) {
+            ePerson.setFirstName(context, epflPerson.getFirstname());
+            needsToBEUpdated = true;
+        }
+        if (isValueNeedsToBeUpdated(ePerson.getLastName(), epflPerson.getName())) {
+            ePerson.setLastName(context, epflPerson.getName());
+            needsToBEUpdated = true;
         }
 
-        logInfo(
-            "Person with uuid: " + ePerson.getID() + ", sciperId: " + ePerson.getNetid() + " being verified");
+        if (isNeedToSyncAffiliations(ePerson, epflPerson)) {
+            if (epflPerson.getAccreds() != null && epflPerson.getAccreds().length != 0) {
+                personApiService.getMetadataValues(epflPerson);
+                profileInitializer.initialize(context, ePerson);
+                needsToBEUpdated = true;
+            }
+        }
+
+        if (needsToBEUpdated) {
+            ePersonService.setMetadataSingleValue(context, ePerson,
+                                                  "epfl", "synchronization",
+                                                  "date", null,
+                                                  new Timestamp(new Date().getTime()).toString());
+            ePersonService.update(context, ePerson);
+            updatedPersonCount++;
+            logInfo(
+                "Person with uuid: " + ePerson.getID() + ", sciperId: " + ePerson.getNetid() + " was updated");
+        } else {
+            logInfo(
+                "Person with uuid: " + ePerson.getID() + ", sciperId: " + ePerson.getNetid() +
+                    " does not need to be updated");
+        }
+    }
+
+    private boolean isValueNeedsToBeUpdated(String ePersonValue, String epflPersonValue) {
+        if (ePersonValue == null) {
+            return epflPersonValue != null;
+        }
+        return !ePersonValue.equals(epflPersonValue);
     }
 
     private void createAndSyncEPerson(PersonDTO epflPerson) throws SQLException, AuthorizeException {
+        if (epflPerson.getAccreds() == null || epflPerson.getAccreds().length == 0) {
+            logInfo(
+                "Person with sciperId " + epflPerson.getSciper() + " was not created: 0 accreds");
+            return;
+        }
         EPerson newEPerson = ePersonService.create(context);
+
         newEPerson.setNetid(epflPerson.getSciper() + "@epfl.ch");
-        syncEPerson(epflPerson, newEPerson);
+        newEPerson.setEmail(epflPerson.getEmail());
+        newEPerson.setFirstName(context, epflPerson.getFirstname());
+        newEPerson.setLastName(context, epflPerson.getName());
+
+        profileInitializer.initialize(context, newEPerson);
+
+        ePersonService.setMetadataSingleValue(context, newEPerson,
+                                              "epfl", "synchronization",
+                                              "date", null,
+                                              new Timestamp(new Date().getTime()).toString());
+        ePersonService.update(context, newEPerson);
+        createdPersonCount++;
+        logInfo(
+            "Person with uuid: " + newEPerson.getID() + ", sciperId: " + newEPerson.getNetid() + " was created");
+
     }
 
     private void finalLogging() {
@@ -199,6 +259,46 @@ public class EpflUserSynchronizationScript
         } catch (IOException | MessagingException e) {
             handler.logInfo("An error occurs sending the email related to the user synchronization " + e);
         }
+    }
+
+    private boolean isNeedToSyncAffiliations(EPerson ePerson, PersonDTO epflPerson) {
+        Optional<ResearcherProfile> researcherProfileOptional = profileInitializer
+            .findProfile(context, ePerson)
+            .or(() -> personApiService.findProfileBySciper(
+                context, ePerson,
+                epflPerson.getSciper()));
+        ResearcherProfile researcherProfile = null;
+
+        if (epflPerson.getMainAffiliation().isEmpty() && researcherProfileOptional.isEmpty()) {
+            return false;
+        }
+        if (researcherProfileOptional.isEmpty() ^ epflPerson.getMainAffiliation().isEmpty()) {
+            return true;
+        }
+        if (researcherProfileOptional.isPresent()) {
+            researcherProfile = researcherProfileOptional.get();
+        }
+        return isEPersonAndEpflPersonAccredsNotMatch(researcherProfile, epflPerson);
+    }
+
+    private boolean isEPersonAndEpflPersonAccredsNotMatch(ResearcherProfile researcherProfile,
+                                                          PersonDTO epflPerson) {
+
+        List<String> ePersonAccredsAcronym = researcherProfile.getItem().getMetadata().stream()
+                                                              .filter(metadataValue -> metadataValue
+                                                                  .getMetadataField()
+                                                                  .toString('.')
+                                                                  .equals("oairecerif.person.affiliation"))
+                                                              .map(metadataValue -> metadataValue.getAuthority()
+                                                                                                 .split("::")[2])
+                                                              .collect(Collectors.toList());
+
+        List<String> epflPersonAccredsAcronym = Arrays.stream(epflPerson.getAccreds()).map(PersonDTO.Accred::getAcronym)
+                                                      .collect(Collectors.toList());
+
+        Collections.sort(ePersonAccredsAcronym);
+        Collections.sort(epflPersonAccredsAcronym);
+        return !ePersonAccredsAcronym.equals(epflPersonAccredsAcronym);
     }
 
 }

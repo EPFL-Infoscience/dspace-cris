@@ -121,21 +121,21 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
             with("person.affiliation.name", "Laboratory of Sensing and Networking Systems",
-                "will be generated::ACRONYM::SENS", 400),
+                "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
             with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
-                "will be generated::ACRONYM::SENS", 400),
+                "will be referenced::ACRONYM::SENS", 400),
             with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            with("oairecerif.person.affiliation", "SSC - Teaching", "will be generated::ACRONYM::SSC-ENS", 1, 400),
+            with("oairecerif.person.affiliation", "SSC - Teaching", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
             with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            with("oairecerif.person.affiliation", "SIN - Teaching", "will be generated::ACRONYM::SIN-ENS", 2, 400),
+            with("oairecerif.person.affiliation", "SIN - Teaching", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
             with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -182,21 +182,21 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.email", "haitham.alhassanieh@epfl.ch"),
             with("person.birthDate", "1992-06-26"),
             with("person.affiliation.name", "Laboratory of Sensing and Networking Systems",
-                "will be generated::ACRONYM::SENS", 400),
+                "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
             with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
-                "will be generated::ACRONYM::SENS", 400),
+                "will be referenced::ACRONYM::SENS", 400),
             with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            with("oairecerif.person.affiliation", "SSC - Teaching", "will be generated::ACRONYM::SSC-ENS", 1, 400),
+            with("oairecerif.person.affiliation", "SSC - Teaching", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
             with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            with("oairecerif.person.affiliation", "SIN - Teaching", "will be generated::ACRONYM::SIN-ENS", 2, 400),
+            with("oairecerif.person.affiliation", "SIN - Teaching", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
             with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -234,7 +234,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(profile, is(person));
 
         person = context.reloadEntity(person);
-        assertThat(person.getMetadata(), hasSize(28));
+        assertThat(person.getMetadata(), hasSize(30));
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
@@ -288,7 +288,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(researcherProfile, notNullValue());
 
         Item profile = researcherProfile.getItem();
-        assertThat(profile.getMetadata(), hasSize(26));
+        assertThat(profile.getMetadata(), hasSize(28));
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
@@ -302,7 +302,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item updatedProfile = researcherProfile.getItem();
         assertThat(updatedProfile, is(profile));
 
-        assertThat(updatedProfile.getMetadata(), hasSize(26));
+        assertThat(updatedProfile.getMetadata(), hasSize(28));
 
         Bitstream newPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(newPicture, notNullValue());
