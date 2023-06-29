@@ -86,6 +86,34 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Person" />
+        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="relatedItemMetadataField" value="person.identifier.scopus-author-id" />
+        <property name="virtualQualifier" value="author-scopus" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Person" />
+        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
+        <property name="relatedItemMetadataField" value="person.identifier.scopus-author-id" />
+        <property name="virtualQualifier" value="editor-scopus" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Person" />
+        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="relatedItemMetadataField" value="person.identifier.rid" />
+        <property name="virtualQualifier" value="author-rid" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Person" />
+        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
+        <property name="relatedItemMetadataField" value="person.identifier.rid" />
+        <property name="virtualQualifier" value="author-rid" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Publication" />
         <property name="sourceItemMetadataField" ref="sourceItemRelatedEntityGroupItemEnhancer" />
         <property name="relatedItemMetadataField" value="epfl.sciperId" />
