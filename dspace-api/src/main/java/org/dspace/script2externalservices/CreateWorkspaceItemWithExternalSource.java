@@ -51,6 +51,8 @@ import org.dspace.discovery.DiscoverResultIterator;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexableWorkflowItem;
+import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -482,7 +484,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private Iterator<Item> findItemsInDSpace(Context context, String filter)
             throws SQLException, SearchServiceException {
         DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.setMaxResults(20);
         discoverQuery.addFilterQueries(filter);
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
