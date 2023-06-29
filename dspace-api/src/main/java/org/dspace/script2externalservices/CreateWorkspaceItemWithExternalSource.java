@@ -47,6 +47,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
+import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.discovery.DiscoverResultIterator;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.indexobject.IndexableCollection;
@@ -489,7 +490,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.setMaxResults(20);
         discoverQuery.addFilterQueries(filter);
-        return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
+        return new DiscoverResultItemIterator(context, discoverQuery);
     }
 
     private Iterator<Item> findItems() {
