@@ -72,6 +72,7 @@ public class ExternalSourceItemImportRunnable
     private String source;
     private String score;
     private String collectionId;
+    private String type;
     private String email;
     private String limit;
     private EPersonService ePersonService;
@@ -99,6 +100,7 @@ public class ExternalSourceItemImportRunnable
         source = commandLine.getOptionValue("p");
         score = commandLine.getOptionValue("s");
         collectionId = commandLine.getOptionValue("t");
+        type = commandLine.getOptionValue("ty");
         email = commandLine.getOptionValue("e");
         limit = commandLine.getOptionValue("l");
 
@@ -131,7 +133,7 @@ public class ExternalSourceItemImportRunnable
 
     private EPerson findEPerson() throws SQLException {
         EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-        String email = commandLine.getOptionValue('e');
+        String email = this.email;
         if (StringUtils.isNotBlank(email)) {
             EPerson byEmail = ePersonService.findByEmail(context, email);
             if (Objects.nonNull(byEmail)) {
@@ -168,7 +170,9 @@ public class ExternalSourceItemImportRunnable
         int pageSize = limit % 10 == 0 ? 10 : limit;
         int idx = pageSize;
 
-        suggestions = findAllUnprocessedSuggestionsBySourceAndScore(context, source, score, 0, pageSize);
+        suggestions = StringUtils.isEmpty(type)
+            ? findAllUnprocessedSuggestionsBySourceAndScore(context, source, score, 0, pageSize)
+            : findAllUnprocessedSuggestionsBySourceAndScoreAndType(context, source, score, type, 0, pageSize);
 
         while (!isEmpty(suggestions) && idx <= limit) {
             countRecordWorked = fillWorkspaceItems(context, suggestions);
@@ -176,8 +180,11 @@ public class ExternalSourceItemImportRunnable
             totalItemsNotProcessed += suggestions.size() - countRecordWorked;
             context.commit();
             idx += 10;
-            suggestions = findAllUnprocessedSuggestionsBySourceAndScore(context, source, score, totalItemsNotProcessed,
-                totalItemsNotProcessed + 10);
+            suggestions = StringUtils.isEmpty(type)
+                ? findAllUnprocessedSuggestionsBySourceAndScore(
+                    context, source, score, totalItemsNotProcessed, totalItemsNotProcessed + 10)
+                : findAllUnprocessedSuggestionsBySourceAndScoreAndType(
+                    context, source, score, type, totalItemsNotProcessed, totalItemsNotProcessed + 10);
         }
 
         handler.logInfo("Processed " + totalRecordWorked + " records");
@@ -250,6 +257,18 @@ public class ExternalSourceItemImportRunnable
         try {
             return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScore(context, source, score,
                 pageSize, offset, true);
+        } catch (SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndType(Context context, String source,
+                                                                                  String score, String type,
+                                                                                  long offset, int pageSize) {
+        try {
+            return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScoreAndType(
+                context, source, score, type, pageSize, offset, true
+            );
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }

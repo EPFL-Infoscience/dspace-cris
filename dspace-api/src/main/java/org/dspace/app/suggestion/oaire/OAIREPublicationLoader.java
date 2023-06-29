@@ -126,6 +126,8 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         suggestion.setDisplay(getFirstEntryByMetadatum(record, "dc", "title", null));
         suggestion.getMetadata().add(
                 new MetadataValueDTO("dc", "title", null, null, getFirstEntryByMetadatum(record, "dc", "title", null)));
+        suggestion.getMetadata().add(new MetadataValueDTO("dc", "type", null, null,
+                getFirstEntryByMetadatum(record, "dc", "type", null)));
         suggestion.getMetadata().add(new MetadataValueDTO("dc", "date", "issued", null,
                 getFirstEntryByMetadatum(record, "dc", "date", "issued")));
         suggestion.getMetadata().add(new MetadataValueDTO("dc", "description", "abstract", null,
