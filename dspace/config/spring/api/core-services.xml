@@ -202,5 +202,8 @@
     <bean class="org.dspace.epfl.service.impl.OrgUnitApiServiceImpl" />
     <bean class="org.dspace.epfl.service.impl.PersonApiServiceImpl" />
 
+    <bean class="org.dspace.ror.client.RORApiClientImpl" />
+    <bean class="org.dspace.ror.service.RORApiServiceImpl" />
+
 </beans>
 

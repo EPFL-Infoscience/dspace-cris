@@ -76,6 +76,9 @@ public class ItemExportFormatServiceImpl implements ItemExportFormatService {
 
     private boolean hasSameEntityType(ItemExportCrosswalk exportCrosswalk, String entityType) {
         Optional<String> crosswalkEntityType = exportCrosswalk.getEntityType();
+        if (StringUtils.isBlank(entityType) && crosswalkEntityType.map("all"::equals).orElse(false)) {
+            return false;
+        }
         if (!crosswalkEntityType.isPresent() || StringUtils.isBlank(entityType)) {
             return true;
         }
