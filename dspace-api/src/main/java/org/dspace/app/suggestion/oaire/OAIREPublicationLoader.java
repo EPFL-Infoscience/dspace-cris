@@ -109,6 +109,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         saveRecordsInSolr(researcher, getImportRecords(researcher));
     }
 
+    @Override
     public void importAuthorRecords(Context context, Item researcher, String extraQuery)
         throws SolrServerException, IOException {
         saveRecordsInSolr(researcher, getImportRecords(researcher, extraQuery));
@@ -136,6 +137,8 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         suggestion.setDisplay(getFirstEntryByMetadatum(record, "dc", "title", null));
         suggestion.getMetadata().add(
                 new MetadataValueDTO("dc", "title", null, null, getFirstEntryByMetadatum(record, "dc", "title", null)));
+        suggestion.getMetadata().add(new MetadataValueDTO("dc", "type", null, null,
+                getFirstEntryByMetadatum(record, "dc", "type", null)));
         suggestion.getMetadata().add(new MetadataValueDTO("dc", "date", "issued", null,
                 getFirstEntryByMetadatum(record, "dc", "date", "issued")));
         suggestion.getMetadata().add(new MetadataValueDTO("dc", "description", "abstract", null,
@@ -181,7 +184,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         List<String> searchValues = searchMetadataValues(researcher);
         List<ExternalDataObject> matchingRecords = new ArrayList<>();
         for (String searchValue : searchValues) {
-            matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue + extraQuery, 0, 9999));
+            matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue + " " +  extraQuery, 0, 9999));
         }
         return removeDuplicates(matchingRecords);
     }
