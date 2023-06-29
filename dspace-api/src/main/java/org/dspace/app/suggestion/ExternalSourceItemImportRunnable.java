@@ -216,6 +216,8 @@ public class ExternalSourceItemImportRunnable
                 }
                 WorkspaceItem workspaceItem = createWorkspaceItem(context, collectionId,
                     suggestion.getExternalSourceUri());
+                handler.logInfo("Created item with id: " + workspaceItem.getItem().getID() +
+                    " from suggestion " + suggestion.getID());
                 Item target = suggestion.getTarget();
                 if (Objects.nonNull(target)
                     && StringUtils.isNotBlank(target.getName())) {

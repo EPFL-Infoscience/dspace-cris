@@ -267,6 +267,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
                     int recordsFound = dataProvider.getNumberOfResults(id);
+                    handler.logInfo("Found " + recordsFound + " for id " + id + " that could be imported");
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
@@ -374,6 +375,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     if (!StringUtils.equals(this.finalState, WORKSPACE_STATE)) {
                         makeFinalState(wsItem);
                     }
+                    handler.logInfo("Created item with id " + wsItem.getItem().getID() +
+                                        " and put in status: " + finalState);
                     imported++;
                 }
                 countDataObjects++;
