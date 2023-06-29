@@ -7,13 +7,13 @@
  */
 package org.dspace.importer.external.crossref;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import javax.el.MethodNotFoundException;
@@ -82,8 +82,8 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
 
     @Override
     public Collection<ImportRecord> getRecords(String query, int start, int count) throws MetadataSourceException {
-        String id = getID(query.toString());
-        return StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id))
+        String id = getID(query);
+        return StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id, count, start))
                                           : retry(new SearchByQueryCallable(query, count, start));
     }
 
@@ -116,14 +116,25 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
         throw new MethodNotFoundException("This method is not implemented for CrossRef");
     }
 
-    public String getID(String id) {
+    public String getID(String query) {
+        StringBuilder idBuilder = new StringBuilder();
+
+        query = query.trim();
+        String id = query.split("\\s")[0];
+        String extraQuery = query.length() > id.length()
+            ? query.substring(id.length()).trim()
+            : null;
+
         if (DoiCheck.isDoi(id)) {
-            return "filter=doi:" + id;
+            idBuilder.append("filter=doi:").append(id);
         }
         if (OrcidCheck.isOrcid(id)) {
-            return "filter=orcid:" + id;
+            idBuilder.append("filter=orcid:").append(id);
         }
-        return StringUtils.EMPTY;
+        if (StringUtils.isNotEmpty(extraQuery)) {
+            idBuilder.append("&query=").append(extraQuery);
+        }
+        return idBuilder.toString();
     }
 
     /**
@@ -136,7 +147,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
      */
     private class SearchByQueryCallable implements Callable<List<ImportRecord>> {
 
-        private Query query;
+        private final Query query;
 
         private SearchByQueryCallable(String queryString, Integer maxResult, Integer start) {
             query = new Query();
@@ -163,14 +174,10 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             if (Objects.nonNull(start)) {
                 uriBuilder.addParameter("offset", start.toString());
             }
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
-            String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
-            JsonNode jsonNode = convertStringJsonToJsonNode(response);
-            Iterator<JsonNode> nodes = jsonNode.at("/message/items").iterator();
-            while (nodes.hasNext()) {
-                JsonNode node = nodes.next();
-                results.add(transformSourceRecords(node.toString()));
-            }
+            String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
+            convertStringJsonToJsonNode(response)
+                .at("/message/items")
+                .forEach(node -> results.add(transformSourceRecords(node.toString())));
             return results;
         }
 
@@ -183,7 +190,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
      * @author Mykhaylo Boychuk (mykhaylo.boychuk@4science.com)
      */
     private class SearchByIdCallable implements Callable<List<ImportRecord>> {
-        private Query query;
+        private final Query query;
 
         private SearchByIdCallable(Query query) {
             this.query = query;
@@ -194,20 +201,34 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             query.addParameter("id", id);
         }
 
+        private SearchByIdCallable(String id, Integer maxResult, Integer start) {
+            query = new Query();
+            query.addParameter("id", id);
+            query.addParameter("count", maxResult);
+            query.addParameter("start", start);
+        }
+
         @Override
         public List<ImportRecord> call() throws Exception {
             List<ImportRecord> results = new ArrayList<>();
-            String ID = URLDecoder.decode(query.getParameterAsClass("id", String.class), "UTF-8");
+            Integer count = query.getParameterAsClass("count", Integer.class);
+            Integer start = query.getParameterAsClass("start", Integer.class);
+
+            String ID = URLDecoder.decode(query.getParameterAsClass("id", String.class), UTF_8);
             String separator = ID.contains("filter=") ? "?" : "/";
             URIBuilder uriBuilder = new URIBuilder(url + separator + ID);
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
-            String responseString = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), params);
-            JsonNode jsonNode = convertStringJsonToJsonNode(responseString);
-            Iterator<JsonNode> nodes = jsonNode.at("/message/items").iterator();
-            while (nodes.hasNext()) {
-                JsonNode node = nodes.next();
-                results.add(transformSourceRecords(node.toString()));
+
+            if (Objects.nonNull(count)) {
+                uriBuilder.addParameter("rows", count.toString());
             }
+            if (Objects.nonNull(start)) {
+                uriBuilder.addParameter("offset", start.toString());
+            }
+
+            String response = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), new HashMap<>());
+            convertStringJsonToJsonNode(response)
+                .at("/message/items")
+                .forEach(node -> results.add(transformSourceRecords(node.toString())));
             return results;
         }
     }
@@ -221,7 +242,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
      */
     private class FindMatchingRecordCallable implements Callable<List<ImportRecord>> {
 
-        private Query query;
+        private final Query query;
 
         private FindMatchingRecordCallable(Query q) {
             query = q;
@@ -255,14 +276,10 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             if (Objects.nonNull(bibliographics)) {
                 uriBuilder.addParameter("query.bibliographic", bibliographics);
             }
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
-            String resp = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
-            JsonNode jsonNode = convertStringJsonToJsonNode(resp);
-            Iterator<JsonNode> nodes = jsonNode.at("/message/items").iterator();
-            while (nodes.hasNext()) {
-                JsonNode node = nodes.next();
-                results.add(transformSourceRecords(node.toString()));
-            }
+            String resp = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
+            convertStringJsonToJsonNode(resp)
+                .at("/message/items")
+                .forEach(node -> results.add(transformSourceRecords(node.toString())));
             return results;
         }
 
@@ -278,7 +295,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
      */
     private class CountByQueryCallable implements Callable<Integer> {
 
-        private Query query;
+        private final Query query;
 
         private CountByQueryCallable(String queryString) {
             query = new Query();
@@ -293,10 +310,9 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
         public Integer call() throws Exception {
             URIBuilder uriBuilder = new URIBuilder(url);
             uriBuilder.addParameter("query", query.getParameterAsClass("query", String.class));
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
-            String responseString = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
-            JsonNode jsonNode = convertStringJsonToJsonNode(responseString);
-            return jsonNode.at("/message/total-results").asInt();
+            String responseString =
+                liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
+            return convertStringJsonToJsonNode(responseString).at("/message/total-results").asInt();
         }
     }
 
@@ -317,19 +333,14 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             this.query = query;
         }
 
-        private DoiCheckCallable(final Query query) {
-            this.query = query;
-        }
-
         @Override
         public Integer call() throws Exception {
-            Map<String, Map<String, String>> params = new HashMap<String, Map<String,String>>();
             String id = query.getParameterAsClass("id", String.class);
             String separator = id.contains("filter=") ? "?" : "/";
             URIBuilder uriBuilder = new URIBuilder(url + separator + id);
-            String responseString = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), params);
-            JsonNode jsonNode = convertStringJsonToJsonNode(responseString);
-            return StringUtils.equals(jsonNode.at("/status").textValue(), "ok") ? 1 : 0;
+            String responseString =
+                liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
+            return convertStringJsonToJsonNode(responseString).at("/message/total-results").asInt();
         }
     }
 

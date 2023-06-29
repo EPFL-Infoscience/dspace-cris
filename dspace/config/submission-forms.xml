@@ -964,6 +964,28 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
+          <dc-element>writtenAt</dc-element>
+          <label>Written At</label>
+          <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>version</dc-element>
+          <label>Version</label>
+          <input-type value-pairs-name="coar_versions">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
           <dc-element>workflow</dc-element>
           <dc-qualifier>approved</dc-qualifier>
           <label>Approved</label>
@@ -1537,6 +1559,54 @@
           <repeatable>false</repeatable>
           <required />
           <hint>If applicable, the page where this publication ends</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>faculty</dc-qualifier>
+          <label>Faculty (for thesis)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>section</dc-qualifier>
+          <label>Doctoral School (for thesis)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>institute</dc-qualifier>
+          <label>Institute (for thesis)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>doctoralSchool</dc-qualifier>
+          <label>Doctoral program (for thesis)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
         </field>
       </row>
     </form>
@@ -5342,6 +5412,54 @@
       <pair>
         <displayed-value>French</displayed-value>
         <stored-value>fr</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="epfl_written_at" dc-term="epfl_written_at">
+      <pair>
+        <displayed-value>EPFL</displayed-value>
+        <stored-value>EPFL</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>OTHER</displayed-value>
+        <stored-value>other</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="coar_versions" dc-term="coar_versions">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Author’s Original</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_b1a7d7d4d402bcce</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Submitted Manuscript Under Review</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_71e4c1898caa6e32</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Accepted Manuscript</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_ab4af688f83e57aa</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Proof</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_fa2ee174bc00049f</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Version of Record</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_970fb48d4fbd8a85</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Corrected Version of Record</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_e19f295774971610</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Enhanced Version of Record</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_dc82b40f9837b551</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Not Applicable (or Unknown)</displayed-value>
+        <stored-value>http://purl.org/coar/version/c_be7fb7dd8ff6fe43</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="supplementary_external_urls" dc-term="supplementary_external_urls">

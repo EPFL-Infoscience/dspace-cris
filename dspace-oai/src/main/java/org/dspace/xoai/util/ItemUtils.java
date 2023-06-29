@@ -205,6 +205,7 @@ public class ItemUtils {
             Element bitstreams = create("bitstreams");
             bundle.getElement().add(bitstreams);
             List<Bitstream> bits = b.getBitstreams();
+            bitstreams.getField().add(createValue("elements", String.valueOf(bits.size())));
             for (Bitstream bit : bits) {
                 Element bitstream = create("bitstream");
                 bitstreams.getElement().add(bitstream);
@@ -245,6 +246,7 @@ public class ItemUtils {
                 bitstream.getField().add(createValue("checksum", cks));
                 bitstream.getField().add(createValue("checksumAlgorithm", cka));
                 bitstream.getField().add(createValue("sid", bit.getSequenceID() + ""));
+                bitstream.getField().add(createValue("rights", bit.getRights()));
             }
         }
 
