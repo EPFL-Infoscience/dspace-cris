@@ -9,7 +9,6 @@ package org.dspace.app.rest.repository.patch.operation;
 
 import java.sql.SQLException;
 
-import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
@@ -19,6 +18,7 @@ import org.dspace.core.Context;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,8 +47,8 @@ public class ResearcherProfileVisibleReplaceOperation extends PatchOperation<Res
     public ResearcherProfile perform(Context context, ResearcherProfile profile, Operation operation)
         throws SQLException {
         if (!authorizeService.isAdmin(context)) {
-            throw new DSpaceBadRequestException(
-                "This operation is not supported."
+            throw new AccessDeniedException(
+                "This operation is not allowed."
             );
         }
         Object value = operation.getValue();

@@ -91,6 +91,12 @@ public class ProfileInitializer {
             .or(() -> findProfileBySciper(context, eperson, sciper))
             .orElseGet(() -> createPublicProfile(context, eperson));
 
+        try {
+            setPublicVisibility(context, researcherProfile);
+        } catch (AuthorizeException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         personApiService.getPerson(sciper)
             .map(person -> sendEmailIfSomethingIsWrong(context, person))
             .filter(this::isMainAffiliationActive)
@@ -175,12 +181,16 @@ public class ProfileInitializer {
     private ResearcherProfile createPublicProfile(Context context, EPerson eperson) {
         try {
             ResearcherProfile profile = researcherProfileService.createAndReturn(context, eperson);
-            if (profile.isVisible()) {
-                researcherProfileService.changeVisibility(context, profile, true);
-            }
+            setPublicVisibility(context, profile);
             return profile;
         } catch (AuthorizeException | SQLException | SearchServiceException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void setPublicVisibility(Context context, ResearcherProfile profile) throws AuthorizeException, SQLException {
+        if (!profile.isVisible()) {
+            researcherProfileService.changeVisibility(context, profile, true);
         }
     }
 
