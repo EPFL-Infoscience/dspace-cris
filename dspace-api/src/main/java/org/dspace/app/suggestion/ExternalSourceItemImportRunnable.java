@@ -13,6 +13,7 @@ import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.dspace.authorize.AuthorizeException;
@@ -39,6 +41,12 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexableWorkflowItem;
+import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -60,6 +68,10 @@ import org.slf4j.LoggerFactory;
  */
 public class ExternalSourceItemImportRunnable
     extends DSpaceRunnable<ExternalSourceItemImportScriptConfiguration<ExternalSourceItemImportRunnable>> {
+
+    private static final org.apache.logging.log4j.Logger
+        log = LogManager.getLogger(ExternalSourceItemImportRunnable.class);
+
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalSourceItemImportRunnable.class);
 
@@ -196,6 +208,12 @@ public class ExternalSourceItemImportRunnable
         int countDataObjects = 0;
         for (Suggestion suggestion : suggestions) {
             try {
+                ExternalDataObject externalDataObject =
+                    getExternalDataObjectFromUriList(suggestion.getExternalSourceUri());
+                if (alreadyInRepository(externalDataObject)) {
+                    solrSuggestionStorageService.flagSuggestionAsProcessed(suggestion);
+                    continue;
+                }
                 WorkspaceItem workspaceItem = createWorkspaceItem(context, collectionId,
                     suggestion.getExternalSourceUri());
                 Item target = suggestion.getTarget();
@@ -220,6 +238,70 @@ public class ExternalSourceItemImportRunnable
         return countDataObjects;
     }
 
+    private boolean alreadyInRepository(ExternalDataObject externalDataObject) {
+
+        MetadataValueDTO metadata = getMetadataToCheck();
+        return externalDataObjectInRepository(externalDataObject, metadata);
+    }
+
+    // FIXME: Refactor and use a common service since the logic is the same as
+    //  org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSource.exist
+    private boolean externalDataObjectInRepository(ExternalDataObject externalDataObject, MetadataValueDTO metadata) {
+        List<MetadataValueDTO> metadataList = externalDataObject.getMetadata();
+        if (metadataList.isEmpty()) {
+            return false;
+        }
+        for (MetadataValueDTO mv : metadataList) {
+            String schema = mv.getSchema();
+            String element = mv.getElement();
+            String qualifier = mv.getQualifier();
+            if (StringUtils.equals(schema, metadata.getSchema()) && StringUtils.equals(element, metadata.getElement())
+                && StringUtils.equals(qualifier, metadata.getQualifier())) {
+
+                String value = (mv.getValue()).replaceAll(":", "");
+                StringBuilder filter = new StringBuilder();
+                filter.append(metadata.getSchema()).append(".").append(metadata.getElement());
+                if (StringUtils.isNotBlank(metadata.getQualifier())) {
+                    filter.append(".").append(metadata.getQualifier()).append(":").append(value);
+                } else {
+                    filter.append(":").append(value);
+                }
+                try {
+                    Iterator<Item> itemIterator = findItemsInDSpace(context, filter.toString());
+                    if (itemIterator.hasNext()) {
+                        handler.logInfo("Ignoring record with identifier " + value + " already in the repository "
+                                            + itemIterator.next().getID().toString());
+                        return true;
+                    }
+                } catch (SearchServiceException e) {
+                    log.error(e.getMessage(), e);
+                }
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private MetadataValueDTO getMetadataToCheck() {
+        MetadataValueDTO metadata = new MetadataValueDTO();
+        if (this.source.equals("pubmed")) {
+            metadata.setSchema("dc");
+            metadata.setElement("identifier");
+            metadata.setQualifier("pmid");
+        }
+        return metadata;
+    }
+
+    private Iterator<Item> findItemsInDSpace(Context context, String filter)
+        throws SearchServiceException {
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
+        discoverQuery.setMaxResults(20);
+        discoverQuery.addFilterQueries(filter);
+        return new DiscoverResultItemIterator(context, discoverQuery);
+    }
     private Optional<MetadataValue> getOwner(Item item) {
         List<MetadataValue> metadataByMetadataString = itemService
             .getMetadataByMetadataString(item, "dspace.object.owner");

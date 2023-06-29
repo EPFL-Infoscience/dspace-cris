@@ -109,6 +109,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         saveRecordsInSolr(researcher, getImportRecords(researcher));
     }
 
+    @Override
     public void importAuthorRecords(Context context, Item researcher, String extraQuery)
         throws SolrServerException, IOException {
         saveRecordsInSolr(researcher, getImportRecords(researcher, extraQuery));
@@ -183,7 +184,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         List<String> searchValues = searchMetadataValues(researcher);
         List<ExternalDataObject> matchingRecords = new ArrayList<>();
         for (String searchValue : searchValues) {
-            matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue + extraQuery, 0, 9999));
+            matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue + " " +  extraQuery, 0, 9999));
         }
         return removeDuplicates(matchingRecords);
     }
