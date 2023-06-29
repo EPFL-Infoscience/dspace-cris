@@ -89,18 +89,19 @@
 				</datafield>
 			</xsl:if>
 			<datafield ind2=" " ind1=" " tag="918">
-			<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='faculty']/doc:element/doc:field[@name='value']">
-				<subfield code="a"><xsl:value-of select="." /></subfield>
-			</xsl:for-each>
-			<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='section']/doc:element/doc:field[@name='value']">
-				<subfield code="b"><xsl:value-of select="." /></subfield>
-			</xsl:for-each>
-			<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='institute']/doc:element/doc:field[@name='value']">
-				<subfield code="c"><xsl:value-of select="." /></subfield>
-			</xsl:for-each>
-			<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='doctoralSchool']/doc:element/doc:field[@name='value']">
-				<subfield code="d"><xsl:value-of select="." /></subfield>
-			</xsl:for-each>
+				<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='faculty']/doc:element/doc:field[@name='value']">
+					<subfield code="a"><xsl:value-of select="." /></subfield>
+				</xsl:for-each>
+				<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='section']/doc:element/doc:field[@name='value']">
+					<subfield code="b"><xsl:value-of select="." /></subfield>
+				</xsl:for-each>
+				<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='institute']/doc:element/doc:field[@name='value']">
+					<subfield code="c"><xsl:value-of select="." /></subfield>
+				</xsl:for-each>
+				<xsl:for-each select="doc:metadata/doc:element[@name='epfl']/doc:element[@name='thesis']/doc:element[@name='doctoralSchool']/doc:element/doc:field[@name='value']">
+					<subfield code="d"><xsl:value-of select="." /></subfield>
+				</xsl:for-each>
+			</datafield>
 			<xsl:for-each select="doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle']">
 				<xsl:if test="doc:field[@name='name']/text() = 'ORIGINAL'">
 					<xsl:for-each select="doc:element[@name='bitstreams']/doc:element">
@@ -127,7 +128,6 @@
 
 				</xsl:if>
 			</xsl:for-each>
-			</datafield>
 		</record>
 	</xsl:template>
 </xsl:stylesheet>
