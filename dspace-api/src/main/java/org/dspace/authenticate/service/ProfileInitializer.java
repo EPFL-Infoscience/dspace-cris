@@ -188,7 +188,8 @@ public class ProfileInitializer {
         }
     }
 
-    private void setPublicVisibility(Context context, ResearcherProfile profile) throws AuthorizeException, SQLException {
+    private void setPublicVisibility(Context context, ResearcherProfile profile)
+        throws AuthorizeException, SQLException {
         if (!profile.isVisible()) {
             researcherProfileService.changeVisibility(context, profile, true);
         }
