@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.suggestion.oaire.OAIREPublicationLoader;
 import org.dspace.app.suggestion.pubmed.PubmedPublicationLoader;
 import org.dspace.authorize.AuthorizeException;
@@ -67,6 +68,8 @@ public class PublicationLoaderRunnable
 
     private Integer itemLimit;
 
+    private String extraQuery;
+
     private Map<String, LiveImportDataProvider> nameToProvider = new HashMap<String, LiveImportDataProvider>();
 
     @Override
@@ -98,6 +101,10 @@ public class PublicationLoaderRunnable
             this.itemLimit = getDefaultLimit();
         }
 
+        if (commandLine.hasOption("q")) {
+            extraQuery = commandLine.getOptionValue("q");
+        }
+
     }
 
     @Override
@@ -121,7 +128,11 @@ public class PublicationLoaderRunnable
             Iterator<Item> researchers = findResearchers();
             while (researchers.hasNext()) {
                 Item researcher = researchers.next();
-                publicationLoader.importAuthorRecords(context, researcher);
+                if (StringUtils.isBlank(extraQuery)) {
+                    publicationLoader.importAuthorRecords(context, researcher);
+                } else {
+                    publicationLoader.importAuthorRecords(context, researcher, extraQuery);
+                }
                 setLastImportMetadataValue(researcher);
             }
 

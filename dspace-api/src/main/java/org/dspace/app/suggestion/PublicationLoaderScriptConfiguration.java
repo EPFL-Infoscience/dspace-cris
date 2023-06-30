@@ -58,6 +58,12 @@ public class PublicationLoaderScriptConfiguration<T extends PublicationLoaderRun
                 "(oaire, pubmed)");
             options.getOption("l").setRequired(true);
 
+            options.addOption("q", "query", true, "extra parameters to append to the generated query "
+                + "(to limit the publications year, record creation time, etc. according "
+                + "to the datasource capabilities)");
+            options.getOption("q").setType(String.class);
+            options.getOption("q").setRequired(false);
+
             options.addOption("il", "item-limit", true, "the max number of profiles. If no limit is provided, "
                 + "the default one will be used");
             options.getOption("il").setType(Integer.class);

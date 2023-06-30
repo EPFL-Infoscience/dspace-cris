@@ -83,6 +83,7 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
             document.addField(TARGET_ID, suggestion.getTarget().getID().toString());
             document.addField(DISPLAY, suggestion.getDisplay());
             document.addField(TITLE, getFirstValue(suggestion, "dc", "title", null));
+            document.addField(TYPE, getFirstValue(suggestion, "dc", "type", null));
             document.addField(DATE, getFirstValue(suggestion, "dc", "date", "issued"));
             document.addField(CONTRIBUTORS, getAllValues(suggestion, "dc", "contributor", "author"));
             document.addField(ABSTRACT, getFirstValue(suggestion, "dc", "description", "abstract"));
@@ -275,12 +276,38 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
             SCORE  + ":[ " + score + " TO * ]",
             PROCESSED + ":false");
 
-        if (ascending) {
-            solrQuery.addSort(SortClause.asc("trust"));
-        } else {
-            solrQuery.addSort(SortClause.desc("trust"));
-        }
+        solrQuery.addSort(ascending ? SortClause.asc("trust") : SortClause.desc("trust"));
+        solrQuery.addSort(SortClause.desc("date"));
+        solrQuery.addSort(SortClause.asc("suggestion_id"));
+        solrQuery.addSort(SortClause.asc("title"));
 
+        QueryResponse response = getSolr().query(solrQuery);
+        List<Suggestion> suggestions = new ArrayList<Suggestion>();
+        for (SolrDocument solrDoc : response.getResults()) {
+            Suggestion suggestion = convertSolrDoc(context, solrDoc, source);
+            if (suggestion != null) {
+                suggestions.add(suggestion);
+            }
+        }
+        return suggestions;
+    }
+
+    @Override
+    public List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndType(Context context, String source,
+        String score, String type, int pageSize, long offset, boolean ascending)
+        throws SolrServerException, IOException {
+
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setRows(pageSize);
+        solrQuery.setStart((int) offset);
+        solrQuery.setQuery("*:*");
+        solrQuery.addFilterQuery(
+            SOURCE + ":" + source,
+            SCORE  + ":[ " + score + " TO * ]",
+            TYPE + ":" + type,
+            PROCESSED + ":false");
+
+        solrQuery.addSort(ascending ? SortClause.asc("trust") : SortClause.desc("trust"));
         solrQuery.addSort(SortClause.desc("date"));
         solrQuery.addSort(SortClause.asc("suggestion_id"));
         solrQuery.addSort(SortClause.asc("title"));

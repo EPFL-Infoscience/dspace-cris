@@ -47,10 +47,13 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
+import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.discovery.DiscoverResultIterator;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexableWorkflowItem;
+import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -264,6 +267,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
                     int recordsFound = dataProvider.getNumberOfResults(id);
+                    handler.logInfo("Found " + recordsFound + " for id " + id + " that could be imported");
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
@@ -371,6 +375,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     if (!StringUtils.equals(this.finalState, WORKSPACE_STATE)) {
                         makeFinalState(wsItem);
                     }
+                    handler.logInfo("Created item with id " + wsItem.getItem().getID() +
+                                        " and put in status: " + finalState);
                     imported++;
                 }
                 countDataObjects++;
@@ -482,10 +488,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private Iterator<Item> findItemsInDSpace(Context context, String filter)
             throws SQLException, SearchServiceException {
         DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.setMaxResults(20);
         discoverQuery.addFilterQueries(filter);
-        return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
+        return new DiscoverResultItemIterator(context, discoverQuery);
     }
 
     private Iterator<Item> findItems() {
