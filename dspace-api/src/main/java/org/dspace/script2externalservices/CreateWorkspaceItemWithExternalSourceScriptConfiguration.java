@@ -69,6 +69,9 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
             if (serviceManager.isServiceExists("crossRefLiveImportDataProvider")) {
                 providers.add("\"crossref\"");
             }
+            if (serviceManager.isServiceExists("arxivLiveImportDataProvider")) {
+                providers.add("\"arxiv\"");
+            }
             Options options = new Options();
             options.addOption("s", "service", true, "the name of the external service to be " +
                 "queried (" + StringUtils.join(providers, ",") + ")");
