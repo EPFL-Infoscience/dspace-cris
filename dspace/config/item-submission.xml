@@ -214,6 +214,7 @@
       <step id="collection" />
       <step id="correction" />
       <step id="itemAccessConditions"/>
+      <step id="ctb-bitstream-metadata"/>
       <step id="product" />
       <step id="product_indexing" />
       <step id="product_references" />
@@ -273,6 +274,7 @@
       <step id="correction" />
       <step id="extractionstep" />
       <step id="itemAccessConditions"/>
+      <step id="ctb-bitstream-metadata"/>
       <step id="publication" />
       <step id="publication_indexing" />
       <step id="publication_bibliographic_details" />
@@ -350,6 +352,7 @@
       <step id="correction" />
       <step id="extractionstep" />
       <step id="itemAccessConditions"/>
+      <step id="ctb-bitstream-metadata"/>
       <step id="patent" />
       <step id="patent_indexing" />
       <step id="patent_references" />
