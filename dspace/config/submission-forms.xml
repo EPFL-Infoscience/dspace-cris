@@ -453,6 +453,63 @@
         </field>
       </row>
     </form>
+    <form name="ctb-bitstream-metadata">
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>dcXXtitle</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>dcXXdescription</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>dcXXtype</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="publication_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>oaireXXlicenseCondition</dc-element>
+          <label>License</label>
+          <input-type value-pairs-name="licenses">opendropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>epflXXlicenseName</dc-element>
+          <label>EPFL license</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
     <form name="publication-dc-contributor-author">
       <row>
         <field>
