@@ -10,15 +10,17 @@ package org.dspace.authority;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.velocity.exception.ResourceNotFoundException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
@@ -31,8 +33,10 @@ import org.dspace.event.Event;
 
 public class CopyToBitstreamConsumer implements Consumer {
 
+    private static final MetadataFieldName LICENSE_CONDITION = new MetadataFieldName("oaire", "licenseCondition");
     private static final String CTB = "ctb";
     private static final String SEPARATOR = "XX";
+    private static final String EPFL_CTP_LICENSE_NAME = "epflXXlicenseName";
 
     private static Logger log = LogManager.getLogger(CopyToBitstreamConsumer.class);
 
@@ -59,16 +63,19 @@ public class CopyToBitstreamConsumer implements Consumer {
             .filter(mf -> !itemService.getMetadata(item, CTB, mf.getElement(), Item.ANY, Item.ANY).isEmpty())
             .collect(Collectors.toList());
 
-        Bundle originalBundle =
+        Optional<Bundle> originalBundle =
             itemService.getBundles(item, "ORIGINAL")
                        .stream()
-                       .findFirst()
-                       .orElseThrow(() -> new ResourceNotFoundException("Couldn't find ORIGINAL bundle"));
+                       .findFirst();
 
-        List<Bitstream> bitstreams = originalBundle.getBitstreams();
 
-        for (Bitstream bitstream : bitstreams) {
-            consumeBitstream(context, item, bitstream, ctbMetadataFields);
+        if (originalBundle.isPresent()) {
+
+            List<Bitstream> bitstreams = originalBundle.get().getBitstreams();
+
+            for (Bitstream bitstream : bitstreams) {
+                consumeBitstream(context, item, bitstream, ctbMetadataFields);
+            }
         }
     }
 
@@ -85,7 +92,7 @@ public class CopyToBitstreamConsumer implements Consumer {
             .filter(ctbMF -> bitstreamMetadataFields
                 .stream()
                 .noneMatch(bmf -> ctbMF.getElement().split(SEPARATOR)[0].equals(bmf.getMetadataSchema().getName())
-                               && ctbMF.getElement().split(SEPARATOR)[1].equals(bmf.getElement())))
+                    && ctbMF.getElement().split(SEPARATOR)[1].equals(bmf.getElement())))
             .collect(Collectors.toList());
 
         for (MetadataField field : metadataFieldsToAdd) {
@@ -96,6 +103,14 @@ public class CopyToBitstreamConsumer implements Consumer {
                 field.getQualifier(),
                 Item.ANY
             );
+
+            // if common metadata is a custom license, but bitstream already has a standard license set,
+            // value of custom license must not be set.
+            if (EPFL_CTP_LICENSE_NAME.equals(field.getElement()) &&
+                hasStandardLicense(bitstream)) {
+                continue;
+            }
+
             bitstreamService.setMetadataSingleValue(
                 context,
                 bitstream,
@@ -116,5 +131,10 @@ public class CopyToBitstreamConsumer implements Consumer {
     @Override
     public void finish(Context context) throws Exception {
 
+    }
+
+    private boolean hasStandardLicense(Bitstream bitstream) {
+        String value = bitstreamService.getMetadataFirstValue(bitstream, LICENSE_CONDITION, Item.ANY);
+        return StringUtils.isNotBlank(value) && !value.startsWith("http");
     }
 }
