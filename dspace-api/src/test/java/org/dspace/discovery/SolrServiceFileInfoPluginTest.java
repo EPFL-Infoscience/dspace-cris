@@ -10,7 +10,9 @@ package org.dspace.discovery;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -22,7 +24,11 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.junit.Before;
@@ -76,8 +82,7 @@ public class SolrServiceFileInfoPluginTest {
     }
 
     @Test
-    public void shouldAddLicenseWithOutURL()
-    {
+    public void shouldAddLicenseWithOutURL() {
         IndexableItem indexableItem = mock(IndexableItem.class);
         Bundle bundle = mock(Bundle.class);
         Bitstream bitstream = mock(Bitstream.class);
@@ -111,8 +116,7 @@ public class SolrServiceFileInfoPluginTest {
     }
 
     @Test
-    public void shouldNotAddLicenseWithURL()
-    {
+    public void shouldNotAddLicenseWithURL() {
         IndexableItem indexableItem = mock(IndexableItem.class);
         Bundle bundle = mock(Bundle.class);
         Bitstream bitstream = mock(Bitstream.class);
