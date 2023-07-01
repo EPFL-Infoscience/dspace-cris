@@ -219,11 +219,11 @@
       <step id="collection" />
       <step id="correction" />
       <step id="itemAccessConditions"/>
-      <step id="ctb-bitstream-metadata"/>
       <step id="product" />
       <step id="product_indexing" />
       <step id="product_references" />
       <step id="detect-duplicate" />
+      <step id="ctb-bitstream-metadata"/>
       <step id="upload-product" />
       <step id="license" />
     </submission-process>
@@ -279,13 +279,13 @@
       <step id="correction" />
       <step id="extractionstep" />
       <step id="itemAccessConditions"/>
-      <step id="ctb-bitstream-metadata"/>
       <step id="publication" />
       <step id="publication_indexing" />
       <step id="publication_bibliographic_details" />
       <step id="publication_references" />
       <step id="sherpaPolicies" />
       <step id="detect-duplicate" />
+      <step id="ctb-bitstream-metadata"/>
       <step id="upload-publication" />
       <step id="license" />
     </submission-process>
@@ -357,11 +357,11 @@
       <step id="correction" />
       <step id="extractionstep" />
       <step id="itemAccessConditions"/>
-      <step id="ctb-bitstream-metadata"/>
       <step id="patent" />
       <step id="patent_indexing" />
       <step id="patent_references" />
       <step id="detect-duplicate" />
+      <step id="ctb-bitstream-metadata"/>
       <step id="upload-patent" />
       <step id="license" />
     </submission-process>
