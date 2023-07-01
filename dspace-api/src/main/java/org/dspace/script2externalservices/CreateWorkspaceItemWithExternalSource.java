@@ -88,7 +88,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private static final String WORKFLOW_STATE = "workflow";
     private static final String WORKSPACE_STATE = "workspace";
     private static final String ARCHIVED_ITEM_STATE = "item";
-
+    private static final String ARXIV = "arxiv";
     private static final int LIMIT = 10;
 
     private String service;
@@ -146,6 +146,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         if (serviceManager.isServiceExists("crossRefLiveImportDataProvider")) {
             nameToProvider.put(CROSSREF,
                     serviceManager.getServiceByName("crossRefLiveImportDataProvider", LiveImportDataProvider.class));
+        }
+        if (serviceManager.isServiceExists("arxivLiveImportDataProvider")) {
+            nameToProvider.put(ARXIV,
+                    serviceManager.getServiceByName("arxivLiveImportDataProvider", LiveImportDataProvider.class));
         }
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
@@ -267,7 +271,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
                     int recordsFound = dataProvider.getNumberOfResults(id);
-                    handler.logInfo("Found " + recordsFound + " for id " + id + " that could be imported");
+                    handler.logInfo("Found " + recordsFound + " records for researcher " + id +
+                                        " that could be imported");
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
@@ -350,10 +355,22 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     id.append("AI=(").append(rid).append(")");
                 }
                 break;
+            case ARXIV:
+                id.append("au:");
+                String dcTitle = itemService.getMetadataFirstValue(
+                    item, "dc", "title", null, Item.ANY);
+                if (StringUtils.isNotBlank(dcTitle)) {
+                    id.append(dcTitle);
+                }
+                break;
             default:
         }
         if (StringUtils.isNotBlank(this.extraQuery)) {
-            id.append(" ").append(this.extraQuery);
+            if (this.service.equals(ARXIV)) {
+                id.append(" AND ").append(this.extraQuery);
+            } else {
+                id.append(" ").append(this.extraQuery);
+            }
         }
         return id.toString();
     }
@@ -430,7 +447,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         if (metadatas.size() == 0) {
             return false;
         }
-        MetadataValueDTO metadata = getMetadataToChech();
+        MetadataValueDTO metadata = getMetadataToCheck();
         for (MetadataValueDTO mv : metadatas) {
             String schema = mv.getSchema();
             String element = mv.getElement();
@@ -462,7 +479,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return false;
     }
 
-    private MetadataValueDTO getMetadataToChech() {
+    private MetadataValueDTO getMetadataToCheck() {
         MetadataValueDTO metadata = new MetadataValueDTO();
         switch (this.service) {
             case SCOPUS:
@@ -479,6 +496,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 metadata.setSchema("dc");
                 metadata.setElement("identifier");
                 metadata.setQualifier("doi");
+                break;
+            case ARXIV:
+                metadata.setSchema("dc");
+                metadata.setElement("identifier");
+                metadata.setQualifier("arxiv");
                 break;
             default:
         }
