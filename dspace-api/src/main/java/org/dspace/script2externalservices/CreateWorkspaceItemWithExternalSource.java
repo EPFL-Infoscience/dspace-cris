@@ -271,7 +271,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
                     int recordsFound = dataProvider.getNumberOfResults(id);
-                    handler.logInfo("Found " + recordsFound + " records for researcher " + id + " that could be imported");
+                    handler.logInfo("Found " + recordsFound + " records for researcher " + id +
+                                        " that could be imported");
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
