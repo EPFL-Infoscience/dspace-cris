@@ -6,7 +6,9 @@
 
   <dc-schema>
     <name>ctb</name>
+    <namespace>http://dspace.org/ctb</namespace>
   </dc-schema>
+
 
   <dc-type>
     <schema>ctb</schema>
