@@ -271,7 +271,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
                     int recordsFound = dataProvider.getNumberOfResults(id);
-                    handler.logInfo("Found " + recordsFound + " for id " + id + " that could be imported");
+                    handler.logInfo("Found " + recordsFound + " records for researcher " + id + " that could be imported");
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
@@ -357,7 +357,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             case ARXIV:
                 id.append("au:");
                 String dcTitle = itemService.getMetadataFirstValue(
-                    item, "person", "identifier", "scopus-author-id", Item.ANY);
+                    item, "dc", "title", null, Item.ANY);
                 if (StringUtils.isNotBlank(dcTitle)) {
                     id.append(dcTitle);
                 }
