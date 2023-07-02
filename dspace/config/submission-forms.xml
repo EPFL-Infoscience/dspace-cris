@@ -86,7 +86,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>licenseName</dc-element>
-          <label>EPFL license</label>
+          <label>Custom license name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -143,7 +143,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>licenseName</dc-element>
-          <label>EPFL license</label>
+          <label>Custom license name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -200,7 +200,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>licenseName</dc-element>
-          <label>EPFL license</label>
+          <label>Custom license name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -447,6 +447,63 @@
           <dc-element>type</dc-element>
           <label>File type</label>
           <input-type value-pairs-name="funding_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="ctb-bitstream-metadata">
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>dcXXtitle</dc-element>
+          <label>Common name for files</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>dcXXdescription</dc-element>
+          <label>Common description for files</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>dcXXtype</dc-element>
+          <label>Common file type</label>
+          <input-type value-pairs-name="publication_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>oaireXXlicenseCondition</dc-element>
+          <label>Common license</label>
+          <input-type value-pairs-name="licenses">opendropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>ctb</dc-schema>
+          <dc-element>epflXXlicenseName</dc-element>
+          <label>Common Custom license name</label>
+          <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />

@@ -73,6 +73,11 @@ public class AccessConditionStep extends AbstractProcessingStep {
                 accessConditions.add(accessConditionDTO);
             }
         }
+        itemService.getMetadataByMetadataString(item, "ctb.accessconditions.value")
+            .stream()
+            .map(mv -> mv.getValue())
+            .map(value -> AccessConditionDTO.fromJson(value))
+            .forEach(ac -> accessConditions.add(ac));
         return accessConditions;
     }
 
