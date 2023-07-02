@@ -86,7 +86,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>licenseName</dc-element>
-          <label>Custom License Name</label>
+          <label>Custom license name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -143,7 +143,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>licenseName</dc-element>
-          <label>EPFL license</label>
+          <label>Custom license name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -200,7 +200,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>licenseName</dc-element>
-          <label>EPFL license</label>
+          <label>Custom license name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -502,7 +502,7 @@
         <field>
           <dc-schema>ctb</dc-schema>
           <dc-element>epflXXlicenseName</dc-element>
-          <label>Common Custom License Name</label>
+          <label>Common Custom license name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
