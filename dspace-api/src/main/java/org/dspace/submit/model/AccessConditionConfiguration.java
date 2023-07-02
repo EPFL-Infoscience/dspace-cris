@@ -21,6 +21,7 @@ public class AccessConditionConfiguration {
     private Boolean canChangeDiscoverable;
     private List<AccessConditionOption> options;
     private boolean singleAccessCondition = false;
+    private boolean onlyForOriginalBundle;
 
     public String getName() {
         return name;
@@ -28,6 +29,10 @@ public class AccessConditionConfiguration {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setOnlyForOriginalBundle(boolean onlyForOriginalBundle) {
+        this.onlyForOriginalBundle = onlyForOriginalBundle;
     }
 
     public Boolean getCanChangeDiscoverable() {
@@ -52,5 +57,9 @@ public class AccessConditionConfiguration {
 
     public void setSingleAccessCondition(boolean singleAccessCondition) {
         this.singleAccessCondition = singleAccessCondition;
+    }
+
+    public boolean applyOnlyToOriginalBundle() {
+        return onlyForOriginalBundle;
     }
 }

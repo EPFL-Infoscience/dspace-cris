@@ -75,6 +75,7 @@
         <property name="name" value="itemAccessConditions"></property>
         <property name="canChangeDiscoverable" value="false"></property>
         <property name="singleAccessCondition" value="true" />
+        <property name="onlyForOriginalBundle" value="true" />
         <property name="options">
             <list>
                 <ref bean="openAccess"/>

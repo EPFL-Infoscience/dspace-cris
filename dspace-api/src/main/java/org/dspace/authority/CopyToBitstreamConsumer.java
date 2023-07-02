@@ -8,16 +8,27 @@
 
 package org.dspace.authority;
 
+import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
+
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataFieldName;
@@ -27,9 +38,14 @@ import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
+import org.dspace.submit.model.AccessConditionConfigurationService;
+import org.dspace.submit.model.AccessConditionOption;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class CopyToBitstreamConsumer implements Consumer {
 
@@ -44,6 +60,10 @@ public class CopyToBitstreamConsumer implements Consumer {
     private DSpaceObjectService<Bitstream> bitstreamService;
     private MetadataFieldService metadataFieldService;
     private MetadataSchemaService metadataSchemaService;
+    private AccessConditionConfigurationService accessConditionConfigurationService;
+    private ResourcePolicyService resourcePolicyService;
+
+    private Set<Item> itemsAlreadyProcessed = new HashSet<>();
 
     @Override
     public void initialize() throws Exception {
@@ -51,11 +71,19 @@ public class CopyToBitstreamConsumer implements Consumer {
         itemService = contentServiceFactory.getItemService();
         metadataFieldService = contentServiceFactory.getMetadataFieldService();
         metadataSchemaService = contentServiceFactory.getMetadataSchemaService();
+        accessConditionConfigurationService = contentServiceFactory.getAccessConditionConfigurationService();
+        resourcePolicyService = contentServiceFactory.getResourcePolicyService();
     }
 
     @Override
     public void consume(Context context, Event event) throws Exception {
         Item item = (Item) event.getSubject(context);
+
+        if (itemsAlreadyProcessed.contains(item)) {
+            return;
+        }
+
+        itemsAlreadyProcessed.add(item);
 
         List<MetadataField> ctbMetadataFields = metadataFieldService
             .findAllInSchema(context, metadataSchemaService.find(context, CTB))
@@ -77,6 +105,11 @@ public class CopyToBitstreamConsumer implements Consumer {
                 consumeBitstream(context, item, bitstream, ctbMetadataFields);
             }
         }
+        List<MetadataValue> metadataToDelete = item.getMetadata().stream()
+                                          .filter(md -> "ctb".equals(md.getSchema()))
+                                          .collect(Collectors.toList());
+
+        itemService.removeMetadataValues(context, item, metadataToDelete);
     }
 
     private void consumeBitstream(Context context, Item item, Bitstream bitstream,
@@ -96,6 +129,7 @@ public class CopyToBitstreamConsumer implements Consumer {
             .collect(Collectors.toList());
 
         for (MetadataField field : metadataFieldsToAdd) {
+
             String ctbMetadataValue = itemService.getMetadataFirstValue(
                 item,
                 field.getMetadataSchema().getName(),
@@ -103,6 +137,11 @@ public class CopyToBitstreamConsumer implements Consumer {
                 field.getQualifier(),
                 Item.ANY
             );
+
+            if (accessConditions(field)) {
+                propagateAccessConditions(context, item, bitstream, ctbMetadataValue);
+                continue;
+            }
 
             // if common metadata is a custom license, but bitstream already has a standard license set,
             // value of custom license must not be set.
@@ -121,6 +160,77 @@ public class CopyToBitstreamConsumer implements Consumer {
                 ctbMetadataValue
             );
         }
+    }
+
+    private void propagateAccessConditions(Context context, Item item, Bitstream bitstream,
+                                           String conditionsJson) {
+
+        boolean hasCustomPolicies = bitstream.getResourcePolicies().stream()
+                             .anyMatch(rp -> TYPE_CUSTOM.equals(rp.getRpType()));
+        if (hasCustomPolicies) {
+            return;
+        }
+        JSONArray array = new JSONArray(conditionsJson);
+        for (int i = 0; i < array.length(); i++) {
+
+            JSONObject newAccessCondition = array.getJSONObject(i);
+
+            String name = getString(newAccessCondition, "name");
+            String description = getString(newAccessCondition, "description");
+
+            Date startDate = getDate(getString(newAccessCondition, "startDate"));
+            Date endDate = getDate(getString(newAccessCondition, "endDate"));
+
+            List<AccessConditionOption> accessConditionOptions = accessConditionConfigurationService
+                .getAccessConfigurationById(getString(newAccessCondition, "stepId")).getOptions();
+
+            try {
+                resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_CUSTOM);
+                if (item.isArchived()) {
+                    resourcePolicyService.removePolicies(context, bitstream, ResourcePolicy.TYPE_INHERITED,
+                                                         Constants.READ);
+                }
+                findApplyResourcePolicy(context, accessConditionOptions, bitstream, name, description,
+                                        startDate, endDate);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static String getString(JSONObject newAccessCondition, String key) {
+        return newAccessCondition.has(key) ? newAccessCondition.getString(key) : null;
+    }
+
+    private void findApplyResourcePolicy(Context context,
+                                         List<AccessConditionOption> accessConditionOptions,
+                                         DSpaceObject obj, String name,
+                                         String description, Date startDate, Date endDate)
+        throws SQLException, AuthorizeException, ParseException {
+        boolean found = false;
+        for (AccessConditionOption accessConditionOption : accessConditionOptions) {
+            if (!found && accessConditionOption.getName().equalsIgnoreCase(name)) {
+                accessConditionOption.createResourcePolicy(context, obj, name, description, startDate, endDate);
+                found = true;
+            }
+        }
+    }
+
+
+    private static Date getDate(String date) {
+        if (StringUtils.isBlank(date)) {
+            return null;
+        }
+        try {
+            return DateUtils.parseDate(date, "yyyy-MM-dd");
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean accessConditions(MetadataField field) {
+        return "accessconditions".equals(field.getElement())
+            && "value".equals(field.getQualifier());
     }
 
     @Override

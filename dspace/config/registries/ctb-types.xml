@@ -40,4 +40,10 @@
     <qualifier/>
   </dc-type>
 
+  <dc-type>
+    <schema>ctb</schema>
+    <element>accessconditions</element>
+    <qualifier>value</qualifier>
+  </dc-type>
+
 </dspace-dc-types>
