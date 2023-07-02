@@ -502,7 +502,7 @@
         <field>
           <dc-schema>ctb</dc-schema>
           <dc-element>epflXXlicenseName</dc-element>
-          <label>Custom License Name</label>
+          <label>Common Custom License Name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
