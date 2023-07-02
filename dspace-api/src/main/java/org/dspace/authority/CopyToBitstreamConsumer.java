@@ -53,6 +53,7 @@ public class CopyToBitstreamConsumer implements Consumer {
     private static final String CTB = "ctb";
     private static final String SEPARATOR = "XX";
     private static final String EPFL_CTP_LICENSE_NAME = "epflXXlicenseName";
+    private static final String DATACITE_RIGHTS = "datacite.rights";
 
     private static Logger log = LogManager.getLogger(CopyToBitstreamConsumer.class);
 
@@ -104,12 +105,32 @@ public class CopyToBitstreamConsumer implements Consumer {
             for (Bitstream bitstream : bitstreams) {
                 consumeBitstream(context, item, bitstream, ctbMetadataFields);
             }
+            // we need to be sure that datacite rights metadata are coherent with propagated default policy
+            updateDataciteRightsMetadata(context, item, bitstreams);
         }
-        List<MetadataValue> metadataToDelete = item.getMetadata().stream()
-                                          .filter(md -> "ctb".equals(md.getSchema()))
-                                          .collect(Collectors.toList());
+    }
 
-        itemService.removeMetadataValues(context, item, metadataToDelete);
+    private void updateDataciteRightsMetadata(Context context, Item item, List<Bitstream> bitstreams)
+        throws SQLException {
+        if (bitstreams == null || bitstreams.size() == 0) {
+            return;
+        }
+        List<MetadataValue> itemRights =
+            itemService.getMetadataByMetadataString(item, DATACITE_RIGHTS);
+        MetadataValue bitstreamRights =
+            bitstreamService.getMetadataByMetadataString(bitstreams.get(0), DATACITE_RIGHTS).get(0);
+
+        boolean valueToBeUpdated = bitstreamRights != null
+            &&
+            (itemRights == null
+                || itemRights.size() == 0
+                || !itemRights.get(0).getValue().equals(bitstreamRights.getValue()));
+
+        if (valueToBeUpdated) {
+            itemService.removeMetadataValues(context, item, itemRights);
+            itemService.addMetadata(context, item, "datacite", "rights", null,
+                                    null, bitstreamRights.getValue());
+        }
     }
 
     private void consumeBitstream(Context context, Item item, Bitstream bitstream,
@@ -192,6 +213,11 @@ public class CopyToBitstreamConsumer implements Consumer {
                 }
                 findApplyResourcePolicy(context, accessConditionOptions, bitstream, name, description,
                                         startDate, endDate);
+                List<MetadataValue> dataciteRights =
+                    bitstreamService.getMetadataByMetadataString(bitstream, DATACITE_RIGHTS);
+                bitstreamService.removeMetadataValues(context, bitstream, dataciteRights);
+                bitstreamService.addMetadata(context, bitstream, "datacite", "rights", null,
+                                             null, name);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
