@@ -9,6 +9,10 @@
             <xpath>./controlfield[@tag = '001']</xpath>
         </metadata-field>
         <metadata-field>
+            <field>dc.date.modified</field>
+            <xpath>./controlfield[@tag = '005']</xpath>
+        </metadata-field>
+        <metadata-field>
             <field>dc.identifier.patentno</field>
             <xpath>./datafield[@tag = '013']</xpath>
             <reader>patentNumber</reader>
@@ -47,10 +51,6 @@
             <xpath>./datafield[@tag = '251']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>dc.description.version</field>
-            <xpath>./datafield[@tag = '251']/subfield[@code = 'a']</xpath>
-        </metadata-field>
-        <metadata-field>
             <field>dc.publisher.place</field>
             <xpath>./datafield[@tag = '260']/subfield[@code = 'a']</xpath>
         </metadata-field>
@@ -61,6 +61,10 @@
         <metadata-field>
             <field>dc.date.issued</field>
             <xpath>./datafield[@tag = '260']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.date.issued</field>
+            <xpath>./datafield[@tag = '269']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.size</field>
@@ -80,7 +84,11 @@
         </metadata-field>
         <metadata-field>
             <field>dc.description</field>
-            <xpath>./datafield[@tag = '340' or @tag = '500']/subfield[@code = 'a']</xpath>
+            <xpath>./datafield[@tag = '340']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.notes</field>
+            <xpath>./datafield[@tag = '500']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.jury</field>
@@ -89,6 +97,15 @@
         <metadata-field>
             <field>dc.description.abstract</field>
             <xpath>./datafield[@tag = '520']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.identifier.patentno</field>
+            <xpath>./datafield[@tag = '013']</xpath>
+            <reader>patentNumber</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.rights.accessRights</field>
+            <xpath>./datafield[@tag = '542']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.rights.accessRights</field>

@@ -7,12 +7,9 @@
  */
 package org.dspace.epfl.script;
 
-import static java.util.stream.Collectors.toMap;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -22,22 +19,11 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.xml.bind.JAXBContext;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.CollectionUtils;
@@ -57,17 +43,10 @@ import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.epfl.script.model.ItemsImportMapping;
-import org.dspace.epfl.script.model.ItemsImportMapping.MetadataField;
-import org.dspace.epfl.script.reader.ItemsImportMetadataFieldReader;
 import org.dspace.epfl.script.service.ItemsS3Service;
+import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.scripts.DSpaceRunnable;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class ItemsImportFromS3Script
     extends DSpaceRunnable<ItemsImportFromS3ScriptConfiguration<ItemsImportFromS3Script>> {
@@ -75,20 +54,11 @@ public class ItemsImportFromS3Script
 
     private CollectionService collectionService;
 
-    private ConfigurationService configurationService;
-
     private BulkImportWorkbookBuilder workbookBuilder;
 
     private ItemsS3Service itemsS3Service;
 
-    private DocumentBuilder documentBuilder;
-
-
-    private Map<String, ItemsImportMetadataFieldReader> readers;
-
-    private ItemsImportMapping mapping;
-
-    private XPath xPath;
+    private MarcXmlParser marcXmlParser;
 
 
     private Context context;
@@ -109,25 +79,14 @@ public class ItemsImportFromS3Script
     @Override
     public void setup() throws ParseException {
 
-        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.collectionService = ContentServiceFactory.getInstance().getCollectionService();
         this.workbookBuilder = new DSpace().getServiceManager()
             .getServicesByType(BulkImportWorkbookBuilder.class).get(0);
         this.itemsS3Service = new DSpace().getServiceManager()
             .getServicesByType(ItemsS3Service.class).get(0);
+        this.marcXmlParser = new DSpace().getServiceManager()
+            .getServicesByType(MarcXmlParser.class).get(0);
 
-        readers = new DSpace().getServiceManager().getServicesByType(ItemsImportMetadataFieldReader.class)
-            .stream().collect(toMap(ItemsImportMetadataFieldReader::getReaderName, Function.identity()));
-
-        mapping = parseMapping();
-
-        try {
-            this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
-        }
-
-        xPath = XPathFactory.newInstance().newXPath();
 
         collectionId = commandLine.getOptionValue('c');
 
@@ -253,7 +212,8 @@ public class ItemsImportFromS3Script
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
             if (entry.getName().equals(id + File.separator + "metadata.xml")) {
-                metadataValues.addAll(readMetadata(zipFile.getInputStream(entry)));
+                List<MetadataValueDTO> values = marcXmlParser.parse(context, zipFile.getInputStream(entry));
+                metadataValues.addAll(values);
             }
         }
 
@@ -276,43 +236,6 @@ public class ItemsImportFromS3Script
             .findFirst();
     }
 
-    private List<? extends MetadataValueDTO> readMetadata(InputStream metadataXml) throws Exception {
-
-        Document document = documentBuilder.parse(metadataXml);
-
-        Node record = getNode(document, mapping.getItemXPath());
-
-        return getMetadataValues(record);
-
-    }
-
-    private List<MetadataValueDTO> getMetadataValues(Node node) throws Exception {
-
-        List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
-
-        for (ItemsImportMapping.MetadataField metadataField : mapping.getMetadataFields().getMetadataFields()) {
-
-            ItemsImportMetadataFieldReader reader = readers.get(metadataField.getReader());
-
-            NodeList nodeList = getNodeList(node, metadataField.getXPath());
-
-            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
-
-            metadataValues.addAll(values);
-        }
-
-        metadataValues.forEach(System.out::println);
-
-        System.out.println("---------------------------");
-
-        return metadataValues;
-
-    }
-
-    private NodeList getNodeList(Object item, String expression) throws XPathExpressionException {
-        return (NodeList) xPath.compile(expression).evaluate(item, XPathConstants.NODESET);
-    }
-
     private ZipFile parseZip(File file) throws Exception {
         return new ZipFile(file);
     }
@@ -323,49 +246,6 @@ public class ItemsImportFromS3Script
         workbook.write(bos);
         InputStream is = new ByteArrayInputStream(bos.toByteArray());
         handler.writeFilestream(context, "items.xls", is, "application/vnd.ms-excel", false);
-    }
-
-    private Node getNode(Object item, String expression) throws XPathExpressionException {
-        return (Node) xPath.compile(expression).evaluate(item, XPathConstants.NODE);
-    }
-
-    private ItemsImportMapping parseMapping() {
-
-        String config = configurationService
-            .getProperty("epfl.items-import.mapping-configuration.path");
-
-        if (StringUtils.isBlank(config)) {
-            throw new IllegalArgumentException("No import mapping configuration defined");
-        }
-
-        if (!new File(config).exists()) {
-            throw new IllegalStateException("No mapping file present for the import configuration");
-        }
-
-        ItemsImportMapping importMapping = readMappingConfiguration(config);
-        validateMapping(importMapping);
-        return importMapping;
-
-    }
-
-    private ItemsImportMapping readMappingConfiguration(String config) {
-        try (FileReader mappingReader = new FileReader(config)) {
-            JAXBContext jaxbContext = JAXBContext.newInstance(ItemsImportMapping.class);
-            return (ItemsImportMapping) jaxbContext.createUnmarshaller().unmarshal(mappingReader);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    private void validateMapping(ItemsImportMapping importMapping) {
-        List<String> unknownReaders = importMapping.getMetadataFields().getMetadataFields().stream()
-            .map(MetadataField::getReader)
-            .filter(reader -> !readers.containsKey(reader))
-            .collect(Collectors.toList());
-
-        if (CollectionUtils.isNotEmpty(unknownReaders)) {
-            throw new IllegalStateException("The following configured readers are not defined: " + unknownReaders);
-        }
     }
 
     private Collection getCollection() {
