@@ -4449,9 +4449,11 @@
         <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
     <bean id="searchFilterDataciteRights" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-        <property name="indexFieldName" value="original_bundle_datacite_rights"/>
+        <property name="indexFieldName" value="datacite_rights"/>
         <property name="metadataFields">
-            <list/>
+            <list>
+                <value>datacite.rights</value>
+            </list>
         </property>
         <property name="facetLimit" value="5"/>
         <property name="sortOrderSidebar" value="COUNT"/>
