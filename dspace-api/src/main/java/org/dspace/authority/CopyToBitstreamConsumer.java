@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -53,7 +54,6 @@ public class CopyToBitstreamConsumer implements Consumer {
     private static final String CTB = "ctb";
     private static final String SEPARATOR = "XX";
     private static final String EPFL_CTP_LICENSE_NAME = "epflXXlicenseName";
-    private static final String DATACITE_RIGHTS = "datacite.rights";
 
     private static Logger log = LogManager.getLogger(CopyToBitstreamConsumer.class);
 
@@ -115,21 +115,28 @@ public class CopyToBitstreamConsumer implements Consumer {
         if (bitstreams == null || bitstreams.size() == 0) {
             return;
         }
-        List<MetadataValue> itemRights =
-            itemService.getMetadataByMetadataString(item, DATACITE_RIGHTS);
-        MetadataValue bitstreamRights =
-            bitstreamService.getMetadataByMetadataString(bitstreams.get(0), DATACITE_RIGHTS).get(0);
+        updateItemMetadata(context, item, bitstreams, "datacite", "rights", null);
+        updateItemMetadata(context, item, bitstreams, "datacite", "available", null);
+    }
 
-        boolean valueToBeUpdated = bitstreamRights != null
+    private void updateItemMetadata(Context context, Item item, List<Bitstream> bitstreams, String schema,
+                                    String element, String qualifier) throws SQLException {
+        String mdString = metadataString(schema, element, qualifier);
+        List<MetadataValue> itemMetadata =
+            itemService.getMetadataByMetadataString(item, mdString);
+        MetadataValue bitstreamMetadata =
+            bitstreamService.getMetadataByMetadataString(bitstreams.get(0), mdString).get(0);
+
+        boolean valueToBeUpdated = bitstreamMetadata != null
             &&
-            (itemRights == null
-                || itemRights.size() == 0
-                || !itemRights.get(0).getValue().equals(bitstreamRights.getValue()));
+            (itemMetadata == null
+                || itemMetadata.size() == 0
+                || !itemMetadata.get(0).getValue().equals(bitstreamMetadata.getValue()));
 
         if (valueToBeUpdated) {
-            itemService.removeMetadataValues(context, item, itemRights);
-            itemService.addMetadata(context, item, "datacite", "rights", null,
-                                    null, bitstreamRights.getValue());
+            itemService.removeMetadataValues(context, item, itemMetadata);
+            itemService.addMetadata(context, item, schema, element, qualifier,
+                                    null, bitstreamMetadata.getValue());
         }
     }
 
@@ -213,15 +220,30 @@ public class CopyToBitstreamConsumer implements Consumer {
                 }
                 findApplyResourcePolicy(context, accessConditionOptions, bitstream, name, description,
                                         startDate, endDate);
-                List<MetadataValue> dataciteRights =
-                    bitstreamService.getMetadataByMetadataString(bitstream, DATACITE_RIGHTS);
-                bitstreamService.removeMetadataValues(context, bitstream, dataciteRights);
-                bitstreamService.addMetadata(context, bitstream, "datacite", "rights", null,
-                                             null, name);
+                updateBitstreamMetadata(context, bitstream, "datacite", "rights", null, name);
+                if (startDate != null) {
+                    updateBitstreamMetadata(context, bitstream, "datacite", "available", null,
+                                            getString(newAccessCondition, "startDate"));
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void updateBitstreamMetadata(Context context, Bitstream bitstream, String schema, String element,
+                                         String qualifier, String metadataValue) throws SQLException {
+        String mdString = metadataString(schema, element, qualifier);
+        List<MetadataValue> dataciteRights =
+            bitstreamService.getMetadataByMetadataString(bitstream, mdString);
+        bitstreamService.removeMetadataValues(context, bitstream, dataciteRights);
+        bitstreamService.addMetadata(context, bitstream, schema, element, qualifier,
+                                     null, metadataValue);
+    }
+
+    private static String metadataString(String schema, String element, String qualifier) {
+        return Stream.of(schema, element, qualifier).filter(StringUtils::isNotBlank)
+                     .collect(Collectors.joining("."));
     }
 
     private static String getString(JSONObject newAccessCondition, String key) {
