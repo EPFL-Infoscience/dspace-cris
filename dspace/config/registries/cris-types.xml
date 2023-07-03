@@ -347,14 +347,14 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
-        <qualifier>authorrid</qualifier>
+        <qualifier>author-rid</qualifier>
         <scope_note></scope_note>
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
-        <qualifier>editorrid</qualifier>
+        <qualifier>editor-rid</qualifier>
         <scope_note></scope_note>
     </dc-type>
 
