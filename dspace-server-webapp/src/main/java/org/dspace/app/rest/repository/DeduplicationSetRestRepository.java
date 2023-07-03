@@ -17,7 +17,6 @@ import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.model.DeduplicationSetRest;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +112,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     protected void delete(Context context, String id) throws AuthorizeException {
-        DuplicateInfo duplicateInfo = null;
+        DuplicateInfo duplicateInfo;
         try {
             duplicateInfo = dedupUtils.findGroup(context, id);
             if (duplicateInfo == null) {
@@ -123,7 +122,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
             throw new RuntimeException("Could not find set with id: " + id, e);
         }
         try {
-            dedupUtils.rejectAdminDups(context, duplicateInfo, Constants.ITEM);
+            dedupUtils.rejectAdminDups(context, duplicateInfo);
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException("Something went wrong trying to delete set with id: " + id, e);
         }

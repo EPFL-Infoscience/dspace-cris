@@ -724,7 +724,7 @@ public class SolrDedupServiceImpl implements DedupService {
         decisionObject.setValue(decisionValue.toString());
 
         try {
-            dedupUtils.setDuplicateDecision(context, item.getID(), duplicatedItemId, item.getType(), decisionObject);
+            dedupUtils.setDuplicateDecision(context, item.getID(), duplicatedItemId, decisionObject);
         } catch (AuthorizeException | SQLException | SearchServiceException e) {
             throw new RuntimeException(e);
         }

@@ -171,6 +171,11 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="ctb-bitstream-metadata" mandatory="true">
+      <heading>submit.progressbar.describe.ctb-metadata</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
     <step-definition id="detect-duplicate" mandatory="true">
       <heading>submit.progressbar.detect-duplicate</heading>
       <processing-class>org.dspace.app.rest.submit.step.DetectPotentialDuplicateStep</processing-class>
@@ -213,10 +218,12 @@
     <submission-process name="product">
       <step id="collection" />
       <step id="correction" />
+      <step id="itemAccessConditions"/>
       <step id="product" />
       <step id="product_indexing" />
       <step id="product_references" />
       <step id="detect-duplicate" />
+      <step id="ctb-bitstream-metadata"/>
       <step id="upload-product" />
       <step id="license" />
     </submission-process>
@@ -271,12 +278,14 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="itemAccessConditions"/>
       <step id="publication" />
       <step id="publication_indexing" />
       <step id="publication_bibliographic_details" />
       <step id="publication_references" />
       <step id="sherpaPolicies" />
       <step id="detect-duplicate" />
+      <step id="ctb-bitstream-metadata"/>
       <step id="upload-publication" />
       <step id="license" />
     </submission-process>
@@ -347,10 +356,12 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="itemAccessConditions"/>
       <step id="patent" />
       <step id="patent_indexing" />
       <step id="patent_references" />
       <step id="detect-duplicate" />
+      <step id="ctb-bitstream-metadata"/>
       <step id="upload-patent" />
       <step id="license" />
     </submission-process>

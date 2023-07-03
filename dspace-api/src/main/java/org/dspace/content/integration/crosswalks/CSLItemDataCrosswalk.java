@@ -15,7 +15,9 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -59,6 +61,8 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
     private String fileName;
 
     private CrosswalkMode crosswalkMode;
+
+    private String entityType;
 
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
@@ -130,7 +134,11 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
     }
 
     private boolean isPublication(Item item) {
-        return "Publication".equals(itemService.getEntityType(item));
+        if (StringUtils.isBlank(this.entityType) || "all".equals(this.entityType)) {
+            return Stream.of("Publication", "Product", "Patent")
+                .anyMatch(s -> s.equals(itemService.getEntityType(item)));
+        }
+        return this.entityType.equals(itemService.getEntityType(item));
     }
 
     public void setMimeType(String mimeType) {
@@ -159,7 +167,11 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
 
     @Override
     public Optional<String> getEntityType() {
-        return Optional.of("Publication");
+        return Optional.ofNullable(this.entityType).map(Optional::of)
+                           .orElse(Optional.of("Publication"));
     }
 
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
 }

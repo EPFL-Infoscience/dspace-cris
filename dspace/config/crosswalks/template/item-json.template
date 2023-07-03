@@ -1,0 +1,40 @@
+{
+	"title": "@dc.title@",
+	"doi": "@dc.identifier.doi@",
+	"creators": [
+    		@group.dc-contributor-author.start@
+    		{
+    			"name": "@dc.contributor.author@",
+    			@relation.dc-contributor-author.start@
+                "orcid": "@person.identifier.orcid@",
+                @relation.dc-contributor-author.end@
+    			"affiliation": "@oairecerif.author.affiliation@"
+    		},
+    		@group.dc-contributor-author.end@
+    	],
+    "publisher": "@dc.publisher",
+    "publicationYear": "@virtual.date.dc-date-issued.YYYY@",
+     "subjects": [
+        "subject": "@dc.subject@",
+      ],
+      "dateIssued": "@dc.date.issued@",
+      "language": "@dc.language.iso@",
+      "alternateIdentifiers" : [
+        "url": "@dc.identifier.uri@",
+      ],
+      "version": "@dc.description.version@",
+      "rights" : [
+        {
+          "uri": "@virtual.mapConverter.right2licenseUrl.oaire-licenseCondition@",
+          "right": "@oaire.licenseCondition@"
+        },
+        {
+          "uri": "@virtual.mapConverter.right2conceptUrl.datacite-rights@",
+          "right": "@datacite.rights@"
+        }
+      ],
+      "descriptions": {
+        "abstract": "@dc.description.abstract@",
+        "other": "@dc.description@"
+      }
+}

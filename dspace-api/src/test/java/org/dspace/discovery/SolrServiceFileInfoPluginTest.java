@@ -10,6 +10,9 @@ package org.dspace.discovery;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -24,6 +27,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.junit.Before;
@@ -75,4 +80,72 @@ public class SolrServiceFileInfoPluginTest {
         verify(document, times(2)).addField(any(), any());
         assertThat(document.getFieldNames(), not(empty()));
     }
+
+    @Test
+    public void shouldAddLicenseWithOutURL() {
+        IndexableItem indexableItem = mock(IndexableItem.class);
+        Bundle bundle = mock(Bundle.class);
+        Bitstream bitstream = mock(Bitstream.class);
+        Item item = mock(Item.class);
+        MetadataValue metadataValue = mock(MetadataValue.class);
+        MetadataField metadataField = mock(MetadataField.class);
+
+        when(indexableItem.getIndexedObject()).thenReturn(item);
+
+        when(metadataValue.getSchema()).thenReturn("epfl");
+        when(metadataValue.getElement()).thenReturn("licenseName");
+        when(metadataValue.getValue()).thenReturn("123");
+        when(metadataValue.getMetadataField()).thenReturn(metadataField);
+        when(metadataField.toString('.')).thenReturn("epfl.licenseName");
+
+        when(bitstream.getName()).thenReturn("bitstream");
+        when(bitstream.getChecksumAlgorithm()).thenReturn("MD5");
+        when(bitstream.getChecksum()).thenReturn("test");
+        when(bundle.getName()).thenReturn("ORIGINAL");
+        when(bitstream.getMetadata()).thenReturn(List.of(metadataValue));
+        when(bundle.getBitstreams()).thenReturn(List.of(bitstream));
+        when(item.getBundles()).thenReturn(List.of(bundle));
+
+        SolrInputDocument solrInputDocument = new SolrInputDocument();
+
+        SolrInputDocument document = spy(solrInputDocument);
+        solrServiceFileInfoPlugin.additionalIndex(context, indexableItem, document);
+
+        assertNotNull(document.getField("original_bundle_oaire_licenseCondition"));
+        assertEquals(document.getField("original_bundle_oaire_licenseCondition").getValue().toString(), "123");
+    }
+
+    @Test
+    public void shouldNotAddLicenseWithURL() {
+        IndexableItem indexableItem = mock(IndexableItem.class);
+        Bundle bundle = mock(Bundle.class);
+        Bitstream bitstream = mock(Bitstream.class);
+        Item item = mock(Item.class);
+        MetadataValue metadataValue = mock(MetadataValue.class);
+        MetadataField metadataField = mock(MetadataField.class);
+
+        when(indexableItem.getIndexedObject()).thenReturn(item);
+
+        when(metadataValue.getSchema()).thenReturn("epfl");
+        when(metadataValue.getElement()).thenReturn("licenseName");
+        when(metadataValue.getValue()).thenReturn("https://www.test.com");
+        when(metadataValue.getMetadataField()).thenReturn(metadataField);
+        when(metadataField.toString('.')).thenReturn("epfl.licenseName");
+
+        when(bitstream.getName()).thenReturn("bitstream");
+        when(bitstream.getChecksumAlgorithm()).thenReturn("MD5");
+        when(bitstream.getChecksum()).thenReturn("test");
+        when(bundle.getName()).thenReturn("ORIGINAL");
+        when(bitstream.getMetadata()).thenReturn(List.of(metadataValue));
+        when(bundle.getBitstreams()).thenReturn(List.of(bitstream));
+        when(item.getBundles()).thenReturn(List.of(bundle));
+
+        SolrInputDocument solrInputDocument = new SolrInputDocument();
+
+        SolrInputDocument document = spy(solrInputDocument);
+        solrServiceFileInfoPlugin.additionalIndex(context, indexableItem, document);
+
+        assertNull(document.getField("original_bundle_oaire_licenseCondition"));
+    }
+
 }

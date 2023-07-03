@@ -17,6 +17,7 @@
             <!-- Restrict access to hidden items by default -->
             <Filter ref="defaultFilter"/>
 
+            <Set ref="thesesSet"/>
             <Format ref="oaidc"/>
             <Format ref="mets"/>
             <!--  <Format ref="xoai"/>-->
@@ -40,21 +41,21 @@
 
             - https://guidelines.openaire.eu/en/latest/literature/use_of_oai_pmh.html
          -->
-        <Context baseurl="driver" name="Driver Context">
-            <!-- Date format, field prefixes, etc are ensured by the transformer -->
-            <Transformer ref="driverTransformer"/>
-            <!-- The driver filter -->
-            <Filter ref="driverFilter"/>
-            <!-- Just an alias, in fact it returns all items within the driver context -->
-            <Set ref="driverSet"/>
-            <!-- Metadata Formats -->
-            <Format ref="oaidc"/>
-            <Format ref="mets"/>
-            <Format ref="didl"/>
-            <Description>
-                This context complies with Driver rules.
-            </Description>
-        </Context>
+<!--        <Context baseurl="driver" name="Driver Context">-->
+<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
+<!--            <Transformer ref="driverTransformer"/>-->
+<!--            &lt;!&ndash; The driver filter &ndash;&gt;-->
+<!--            <Filter ref="driverFilter"/>-->
+<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
+<!--            <Set ref="driverSet"/>-->
+<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
+<!--            <Format ref="oaidc"/>-->
+<!--            <Format ref="mets"/>-->
+<!--            <Format ref="didl"/>-->
+<!--            <Description>-->
+<!--                This context complies with Driver rules.-->
+<!--            </Description>-->
+<!--        </Context>-->
 
         <!--
             OpenAIRE Guidelines 3.0:
@@ -65,20 +66,20 @@
 
             - Predefined DSpace fields don't allow to set this up with a default.
          -->
-        <Context baseurl="openaire" name="OpenAIRE Context">
-            <!-- Date format, field prefixes, etc are ensured by the transformer -->
-            <Transformer ref="openaireTransformer"/>
-            <!-- OpenAIRE filter -->
-            <Filter ref="openAireFilter"/>
-            <!-- Just an alias, in fact it returns all items within the driver context -->
-            <Set ref="openaireFundedResourcesSet"/>
-            <!-- Metadata Formats -->
-            <Format ref="oaidc"/>
-            <Format ref="mets"/>
-            <Description>
-                This contexts complies with OpenAIRE Guidelines for Literature Repositories v3.0.
-            </Description>
-        </Context>
+<!--        <Context baseurl="openaire" name="OpenAIRE Context">-->
+<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
+<!--            <Transformer ref="openaireTransformer"/>-->
+<!--            &lt;!&ndash; OpenAIRE filter &ndash;&gt;-->
+<!--            <Filter ref="openAireFilter"/>-->
+<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
+<!--            <Set ref="openaireFundedResourcesSet"/>-->
+<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
+<!--            <Format ref="oaidc"/>-->
+<!--            <Format ref="mets"/>-->
+<!--            <Description>-->
+<!--                This contexts complies with OpenAIRE Guidelines for Literature Repositories v3.0.-->
+<!--            </Description>-->
+<!--        </Context>-->
 
         <!--
             OpenAIRE Guidelines 4.0:
@@ -102,42 +103,53 @@
             </Description>
         </Context>
 
+<!--        <Context baseurl="theses" name="Theses Context">-->
+<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
+<!--            <Transformer ref="driverTransformer"/>-->
+<!--            &lt;!&ndash; Theses filter &ndash;&gt;-->
+<!--            <Filter ref="thesesFilter"/>-->
+<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
+<!--            <Format ref="mets"/>-->
+<!--            <Description>-->
+<!--                This contexts can be used to harvest theses data-->
+<!--            </Description>-->
+<!--        </Context>-->
 
-        <Context baseurl="openairecris" name="OpenAIRE Context for CRIS System">
-            <!-- Date format, field prefixes, etc are ensured by the transformer -->
-            <Transformer ref="openairecrisTransformer"/>
-            <Filter ref="openAireCRISFilter"/>
-            <!-- Just an alias, in fact it returns all items within the driver context -->
-            <Set ref="openairePublicationsCrisSet"/>
-            <Set ref="openaireProductsCrisSet"/>
-            <Set ref="openairePatentsCrisSet"/>
-            <Set ref="openairePersonsCrisSet"/>
-            <Set ref="openaireOrgunitsCrisSet"/>
-            <Set ref="openaireProjectsCrisSet"/>
-            <Set ref="openaireEventsCrisSet"/>
-            <Set ref="openaireEquipmentsCrisSet"/>
-            <Set ref="openaireFundingCrisSet"/>
-            <!-- Metadata Formats -->
-            <Format ref="oaidc"/>
-            <Format ref="oai_cerif"/>
-            <Description>
-                This contexts complies with OpenAIRE rules for CRIS system v 1.1.1
-            </Description>
-        </Context>
+<!--        <Context baseurl="openairecris" name="OpenAIRE Context for CRIS System">-->
+<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
+<!--            <Transformer ref="openairecrisTransformer"/>-->
+<!--            <Filter ref="openAireCRISFilter"/>-->
+<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
+<!--            <Set ref="openairePublicationsCrisSet"/>-->
+<!--            <Set ref="openaireProductsCrisSet"/>-->
+<!--            <Set ref="openairePatentsCrisSet"/>-->
+<!--            <Set ref="openairePersonsCrisSet"/>-->
+<!--            <Set ref="openaireOrgunitsCrisSet"/>-->
+<!--            <Set ref="openaireProjectsCrisSet"/>-->
+<!--            <Set ref="openaireEventsCrisSet"/>-->
+<!--            <Set ref="openaireEquipmentsCrisSet"/>-->
+<!--            <Set ref="openaireFundingCrisSet"/>-->
+<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
+<!--            <Format ref="oaidc"/>-->
+<!--            <Format ref="oai_cerif"/>-->
+<!--            <Description>-->
+<!--                This contexts complies with OpenAIRE rules for CRIS system v 1.1.1-->
+<!--            </Description>-->
+<!--        </Context>-->
 
-        <Context baseurl="openairedata" name="OpenAIRE Data Repository Context">
-            <!-- OpenAIRE DataArchive filter -->
-            <Filter ref="openaireDataFilter"/>
-            <!-- Just an alias, in fact it returns all items within the driver context -->
-            <Set ref="openaireDataSet"/>
-            <!-- Metadata Formats -->
-            <Format ref="oaidc"/>
-            <!-- set the reference at the new format called datacite41_openaire -->
-            <Format ref="datacite41_openaire"/>
-            <Description>
-                This contexts complies with Data Archive OpenAIRE rules.
-            </Description>
-        </Context>
+<!--        <Context baseurl="openairedata" name="OpenAIRE Data Repository Context">-->
+<!--            &lt;!&ndash; OpenAIRE DataArchive filter &ndash;&gt;-->
+<!--            <Filter ref="openaireDataFilter"/>-->
+<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
+<!--            <Set ref="openaireDataSet"/>-->
+<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
+<!--            <Format ref="oaidc"/>-->
+<!--            &lt;!&ndash; set the reference at the new format called datacite41_openaire &ndash;&gt;-->
+<!--            <Format ref="datacite41_openaire"/>-->
+<!--            <Description>-->
+<!--                This contexts complies with Data Archive OpenAIRE rules.-->
+<!--            </Description>-->
+<!--        </Context>-->
 
     </Contexts>
 
@@ -626,6 +638,18 @@
             </Configuration>
         </CustomCondition>
 
+        <CustomCondition id="thesesTypeCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">ends_with</string>
+                <list name="values">
+                    <string>doctoralThesis</string>
+                    <string>doctoral thesis</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+
         <!-- This condition determines if an OAI document is of one of the types
         	 required by OpenAIRE for CRIS System. -->
         <CustomCondition id="crisObjectTypeCondition">
@@ -722,6 +746,65 @@
                 </Or>
             </Definition>
         </Filter>
+        <Filter id="thesesFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <And>
+                            <LeftCondition>
+                                <Custom ref="thesesTypeCondition"/>
+                            </LeftCondition>
+                            <RightCondition>
+                                <Custom ref="writtenAtEpflCondition"/>
+                            </RightCondition>
+                        </And>
+                    </LeftCondition>
+                    <RightCondition>
+                        <And>
+                            <LeftCondition>
+                                <Custom ref="publishedCondition"/>
+                            </LeftCondition>
+                            <RightCondition>
+                                <Custom ref="publicationDateFilter"/>
+                            </RightCondition>
+                        </And>
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+
+        <CustomCondition id="publicationDateFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.date.issued</string>
+                <string name="operator">greater</string>
+                <string name="value">2003</string>
+            </Configuration>
+        </CustomCondition>
+
+        <CustomCondition id="writtenAtEpflCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">epfl.writtenAt</string>
+                <string name="operator">equal</string>
+                <string name="value">EPFL</string>
+            </Configuration>
+        </CustomCondition>
+
+        <CustomCondition id="publishedCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">oaire.version</string>
+                <string name="operator">ends_with</string>
+                <list name="values">
+                    <string>c_b1a7d7d4d402bcce</string>
+                    <string>c_fa2ee174bc00049f</string>
+                    <string>c_970fb48d4fbd8a85</string>
+                    <string>c_e19f295774971610</string>
+                    <string>c_dc82b40f9837b551</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
 
         <CustomCondition id="publicationSetFilter">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
@@ -908,6 +991,11 @@
             <Spec>openaire_data</Spec>
             <Name>OpenAIRE</Name>
             <!-- Just an alias or set a filter condition to expose only specific kind of items (dataset) -->
+        </Set>
+        <Set id="thesesSet">
+            <Spec>epfl_theses</Spec>
+            <Name>Theses</Name>
+            <Filter ref="thesesFilter"/>
         </Set>
     </Sets>
 </Configuration>
