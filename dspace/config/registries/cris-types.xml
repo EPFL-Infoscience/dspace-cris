@@ -375,7 +375,7 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
-        <qualifier>authorrid</qualifier>
+        <qualifier>author-rid</qualifier>
         <scope_note></scope_note>
     </dc-type>
 
