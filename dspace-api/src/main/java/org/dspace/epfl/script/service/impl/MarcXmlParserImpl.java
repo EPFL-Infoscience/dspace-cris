@@ -11,10 +11,12 @@ import static java.util.stream.Collectors.toMap;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -41,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class MarcXmlParserImpl implements MarcXmlParser {
 
@@ -74,23 +77,28 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     }
 
     @Override
-    public List<MetadataValueDTO> parse(Context context, InputStream source) {
-
+    public List<MetadataValueDTO> readMetadataValues(Context context, InputStream source) {
         try {
-
-            Document document = documentBuilder.parse(source);
-
-            Node record = getNode(document, mapping.getItemXPath());
-
-            return getMetadataValues(context, record);
-
+            Node record = parse(source);
+            return readMetadataValues(context, record);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    private List<MetadataValueDTO> getMetadataValues(Context context, Node node) throws Exception {
+    @Override
+    public Node parse(InputStream source) {
+        try {
+            Document document = documentBuilder.parse(source);
+            return getNode(document, mapping.getItemXPath());
+        } catch (SAXException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<MetadataValueDTO> readMetadataValues(Context context, Node record) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
@@ -98,7 +106,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
             ItemsImportMetadataFieldReader reader = readers.get(metadataField.getReader());
 
-            NodeList nodeList = getNodeList(node, metadataField.getXPath());
+            NodeList nodeList = getNodeList(record, metadataField.getXPath());
 
             List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
 
@@ -109,12 +117,37 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     }
 
-    private NodeList getNodeList(Object item, String expression) throws XPathExpressionException {
-        return (NodeList) xPath.compile(expression).evaluate(item, XPathConstants.NODESET);
+    @Override
+    public String readSubmitter(Context context, Node record) {
+        return Optional.ofNullable(mapping.getSubmitterXPath())
+            .filter(StringUtils::isNotBlank)
+            .map(path -> getSingleValue(record, path))
+            .filter(StringUtils::isNotBlank)
+            .orElse(null);
     }
 
-    private Node getNode(Object item, String expression) throws XPathExpressionException {
-        return (Node) xPath.compile(expression).evaluate(item, XPathConstants.NODE);
+    private NodeList getNodeList(Object item, String expression) {
+        try {
+            return (NodeList) xPath.compile(expression).evaluate(item, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + expression, e);
+        }
+    }
+
+    private Node getNode(Object item, String expression) {
+        try {
+            return (Node) xPath.compile(expression).evaluate(item, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + expression, e);
+        }
+    }
+
+    private String getSingleValue(Node node, String path) {
+        try {
+            return (String) xPath.compile(path).evaluate(node, XPathConstants.STRING);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + path, e);
+        }
     }
 
     private ItemsImportMapping parseMapping() {

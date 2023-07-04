@@ -203,7 +203,7 @@ public class MetadataValueDTO {
 
     @Override
     public String toString() {
-        return "MetadataValueDTO [schema=" + schema + ", element=" + element + ", qualifier=" + qualifier
+        return "MetadataValueDTO [field=" + getMetadataField()
             + ", language=" + language + ", value=" + value + ", authority=" + authority + ", confidence=" + confidence
             + ", securityLevel=" + securityLevel + "]";
     }

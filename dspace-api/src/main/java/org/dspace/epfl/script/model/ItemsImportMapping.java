@@ -25,6 +25,9 @@ public class ItemsImportMapping {
     @XmlElement(name = "item-xpath")
     private String itemXPath;
 
+    @XmlElement(name = "submitter-xpath")
+    private String submitterXPath;
+
     @XmlElement(name = "metadata-fields")
     private MetadataFields metadataFields;
 
@@ -34,6 +37,14 @@ public class ItemsImportMapping {
 
     public void setItemXPath(String itemXPath) {
         this.itemXPath = itemXPath;
+    }
+
+    public String getSubmitterXPath() {
+        return submitterXPath;
+    }
+
+    public void setSubmitterXPath(String submitterXPath) {
+        this.submitterXPath = submitterXPath;
     }
 
     public MetadataFields getMetadataFields() {

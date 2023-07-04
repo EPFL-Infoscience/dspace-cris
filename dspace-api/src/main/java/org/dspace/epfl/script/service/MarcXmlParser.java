@@ -12,8 +12,15 @@ import java.util.List;
 
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
+import org.w3c.dom.Node;
 
 public interface MarcXmlParser {
 
-    List<MetadataValueDTO> parse(Context context, InputStream source);
+    Node parse(InputStream source);
+
+    List<MetadataValueDTO> readMetadataValues(Context context, InputStream source);
+
+    List<MetadataValueDTO> readMetadataValues(Context context, Node record);
+
+    String readSubmitter(Context context, Node record);
 }
