@@ -12,8 +12,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,11 +24,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,26 +34,28 @@ import org.dspace.app.bulkimport.exception.BulkImportException;
 import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilder;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
-import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
-import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.epfl.script.model.ItemsImportMapping;
 import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
-import org.w3c.dom.Node;
 
 public class ItemsImportFromS3Script
     extends DSpaceRunnable<ItemsImportFromS3ScriptConfiguration<ItemsImportFromS3Script>> {
 
 
     private CollectionService collectionService;
+
+    private ConfigurationService configurationService;
 
     private BulkImportWorkbookBuilder workbookBuilder;
 
@@ -83,11 +78,14 @@ public class ItemsImportFromS3Script
 
     private int errorsCount = 0;
 
+    private ItemsImportMapping mapping;
+
 
     @Override
     public void setup() throws ParseException {
 
         this.collectionService = ContentServiceFactory.getInstance().getCollectionService();
+        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.workbookBuilder = new DSpace().getServiceManager()
             .getServicesByType(BulkImportWorkbookBuilder.class).get(0);
         this.itemsS3Service = new DSpace().getServiceManager()
@@ -107,6 +105,10 @@ public class ItemsImportFromS3Script
         }
 
         startAfter = commandLine.getOptionValue('a');
+
+        String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
+
+        this.mapping = marcXmlParser.parseMapping(configuration);
 
     }
 
@@ -214,50 +216,29 @@ public class ItemsImportFromS3Script
 
         String id = StringUtils.removeEnd(key, ".zip");
 
-        List<MetadataValueDTO> metadataValues = new ArrayList<>();
-        List<BitstreamDTO> bitstreams = new ArrayList<>();
-
-        String submitter = null;
+        ItemDTO item = null;
 
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
             if (entry.getName().equals(id + File.separator + "metadata.xml")) {
-
-                Node record = marcXmlParser.parse(zipFile.getInputStream(entry));
-
-                printDocument(record, System.out);
-
-                metadataValues.addAll(marcXmlParser.readMetadataValues(context, record));
-
-                submitter = marcXmlParser.readSubmitter(context, record);
-
+                item = marcXmlParser.readSingleItem(context, id, zipFile.getInputStream(entry), mapping);
             }
         }
 
-        if (metadataValues.isEmpty()) {
+        if (item == null || CollectionUtils.isEmpty(item.getMetadataValues())) {
             throw new IllegalStateException("No metadata read from entry with key " + key);
         }
 
         System.out.println("---------------------------------");
 
-        metadataValues.forEach(value -> System.out.println(value));
+        item.getMetadataValues().forEach(value -> System.out.println(value));
 
         System.out.println("---------------------------------");
         System.out.println("---------------------------------");
-
-        String legacyId = getCrisLegacyId(metadataValues)
-            .orElse(id);
 
         importedItemsCount++;
 
-        return new ItemDTO("LEGACY-ID::" + legacyId, submitter, metadataValues, bitstreams);
-    }
-
-    private Optional<String> getCrisLegacyId(List<MetadataValueDTO> metadataValues) {
-        return metadataValues.stream()
-            .filter(metadata -> metadata.getMetadataField().equals("cris.legacyId"))
-            .map(MetadataValueDTO::getValue)
-            .findFirst();
+        return item;
     }
 
     private ZipFile parseZip(File file) throws Exception {
@@ -291,24 +272,6 @@ public class ItemsImportFromS3Script
     private void assignSpecialGroupsInContext() throws SQLException {
         for (UUID uuid : handler.getSpecialGroups()) {
             context.setSpecialGroup(uuid);
-        }
-    }
-
-    private void printDocument(Node record, OutputStream out) {
-        try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-            transformer.transform(new DOMSource(record),
-                new StreamResult(new OutputStreamWriter(out, "UTF-8")));
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
     }
 
