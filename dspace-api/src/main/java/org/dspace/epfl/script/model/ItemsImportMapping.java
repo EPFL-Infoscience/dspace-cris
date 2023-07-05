@@ -25,8 +25,14 @@ public class ItemsImportMapping {
     @XmlElement(name = "item-xpath")
     private String itemXPath;
 
+    @XmlElement(name = "submitter-xpath")
+    private String submitterXPath;
+
     @XmlElement(name = "metadata-fields")
     private MetadataFields metadataFields;
+
+    @XmlElement(name = "bitstreams")
+    private Bitstreams bitstreams;
 
     public String getItemXPath() {
         return itemXPath;
@@ -34,6 +40,14 @@ public class ItemsImportMapping {
 
     public void setItemXPath(String itemXPath) {
         this.itemXPath = itemXPath;
+    }
+
+    public String getSubmitterXPath() {
+        return submitterXPath;
+    }
+
+    public void setSubmitterXPath(String submitterXPath) {
+        this.submitterXPath = submitterXPath;
     }
 
     public MetadataFields getMetadataFields() {
@@ -45,6 +59,17 @@ public class ItemsImportMapping {
 
     public void setMetadataFields(MetadataFields metadataFields) {
         this.metadataFields = metadataFields;
+    }
+
+    public Bitstreams getBitstreams() {
+        if (bitstreams == null) {
+            bitstreams = new Bitstreams();
+        }
+        return bitstreams;
+    }
+
+    public void setBitstreams(Bitstreams bitstreams) {
+        this.bitstreams = bitstreams;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -97,6 +122,69 @@ public class ItemsImportMapping {
 
         public void setReader(String reader) {
             this.reader = reader;
+        }
+
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class Bitstreams {
+
+        @XmlElement(name = "bitstream-xpath")
+        private String bitstreamXPath;
+
+        @XmlElement(name = "checksum-xpath")
+        private String checksumXPath;
+
+        @XmlElement(name = "format-xpath")
+        private String formatXPath;
+
+        @XmlElement(name = "uri-xpath")
+        private String uriXPath;
+
+        @XmlElement(name = "metadata-fields")
+        private MetadataFields metadataFields;
+
+        public MetadataFields getMetadataFields() {
+            if (metadataFields == null) {
+                metadataFields = new MetadataFields();
+            }
+            return metadataFields;
+        }
+
+        public void setMetadataFields(MetadataFields metadataFields) {
+            this.metadataFields = metadataFields;
+        }
+
+        public String getChecksumXPath() {
+            return checksumXPath;
+        }
+
+        public void setChecksumXPath(String checksumXPath) {
+            this.checksumXPath = checksumXPath;
+        }
+
+        public String getFormatXPath() {
+            return formatXPath;
+        }
+
+        public void setFormatXPath(String formatXPath) {
+            this.formatXPath = formatXPath;
+        }
+
+        public String getUriXPath() {
+            return uriXPath;
+        }
+
+        public void setUriXPath(String uriXPath) {
+            this.uriXPath = uriXPath;
+        }
+
+        public String getBitstreamXPath() {
+            return bitstreamXPath;
+        }
+
+        public void setBitstreamXPath(String bitstreamXPath) {
+            this.bitstreamXPath = bitstreamXPath;
         }
 
     }

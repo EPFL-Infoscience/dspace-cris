@@ -34,18 +34,19 @@ import org.dspace.app.bulkimport.exception.BulkImportException;
 import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilder;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
-import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
-import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.epfl.script.model.ItemsImportMapping;
 import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 public class ItemsImportFromS3Script
@@ -53,6 +54,8 @@ public class ItemsImportFromS3Script
 
 
     private CollectionService collectionService;
+
+    private ConfigurationService configurationService;
 
     private BulkImportWorkbookBuilder workbookBuilder;
 
@@ -75,11 +78,14 @@ public class ItemsImportFromS3Script
 
     private int errorsCount = 0;
 
+    private ItemsImportMapping mapping;
+
 
     @Override
     public void setup() throws ParseException {
 
         this.collectionService = ContentServiceFactory.getInstance().getCollectionService();
+        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.workbookBuilder = new DSpace().getServiceManager()
             .getServicesByType(BulkImportWorkbookBuilder.class).get(0);
         this.itemsS3Service = new DSpace().getServiceManager()
@@ -99,6 +105,10 @@ public class ItemsImportFromS3Script
         }
 
         startAfter = commandLine.getOptionValue('a');
+
+        String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
+
+        this.mapping = marcXmlParser.parseMapping(configuration);
 
     }
 
@@ -206,34 +216,29 @@ public class ItemsImportFromS3Script
 
         String id = StringUtils.removeEnd(key, ".zip");
 
-        List<MetadataValueDTO> metadataValues = new ArrayList<>();
-        List<BitstreamDTO> bitstreams = new ArrayList<>();
+        ItemDTO item = null;
 
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
             if (entry.getName().equals(id + File.separator + "metadata.xml")) {
-                List<MetadataValueDTO> values = marcXmlParser.parse(context, zipFile.getInputStream(entry));
-                metadataValues.addAll(values);
+                item = marcXmlParser.readSingleItem(context, id, zipFile.getInputStream(entry), mapping);
             }
         }
 
-        if (metadataValues.isEmpty()) {
+        if (item == null || CollectionUtils.isEmpty(item.getMetadataValues())) {
             throw new IllegalStateException("No metadata read from entry with key " + key);
         }
 
-        String legacyId = getCrisLegacyId(metadataValues)
-            .orElse(id);
+        System.out.println("---------------------------------");
+
+        item.getMetadataValues().forEach(value -> System.out.println(value));
+
+        System.out.println("---------------------------------");
+        System.out.println("---------------------------------");
 
         importedItemsCount++;
 
-        return new ItemDTO("LEGACY-ID::" + legacyId, metadataValues, bitstreams);
-    }
-
-    private Optional<String> getCrisLegacyId(List<MetadataValueDTO> metadataValues) {
-        return metadataValues.stream()
-            .filter(metadata -> metadata.getMetadataField().equals("cris.legacyId"))
-            .map(MetadataValueDTO::getValue)
-            .findFirst();
+        return item;
     }
 
     private ZipFile parseZip(File file) throws Exception {
