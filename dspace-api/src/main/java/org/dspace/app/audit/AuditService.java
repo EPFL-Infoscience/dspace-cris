@@ -154,6 +154,9 @@ public class AuditService {
         if (Objects.isNull(audit.getDetail())) {
             audit.setDetail("-");
         }
+        if (Objects.isNull(event.getDetail())) {
+            return;
+        }
         audit.setDetail(Arrays.stream(event.getDetail().split(", "))
                               .map(String::trim)
                               .collect(Collectors.toSet())

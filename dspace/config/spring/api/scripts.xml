@@ -106,7 +106,7 @@
     </bean>
 
     <bean id="import-publications" class="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCliScriptConfiguration">
-        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef)"/>
+        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv)"/>
         <property name="dspaceRunnableClass" value="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCli"/>
     </bean>
 
@@ -173,6 +173,11 @@
     <bean id="orgunit-tsv-import" class="org.dspace.epfl.script.OrgUnitTSVImportScriptConfiguration" primary="true">
         <property name="description" value="Import the OrgUnits present in the given TSV file"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitTSVImportScript"/>
+    </bean>
+
+    <bean id="items-import-from-s3" class="org.dspace.epfl.script.ItemsImportFromS3ScriptConfiguration" primary="true">
+        <property name="description" value="Import items from S3"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsImportFromS3Script"/>
     </bean>
 
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->

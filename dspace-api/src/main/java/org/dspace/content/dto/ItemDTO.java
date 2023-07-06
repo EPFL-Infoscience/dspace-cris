@@ -41,6 +41,10 @@ public class ItemDTO {
         this(id, null, true, metadataValues, bitstreams);
     }
 
+    public ItemDTO(String id, String submitter, List<MetadataValueDTO> metadataValues, List<BitstreamDTO> bitstreams) {
+        this(id, submitter, true, metadataValues, bitstreams);
+    }
+
     public ItemDTO(String id, String submitter, boolean discoverable, List<MetadataValueDTO> metadataValues,
         List<BitstreamDTO> bitstreams) {
         this.id = id;

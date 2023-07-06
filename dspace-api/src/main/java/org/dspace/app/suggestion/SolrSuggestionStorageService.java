@@ -29,6 +29,7 @@ public interface SolrSuggestionStorageService {
     public static final String SUGGESTION_ID = "suggestion_id";
     public static final String TARGET_ID = "target_id";
     public static final String TITLE = "title";
+    public static final String TYPE = "type";
     public static final String DATE = "date";
     public static final String DISPLAY = "display";
     public static final String CONTRIBUTORS = "contributors";
@@ -163,6 +164,24 @@ public interface SolrSuggestionStorageService {
      */
     List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScore(Context context, String source, String score,
         int pageSize, long offset, boolean ascending) throws SolrServerException, IOException;
+
+    /**
+     * Find all the unprocessed suggestions that are related to the given source, have specified type and have score
+     * greater than or equal to given score.
+     * @param  context             the DSpace Context
+     * @param  source              the source name
+     * @param  score               the score
+     * @param  type                the type
+     * @param  pageSize            the page size
+     * @param  offset              the page offset
+     * @param  ascending           true to retrieve the suggestions ordered by score
+     *                             ascending
+     * @return                     the found suggestions
+     * @throws SolrServerException
+     * @throws IOException
+     */
+    List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndType(Context context, String source, String score,
+        String type, int pageSize, long offset, boolean ascending) throws SolrServerException, IOException;
 
     /**
      * Find all the unprocessed suggestions related to the given source.

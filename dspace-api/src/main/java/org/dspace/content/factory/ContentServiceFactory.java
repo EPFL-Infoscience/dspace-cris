@@ -38,6 +38,7 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.submit.model.AccessConditionConfigurationService;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
@@ -116,6 +117,8 @@ public abstract class ContentServiceFactory {
     public abstract RelationshipMetadataService getRelationshipMetadataService();
 
     public abstract ResourcePolicyService getResourcePolicyService();
+
+    public abstract AccessConditionConfigurationService getAccessConditionConfigurationService();
 
     public abstract SolrSuggestionStorageService getSolrSuggestionStorageService();
 

@@ -200,4 +200,12 @@ public class MetadataValueDTO {
     public void setSecurityLevel(int securityLevel) {
         this.securityLevel = securityLevel;
     }
+
+    @Override
+    public String toString() {
+        return "MetadataValueDTO [field=" + getMetadataField()
+            + ", language=" + language + ", value=" + value + ", authority=" + authority + ", confidence=" + confidence
+            + ", securityLevel=" + securityLevel + "]";
+    }
+
 }
