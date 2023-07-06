@@ -588,6 +588,104 @@
         </field>
       </row>
     </form>
+    <form name="publication_references-dc-relation-product">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>product</dc-qualifier>
+          <label>Dataset or product</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationproduct</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Type</label>
+          <input-type value-pairs-name="epfl_relation_type">opendropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="product_references-dc-relation-product">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>product</dc-qualifier>
+          <label>Dataset or product</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationproduct</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Type</label>
+          <input-type value-pairs-name="epfl_relation_type">opendropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="patent_references-dc-relation-product">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>product</dc-qualifier>
+          <label>Dataset or product</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationproduct</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Type</label>
+          <input-type value-pairs-name="epfl_relation_type">opendropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication_bibliographic_details-dc-relation-publication">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
+          <label>Part Of</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
+<!--          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>-->
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationpublication</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Type</label>
+          <input-type value-pairs-name="epfl_relation_type">opendropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+<!--          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>-->
+        </field>
+      </row>
+    </form>
     <form name="product_references-dc-relation-funding">
       <row>
         <field>
@@ -1437,21 +1535,10 @@
           <dc-element>relation</dc-element>
           <dc-qualifier>publication</dc-qualifier>
           <label>Part Of</label>
-          <input-type>onebox</input-type>
+          <input-type>inline-group</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
-        </field>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relationpublication</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>EPFL type</label>
-          <input-type value-pairs-name="epfl_relation_type">opendropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
           <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
         </field>
       </row>
@@ -1720,21 +1807,11 @@
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>product</dc-qualifier>
-          <label>Dataset or product</label>
-          <input-type>onebox</input-type>
+          <label>Datasets or Products</label>
+          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
-        </field>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relationproduct</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>EPFL type</label>
-          <input-type value-pairs-name="epfl_relation_type">opendropdown</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
         </field>
       </row>
       <row>
@@ -2051,6 +2128,18 @@
           <hint>Result outputs that use this product</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>product</dc-qualifier>
+          <label>Datasets or Products</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Link the item to one or more existent dataset in the repository used or described by the product or, put here the dataset citation</hint>
+        </field>
+      </row>
     </form>
     <form name="patent">
       <row>
@@ -2300,6 +2389,18 @@
           <repeatable>true</repeatable>
           <required />
           <hint>Result outputs that are referenced by this patent</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>product</dc-qualifier>
+          <label>Datasets or Products</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Link the item to one or more existent dataset in the repository used or described by the patent or, put here the dataset citation</hint>
         </field>
       </row>
     </form>

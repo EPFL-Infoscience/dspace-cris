@@ -139,5 +139,17 @@
         <qualifier>doctoralSchool</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relationproduct</element>
+        <qualifier>type</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relationpublication</element>
+        <qualifier>type</qualifier>
+    </dc-type>
+
 
 </dspace-dc-types>
