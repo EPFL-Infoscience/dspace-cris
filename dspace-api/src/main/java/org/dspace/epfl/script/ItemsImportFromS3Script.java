@@ -7,6 +7,8 @@
  */
 package org.dspace.epfl.script;
 
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -42,6 +44,7 @@ import org.dspace.core.Context.Mode;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.epfl.script.model.ItemsImportMapping;
+import org.dspace.epfl.script.service.BitstreamUploadS3Service;
 import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.scripts.DSpaceRunnable;
@@ -62,6 +65,8 @@ public class ItemsImportFromS3Script
     private ItemsS3Service itemsS3Service;
 
     private MarcXmlParser marcXmlParser;
+
+    private BitstreamUploadS3Service bitstreamUploadS3Service;
 
 
     private Context context;
@@ -92,6 +97,8 @@ public class ItemsImportFromS3Script
             .getServicesByType(ItemsS3Service.class).get(0);
         this.marcXmlParser = new DSpace().getServiceManager()
             .getServicesByType(MarcXmlParser.class).get(0);
+        this.bitstreamUploadS3Service = new DSpace().getServiceManager()
+            .getServicesByType(BitstreamUploadS3Service.class).get(0);
 
 
         collectionId = commandLine.getOptionValue('c');
@@ -222,6 +229,10 @@ public class ItemsImportFromS3Script
             ZipEntry entry = entries.nextElement();
             if (entry.getName().equals(id + File.separator + "metadata.xml")) {
                 item = marcXmlParser.readSingleItem(context, id, zipFile.getInputStream(entry), mapping);
+            } else if (entry.getName().startsWith(id + File.separator + "files")) {
+                String bitstreamName = id + "_" + substringAfterLast(entry.getName(), File.separator);
+                bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
+                handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
@@ -229,12 +240,7 @@ public class ItemsImportFromS3Script
             throw new IllegalStateException("No metadata read from entry with key " + key);
         }
 
-        System.out.println("---------------------------------");
-
-        item.getMetadataValues().forEach(value -> System.out.println(value));
-
-        System.out.println("---------------------------------");
-        System.out.println("---------------------------------");
+        handler.logInfo("Entry with key " + key + " successfully read");
 
         importedItemsCount++;
 

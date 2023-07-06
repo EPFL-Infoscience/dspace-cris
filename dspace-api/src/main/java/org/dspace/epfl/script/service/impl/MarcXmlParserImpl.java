@@ -13,12 +13,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -26,11 +26,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -47,7 +42,9 @@ import org.dspace.epfl.script.model.ItemsImportMapping.Bitstreams;
 import org.dspace.epfl.script.model.ItemsImportMapping.MetadataField;
 import org.dspace.epfl.script.reader.ItemsImportMetadataFieldReader;
 import org.dspace.epfl.script.service.MarcXmlParser;
+import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -55,9 +52,14 @@ import org.xml.sax.SAXException;
 
 public class MarcXmlParserImpl implements MarcXmlParser {
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     private DocumentBuilder documentBuilder;
 
     private Map<String, ItemsImportMetadataFieldReader> readers;
+
+    private Set<String> metadataFields = new HashSet<>();
 
     private XPath xPath;
 
@@ -110,11 +112,9 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         Node record = parse(source, mapping);
 
-        printDocument(record, System.out);
-
         List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
 
-        List<BitstreamDTO> bitstreams = readBitstreams(context, record, mapping);
+        List<BitstreamDTO> bitstreams = readBitstreams(context, id, record, mapping);
 
         String submitter = readSubmitter(context, record, mapping);
 
@@ -140,7 +140,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     }
 
     @Override
-    public List<BitstreamDTO> readBitstreams(Context context, Node record, ItemsImportMapping mapping) {
+    public List<BitstreamDTO> readBitstreams(Context context, String id, Node record, ItemsImportMapping mapping) {
 
         String bitstreamXPath = mapping.getBitstreams().getBitstreamXPath();
         if (StringUtils.isBlank(bitstreamXPath)) {
@@ -153,7 +153,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         for (int i = 0; i < bitstreamNodeList.getLength(); i++) {
             Node bitstreamNode = bitstreamNodeList.item(i);
-            bitstreams.add(readBitstream(context, bitstreamNode, mapping));
+            readBitstream(context, id, bitstreamNode, i, mapping).ifPresent(bitstreams::add);
         }
 
         return bitstreams;
@@ -168,16 +168,23 @@ public class MarcXmlParserImpl implements MarcXmlParser {
             .orElse(null);
     }
 
-    private BitstreamDTO readBitstream(Context context, Node bitstreamNode, ItemsImportMapping mapping) {
+    private Optional<BitstreamDTO> readBitstream(Context context, String id, Node bitstreamNode, int position,
+        ItemsImportMapping mapping) {
 
         Bitstreams bitstreamsMapping = mapping.getBitstreams();
-
-        String location = getSingleValue(bitstreamNode, bitstreamsMapping.getUriXPath());
 
         List<MetadataValueDTO> metadataValues = readMetadataValues(context, bitstreamNode,
             bitstreamsMapping.getMetadataFields().getMetadataFields());
 
-        return new BitstreamDTO("ORIGINAL", location, metadataValues);
+        String fileName = getFileNameFromMetadataValues(metadataValues);
+        if (StringUtils.isBlank(fileName)) {
+            return Optional.empty();
+        }
+
+        String location = getBitstreamUrl() + id + "_" + fileName;
+
+        return Optional.of(new BitstreamDTO("ORIGINAL", location, metadataValues));
+
     }
 
     private List<MetadataValueDTO> readMetadataValues(Context context, Node node, List<MetadataField> fields) {
@@ -192,11 +199,29 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
             List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
 
+            if (!values.isEmpty() && !metadataFields.contains(metadataField.getField())) {
+                metadataFields.add(metadataField.getField());
+                System.out.println("NEW METADATA FIELD FOUND:");
+                metadataFields.forEach(System.out::println);
+            }
+
             metadataValues.addAll(values);
         }
 
         return metadataValues;
 
+    }
+
+    private String getBitstreamUrl() {
+        return configurationService.getProperty("epfl.items-import.upload-aws.url");
+    }
+
+    private String getFileNameFromMetadataValues(List<MetadataValueDTO> metadataValues) {
+        return metadataValues.stream()
+            .filter(metadataValue -> "dc.title".equals(metadataValue.getMetadataField()))
+            .map(MetadataValueDTO::getValue)
+            .findFirst()
+            .orElse(null);
     }
 
     private NodeList getNodeList(Object item, String expression) {
@@ -240,24 +265,6 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         if (CollectionUtils.isNotEmpty(unknownReaders)) {
             throw new IllegalStateException("The following configured readers are not defined: " + unknownReaders);
-        }
-    }
-
-    private void printDocument(Node record, OutputStream out) {
-        try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-            transformer.transform(new DOMSource(record),
-                new StreamResult(new OutputStreamWriter(out, "UTF-8")));
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
     }
 

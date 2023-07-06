@@ -90,18 +90,18 @@ public class EpflItemsClientImpl implements EpflItemsClient {
     }
 
     private String getBucketName() {
-        return configurationService.getProperty("epfl.items-import.aws.bucket");
+        return configurationService.getProperty("epfl.items-import.source-aws.bucket");
     }
 
     private String getAwsAccessKey() {
-        return configurationService.getProperty("epfl.items-import.aws.key");
+        return configurationService.getProperty("epfl.items-import.source-aws.key");
     }
 
     private String getAwsAccessRegion() {
-        return configurationService.getProperty("epfl.items-import.aws.region");
+        return configurationService.getProperty("epfl.items-import.source-aws.region");
     }
 
     private String getAwsSecretKey() {
-        return configurationService.getProperty("epfl.items-import.aws.secret-key");
+        return configurationService.getProperty("epfl.items-import.source-aws.secret-key");
     }
 }

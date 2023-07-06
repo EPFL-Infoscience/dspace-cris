@@ -29,7 +29,7 @@ public interface MarcXmlParser {
 
     List<MetadataValueDTO> readItemMetadataValues(Context context, Node record, ItemsImportMapping mapping);
 
-    List<BitstreamDTO> readBitstreams(Context context, Node record, ItemsImportMapping mapping);
+    List<BitstreamDTO> readBitstreams(Context context, String id, Node record, ItemsImportMapping mapping);
 
     String readSubmitter(Context context, Node record, ItemsImportMapping mapping);
 
