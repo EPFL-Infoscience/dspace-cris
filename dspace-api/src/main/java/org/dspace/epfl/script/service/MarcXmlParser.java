@@ -21,9 +21,9 @@ public interface MarcXmlParser {
 
     ItemsImportMapping parseMapping(String configuration);
 
-    Node parse(InputStream source, ItemsImportMapping mapping);
+    Node parse(InputStream source, String recordXPath);
 
-    ItemDTO readSingleItem(Context context, String id, InputStream source, ItemsImportMapping mapping);
+    ItemDTO readSingleItem(Context context, String id, Node record, ItemsImportMapping mapping);
 
     List<MetadataValueDTO> readItemMetadataValues(Context context, InputStream source, ItemsImportMapping mapping);
 

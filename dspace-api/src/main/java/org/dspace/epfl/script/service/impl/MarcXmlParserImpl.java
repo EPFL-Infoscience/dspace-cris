@@ -14,11 +14,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -59,8 +57,6 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     private Map<String, ItemsImportMetadataFieldReader> readers;
 
-    private Set<String> metadataFields = new HashSet<>();
-
     private XPath xPath;
 
     @PostConstruct
@@ -98,19 +94,17 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     }
 
     @Override
-    public Node parse(InputStream source, ItemsImportMapping mapping) {
+    public Node parse(InputStream source, String recordXPath) {
         try {
             Document document = documentBuilder.parse(source);
-            return getNode(document, mapping.getItemXPath());
+            return getNode(document, recordXPath);
         } catch (SAXException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public ItemDTO readSingleItem(Context context, String id, InputStream source, ItemsImportMapping mapping) {
-
-        Node record = parse(source, mapping);
+    public ItemDTO readSingleItem(Context context, String id, Node record, ItemsImportMapping mapping) {
 
         List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
 
@@ -126,7 +120,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         ItemsImportMapping mapping) {
 
         try {
-            Node record = parse(source, mapping);
+            Node record = parse(source, mapping.getItemXPath());
             return readItemMetadataValues(context, record, mapping);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -198,12 +192,6 @@ public class MarcXmlParserImpl implements MarcXmlParser {
             NodeList nodeList = getNodeList(node, metadataField.getXPath());
 
             List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
-
-            if (!values.isEmpty() && !metadataFields.contains(metadataField.getField())) {
-                metadataFields.add(metadataField.getField());
-                System.out.println("NEW METADATA FIELD FOUND:");
-                metadataFields.forEach(System.out::println);
-            }
 
             metadataValues.addAll(values);
         }

@@ -52,6 +52,10 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("a").setType(String.class);
             options.getOption("a").setRequired(false);
 
+            options.addOption("f", "filter", true, "the filter to be applied");
+            options.getOption("f").setType(String.class);
+            options.getOption("f").setRequired(false);
+
             super.options = options;
         }
         return options;

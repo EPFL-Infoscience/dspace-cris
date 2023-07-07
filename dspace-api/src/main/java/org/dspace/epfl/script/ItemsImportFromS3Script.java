@@ -7,6 +7,9 @@
  */
 package org.dspace.epfl.script;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.endsWith;
+import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 import java.io.ByteArrayInputStream;
@@ -26,6 +29,9 @@ import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.CollectionUtils;
@@ -51,6 +57,7 @@ import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
+import org.w3c.dom.Node;
 
 public class ItemsImportFromS3Script
     extends DSpaceRunnable<ItemsImportFromS3ScriptConfiguration<ItemsImportFromS3Script>> {
@@ -77,7 +84,13 @@ public class ItemsImportFromS3Script
 
     private String startAfter;
 
+    private String filter;
+
+    private String recordXPath;
+
     private List<String> keys = new ArrayList<>();
+
+    private int downloadedItemsCount = 0;
 
     private int importedItemsCount = 0;
 
@@ -113,9 +126,12 @@ public class ItemsImportFromS3Script
 
         startAfter = commandLine.getOptionValue('a');
 
-        String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
+        filter = commandLine.getOptionValue('f');
 
-        this.mapping = marcXmlParser.parseMapping(configuration);
+        String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
+        mapping = marcXmlParser.parseMapping(configuration);
+
+        recordXPath = composeRecordXPath();
 
     }
 
@@ -133,6 +149,8 @@ public class ItemsImportFromS3Script
             throw new IllegalArgumentException("No collection found with id " + collectionId);
         }
 
+        validateExpression(recordXPath);
+
         try {
 
             Workbook workbook = buildWorkbook();
@@ -147,14 +165,26 @@ public class ItemsImportFromS3Script
 
     }
 
+    private void validateExpression(String expression) {
+        try {
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = factory.newXPath();
+            xpath.compile(expression);
+        } catch (XPathExpressionException e) {
+            throw new IllegalArgumentException("The provided record expression is not valid: " + recordXPath);
+        }
+    }
+
     private Workbook buildWorkbook() {
+
+        handler.logInfo("Import started with record xPath equals to " + recordXPath);
 
         Iterator<ItemDTO> items = readItems();
 
         Workbook workbook = workbookBuilder.build(context, getCollection(), items);
 
-        handler.logInfo("Import completed. Written " + importedItemsCount
-            + " items with success. Errors: " + errorsCount);
+        handler.logInfo("Import completed. Downloaded " + downloadedItemsCount
+            + ". Written " + importedItemsCount + " items with success. Errors: " + errorsCount);
 
         return workbook;
 
@@ -183,7 +213,9 @@ public class ItemsImportFromS3Script
 
         try {
             InputStream content = itemsS3Service.getObject(key);
-            return Optional.of(parseZip(key, content));
+            downloadedItemsCount++;
+            System.out.println(downloadedItemsCount);
+            return parseZip(key, content);
         } catch (Exception ex) {
             handler.handleException("An error occurs reading entry with key " + key, ex);
             errorsCount++;
@@ -192,7 +224,7 @@ public class ItemsImportFromS3Script
 
     }
 
-    private ItemDTO parseZip(String key, InputStream data) throws Exception {
+    private Optional<ItemDTO> parseZip(String key, InputStream data) throws Exception {
 
         File tempFile = createTempFile(key, data);
 
@@ -215,36 +247,108 @@ public class ItemsImportFromS3Script
         }
     }
 
-    private ItemDTO readZipContent(String key, ZipFile zipFile) throws Exception {
-
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+    private Optional<ItemDTO> readZipContent(String key, ZipFile zipFile) throws Exception {
 
         handler.logInfo("Reading entry with key " + key);
 
         String id = StringUtils.removeEnd(key, ".zip");
 
-        ItemDTO item = null;
+        ItemDTO item = readItem(id, zipFile);
+
+        if (item == null) {
+            return Optional.empty();
+        }
+
+        if (isEmpty(item.getMetadataValues())) {
+            handler.logWarning("No metadata read from entry with key " + key + ". Entry skipped");
+            return Optional.empty();
+        }
+
+        uploadBitstreams(id, zipFile);
+
+        handler.logInfo("Entry with key " + key + " successfully read");
+
+        importedItemsCount++;
+
+        return Optional.ofNullable(item);
+    }
+
+    private ItemDTO readItem(String id, ZipFile zipFile) throws Exception {
+        return findSingleZipEntryByName(zipFile, id + File.separator + "metadata.xml")
+            .map(zipEntry -> readSingleItem(id, zipFile, zipEntry))
+            .orElse(null);
+    }
+
+    private ItemDTO readSingleItem(String id, ZipFile zipFile, ZipEntry zipEntry) {
+
+        try {
+
+            InputStream inputStream = zipFile.getInputStream(zipEntry);
+
+            Node record = marcXmlParser.parse(inputStream, recordXPath);
+
+            if (record == null) {
+                handler.logInfo("Entry with id " + id + " skipped");
+                return null;
+            }
+
+            return marcXmlParser.readSingleItem(context, id, record, mapping);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private String composeRecordXPath() {
+
+        String baseRecordXPath = mapping.getItemXPath();
+        if (StringUtils.isBlank(filter)) {
+            return baseRecordXPath;
+        }
+
+        String filterToApply = getFilterByName()
+            .orElse(filter);
+
+        if (!startsWith(filterToApply, "[") && !endsWith(filterToApply, "[")) {
+            filterToApply = "[" + filterToApply + "]";
+        }
+
+        return baseRecordXPath + filterToApply;
+    }
+
+    private Optional<String> getFilterByName() {
+        return Optional.ofNullable(filter)
+            .map(value -> configurationService.getProperty("epfl.items-import.filters." + value));
+    }
+
+    private void uploadBitstreams(String id, ZipFile zipFile) throws Exception {
+
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
-            if (entry.getName().equals(id + File.separator + "metadata.xml")) {
-                item = marcXmlParser.readSingleItem(context, id, zipFile.getInputStream(entry), mapping);
-            } else if (entry.getName().startsWith(id + File.separator + "files")) {
+            if (entry.getName().startsWith(id + File.separator + "files")) {
                 String bitstreamName = id + "_" + substringAfterLast(entry.getName(), File.separator);
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
-        if (item == null || CollectionUtils.isEmpty(item.getMetadataValues())) {
-            throw new IllegalStateException("No metadata read from entry with key " + key);
+    }
+
+    private Optional<ZipEntry> findSingleZipEntryByName(ZipFile zipFile, String name) {
+
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            if (entry.getName().equals(name)) {
+                return Optional.of(entry);
+            }
         }
 
-        handler.logInfo("Entry with key " + key + " successfully read");
-
-        importedItemsCount++;
-
-        return item;
+        return Optional.empty();
     }
 
     private ZipFile parseZip(File file) throws Exception {
