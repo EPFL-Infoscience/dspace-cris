@@ -7,6 +7,7 @@
  */
 package org.dspace.epfl.script;
 
+import java.io.InputStream;
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Options;
@@ -36,10 +37,6 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
         if (options == null) {
             Options options = new Options();
 
-            options.addOption("c", "collection", true, "the own collection of the imported items");
-            options.getOption("c").setType(String.class);
-            options.getOption("c").setRequired(true);
-
             options.addOption("k", "keys", true, "the object's key to download");
             options.getOption("k").setType(String.class);
             options.getOption("k").setRequired(false);
@@ -52,9 +49,13 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("a").setType(String.class);
             options.getOption("a").setRequired(false);
 
-            options.addOption("f", "filter", true, "the filter to be applied");
-            options.getOption("f").setType(String.class);
-            options.getOption("f").setRequired(false);
+            options.addOption("kf", "keysFile", true, "the file with the list of object's keys to download");
+            options.getOption("kf").setType(InputStream.class);
+            options.getOption("kf").setRequired(true);
+
+            options.addOption("sbu", "skipBitstreamsUpload", false, "skip the bitstreams upload");
+            options.getOption("sbu").setType(boolean.class);
+            options.getOption("sbu").setRequired(false);
 
             super.options = options;
         }

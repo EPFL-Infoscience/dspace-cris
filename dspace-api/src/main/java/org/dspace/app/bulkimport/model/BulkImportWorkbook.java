@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.poi.ss.usermodel.Workbook;
 import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilderImpl;
 
 /**
@@ -35,6 +36,10 @@ public class BulkImportWorkbook {
         this.mainSheet = mainSheet;
         this.nestedMetadataSheets = nestedMetadataSheets;
         this.bitstreamSheet = bitstreamSheet;
+    }
+
+    public Workbook getWorkbook() {
+        return mainSheet.getSheet().getWorkbook();
     }
 
     public BulkImportSheet getMainSheet() {

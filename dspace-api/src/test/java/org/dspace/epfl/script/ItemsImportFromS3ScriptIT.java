@@ -10,22 +10,31 @@ package org.dspace.epfl.script;
 import static org.dspace.app.launcher.ScriptLauncher.handleScript;
 import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
+import static org.dspace.epfl.script.ItemsImportFromS3Script.COLLECTION_PROPERTY_PREFIX;
+import static org.dspace.epfl.script.ItemsImportFromS3Script.TYPE_FILTER_PROPERTY_PREFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDatabase {
+
+    private ConfigurationService configurationService;
 
     private Community community;
 
@@ -33,6 +42,9 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
 
     @Before
     public void beforeTests() throws SQLException, AuthorizeException {
+
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+
         context.turnOffAuthorisationSystem();
         community = createCommunity(context).build();
         collection = createCollection(context, community)
@@ -40,6 +52,9 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             .build();
         context.restoreAuthSystemState();
         context.commit();
+
+        readAllTypes().forEach(type -> setCollectionProperty(type));
+
     }
 
     @Test
@@ -48,7 +63,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         File file = new File("items.xls");
         file.deleteOnExit();
 
-        String[] args = new String[] { "items-import-from-s3", "-c", collection.getID().toString(), "-f", "book-part" };
+        String[] args = new String[] { "items-import-from-s3", "-sbu", "-k", "100891.zip" };
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
@@ -57,5 +72,15 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
 
+    }
+
+    private List<String> readAllTypes() {
+        return configurationService.getPropertyKeys(TYPE_FILTER_PROPERTY_PREFIX).stream()
+            .map(propertyKey -> StringUtils.removeStart(propertyKey, TYPE_FILTER_PROPERTY_PREFIX + "."))
+            .collect(Collectors.toList());
+    }
+
+    private void setCollectionProperty(String type) {
+        configurationService.setProperty(COLLECTION_PROPERTY_PREFIX + "." + type, collection.getID().toString());
     }
 }
