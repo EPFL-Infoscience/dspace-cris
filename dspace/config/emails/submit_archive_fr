@@ -1,0 +1,30 @@
+## Item Archived email message
+## This message is sent to a submitter when Infoscience curator
+## has approved the submission, and the item is maked available into
+## the repository.
+##
+## {0}  Title of the item
+## {1}  The handle identifier of the item
+## {2}  The submitters full name
+##
+#set($subject = "Soumission Infoscience approuvée et disponible : ${params[0]}")
+
+<p>Bonjour ${params[2]},<br/>
+Nous vous remercions pour votre soumission dans Infoscience.<br/>
+<p>Votre publication, "${params[0]}", a été validée et est maintenant consultable à l'adresse suivante :<br/>
+<a href="${params[1]}">${params[1]}</a>
+</p>
+
+<p>Pour toute aide, n'hésitez pas parcourir <a href="https://help-infoscience.epfl.ch">le guide de déposant</a> :
+<ul>
+<li>Comment savoir combien de fois ma publication a été vue ou téléchargée ?</li>
+<li>Comment ajouter mes publications Infoscience sur ma page People ?</li>
+<li>Ma publication peut-elle être déposée en <strong>Open Access</strong> ?</li>
+<li>and plus encore !</li>
+</ul>
+<p>Nous vous remercions encore d'avoir mis à disposition et partagé vos résultats de recherche.<br/>
+
+Enfin pour toute question, n'hésitez pas à nous contacter à l'adresse infoscience@epfl.ch.</p>
+
+<p>L'équipe Infoscience<br/>
+infoscience.epfl.ch</p>
