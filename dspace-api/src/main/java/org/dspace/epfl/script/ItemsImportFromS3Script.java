@@ -95,7 +95,11 @@ public class ItemsImportFromS3Script
 
     private Map<String, String> collectionIds;
 
+    private Map<String, Long> typeCounts;
+
     private int importedItemsCount = 0;
+
+    private int skippedItemsCount = 0;
 
     private int errorsCount = 0;
 
@@ -134,6 +138,7 @@ public class ItemsImportFromS3Script
         mapping = marcXmlParser.parseMapping(configuration);
 
         typeFilters = readAllTypeFilters();
+        typeCounts = new HashMap<>();
 
         xPath = XPathFactory.newInstance().newXPath();
 
@@ -180,7 +185,12 @@ public class ItemsImportFromS3Script
         }
 
         handler.logInfo("Import completed. Written " + importedItemsCount
-            + " items with success. Errors: " + errorsCount);
+            + " items with success. Skipped " + skippedItemsCount + " items. Errors: " + errorsCount);
+
+        handler.logInfo("Created " + workbooks.size() + " workbooks for the following types: ");
+        for (String type : typeCounts.keySet()) {
+            handler.logInfo(type + " - Items count: " + typeCounts.get(type));
+        }
 
         return workbooks;
 
@@ -253,6 +263,7 @@ public class ItemsImportFromS3Script
         }
 
         if (isEmpty(item.getItem().getMetadataValues())) {
+            skippedItemsCount++;
             handler.logWarning("No metadata read from entry with key " + key + ". Entry skipped");
             return Optional.empty();
         }
@@ -262,6 +273,10 @@ public class ItemsImportFromS3Script
         }
 
         handler.logInfo("Entry with key " + key + " successfully read");
+
+        String type = item.getType();
+        Long currentCount = typeCounts.getOrDefault(type, 0L);
+        typeCounts.put(type, currentCount + 1L);
 
         importedItemsCount++;
 
@@ -283,14 +298,16 @@ public class ItemsImportFromS3Script
             Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
 
             if (record == null) {
-                handler.logInfo("Entry with id " + id + " skipped because no record was found");
+                skippedItemsCount++;
+                handler.logWarning("Entry with id " + id + " skipped because no record was found");
                 return null;
             }
 
             String itemType = calculateItemType(record);
 
             if (isEmpty(itemType)) {
-                handler.logInfo("Entry with id " + id + " skipped because no item type found");
+                skippedItemsCount++;
+                handler.logWarning("Entry with id " + id + " skipped because no item type found");
                 return null;
             }
 

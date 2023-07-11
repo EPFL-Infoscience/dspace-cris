@@ -48,7 +48,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         context.turnOffAuthorisationSystem();
         community = createCommunity(context).build();
         collection = createCollection(context, community)
-            .withEntityType("OrgUnit")
+            .withEntityType("Publication")
             .build();
         context.restoreAuthSystemState();
         context.commit();
@@ -60,10 +60,9 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
     @Test
     public void testPublicationsImport() throws Exception {
 
-        File file = new File("items.xls");
-        file.deleteOnExit();
+        deleteAllFilesOnExit();
 
-        String[] args = new String[] { "items-import-from-s3", "-sbu", "-k", "100891.zip" };
+        String[] args = new String[] { "items-import-from-s3", "-sbu", "-k", "298567.zip" };
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
@@ -72,6 +71,13 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
 
+    }
+
+    private void deleteAllFilesOnExit() {
+        for (String type : readAllTypes()) {
+            File file = new File(type + ".xls");
+            file.deleteOnExit();
+        }
     }
 
     private List<String> readAllTypes() {

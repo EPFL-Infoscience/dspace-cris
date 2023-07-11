@@ -7,7 +7,10 @@
  */
 package org.dspace.epfl.client;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -19,6 +22,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.iterable.S3Objects;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.commons.lang3.StringUtils;
@@ -59,15 +63,32 @@ public class EpflItemsClientImpl implements EpflItemsClient {
 
         Assert.notNull(limit, "The limit is mandatory");
 
-        ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
-        listObjectsV2Request.setBucketName(getBucketName());
-        listObjectsV2Request.setMaxKeys(limit);
+        String bucketName = getBucketName();
 
-        if (StringUtils.isNotBlank(startAfter)) {
-            listObjectsV2Request.setStartAfter(startAfter);
-        }
+        List<S3ObjectSummary> objects = new ArrayList<S3ObjectSummary>();
 
-        return s3Service.listObjectsV2(listObjectsV2Request).getObjectSummaries();
+        String continuationToken = null;
+
+        do {
+
+            ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
+            listObjectsV2Request.setContinuationToken(continuationToken);
+            listObjectsV2Request.setBucketName(bucketName);
+            listObjectsV2Request.setMaxKeys(limit - objects.size());
+
+            if (StringUtils.isNotBlank(startAfter)) {
+                listObjectsV2Request.setStartAfter(startAfter);
+            }
+
+            ListObjectsV2Result result = s3Service.listObjectsV2(listObjectsV2Request);
+
+            objects.addAll(result.getObjectSummaries());
+
+            continuationToken = result.getNextContinuationToken();
+
+        } while (isNotBlank(continuationToken) && objects.size() < limit);
+
+        return objects;
     }
 
     @Override
