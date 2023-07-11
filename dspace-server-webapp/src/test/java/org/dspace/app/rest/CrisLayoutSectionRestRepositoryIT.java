@@ -99,9 +99,12 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
                                             "desc", 5, true, false, "list",
                                             "", "col-12 col-lg-6", "", false, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
-              hasItem(withIdAndTopComponent("site", 3, 1, "col-md-6", "homePageTopItems", "metric.view",
-                                            "desc", 5, true, false, "list",
-                                            "", "col-12 col-lg-6", "", false, "top"))));
+              hasItem(withIdAndTopComponent("site", 2, 1, "col-md-6", "homePageTopItems", "metric.view",
+                                            "desc", 5, false, false, "list",
+                                            "", "col-12 col-lg-6", "", true, "top"))))
+            .andExpect(jsonPath("$._embedded.sections",
+                hasItem(withIdAndCarouselComponent("site", 3, 0, "col-md-12", "person"))))
+            ;
     }
 
     @Test
