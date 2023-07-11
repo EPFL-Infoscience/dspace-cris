@@ -208,7 +208,23 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         return groups.stream()
                      .map(group -> findGroupByNameOrUUID(context, group))
                      .filter(group -> Objects.nonNull(group))
-                     .anyMatch(group -> userGroups.contains(group));
+                     .anyMatch(group -> userGroups.contains(group) || isSpecialGroup(context, group));
+    }
+
+    private boolean isSpecialGroup(Context context, Group group) {
+        return findInSpecialGroups(context, group) != null;
+    }
+
+    private Group findInSpecialGroups(Context context, Group group) {
+        try {
+            return context.getSpecialGroups()
+                .stream()
+                .filter(specialGroup -> specialGroup != null && specialGroup.equals(group))
+                .findFirst()
+                .orElse(null);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e.getMessage(), e);
+        }
     }
 
     private Group findGroupByNameOrUUID(Context context, String group) {
