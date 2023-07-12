@@ -51,7 +51,7 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
 
             options.addOption("kf", "keysFile", true, "the file with the list of object's keys to download");
             options.getOption("kf").setType(InputStream.class);
-            options.getOption("kf").setRequired(true);
+            options.getOption("kf").setRequired(false);
 
             options.addOption("sbu", "skipBitstreamsUpload", false, "skip the bitstreams upload");
             options.getOption("sbu").setType(boolean.class);

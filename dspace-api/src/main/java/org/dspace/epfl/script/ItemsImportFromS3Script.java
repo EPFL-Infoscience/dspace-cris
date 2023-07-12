@@ -7,8 +7,11 @@
  */
 package org.dspace.epfl.script;
 
+import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.io.IOUtils.readLines;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
 import java.io.ByteArrayInputStream;
@@ -16,10 +19,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -89,6 +93,8 @@ public class ItemsImportFromS3Script
 
     private String startAfter;
 
+    private String keysFilename;
+
     private List<String> keys = new ArrayList<>();
 
     private Map<String, String> typeFilters;
@@ -123,7 +129,7 @@ public class ItemsImportFromS3Script
             .getServicesByType(BitstreamUploadS3Service.class).get(0);
 
         if (commandLine.hasOption('k')) {
-            keys = Arrays.asList(commandLine.getOptionValues('k'));
+            keys.addAll(asList(commandLine.getOptionValues('k')));
         }
 
         if (commandLine.hasOption('l')) {
@@ -131,6 +137,8 @@ public class ItemsImportFromS3Script
         }
 
         startAfter = commandLine.getOptionValue('a');
+
+        keysFilename = commandLine.getOptionValue("kf");
 
         skipBitstreamsUpload = commandLine.hasOption("sbu");
 
@@ -155,6 +163,10 @@ public class ItemsImportFromS3Script
 
         collectionIds = readCollectionIds();
 
+        if (isNotBlank(keysFilename)) {
+            keys.addAll(readKeysFile());
+        }
+
         validateTypeFilters();
 
         try {
@@ -170,6 +182,17 @@ public class ItemsImportFromS3Script
             context.abort();
         }
 
+    }
+
+    private List<String> readKeysFile() throws Exception {
+
+        InputStream inputStream = handler.getFileStream(context, keysFilename)
+            .orElseThrow(() -> new IllegalArgumentException("Error reading file, the file couldn't be "
+                + "found for filename: " + keysFilename));
+
+        return readLines(inputStream, StandardCharsets.UTF_8).stream()
+            .map(String::trim)
+            .collect(Collectors.toList());
     }
 
     private Map<String, BulkImportWorkbook> buildWorkbooks() {
@@ -221,8 +244,7 @@ public class ItemsImportFromS3Script
             InputStream content = itemsS3Service.getObject(key);
             return parseZip(key, content);
         } catch (Exception ex) {
-            handler.handleException("An error occurs reading entry with key " + key, ex);
-            ex.printStackTrace();
+            handler.logError("An error occurs reading entry with key " + key, ex);
             errorsCount++;
             return Optional.empty();
         }
@@ -380,7 +402,7 @@ public class ItemsImportFromS3Script
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         workbook.write(bos);
         InputStream is = new ByteArrayInputStream(bos.toByteArray());
-        handler.writeFilestream(context, name + ".xls", is, "application/vnd.ms-excel", false);
+        handler.writeFilestream(context, name + ".xls", is, "bulk-import-excel-" + UUID.randomUUID(), false);
     }
 
     private Map<String, String> readAllTypeFilters() {
