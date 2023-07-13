@@ -93,12 +93,18 @@ public class AcceptEditRejectAction extends ProcessingAction {
             return new ActionResult(ActionResult.TYPE.TYPE_ERROR);
         }
 
+        addRejectMetadata(c, wfi);
         // We have pressed reject, so remove the task the user has & put it back
         // to a workspace item
         XmlWorkflowServiceFactory.getInstance().getXmlWorkflowService().sendWorkflowItemBackSubmission(c, wfi,
                 c.getCurrentUser(), this.getProvenanceStartId(), reason);
 
         return new ActionResult(ActionResult.TYPE.TYPE_SUBMISSION_PAGE);
+    }
+
+    private void addRejectMetadata(Context c, XmlWorkflowItem wfi) throws SQLException, AuthorizeException {
+        itemService.addMetadata(c, wfi.getItem(), "epfl", "workflow", "rejected", null, "true");
+        itemService.update(c, wfi.getItem());
     }
 
     public ActionResult processSubmitterIsDeletedPage(Context c, XmlWorkflowItem wfi, HttpServletRequest request)

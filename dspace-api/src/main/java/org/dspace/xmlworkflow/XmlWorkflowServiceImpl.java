@@ -44,6 +44,7 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -141,6 +142,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
     protected EventService eventService;
     @Autowired(required = true)
     private EPersonService ePersonService;
+    @Autowired(required = true)
+    protected MetadataValueService metadataValueService;
 
     protected XmlWorkflowServiceImpl() {
 
@@ -255,10 +258,21 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
             }
 
+            removeRejectMetadata(context, myitem);
+
             context.restoreAuthSystemState();
             return wfi;
         } catch (WorkflowConfigurationException e) {
             throw new WorkflowException(e);
+        }
+    }
+
+    private void removeRejectMetadata(Context context, Item myitem) throws SQLException, AuthorizeException, IOException {
+        List<MetadataValue> metadataValues = itemService.getMetadata(myitem,"epfl", "workflow", "rejected", null);
+        if (metadataValues.size() > 0) {
+            MetadataValue metadataValue = metadataValueService.find(context, metadataValues.get(0).getID());
+            itemService.removeMetadataValues(context, myitem, List.of(metadataValue));
+            itemService.update(context, myitem);
         }
     }
 
