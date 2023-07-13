@@ -9,8 +9,11 @@ package org.dspace.xmlworkflow;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
@@ -254,12 +258,24 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
                     itemService.getIdentifiers(context, wfi.getItem())));
 
             }
-
+            addStartDateMetadata(context, myitem);
             context.restoreAuthSystemState();
             return wfi;
         } catch (WorkflowConfigurationException e) {
             throw new WorkflowException(e);
         }
+    }
+
+    private void addStartDateMetadata(Context context, Item myitem) throws SQLException, AuthorizeException {
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        df.setTimeZone(tz);
+        String date = df.format(new Date());
+
+        itemService.addMetadata(context, myitem,
+                "epfl", "workflow",
+                "startDateTime", null, date);
+        itemService.update(context, myitem);
     }
 
     //TODO: this is currently not used in our notifications. Look at the code used by the original WorkflowManager
