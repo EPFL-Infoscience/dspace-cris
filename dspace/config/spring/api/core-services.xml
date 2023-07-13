@@ -197,5 +197,8 @@
     <bean class="org.dspace.authorize.ValidatePasswordServiceImpl"/>
     <bean class="org.dspace.authorize.RegexPasswordValidator" />
 
+    <bean class="org.dspace.ror.client.RORApiClientImpl" />
+    <bean class="org.dspace.ror.service.RORApiServiceImpl" />
+
 </beans>
 

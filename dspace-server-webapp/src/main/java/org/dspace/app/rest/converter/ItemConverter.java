@@ -111,7 +111,8 @@ public class ItemConverter
             context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
         }
         try {
-            if (context != null && authorizeService.isAdmin(context, item)) {
+            if (context != null &&
+                (authorizeService.isAdmin(context, item) || sameSubmitter(item, context))) {
                 EPerson submitter = item.getSubmitter();
                 if (submitter != null) {
                     itemRest.setSubmitterName(submitter.getFullName());
@@ -121,6 +122,13 @@ public class ItemConverter
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    private boolean sameSubmitter(Item item, Context context) {
+        if (item.getSubmitter() == null || context.getCurrentUser() == null) {
+            return false;
+        }
+        return item.getSubmitter().equals(context.getCurrentUser());
     }
 
 }

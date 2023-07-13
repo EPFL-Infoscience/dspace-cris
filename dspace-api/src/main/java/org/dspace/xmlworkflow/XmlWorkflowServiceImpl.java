@@ -738,8 +738,9 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
                 email.addRecipient(ep.getEmail());
                 authors.forEach(author -> email.addRecipient(author.getEmail()));
                 email.addArgument(title);
-                email.addArgument(coll.getName());
                 email.addArgument(handleService.getCanonicalForm(handle));
+                email.addArgument(item.getSubmitter().getFullName());
+                email.addArgument(coll.getName());
 
                 email.send();
             }

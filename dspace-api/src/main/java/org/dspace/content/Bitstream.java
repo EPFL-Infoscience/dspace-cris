@@ -133,6 +133,11 @@ public class Bitstream extends DSpaceObject implements DSpaceObjectLegacySupport
                                                            "title", null, Item.ANY);
     }
 
+    public String getRights() {
+        return getBitstreamService().getMetadataFirstValue(this, "datacite", "rights",
+                                                           null, Item.ANY);
+    }
+
     /**
      * Set the name of the bitstream
      *

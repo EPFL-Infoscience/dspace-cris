@@ -41,6 +41,7 @@ public class OAIREPublicationLoaderRunnable
     protected Context context;
 
     protected String profile;
+    protected String extraQuery;
 
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -62,20 +63,20 @@ public class OAIREPublicationLoaderRunnable
         } else {
             LOGGER.info("Process eperson item with UUID " + profile);
         }
+
+        if (commandLine.hasOption("q")) {
+            extraQuery = commandLine.getOptionValue("q");
+        }
     }
 
     @Override
     public void internalRun() throws Exception {
-
         context = new Context();
-
         List<Item> researchers = getResearchers(profile);
 
         for (Item researcher : researchers) {
-
-            oairePublicationLoader.importAuthorRecords(context, researcher);
+            oairePublicationLoader.importAuthorRecords(context, researcher, extraQuery);
         }
-
     }
 
     /**
