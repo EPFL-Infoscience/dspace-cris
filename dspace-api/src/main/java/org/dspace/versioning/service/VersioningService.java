@@ -138,16 +138,4 @@ public interface VersioningService {
     public boolean areDifferentVersionsOfSameItem(Context context, UUID firstItemUuid, UUID secondItemUuid)
         throws SQLException;
 
-    /**
-     * Check if the given two items are different versions of the same entity.
-     *
-     * @param  context        The relevant DSpace Context.
-     * @param  firstItemUuid  the first item uuid
-     * @param  secondItemUuid the second item uuid
-     * @return                true if the two items are a different version of the
-     *                        same entity, false otherwise
-     */
-    public boolean areDifferentVersionsOfSameItem(Context context, UUID firstItemUuid, UUID secondItemUuid)
-        throws SQLException;
-
 }

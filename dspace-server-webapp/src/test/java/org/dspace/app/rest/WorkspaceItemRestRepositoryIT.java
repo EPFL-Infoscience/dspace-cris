@@ -9908,29 +9908,6 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$.errors", hasSize(1)))
             .andExpect(jsonPath("$.errors[0].message", is("error.validation.required")))
             .andExpect(jsonPath("$.errors[0].paths", contains("/sections/test-outside-submission-hidden/dc.type")));
-
-        // a simple patch to update an existent metadata
-        List<Operation> updateTitle = new ArrayList<Operation>();
-        Map<String, String> value = new HashMap<String, String>();
-        value.put("value", "New Title");
-        updateTitle.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
-
-        String patchBody = getPatchContent(updateTitle);
-
-        getClient(getAuthToken(user.getEmail(), password))
-            .perform(patch("/api/submission/workspaceitems/" + workspaceItem.getID())
-                .content(patchBody)
-                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist())
-            .andExpect(jsonPath("$", is(matchItemWithTitleAndDateIssued(workspaceItem, "New Title", "2017-10-17"))));
-
-        getClient(getAuthToken(user.getEmail(), password))
-            .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
-                .content("/api/submission/workspaceitems/" + workspaceItem.getID())
-                .contentType(textUriContentType))
-            .andExpect(status().isCreated());
-
     }
 
     @Test

@@ -48,7 +48,7 @@ public class VocabularyEntryDetailsChildrenLinkRepository extends AbstractDSpace
     private AuthorityUtils authorityUtils;
 
     @PreAuthorize("@vocabularySecurity.isQualifiedVocabularyPublic(#childId) || hasAuthority('AUTHENTICATED')")
-    public Page<VocabularyEntryDetailsRest> getChildren(@Nullable HttpServletRequest request, String childId,
+    public Page<VocabularyEntryDetailsRest> getChildren(@Nullable HttpServletRequest request, String name,
                                                         @Nullable Pageable optionalPageable, Projection projection) {
         Context context = obtainContext();
         String[] parts = StringUtils.split(name, ":", 2);
