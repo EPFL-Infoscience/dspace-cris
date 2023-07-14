@@ -267,7 +267,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         }
     }
 
-    private void removeRejectMetadata(Context context, Item myitem) throws SQLException, AuthorizeException, IOException {
+    private void removeRejectMetadata(Context context, Item myitem)
+            throws SQLException, AuthorizeException, IOException {
         List<MetadataValue> metadataValues = itemService.getMetadata(myitem,"epfl", "workflow", "rejected", null);
         if (metadataValues.size() > 0) {
             MetadataValue metadataValue = metadataValueService.find(context, metadataValues.get(0).getID());
