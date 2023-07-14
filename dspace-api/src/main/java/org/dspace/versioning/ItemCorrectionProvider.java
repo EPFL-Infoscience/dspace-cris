@@ -193,8 +193,7 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
             List<Bundle> nativeBundles = nativeItem.getBundles(bundleName);
             List<Bundle> correctedBundles = itemNew.getBundles(bundleName);
 
-            if (CollectionUtils.isEmpty(nativeBundles) && CollectionUtils.isEmpty(correctedBundles) ||
-                CollectionUtils.isEmpty(correctedBundles)) {
+            if (CollectionUtils.isEmpty(nativeBundles) && CollectionUtils.isEmpty(correctedBundles)) {
                 continue;
             }
 
@@ -205,7 +204,14 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
                 nativeBundle = nativeBundles.get(0);
             }
 
-            updateBundleAndBitstreams(c, nativeBundle, correctedBundles.get(0));
+            Bundle correctedBundle;
+            if (CollectionUtils.isEmpty(correctedBundles)) {
+                correctedBundle = bundleService.create(c, nativeItem, bundleName);
+            } else {
+                correctedBundle = correctedBundles.get(0);
+            }
+
+            updateBundleAndBitstreams(c, nativeBundle, correctedBundle);
         }
     }
 
@@ -256,7 +262,26 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
             }
 
         }
+        deleteBitstreams(nativeBundle, correctedBundle);
         bundleService.update(c, nativeBundle);
+        if (nativeBundle.getItems().isEmpty()) {
+            bundleService.delete(c, nativeBundle);
+        }
+    }
+
+    private void deleteBitstreams(Bundle nativeBundle, Bundle correctedBundle) {
+        for (Bitstream bitstream : nativeBundle.getBitstreams()) {
+            if (contains(correctedBundle, bitstream)) {
+                continue;
+            }
+            nativeBundle.removeBitstream(bitstream);
+        }
+    }
+
+    private boolean contains(Bundle bundle, Bitstream bitstream) {
+        return bundle.getBitstreams().stream()
+                     .map(Bitstream::getChecksum)
+                     .anyMatch(cs -> bitstream.getChecksum().equals(cs));
     }
 
     protected Bitstream findBitstreamByChecksum(Bundle bundle, String bitstreamChecksum) {
