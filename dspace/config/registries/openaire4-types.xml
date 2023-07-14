@@ -136,4 +136,10 @@
         <scope_note>Ending date of the policy for target Bitstream, used with datacite.rights</scope_note>
     </dc-type>
 
+    <dc-type>
+        <schema>oaire</schema>
+        <element>citation</element>
+        <qualifier>articlenumber</qualifier>
+    </dc-type>
+
 </dspace-dc-types>
