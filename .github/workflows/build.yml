@@ -4,7 +4,7 @@
 name: Build
 
 # Run this Build for all pushes / PRs to current branch
-on: [pull_request]
+on: [pull_request, push]
 
 permissions:
   contents: read  #  to fetch code (actions/checkout)

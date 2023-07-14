@@ -12,7 +12,6 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.ResourcePolicyMatcher.matches;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
-import static org.dspace.app.rest.matcher.WorkspaceItemMatcher.matchItemWithTitleAndDateIssued;
 import static org.dspace.app.rest.matcher.SupervisionOrderMatcher.matchSuperVisionOrder;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.dspace.authorize.ResourcePolicy.TYPE_SUBMISSION;
