@@ -151,5 +151,10 @@
         <qualifier>type</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>notesForReviewer</qualifier>
+    </dc-type>
 
 </dspace-dc-types>
