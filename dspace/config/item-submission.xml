@@ -208,6 +208,11 @@
       <type>correction</type>
       <scope visibilityOutside="hidden">workflow</scope>
     </step-definition>
+    <step-definition id="notes-for-reviewer" mandatory="false">
+      <heading>submit.progressbar.describe.notes-for-reviewer</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
     <step-definition id="sherpaPolicies" mandatory="true">
       <heading>submit.progressbar.sherpaPolicies</heading>
       <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
@@ -230,6 +235,16 @@
       <step id="license" />
     </submission-process>
     <submission-process name="product-edit">
+      <step id="lookup" />
+      <step id="product_type" />
+      <step id="basic_information" />
+      <step id="product_indexing" />
+      <step id="product_references" />
+      <step id="detect-duplicate" />
+      <step id="upload-product" />
+    </submission-process>
+    <submission-process name="product-correction">
+      <step id="notes-for-reviewer" />
       <step id="lookup" />
       <step id="product_type" />
       <step id="basic_information" />
@@ -306,6 +321,7 @@
     </submission-process>
     <submission-process name="publication-correction">
       <step id="extractionstep" />
+      <step id="notes-for-reviewer" />
       <step id="lookup" />
       <step id="basic_information" />
       <step id="publication_indexing" />
@@ -374,6 +390,15 @@
     </submission-process>
     <submission-process name="patent-edit">
       <step id="extractionstep" />
+      <step id="patent" />
+      <step id="patent_indexing" />
+      <step id="patent_references" />
+      <step id="detect-duplicate" />
+      <step id="upload-patent" />
+    </submission-process>
+    <submission-process name="patent-correction">
+      <step id="extractionstep" />
+      <step id="notes-for-reviewer" />
       <step id="patent" />
       <step id="patent_indexing" />
       <step id="patent_references" />
