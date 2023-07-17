@@ -14,6 +14,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,7 @@ import org.dspace.epfl.script.model.ItemsImportMapping;
 import org.dspace.epfl.script.model.ItemsImportMapping.Bitstreams;
 import org.dspace.epfl.script.model.ItemsImportMapping.MetadataField;
 import org.dspace.epfl.script.reader.ItemsImportMetadataFieldReader;
+import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
@@ -52,6 +54,9 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private ItemsS3Service itemsS3Service;
 
     private DocumentBuilder documentBuilder;
 
@@ -107,6 +112,8 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     public ItemDTO readSingleItem(Context context, String id, Node record, ItemsImportMapping mapping) {
 
         List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
+
+        metadataValues.addAll(getCreationDateMetadataValues(id));
 
         List<BitstreamDTO> bitstreams = readBitstreams(context, id, record, mapping);
 
@@ -198,6 +205,18 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         return metadataValues;
 
+    }
+
+    private List<MetadataValueDTO> getCreationDateMetadataValues(String id) {
+        String value = itemsS3Service.getCreationDate(id);
+        String[] metadataFields = getCreationDateMetadataFields();
+        return Arrays.stream(metadataFields)
+            .map(metadataField -> new MetadataValueDTO(metadataField, value))
+            .collect(Collectors.toList());
+    }
+
+    private String[] getCreationDateMetadataFields() {
+        return configurationService.getArrayProperty("epfl.items-import.creation-date.fields");
     }
 
     private String getBitstreamUrl() {

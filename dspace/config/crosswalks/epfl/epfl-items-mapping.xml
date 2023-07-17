@@ -195,6 +195,14 @@
             <xpath>./datafield[@tag = '773']/subfield[@code = 't']</xpath>
         </metadata-field>
         <metadata-field>
+            <field>dc.relation.journal</field>
+            <xpath>self::node()[./datafield[@tag = '336']/subfield[@code = 'a'] = 'Journal Articles']/datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.ispartofseries</field>
+            <xpath>self::node()[string-length(./datafield[@tag = '490']/subfield[@code = 'a']) > 0 or string-length(./datafield[@tag = '490']/subfield[@code = 'v']) > 0]/datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
             <field>dc.relation.publication</field>
             <xpath>./datafield[@tag = '787']</xpath>
             <reader>relatedPublication</reader>

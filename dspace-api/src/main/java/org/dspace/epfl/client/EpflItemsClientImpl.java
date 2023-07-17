@@ -9,7 +9,10 @@ package org.dspace.epfl.client;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,14 +24,19 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.iterable.S3Objects;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.services.ConfigurationService;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
@@ -97,6 +105,30 @@ public class EpflItemsClientImpl implements EpflItemsClient {
         return s3Object.getObjectContent().getDelegateStream();
     }
 
+    @Override
+    public String getCreationDate(String id) {
+        String key = getCreationDateDirectory() + File.separator + id + ".json";
+        S3Object s3Object = getCreationDateObject(getCreationDateBucketName(), key);
+        JSONArray json = parseJson(s3Object.getObjectContent().getDelegateStream());
+        return ((JSONObject) json.get(0)).getString(getCreationDateField());
+    }
+
+    private S3Object getCreationDateObject(String bucketName, String key) {
+        try {
+            return s3Service.getObject(bucketName, key);
+        } catch (AmazonS3Exception ex) {
+            throw new IllegalArgumentException("No creation date object found by key " + key);
+        }
+    }
+
+    private JSONArray parseJson(InputStream inputStream) {
+        try {
+            return new JSONArray(IOUtils.toString(inputStream, StandardCharsets.UTF_8));
+        } catch (JSONException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private Regions getAwsRegion() {
         Regions regions = Regions.DEFAULT_REGION;
         String awsRegionName = getAwsAccessRegion();
@@ -108,6 +140,18 @@ public class EpflItemsClientImpl implements EpflItemsClient {
             }
         }
         return regions;
+    }
+
+    private String getCreationDateBucketName() {
+        return configurationService.getProperty("epfl.items-import.creation-date-aws.bucket");
+    }
+
+    private String getCreationDateDirectory() {
+        return configurationService.getProperty("epfl.items-import.creation-date-aws.directory");
+    }
+
+    private String getCreationDateField() {
+        return configurationService.getProperty("epfl.items-import.creation-date-aws.field");
     }
 
     private String getBucketName() {
