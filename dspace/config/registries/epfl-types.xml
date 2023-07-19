@@ -151,5 +151,11 @@
         <qualifier>type</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>additionalInformation</qualifier>
+    </dc-type>
+
 
 </dspace-dc-types>
