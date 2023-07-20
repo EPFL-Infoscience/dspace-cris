@@ -13,8 +13,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,6 +65,8 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     private DocumentBuilder documentBuilder;
 
     private Map<String, ItemsImportMetadataFieldReader> readers;
+
+    private DateFormat CREATION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     private XPath xPath;
 
@@ -211,8 +217,34 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         String value = itemsS3Service.getCreationDate(id);
         String[] metadataFields = getCreationDateMetadataFields();
         return Arrays.stream(metadataFields)
-            .map(metadataField -> new MetadataValueDTO(metadataField, value))
+            .map(metadataField -> getCreationDateMetadataValue(metadataField, value))
             .collect(Collectors.toList());
+    }
+
+    private MetadataValueDTO getCreationDateMetadataValue(String metadataField, String value) {
+
+        String dateFormat = getCreationDateFormat(metadataField);
+
+        if (StringUtils.isBlank(dateFormat)) {
+            return new MetadataValueDTO(metadataField, value);
+        }
+
+        Date creationDate = parseCreationDate(value);
+        return new MetadataValueDTO(metadataField, new SimpleDateFormat(dateFormat).format(creationDate));
+
+    }
+
+    private Date parseCreationDate(String creationDate) {
+        try {
+            return CREATION_DATE_FORMAT.parse(creationDate);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getCreationDateFormat(String metadataField) {
+        String field = StringUtils.replace(metadataField, ".", "-");
+        return configurationService.getProperty("epfl.items-import.creation-date." + field + ".format");
     }
 
     private String[] getCreationDateMetadataFields() {
