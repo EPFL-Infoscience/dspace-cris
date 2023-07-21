@@ -21,7 +21,7 @@
         </metadata-field>
         <metadata-field>
             <field>dc.relation.isbn</field>
-            <xpath>./datafield[@tag = '021']/subfield[@code = 'a']</xpath>
+            <xpath>./datafield[@tag = '020']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.issn</field>
@@ -137,15 +137,15 @@
         </metadata-field>
         <metadata-field>
             <field>dc.relation.conference</field>
-            <xpath>./datafield[@tag = '711' and @ind1 = '7']/subfield[@code = 'a']</xpath>
+            <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
             <field>oaire.citation.conferencePlace</field>
-            <xpath>./datafield[@tag = '711' and @ind1 = '7']/subfield[@code = 'c']</xpath>
+            <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'c']</xpath>
         </metadata-field>
         <metadata-field>
             <field>oaire.citation.conferenceDate</field>
-            <xpath>./datafield[@tag = '711' and @ind1 = '7']/subfield[@code = 'd']</xpath>
+            <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'd']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.contributor.editor</field>
@@ -195,18 +195,38 @@
             <xpath>./datafield[@tag = '773']/subfield[@code = 't']</xpath>
         </metadata-field>
         <metadata-field>
+            <field>dc.relation.journal</field>
+            <xpath>self::node()[./datafield[@tag = '336']/subfield[@code = 'a'] = 'Journal Articles']/datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.ispartofseries</field>
+            <xpath>self::node()[string-length(./datafield[@tag = '490']/subfield[@code = 'a']) > 0 or string-length(./datafield[@tag = '490']/subfield[@code = 'v']) > 0]/datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
             <field>dc.relation.publication</field>
             <xpath>./datafield[@tag = '787']</xpath>
             <reader>relatedPublication</reader>
         </metadata-field>
         <metadata-field>
-            <field>dc.relation.publication</field>
+            <field>dc.relation.product</field>
             <xpath>./datafield[@tag = '790']</xpath>
             <reader>relatedProduct</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.lastmodified.email</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '0']/subfield[@code = 'f']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dspace.file.type</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '0']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.licenseCondition</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '1']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>datacite.rights</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'e']</xpath>
         </metadata-field>
         <metadata-field>
             <field>epfl.relation.orgunit</field>
@@ -291,26 +311,18 @@
             <xpath>./datafield[@tag = '999' and @ind1 = 'C' and @ind2 = '0']</xpath>
             <reader>orgUnit</reader>
         </metadata-field>
-        <metadata-field>
-            <field>dspace.file.type</field>
-            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '0']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>oaire.licenseCondition</field>
-            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '1']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>datacite.rights</field>
-            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'e']</xpath>
-        </metadata-field>
     </metadata-fields>
     
     <bitstreams>
         <bitstream-xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']</bitstream-xpath>
         <checksum-xpath>./subfield[@code = '2']</checksum-xpath>
         <format-xpath>./subfield[@code = 'x']</format-xpath>
-        <uri-xpath>./subfield[@code = 'u']</uri-xpath>
         <metadata-fields>
+            <metadata-field>
+                <field>dc.title</field>
+                <xpath>./subfield[@code = 'u']</xpath>
+                <reader>bitstreamTitle</reader>
+            </metadata-field>
 	        <metadata-field>
 	            <field>dc.type</field>
 	            <xpath>./subfield[@code = '0']</xpath>

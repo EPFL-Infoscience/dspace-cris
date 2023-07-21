@@ -902,7 +902,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         PackageUtils.addDepositLicense(context, null, item, workspaceItem.getCollection());
 
-        addMetadata(item, entityRow, false);
+        addMetadata(item, entityRow);
         addUploadsToItem(item, entityRow);
         setSubmitter(item, entityRow);
         configureDiscoverability(item, entityRow);
@@ -1167,7 +1167,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 + " have a different collection");
         }
 
-        addMetadata(item, entityRow, true);
+        addMetadata(item, entityRow);
         setSubmitter(item, entityRow);
         addUploadsToItem(item, entityRow);
         configureDiscoverability(item, entityRow);
@@ -1258,11 +1258,9 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
     }
 
-    private void addMetadata(Item item, EntityRow entityRow, boolean replace) throws SQLException {
+    private void addMetadata(Item item, EntityRow entityRow) throws SQLException {
 
-        if (replace) {
-            removeMetadata(item, entityRow);
-        }
+        removeMetadata(item, entityRow);
 
         addMetadata(item, entityRow.getMetadata());
 

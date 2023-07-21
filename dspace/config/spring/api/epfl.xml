@@ -22,8 +22,11 @@
     
     <bean class="org.dspace.epfl.client.EpflItemsClientImpl" />
     <bean class="org.dspace.epfl.script.service.impl.ItemsS3ServiceImpl" />
+    <bean class="org.dspace.epfl.script.service.impl.BitstreamUploadS3ServiceImpl" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportSimpleReader" />
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamTitleReader" />
     
     <bean class="org.dspace.epfl.script.service.impl.MarcXmlParserImpl" />
     
@@ -144,7 +147,7 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="dc.relation.type" value="./subfield[@code = '2']"/>
-                <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
     </bean>
