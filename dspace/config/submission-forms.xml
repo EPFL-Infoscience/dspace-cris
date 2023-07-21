@@ -1109,6 +1109,19 @@ it, please enter the types and the actual numbers or codes.</hint>
           <visibility>workflow</visibility>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>additionalInformation</dc-qualifier>
+          <label>Additional information required</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+      </row>
     </form>
     <form name="publication_indexing">
       <row>
@@ -1821,6 +1834,19 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>workflow</dc-element>
           <dc-qualifier>lateReview</dc-qualifier>
           <label>Flagged for late review</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>additionalInformation</dc-qualifier>
+          <label>Additional information required</label>
           <input-type value-pairs-name="truefalse">list</input-type>
           <repeatable>false</repeatable>
           <required />

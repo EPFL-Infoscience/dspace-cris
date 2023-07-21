@@ -130,6 +130,7 @@ public class EmailAction extends AcceptEditRejectAction {
             String provDescription = provenance + " Additional information requested by " + usersName + ", subject: "
                 + subject + "\n\n" + content + " on " + now + " (GMT) ";
 
+            item.getItemService().addMetadata(c, item, "epfl", "workflow", "additionalInformation", "en", "true");
             item.getItemService().addMetadata(c, item, "dc", "description", "provenance", "en", provDescription);
             item.getItemService().update(c, item);
             c.commit();

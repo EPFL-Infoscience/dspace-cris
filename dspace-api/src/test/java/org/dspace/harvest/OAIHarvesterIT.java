@@ -795,7 +795,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
             values = authorPerson.getMetadata();
             // epfl + 1
-            assertThat(values, hasSize(7 + 1));
+            assertThat(values, hasSize(8 + 1));
             assertThat(values, hasItems(with("dc.title", "Manghi, Paolo")));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::123")));
             assertThat(values, hasItems(with("dspace.entity.type", "Person")));
