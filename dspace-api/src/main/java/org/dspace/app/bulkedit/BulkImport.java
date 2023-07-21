@@ -215,6 +215,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private boolean abortOnError;
 
+    private boolean clearBitstreams;
+
     private Context context;
 
     private BulkImportFileUtil bulkImportFileUtil;
@@ -269,6 +271,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         if (commandLine.hasOption('e')) {
             abortOnError = true;
         }
+
+        clearBitstreams = commandLine.hasOption("cb");
     }
 
     @Override
@@ -1169,6 +1173,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         addMetadata(item, entityRow);
         setSubmitter(item, entityRow);
+
+        if (clearBitstreams) {
+            clearBitstreams(item);
+        }
+
         addUploadsToItem(item, entityRow);
         configureDiscoverability(item, entityRow);
 
@@ -1188,6 +1197,14 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         return item;
 
+    }
+
+    private void clearBitstreams(Item item) {
+        try {
+            itemService.removeAllBundles(context, item);
+        } catch (AuthorizeException | SQLException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void setSubmitter(Item item, EntityRow entityRow) throws SQLException, AuthorizeException {
