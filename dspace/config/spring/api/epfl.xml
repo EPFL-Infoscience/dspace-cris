@@ -85,6 +85,11 @@
                 <entry key="dc.contributor.author" value="./subfield[@code = 'g']"/>
             </util:map>
         </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.author" value="will be generated::SCIPER-ID::"/>
+            </util:map>
+        </property>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
@@ -98,6 +103,11 @@
         <property name="authorityPaths">
             <util:map>
                 <entry key="dc.contributor.editor" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.editor" value="will be generated::SCIPER-ID::"/>
             </util:map>
         </property>
     </bean>
@@ -115,6 +125,11 @@
                 <entry key="dc.contributor.advisor" value="./subfield[@code = 'g']"/>
             </util:map>
         </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.advisor" value="will be generated::SCIPER-ID::"/>
+            </util:map>
+        </property>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
@@ -128,6 +143,11 @@
         <property name="authorityPaths">
             <util:map>
                 <entry key="dc.contributor.scientificeditor" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.scientificeditor" value="will be generated::SCIPER-ID::"/>
             </util:map>
         </property>
     </bean>
