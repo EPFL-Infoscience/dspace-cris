@@ -29,6 +29,8 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.util.UUIDUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -51,10 +53,19 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
     @Autowired
     private EPersonService ePersonService;
 
+    private static final Logger log = LoggerFactory.getLogger(CrisSecurityServiceImpl.class);
+
     @Override
     public boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode) throws SQLException {
-        return accessMode.getSecurities().stream()
-            .anyMatch(security -> hasAccess(context, item, user, accessMode, security));
+        Optional<CrisSecurity> matchingSecurity = accessMode.getSecurities().stream()
+                                                 .filter(
+                                                     security -> hasAccess(context, item, user, accessMode, security))
+                                                 .findFirst();
+        if (matchingSecurity.isPresent()) {
+            log.info("found matching policy for {} on item {}: {}",
+                     user.getID(), item.getID(), matchingSecurity.get().name());
+        }
+        return matchingSecurity.isPresent();
     }
 
     private boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode,
