@@ -7,6 +7,9 @@
  */
 package org.dspace.content;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.dspace.content.MetadataSchemaEnum.DC;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -156,7 +159,11 @@ public class InstallItemServiceImpl implements InstallItemService {
         throws SQLException, AuthorizeException {
         // create accession date
         DCDate now = DCDate.getCurrent();
-        itemService.addMetadata(c, item, MetadataSchemaEnum.DC.getName(), "date","accessioned",null,now.toString());
+
+        if (isBlank(itemService.getMetadataFirstValue(item, DC.getName(), "date", "accessioned", Item.ANY))) {
+            itemService.addMetadata(c, item, DC.getName(), "date", "accessioned", null, now.toString());
+        }
+
         // add date available if not under embargo, otherwise it will
         // be set when the embargo is lifted.
         // this will flush out fatal embargo metadata

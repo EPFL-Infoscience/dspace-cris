@@ -138,9 +138,6 @@ public class ItemsImportMapping {
         @XmlElement(name = "format-xpath")
         private String formatXPath;
 
-        @XmlElement(name = "uri-xpath")
-        private String uriXPath;
-
         @XmlElement(name = "metadata-fields")
         private MetadataFields metadataFields;
 
@@ -169,14 +166,6 @@ public class ItemsImportMapping {
 
         public void setFormatXPath(String formatXPath) {
             this.formatXPath = formatXPath;
-        }
-
-        public String getUriXPath() {
-            return uriXPath;
-        }
-
-        public void setUriXPath(String uriXPath) {
-            this.uriXPath = uriXPath;
         }
 
         public String getBitstreamXPath() {
