@@ -2,14 +2,13 @@
 <!DOCTYPE item-submission SYSTEM "item-submission.dtd">
 <item-submission>
   <submission-map>
-    <name-map collection-handle="default" submission-name="publication" />
+    <name-map collection-handle="default" submission-name="product" />
   </submission-map>
   <step-definitions>
     <step-definition id="collection" mandatory="true">
       <heading>submit.progressbar.collection</heading>
       <processing-class>org.dspace.app.rest.submit.step.CollectionStep</processing-class>
       <type>collection</type>
-      <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
     </step-definition>
     <step-definition id="itemAccessConditions" mandatory="true">
       <heading>submit.progressbar.itemAccessConditions</heading>
@@ -213,6 +212,11 @@
       <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
       <type>sherpaPolicy</type>
     </step-definition>
+    <step-definition id="publication-import" mandatory="true">
+      <heading>submit.progressbar.describe.publication-import</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
   </step-definitions>
   <submission-definitions>
     <submission-process name="product">
@@ -392,6 +396,10 @@
       <step id="funding" />
       <step id="detect-duplicate" />
       <step id="upload-funding" />
+    </submission-process>
+    <submission-process name="publication-import">
+      <step id="publication-import" />
+      <step id="upload-publication" />
     </submission-process>
   </submission-definitions>
 </item-submission>

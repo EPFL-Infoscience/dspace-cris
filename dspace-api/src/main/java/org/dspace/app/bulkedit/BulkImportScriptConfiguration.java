@@ -56,6 +56,11 @@ public class BulkImportScriptConfiguration<T extends BulkImport> extends ScriptC
             options.getOption("e").setType(boolean.class);
             options.getOption("e").setRequired(false);
 
+            options.addOption("cb", "clearBitstreams", false,
+                "delete all bitstream during an item update before adding new ones");
+            options.getOption("cb").setType(boolean.class);
+            options.getOption("cb").setRequired(false);
+
             super.options = options;
         }
         return options;

@@ -62,6 +62,18 @@
         <element>workflow</element>
         <qualifier>lateReview</qualifier>
     </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>additionalInformation</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>rejected</qualifier>
+    </dc-type>
     
     <dc-type>
         <schema>epfl</schema>
@@ -124,6 +136,12 @@
     <dc-type>
         <schema>epfl</schema>
         <element>thesis</element>
+        <qualifier>faculty</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
         <qualifier>section</qualifier>
     </dc-type>
 
@@ -151,5 +169,160 @@
         <qualifier>type</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>additionalInformation</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>submissionform</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>itemtype</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>datatype</element>
+        <qualifier></qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>jury</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>tto</element>
+        <qualifier></qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>part</element>
+        <qualifier>name</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>part</element>
+        <qualifier>number</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>part</element>
+        <qualifier>section</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>lastmodified</element>
+        <qualifier>email</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relation</element>
+        <qualifier>orgunit</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>oai</element>
+        <qualifier>identifier</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>oai</element>
+        <qualifier>currentset</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relation</element>
+        <qualifier>rejectedOrgUnit</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relation</element>
+        <qualifier>pendingOrgUnit</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>originalUnit</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>publicDefenseYear</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>degreelevel</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>thesis</element>
+        <qualifier>number</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>curator</element>
+        <qualifier>email</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>writtenat</element>
+        <qualifier></qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>peerreviewed</element>
+        <qualifier></qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>patent</element>
+        <qualifier>kindcode</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>award</element>
+        <qualifier></qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>award</element>
+        <qualifier>year</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>contributorauthnum</qualifier>
+    </dc-type>
 
 </dspace-dc-types>
