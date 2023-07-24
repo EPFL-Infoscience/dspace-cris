@@ -30,7 +30,10 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.service.PluginService;
+import org.dspace.discovery.SolrServiceImpl;
+import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.orcid.client.OrcidClient;
@@ -55,6 +58,12 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
     private ConfigurationService configurationService;
 
     @Autowired
+    private DiscoveryConfigurationService discoveryConfigurationService;
+
+    @Autowired
+    private ItemService itemService;
+
+    @Autowired
     private PluginService pluginService;
 
     @Autowired
@@ -62,6 +71,9 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private OrcidClient orcidClient;
+
+    @Autowired
+    private SolrServiceImpl solrService;
 
     private OrcidClient orcidClientMock = mock(OrcidClient.class);
 
@@ -929,6 +941,88 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
             .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
             .andExpect(jsonPath("$._embedded.entries", contains(matchItemAuthorityProperties(
                 person4Id, "Cortese, Claudio", "Cortese, Claudio", "vocabularyEntry"))));
+    }
+
+    @Test
+    public void findPublicationByAuthorNameVariant() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection publicationCollection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withEntityType("publication")
+            .withName("test_collection")
+            .build();
+
+        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withEntityType("person")
+            .withName("test_collection")
+            .build();
+
+        Item person = ItemBuilder.createItem(context,personCollection)
+            .withType("person")
+            .withTitle("Giamminonni, Andrea")
+            .withVariantName("var1, var2")
+            .build();
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+            .withType("publication")
+            .build();
+
+
+
+        itemService.addMetadata(context, publication, "dc",
+                "contributor", "author", null,
+                "Giamminonni, Andrea", person.getID().toString(), 600, 0);
+        itemService.update(context, publication);
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/discover/facets/entityType")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .param("configuration", "default")
+                        .param("query", "var1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.values[?(@.label == 'publication')].count").value(1));
+        context.restoreAuthSystemState();
+    }
+
+    @Test
+    public void findPublicationByEditorNameVariant() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection publicationCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("publication")
+                .withName("test_collection")
+                .build();
+
+        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("person")
+                .withName("test_collection")
+                .build();
+
+        Item person = ItemBuilder.createItem(context,personCollection)
+                .withType("person")
+                .withTitle("Giamminonni, Andrea")
+                .withVariantName("var1, var2")
+                .build();
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+                .withType("publication")
+                .build();
+
+
+
+        itemService.addMetadata(context, publication, "dc",
+                "contributor", "editor", null,
+                "Giamminonni, Andrea", person.getID().toString(), 600, 0);
+        itemService.update(context, publication);
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/discover/facets/entityType")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .param("configuration", "default")
+                        .param("query", "var1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.values[?(@.label == 'publication')].count").value(1));
+        context.restoreAuthSystemState();
     }
 
     @Override

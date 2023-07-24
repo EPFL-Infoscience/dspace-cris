@@ -18,4 +18,6 @@ public interface ItemsS3Service {
 
     InputStream getObject(String key);
 
+    String getCreationDate(String id);
+
 }
