@@ -79,8 +79,10 @@ public class LanguageFileRestControllerIT extends AbstractControllerIntegrationT
                 "application/pdf", pdf);
 
         Path path = Paths.get(pathWhereToSave + "en.json");
+        Path pathJson5 = Paths.get(pathWhereToSave + "en.json5");
         // delet file
         Files.deleteIfExists(path);
+        Files.deleteIfExists(pathJson5);
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -90,9 +92,11 @@ public class LanguageFileRestControllerIT extends AbstractControllerIntegrationT
                              .andExpect(status().isOk());
 
         assertTrue(Files.exists(path));
+        assertTrue(Files.exists(pathJson5));
 
         // delet file
         Files.deleteIfExists(path);
+        Files.deleteIfExists(pathJson5);
     }
 
 }

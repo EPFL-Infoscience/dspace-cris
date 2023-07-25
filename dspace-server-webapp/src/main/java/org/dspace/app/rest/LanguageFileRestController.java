@@ -76,6 +76,7 @@ public class LanguageFileRestController {
             new File(pathWhereToSave).mkdirs();
         }
         convertToJson(file, languageFile);
+        file.transferTo(new File(pathWhereToSave, lang + FILE_EXT + "5"));
     }
 
     private void convertToJson(MultipartFile file, File languageFile) throws IOException {
