@@ -254,7 +254,8 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         String secondItemId = secondItem.getID().toString();
 
         Sheet mainSheet = workbook.getSheetAt(0);
-        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "dc.identifier.doi", "dc.identifier.scopus",
+        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "SUBMITTER",
+            "dc.identifier.doi", "dc.identifier.scopus",
             "dc.identifier.isi",
             "dc.identifier.adsbibcode", "dc.identifier.pmid", "dc.identifier.arxiv", "dc.identifier.issn",
             "dc.identifier.other", "dc.identifier.ismn", "dc.identifier.govdoc",
@@ -265,13 +266,15 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             "dc.description.sponsorship", "dc.description.volume", "dc.description.issue", "dc.description.startpage",
             "dc.description.endpage", "dc.relation.conference", "dc.relation.product",
             "dc.identifier.citation", "dc.description" };
-        String[] mainSheetFirstRow = { firstItemId, "Y", "doi:111.111/publication", "99999999",
+        String[] mainSheetFirstRow = { firstItemId, "Y", submitterEmail(firstItem),
+            "doi:111.111/publication", "99999999",
             "111-222-333", "", "", "", "2049-3630", "", "", "", "http://localhost:4000/handle/123456789/001",
             "978-3-16-148410-0", "Test Publication", "Alternative publication title", "2020-01-01",
             "Controlled Vocabulary for Resource Type Genres::text::review", "en", "test||export",
             "Description Abstract", "Published in publication", "ISBN-01", "doi:10.3972/test", "Journal", "", "", "",
             "", "", "", "", "", "", "", "The best Conference", "DataSet", "", "Description" };
-        String[] mainSheetSecondRow = { secondItemId, "Y", "", "SCOPUS-002", "ISI-002", "", "",
+        String[] mainSheetSecondRow = { secondItemId, "Y", submitterEmail(secondItem),
+            "", "SCOPUS-002", "ISI-002", "", "",
             "", "ISSN-002||ISSN-003", "", "", "", "http://localhost:4000/handle/123456789/002", "ISBN-002",
             "Second Publication", "", "2020-01-01", "Controlled Vocabulary for Resource Type Genres::text::review", "",
             "export", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Conference1||Conference2", "DataSet",
@@ -321,7 +324,8 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         assertThat(workbook.getNumberOfSheets(), equalTo(2));
 
         Sheet mainSheet = workbook.getSheetAt(0);
-        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "dc.contributor.author", "dc.title", "dc.title.alternative",
+        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "SUBMITTER",
+            "dc.contributor.author", "dc.title", "dc.title.alternative",
             "dc.date.issued", "dc.publisher", "dc.identifier.citation", "dc.relation.ispartofseries",
             "dc.identifier.doi", "dc.identifier.scopus", "dc.identifier.isi", "dc.identifier.adsbibcode",
             "dc.identifier.pmid", "dc.identifier.arxiv", "dc.identifier.issn", "dc.identifier.other",
@@ -413,12 +417,15 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             String fourthId = fourthPublication.getID().toString();
 
             Sheet mainSheet = workbook.getSheetAt(0);
-            String[] header = { "ID", "DISCOVERABLE", "dc.title", "dc.date.issued",
+            String[] header = { "ID", "DISCOVERABLE", "SUBMITTER", "dc.title", "dc.date.issued",
                 "dc.subject", "dc.title[it]", "dc.title[en]" };
-            String[] firstRow = { firstId, "Y", "First publication", "2020-01-01", "", "Prima pubblicazione", "" };
-            String[] secondRow = { secondId, "N", "", "2019-01-01", "", "Seconda pubblicazione", "Second publication" };
-            String[] thirdRow = { thirdId, "N", "Third publication", "2018-01-01", "", "Terza pubblicazione", "" };
-            String[] fourthRow = { fourthId, "Y", "Fourth publication", "2017-01-01",
+            String[] firstRow = { firstId, "Y", submitterEmail(firstPublication),
+                "First publication", "2020-01-01", "", "Prima pubblicazione", "" };
+            String[] secondRow = { secondId, "N", submitterEmail(secondPublication),
+                "", "2019-01-01", "", "Seconda pubblicazione", "Second publication" };
+            String[] thirdRow = { thirdId, "N", submitterEmail(thirdPublication),
+                "Third publication", "2018-01-01", "", "Terza pubblicazione", "" };
+            String[] fourthRow = { fourthId, "Y", submitterEmail(fourthPublication), "Fourth publication", "2017-01-01",
                 "test||export", "Pubblicazione", "" };
 
             asserThatSheetHas(mainSheet, "items", 5, header, asList(firstRow, secondRow, thirdRow, fourthRow));
@@ -438,6 +445,10 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             this.workbookBuilder.setReader(new DCInputsReader());
         }
 
+    }
+
+    private String submitterEmail(Item item) {
+        return item.getSubmitter().getEmail();
     }
 
     @Test
@@ -532,7 +543,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         String thirdItemId = thirdItem.getItem().getID().toString();
 
         Sheet mainSheet = workbook.getSheetAt(0);
-        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "dc.identifier.doi", "dc.identifier.scopus",
+        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "SUBMITTER", "dc.identifier.doi", "dc.identifier.scopus",
             "dc.identifier.isi", "dc.identifier.adsbibcode", "dc.identifier.pmid", "dc.identifier.arxiv",
             "dc.identifier.issn", "dc.identifier.other", "dc.identifier.ismn", "dc.identifier.govdoc",
             "dc.identifier.uri", "dc.identifier.isbn", "dc.title", "dc.title.alternative", "dc.date.issued",
@@ -542,18 +553,21 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             "dc.description.sponsorship", "dc.description.volume", "dc.description.issue", "dc.description.startpage",
             "dc.description.endpage", "dc.relation.conference", "dc.relation.product",
             "dc.identifier.citation", "dc.description" };
-        String[] mainSheetFirstRow = { firstItemId, "Y", "doi:111.111/publication", "99999999",
+        String[] mainSheetFirstRow = { firstItemId, "Y", submitterEmail(firstItem),
+            "doi:111.111/publication", "99999999",
             "111-222-333", "", "", "", "2049-3630", "", "", "", "http://localhost:4000/handle/123456789/001",
             "978-3-16-148410-0", "Test Publication", "Alternative publication title", "2020-01-01",
             "Controlled Vocabulary for Resource Type Genres::text::review", "en", "test||export",
             "Description Abstract", "Published in publication", "ISBN-01", "doi:10.3972/test", "Journal", "", "", "",
             "", "", "", "", "", "", "", "The best Conference", "DataSet", "", "Description" };
-        String[] mainSheetSecondRow = { secondItemId, "Y", "", "SCOPUS-002", "ISI-002", "", "",
+        String[] mainSheetSecondRow = { secondItemId, "Y", submitterEmail(secondItem),
+            "", "SCOPUS-002", "ISI-002", "", "",
             "", "ISSN-002||ISSN-003", "", "", "", "http://localhost:4000/handle/123456789/002", "ISBN-002",
             "Second Publication", "", "2020-01-01", "Controlled Vocabulary for Resource Type Genres::text::review", "",
             "export", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Conference1||Conference2", "DataSet",
             "CIT-01", "Publication Description" };
-        String[] mainSheetThirdRow = { thirdItemId, "Y", "doi:222.111/publication", "", "", "", "", "", "", "", "", "",
+        String[] mainSheetThirdRow = { thirdItemId, "Y", thirdItem.getSubmitter().getEmail(),
+            "doi:222.111/publication", "", "", "", "", "", "", "", "", "",
             "", "", "Third Publication", "", "2022-01-01",
             "Controlled Vocabulary for Resource Type Genres::text::review", "", "test||export", "", "", "", "", "", "",
             "", "", "", "", "", "", "", "", "", "", "", "", "" };
@@ -685,7 +699,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         String itemId = item.getID().toString();
 
         Sheet mainSheet = workbook.getSheetAt(0);
-        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "dc.identifier.doi", "dc.identifier.scopus",
+        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "SUBMITTER", "dc.identifier.doi", "dc.identifier.scopus",
             "dc.identifier.isi", "dc.identifier.adsbibcode", "dc.identifier.pmid", "dc.identifier.arxiv",
             "dc.identifier.issn", "dc.identifier.other", "dc.identifier.ismn", "dc.identifier.govdoc",
             "dc.identifier.uri", "dc.identifier.isbn", "dc.title", "dc.title.alternative", "dc.date.issued",
@@ -696,7 +710,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             "dc.description.endpage", "dc.relation.conference", "dc.relation.product",
             "dc.identifier.citation", "dc.description" };
 
-        String[] mainSheetRow = { itemId, "Y", "", "", "", "", "", "", "", "", "", "",
+        String[] mainSheetRow = { itemId, "Y", submitterEmail(item), "", "", "", "", "", "", "", "", "", "",
             "http://localhost:4000/handle/123456789/001", "", "", "", "", "", "", "", "Description Abstract", "", "",
             "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" };
 
@@ -963,7 +977,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         String itemId = item.getID().toString();
 
         Sheet mainSheet = workbook.getSheetAt(0);
-        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "dc.identifier.doi", "dc.identifier.scopus",
+        String[] mainSheetHeader = { "ID", "DISCOVERABLE", "SUBMITTER", "dc.identifier.doi", "dc.identifier.scopus",
             "dc.identifier.isi", "dc.identifier.adsbibcode", "dc.identifier.pmid", "dc.identifier.arxiv",
             "dc.identifier.issn", "dc.identifier.other", "dc.identifier.ismn", "dc.identifier.govdoc",
             "dc.identifier.uri", "dc.identifier.isbn", "dc.title", "dc.title.alternative", "dc.date.issued",
@@ -974,7 +988,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             "dc.description.endpage", "dc.relation.conference", "dc.relation.product",
             "dc.identifier.citation", "dc.description" };
 
-        String[] mainSheetRow = { itemId, "Y", "", "", "", "", "", "", "", "", "", "",
+        String[] mainSheetRow = { itemId, "Y", submitterEmail(item), "", "", "", "", "", "", "", "", "", "",
             "http://localhost:4000/handle/123456789/001", "", "Test Publication", "", "", "Article$$sl-1", "", "", "",
             "First Publication$$authority1$$600$$sl-2||Second Publication||Third Publication$$sl-0", "",
             "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" };

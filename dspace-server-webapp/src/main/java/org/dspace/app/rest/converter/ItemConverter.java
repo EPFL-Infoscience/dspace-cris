@@ -63,7 +63,7 @@ public class ItemConverter
      * When the context is null, it will return the metadatalist as for an anonymous user
      * Overrides the parent method to include virtual metadata
      * @param context The context
-     * @param obj     The object of which the filtered metadata will be retrieved6
+     * @param item     The object of which the filtered metadata will be retrieved
      * @param projection The projection(s) used into current request
      * @return A list of object metadata (including virtual metadata) filtered based on the the hidden metadata
      * configuration
@@ -111,7 +111,8 @@ public class ItemConverter
             context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
         }
         try {
-            if (context != null && authorizeService.isAdmin(context, item)) {
+            if (context != null &&
+                (authorizeService.isAdmin(context, item) || sameSubmitter(item, context))) {
                 EPerson submitter = item.getSubmitter();
                 if (submitter != null) {
                     itemRest.setSubmitterName(submitter.getFullName());
@@ -121,6 +122,13 @@ public class ItemConverter
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    private boolean sameSubmitter(Item item, Context context) {
+        if (item.getSubmitter() == null || context.getCurrentUser() == null) {
+            return false;
+        }
+        return item.getSubmitter().equals(context.getCurrentUser());
     }
 
 }

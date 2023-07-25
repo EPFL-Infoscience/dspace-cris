@@ -143,4 +143,9 @@ public abstract class SolrSuggestionProvider implements SuggestionProvider {
                                     Item researcher) throws SolrServerException, IOException {
 
     }
+
+    public void importAuthorRecords(Context context,
+                                    Item researcher, String extraQuery) throws SolrServerException, IOException {
+
+    }
 }

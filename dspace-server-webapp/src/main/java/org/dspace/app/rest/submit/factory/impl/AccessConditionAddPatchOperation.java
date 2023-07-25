@@ -6,10 +6,12 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest.submit.factory.impl;
+
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.app.rest.exception.UnprocessableEntityException;
@@ -20,6 +22,7 @@ import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
@@ -58,6 +61,23 @@ public class AccessConditionAddPatchOperation extends AddPatchOperation<AccessCo
         List<AccessConditionDTO> accessConditions = parseAccessConditions(path, value, absolutePath);
 
         verifyAccessConditions(context, configuration, accessConditions);
+
+        if (configuration.applyOnlyToOriginalBundle()) {
+            ItemService itemService = item.getItemService();
+            itemService.removeMetadataValues(context, item,
+                                             itemService.getMetadataByMetadataString(
+                                                 item, "ctb.accessconditions.value")
+            );
+            itemService.addMetadata(context, item, "ctb", "accessconditions", "value",
+                                    null,accessConditions.stream()
+                                                         .map(ac -> {
+                                                             ac.setStepId(stepId);
+                                                             return ac.toJson();
+                                                         })
+                                        .map(json -> "[" + json + "]")
+                                        .collect(Collectors.toList()));
+            return;
+        }
 
         if (absolutePath.length == 1) {
             // to replace completely the access conditions

@@ -30,10 +30,10 @@ import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
-import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.external.service.ExternalDataService;
+import org.dspace.submit.model.AccessConditionConfigurationService;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,8 +76,6 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Autowired(required = true)
     private InstallItemService installItemService;
     @Autowired(required = true)
-    private SupervisedItemService supervisedItemService;
-    @Autowired(required = true)
     private SiteService siteService;
     @Autowired(required = true)
     private SubscribeService subscribeService;
@@ -99,6 +97,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private ExternalDataService externalDataService;
     @Autowired(required = true)
     private WorkflowService workflowService;
+    @Autowired
+    private AccessConditionConfigurationService accessConditionConfigurationService;
 
     @Override
     public List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices() {
@@ -171,14 +171,10 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     }
 
     @Override
-    public SupervisedItemService getSupervisedItemService() {
-        return supervisedItemService;
-    }
-
-    @Override
     public SiteService getSiteService() {
         return siteService;
     }
+
     @Override
     public SubscribeService getSubscribeService() {
         return subscribeService ;
@@ -213,6 +209,10 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
         return resourcePolicyService;
     }
 
+    @Override
+    public AccessConditionConfigurationService getAccessConditionConfigurationService() {
+        return accessConditionConfigurationService;
+    }
 
     @Override
     public SolrSuggestionStorageService getSolrSuggestionStorageService() {

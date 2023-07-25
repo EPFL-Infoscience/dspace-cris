@@ -229,7 +229,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
     }
 
     @Override
-    @PreAuthorize("hasPermission(#id, 'EPERSON', 'READ')")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public EPersonRest findOne(Context context, UUID id) {
         EPerson eperson = null;
         try {
@@ -289,7 +289,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
      *            contains the pagination information
      * @return a Page of EPersonRest instances matching the user query
      */
-    @PreAuthorize("hasAuthority('ADMIN') || hasAuthority('MANAGE_ACCESS_GROUP')")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @SearchRestMethod(name = "byMetadata")
     public Page<EPersonRest> findByMetadata(@Parameter(value = "query", required = true) String query,
             Pageable pageable) {

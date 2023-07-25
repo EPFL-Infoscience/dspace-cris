@@ -8,7 +8,9 @@
 package org.dspace.authenticate.service;
 
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
+import static org.dspace.core.Constants.READ;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
+import static org.dspace.eperson.Group.ANONYMOUS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
@@ -19,9 +21,12 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThrows;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
@@ -59,6 +64,9 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     private EpflApiClient apiClient = new DSpace().getServiceManager()
         .getServicesByType(EpflApiClient.class).get(0);
+
+    private ResourcePolicyService resourcePolicyService = new DSpace().getServiceManager()
+        .getServicesByType(ResourcePolicyService.class).get(0);
 
 //    private EpflApiClient mockApiClient;
 
@@ -113,6 +121,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
 
         Item profile = researcherProfile.getItem();
         assertThat(profile.getMetadata(), hasItems(
@@ -145,6 +154,17 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {
+        List<ResourcePolicy> resourcePolicies = resourcePolicyService.find(context, researcherProfile.getItem());
+        boolean visible = resourcePolicies
+            .stream()
+            .filter(policy -> policy.getGroup() != null)
+            .anyMatch(policy -> READ == policy.getAction() &&
+                ANONYMOUS.equals(policy.getGroup().getName()));
+
+        assertThat(visible, is(true));
+    }
+
     @Test
     @SuppressWarnings("unchecked")
     public void testInitializeWithPersonWithThatSciperAlreadyExisting() throws SQLException, AuthorizeException {
@@ -169,6 +189,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
 
         Item profile = researcherProfile.getItem();
         assertThat(profile, is(person));
@@ -229,6 +250,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
 
         Item profile = researcherProfile.getItem();
         assertThat(profile, is(person));
@@ -286,6 +308,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
 
         Item profile = researcherProfile.getItem();
         assertThat(profile.getMetadata(), hasSize(28));

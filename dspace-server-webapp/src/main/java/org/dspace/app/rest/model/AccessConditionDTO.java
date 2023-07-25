@@ -9,6 +9,9 @@ package org.dspace.app.rest.model;
 
 import java.util.Date;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 /**
  * The AccessConditionDTO is a partial representation of the DSpace
  * {@link ResourcePolicyRest} as used in the patch payload for the upload and itemAccessConditions
@@ -34,6 +37,8 @@ public class AccessConditionDTO  {
     private Date startDate;
 
     private Date endDate;
+
+    private String stepId;
 
     public Integer getId() {
         return id;
@@ -75,4 +80,21 @@ public class AccessConditionDTO  {
         this.endDate = endDate;
     }
 
+    public String getStepId() {
+        return stepId;
+    }
+
+    public void setStepId(String stepId) {
+        this.stepId = stepId;
+    }
+
+    public String toJson() {
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        return gson.toJson(this);
+    }
+
+    public static AccessConditionDTO fromJson(String json) {
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        return gson.fromJson(json, AccessConditionDTO.class);
+    }
 }
