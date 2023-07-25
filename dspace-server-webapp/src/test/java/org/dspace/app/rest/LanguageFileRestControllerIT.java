@@ -78,7 +78,7 @@ public class LanguageFileRestControllerIT extends AbstractControllerIntegrationT
         final MockMultipartFile pdfFile = new MockMultipartFile("file", "/local/path/simple-article.pdf",
                 "application/pdf", pdf);
 
-        Path path = Paths.get(pathWhereToSave + "en.json5");
+        Path path = Paths.get(pathWhereToSave + "en.json");
         // delet file
         Files.deleteIfExists(path);
         context.restoreAuthSystemState();
