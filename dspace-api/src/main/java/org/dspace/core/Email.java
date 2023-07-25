@@ -409,7 +409,7 @@ public class Email {
         for (String headerName : templateHeaders) {
             String headerValue = (String) vctx.get(headerName);
             if ("subject".equalsIgnoreCase(headerName)) {
-                if (null != subject) {
+                if (null != headerValue) {
                     subject = headerValue;
                 }
             } else if ("charset".equalsIgnoreCase(headerName)) {
@@ -428,11 +428,13 @@ public class Email {
 
         // Add attachments
         if (attachments.isEmpty() && moreAttachments.isEmpty()) {
+            String subtype = isHtmlContent()
+                ? "html" : "plain";
             // If a character set has been specified, or a default exists
             if (charset != null) {
-                message.setText(fullMessage, charset);
+                message.setText(fullMessage, charset, subtype);
             } else {
-                message.setText(fullMessage);
+                message.setText(fullMessage, null, "html");
             }
         } else {
             Multipart multipart = new MimeMultipart();
@@ -502,6 +504,11 @@ public class Email {
         } else {
             Transport.send(message);
         }
+    }
+
+    private boolean isHtmlContent() {
+        return StringUtils.containsIgnoreCase(content, "<html>")
+            && StringUtils.containsIgnoreCase(content, "</html>");
     }
 
     /**
