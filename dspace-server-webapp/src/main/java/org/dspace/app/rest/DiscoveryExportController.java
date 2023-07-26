@@ -133,7 +133,6 @@ public class DiscoveryExportController {
                                                         String sorting, String scope, String filters,
                                                         Integer offset, Integer limit) {
         List<DSpaceCommandLineParameter> result = new LinkedList<>();
-        result.add(new DSpaceCommandLineParameter("-t", "Publication"));
         result.add(new DSpaceCommandLineParameter("-f", "epfl-publication-marc-xml"));
         result.add(new DSpaceCommandLineParameter("-q", query));
         result.add(new DSpaceCommandLineParameter("-c", configuration));

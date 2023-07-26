@@ -23,9 +23,9 @@ public interface PersonApiService {
 
     public Optional<PersonDTO> getPerson(String sciper);
 
-    public List<MetadataValueDTO> getMetadataValues(PersonDTO person);
+    public List<MetadataValueDTO> getMetadataValues(Context context, PersonDTO person);
 
-    public List<MetadataValueDTO> getMetadataValues(String sciper);
+    public List<MetadataValueDTO> getMetadataValues(Context context, String sciper);
 
     public Optional<InputStream> getPersonalPicture(String sciper);
 

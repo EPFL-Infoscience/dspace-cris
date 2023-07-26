@@ -7,6 +7,7 @@
  */
 package org.dspace.discovery;
 
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
@@ -102,6 +103,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     private static final String SOLR_POSTFIX_YEAR = ".year";
     private static final MetadataFieldName METADATA_DATACITE_RIGHTS = new MetadataFieldName("datacite", "rights");
     private static final MetadataFieldName METADATA_DATACITE_AVAILABLE = new MetadataFieldName("datacite", "available");
+    private static final MetadataFieldName METADATA_EPFL_LICENSENAME = new MetadataFieldName("epfl", "licenseName");
     private static final MetadataFieldName METADATA_LICENSE_CONDITION =
         new MetadataFieldName("oaire", "licenseCondition");
 
@@ -112,6 +114,17 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 addField(document, fieldName, value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+            }
+        };
+    private static final BiFunction<SolrInputDocument, String, Consumer<String>> oaireSolrIndexAdder =
+        (document, fieldName) -> value -> {
+            if (!isValidURL(value)) {
+                Collection<Object> fieldValues = document.getFieldValues(fieldName);
+                if (fieldValues == null || !fieldValues.contains(value)) {
+                    addField(document, fieldName, value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                }
             }
         };
 
@@ -155,7 +168,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     private static final SolrFieldMetadataMapper<String> OAIRE_LICENSE_MAPPER =
         new SolrFieldMetadataMapper<String>(
             SOLR_FIELD_NAME_FOR_OAIRE_LICENSE_CONDITION,
-            defaultSolrIndexAdder
+            oaireSolrIndexAdder
         );
 
     private static final SolrFieldMetadataMapper<String> DATACITE_RIGHTS_MAPPER =
@@ -174,7 +187,8 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
         Stream.of(
             Map.entry(METADATA_LICENSE_CONDITION.toString(), OAIRE_LICENSE_MAPPER),
             Map.entry(METADATA_DATACITE_RIGHTS.toString(), DATACITE_RIGHTS_MAPPER),
-            Map.entry(METADATA_DATACITE_AVAILABLE.toString(), DATACITE_AVAILABLE_MAPPER)
+            Map.entry(METADATA_DATACITE_AVAILABLE.toString(), DATACITE_AVAILABLE_MAPPER),
+            Map.entry(METADATA_EPFL_LICENSENAME.toString(), OAIRE_LICENSE_MAPPER)
         )
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -289,4 +303,14 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
         StringUtils.equals(metadataFieldName.element, metadata.getElement()) &&
         StringUtils.equals(metadataFieldName.qualifier, metadata.getQualifier());
     }
+
+    private static boolean isValidURL(String url) {
+        try {
+            new URL(url).toURI();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }

@@ -24,6 +24,8 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +46,7 @@ public class VirtualFieldBitstreamData
     implements VirtualField {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(VirtualFieldBitstream.class);
+    private static final String DUMMY = "DUMMY";
 
     private final ItemService itemService;
     private final BitstreamService bitstreamService;
@@ -58,7 +61,7 @@ public class VirtualFieldBitstreamData
 
 
         String[] virtualFieldName = fieldName.split("\\.");
-        if (virtualFieldName.length != 5) {
+        if (virtualFieldName.length < 4 || virtualFieldName.length > 5) {
             LOGGER.warn("Invalid bitstream data virtual field: " + fieldName);
             return new String[] {};
         }
@@ -90,7 +93,7 @@ public class VirtualFieldBitstreamData
 
         return bitstreamList
             .stream()
-            .map(bitstream -> bistreamAttributeValue(virtualFieldName[4],
+            .map(bitstream -> bistreamAttributeValue(virtualFieldName.length == 5 ? virtualFieldName[4] : DUMMY,
                                                      bitstream,
                                                      bitstreamAttribute.get()))
             .toArray(String[]::new);
@@ -140,6 +143,15 @@ public class VirtualFieldBitstreamData
                     return "";
                 }
                 return metadataValueList.get(0).getValue();
+            }
+        },
+        FULLPATH("download-path") {
+            private final ConfigurationService configurationService = DSpaceServicesFactory.getInstance()
+                                                                                           .getConfigurationService();
+            @Override
+            public String value(BitstreamService itemService, Bitstream bitstream, String attributeValue) {
+                String url = configurationService.getProperty("dspace.server.url");
+                return url + "/bitstreams/" + bitstream.getID() + "/download";
             }
         };
 

@@ -2,6 +2,7 @@ TY  - @virtual.mapConverter.coar2endnote.dc-type@
 AU  - @virtual.authors@
 TI  - @dc.title@
 DA  - @dc.date.issued@
+PY  - @virtual.date.dc-date-issued.YYYY@
 PB  - @dc.publisher@
 T1  - @dc.relation.ispartof@
 VL  - @oaire.citation.volume@
@@ -13,3 +14,4 @@ DO  - @dc.identifier.doi@
 SP  - @oaire.citation.startPage@
 EP  - @oaire.citation.endPage@
 LA  - @dc.language.iso@
+SN  - @dc.relation.isbn@

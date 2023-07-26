@@ -9,22 +9,31 @@ package org.dspace.authenticate.service;
 
 import static java.util.Optional.ofNullable;
 import static org.dspace.content.authority.Choices.CF_ACCEPTED;
+import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.core.I18nUtil.getEmailFilename;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
@@ -36,19 +45,26 @@ import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.util.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProfileInitializer {
 
+    private static final List<String> AFFILIATIONS_METADATA =
+        List.of("oairecerif.affiliation.role", "oairecerif.person.affiliation",
+                "oairecerif.affiliation.startDate", "oairecerif.affiliation.endDate");
     private final static Logger LOGGER = LoggerFactory.getLogger(ProfileInitializer.class);
+    private static final String SUBMITTERS = "Submitters";
 
     @Autowired
     private ResearcherProfileService researcherProfileService;
@@ -68,6 +84,9 @@ public class ProfileInitializer {
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private GroupService groupService;
+
     public void initialize(Context context, EPerson eperson) {
 
         context.turnOffAuthorisationSystem();
@@ -85,15 +104,47 @@ public class ProfileInitializer {
 
     private void initialize(Context context, EPerson eperson, String sciper) {
 
+        Optional<PersonDTO> personDTO = personApiService.getPerson(sciper);
+
         ResearcherProfile researcherProfile = findProfile(context, eperson)
             .or(() -> personApiService.findProfileBySciper(context, eperson, sciper))
-            .orElseGet(() -> createPrivateProfile(context, eperson));
+            .orElseGet(() -> createPublicProfile(context, eperson, personDTO));
 
-        personApiService.getPerson(sciper)
-            .map(person -> sendEmailIfSomethingIsWrong(context, person))
+
+
+        if (researcherProfile == null) {
+            LOGGER.info("No valid accreditations for sciper {} profile not created", sciper);
+            return;
+        }
+
+        try {
+            setPublicVisibility(context, researcherProfile);
+        } catch (AuthorizeException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        personDTO
+//            .map(person -> sendEmailIfSomethingIsWrong(context, person))
             .filter(this::isMainAffiliationActive)
             .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(), eperson));
 
+        try {
+            Group submittersGroup = groupService.findByName(context, SUBMITTERS);
+
+            if (atLeastAnActiveAccreditation(researcherProfile.getItem())) {
+                groupService.addMember(context, submittersGroup, eperson);
+            } else {
+                groupService.removeMember(context, submittersGroup, eperson);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean atLeastAnActiveAccreditation(Item item) {
+        return item.getMetadata().stream()
+                   .filter(mv -> "oairecerif.affiliation.endDate".equals(mv.getMetadataField().toString('.')))
+                   .anyMatch(mv -> PLACEHOLDER_PARENT_METADATA_VALUE.equals(mv.getValue()));
     }
 
     public Optional<ResearcherProfile> findProfile(Context context, EPerson eperson) {
@@ -116,19 +167,65 @@ public class ProfileInitializer {
     }
 
 
-    private ResearcherProfile createPrivateProfile(Context context, EPerson eperson) {
+    private ResearcherProfile createPublicProfile(Context context, EPerson eperson, Optional<PersonDTO> personDTO) {
+
+
+        if (!personDTO.isPresent()
+            || noAccredsInDspace(context,
+                                 personDTO
+                                     .map(p -> sendEmailIfSomethingIsWrong(context, p))
+                                     .map(PersonDTO::getAccreds)
+                                     .orElse(new PersonDTO.Accred[]{}))) {
+            return null;
+        }
         try {
             if (eperson.getEmail() == null) {
                 throw new RuntimeException("person does not have email");
             }
             ResearcherProfile profile = researcherProfileService.createAndReturn(context, eperson);
-            if (profile.isVisible()) {
-                researcherProfileService.changeVisibility(context, profile, false);
-            }
+            setPublicVisibility(context, profile);
             return profile;
         } catch (AuthorizeException | SQLException | SearchServiceException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean noAccredsInDspace(Context context, PersonDTO.Accred[] accreds) {
+        return Arrays.stream(accreds)
+                     .map(a -> a.getAcronym())
+                     .noneMatch(acro -> inDspace(context, acro));
+    }
+
+    private boolean inDspace(Context context, String acro) {
+        return findItem(context, acro).isPresent();
+    }
+
+    private Optional<Item> findItem(Context context, String acro) {
+        try {
+            Iterator<Item> iterator =
+                itemService.findArchivedByMetadataField(context, "oairecerif.acronym", acro);
+            while (iterator.hasNext()) {
+                Item item = iterator.next();
+                String entityType = itemService.getEntityType(item);
+                if ("OrgUnit".equals(entityType)) {
+                    return Optional.of(item);
+                }
+            }
+        } catch (AuthorizeException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return Optional.empty();
+    }
+
+    private void setPublicVisibility(Context context, ResearcherProfile profile)
+        throws AuthorizeException, SQLException {
+        if (!profile.isVisible()) {
+            researcherProfileService.changeVisibility(context, profile, true);
+        }
+        itemService.setMetadataSingleValue(context, profile.getItem(),
+                                           "epfl", "sciper",
+                                           "active", null,
+                                           "true");
     }
 
     private boolean isMainAffiliationActive(PersonDTO person) {
@@ -139,8 +236,8 @@ public class ProfileInitializer {
 
     private void enrichProfile(Context context, PersonDTO person, Item item, EPerson ePerson) {
 
-        List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(person);
-        replaceMetadataValues(context, item, metadataValues, person, ePerson);
+        List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(context, person);
+        replaceMetadataValues(context, item, metadataValues, person);
 
         String sciper = person.getSciper();
 
@@ -176,30 +273,137 @@ public class ProfileInitializer {
     }
 
     private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues,
-                                       PersonDTO epflPerson, EPerson ePerson) {
-        List<String> ePersonUniqueAccredsNames = getAccredsAcronymsThatInEPersonButNotInEpflPerson(item, epflPerson);
+                                       PersonDTO epflPerson) {
+        List<PersonAffiliation> personAffiliations = affiliations(context, item);
+        List<Integer> affiliationsToClosePositions = affiliationsToBeClosedPositions(item, context,
+                                                                                     epflPerson, personAffiliations);
         clearMetadataValues(context, item);
-        addEndDateToExpierdedAccreds(context, item, ePersonUniqueAccredsNames, ePerson);
-        metadataValues.forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
+        addEndDateToExpierdedAccreds(context, item, affiliationsToClosePositions);
+        List<PersonAffiliation> apiAffiliations = apiAffiliations(metadataValues);
+        List<PersonAffiliation> alreadySetAffiliations =
+            alreadyPresentAffiliations(personAffiliations, apiAffiliations);
+        metadataValues.stream().filter(mv -> notAnAlreadySetAffiliation(mv, alreadySetAffiliations))
+                      .forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
     }
 
-    private void addEndDateToExpierdedAccreds(Context context, Item item, List<String> ePersonUniqueAccredsNames,
-                                              EPerson ePerson) {
-        try {
-            itemService.clearMetadata(context, item, "oairecerif", "affiliation", "endDate", Item.ANY);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+    private boolean notAnAlreadySetAffiliation(MetadataValueDTO metadataValue,
+                                               List<PersonAffiliation> alreadySetAffiliations) {
+        if (!AFFILIATIONS_METADATA.contains(metadataValue.getMetadataField())) {
+            return true;
         }
-        ePersonUniqueAccredsNames.stream()
-                                 .map(name -> item.getMetadata()
-                                                  .stream()
-                                                  .filter(metadataValue -> metadataValue
-                                                      .getValue()
-                                                      .equals(name))
-                                                  .map(MetadataValue::getPlace)
-                                                  .collect(Collectors.toList()))
-                                 .flatMap(Collection::stream)
-                                 .forEach(place -> addEndDateMetadata(place, context, item, ePerson));
+        return alreadySetAffiliations.stream().noneMatch(pa -> Objects.equals(pa.position, metadataValue.getPlace()));
+    }
+
+    private List<PersonAffiliation> alreadyPresentAffiliations(List<PersonAffiliation> personAffiliations,
+                                                               List<PersonAffiliation> apiAffiliations) {
+        return apiAffiliations.stream()
+                              .filter(aff -> {
+                                  Predicate<PersonAffiliation> acronymPredicate =
+                                      pa -> pa.acronym.equals(aff.acronym);
+                                  Predicate<PersonAffiliation> notTerminated =
+                                      pa -> StringUtils.isBlank(pa.endDate) ||
+                                          pa.endDate.equals(PLACEHOLDER_PARENT_METADATA_VALUE);
+                                  return personAffiliations
+                                      .stream()
+                                      .anyMatch(acronymPredicate.and(notTerminated));
+                              }).collect(Collectors.toList());
+    }
+
+    private List<PersonAffiliation> apiAffiliations(List<MetadataValueDTO> metadataValues) {
+        return metadataValues
+            .stream()
+            .filter(mv -> "oairecerif.person.affiliation".equals(mv.getMetadataField()))
+            .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
+            .map(mv -> new PersonAffiliation(mv.getPlace(),
+                                             getAcronym(mv),
+                                             PLACEHOLDER_PARENT_METADATA_VALUE,
+                                             PLACEHOLDER_PARENT_METADATA_VALUE))
+            .collect(Collectors.toList());
+
+    }
+
+    private static String getAcronym(MetadataValueDTO mv) {
+        if (mv.getAuthority().startsWith(AuthorityValueService.GENERATE)) {
+            return StringUtils.substringAfter(mv.getAuthority(), AuthorityValueService.GENERATE + "ACRONYM::");
+        }
+        if (mv.getAuthority().startsWith(AuthorityValueService.REFERENCE)) {
+            return StringUtils.substringAfter(mv.getAuthority(), AuthorityValueService.REFERENCE + "ACRONYM::");
+        }
+        return mv.getAuthority();
+    }
+
+
+    private List<PersonAffiliation> affiliations(Context context, Item item) {
+        Map<Integer, List<MetadataValue>> metadataMap = item.getMetadata().stream()
+                                                        .filter(mv -> AFFILIATIONS_METADATA.contains(
+                                                            mv.getMetadataField().toString('.')))
+                                                        .collect(Collectors.groupingBy(mv -> mv.getPlace()));
+        List<PersonAffiliation> result = new LinkedList<>();
+        return metadataMap.entrySet().stream()
+            .map(e -> toAffiliation(context, e))
+            .collect(Collectors.toList());
+    }
+
+    private PersonAffiliation toAffiliation(Context context, Map.Entry<Integer, List<MetadataValue>> metadataMap) {
+
+        List<MetadataValue> metadataValues = metadataMap.getValue();
+        String acronym = acronym(context, extractMetadata(metadataValues, "oairecerif.person.affiliation"));
+        String startDate = metadataValue(metadataValues, "oairecerif.affiliation.startDate");
+        String endDate = metadataValue(metadataValues, "oairecerif.affiliation.endDate");
+        return new ProfileInitializer.PersonAffiliation(metadataMap.getKey(),
+                                     acronym, startDate, endDate);
+    }
+
+    private String metadataValue(List<MetadataValue> metadataValues, String metadata) {
+        return Optional.ofNullable(
+                           extractMetadata(metadataValues, metadata)).map(mv -> mv.getValue())
+                       .orElse(null);
+    }
+
+    private MetadataValue extractMetadata(List<MetadataValue> metadataValues, String metadata) {
+        return metadataValues
+            .stream()
+            .filter(mv -> mv.getMetadataField().toString('.').equals(metadata))
+            .findFirst().orElse(null);
+    }
+
+    private void addEndDateToExpierdedAccreds(Context context, Item item, List<Integer> endDatesMetadataPositions) {
+        List<MetadataValue> values = itemService.getMetadataByMetadataString(item, "oairecerif.affiliation.endDate");
+        Map<Integer, MetadataValue> endDates =
+            values.stream().collect(Collectors.toMap(mv -> mv.getPlace(), Function.identity()));
+        endDatesMetadataPositions.forEach(
+            pos -> {
+                if (valueToBeReplaced(endDates.get(pos))) {
+                    try {
+                        itemService.replaceMetadata(context, item, "oairecerif", "affiliation",
+                                                    "endDate", null, getYesterday(), null, -1,
+                                                    pos);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        );
+//        try {
+//            itemService.clearMetadata(context, item, "oairecerif", "affiliation", "endDate", Item.ANY);
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//        ePersonUniqueAccredsNames.stream()
+//                                 .map(name -> item.getMetadata()
+//                                                  .stream()
+//                                                  .filter(metadataValue -> metadataValue
+//                                                      .getValue()
+//                                                      .equals(name))
+//                                                  .map(MetadataValue::getPlace)
+//                                                  .collect(Collectors.toList()))
+//                                 .flatMap(Collection::stream)
+//                                 .forEach(place -> addEndDateMetadata(place, context, item, ePerson));
+    }
+
+    private boolean valueToBeReplaced(MetadataValue metadataValue) {
+        return metadataValue == null || StringUtils.isBlank(metadataValue.getValue()) ||
+            PLACEHOLDER_PARENT_METADATA_VALUE.equals(metadataValue.getValue());
     }
 
     private void addEndDateMetadata(int place, Context context, Item item, EPerson ePerson) {
@@ -216,24 +420,43 @@ public class ProfileInitializer {
     private String getYesterday() {
         final Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1);
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         return dateFormat.format(cal.getTime());
     }
-    private List<String> getAccredsAcronymsThatInEPersonButNotInEpflPerson(Item item, PersonDTO epflPerson) {
-        List<String> ePersonAccredsAcronym = item.getMetadata().stream()
-                                                              .filter(metadataValue -> metadataValue
-                                                                  .getMetadataField()
-                                                                  .toString('.')
-                                                                  .equals("oairecerif.person.affiliation"))
-                                                              .map(metadataValue -> metadataValue.getAuthority()
-                                                                                                 .split("::")[2])
-                                                              .collect(Collectors.toList());
+    private List<Integer> affiliationsToBeClosedPositions(Item item, Context context, PersonDTO epflPerson,
+                                                          List<PersonAffiliation> personAffiliations) {
+
+        Map<String, List<PersonAffiliation>> collect =
+            personAffiliations.stream().collect(Collectors.groupingBy(pa -> pa.acronym));
 
         List<String> epflPersonAccredsAcronym = Arrays.stream(epflPerson.getAccreds()).map(PersonDTO.Accred::getAcronym)
                                                       .collect(Collectors.toList());
 
-        ePersonAccredsAcronym.removeAll(epflPersonAccredsAcronym);
-        return ePersonAccredsAcronym;
+        epflPersonAccredsAcronym.forEach(collect::remove);
+        Set<Integer> collect1 =
+            collect.entrySet().stream()
+                   .flatMap(e -> e.getValue().stream()).map(pa -> pa.position)
+                   .collect(Collectors.toSet());
+        return new ArrayList<>(collect1);
+    }
+
+    private String acronym(Context context, MetadataValue metadataValue) {
+        if (StringUtils.isBlank(metadataValue.getAuthority())) {
+            return "PLACEHOLDER";
+        }
+        if (metadataValue.getAuthority().startsWith(AuthorityValueService.GENERATE)) {
+            return metadataValue.getAuthority()
+                                .split(AuthorityValueService.SPLIT)[2];
+        }
+        try {
+            Item item = itemService.find(context, UUIDUtils.fromString(metadataValue.getAuthority()));
+            if (item == null) {
+                return "PLACEHOLDER";
+            }
+            return itemService.getMetadataFirstValue(item, new MetadataFieldName("oairecerif.acronym"), Item.ANY);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void addMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
@@ -247,12 +470,9 @@ public class ProfileInitializer {
     }
 
     private void clearMetadataValues(Context context, Item item) {
-        List<String> scipMetadata =
-            List.of("oairecerif_affiliation_role", "oairecerif_person_affiliation",
-                    "oairecerif_affiliation_startDate", "oairecerif_affiliation_endDate");
 
         personApiService.getMetadataFields()
-                        .stream().filter(field -> !scipMetadata.contains(field))
+                        .stream().filter(field -> !AFFILIATIONS_METADATA.contains(field))
                         .forEach(metadataField -> clearMetadataValues(context, item, metadataField));
     }
 
@@ -272,4 +492,18 @@ public class ProfileInitializer {
             .map(netId -> StringUtils.substringBefore(netId, "@"));
     }
 
+    private static class PersonAffiliation {
+        private final Integer position;
+        private final String acronym;
+        private final String startDate;
+        private final String endDate;
+
+        public PersonAffiliation(Integer position, String acronym, String startDate, String endDate) {
+
+            this.position = position;
+            this.acronym = acronym;
+            this.startDate = startDate;
+            this.endDate = endDate;
+        }
+    }
 }

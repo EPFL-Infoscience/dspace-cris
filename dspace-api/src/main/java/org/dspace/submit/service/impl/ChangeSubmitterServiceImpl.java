@@ -39,6 +39,7 @@ public class ChangeSubmitterServiceImpl implements ChangeSubmitterService {
     @Override
     public void setUpSubmitter(Context context, Item item, String submitterIdentifier)
             throws SQLException, AuthorizeException {
+        submitterIdentifier = submitterIdentifier.replaceAll(" ", "+");
         if (StringUtils.isBlank(submitterIdentifier)) {
             return;
         }

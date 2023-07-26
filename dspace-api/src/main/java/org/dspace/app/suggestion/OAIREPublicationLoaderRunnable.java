@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.tika.utils.StringUtils;
 import org.dspace.app.suggestion.oaire.OAIREPublicationLoader;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -41,41 +42,46 @@ public class OAIREPublicationLoaderRunnable
     protected Context context;
 
     protected String profile;
+    protected String extraQuery;
 
     @Override
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
     public OAIREPublicationLoaderScriptConfiguration<OAIREPublicationLoaderRunnable> getScriptConfiguration() {
-        OAIREPublicationLoaderScriptConfiguration configuration = new DSpace().getServiceManager()
-                .getServiceByName("import-oaire-suggestions", OAIREPublicationLoaderScriptConfiguration.class);
-        return configuration;
+        return new DSpace()
+            .getServiceManager()
+            .getServiceByName("import-oaire-suggestions", OAIREPublicationLoaderScriptConfiguration.class);
     }
 
     @Override
     public void setup() throws ParseException {
-
         oairePublicationLoader = new DSpace().getServiceManager().getServiceByName(
                 "OAIREPublicationLoader", OAIREPublicationLoader.class);
 
         profile = commandLine.getOptionValue("s");
+
         if (profile == null) {
             LOGGER.info("No argument for -s, process all profile");
         } else {
             LOGGER.info("Process eperson item with UUID " + profile);
         }
+
+        if (commandLine.hasOption("q")) {
+            extraQuery = commandLine.getOptionValue("q");
+        }
     }
 
     @Override
     public void internalRun() throws Exception {
-
         context = new Context();
-
         List<Item> researchers = getResearchers(profile);
 
         for (Item researcher : researchers) {
-
-            oairePublicationLoader.importAuthorRecords(context, researcher);
+            if (StringUtils.isBlank(extraQuery)) {
+                oairePublicationLoader.importAuthorRecords(context, researcher);
+            } else {
+                oairePublicationLoader.importAuthorRecords(context, researcher, extraQuery);
+            }
         }
-
     }
 
     /**
@@ -84,7 +90,7 @@ public class OAIREPublicationLoaderRunnable
      * researcher, the method returns an empty array list. If uuid is null, all
      * research will be return.
      * 
-     * @param profile uuid of the researcher. If null, all researcher will be
+     * @param profileUUID uuid of the researcher. If null, all researcher will be
      *                returned.
      * @return the researcher with specified UUID or all researchers
      */
@@ -92,15 +98,15 @@ public class OAIREPublicationLoaderRunnable
     private List<Item> getResearchers(String profileUUID) {
         final UUID uuid = profileUUID != null ? UUID.fromString(profileUUID) : null;
         SearchService searchService = new DSpace().getSingletonService(SearchService.class);
-        List<IndexableObject> objects = null;
+        List<IndexableObject> objects;
         if (uuid != null) {
-            objects = searchService.search(context, "search.resourceid:" + uuid.toString(),
+            objects = searchService.search(context, "search.resourceid:" + uuid,
                 "lastModified", false, 0, 1000, "search.resourcetype:Item", "dspace.entity.type:Person");
         } else {
             objects = searchService.search(context, "*:*", "lastModified", false, 0, 1000, "search.resourcetype:Item",
                     "dspace.entity.type:Person");
         }
-        List<Item> items = new ArrayList<Item>();
+        List<Item> items = new ArrayList<>();
         if (objects != null) {
             for (IndexableObject o : objects) {
                 items.add((Item) o.getIndexedObject());

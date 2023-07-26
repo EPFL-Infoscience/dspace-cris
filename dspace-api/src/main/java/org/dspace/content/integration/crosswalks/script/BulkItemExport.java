@@ -306,9 +306,11 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             discoverQuery.addFilterQueries("read:g" + anonymous.getID().toString());
         }
 
-        if (entityType != null) {
-            discoverQuery.addFilterQueries("search.entitytype:" + entityType);
-        }
+        discoverQuery.addFilterQueries(
+            entityType == null
+                ? "search.entitytype: Publication OR search.entitytype: Patent OR search.entitytype: Product"
+                : ("search.entitytype:" + entityType)
+        );
 
         return discoverQuery;
     }

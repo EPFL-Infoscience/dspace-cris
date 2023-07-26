@@ -10,6 +10,7 @@ package org.dspace.app.bulkimport.service;
 import java.util.Iterator;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import org.dspace.app.bulkimport.model.BulkImportWorkbook;
 import org.dspace.app.bulkimport.model.EntityRow;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
@@ -47,6 +48,17 @@ public interface BulkImportWorkbookBuilder {
      * @return            the workbook
      */
     Workbook build(Context context, Collection collection, Iterator<ItemDTO> items);
+
+    /**
+     * Build an empty workbook.
+     *
+     * @param  context    the DSpace context
+     * @param  collection the collection related to the given entities
+     * @return            the workbook
+     */
+    BulkImportWorkbook buildEmptyWorkbook(Context context, Collection collection);
+
+    void writeWorkbookContent(ItemDTO item, BulkImportWorkbook workbook);
 
     /**
      * Build a workbook containing the given items.

@@ -1,0 +1,14 @@
+Title = dc.title
+DOI = dc.identifier.doi
+Creators = group.dc-contributor-author
+Publisher = dc.publisher
+Publication Year = virtual.date.dc-date-issued.YYYY
+Subjects = dc.subject
+Publication date = dc.date.issued
+Language = dc.language.iso
+URL = dc.identifier.uri
+Version = dc.description.version
+License = virtual.mapConverter.right2licenseUrl.oaire-licenseCondition
+Rights = virtual.mapConverter.right2conceptUrl.datacite-rights
+Description = dc.description.abstract
+Other Description =  dc.description
