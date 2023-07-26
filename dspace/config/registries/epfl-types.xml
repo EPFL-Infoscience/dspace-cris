@@ -331,4 +331,16 @@
         <qualifier>contributorauthnum</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>synchronization</element>
+        <qualifier>date</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>closure</qualifier>
+    </dc-type>
+
 </dspace-dc-types>
