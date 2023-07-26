@@ -2004,6 +2004,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required>You must enter least at the Surname.</required>
           <hint />
+          <readonly>all</readonly>
         </field>
       </row>
       <row>
