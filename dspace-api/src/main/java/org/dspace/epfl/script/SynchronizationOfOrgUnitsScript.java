@@ -117,9 +117,6 @@ public class SynchronizationOfOrgUnitsScript
 
         for (Item orgUnit : orgUnits) {
             String name = getMetadataValue(orgUnit, "oairecerif", "acronym", null);
-            if (!StringUtils.equalsAny(name, "IF-GEs")) {
-                continue;
-            }
             logInfo("Synchronizing orgunit " + name);
             if (isOrgUnitFoundInEpfl(orgUnit)) {
                 syncOrgUnit(orgUnit);
