@@ -23,10 +23,14 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.NonUniqueMetadataException;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Context;
 import org.dspace.core.service.PluginService;
 import org.dspace.services.ConfigurationService;
@@ -79,6 +83,9 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
 
     @Autowired(required = true)
     protected MetadataFieldService metadataFieldService;
+
+    @Autowired
+    protected MetadataSchemaService metadataSchemaService;
 
     @Autowired(required = true)
     protected AuthorityServiceUtils authorityServiceUtils;
@@ -152,9 +159,13 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
                     MetadataField metadataField = metadataFieldService
                         .findByElement(context, schema, element, qualifier);
                     if (metadataField == null) {
-                        throw new IllegalStateException(
+                        context.turnOffAuthorisationSystem();
+                        MetadataSchema ms = metadataSchemaService.find(context, schema);
+                        metadataField = metadataFieldService.create(context, ms, element, qualifier, null);
+                        context.restoreAuthSystemState();
+                        /*throw new IllegalStateException(
                             "Error while configuring authority control, metadata field: " + field + " could not " +
-                                "be found");
+                                "be found");*/
                     }
                     boolean ctl = configurationService.getBooleanProperty(key, true);
                     boolean req = configurationService.getBooleanProperty("authority.required." + field, false);
@@ -173,6 +184,8 @@ public class MetadataAuthorityServiceImpl implements MetadataAuthorityService {
                 autoRegisterControlledAuthorityFromInputReader();
             } catch (SQLException e) {
                 log.error("Error reading authority config", e);
+            } catch (AuthorizeException | NonUniqueMetadataException e) {
+                throw new RuntimeException(e);
             }
 
             // get default min confidence if any:
