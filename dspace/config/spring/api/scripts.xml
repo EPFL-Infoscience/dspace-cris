@@ -194,6 +194,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.sync.EpflUserSynchronizationScript"/>
     </bean>
 
+    <bean id="synchronization-of-orgunits" class="org.dspace.epfl.script.SynchronizationOfOrgUnitsConfiguration" primary="true">
+        <property name="description" value="Synchronization of the OrgUnits"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SynchronizationOfOrgUnitsScript"/>
+    </bean>
+
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
