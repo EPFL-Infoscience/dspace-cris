@@ -49,7 +49,8 @@ public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchr
         if (options == null) {
             Options options = new Options();
 
-            options.addOption("f", "file", true, "optional, a csv file with comma separated scipers to be imported / updated");
+            options.addOption("f", "file", true,
+                              "optional, a csv file with comma separated scipers to be imported / updated");
             options.getOption("f").setType(InputStream.class);
             options.getOption("f").setRequired(false);
 

@@ -261,7 +261,8 @@ public class EpflUserSynchronizationScript
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, ePerson.getID());
         if (researcherProfile == null) {
             String sciper = StringUtils.substringBefore(ePerson.getNetid(), "@epfl.ch");
-            logInfo("Researcher profile for ePerson " + ePerson.getID() + ", sciper " + sciper + " has not been created, " +
+            logInfo("Researcher profile for ePerson " + ePerson.getID() + ", sciper "
+                        + sciper + " has not been created, " +
                                 "the ePerson is not affiliated to OrgUnits present in the repository.");
             return;
         }
