@@ -41,6 +41,12 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>editor</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>sciper</element>
         <qualifier>active</qualifier>
     </dc-type>
