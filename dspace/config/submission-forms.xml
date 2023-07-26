@@ -2285,8 +2285,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>You must enter the oganization name.</required>
-          <hint />
           <language value-pairs-name="supported_languages">true</language>
+          <hint />
         </field>
       </row>
       <row>
@@ -2297,8 +2297,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint />
           <language value-pairs-name="supported_languages">true</language>
+          <hint />
         </field>
       </row>
       <row>
@@ -4383,6 +4383,20 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>pendingOrgUnit</dc-qualifier>
           <label>Pending Orgunit</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="orgunit-editor">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>editor</dc-qualifier>
+          <label>EPFL OrgUnit Editor</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
