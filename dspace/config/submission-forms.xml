@@ -4403,7 +4403,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>epfl</dc-schema>
           <dc-element>orgUnit</dc-element>
           <dc-qualifier>editor</dc-qualifier>
-          <label>EPFL OrgUnit Editor</label>
+          <label>Delegated head of unit</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />

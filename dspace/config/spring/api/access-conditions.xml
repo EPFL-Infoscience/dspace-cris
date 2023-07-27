@@ -12,7 +12,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
                 <!-- <ref bean="networkAdministration"/> -->
             </list>
         </property>
@@ -38,9 +38,9 @@
         <property name="startDateLimit" value="+36MONTHS"/>
         <property name="hasEndDate" value="false"/>
     </bean>
-    <bean id="administrator" class="org.dspace.submit.model.AccessConditionOption">
-        <property name="groupName" value="Administrator"/>
-        <property name="name" value="administrator"/>
+    <bean id="reserved" class="org.dspace.submit.model.AccessConditionOption">
+        <property name="groupName" value="ReservedAccess"/>
+        <property name="name" value="reserved"/>
         <property name="hasStartDate" value="false"/>
         <property name="hasEndDate" value="false"/>
     </bean>
@@ -81,7 +81,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -102,7 +102,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -116,7 +116,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -130,7 +130,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -144,7 +144,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -158,7 +158,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -172,7 +172,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -186,7 +186,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -201,7 +201,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -216,7 +216,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>

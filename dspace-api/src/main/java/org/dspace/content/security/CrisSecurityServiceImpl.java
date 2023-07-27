@@ -20,6 +20,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.logic.Filter;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -73,30 +74,41 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
 
         try {
 
-            switch (crisSecurity) {
-                case ADMIN:
-                    return authorizeService.isAdmin(context, user);
-                case CUSTOM:
-                    return hasAccessByCustomPolicy(context, item, user, accessMode);
-                case GROUP:
-                    return hasAccessByGroup(context, user, accessMode.getGroups());
-                case ITEM_ADMIN:
-                    return authorizeService.isAdmin(context, user, item);
-                case OWNER:
-                    return isOwner(user, item);
-                case SUBMITTER:
-                    return user != null && user.equals(item.getSubmitter());
-                case SUBMITTER_GROUP:
-                    return isUserInSubmitterGroup(context, item, user);
-                case NONE:
-                default:
-                    return false;
-            }
+            boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
+            Filter additionalFilter = accessMode.getAdditionalFilter();
+
+            return additionalFilter == null ? checkSecurity
+                : checkSecurity && additionalFilter.getResult(context, item);
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private boolean checkSecurity(Context context, Item item, EPerson user, AccessItemMode accessMode,
+                              CrisSecurity crisSecurity) throws SQLException {
+        switch (crisSecurity) {
+            case ADMIN:
+                return authorizeService.isAdmin(context, user);
+            case CUSTOM:
+                return hasAccessByCustomPolicy(context, item, user, accessMode);
+            case GROUP:
+                return hasAccessByGroup(context, user, accessMode.getGroups());
+            case ITEM_ADMIN:
+                return authorizeService.isAdmin(context, user, item);
+            case OWNER:
+                return isOwner(user, item);
+            case SUBMITTER:
+                return user != null && user.equals(item.getSubmitter());
+            case SUBMITTER_GROUP:
+                return isUserInSubmitterGroup(context, item, user);
+            case ALL:
+                return true;
+            case NONE:
+            default:
+                return false;
+        }
     }
 
     private boolean isOwner(EPerson eperson, Item item) {
