@@ -331,4 +331,10 @@
         <qualifier>date</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>fileversion</qualifier>
+    </dc-type>
+
 </dspace-dc-types>

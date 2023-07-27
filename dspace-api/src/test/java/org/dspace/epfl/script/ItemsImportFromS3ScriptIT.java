@@ -11,7 +11,7 @@ import static org.dspace.app.launcher.ScriptLauncher.handleScript;
 import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.epfl.script.ItemsImportFromS3Script.COLLECTION_PROPERTY_PREFIX;
-import static org.dspace.epfl.script.ItemsImportFromS3Script.TYPE_FILTER_PROPERTY_PREFIX;
+import static org.dspace.epfl.script.service.impl.MarcXmlParserImpl.TYPE_FILTER_PROPERTY_PREFIX;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 
@@ -62,7 +62,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
 
         deleteAllFilesOnExit();
 
-        String[] args = new String[] { "items-import-from-s3", "-sbu" };
+        String[] args = new String[] { "items-import-from-s3" };
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 

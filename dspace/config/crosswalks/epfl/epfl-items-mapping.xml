@@ -217,8 +217,9 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '0']/subfield[@code = 'f']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>dspace.file.type</field>
+            <field>oaire.version</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '0']</xpath>
+            <reader>coarVersion</reader>
         </metadata-field>
         <metadata-field>
             <field>oaire.licenseCondition</field>
@@ -229,12 +230,16 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'e']</xpath>
         </metadata-field>
         <metadata-field>
+            <field>epfl.legacy.fileversion</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'z']</xpath>
+        </metadata-field>
+        <metadata-field>
             <field>epfl.relation.orgunit</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = '0']</xpath>
             <reader>orgUnit</reader>
         </metadata-field>
         <metadata-field>
-            <field>epfl.oai.identifier</field>
+            <field>dspace.legacy.oai-identifier</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = 'O']/subfield[@code = 'o']</xpath>
         </metadata-field>
         <metadata-field>
@@ -317,6 +322,7 @@
         <bitstream-xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']</bitstream-xpath>
         <checksum-xpath>./subfield[@code = '2']</checksum-xpath>
         <format-xpath>./subfield[@code = 'x']</format-xpath>
+        <access-condition-xpath>./subfield[@code = 'e']</access-condition-xpath>
         <metadata-fields>
             <metadata-field>
                 <field>dc.title</field>

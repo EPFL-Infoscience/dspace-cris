@@ -138,6 +138,9 @@ public class ItemsImportMapping {
         @XmlElement(name = "format-xpath")
         private String formatXPath;
 
+        @XmlElement(name = "access-condition-xpath")
+        private String accessConditionXPath;
+
         @XmlElement(name = "metadata-fields")
         private MetadataFields metadataFields;
 
@@ -174,6 +177,14 @@ public class ItemsImportMapping {
 
         public void setBitstreamXPath(String bitstreamXPath) {
             this.bitstreamXPath = bitstreamXPath;
+        }
+
+        public String getAccessConditionXPath() {
+            return accessConditionXPath;
+        }
+
+        public void setAccessConditionXPath(String accessConditionXPath) {
+            this.accessConditionXPath = accessConditionXPath;
         }
 
     }

@@ -34,12 +34,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -48,6 +45,7 @@ import org.dspace.app.bulkimport.exception.BulkImportException;
 import org.dspace.app.bulkimport.model.BulkImportWorkbook;
 import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
@@ -69,8 +67,6 @@ import org.w3c.dom.Node;
 public class ItemsImportFromS3Script
     extends DSpaceRunnable<ItemsImportFromS3ScriptConfiguration<ItemsImportFromS3Script>> {
 
-    public static final String TYPE_FILTER_PROPERTY_PREFIX = "epfl.items-import.types";
-
     public static final String COLLECTION_PROPERTY_PREFIX = "epfl.items-import.collections";
 
     private CollectionService collectionService;
@@ -85,8 +81,6 @@ public class ItemsImportFromS3Script
 
     private BitstreamUploadS3Service bitstreamUploadS3Service;
 
-    private XPath xPath;
-
     private Context context;
 
     private Integer limit;
@@ -96,8 +90,6 @@ public class ItemsImportFromS3Script
     private String keysFilename;
 
     private List<String> keys = new ArrayList<>();
-
-    private Map<String, String> typeFilters;
 
     private Map<String, String> collectionIds;
 
@@ -145,10 +137,7 @@ public class ItemsImportFromS3Script
         String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
         mapping = marcXmlParser.parseMapping(configuration);
 
-        typeFilters = readAllTypeFilters();
         typeCounts = new HashMap<>();
-
-        xPath = XPathFactory.newInstance().newXPath();
 
     }
 
@@ -166,8 +155,6 @@ public class ItemsImportFromS3Script
         if (isNotBlank(keysFilename)) {
             keys.addAll(readKeysFile());
         }
-
-        validateTypeFilters();
 
         try {
 
@@ -291,7 +278,7 @@ public class ItemsImportFromS3Script
         }
 
         if (!skipBitstreamsUpload) {
-            uploadBitstreams(id, zipFile);
+            uploadBitstreams(item, id, zipFile);
         }
 
         handler.logInfo("Entry with key " + key + " successfully read");
@@ -325,9 +312,9 @@ public class ItemsImportFromS3Script
                 return null;
             }
 
-            String itemType = calculateItemType(record);
+            String recordType = marcXmlParser.getRecordType(record).orElse(null);
 
-            if (isEmpty(itemType)) {
+            if (isEmpty(recordType)) {
                 skippedItemsCount++;
                 handler.logWarning("Entry with id " + id + " skipped because no item type found");
                 return null;
@@ -335,36 +322,63 @@ public class ItemsImportFromS3Script
 
             ItemDTO item = marcXmlParser.readSingleItem(context, id, record, mapping);
 
-            return new ItemImportDTO(itemType, item);
+            return new ItemImportDTO(recordType, item);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private String calculateItemType(Node record) {
-        for (String filterName : typeFilters.keySet()) {
-            String filter = typeFilters.get(filterName);
-            if (evaluateFilter(record, filter)) {
-                return filterName;
-            }
-        }
-        return null;
-    }
+    private void uploadBitstreams(ItemImportDTO item, String id, ZipFile zipFile) throws Exception {
 
-    private void uploadBitstreams(String id, ZipFile zipFile) throws Exception {
+        List<BitstreamDTO> bitstreams = item.getItem().getBitstreams();
+
+        if (CollectionUtils.isEmpty(bitstreams)) {
+            return;
+        }
 
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
             if (entry.getName().startsWith(id + File.separator + "files")) {
-                String bitstreamName = id + "_" + substringAfterLast(entry.getName(), File.separator);
+
+                String fileName = substringAfterLast(entry.getName(), File.separator);
+
+                verifyBitstreamChecksum(fileName, bitstreams, zipFile.getInputStream(entry));
+
+                String bitstreamName = id + "_" + fileName;
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
+
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
+    }
+
+    private void verifyBitstreamChecksum(String fileName, List<BitstreamDTO> bitstreams, InputStream document) {
+        bitstreams.stream()
+            .filter(bitstream -> hasTitleEqualsTo(bitstream, fileName))
+            .map(bitstream -> bitstream.getChecksum())
+            .findFirst()
+            .ifPresent(checksum -> verifyChecksum(fileName, checksum, document));
+    }
+
+    private void verifyChecksum(String fileName, String checksum, InputStream document) {
+        try {
+            String md5Hex = DigestUtils.md5Hex(document);
+            if (!checksum.equals(md5Hex)) {
+                throw new IllegalArgumentException("The validation of the checksum of file named "
+                    + fileName + " fails. Expected " + checksum + ", found " + md5Hex);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean hasTitleEqualsTo(BitstreamDTO bitstream, String fileName) {
+        return bitstream.getMetadataValues("dc.title").stream()
+            .anyMatch(metadataValue -> metadataValue.getValue().equals(fileName));
     }
 
     private Optional<ZipEntry> findSingleZipEntryByName(ZipFile zipFile, String name) {
@@ -405,37 +419,11 @@ public class ItemsImportFromS3Script
         handler.writeFilestream(context, name + ".xls", is, "bulk-import-excel-" + UUID.randomUUID(), false);
     }
 
-    private Map<String, String> readAllTypeFilters() {
-
-        Map<String, String> filters = new HashMap<>();
-
-        List<String> propertyKeys = configurationService.getPropertyKeys(TYPE_FILTER_PROPERTY_PREFIX);
-
-        for (String propertyKey : propertyKeys) {
-
-            String filter = configurationService.getProperty(propertyKey);
-            String filterName = StringUtils.removeStart(propertyKey, TYPE_FILTER_PROPERTY_PREFIX + ".");
-
-            filters.put(filterName, filter);
-
-        }
-
-        return filters;
-    }
-
-    private Boolean evaluateFilter(Node node, String path) {
-        try {
-            return (Boolean) xPath.compile(path).evaluate(node, XPathConstants.BOOLEAN);
-        } catch (XPathExpressionException e) {
-            throw new RuntimeException("An error occurs evaluating path " + path, e);
-        }
-    }
-
     private Map<String, String> readCollectionIds() {
 
         Map<String, String> collectionIds = new HashMap<>();
 
-        for (String filterName : typeFilters.keySet()) {
+        for (String filterName : marcXmlParser.getAllRecordTypes()) {
             String propertyKey = COLLECTION_PROPERTY_PREFIX + "." + filterName;
             String collectionId = configurationService.getProperty(propertyKey);
             if (StringUtils.isBlank(collectionId)) {
@@ -460,34 +448,6 @@ public class ItemsImportFromS3Script
         } catch (SQLException e) {
             throw new BulkImportException(e);
         }
-    }
-
-    private void validateTypeFilters() {
-        List<String> invalidFilters = new ArrayList<String>();
-
-        for (String filter : typeFilters.values()) {
-            if (isNotValidExpression(filter)) {
-                invalidFilters.add(filter);
-            }
-        }
-
-        if (!invalidFilters.isEmpty()) {
-            throw new IllegalStateException("The following type filters are not valid: " + invalidFilters);
-        }
-    }
-
-    private boolean isNotValidExpression(String expression) {
-
-        try {
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xpath = factory.newXPath();
-            xpath.compile(expression);
-        } catch (XPathExpressionException e) {
-            handler.logError(e.getMessage());
-            return true;
-        }
-
-        return false;
     }
 
     private void assignCurrentUserInContext() throws SQLException {

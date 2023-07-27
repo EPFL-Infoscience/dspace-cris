@@ -29,24 +29,37 @@ public class BitstreamDTO {
 
     private final String location;
 
+    private final String checksum;
+
     private final List<MetadataValueDTO> metadataValues;
 
     private final List<ResourcePolicyDTO> resourcePolicies;
 
     public BitstreamDTO(String bundleName, String location, List<MetadataValueDTO> metadataValues) {
-        this(bundleName, null, location, metadataValues, List.of());
+        this(bundleName, null, location, null, metadataValues, List.of());
+    }
+
+    public BitstreamDTO(String bundleName, String location, String checksum, List<MetadataValueDTO> metadataValues,
+        List<ResourcePolicyDTO> resourcePolicies) {
+        this(bundleName, null, location, checksum, metadataValues, resourcePolicies);
     }
 
     public BitstreamDTO(String bundleName, String location, List<MetadataValueDTO> metadataValues,
         List<ResourcePolicyDTO> resourcePolicies) {
-        this(bundleName, null, location, metadataValues, resourcePolicies);
+        this(bundleName, null, location, null, metadataValues, resourcePolicies);
     }
 
-    public BitstreamDTO(String bundleName, Integer position, String location, List<MetadataValueDTO> metadataValues,
-        List<ResourcePolicyDTO> resourcePolicies) {
+    public BitstreamDTO(String bundleName, Integer position, String location,
+        List<MetadataValueDTO> metadataValues, List<ResourcePolicyDTO> resourcePolicies) {
+        this(bundleName, position, location, null, metadataValues, resourcePolicies);
+    }
+
+    public BitstreamDTO(String bundleName, Integer position, String location, String checksum,
+        List<MetadataValueDTO> metadataValues, List<ResourcePolicyDTO> resourcePolicies) {
         this.bundleName = bundleName;
         this.position = position;
         this.location = location;
+        this.checksum = checksum;
         this.metadataValues = emptyIfNull(metadataValues);
         this.resourcePolicies = emptyIfNull(resourcePolicies);
     }
@@ -57,6 +70,10 @@ public class BitstreamDTO {
 
     public String getLocation() {
         return location;
+    }
+
+    public String getChecksum() {
+        return checksum;
     }
 
     public Integer getPosition() {
