@@ -315,12 +315,21 @@ public class ProfileInitializer {
             .filter(mv -> "oairecerif.person.affiliation".equals(mv.getMetadataField()))
             .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
             .map(mv -> new PersonAffiliation(mv.getPlace(),
-                                             StringUtils.substringAfter(mv.getAuthority(),
-                                                                        AuthorityValueService.GENERATE),
+                                             getAcronym(mv),
                                              PLACEHOLDER_PARENT_METADATA_VALUE,
                                              PLACEHOLDER_PARENT_METADATA_VALUE))
             .collect(Collectors.toList());
 
+    }
+
+    private static String getAcronym(MetadataValueDTO mv) {
+        if (mv.getAuthority().startsWith(AuthorityValueService.GENERATE)) {
+            return StringUtils.substringAfter(mv.getAuthority(), AuthorityValueService.GENERATE + "ACRONYM::");
+        }
+        if (mv.getAuthority().startsWith(AuthorityValueService.REFERENCE)) {
+            return StringUtils.substringAfter(mv.getAuthority(), AuthorityValueService.REFERENCE + "ACRONYM::");
+        }
+        return mv.getAuthority();
     }
 
 

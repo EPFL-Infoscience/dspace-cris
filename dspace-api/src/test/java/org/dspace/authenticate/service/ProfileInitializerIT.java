@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -340,6 +341,83 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+
+    }
+
+    @Test
+    public void testUpdateProfileWithoutDuplicatingAffiliations() throws SQLException, AuthorizeException {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
+            .build();
+
+        Item sens = ItemBuilder.createItem(context, orgUnits)
+                               .withTitle("Laboratory of Sensing and Networking Systems")
+                               .withAcronym("SENS").build();
+
+        Item ssc = ItemBuilder.createItem(context, orgUnits)
+                               .withTitle("SSC - Teaching")
+                               .withAcronym("SSC-ENS").build();
+
+        Item sin = ItemBuilder.createItem(context, orgUnits)
+                               .withTitle("SIN - Teaching")
+                               .withAcronym("SIN-ENS").build();
+
+        Item person = ItemBuilder.createItem(context, profiles)
+            .withTitle("My User")
+            .withBirthDate("1992-06-26")
+            .withMetadata("epfl", "sciperId", null, "352234")
+            .withPersonAffiliation(sens.getName(), sens.getID().toString())
+            .withPersonAffiliationStartDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+            .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+            .withPersonAffiliation(ssc.getName(), ssc.getID().toString())
+            .withPersonAffiliationStartDate("2022-01-01")
+            .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+            .withPersonAffiliation(sin.getName(), sin.getID().toString())
+            .withPersonAffiliationStartDate("2021-01-01")
+            .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
+
+            .build();
+
+
+
+        context.restoreAuthSystemState();
+
+        profileInitializer.initialize(context, eperson);
+
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
+
+        Item profile = researcherProfile.getItem();
+        assertThat(profile, is(person));
+
+        person = context.reloadEntity(person);
+
+        String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
+        assertThat(person.getMetadata(), hasItems(
+            with("oairecerif.person.affiliation", sens.getName(),
+                sens.getID().toString(), 600),
+            with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("oairecerif.person.affiliation", ssc.getName(),
+                 ssc.getID().toString(), 1, 600),
+            with("oairecerif.affiliation.startDate", "2022-01-01", 1),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
+            with("oairecerif.person.affiliation", sin.getName(),
+                 sin.getID().toString(), 2, 600),
+            with("oairecerif.affiliation.startDate", "2021-01-01", 2),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
+
+        assertTrue(person.getMetadata().stream().filter(mv -> mv.getMetadataField().toString('.')
+                                                                .equals("oairecerif.person.affiliation"))
+            .filter(mv -> mv.getValue().equals(sens.getName()))
+            .noneMatch(mv -> mv.getPlace() > 0));
+
 
     }
 

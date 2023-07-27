@@ -217,6 +217,11 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="orgunit-editor" mandatory="true">
+      <heading>submit.progressbar.describe.orgunit-editor</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
   </step-definitions>
   <submission-definitions>
     <submission-process name="product">
@@ -251,6 +256,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="orgunit-edit">
+      <step id="orgunit-editor"/>
       <step id="orgunit" />
       <step id="custom-url" />
       <step id="detect-duplicate" />
