@@ -199,6 +199,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SynchronizationOfOrgUnitsScript"/>
     </bean>
 
+    <bean id="orgunit-hidden-relationships" class="org.dspace.epfl.script.OrgUnitHiddenItemsScriptConfiguration" primary="true">
+        <property name="description" value="Create hidden relationships for Patents, Products and Publications that have epfl.relation.rejectedOrgUnit metadata set"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitHiddenItemsScript"/>
+    </bean>
+
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
