@@ -9,6 +9,7 @@ package org.dspace.epfl.script;
 
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
@@ -70,21 +71,27 @@ public class OrgUnitHiddenItemsScript
             Item orgUnit = itemService.find(context, UUID.fromString(rejectedOrgUnitAuthority));
 
             if (orgUnit != null) {
-                relationshipService.create(context, item, orgUnit, getRelationshipType(item), false);
+                List<RelationshipType> relationshipType = getRelationshipType(item);
+                for (RelationshipType type : relationshipType) {
+//                    relationshipService.create(context, item, orgUnit, type, false);
+                    relationshipService.create(context, item, orgUnit, type,
+                                               0, 0, type.getLeftwardType(), type.getRightwardType());
+                }
             }
         }
     }
 
-    private RelationshipType getRelationshipType(Item item) throws SQLException {
+    private List<RelationshipType> getRelationshipType(Item item) throws SQLException {
         switch (itemService.getEntityType(item)) {
             case "Publication":
-                return getRelationshipType("isPublicationsHiddenFor");
+                return List.of(getRelationshipType("isPublicationsHiddenFor"),
+                               getRelationshipType("isRppublicationsHiddenFor"));
             case "Product":
-                return getRelationshipType("isProductsHiddenFor");
+                return List.of(getRelationshipType("isProductsHiddenFor"));
             case "Patent":
-                return getRelationshipType("isPatentsHiddenFor");
+                return List.of(getRelationshipType("isPatentsHiddenFor"));
             default:
-                return null;
+                return List.of();
         }
     }
 
