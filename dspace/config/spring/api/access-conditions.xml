@@ -64,6 +64,7 @@
                 <entry key="upload-journal" value-ref="uploadConfigurationJournal" />
                 <entry key="upload-project" value-ref="uploadConfigurationProject" />
                 <entry key="upload-funding" value-ref="uploadConfigurationFunding" />
+                <entry key="upload-content" value-ref="uploadConfigurationContent" />
             </map>
         </property>
     </bean>
@@ -217,6 +218,20 @@
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
                 <ref bean="reserved"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationContent" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-publication"></property>
+        <property name="metadata" value="bitstream-metadata-content" />
+        <property name="singleAccessCondition" value="true" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="administrator"/>
             </list>
         </property>
     </bean>
