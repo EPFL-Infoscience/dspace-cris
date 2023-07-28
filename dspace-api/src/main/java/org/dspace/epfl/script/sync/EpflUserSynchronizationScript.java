@@ -295,6 +295,7 @@ public class EpflUserSynchronizationScript
         newEPerson.setEmail(epflPerson.getEmail());
         newEPerson.setFirstName(context, epflPerson.getFirstname());
         newEPerson.setLastName(context, epflPerson.getName());
+        newEPerson.setCanLogIn(true);
 
         profileInitializer.initialize(context, newEPerson);
 
