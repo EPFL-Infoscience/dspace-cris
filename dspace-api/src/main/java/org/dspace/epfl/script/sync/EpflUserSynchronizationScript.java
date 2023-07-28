@@ -118,16 +118,20 @@ public class EpflUserSynchronizationScript
             throw new IllegalArgumentException("query and file parameter cannot be set both when process runs");
         }
 
-        context.turnOffAuthorisationSystem();
+        try {
+            context.turnOffAuthorisationSystem();
 
-        if (inputFile == null && query == null) {
-            executeScriptWithOutQuery();
-        } else {
-            executeScriptWithQuery();
+            if (inputFile == null && query == null) {
+                executeScriptWithOutQuery();
+            } else {
+                executeScriptWithQuery();
+            }
+
+            finalLogging();
+            context.complete();
+        } finally {
+            context.restoreAuthSystemState();
         }
-
-        finalLogging();
-        context.complete();
     }
 
     private void executeScriptWithOutQuery() throws SQLException, AuthorizeException {
@@ -348,6 +352,7 @@ public class EpflUserSynchronizationScript
         try {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(), "epfl-user-synchronization_log"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
+            email.setSubject("INFOSCIENCE - User synchronization process report");
             email.addArgument(log);
             email.send();
         } catch (IOException | MessagingException e) {
