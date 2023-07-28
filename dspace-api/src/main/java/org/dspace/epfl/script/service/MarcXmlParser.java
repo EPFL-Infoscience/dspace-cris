@@ -9,6 +9,8 @@ package org.dspace.epfl.script.service;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
@@ -21,15 +23,21 @@ public interface MarcXmlParser {
 
     ItemsImportMapping parseMapping(String configuration);
 
-    Node parse(InputStream source, ItemsImportMapping mapping);
+    Node parse(InputStream source, String recordXPath);
 
-    ItemDTO readSingleItem(Context context, String id, InputStream source, ItemsImportMapping mapping);
+    Set<String> getAllRecordTypes();
+
+    Optional<String> getRecordType(Node record);
+
+    ItemDTO readSingleItem(Context context, String id, Node record, ItemsImportMapping mapping);
+
+    ItemDTO readSingleItem(Context context, String id, String recordType, Node record, ItemsImportMapping mapping);
 
     List<MetadataValueDTO> readItemMetadataValues(Context context, InputStream source, ItemsImportMapping mapping);
 
     List<MetadataValueDTO> readItemMetadataValues(Context context, Node record, ItemsImportMapping mapping);
 
-    List<BitstreamDTO> readBitstreams(Context context, Node record, ItemsImportMapping mapping);
+    List<BitstreamDTO> readBitstreams(Context context, String id, Node record, ItemsImportMapping mapping);
 
     String readSubmitter(Context context, Node record, ItemsImportMapping mapping);
 

@@ -55,10 +55,47 @@
         <property name="rightwardType" value="hasSelectedProjects" />
         <property name="andCondition" value="true"/>
     </bean>
+
+    <bean id="isOrgUnitPublicationHiddenAuthorizer" class="org.dspace.authorize.relationship.RelationshipAuthorizerImpl">
+        <constructor-arg name="leftItemAuthorizer" ref="relationshipItemAlwaysTrueAuthorizer"/>
+        <constructor-arg name="rightItemAuthorizer" ref="relationshipItemOrgunitEditorAuthorizer"/>
+        <property name="rightEntityType" value="OrgUnit" />
+        <property name="leftwardType" value="isPublicationsHiddenFor" />
+        <property name="rightwardType" value="notDisplayingPublications" />
+        <property name="andCondition" value="true"/>
+    </bean>
+
+    <bean id="isOrgUnitRPPublicationHiddenAuthorizer" class="org.dspace.authorize.relationship.RelationshipAuthorizerImpl">
+        <constructor-arg name="leftItemAuthorizer" ref="relationshipItemAlwaysTrueAuthorizer"/>
+        <constructor-arg name="rightItemAuthorizer" ref="relationshipItemOrgunitEditorAuthorizer"/>
+        <property name="rightEntityType" value="OrgUnit" />
+        <property name="leftwardType" value="isRppublicationsHiddenFor" />
+        <property name="rightwardType" value="notDisplayingRppublications" />
+        <property name="andCondition" value="true"/>
+    </bean>
+
+    <bean id="isOrgUnitProductHiddenAuthorizer" class="org.dspace.authorize.relationship.RelationshipAuthorizerImpl">
+        <constructor-arg name="leftItemAuthorizer" ref="relationshipItemAlwaysTrueAuthorizer"/>
+        <constructor-arg name="rightItemAuthorizer" ref="relationshipItemOrgunitEditorAuthorizer"/>
+        <property name="rightEntityType" value="OrgUnit" />
+        <property name="leftwardType" value="isProductsHiddenFor" />
+        <property name="rightwardType" value="notDisplayingProducts" />
+        <property name="andCondition" value="true"/>
+    </bean>
+
+    <bean id="isOrgUnitPatentHiddenAuthorizer" class="org.dspace.authorize.relationship.RelationshipAuthorizerImpl">
+        <constructor-arg name="leftItemAuthorizer" ref="relationshipItemAlwaysTrueAuthorizer"/>
+        <constructor-arg name="rightItemAuthorizer" ref="relationshipItemOrgunitEditorAuthorizer"/>
+        <property name="rightEntityType" value="OrgUnit" />
+        <property name="leftwardType" value="isPatentsHiddenFor" />
+        <property name="rightwardType" value="notDisplayingPatents" />
+        <property name="andCondition" value="true"/>
+    </bean>
     
     <bean id="relationshipItemAlwaysTrueAuthorizer" class="org.dspace.authorize.relationship.RelationshipItemAlwaysTrueAuthorizer" />
     <bean id="relationshipItemWritePolicyAuthorizer" class="org.dspace.authorize.relationship.RelationshipItemWritePolicyAuthorizer" />
     <bean id="relationshipItemOwnerAuthorizer" class="org.dspace.authorize.relationship.RelationshipItemOwnerAuthorizer" />
+    <bean id="relationshipItemOrgunitEditorAuthorizer" class="org.dspace.authorize.relationship.AccessConditionsRelationshipItemAuthorizer" />
 
 
 </beans>

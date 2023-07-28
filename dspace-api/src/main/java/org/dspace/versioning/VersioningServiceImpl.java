@@ -28,6 +28,8 @@ import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -69,6 +71,8 @@ public class VersioningServiceImpl implements VersioningService {
     public void setProvider(DefaultItemVersionProvider provider) {
         this.provider = provider;
     }
+
+    private static final Logger log = LoggerFactory.getLogger(VersioningServiceImpl.class);
 
     protected VersioningServiceImpl() {
 
@@ -263,7 +267,10 @@ public class VersioningServiceImpl implements VersioningService {
             configurationService.getBooleanProperty("versioning.submitterCanCreateNewVersion", false);
 
         if (submitterCanCreateNewVersion) {
-            return context.getCurrentUser().equals(item.getSubmitter());
+            boolean isSubmitter = context.getCurrentUser().equals(item.getSubmitter());
+            log.info("{} has the same submitter of context's user {}", item.getID(),
+                     item.getSubmitter().getID());
+            return isSubmitter;
         }
 
         return createVersionAccessModes.stream()
@@ -294,9 +301,16 @@ public class VersioningServiceImpl implements VersioningService {
 
     private boolean isHasAccess(Context context, Item item, AccessItemMode accessItemMode) {
         try {
-            return crisSecurityService.hasAccess(context, item,
-                                                 context.getCurrentUser(),
-                                                 accessItemMode);
+            log.info("Checking accessibility to item {} by user {}", item.getID(),
+                     context.getCurrentUser().getID());
+            boolean hasAccess = crisSecurityService.hasAccess(context, item,
+                                                      context.getCurrentUser(),
+                                                      accessItemMode);
+            if (hasAccess) {
+                log.info("{} has access according to {}", context.getCurrentUser().getID(),
+                         item.getID());
+            }
+            return hasAccess;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

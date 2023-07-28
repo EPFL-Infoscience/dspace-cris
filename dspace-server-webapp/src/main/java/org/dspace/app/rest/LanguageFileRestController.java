@@ -8,13 +8,17 @@
 package org.dspace.app.rest;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +46,7 @@ public class LanguageFileRestController {
     public static final String ACTION = "languages";
     public static final String CATEGORY = "adminfile";
     public static final String PARAM = "lang";
-    public static final String FILE_EXT = ".json5";
+    public static final String FILE_EXT = ".json";
 
     @Autowired
     private ConfigurationService configurationService;
@@ -71,7 +75,17 @@ public class LanguageFileRestController {
         if (!languageFile.exists()) {
             new File(pathWhereToSave).mkdirs();
         }
-        file.transferTo(languageFile);
+        convertToJson(file, languageFile);
+        file.transferTo(new File(pathWhereToSave, lang + FILE_EXT + "5"));
+    }
+
+    private void convertToJson(MultipartFile file, File languageFile) throws IOException {
+        JsonReader jsonReader = new JsonReader(new InputStreamReader(file.getInputStream()));
+        Gson gson = new Gson();
+        String json = gson.toJson(gson.<Object>fromJson(jsonReader, Object.class));
+        try (FileWriter fw = new FileWriter(languageFile)) {
+            fw.write(json);
+        }
     }
 
 }

@@ -20,7 +20,6 @@
 
 				<entry key="publication-cerif-xml" value-ref="referCrosswalkPublicationCerifXml"></entry>
 				<entry key="publication-json" value-ref="cslItemDataCrosswalkJson"></entry>
-				<entry key="publication-pdf" value-ref="pdfCrosswalkPublication"></entry>
 				<entry key="publication-csv" value-ref="csvCrosswalkPublication"></entry>
 				<entry key="publication-xls" value-ref="xlsCrosswalkPublication"></entry>
 				<entry key="publication-apa" value-ref="cslItemDataCrosswalkApa"></entry>
@@ -64,22 +63,20 @@
 				
 				<entry key="patent-cerif-xml" value-ref="referCrosswalkPatentCerifXml"></entry>
 				<entry key="patent-json" value-ref="referCrosswalkPatentJson"></entry>
-				<entry key="patent-pdf" value-ref="pdfCrosswalkPatent"></entry>
 				<entry key="patent-csv" value-ref="csvCrosswalkPatent"></entry>
 				<entry key="patent-xls" value-ref="xlsCrosswalkPatent"></entry>
 				<entry key="patent-datacite-xml" value-ref="referCrosswalkPatentDataciteXml"></entry>
-				
+
 				<entry key="product-cerif-xml" value-ref="referCrosswalkDatasetCerifXml"></entry>
 				<entry key="product-datacite-xml" value-ref="referCrosswalkDatasetDataciteXml"></entry>
 				<entry key="product-json" value-ref="referCrosswalkProductJson"></entry>
-				<entry key="product-pdf" value-ref="pdfCrosswalkProduct"></entry>
 				<entry key="product-csv" value-ref="csvCrosswalkProduct"></entry>
 				<entry key="product-xls" value-ref="xlsCrosswalkProduct"></entry>
 
 				<entry key="event-cerif-xml" value-ref="referCrosswalkEventCerifXml"></entry>
 				
 				<entry key="collection-xls" value-ref="xlsCrosswalkCollection"></entry>
-                <entry key="item-zip" value-ref="zipCrosswalk"></entry>
+                <entry key="METS-zip" value-ref="zipCrosswalk"></entry>
 
 				<entry key="epfl-publication" value-ref="epflPublicationsHtml"></entry>
 				<entry key="epfl-publications" value-ref="epflPublicationsHtml"></entry>
@@ -218,7 +215,7 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="entityType" value="all"/>
 	</bean>
-	
+
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnote">
 		<property name="templateFileName" value="crosswalks/template/endnote.template"/>
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
@@ -242,7 +239,7 @@
 		<property name="entityType" value="Patent"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
-	
+
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkProjectCerifXml">
 		<property name="templateFileName" value="crosswalks/template/project-cerif-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
@@ -468,7 +465,7 @@
 		<property name="entityType" value="Person"/>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
-	
+
 	<bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkPublication">
 		<property name="templateFileName" value="crosswalks/template/publication-template.xsl"/>
 		<property name="fileName" value="publication.pdf"/>
@@ -686,13 +683,16 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 	
-	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollection"/>
-    
+	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollection">
+		<property name="entityType" value="Patent"/>
+	</bean>
+
     <bean class="org.dspace.content.integration.crosswalks.ZipItemExportCrosswalk" id="zipCrosswalk">
-        <property name="zipName" value="items.zip"/>
+        <property name="zipName" value="METS.zip"/>
         <property name="bitstreamBundle" value="ORIGINAL"/>
         <property name="metadataFileName" value="mets.xml"/>
         <property name="crosswalk" ref="metsCrosswalk"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
         <property name="allowedGroups">
             <list>
                 <value>Administrator</value>
@@ -700,9 +700,9 @@
             </list>
         </property>
     </bean>
-    
+
     <bean class="org.dspace.content.integration.crosswalks.METSStreamDisseminationCrosswalk" id="metsCrosswalk"/>
-	
+
 	<bean class="org.dspace.content.integration.crosswalks.converter.XmlValueConverter" id="xmlValueConverter" />
 	<bean class="org.dspace.content.integration.crosswalks.converter.JsonValueConverter" id="jsonValueConverter" />
 	
@@ -710,7 +710,7 @@
 	<bean class="org.dspace.content.integration.crosswalks.postprocessors.ItemsCounterPostProcessor" id="xmlMarcCounterPostProcessor">
 		<constructor-arg name="itemLineIdentifier" value="&lt;record"/>
 	</bean>
-	
+
 	<!-- VIRTUAL FIELDS CONFIGURATION -->
 	
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMapper">
@@ -796,6 +796,7 @@
 				<entry key="orgUnitTypes" value-ref="mapConverterOrgUnitTypes" />
 				<entry key="accessRight" value-ref="mapConverterAccessRight" />
 				<entry key="coarToPublicationTypes" value-ref="mapConverterCoarToPublicationTypes" />
+				<entry key="scopusToCoarPublicationTypes" value-ref="mapConverterScopusToCoarPublicationTypes" />
 				<entry key="pubmedToCoarPublicationTypes" value-ref="mapConverterPubmedToCoarPublicationTypes" />
 				<entry key="cerifToOrgUnitTypes" value-ref="mapConverterCerifToOrgUnitTypes" />
 				<entry key="cerifToFundingTypes" value-ref="mapConverterCerifToFundingTypes" />
@@ -876,7 +877,7 @@
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value=""/>
 	</bean>
-	
+
     <bean name="mapConverterOpenAccessScopus" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-openAccesFlag.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
@@ -891,6 +892,12 @@
 
 	<bean name="mapConverterPubmedToCoarPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-pubmedToCoarPublicationTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value=""/>
+	</bean>
+
+	<bean name="mapConverterScopusToCoarPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-scopusToCoarPublicationTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value=""/>
 	</bean>

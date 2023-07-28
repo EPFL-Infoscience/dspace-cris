@@ -106,6 +106,13 @@
         <qualifier>conferenceDate</qualifier>
         <scope_note>The date when the conference took place. This property is considered to be part of the bibliographic citation. Recommended best practice for encoding the date value is defined in a profile of ISO 8601 [W3CDTF] and follows the YYYY-MM-DD format.</scope_note>
     </dc-type>
+    
+    <dc-type>
+        <schema>oaire</schema>
+        <element>licenseCondition</element>
+        <qualifier></qualifier>
+        <scope_note></scope_note>
+    </dc-type>
 
     <!--
       OpenAIRE4 Guidelines
@@ -134,6 +141,12 @@
         <schema>datacite</schema>
         <element>available</element>
         <scope_note>Ending date of the policy for target Bitstream, used with datacite.rights</scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>oaire</schema>
+        <element>citation</element>
+        <qualifier>articlenumber</qualifier>
     </dc-type>
 
 </dspace-dc-types>
