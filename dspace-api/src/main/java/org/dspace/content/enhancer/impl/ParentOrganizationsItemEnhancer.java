@@ -104,24 +104,34 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
         while (enhanceableMetadataValues.peek() != null) {
             MetadataValue metadataValue = enhanceableMetadataValues.poll();
 
+            Item relatedItem = findRelatedEntityItem(context, metadataValue);
+            if (relatedItem == null) {
+                continue;
+            }
+            List<MetadataValue> parentOrganizationMetadataValue =
+                itemService.getMetadata(relatedItem, "organization", "parentOrganization", null, null);
+
+            if (!parentOrganizationMetadataValue.isEmpty()) {
+                enhanceableMetadataValues.add(parentOrganizationMetadataValue.get(0));
+            }
+
             if (wasValueAlreadyUsedForEnhancement(item, metadataValue)) {
                 continue;
             }
 
-            Item relatedItem = findRelatedEntityItem(context, metadataValue);
 
-            if (relatedItem == null) {
-                enhanceVirtualFields(context, item, new MetadataValueVO(null, PLACEHOLDER_PARENT_METADATA_VALUE),
-                                     new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
-                continue;
-            }
+//            if (relatedItem == null) {
+//                enhanceVirtualFields(context, item, new MetadataValueVO(null, PLACEHOLDER_PARENT_METADATA_VALUE),
+//                                     new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
+//                continue;
+//            }
 
             List<MetadataValue> relatedItemMetadataValues =
                 itemService.getMetadataByMetadataString(relatedItem, relatedItemMetadataField);
 
             if (relatedItemMetadataValues.isEmpty()) {
-                enhanceVirtualFields(context, item, metadataValue,
-                                     new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
+//                enhanceVirtualFields(context, item, metadataValue,
+//                                     new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
                 continue;
             }
 
@@ -134,12 +144,12 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
                     relatedValueVO -> enhanceVirtualFields(context, item, metadataValue, relatedValueVO)
                 ));
 
-            List<MetadataValue> parentOrganizationMetadataValue =
-                itemService.getMetadata(relatedItem, "organization", "parentOrganization", null, null);
-
-            if (!parentOrganizationMetadataValue.isEmpty()) {
-                enhanceableMetadataValues.add(parentOrganizationMetadataValue.get(0));
-            }
+//            List<MetadataValue> parentOrganizationMetadataValue =
+//                itemService.getMetadata(relatedItem, "organization", "parentOrganization", null, null);
+//
+//            if (!parentOrganizationMetadataValue.isEmpty()) {
+//                enhanceableMetadataValues.add(parentOrganizationMetadataValue.get(0));
+//            }
         }
     }
 

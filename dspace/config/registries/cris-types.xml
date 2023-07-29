@@ -166,7 +166,21 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
+        <qualifier>author-sciperId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtual</element>
         <qualifier>editor-orcid</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>editor-sciperId</qualifier>
         <scope_note />
     </dc-type>
 
@@ -195,6 +209,20 @@
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>contributor-sciperId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>author-sciperId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>editor-sciperId</qualifier>
         <scope_note />
     </dc-type>
 

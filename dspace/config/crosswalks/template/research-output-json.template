@@ -1,5 +1,5 @@
 {
-  "Type": "@epfl.legacy.itemtype@",
+  "Type": "@dc.type@",
 	"Title": "@dc.title@",
 	"Isbn": "@dc.relation.isbn@",
 	"Doi": "@dc.identifier.doi@",
@@ -8,8 +8,10 @@
 	"Year": "@dc.date.issued@",
 	"Notes": "@dc.description.notes@",
 	"Abstract": "@dc.description.abstract@",
-	"Keywords": "@dc.subject@",
-	"ProducedAtEpfl": "@epfl.writtenat@",
+	"Keywords":[
+	    "@dc.subject@",
+	    ],
+	"IsProducedAtEpfl": "@virtual.mapConverter.writtenAtEpfl.epfl-writtenat@",
 	"Reviewed": "@epfl.peerreviewed@",
 	"Status": "@oaire.version@",
 	"Distribution": {
@@ -35,9 +37,8 @@
 	  @group.dc-contributor-author.start@
     {
       "Name": "@dc.contributor.author@",
-      @relation.dc-contributor-author.start@
-      "Orcid": "@person.identifier.orcid@",
-      @relation.dc-contributor-author.end@
+      "Orcid": "@cris.virtual.author-orcid@",
+      "Sciper": "@cris.virtual.author-sciperId@",
       "Affiliation": "@oairecerif.author.affiliation@"
     },
     @group.dc-contributor-author.end@
@@ -46,21 +47,11 @@
     @group.dc-contributor-editor.start@
     {
       "Name": "@dc.contributor.editor@",
-      @relation.dc-contributor-editor.start@
-      "Orcid": "@person.identifier.orcid@",
-      @relation.dc-contributor-editor.end@
+      "Orcid": "@cris.virtual.editor-orcid@",
+      "Sciper": "@cris.virtual.editor-sciperId@",
       "Affiliation": "@oairecerif.editor.affiliation@"
     },
     @group.dc-contributor-editor.end@
-    @group.epfl-contributor-scientificeditor.start@
-    {
-      "Name": "@dc.contributor.editor@",
-      @relation.epfl-contributor-scientificeditor.start@
-      "Orcid": "@person.identifier.orcid@",
-      @relation.epfl-contributor-scientificeditor.end@
-      "Affiliation": "@oairecerif.editor.affiliation@"
-    },
-    @group.epfl-contributor-scientificeditor.end@
     @group.epfl-contributor-advisor.start@
     {
       "Name": "@epfl.contributor.advisor@",
@@ -72,6 +63,10 @@
   ],
 	"Meeting": {
 	  "Name": "@dc.relation.conference@",
+	  @relation.dc-relation-conference.start@
+            "Place": "@oairecerif.event.place@",
+            "Date": "@oairecerif.event.startDate@",
+      @relation.dc-relation-conference.end@
 	  "Place": "@oaire:citationConferencePlace@",
 	  "Date": "@oaire:citationConferenceDate@",
 	},

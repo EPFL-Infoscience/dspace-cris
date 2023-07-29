@@ -385,6 +385,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/research-outputs-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
+		<property name="publiclyReadable" value="true"/>
 		<property name="linesPostProcessor" ref="jsonPostProcessor" />
 	</bean>
 
@@ -808,6 +809,7 @@
 				<entry key="scopus2coar" value-ref="mapConverterScopusToCoarTypes" />
 				<entry key="arxivSubjects" value-ref="mapConverterArxivSubjects" />
 				<entry key="epo2coarTypes" value-ref="mapConverterEpoToCoarTypes" />
+				<entry key="writtenAtEpfl" value-ref="mapConverterWrittenAtEpfl" />
 			</map>
 		</constructor-arg>
 	</bean>
@@ -925,6 +927,14 @@
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value="patent"/>
 	</bean>
+
+	<bean name="mapConverterWrittenAtEpfl" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-writtenAtEpfl.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="false"/>
+	</bean>
+
+
 
 	<!-- CONDITION EVALUATORS CONFIGURATION -->
 	
