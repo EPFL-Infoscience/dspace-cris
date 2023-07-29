@@ -199,6 +199,22 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     }
 
     @Override
+    public List<List<MetadataValueDTO>> readItems (Context context, InputStream source,
+                                                   ItemsImportMapping mapping, String expression) {
+        try {
+            Document document = documentBuilder.parse(source);
+            NodeList nodeList = getNodeList(document, expression);
+            List<List<MetadataValueDTO>> records = new ArrayList<List<MetadataValueDTO>>();
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                records.add(readItemMetadataValues(context,nodeList.item(i),mapping));
+            }
+            return records;
+        } catch (SAXException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public List<MetadataValueDTO> readItemMetadataValues(Context context, InputStream source,
         ItemsImportMapping mapping) {
 
@@ -282,7 +298,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         Date startDate = null;
 
         if (accessCondition.equalsIgnoreCase("Private") || accessCondition.equalsIgnoreCase("Role")) {
-            name = "administrator";
+            name = "reserved";
         } else if (accessCondition.equalsIgnoreCase("Restricted")) {
             name = "restricted";
         } else if (accessCondition.toLowerCase().startsWith("embargo")) {

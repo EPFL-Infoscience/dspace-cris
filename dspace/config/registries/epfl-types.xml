@@ -78,6 +78,12 @@
     <dc-type>
         <schema>epfl</schema>
         <element>workflow</element>
+        <qualifier>startDateTime</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
         <qualifier>rejected</qualifier>
     </dc-type>
     

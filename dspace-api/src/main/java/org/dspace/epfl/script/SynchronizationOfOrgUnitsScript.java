@@ -508,6 +508,7 @@ public class SynchronizationOfOrgUnitsScript
         try {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(), "epfl-user-synchronization_log"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
+            email.setSubject("INFOSCIENCE - Organizations synchronization process report");
             email.addArgument(log);
             email.send();
         } catch (IOException | MessagingException e) {

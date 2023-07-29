@@ -1,0 +1,92 @@
+{
+  "Type": "@dc.type@",
+	"Title": "@dc.title@",
+	"Isbn": "@dc.relation.isbn@",
+	"Doi": "@dc.identifier.doi@",
+	"DoiType": "doi",
+	"Language": "@dc.language.iso@",
+	"Year": "@dc.date.issued@",
+	"Notes": "@dc.description.notes@",
+	"Abstract": "@dc.description.abstract@",
+	"Keywords":[
+	    "@dc.subject@",
+	    ],
+	"IsProducedAtEpfl": "@virtual.mapConverter.writtenAtEpfl.epfl-writtenat@",
+	"Reviewed": "@epfl.peerreviewed@",
+	"Status": "@oaire.version@",
+	"Distribution": {
+	  "Place": "@dc.publisher.place@",
+	  "Publisher": "@dc.publisher@",
+	  "Year": "@dc.date.issued@",
+	},
+	"Series": {
+	  "Name": "@dc.relation.ispartof@",
+	  "Volume": "",
+	},
+	"Host": {
+	  "Name": "@dc.relation.ispartof@",
+    @if.metadata.oaire-citation-startPage.start@
+	  "Pages": "@virtual.fullpage@",
+    @if.metadata.oaire-citation-startPage.end@
+	  "Num": "@oaire.citation.issue@",
+	  "Vol": "@oaire.citation.volume@",
+	  "Issn": "@dc.relation.issn@",
+	  "Isbn": "@dc.relation.isbn@",
+	},
+	"Persons": [
+	  @group.dc-contributor-author.start@
+    {
+      "Name": "@dc.contributor.author@",
+      "Orcid": "@cris.virtual.author-orcid@",
+      "Sciper": "@cris.virtual.author-sciperId@",
+      "Affiliation": "@oairecerif.author.affiliation@"
+    },
+    @group.dc-contributor-author.end@
+	],
+	"Editors": [
+    @group.dc-contributor-editor.start@
+    {
+      "Name": "@dc.contributor.editor@",
+      "Orcid": "@cris.virtual.editor-orcid@",
+      "Sciper": "@cris.virtual.editor-sciperId@",
+      "Affiliation": "@oairecerif.editor.affiliation@"
+    },
+    @group.dc-contributor-editor.end@
+    @group.epfl-contributor-advisor.start@
+    {
+      "Name": "@epfl.contributor.advisor@",
+      @relation.epfl-contributor-editor.start@
+      "Orcid": "@person.identifier.orcid@",
+      @relation.epfl-contributor-editor.end@
+    },
+    @group.epfl-contributor-advisor.end@
+  ],
+	"Meeting": {
+	  "Name": "@dc.relation.conference@",
+	  @relation.dc-relation-conference.start@
+            "Place": "@oairecerif.event.place@",
+            "Date": "@oairecerif.event.startDate@",
+      @relation.dc-relation-conference.end@
+	  "Place": "@oaire:citationConferencePlace@",
+	  "Date": "@oaire:citationConferenceDate@",
+	},
+	"Units": [
+	  "unit": "@epfl.relation.orgunit@",
+	],
+	"Resources": [
+	  @group.bundle-original.start@
+	  {
+	    "Url": "@virtual.bitstreamData.original.download-path@",
+	    "Description": "@virtual.bitstreamData.original.metadata.dc-file-type@",
+	  },
+	  @group.bundle-original.end@
+	],
+	"WorkType": "@epfl.thesis.degreelevel@",
+	"ThesisNo": "@epfl.thesis.number@",
+	"Faculty": "@epfl.thesis.faculty@",
+	"Section": "@epfl.thesis.section@",
+	"Institute": "@epfl.thesis.institute@",
+	"DoctoralSchool": "@epfl.thesis.doctoralSchool@",
+	"Unit": "@epfl.thesis.originalUnit@",
+	"ThesisYear": "@dc.date.accepted@",
+}
