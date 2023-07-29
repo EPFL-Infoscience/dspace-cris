@@ -207,7 +207,7 @@
       <type>correction</type>
       <scope visibilityOutside="hidden">workflow</scope>
     </step-definition>
-    <step-definition id="notes-for-reviewer" mandatory="false">
+    <step-definition id="notes-for-reviewer" mandatory="true">
       <heading>submit.progressbar.describe.notes-for-reviewer</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
@@ -253,6 +253,7 @@
       <step id="upload-product" />
     </submission-process>
     <submission-process name="product-correction">
+      <step id="correction" />
       <step id="notes-for-reviewer" />
       <step id="lookup" />
       <step id="product_type" />
@@ -331,6 +332,7 @@
     </submission-process>
     <submission-process name="publication-correction">
       <step id="extractionstep" />
+      <step id="correction" />
       <step id="notes-for-reviewer" />
       <step id="lookup" />
       <step id="basic_information" />
@@ -408,11 +410,11 @@
     </submission-process>
     <submission-process name="patent-correction">
       <step id="extractionstep" />
+      <step id="correction" />
       <step id="notes-for-reviewer" />
       <step id="patent" />
       <step id="patent_indexing" />
       <step id="patent_references" />
-      <step id="detect-duplicate" />
       <step id="upload-patent" />
     </submission-process>
     <submission-process name="funding">
