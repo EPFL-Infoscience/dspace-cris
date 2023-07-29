@@ -204,6 +204,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitHiddenItemsScript"/>
     </bean>
 
+    <bean id="is-academia-xml-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import the XML IS-ACADEMIA file into a defined collection, items are directly stored in target collection"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
+    </bean>
+
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
