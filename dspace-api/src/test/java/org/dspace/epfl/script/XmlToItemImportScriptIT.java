@@ -68,7 +68,7 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
     @Test
     public void testAddingItemWithExistingFields() throws Exception {
         String fileLocation = getFilePath("item.xml");
-        String[] args = new String[]{"xml-to-item-import", "-c", collection.getID().toString(), "-f", fileLocation};
+        String[] args = new String[]{"is-academia-xml-import", "-c", collection.getID().toString(), "-f", fileLocation};
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
@@ -80,7 +80,7 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
     @Test
     public void testAddingItemWithNonexistentFields() throws Exception {
         String fileLocation = getFilePath("item.xml");
-        String[] args = new String[]{"xml-to-item-import", "-c", collection.getID().toString(), "-f", fileLocation};
+        String[] args = new String[]{"is-academia-xml-import", "-c", collection.getID().toString(), "-f", fileLocation};
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         MetadataSchema metadataSchema = metadataSchemaService.find(context, FIELD_TO_DELETE_SCHEMA);
@@ -104,7 +104,7 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
     @Test
     public void testAddingMultipleItems() throws Exception {
         String fileLocation = getFilePath("items.xml");
-        String[] args = new String[]{"xml-to-item-import", "-c", collection.getID().toString(), "-f", fileLocation};
+        String[] args = new String[]{"is-academia-xml-import", "-c", collection.getID().toString(), "-f", fileLocation};
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);

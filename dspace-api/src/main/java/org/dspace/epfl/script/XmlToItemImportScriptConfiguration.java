@@ -52,7 +52,7 @@ public class XmlToItemImportScriptConfiguration<T extends XmlToItemImportScript>
             options.getOption("f").setRequired(true);
             options.addOption("c", "collection-uuid", true, "collection-uuid into which to make import");
             options.getOption("c").setType(String.class);
-            options.getOption("c").setRequired(false);
+            options.getOption("c").setRequired(true);
             super.options = options;
         }
         return options;

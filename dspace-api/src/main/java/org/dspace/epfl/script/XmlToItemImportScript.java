@@ -73,7 +73,7 @@ public class XmlToItemImportScript extends DSpaceRunnable<XmlToItemImportScriptC
     @Override
     @SuppressWarnings("unchecked")
     public XmlToItemImportScriptConfiguration<XmlToItemImportScript> getScriptConfiguration() {
-        return new DSpace().getServiceManager().getServiceByName("xml-to-item-import",
+        return new DSpace().getServiceManager().getServiceByName("is-academia-xml-import",
                 XmlToItemImportScriptConfiguration.class);
     }
 
