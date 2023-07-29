@@ -101,6 +101,20 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="author-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="editor-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Product" />
         <property name="sourceItemMetadataField" value="dc.contributor.author" />
         <property name="relatedItemMetadataField" value="person.identifier.orcid" />
@@ -112,6 +126,20 @@
         <property name="sourceItemMetadataField" value="dc.contributor.editor" />
         <property name="relatedItemMetadataField" value="person.identifier.orcid" />
         <property name="virtualQualifier" value="editor-orcid" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="author-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="editor-sciperId" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
@@ -159,9 +187,17 @@
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Patent" />
         <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="author-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Patent" />
+        <property name="sourceItemMetadataField" value="dc.contributor.author" />
         <property name="relatedItemMetadataField" value="person.identifier.rid" />
         <property name="virtualQualifier" value="author-rid" />
     </bean>
+
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Publication" />
@@ -196,6 +232,33 @@
         <property name="sourceItemMetadataField" ref="sponsorshipSourceMetadata" />
         <property name="relatedItemMetadataField" value="epfl.unit.code" />
         <property name="virtualQualifier" value="sponsor-unitId" />
+    </bean>
+
+    <util:list id="parentOrganizationsSourceMetadata" value-type="java.lang.String">
+        <value>oairecerif.author.affiliation</value>
+        <value>oairecerif.editor.affiliation</value>
+        <value>dc.description.sponsorship</value>
+    </util:list>
+
+    <bean class="org.dspace.content.enhancer.impl.ParentOrganizationsItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" ref="parentOrganizationsSourceMetadata" />
+        <property name="relatedItemMetadataField" value="dc.title" />
+        <property name="virtualQualifier" value="parent-organization" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.ParentOrganizationsItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataField" ref="parentOrganizationsSourceMetadata" />
+        <property name="relatedItemMetadataField" value="dc.title" />
+        <property name="virtualQualifier" value="parent-organization" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.ParentOrganizationsItemEnhancer" >
+        <property name="sourceEntityType" value="Patent" />
+        <property name="sourceItemMetadataField" ref="parentOrganizationsSourceMetadata" />
+        <property name="relatedItemMetadataField" value="dc.title" />
+        <property name="virtualQualifier" value="parent-organization" />
     </bean>
 
 </beans>

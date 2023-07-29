@@ -215,6 +215,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private boolean abortOnError;
 
+    private boolean clearBitstreams;
+
     private Context context;
 
     private BulkImportFileUtil bulkImportFileUtil;
@@ -269,6 +271,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         if (commandLine.hasOption('e')) {
             abortOnError = true;
         }
+
+        clearBitstreams = commandLine.hasOption("cb");
     }
 
     @Override
@@ -902,7 +906,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         PackageUtils.addDepositLicense(context, null, item, workspaceItem.getCollection());
 
-        addMetadata(item, entityRow, false);
+        addMetadata(item, entityRow);
         addUploadsToItem(item, entityRow);
         setSubmitter(item, entityRow);
         configureDiscoverability(item, entityRow);
@@ -1167,8 +1171,13 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 + " have a different collection");
         }
 
-        addMetadata(item, entityRow, true);
+        addMetadata(item, entityRow);
         setSubmitter(item, entityRow);
+
+        if (clearBitstreams) {
+            clearBitstreams(item);
+        }
+
         addUploadsToItem(item, entityRow);
         configureDiscoverability(item, entityRow);
 
@@ -1188,6 +1197,14 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         return item;
 
+    }
+
+    private void clearBitstreams(Item item) {
+        try {
+            itemService.removeAllBundles(context, item);
+        } catch (AuthorizeException | SQLException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void setSubmitter(Item item, EntityRow entityRow) throws SQLException, AuthorizeException {
@@ -1258,11 +1275,9 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
     }
 
-    private void addMetadata(Item item, EntityRow entityRow, boolean replace) throws SQLException {
+    private void addMetadata(Item item, EntityRow entityRow) throws SQLException {
 
-        if (replace) {
-            removeMetadata(item, entityRow);
-        }
+        removeMetadata(item, entityRow);
 
         addMetadata(item, entityRow.getMetadata());
 

@@ -91,7 +91,7 @@ public class PersonImportFiller implements AuthorityImportFiller {
 
     private void enrichItem(Context context, Item item, String sciper) {
 
-        personApiService.getMetadataValues(sciper)
+        personApiService.getMetadataValues(context, sciper)
             .forEach(metadataValue -> addMetadata(context, item, metadataValue));
 
         personApiService.getPersonalPicture(sciper)
