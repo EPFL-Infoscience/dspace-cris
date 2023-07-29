@@ -8,26 +8,39 @@
 package org.dspace.epfl.service.impl;
 
 import static java.util.Optional.ofNullable;
-import static org.dspace.authority.service.AuthorityValueService.GENERATE;
+import static org.apache.commons.collections.IteratorUtils.toList;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
+import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 
 import java.io.InputStream;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.client.EpflApiClient.Language;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
+import org.dspace.profile.ResearcherProfile;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,6 +57,12 @@ public class PersonApiServiceImpl implements PersonApiService {
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private EPersonService ePersonService;
+
+    @Autowired
+    private ItemService itemService;
+
     @Override
     public List<PersonDTO> getPersons(String query) {
         return apiClient.getPersons(query, Language.EN);
@@ -55,9 +74,9 @@ public class PersonApiServiceImpl implements PersonApiService {
     }
 
     @Override
-    public List<MetadataValueDTO> getMetadataValues(String sciper) {
+    public List<MetadataValueDTO> getMetadataValues(Context context, String sciper) {
         return getPerson(sciper)
-            .map(this::getMetadataValues)
+            .map(p -> getMetadataValues(context, p))
             .orElse(getInactiveMetadataField());
     }
 
@@ -75,7 +94,7 @@ public class PersonApiServiceImpl implements PersonApiService {
     }
 
     @Override
-    public List<MetadataValueDTO> getMetadataValues(PersonDTO person) {
+    public List<MetadataValueDTO> getMetadataValues(Context context, PersonDTO person) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
@@ -107,7 +126,7 @@ public class PersonApiServiceImpl implements PersonApiService {
             .flatMap(field -> getUrlMetadataValue(person.getProfile(), field))
             .ifPresent(metadataValues::add);
 
-        metadataValues.addAll(getAffiliationMetadataValues(person));
+        metadataValues.addAll(getAffiliationMetadataValues(context, person));
 
         return metadataValues;
 
@@ -120,13 +139,19 @@ public class PersonApiServiceImpl implements PersonApiService {
             .orElse(List.of());
     }
 
+
     private Optional<MetadataValueDTO> getMetadataValue(String value, String field) {
         return Optional.ofNullable(value)
+                       .filter(StringUtils::isNotBlank)
+                       .map(metadataValue -> new MetadataValueDTO(field, metadataValue));
+    }
+    private Optional<MetadataValueDTO> getMetadataValue(String value, String field, int place) {
+        return Optional.ofNullable(value)
             .filter(StringUtils::isNotBlank)
-            .map(metadataValue -> new MetadataValueDTO(field, metadataValue));
+            .map(metadataValue -> new MetadataValueDTO(field, metadataValue, place));
     }
 
-    private List<MetadataValueDTO> getAffiliationMetadataValues(PersonDTO person) {
+    private List<MetadataValueDTO> getAffiliationMetadataValues(Context context, PersonDTO person) {
 
         Optional<String> positionField = getPersonMetadataField("affiliation.position");
         Optional<String> affiliationField = getPersonMetadataField("affiliation.orgunit");
@@ -134,55 +159,79 @@ public class PersonApiServiceImpl implements PersonApiService {
         if (positionField.isEmpty() || affiliationField.isEmpty()) {
             return List.of();
         }
-
+        AtomicInteger place = new AtomicInteger(0);
         List<MetadataValueDTO> affiliationMetadataValues =
             Arrays.stream(person.getAccreds())
-                  .flatMap(accred -> getAffiliationValues(accred, positionField.get(), affiliationField.get()).stream())
+                  .flatMap(accred -> getAffiliationValues(context, accred, positionField.get(),
+                                                          affiliationField.get(), place.getAndIncrement()).stream())
                   .collect(Collectors.toList());
 
         person.getMainAffiliation()
-            .flatMap(mainAffiliation -> getMainAffiliationMetadataValue(mainAffiliation))
+            .flatMap(mainAffiliation -> getMainAffiliationMetadataValue(context, mainAffiliation))
               .ifPresent(affiliationMetadataValues::add);
 
         return affiliationMetadataValues;
     }
 
-    private List<MetadataValueDTO> getAffiliationValues(Accred accred, String positionField, String affiliationField) {
+    private List<MetadataValueDTO> getAffiliationValues(Context context, Accred accred, String positionField, String affiliationField,
+                                                        int place) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
         String name = accred.getName();
         String position = accred.getPosition();
 
-        if (StringUtils.isAllBlank(name, position)) {
+        if (StringUtils.isAllBlank(name, position) ||
+            !inDspace(context, accred.getAcronym())) {
             return List.of();
         }
 
         if (StringUtils.isNotBlank(position)) {
-            metadataValues.add(new MetadataValueDTO(positionField, position));
+            metadataValues.add(new MetadataValueDTO(positionField, position, place));
         }
 
         if (StringUtils.isNotBlank(name)) {
             String authority = getOrgUnitAuthority(accred.getAcronym());
             int confidence = StringUtils.isBlank(authority) ? Choices.CF_UNSET : Choices.CF_AMBIGUOUS;
-            metadataValues.add(new MetadataValueDTO(affiliationField, name, authority, confidence));
+            metadataValues.add(new MetadataValueDTO(affiliationField, name, authority, confidence, place));
         }
 
+        String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
         getPersonMetadataField("affiliation.start")
-            .flatMap(field -> getMetadataValue(PLACEHOLDER_PARENT_METADATA_VALUE, field))
+            .flatMap(field -> getMetadataValue(yesterday, field, place))
             .ifPresent(metadataValues::add);
 
         getPersonMetadataField("affiliation.end")
-            .flatMap(field -> getMetadataValue(PLACEHOLDER_PARENT_METADATA_VALUE, field))
+            .flatMap(field -> getMetadataValue(PLACEHOLDER_PARENT_METADATA_VALUE, field, place))
             .ifPresent(metadataValues::add);
 
         return metadataValues;
     }
 
-    private Optional<MetadataValueDTO> getMainAffiliationMetadataValue(Accred mainAffiliation) {
+    // FIXME; centralize this logic, is currently redundant
+    private boolean inDspace(Context context, String acro) {
+        try {
+            Iterator<Item> iterator =
+                itemService.findArchivedByMetadataField(context, "oairecerif.acronym", acro);
+            while (iterator.hasNext()) {
+                String entityType = itemService.getEntityType(iterator.next());
+                if ("OrgUnit".equals(entityType)) {
+                    return true;
+                }
+            }
+        } catch (AuthorizeException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+    private Optional<MetadataValueDTO> getMainAffiliationMetadataValue(Context context, Accred mainAffiliation) {
 
         String name = mainAffiliation.getName();
-        if (StringUtils.isBlank(name)) {
+        if (StringUtils.isBlank(name)
+            || StringUtils.isBlank(mainAffiliation.getAcronym())
+            || !inDspace(context, mainAffiliation.getAcronym())
+        ) {
             return Optional.empty();
         }
 
@@ -208,7 +257,7 @@ public class PersonApiServiceImpl implements PersonApiService {
         }
 
         return getPersonMetadataField("affiliation.authority")
-            .map(prefix -> isOrgUnitActive(acronym) ? GENERATE + prefix : REFERENCE + prefix)
+            .map(prefix -> REFERENCE + prefix)
             .map(prefix -> prefix + acronym)
             .orElse(acronym);
     }
@@ -239,4 +288,57 @@ public class PersonApiServiceImpl implements PersonApiService {
             .orElseThrow(() -> new IllegalStateException("No Sciper metadata field configured"));
     }
 
+    public Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper) {
+
+        String sciperMetadataField = getSciperMetadataField();
+
+        List<Item> items = findArchivedByMetadataField(context, sciperMetadataField, sciper);
+        if (items.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (items.size() > 1) {
+            throw new IllegalStateException("Found many items with sciper " + sciper);
+        }
+
+        Item item = items.get(0);
+
+        EPerson owner = getOwner(context, item);
+
+        if (owner != null && !owner.equals(eperson)) {
+            throw new IllegalStateException("An item with the sciper " + sciper + " is already linked "
+                                                + "to another eperson: " + owner.getID());
+        }
+
+        setOwner(context, item, eperson);
+
+        return Optional.of(new ResearcherProfile(item));
+
+    }
+    private void setOwner(Context context, Item item, EPerson ePerson) {
+        try {
+            itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
+            itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(),
+                                    ePerson.getID().toString(), CF_ACCEPTED);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private EPerson getOwner(Context context, Item item) {
+        try {
+            return ePersonService.findByProfileItem(context, item);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Item> findArchivedByMetadataField(Context context, String sciperMetadataField, String sciper) {
+        try {
+            return toList(itemService.findArchivedByMetadataField(context, sciperMetadataField, sciper));
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

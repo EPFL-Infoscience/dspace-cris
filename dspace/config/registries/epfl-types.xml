@@ -41,6 +41,12 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>editor</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>sciper</element>
         <qualifier>active</qualifier>
     </dc-type>
@@ -323,6 +329,24 @@
         <schema>epfl</schema>
         <element>legacy</element>
         <qualifier>contributorauthnum</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>synchronization</element>
+        <qualifier>date</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>orgUnit</element>
+        <qualifier>closure</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>fileversion</qualifier>
     </dc-type>
 
 </dspace-dc-types>

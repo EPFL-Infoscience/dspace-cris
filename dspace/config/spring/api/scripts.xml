@@ -187,6 +187,28 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsImportFromS3Script"/>
     </bean>
 
+    <bean id="epfl-user-synchronization" class="org.dspace.epfl.script.sync.EpflUserSynchronizationScriptConfiguration" primary="true">
+        <property name="description" value="Synchronize users between DSpace-CRIS and epfl, if no parameters are set, all existing researcher profiles having a sciper id will
+        be updated. Optional query: a query to be executed on epfl's ldap in order to gather information and create or update an ePerson and a researcher profile, CSV file in format: sciper,...,sciper listing all sciper identifiers of Researchers to be created or updated in DSpace-CRIS.
+        NB: both parameters are optional, they cannot be set both when running update"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.sync.EpflUserSynchronizationScript"/>
+    </bean>
+
+    <bean id="synchronization-of-orgunits" class="org.dspace.epfl.script.SynchronizationOfOrgUnitsConfiguration" primary="true">
+        <property name="description" value="Synchronization of the OrgUnits"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SynchronizationOfOrgUnitsScript"/>
+    </bean>
+
+    <bean id="orgunit-hidden-relationships" class="org.dspace.epfl.script.OrgUnitHiddenItemsScriptConfiguration" primary="true">
+        <property name="description" value="Create hidden relationships for Patents, Products and Publications that have epfl.relation.rejectedOrgUnit metadata set"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitHiddenItemsScript"/>
+    </bean>
+
+    <bean id="is-academia-xml-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import the XML IS-ACADEMIA file into a defined collection, items are directly stored in target collection"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
+    </bean>
+
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->

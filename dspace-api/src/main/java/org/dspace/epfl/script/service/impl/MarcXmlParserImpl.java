@@ -8,6 +8,7 @@
 package org.dspace.epfl.script.service.impl;
 
 import static java.util.stream.Collectors.toMap;
+import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 
 import java.io.File;
 import java.io.FileReader;
@@ -19,9 +20,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -36,9 +39,15 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.content.authority.Choice;
+import org.dspace.content.authority.ChoiceAuthority;
+import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.dto.ResourcePolicyDTO;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.epfl.script.model.ItemsImportMapping;
 import org.dspace.epfl.script.model.ItemsImportMapping.Bitstreams;
@@ -47,6 +56,7 @@ import org.dspace.epfl.script.reader.ItemsImportMetadataFieldReader;
 import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.services.ConfigurationService;
+import org.dspace.util.MultiFormatDateParser;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
@@ -56,15 +66,26 @@ import org.xml.sax.SAXException;
 
 public class MarcXmlParserImpl implements MarcXmlParser {
 
+    public static final String TYPE_FILTER_PROPERTY_PREFIX = "epfl.items-import.types";
+
+    public static final String TYPE_VOCABULARY_PROPERTY_PREFIX = "epfl.items-import.vocabulary";
+
     @Autowired
     private ConfigurationService configurationService;
 
     @Autowired
     private ItemsS3Service itemsS3Service;
 
+    @Autowired
+    private ChoiceAuthorityService choiceAuthorityService;
+
     private DocumentBuilder documentBuilder;
 
     private Map<String, ItemsImportMetadataFieldReader> readers;
+
+    private Map<String, String> typeFilters;
+
+    private Map<String, String> typeVocabularies;
 
     private DateFormat CREATION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
@@ -79,11 +100,20 @@ public class MarcXmlParserImpl implements MarcXmlParser {
             throw new RuntimeException(e);
         }
 
+        typeFilters = readAllTypeFilters();
+
+        typeVocabularies = readAllTypeVocabularies();
+
         readers = new DSpace().getServiceManager().getServicesByType(ItemsImportMetadataFieldReader.class)
             .stream().collect(toMap(ItemsImportMetadataFieldReader::getReaderName, Function.identity()));
 
         xPath = XPathFactory.newInstance().newXPath();
 
+    }
+
+    @Override
+    public Set<String> getAllRecordTypes() {
+        return typeFilters.keySet();
     }
 
     @Override
@@ -115,7 +145,28 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     }
 
     @Override
+    public Optional<String> getRecordType(Node record) {
+        for (String filterName : typeFilters.keySet()) {
+            String filter = typeFilters.get(filterName);
+            if (evaluateFilter(record, filter)) {
+                return Optional.of(filterName);
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public ItemDTO readSingleItem(Context context, String id, Node record, ItemsImportMapping mapping) {
+
+        String recordType = getRecordType(record)
+            .orElseThrow(() -> new IllegalArgumentException("No type found for the given record"));
+
+        return readSingleItem(context, id, recordType, record, mapping);
+    }
+
+    @Override
+    public ItemDTO readSingleItem(Context context, String id, String recordType, Node record,
+        ItemsImportMapping mapping) {
 
         List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
 
@@ -126,6 +177,41 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         String submitter = readSubmitter(context, record, mapping);
 
         return new ItemDTO("LEGACY-ID::" + id, submitter, metadataValues, bitstreams);
+
+    }
+
+    private MetadataValueDTO getItemType(Context context, String recordType) {
+
+        String vocabulary = typeVocabularies.get(recordType);
+
+        if (StringUtils.isBlank(vocabulary)) {
+            throw new IllegalStateException("No vocabulary defined for record type " + recordType);
+        }
+
+        ChoiceAuthority authority = choiceAuthorityService.getChoiceAuthorityByAuthorityName(vocabulary.split(":")[0]);
+
+        Choice choice = authority.getChoice(vocabulary, context.getCurrentLocale().toString());
+        if (choice == null) {
+            throw new IllegalStateException("No choice found by vocabulary " + vocabulary);
+        }
+
+        return new MetadataValueDTO("dc.type", choice.value, vocabulary, Choices.CF_ACCEPTED);
+    }
+
+    @Override
+    public List<List<MetadataValueDTO>> readItems (Context context, InputStream source,
+                                                   ItemsImportMapping mapping, String expression) {
+        try {
+            Document document = documentBuilder.parse(source);
+            NodeList nodeList = getNodeList(document, expression);
+            List<List<MetadataValueDTO>> records = new ArrayList<List<MetadataValueDTO>>();
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                records.add(readItemMetadataValues(context,nodeList.item(i),mapping));
+            }
+            return records;
+        } catch (SAXException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -143,7 +229,8 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     @Override
     public List<MetadataValueDTO> readItemMetadataValues(Context context, Node record, ItemsImportMapping mapping) {
-        return readMetadataValues(context, record, mapping.getMetadataFields().getMetadataFields());
+        String recordType = getRecordType(record).orElse(null);
+        return readItemMetadataValues(context, record, recordType, mapping);
     }
 
     @Override
@@ -180,7 +267,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         Bitstreams bitstreamsMapping = mapping.getBitstreams();
 
-        List<MetadataValueDTO> metadataValues = readMetadataValues(context, bitstreamNode,
+        List<MetadataValueDTO> metadataValues = readMetadataValues(context, bitstreamNode, null,
             bitstreamsMapping.getMetadataFields().getMetadataFields());
 
         String fileName = getFileNameFromMetadataValues(metadataValues);
@@ -188,21 +275,65 @@ public class MarcXmlParserImpl implements MarcXmlParser {
             return Optional.empty();
         }
 
-        String location = getBitstreamUrl() + id + "_" + fileName;
+        List<ResourcePolicyDTO> policies = readResourcePolicies(bitstreamNode, bitstreamsMapping);
 
-        return Optional.of(new BitstreamDTO("ORIGINAL", location, metadataValues));
+        String location = getBitstreamUrl() + id + "_" + fileName;
+        String checksum = getSingleValue(bitstreamNode, bitstreamsMapping.getChecksumXPath());
+
+        return Optional.of(new BitstreamDTO("ORIGINAL", location, checksum, metadataValues, policies));
 
     }
 
-    private List<MetadataValueDTO> readMetadataValues(Context context, Node node, List<MetadataField> fields) {
+    private List<ResourcePolicyDTO> readResourcePolicies(Node bitstreamNode, Bitstreams bitstreamsMapping) {
+
+        List<ResourcePolicyDTO> policies = new ArrayList<ResourcePolicyDTO>();
+
+        String accessCondition = getSingleValue(bitstreamNode, bitstreamsMapping.getAccessConditionXPath());
+
+        if (StringUtils.isEmpty(accessCondition)) {
+            return policies;
+        }
+
+        String name = "openaccess";
+        Date startDate = null;
+
+        if (accessCondition.equalsIgnoreCase("Private") || accessCondition.equalsIgnoreCase("Role")) {
+            name = "reserved";
+        } else if (accessCondition.equalsIgnoreCase("Restricted")) {
+            name = "restricted";
+        } else if (accessCondition.toLowerCase().startsWith("embargo")) {
+            name = "embargo";
+            startDate = MultiFormatDateParser.parse(substringBetween(accessCondition, "(", ")"));
+        }
+
+        policies.add(new ResourcePolicyDTO(name, null, Constants.READ, TYPE_CUSTOM, startDate, null));
+
+        return policies;
+    }
+
+    private String substringBetween(String str, String firstDelimiter, String secondDelimiter) {
+        return str.substring(str.indexOf(firstDelimiter) + 1, str.indexOf(secondDelimiter)).trim();
+    }
+
+    private List<MetadataValueDTO> readItemMetadataValues(Context context, Node record, String recordType,
+        ItemsImportMapping mapping) {
+        return readMetadataValues(context, record, recordType, mapping.getMetadataFields().getMetadataFields());
+    }
+
+    private List<MetadataValueDTO> readMetadataValues(Context context, Node record, String recordType,
+        List<MetadataField> fields) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
+
+        if (recordType != null) {
+            metadataValues.add(getItemType(context, recordType));
+        }
 
         for (ItemsImportMapping.MetadataField metadataField : fields) {
 
             ItemsImportMetadataFieldReader reader = readers.get(metadataField.getReader());
 
-            NodeList nodeList = getNodeList(node, metadataField.getXPath());
+            NodeList nodeList = getNodeList(record, metadataField.getXPath());
 
             List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
 
@@ -279,6 +410,14 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         }
     }
 
+    private Boolean evaluateFilter(Node node, String path) {
+        try {
+            return (Boolean) xPath.compile(path).evaluate(node, XPathConstants.BOOLEAN);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + path, e);
+        }
+    }
+
     private String getSingleValue(Node node, String path) {
         try {
             return (String) xPath.compile(path).evaluate(node, XPathConstants.STRING);
@@ -305,6 +444,39 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         if (CollectionUtils.isNotEmpty(unknownReaders)) {
             throw new IllegalStateException("The following configured readers are not defined: " + unknownReaders);
         }
+    }
+
+    private Map<String, String> readAllTypeFilters() {
+
+        Map<String, String> filters = new HashMap<>();
+
+        List<String> propertyKeys = configurationService.getPropertyKeys(TYPE_FILTER_PROPERTY_PREFIX);
+
+        for (String propertyKey : propertyKeys) {
+
+            String filter = configurationService.getProperty(propertyKey);
+            String filterName = StringUtils.removeStart(propertyKey, TYPE_FILTER_PROPERTY_PREFIX + ".");
+
+            filters.put(filterName, filter);
+
+        }
+
+        return filters;
+    }
+
+    private Map<String, String> readAllTypeVocabularies() {
+
+        Map<String, String> vocabularies = new HashMap<>();
+
+        for (String recordType : getAllRecordTypes()) {
+            String vocabulary = configurationService.getProperty(TYPE_VOCABULARY_PROPERTY_PREFIX + "." + recordType);
+            if (StringUtils.isNotBlank(vocabulary)) {
+                vocabularies.put(recordType, vocabulary);
+            }
+        }
+
+        return vocabularies;
+
     }
 
 }
