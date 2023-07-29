@@ -48,10 +48,10 @@ public class VocabularyEntryDetailsChildrenLinkRepository extends AbstractDSpace
     private AuthorityUtils authorityUtils;
 
     @PreAuthorize("@vocabularySecurity.isQualifiedVocabularyPublic(#childId) || hasAuthority('AUTHENTICATED')")
-    public Page<VocabularyEntryDetailsRest> getChildren(@Nullable HttpServletRequest request, String childId,
+    public Page<VocabularyEntryDetailsRest> getChildren(@Nullable HttpServletRequest request, String name,
                                                         @Nullable Pageable optionalPageable, Projection projection) {
         Context context = obtainContext();
-        String[] parts = StringUtils.split(childId, ":", 2);
+        String[] parts = StringUtils.split(name, ":", 2);
         if (parts.length != 2) {
             return null;
         }
@@ -78,7 +78,7 @@ public class VocabularyEntryDetailsChildrenLinkRepository extends AbstractDSpace
                     choices.total);
             return resources;
         } else {
-            throw new LinkNotFoundException(VocabularyRest.CATEGORY, VocabularyEntryDetailsRest.NAME, childId);
+            throw new LinkNotFoundException(VocabularyRest.CATEGORY, VocabularyEntryDetailsRest.NAME, name);
         }
     }
 

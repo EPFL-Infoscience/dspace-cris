@@ -1,21 +1,29 @@
 ## Item Archived email message
+## This message is sent to a submitter when Infoscience curator
+## has approved the submission, and the item is maked available into
+## the repository.
 ##
-## {0}  Title of submission
-## {1}  Name of collection
-## {2}  handle
+## {0}  Title of the item
+## {1}  The handle identifier of the item
+## {2}  The submitters full name
 ##
-#set($subject = 'DSpace: Submission Approved and Archived')
+#set($subject = "Infoscience submission approved and available : ${params[0]}")
 
-You submitted: ${params[0]}
+Dear ${params[2]},
 
-To collection: ${params[1]}
+Thank you for your submission to Infoscience repository.
+Your publication, "${params[0]}", has been approved and it is now available using the following URL :
+${params[1]}
 
-Your submission has been accepted and archived in DSpace,
-and it has been assigned the following identifier:
-${params[2]}
+Check out the information for depositors at https://help-infoscience.epfl.ch
+- How can I see how often my publication is viewed and downloaded?
+- How can I add my publication on my people page?
+- Can my publication be submitted in open access?
+- and more!
 
-Please use this identifier when citing your submission.
+Thanks again for taking this important step to make available and share your research output.
 
-Many thanks!
+We welcome your feedback! Contact us at infoscience@epfl.ch.
 
-DSpace
+The Infoscience Team
+infoscience.epfl.ch

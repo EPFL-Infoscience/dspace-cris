@@ -17,8 +17,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Item;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.service.EntityTypeService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.RelationshipManagementService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -50,15 +53,23 @@ public class SolrServiceHiddenRelationsRestrictionPlugin implements SolrServiceS
 
     private final AuthorizeService authorizeService;
 
+    private final RelationshipManagementService relationshipManagementService;
+
+    private final ItemService itemService;
+
     @Autowired
     public SolrServiceHiddenRelationsRestrictionPlugin(final ResearcherProfileService researcherProfileService,
                                                        final RelationshipTypeService relationshipTypeService,
                                                        final EntityTypeService entityTypeService,
-                                                       final AuthorizeService authorizeService) {
+                                                       final AuthorizeService authorizeService,
+                                                       final RelationshipManagementService relationshipManagementService,
+                                                       ItemService itemService) {
         this.researcherProfileService = researcherProfileService;
         this.relationshipTypeService = relationshipTypeService;
         this.entityTypeService = entityTypeService;
         this.authorizeService = authorizeService;
+        this.relationshipManagementService = relationshipManagementService;
+        this.itemService = itemService;
     }
 
     @Override
@@ -101,6 +112,10 @@ public class SolrServiceHiddenRelationsRestrictionPlugin implements SolrServiceS
                 return true;
             }
 
+            if (canManageRelationshipsForScope(context, scope)) {
+                return true;
+            }
+
             final ResearcherProfile researcherProfile = researcherProfileService.findById(context, currentUser.getID());
 
             if (researcherProfile == null || researcherProfile.getItem() == null) {
@@ -111,6 +126,21 @@ public class SolrServiceHiddenRelationsRestrictionPlugin implements SolrServiceS
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private boolean canManageRelationshipsForScope(Context context, String scope) {
+        if (StringUtils.isBlank(scope)) {
+            return false;
+        }
+        Item item = null;
+        try {
+            item = itemService.find(context, UUIDUtils.fromString(scope));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return Optional.ofNullable(item)
+                       .map(i -> relationshipManagementService.canManageRelationships(context, i))
+                       .orElse(false);
     }
 
     private List<String> relations(final Context context, final String relation) {

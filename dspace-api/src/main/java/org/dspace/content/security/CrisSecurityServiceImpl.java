@@ -20,6 +20,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.logic.Filter;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -29,6 +30,8 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.util.UUIDUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -51,10 +54,19 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
     @Autowired
     private EPersonService ePersonService;
 
+    private static final Logger log = LoggerFactory.getLogger(CrisSecurityServiceImpl.class);
+
     @Override
     public boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode) throws SQLException {
-        return accessMode.getSecurities().stream()
-            .anyMatch(security -> hasAccess(context, item, user, accessMode, security));
+        Optional<CrisSecurity> matchingSecurity = accessMode.getSecurities().stream()
+                                                 .filter(
+                                                     security -> hasAccess(context, item, user, accessMode, security))
+                                                 .findFirst();
+        if (matchingSecurity.isPresent()) {
+            log.info("found matching policy for {} on item {}: {}",
+                     user.getID(), item.getID(), matchingSecurity.get().name());
+        }
+        return matchingSecurity.isPresent();
     }
 
     private boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode,
@@ -62,30 +74,41 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
 
         try {
 
-            switch (crisSecurity) {
-                case ADMIN:
-                    return authorizeService.isAdmin(context, user);
-                case CUSTOM:
-                    return hasAccessByCustomPolicy(context, item, user, accessMode);
-                case GROUP:
-                    return hasAccessByGroup(context, user, accessMode.getGroups());
-                case ITEM_ADMIN:
-                    return authorizeService.isAdmin(context, user, item);
-                case OWNER:
-                    return isOwner(user, item);
-                case SUBMITTER:
-                    return user != null && user.equals(item.getSubmitter());
-                case SUBMITTER_GROUP:
-                    return isUserInSubmitterGroup(context, item, user);
-                case NONE:
-                default:
-                    return false;
-            }
+            boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
+            Filter additionalFilter = accessMode.getAdditionalFilter();
+
+            return additionalFilter == null ? checkSecurity
+                : checkSecurity && additionalFilter.getResult(context, item);
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private boolean checkSecurity(Context context, Item item, EPerson user, AccessItemMode accessMode,
+                              CrisSecurity crisSecurity) throws SQLException {
+        switch (crisSecurity) {
+            case ADMIN:
+                return authorizeService.isAdmin(context, user);
+            case CUSTOM:
+                return hasAccessByCustomPolicy(context, item, user, accessMode);
+            case GROUP:
+                return hasAccessByGroup(context, user, accessMode.getGroups());
+            case ITEM_ADMIN:
+                return authorizeService.isAdmin(context, user, item);
+            case OWNER:
+                return isOwner(user, item);
+            case SUBMITTER:
+                return user != null && user.equals(item.getSubmitter());
+            case SUBMITTER_GROUP:
+                return isUserInSubmitterGroup(context, item, user);
+            case ALL:
+                return true;
+            case NONE:
+            default:
+                return false;
+        }
     }
 
     private boolean isOwner(EPerson eperson, Item item) {
@@ -208,7 +231,23 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         return groups.stream()
                      .map(group -> findGroupByNameOrUUID(context, group))
                      .filter(group -> Objects.nonNull(group))
-                     .anyMatch(group -> userGroups.contains(group));
+                     .anyMatch(group -> userGroups.contains(group) || isSpecialGroup(context, group));
+    }
+
+    private boolean isSpecialGroup(Context context, Group group) {
+        return findInSpecialGroups(context, group) != null;
+    }
+
+    private Group findInSpecialGroups(Context context, Group group) {
+        try {
+            return context.getSpecialGroups()
+                .stream()
+                .filter(specialGroup -> specialGroup != null && specialGroup.equals(group))
+                .findFirst()
+                .orElse(null);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e.getMessage(), e);
+        }
     }
 
     private Group findGroupByNameOrUUID(Context context, String group) {

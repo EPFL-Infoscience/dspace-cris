@@ -21,6 +21,8 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.service.VersioningService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +37,8 @@ import org.springframework.stereotype.Component;
 public class CanCreateVersionFeature implements AuthorizationFeature {
 
     public static final String NAME = "canCreateVersion";
+
+    private static final Logger log = LoggerFactory.getLogger(CanCreateVersionFeature.class);
 
     @Autowired
     private ConfigurationService configurationService;
@@ -62,6 +66,7 @@ public class CanCreateVersionFeature implements AuthorizationFeature {
             Item item = itemService.find(context, UUID.fromString(((ItemRest) object).getUuid()));
             if (Objects.nonNull(item)) {
                 if (authorizeService.isAdmin(context, item)) {
+                    log.info("{} is admin of item {}", context.getCurrentUser().getID(), item.getID());
                     return true;
                 }
                 return versioningService.canCreateVersion(context, item);
