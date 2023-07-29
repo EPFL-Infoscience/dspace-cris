@@ -282,7 +282,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         Date startDate = null;
 
         if (accessCondition.equalsIgnoreCase("Private") || accessCondition.equalsIgnoreCase("Role")) {
-            name = "administrator";
+            name = "reserved";
         } else if (accessCondition.equalsIgnoreCase("Restricted")) {
             name = "restricted";
         } else if (accessCondition.toLowerCase().startsWith("embargo")) {

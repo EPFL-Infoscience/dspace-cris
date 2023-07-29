@@ -4396,6 +4396,16 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>Type</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable><required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="orgunit-editor">
       <row>
