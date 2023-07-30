@@ -619,16 +619,7 @@
     <schema>dc</schema>
     <element>relation</element>
     <qualifier>identifier</qualifier>
-    <scope_note/<dc-type>
-    <schema>epfl</schema>
-    <element>content</element>
-    <qualifier>linkdescription</qualifier>
-  </dc-type>
-
-    <dc-type>
-      <schema>epfl</schema>
-      <element>contributor</element>
-      <qualifier>corresponding</qualifier>
+    <scope_note/>
   </dc-type>
 
   <dc-type>
