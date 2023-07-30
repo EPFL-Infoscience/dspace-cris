@@ -4435,6 +4435,101 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
     </form>
+    <form name="content-epfl-content-link">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>link</dc-qualifier>
+          <label>Link</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>linkdescription</dc-qualifier>
+          <label>Link description</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="content">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter the content name.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Description (HTML supported)</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>link</dc-qualifier>
+          <label>Link(s)</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-content">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File type</label>
+          <input-type value-pairs-name="content_bitstream_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
   </form-definitions>
   <form-value-pairs>
     <value-pairs value-pairs-name="patent_types" dc-term="patent_types">
@@ -6409,6 +6504,16 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Proposal</displayed-value>
         <stored-value>proposal</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="content_bitstream_types" dc-term="content_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Logo</displayed-value>
+        <stored-value>logo</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="epfl_written_at" dc-term="epfl_written_at">
