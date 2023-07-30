@@ -4435,12 +4435,36 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
     </form>
+    <form name="content-epfl-content-link">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>link</dc-qualifier>
+          <label>Link</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>linkdescription</dc-qualifier>
+          <label>Link description</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
     <form name="content">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>title</dc-element>
-          <label>Content title</label>
+          <label>Title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required>You must enter the content name.</required>
@@ -4451,7 +4475,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
-          <label>Description</label>
+          <label>Description (HTML supported)</label>
           <input-type>textarea</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -4463,20 +4487,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>epfl</dc-schema>
           <dc-element>content</dc-element>
           <dc-qualifier>link</dc-qualifier>
-          <label>Link</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>content</dc-element>
-          <dc-qualifier>linkdescription</dc-qualifier>
-          <label>Link description</label>
-          <input-type>onebox</input-type>
+          <label>Link(s)</label>
+          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />

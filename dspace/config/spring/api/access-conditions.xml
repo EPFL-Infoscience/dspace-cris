@@ -231,7 +231,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>

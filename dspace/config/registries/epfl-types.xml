@@ -360,4 +360,16 @@
         <qualifier>notesForReviewer</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>content</element>
+        <qualifier>link</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>content</element>
+        <qualifier>linkdescription</qualifier>
+    </dc-type>
+
 </dspace-dc-types>
