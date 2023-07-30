@@ -372,4 +372,22 @@
         <qualifier>linkdescription</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>contributor</element>
+        <qualifier>corresponding</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>url</element>
+        <qualifier/>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>url</element>
+        <qualifier>description</qualifier>
+    </dc-type>
+
 </dspace-dc-types>

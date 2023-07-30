@@ -125,6 +125,13 @@
 
   <dc-type>
 	<schema>dc</schema>
+    <element>contributor</element>
+    <qualifier>supervisor</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+	<schema>dc</schema>
     <element>coverage</element>
     <qualifier>spatial</qualifier>
     <scope_note>Spatial characteristics of content.</scope_note>
@@ -418,6 +425,13 @@
     this item.</scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>dc</schema>
+    <element>description</element>
+    <qualifier>usage</qualifier>
+    <scope_note/>
+  </dc-type>
+
   <!-- Used by system: do not remove -->
   <dc-type>
 	<schema>dc</schema>
@@ -599,6 +613,22 @@
     <element>relation</element>
     <qualifier>conference</qualifier>
     <scope_note>References conference for related item.</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>relation</element>
+    <qualifier>identifier</qualifier>
+    <scope_note/<dc-type>
+    <schema>epfl</schema>
+    <element>content</element>
+    <qualifier>linkdescription</qualifier>
+  </dc-type>
+
+    <dc-type>
+      <schema>epfl</schema>
+      <element>contributor</element>
+      <qualifier>corresponding</qualifier>
   </dc-type>
 
   <dc-type>
