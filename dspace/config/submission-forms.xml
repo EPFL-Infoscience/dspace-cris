@@ -818,6 +818,7 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
+          <readonly>all</readonly>
           <hint />
         </field>
         <field>
@@ -829,6 +830,7 @@
           <repeatable>false</repeatable>
           <required>You must enter at least the organisation of your affiliation.</required>
           <style>col-xs-12 col-md-6 col-lg-3</style>
+          <readonly>all</readonly>
           <hint />
         </field>
         <field>
@@ -840,6 +842,7 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
+          <readonly>all</readonly>
           <hint />
         </field>
         <field>
@@ -849,6 +852,7 @@
           <label>End Date</label>
           <input-type>date</input-type>
           <repeatable>false</repeatable>
+          <readonly>all</readonly>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
@@ -1630,6 +1634,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint />
           <visibility>workflow</visibility>
         </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>additionalInformation</dc-qualifier>
+          <label>Additional information required</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-3</style>
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
       </row>
     </form>
     <form name="product_type">
@@ -1783,6 +1799,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint />
           <visibility>workflow</visibility>
         </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>additionalInformation</dc-qualifier>
+          <label>Additional information required</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
       </row>
     </form>
     <form name="patent_indexing">
@@ -1925,6 +1952,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>name</input-type>
           <repeatable>false</repeatable>
           <required>You must enter least at the Surname.</required>
+          <readonly>all</readonly>
           <hint />
         </field>
       </row>
@@ -1958,6 +1986,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <readonly>all</readonly>
           <hint />
         </field>
       </row>
@@ -2054,6 +2083,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint />
+          <readonly>all</readonly>
         </field>
       </row>
       <row>
