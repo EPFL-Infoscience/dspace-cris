@@ -13,10 +13,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -25,6 +27,7 @@ import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
@@ -71,6 +74,9 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
     @Autowired(required = true)
     protected ContentServiceFactory contentServiceFactory;
 
+    @Autowired(required = true)
+    private ItemService itemService;
+
     @Override
     public boolean supports(Class<? extends Identifier> identifier) {
         return Handle.class.isAssignableFrom(identifier);
@@ -87,6 +93,12 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
         try {
             if (dso instanceof Item || dso instanceof Collection || dso instanceof Community) {
                 populateHandleMetadata(context, dso, id);
+                if (dso instanceof Item) {
+                    List<Bitstream> bitstreams = getOriginalBitstreams(context, dso);
+                    for (Bitstream bitstream : bitstreams) {
+                        populateHandleMetadata(context, bitstream, bitstream.getHandle());
+                    }
+                }
             }
         } catch (IOException | SQLException | AuthorizeException e) {
             log.error(LogHelper.getHeader(context, "Error while attempting to create handle",
@@ -190,6 +202,9 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
             if (dso instanceof Item) {
                 populateHandleMetadata(context, (Item) dso, identifier);
             }
+            if (dso instanceof Bitstream) {
+                populateHandleMetadata(context, dso, identifier);
+            }
         } catch (SQLException ex) {
             throw new RuntimeException("Unable to create handle '"
                                            + identifier + "' for "
@@ -273,12 +288,40 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
             } else {
                 handleId = createNewIdentifier(context, dso, null);
             }
+            if (dso instanceof Item) {
+                List<Bitstream> bitstreams = getOriginalBitstreams(context, dso);
+                String finalHandleId = handleId;
+                bitstreams.forEach(bitstream -> createHandleForBitstream(context, bitstream, finalHandleId));
+            }
             return handleId;
         } catch (SQLException | AuthorizeException e) {
             log.error(LogHelper.getHeader(context,
                     "Error while attempting to create handle",
                     "Item id: " + dso.getID()), e);
             throw new RuntimeException("Error while attempting to create identifier for Item id: " + dso.getID());
+        }
+    }
+
+    private void createHandleForBitstream(Context context, Bitstream bitstream, String suppliedHandle) {
+        try {
+            handleService.createHandleForBitstream(context, bitstream,suppliedHandle);
+        } catch (SQLException e) {
+            log.error(LogHelper.getHeader(context,
+                    "Error while attempting to create handle",
+                    "Bitstream id: " + bitstream.getID()), e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<Bitstream> getOriginalBitstreams (Context context, DSpaceObject dso) {
+        try {
+            return  itemService.getBundles((Item) dso, "ORIGINAL")
+                    .stream().flatMap(bundle -> bundle.getBitstreams().stream()).collect(Collectors.toList());
+        } catch (SQLException e) {
+            log.error(LogHelper.getHeader(context,
+                    "Error while attempting to get bitsreams for item",
+                    "Item id: " + dso.getID()), e);
+            throw new RuntimeException(e);
         }
     }
 
