@@ -130,6 +130,10 @@ public class ProfileInitializer {
 
         try {
             Group submittersGroup = groupService.findByName(context, SUBMITTERS);
+            if (submittersGroup == null) {
+                throw new RuntimeException(SUBMITTERS + " group not found, it must be created in order to correctly " +
+                                               "synchronize users.");
+            }
 
             if (atLeastAnActiveAccreditation(researcherProfile.getItem())) {
                 groupService.addMember(context, submittersGroup, eperson);
