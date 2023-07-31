@@ -173,7 +173,8 @@ public class PersonApiServiceImpl implements PersonApiService {
         return affiliationMetadataValues;
     }
 
-    private List<MetadataValueDTO> getAffiliationValues(Context context, Accred accred, String positionField, String affiliationField,
+    private List<MetadataValueDTO> getAffiliationValues(Context context, Accred accred,
+                                                        String positionField, String affiliationField,
                                                         int place) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
