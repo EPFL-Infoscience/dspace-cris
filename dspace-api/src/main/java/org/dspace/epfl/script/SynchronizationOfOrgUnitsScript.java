@@ -7,6 +7,8 @@
  */
 package org.dspace.epfl.script;
 
+import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
+import static org.dspace.content.authority.Choices.CF_AMBIGUOUS;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.core.I18nUtil.getEmailFilename;
 
@@ -18,8 +20,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,6 +39,7 @@ import org.dspace.content.Item;
 import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
@@ -50,6 +55,8 @@ import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.OrgUnitDTO;
 import org.dspace.epfl.client.model.PersonDTO;
+import org.dspace.epfl.service.OrgUnitApiService;
+import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -64,6 +71,8 @@ public class SynchronizationOfOrgUnitsScript
     private Context context;
     private ItemService itemService;
     private EpflApiClient epflApiClient;
+
+    private OrgUnitApiService orgUnitApiService;
     private CollectionService collectionService;
     private EPersonService ePersonService;
     private ProfileInitializer profileInitializer;
@@ -73,6 +82,10 @@ public class SynchronizationOfOrgUnitsScript
     private ConfigurationService configurationService;
 
     private StringBuilder logInfo = new StringBuilder();
+
+    private List<String> acronyms = List.of();
+
+    private Map<String, Item> createdAcronyms = new HashMap<>();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -93,6 +106,13 @@ public class SynchronizationOfOrgUnitsScript
         workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
         installItemService = ContentServiceFactory.getInstance().getInstallItemService();
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        orgUnitApiService = new DSpace().getServiceManager()
+                                        .getServiceByName("org.dspace.epfl.service.impl.OrgUnitApiServiceImpl",
+                                                          OrgUnitApiServiceImpl.class);
+        String acronyms = commandLine.getOptionValue("a");
+        if (StringUtils.isNotBlank(acronyms)) {
+            this.acronyms = List.of(StringUtils.split(acronyms, ","));
+        }
     }
 
     @Override
@@ -116,7 +136,7 @@ public class SynchronizationOfOrgUnitsScript
         logInfo(message);
 
         for (Item orgUnit : orgUnits) {
-            String name = getMetadataValue(orgUnit, "oairecerif", "acronym", null);
+            String name = getMetadataValue(orgUnit, "oairecerif", "acronym", null).getValue();
             logInfo("Synchronizing orgunit " + name);
             if (isOrgUnitFoundInEpfl(orgUnit)) {
                 syncOrgUnit(orgUnit);
@@ -138,36 +158,79 @@ public class SynchronizationOfOrgUnitsScript
 
     private void syncOrgUnit(Item orgUnit) {
 
-        OrgUnitDTO epflOrgUnit = epflApiClient.getOrgUnit(getMetadataValue(orgUnit, "oairecerif",
-                "acronym", null, "en"), EpflApiClient.Language.EN).orElseThrow();
-        logInfo("Synchronization for orgUnit with acronym " + epflOrgUnit.getAcronym() + " is started");
+        String acronym = getAcronym(orgUnit);
+        OrgUnitDTO epflOrgUnit = epflApiClient.getOrgUnit(acronym, EpflApiClient.Language.EN).orElseThrow();
+        List<MetadataValueDTO> metadataValues = orgUnitApiService.getMetadataValues(acronym);
+        if (metadataValues.isEmpty()) {
+            logInfo("Unable to update metadata for acronym " + acronym);
+        }
+        logInfo("Synchronization for orgUnit with acronym " + acronym + " is started");
 
-        addOrUpdateMetadata(orgUnit, "dc", "title", null, "en", epflOrgUnit.getName());
+        String parentAcronym = parentAcronym(epflOrgUnit).orElse(null);
+        metadataValues.forEach(
+            mv -> updateMetadata(orgUnit, mv, parentAcronym)
+        );
 
         syncParentOrgUnits(epflOrgUnit, orgUnit);
 
         syncOrgUnitHead(epflOrgUnit, orgUnit);
     }
 
+    private void updateMetadata(Item orgUnit, MetadataValueDTO mv, String parentAcronym) {
+        boolean generateAuthority = StringUtils.isNotBlank(parentAcronym)
+            && "organization.parentOrganization".equals(mv.getMetadataField());
+        String authority = generateAuthority ? generateAuthority(parentAcronym) : null;
+        int confidence = generateAuthority ? CF_AMBIGUOUS : -1;
+        addOrUpdateMetadata(orgUnit, mv.getSchema(),
+                            mv.getElement(), mv.getQualifier(),
+                            mv.getLanguage(), mv.getValue(), authority, confidence);
+    }
+
+    private String generateAuthority(String acronym) {
+        String prefix =
+            configurationService.getProperty("epfl.orgunit-import.inactive-orgunit.parent-orgunit.authority");
+
+        return REFERENCE + prefix + acronym;
+    }
+
+    private String getAcronym(Item orgUnit) {
+        return getMetadataValue(orgUnit, "oairecerif",
+                                "acronym", null, Item.ANY).getValue();
+    }
+
     private void syncParentOrgUnits(OrgUnitDTO epflOrgUnit, Item orgunit) {
 
-        String parentAcronym = epflOrgUnit.getAcronym();
-        logInfo("Synchronization for parent orgUnits of orgUnit with acronym " + parentAcronym);
-        String[] path = epflOrgUnit.getUnitPath().split(" ");
-        if (path.length < 2) {
-            logInfo(parentAcronym + " does not have a parent orgunit");
+        String acronym = epflOrgUnit.getAcronym();
+        logInfo("Synchronization for parent orgUnits of orgUnit with acronym " + acronym);
+
+        Optional<String> parentAcronym = parentAcronym(epflOrgUnit);
+        if (!parentAcronym.isPresent()) {
+            logInfo(acronym + " does not have a parent orgunit");
             return;
         }
-        String parentUnitAcronym = path[path.length - 2];
-        Item parentUnit = dspaceLookup(parentUnitAcronym);
+        String parentAcronymValue = parentAcronym.get();
+        Item parentUnit = createdAcronyms.getOrDefault(parentAcronymValue,
+                                                       dspaceLookup(parentAcronymValue)) ;
         if (parentUnit != null) {
-            logInfo(parentUnitAcronym + " already in the repository");
+            logInfo(parentAcronymValue + " already in the repository");
         } else {
-            logInfo(parentUnitAcronym + " not in the repository, creating it");
-            parentUnit = createOrgUnit(epflOrgUnit, orgunit.getOwningCollection());
+            logInfo(parentAcronymValue + " not in the repository, creating it");
+            parentUnit = createOrgUnit(epflApiClient
+                                           .getOrgUnit(parentAcronymValue, EpflApiClient.Language.EN)
+                                           .orElseThrow(),
+                                       orgunit.getOwningCollection());
+            createdAcronyms.put(parentAcronymValue, parentUnit);
         }
         syncOrgUnit(parentUnit);
         replaceMetadataWithAuthority(orgunit, parentUnit, "organization", "parentOrganization", null);
+    }
+
+    private Optional<String> parentAcronym(OrgUnitDTO epflOrgUnit) {
+        String[] path = epflOrgUnit.getUnitPath().split(" ");
+        if (path.length < 2) {
+            return Optional.empty();
+        }
+        return Optional.of(path[path.length - 2]);
     }
 
     private void replaceMetadataWithAuthority(Item item, Item metadataValues, String schema, String element,
@@ -209,7 +272,7 @@ public class SynchronizationOfOrgUnitsScript
     }
 
     private void syncOrgUnitHead(OrgUnitDTO epflOrgUnit, Item orgUnit) {
-        logInfo("Synchronization of head for orgUnit with acronym " + epflOrgUnit.getAcronym() + " is started");
+        logInfo("Performing synchronization of head for orgUnit with acronym " + epflOrgUnit.getAcronym());
 
         Optional<OrgUnitDTO.OrgUnitHeadDTO> orgUnitHeadSciperFromEpflOptional =
                 Optional.ofNullable(epflOrgUnit.getHead());
@@ -270,7 +333,7 @@ public class SynchronizationOfOrgUnitsScript
             if (director == null) {
                 return null;
             }
-            return getMetadataValue(director, "epfl", "sciperId", null);
+            return getMetadataValue(director, "epfl", "sciperId", null).getValue();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -279,7 +342,7 @@ public class SynchronizationOfOrgUnitsScript
     private Item createOrgUnit(OrgUnitDTO epflOrgUnit, Collection collection) {
 
         try {
-            logInfo("Creation of orgUnit with acronym " + epflOrgUnit.getAcronym() + " started");
+            logInfo("Creating orgUnit with acronym " + epflOrgUnit.getAcronym());
             WorkspaceItem orgUnitWorkspaceItem = workspaceItemService.create(context, collection, false);
             Item newOrgUnit = orgUnitWorkspaceItem.getItem();
 
@@ -287,8 +350,7 @@ public class SynchronizationOfOrgUnitsScript
             collectionService.addItem(context, collection, newOrgUnit);
             installItemService.installItem(context, orgUnitWorkspaceItem);
             addOrUpdateMetadata(newOrgUnit, "oairecerif", "acronym",
-                    null, "en", epflOrgUnit.getAcronym());
-            context.reloadEntity(newOrgUnit);
+                                null, "en", epflOrgUnit.getAcronym(), null, -1);
             return newOrgUnit;
         } catch (AuthorizeException | SQLException e) {
             handler.logError("Error during creation of orgUnit with acronym " + epflOrgUnit.getAcronym());
@@ -341,9 +403,9 @@ public class SynchronizationOfOrgUnitsScript
                     .findFirst().orElse(null);
             if (epflPersonAccred != null) {
                 addOrUpdateMetadata(orgUnit, "oairecerif", "acronym",
-                        null, "en", epflPersonAccred.getAcronym());
+                                    null, "en", epflPersonAccred.getAcronym(), null, -1);
                 addOrUpdateMetadata(orgUnit, "oairecerif", "acronym",
-                                    null, "fr", epflPersonAccred.getAcronym());
+                                    null, "fr", epflPersonAccred.getAcronym(), null, -1);
                 return true;
             }
         }
@@ -351,13 +413,16 @@ public class SynchronizationOfOrgUnitsScript
     }
 
     private void closeOrgUnit(Item orgUnit) {
-        String acronym = getMetadataValue(orgUnit, "oairecerif", "acronym", null);
+        MetadataValue metadataValue = getMetadataValue(orgUnit, "oairecerif", "acronym", null);
+        String acronym = metadataValue.getValue();
         logInfo("Closing orgUnit with acronym " + acronym);
         String yesterday = getYesterdayDate();
 
-        addOrUpdateMetadata(orgUnit, "epfl", "orgUnit", "active", null, "false");
+        addOrUpdateMetadata(orgUnit, "epfl", "orgUnit", "active", null, "false",
+                            null, -1);
 
-        addOrUpdateMetadata(orgUnit, "epfl", "orgUnit", "closure", null, yesterday);
+        addOrUpdateMetadata(orgUnit, "epfl", "orgUnit", "closure", null, yesterday,
+                            null, -1);
 
         List<Item> linkedPersons = getAllLinkedPersonsToOrgUnit(orgUnit.getID().toString());
         logInfo("Closing affiliations from all linked persons of orgUnit with acronym " + acronym);
@@ -405,11 +470,22 @@ public class SynchronizationOfOrgUnitsScript
                                      getOrgUnitsFromCollection(collection).stream())
                 .filter(item -> item.getMetadata()
                                     .stream()
-                                    .anyMatch(mv -> "oairecerif.acronym".equals(mv.getMetadataField()
-                                                                                  .toString('.'))))
+                                    .anyMatch(mv -> acronymField(mv)))
+                .filter(item -> acronyms.isEmpty() || matchingAcronyms(item.getMetadata()))
                     .collect(Collectors.toList());
         }
         return orgUnits;
+    }
+
+    private boolean matchingAcronyms(List<MetadataValue> metadata) {
+        return metadata.stream()
+            .anyMatch(mv -> acronymField(mv)
+            && acronyms.contains(mv.getValue()));
+    }
+
+    private boolean acronymField(MetadataValue mv) {
+        return "oairecerif.acronym".equals(mv.getMetadataField()
+                                             .toString('.'));
     }
 
     private List<Item> getOrgUnitsFromCollection(Collection collection) {
@@ -437,24 +513,26 @@ public class SynchronizationOfOrgUnitsScript
     }
 
     private boolean isOrgUnitFoundInEpfl(Item orgUnit) {
-        String acronym = getMetadataValue(orgUnit, "oairecerif", "acronym", null);
-        if (acronym == null) {
+        MetadataValue metadataValue = getMetadataValue(orgUnit, "oairecerif", "acronym", null);
+        if (metadataValue == null) {
             return false;
         }
-        return epflApiClient.getOrgUnit(acronym, EpflApiClient.Language.EN).isPresent();
+        return epflApiClient.getOrgUnit(metadataValue.getValue(), EpflApiClient.Language.EN).isPresent();
     }
 
-    private String getMetadataValue(Item orgUnit, String schema, String element, String qualifier) {
+    private MetadataValue getMetadataValue(Item orgUnit, String schema, String element, String qualifier) {
         return getMetadataValue(orgUnit, schema, element, qualifier, Item.ANY);
     }
 
-    private String getMetadataValue(Item orgUnit, String schema, String element, String qualifier, String language) {
+    private MetadataValue getMetadataValue(Item orgUnit, String schema, String element, String qualifier,
+                                           String language) {
         List<MetadataValue> values = itemService.getMetadata(orgUnit, schema, element,
                                                              qualifier, language, false);
-        if (values.size() == 0) {
+        if (values.isEmpty()) {
             return null;
         }
-        return values.get(0).getValue();
+        return values.stream().filter(mv -> StringUtils.equalsAny(language, Item.ANY, mv.getLanguage()))
+                     .findFirst().orElse(null);
     }
 
     private String getMetadataAuthority(Item orgUnit, String schema, String element, String qualifier) {
@@ -472,13 +550,17 @@ public class SynchronizationOfOrgUnitsScript
     }
 
     private void addOrUpdateMetadata(Item item, String schema, String element,
-                                     String qualifier, String lang, String value) {
-        String metadataValue = getMetadataValue(item, schema, element, qualifier);
+                                     String qualifier, String lang, String value,
+                                     String authority, Integer confidence) {
+        MetadataValue metadataValue = getMetadataValue(item, schema, element, qualifier, lang);
         try {
             if (metadataValue == null) {
-                itemService.addMetadata(context, item, schema, element, qualifier, lang, value);
+                itemService.addMetadata(context, item, schema, element, qualifier, lang, value, authority, confidence);
             } else {
-                itemService.setMetadataSingleValue(context, item, schema, element, qualifier, lang, value);
+                itemService.replaceMetadata(context, item, schema, element,
+                                            qualifier, lang, value, authority,
+                                            confidence, metadataValue.getPlace());
+//                itemService.setMetadataSingleValue(context, item, schema, element, qualifier, lang, value);
 
             }
             itemService.update(context, item);

@@ -148,7 +148,6 @@ public class EpflUserSynchronizationScript
                     closeAffiliations(ePerson, sciper);
                     setSynchronizationMetadata(ePerson);
                 }
-                context.commit();
             }
         }
     }
@@ -204,7 +203,6 @@ public class EpflUserSynchronizationScript
                 } else {
                     syncEPerson(epflPerson, ePerson);
                 }
-                context.commit();
             }
         }
     }
