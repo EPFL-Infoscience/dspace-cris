@@ -133,7 +133,7 @@ public class ProfileInitializer {
 
             if (atLeastAnActiveAccreditation(researcherProfile.getItem())) {
                 groupService.addMember(context, submittersGroup, eperson);
-            } else {
+            } else if (groupService.isMember(context, eperson, submittersGroup)){
                 groupService.removeMember(context, submittersGroup, eperson);
             }
         } catch (SQLException e) {
