@@ -237,6 +237,8 @@
     <util:list id="parentOrganizationsSourceMetadata" value-type="java.lang.String">
         <value>oairecerif.author.affiliation</value>
         <value>oairecerif.editor.affiliation</value>
+        <value>dc.contributor.author</value>
+        <value>dc.contributor.editor</value>
         <value>dc.description.sponsorship</value>
     </util:list>
 
