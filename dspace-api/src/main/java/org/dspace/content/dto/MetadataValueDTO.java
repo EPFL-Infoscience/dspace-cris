@@ -32,6 +32,8 @@ public class MetadataValueDTO {
     private int confidence = Choices.CF_UNSET;
     private Integer securityLevel;
 
+    private Integer place = 0;
+
     public MetadataValueDTO(MetadataValue metadataValue) {
         MetadataField metadataField = metadataValue.getMetadataField();
         MetadataSchema metadataSchema = metadataField.getMetadataSchema();
@@ -43,6 +45,7 @@ public class MetadataValueDTO {
         authority = metadataValue.getAuthority();
         confidence = metadataValue.getConfidence();
         securityLevel = metadataValue.getSecurityLevel();
+        place = metadataValue.getPlace();
     }
 
     public MetadataValueDTO() {
@@ -107,6 +110,15 @@ public class MetadataValueDTO {
         this.value = value;
     }
 
+    public MetadataValueDTO(String metadataField, String value, int place) {
+        MetadataFieldName fieldName = new MetadataFieldName(metadataField);
+        this.schema = fieldName.schema;
+        this.element = fieldName.element;
+        this.qualifier = fieldName.qualifier;
+        this.value = value;
+        this.place = place;
+    }
+
     public MetadataValueDTO(String metadataField, String language, String value) {
         MetadataFieldName fieldName = new MetadataFieldName(metadataField);
         this.schema = fieldName.schema;
@@ -124,6 +136,17 @@ public class MetadataValueDTO {
         this.authority = authority;
         this.value = value;
         this.confidence = confidence;
+    }
+
+    public MetadataValueDTO(String metadataField, String value, String authority, int confidence, int place) {
+        MetadataFieldName fieldName = new MetadataFieldName(metadataField);
+        this.schema = fieldName.schema;
+        this.element = fieldName.element;
+        this.qualifier = fieldName.qualifier;
+        this.authority = authority;
+        this.value = value;
+        this.confidence = confidence;
+        this.place = place;
     }
 
     public MetadataValueDTO(MetadatumDTO metadata) {
@@ -200,4 +223,16 @@ public class MetadataValueDTO {
     public void setSecurityLevel(int securityLevel) {
         this.securityLevel = securityLevel;
     }
+
+    public Integer getPlace() {
+        return place;
+    }
+
+    @Override
+    public String toString() {
+        return "MetadataValueDTO [field=" + getMetadataField()
+            + ", language=" + language + ", value=" + value + ", authority=" + authority + ", confidence=" + confidence
+            + ", securityLevel=" + securityLevel + "]";
+    }
+
 }

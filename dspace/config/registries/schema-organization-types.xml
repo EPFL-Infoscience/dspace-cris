@@ -104,6 +104,13 @@
 
     <dc-type>
         <schema>organization</schema>
+        <element>identifier</element>
+        <qualifier>other</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>organization</schema>
         <element>parentOrganization</element>
         <scope_note>The larger organization that this organization is a subOrganization of, if any.</scope_note>
     </dc-type>

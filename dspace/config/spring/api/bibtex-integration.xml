@@ -23,6 +23,7 @@
         <entry key-ref="dcJournal" value-ref="bibtexJournalContrib" />
 		<entry key-ref="dcIssued" value-ref="bibtexIssuedContrib" />
 		<entry key-ref="dcJissn" value-ref="bibtexJissnContrib" />    
+		<entry key-ref="dcAbstract" value-ref="bibtexAbstractContrib" />
     </util:map>
 
     <bean id="bibtexJissnContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
@@ -69,6 +70,11 @@
     <bean id="bibtexTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcType"/>
         <property name="key" value="type" />
+    </bean>
+
+    <bean id="bibtexAbstractContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
+        <property name="field" ref="dcAbstract"/>
+        <property name="key" value="abstractnote" />
     </bean>
 
 </beans>

@@ -41,8 +41,6 @@ public abstract class AbstractPlainMetadataSource
 
     /**
      * Set the file extensions supported by this metadata service
-     * 
-     * @param supportedExtensionsthe file extensions (xml,txt,...) supported by this service
      */
     public void setSupportedExtensions(List<String> supportedExtensions) {
         this.supportedExtensions = supportedExtensions;
@@ -57,13 +55,16 @@ public abstract class AbstractPlainMetadataSource
      * Return a list of ImportRecord constructed from input file. This list is based on
      * the results retrieved from the file (InputStream) parsed through abstract method readData
      *
-     * @param InputStream The inputStream of the file
+     * @param is The inputStream of the file
      * @return A list of {@link ImportRecord}
      * @throws FileSourceException if, for any reason, the file is not parsable
      */
     @Override
     public List<ImportRecord> getRecords(InputStream is) throws FileSourceException {
         List<PlainMetadataSourceDto> datas = readData(is);
+        if (datas == null) {
+            return List.of();
+        }
         List<ImportRecord> records = new ArrayList<>();
         for (PlainMetadataSourceDto item : datas) {
             records.add(toRecord(item));
@@ -76,7 +77,7 @@ public abstract class AbstractPlainMetadataSource
      * the result retrieved from the file (InputStream) parsed through abstract method
      * "readData" implementation
      *
-     * @param InputStream The inputStream of the file
+     * @param is The {@code InputStream} of the file
      * @return An {@link ImportRecord} matching the file content
      * @throws FileSourceException if, for any reason, the file is not parsable
      * @throws FileMultipleOccurencesException if the file contains more than one entry

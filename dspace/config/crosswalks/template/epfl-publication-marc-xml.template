@@ -243,7 +243,7 @@
     @group.epfl-oai-currentset.start@
     <datafield tag="909" ind1="C" ind2="O">
 		    <subfield code="p">@epfl.oai.currentset@</subfield>
-		    <subfield code="o">@epfl.oai.identifier@</subfield>
+		    <subfield code="o">@dspace.legacy.oai-identifier@</subfield>
     </datafield>
 	  @group.epfl-oai-currentset.end@
     @group.epfl-relation-orgunit.start@

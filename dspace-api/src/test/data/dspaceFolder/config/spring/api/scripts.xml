@@ -125,6 +125,12 @@
         <property name="dspaceRunnableClass" value="org.dspace.layout.script.CrisLayoutToolScript"/>
     </bean>
 
+    <bean id="export-cris-layout-tool" class="org.dspace.layout.script.ExportCrisLayoutToolCliScriptConfiguration">
+        <property name="description" value="Script to export CRIS layout configuration into excel file"/>
+        <property name="dspaceRunnableClass" value="org.dspace.layout.script.ExportCrisLayoutToolScriptCli"/>
+    </bean>
+
+
     <bean id="update-item-references" class="org.dspace.authority.script.UpdateItemReferenceCliScriptConfiguration">
         <property name="description" value="Perform the resolution of authority references"/>
         <property name="dspaceRunnableClass" value="org.dspace.authority.script.UpdateItemReferenceCli"/>
@@ -149,7 +155,7 @@
     <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportScriptConfiguration" primary="true">
         <property name="description" value="Import and store items from external source"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnable"/>
-	</bean>        
+	</bean>
 
     <bean id="import" class="org.dspace.app.itemimport.ItemImportCLIScriptConfiguration" primary="true">
         <property name="description" value="Batch Import from Simple Archive Format (SAF)" />
@@ -169,6 +175,16 @@
     <bean id="orgunit-tsv-import" class="org.dspace.epfl.script.OrgUnitTSVImportScriptConfiguration" primary="true">
         <property name="description" value="Import the OrgUnits present in the given TSV file"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitTSVImportScript"/>
+    </bean>
+
+    <bean id="items-import-from-s3" class="org.dspace.epfl.script.ItemsImportFromS3ScriptConfiguration" primary="true">
+        <property name="description" value="Import items from S3"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsImportFromS3Script"/>
+    </bean>
+
+    <bean id="xml-to-item-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import the XML file to items"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
     </bean>
 
 </beans>
