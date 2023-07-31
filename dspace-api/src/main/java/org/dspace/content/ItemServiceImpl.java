@@ -2191,7 +2191,7 @@ prevent the generation of resource policy entry values with null dspace_object a
         }
 
         setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.modified"),
-                               context.getCurrentLocale().toString(),
+                               null,
                                ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
     }
 

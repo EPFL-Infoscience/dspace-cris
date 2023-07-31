@@ -64,7 +64,7 @@ public class ProfileInitializer {
         List.of("oairecerif.affiliation.role", "oairecerif.person.affiliation",
                 "oairecerif.affiliation.startDate", "oairecerif.affiliation.endDate");
     private final static Logger LOGGER = LoggerFactory.getLogger(ProfileInitializer.class);
-    private static final String SUBMITTERS = "Submitters";
+    private static final String SUBMITTERS = "Submitter";
 
     @Autowired
     private ResearcherProfileService researcherProfileService;
@@ -133,7 +133,7 @@ public class ProfileInitializer {
 
             if (atLeastAnActiveAccreditation(researcherProfile.getItem())) {
                 groupService.addMember(context, submittersGroup, eperson);
-            } else {
+            } else if (groupService.isMember(context, eperson, submittersGroup)){
                 groupService.removeMember(context, submittersGroup, eperson);
             }
         } catch (SQLException e) {

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.Optional;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -51,6 +52,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     @Autowired
     private BulkImportWorkbookBuilder bulkImportWorkbookBuilder;
+    private String entityType;
 
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
@@ -102,6 +104,15 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         Iterator<Item> newItemIterator = chainedIterator(singletonListIterator(firstItem), itemIterator);
         writeWorkbook(context, collection, newItemIterator, out);
 
+    }
+
+    @Override
+    public Optional<String> getEntityType() {
+        return Optional.ofNullable(entityType);
+    }
+
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
     }
 
     private void writeWorkbook(Context context, Collection collection, Iterator<Item> itemIterator, OutputStream out)

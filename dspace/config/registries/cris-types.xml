@@ -12,7 +12,7 @@
     <dc-type>
         <schema>cris</schema>
         <element>sourceId</element>
-        <qualifier></qualifier>
+        <qualifier />
         <scope_note>Used by the cris consumer to store the source that has originated the item</scope_note>
     </dc-type>
 
@@ -20,7 +20,7 @@
         <schema>cris</schema>
         <element>source</element>
         <qualifier>name</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
@@ -62,391 +62,433 @@
         <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>email</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>preTransform</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>postTransform</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>itemValidationEnabled</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>recordValidationEnabled</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>forceSynchronization</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>harvesting</element>
         <qualifier>ccAddress</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
     
     <dc-type>
         <schema>cris</schema>
         <element>identifier</element>
         <qualifier>gscholar</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
     
     <dc-type>
         <schema>cris</schema>
         <element>workspace</element>
         <qualifier>shared</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>author</element>
         <qualifier>scopus-author-id</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>author</element>
         <qualifier>orcid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>author</element>
         <qualifier>rid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>legacyId</element>
-        <qualifier></qualifier>
-        <scope_note></scope_note>
+        <qualifier />
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>department</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>author-orcid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>author-sciperId</qualifier>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>editor-orcid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>editor-sciperId</qualifier>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>contributor-sciperId</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>contributor-unitId</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>sponsor-unitId</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>contributor-sciperId</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>author-sciperId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>editor-sciperId</qualifier>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>contributor-unitId</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>sponsor-unitId</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>department</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>author-orcid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>editor-orcid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>home-header</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>home-news</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>grid-component-badge</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>grid-component-title</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>grid-component-subtitle</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>grid-component-abstract</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>grid-component-link</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>footer</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>cms</element>
         <qualifier>epfl-news</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>customurl</element>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>customurl</element>
         <qualifier>old</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>scopus</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>scopus-person</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
     
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>epflgroupunits</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>author-scopus</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>editor-scopus</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>author-rid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
         <qualifier>editor-rid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>parent-organization</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>parent-organization</qualifier>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>author-scopus</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>editor-scopus</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>author-rid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>editor-rid</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>epflgroupunits</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>scopus-publication</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>wos</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>wos-person</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>wos-publication</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>loader-oaire</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>loader-pubmed</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>        
 
     <dc-type>
         <schema>cris</schema>
         <element>entity</element>
         <qualifier>style</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>lastimport</element>
         <qualifier>arxiv-publication</qualifier>
-        <scope_note></scope_note>
+        <scope_note />
     </dc-type>
 
 </dspace-dc-types>

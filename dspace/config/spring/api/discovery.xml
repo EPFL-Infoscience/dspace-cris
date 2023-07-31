@@ -143,6 +143,8 @@
                 <entry key="multilanguage-types" value-ref="multilanguage-types"/>
                 <entry key="aliases" value-ref="aliases"/>
                 <entry key="RELATION.Site.researchoutputs" value-ref="relationSiteResearchOutputsConfiguration"/>
+                <!-- discovery configuration for epfl enac affinity map -->
+                <entry key="affinitySearch" value-ref="researchoutputsByParentOrganization"/>
             </map>
         </property>
         <property name="toIgnoreMetadataFields">
@@ -1876,6 +1878,40 @@
         <property name="defaultFilterQueries">
             <list>
                 <value>original_bundle_datacite_rights_keyword:openaccess</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="researchoutputsByParentOrganization" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration"
+      scope="prototype">
+        <property name="id" value="researchoutputsByParentOrganization"/>
+        <property name="indexAlways" value="true"/>
+        <property name="sidebarFacets">
+            <list/>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list/>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortScore" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
+                <!--Only find items with metadata authority equal to scope. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>cris.virtual.parent-organization_authority:{0}</value>
             </list>
         </property>
     </bean>

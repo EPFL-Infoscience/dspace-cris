@@ -78,9 +78,15 @@
     <dc-type>
         <schema>epfl</schema>
         <element>workflow</element>
+        <qualifier>startDateTime</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
         <qualifier>rejected</qualifier>
     </dc-type>
-    
+
     <dc-type>
         <schema>epfl</schema>
         <element>url</element>
@@ -347,6 +353,41 @@
         <schema>epfl</schema>
         <element>legacy</element>
         <qualifier>fileversion</qualifier>
+    </dc-type>
+    <dc-type>
+        <schema>epfl</schema>
+        <element>workflow</element>
+        <qualifier>notesForReviewer</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>content</element>
+        <qualifier>link</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>content</element>
+        <qualifier>linkdescription</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>contributor</element>
+        <qualifier>corresponding</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>url</element>
+        <qualifier/>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>url</element>
+        <qualifier>description</qualifier>
     </dc-type>
 
 </dspace-dc-types>

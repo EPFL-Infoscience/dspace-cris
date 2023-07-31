@@ -62,7 +62,7 @@ import org.dspace.utils.DSpace;
 public class EpflUserSynchronizationScript
     extends DSpaceRunnable<EpflUserSynchronizationScriptConfiguration<EpflUserSynchronizationScript>> {
 
-    private static final String SUBMITTERS = "Submitters";
+    private static final String SUBMITTERS = "Submitter";
     private String inputFile;
     private String query;
     private String log;
@@ -148,6 +148,7 @@ public class EpflUserSynchronizationScript
                     closeAffiliations(ePerson, sciper);
                     setSynchronizationMetadata(ePerson);
                 }
+                context.commit();
             }
         }
     }
@@ -203,6 +204,7 @@ public class EpflUserSynchronizationScript
                 } else {
                     syncEPerson(epflPerson, ePerson);
                 }
+                context.commit();
             }
         }
     }
