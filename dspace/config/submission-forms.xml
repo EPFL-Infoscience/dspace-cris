@@ -451,7 +451,7 @@
           <label>Author</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter at least the author.</required>
+          <required></required>
           <hint>Enter the names of the authors of this item written as Last Name, First Name.</hint>
         </field>
       </row>
@@ -1147,7 +1147,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Public defense year</label>
           <input-type>date</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter at least the year.</required>
+          <required/>
           <hint>Please give the date of the public defense of the thesis.
                         You can leave out the day and/or month if they aren't
                         applicable.</hint>
@@ -1486,7 +1486,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Institution</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter the institution.</required>
+          <required/>
           <style>col-xs-12 col-md-4</style>
           <hint>The publisher of this publication</hint>
           <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
@@ -1498,7 +1498,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Faculty</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter the faculty.</required>
+          <required/>
           <style>col-xs-12 col-md-4</style>
           <hint />
           <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
@@ -1510,7 +1510,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Institute</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter the institute.</required>
+          <required/>
           <style>col-xs-12 col-md-4</style>
           <hint />
           <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
@@ -1524,7 +1524,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Doctoral School</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter the Doctoral School.</required>
+          <required/>
           <style>col-xs-12 col-md-6</style>
           <hint />
           <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
@@ -1536,7 +1536,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Doctoral program</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter the Doctoral program.</required>
+          <required/>
           <style>col-xs-12 col-md-6</style>
           <hint />
           <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
