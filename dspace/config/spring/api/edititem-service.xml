@@ -21,6 +21,25 @@
                             </property>
                             <property name="submissionDefinition" value="publication-edit" />
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="CURATOR" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                </list>
+                            </property>
+                            <property name="items">
+                                <list>
+                                    <value>epfl.virtualCollection.curator</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="person">
@@ -123,6 +142,25 @@
                             </property>
                             <property name="submissionDefinition" value="patent-edit" />
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="CURATOR" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                </list>
+                            </property>
+                            <property name="items">
+                                <list>
+                                    <value>epfl.virtualCollection.curator</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="project">
@@ -163,6 +201,25 @@
                             </property>
                             <property name="submissionDefinition" value="product-edit" />
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="CURATOR" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                </list>
+                            </property>
+                            <property name="items">
+                                <list>
+                                    <value>epfl.virtualCollection.curator</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="journal">
@@ -201,6 +258,19 @@
                                 </value>
                             </property>
                             <property name="submissionDefinition" value="content-edit" />
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="virtualCollection">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULL" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    SUBMITTER
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-edit" />
                         </bean>
                     </list>
                 </entry>
