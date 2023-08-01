@@ -7,10 +7,12 @@
  */
 package org.dspace.epfl.script;
 
+import static org.dspace.authority.service.AuthorityValueService.GENERATE;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
-import static org.dspace.content.authority.Choices.CF_AMBIGUOUS;
+import static org.dspace.authority.service.AuthorityValueService.SPLIT;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.core.I18nUtil.getEmailFilename;
+import static org.dspace.util.FunctionalUtils.throwingConsumerWrapper;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -35,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
@@ -167,30 +170,42 @@ public class SynchronizationOfOrgUnitsScript
         logInfo("Synchronization for orgUnit with acronym " + acronym + " is started");
 
         String parentAcronym = parentAcronym(epflOrgUnit).orElse(null);
-        metadataValues.forEach(
-            mv -> updateMetadata(orgUnit, mv, parentAcronym)
-        );
+        Map<String, List<MetadataValueDTO>> metadataMap =
+            metadataValues.stream().collect(Collectors.groupingBy(MetadataValueDTO::getMetadataField));
+        metadataMap.forEach((key, value) -> updateMetadata(orgUnit, key, value, parentAcronym));
+        addOrUpdateMetadata(orgUnit, "epfl", "synchronization", "date", null,
+                            DCDate.getCurrent().toString(), null, -1);
 
         syncParentOrgUnits(epflOrgUnit, orgUnit);
 
-        syncOrgUnitHead(epflOrgUnit, orgUnit);
+        try {
+            syncOrgUnitHead(epflOrgUnit, orgUnit);
+        }  catch (IllegalStateException e) {
+            logInfo("Unable to sync orgunit head " + epflOrgUnit.getAcronym() + ": " + e.getMessage());
+        }
     }
 
-    private void updateMetadata(Item orgUnit, MetadataValueDTO mv, String parentAcronym) {
-        boolean generateAuthority = StringUtils.isNotBlank(parentAcronym)
-            && "organization.parentOrganization".equals(mv.getMetadataField());
-        String authority = generateAuthority ? generateAuthority(parentAcronym) : null;
-        int confidence = generateAuthority ? CF_AMBIGUOUS : -1;
-        addOrUpdateMetadata(orgUnit, mv.getSchema(),
-                            mv.getElement(), mv.getQualifier(),
-                            mv.getLanguage(), mv.getValue(), authority, confidence);
-    }
+    private void updateMetadata(Item orgUnit, String metadataField, List<MetadataValueDTO> metadataValues,
+                                String parentAcronym)  {
 
-    private String generateAuthority(String acronym) {
-        String prefix =
-            configurationService.getProperty("epfl.orgunit-import.inactive-orgunit.parent-orgunit.authority");
+        if (metadataValues.isEmpty()) {
+            return;
+        }
+        MetadataValueDTO metadataValue = metadataValues.get(0);
+        try {
+            itemService.clearMetadata(context, orgUnit, metadataValue.getSchema(),
+                                      metadataValue.getElement(), metadataValue.getQualifier(),
+                                      Item.ANY);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-        return REFERENCE + prefix + acronym;
+        metadataValues.forEach(
+            throwingConsumerWrapper(mv -> itemService.addMetadata(context, orgUnit, mv.getSchema(),
+                                          mv.getElement(), mv.getQualifier(),
+                                          mv.getLanguage(), mv.getValue(),
+                                          mv.getAuthority(), mv.getConfidence())
+        ));
     }
 
     private String getAcronym(Item orgUnit) {
@@ -295,7 +310,12 @@ public class SynchronizationOfOrgUnitsScript
 
         if (!orgUnitHeadSciperFromEpfl.equals(orgUnitHeadSciperFromDspace)) {
             try {
-                EPerson ePersonFromEpfl = ePersonService.findByNetid(context, orgUnitHeadSciperFromEpfl + "@epfl.ch");
+                EPerson ePersonFromEpfl = ePersonService.findByNetid(context,
+                                                                     orgUnitHeadSciperFromEpfl + "@epfl.ch");
+                if (ePersonFromEpfl == null) {
+                    ePersonFromEpfl = ePersonService.findByEmail(context, orgUnitHeadSciperFromEpflOptional.get()
+                                                                                                           .getEmail());
+                }
                 if (ePersonFromEpfl == null) {
                     ePersonFromEpfl = createUser(epflOrgUnit);
                 }
@@ -327,6 +347,11 @@ public class SynchronizationOfOrgUnitsScript
         String authority = getMetadataAuthority(orgUnit, "crisou", "director", null);
         if (StringUtils.isBlank(authority)) {
             return null;
+        }
+        String sciper = Stream.of(GENERATE, REFERENCE).filter(authority::startsWith)
+            .map(ignored -> StringUtils.substringAfterLast(authority, SPLIT)).findFirst().orElse("");
+        if (StringUtils.isNotBlank(sciper)) {
+            return sciper;
         }
         try {
             Item director = itemService.find(context, UUIDUtils.fromString(authority));

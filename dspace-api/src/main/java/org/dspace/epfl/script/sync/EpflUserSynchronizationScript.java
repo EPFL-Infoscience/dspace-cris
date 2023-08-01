@@ -143,7 +143,11 @@ public class EpflUserSynchronizationScript
                 String sciper = ePersonNetid.substring(0, endIndex);
                 Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper, EpflApiClient.Language.EN);
                 if (epflPerson.isPresent()) {
-                    syncEPerson(epflPerson.get(), ePerson);
+                    try {
+                        syncEPerson(epflPerson.get(), ePerson);
+                    }  catch (IllegalStateException e) {
+                        logInfo("Unable to sync profile " + epflPerson.get().getSciper() + ": " + e.getMessage());
+                    }
                 } else {
                     closeAffiliations(ePerson, sciper);
                     setSynchronizationMetadata(ePerson);
@@ -201,7 +205,11 @@ public class EpflUserSynchronizationScript
                 if (ePerson == null) {
                     createAndSyncEPerson(epflPerson);
                 } else {
-                    syncEPerson(epflPerson, ePerson);
+                    try {
+                        syncEPerson(epflPerson, ePerson);
+                    } catch (IllegalStateException e) {
+                        logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
+                    }
                 }
             }
         }
@@ -309,7 +317,7 @@ public class EpflUserSynchronizationScript
 
     private void finalLogging() {
         if (createdPersonCount == 0 && updatedPersonCount == 0) {
-            logInfo("There are no changes to import");
+            logInfo("No changes were made by the script");
         } else {
             logInfo("Changes:");
             logInfo("Number of created persons: " + createdPersonCount);
