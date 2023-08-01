@@ -402,7 +402,8 @@ public class SynchronizationOfOrgUnitsScript
             if (director == null) {
                 return null;
             }
-            return getMetadataValue(director, "epfl", "sciperId", null).getValue();
+            MetadataValue sciperMetadata = getMetadataValue(director, "epfl", "sciperId", null);
+            return Optional.ofNullable(sciperMetadata).map(MetadataValue::getValue).orElse(null);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -438,7 +439,7 @@ public class SynchronizationOfOrgUnitsScript
                                                      EpflApiClient.Language.EN).orElse(null);
             } catch (RuntimeException e) {
                 logInfo("unable to gather data for person with sciper: " + epflOrgUnit.getHead().getSciper() + ":"
-                + e.getMessage());
+                            + e.getMessage());
                 return null;
             }
 
@@ -550,13 +551,19 @@ public class SynchronizationOfOrgUnitsScript
         for (Collection collection : orgUnitCollections) {
             orgUnits = Stream.concat(orgUnits.stream(),
                                      getOrgUnitsFromCollection(collection).stream())
-                .filter(item -> item.getMetadata()
-                                    .stream()
-                                    .anyMatch(mv -> acronymField(mv)))
-                .filter(item -> acronyms.isEmpty() || matchingAcronyms(item.getMetadata()))
-                    .collect(Collectors.toList());
+                             .filter(item -> item.getMetadata()
+                                                 .stream()
+                                                 .anyMatch(mv -> acronymField(mv)))
+                             .filter(item -> acronyms.isEmpty() || matchingAcronyms(item.getMetadata()))
+                             .filter(this::isActive)
+                             .collect(Collectors.toList());
         }
         return orgUnits;
+    }
+
+    private boolean isActive(Item orgUnit) {
+        String value = itemService.getMetadataFirstValue(orgUnit, "epfl", "orgUnit", "active", Item.ANY);
+        return value == null || Boolean.parseBoolean(value);
     }
 
     private boolean matchingAcronyms(List<MetadataValue> metadata) {
