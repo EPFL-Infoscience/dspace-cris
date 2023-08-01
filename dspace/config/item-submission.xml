@@ -253,6 +253,16 @@
       <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
       <type>upload</type>
     </step-definition>
+    <step-definition id="virtual-collection" mandatory="true">
+      <heading>submit.progressbar.describe.virtual-collection</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="virtual-collection-bind" mandatory="true">
+      <heading>submit.progressbar.describe.virtual-collection-bind</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
   </step-definitions>
   <submission-definitions>
     <submission-process name="product">
@@ -507,6 +517,19 @@
       <step id="content" />
       <step id="upload-content" />
       <step id="custom-url" />
+    </submission-process>
+    <submission-process name="virtual-collection">
+      <step id="collection" />
+      <step id="custom-url" />
+      <step id="virtual-collection" />
+    </submission-process>
+    <submission-process name="virtual-collection-edit">
+      <step id="collection" />
+      <step id="custom-url" />
+      <step id="virtual-collection" />
+    </submission-process>
+    <submission-process name="virtual-collection-bind">
+      <step id="virtual-collection-bind" />
     </submission-process>
   </submission-definitions>
 </item-submission>

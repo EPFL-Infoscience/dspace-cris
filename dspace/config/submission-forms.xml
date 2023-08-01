@@ -4259,6 +4259,67 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
     </form>
+    <form name="virtual-collection">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter the virtual collection's name.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Description (HTML supported)</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>virtualCollection</dc-element>
+          <dc-qualifier>query</dc-qualifier>
+          <label>Query</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>virtualCollection</dc-element>
+          <dc-qualifier>curator</dc-qualifier>
+          <label>Curator</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="virtual-collection-bind">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>virtualCollection</dc-element>
+          <label>Virtual collection</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
   </form-definitions>
   <form-value-pairs>
     <value-pairs value-pairs-name="patent_types" dc-term="patent_types">
