@@ -7,7 +7,6 @@
  */
 package org.dspace.content.enhancer.impl;
 
-import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.util.FunctionalUtils.throwingConsumerWrapper;
 
 import java.sql.SQLException;
@@ -103,53 +102,39 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
 
         while (enhanceableMetadataValues.peek() != null) {
             MetadataValue metadataValue = enhanceableMetadataValues.poll();
-
             Item relatedItem = findRelatedEntityItem(context, metadataValue);
+
             if (relatedItem == null) {
                 continue;
             }
-            List<MetadataValue> parentOrganizationMetadataValue =
-                itemService.getMetadata(relatedItem, "organization", "parentOrganization", null, null);
 
-            if (!parentOrganizationMetadataValue.isEmpty()) {
-                enhanceableMetadataValues.add(parentOrganizationMetadataValue.get(0));
+            if ("Person".equals(itemService.getEntityType(relatedItem))) {
+                metadataValue = getPersonAffiliationMetadataValue(relatedItem);
+
+                if (metadataValue == null) {
+                    continue;
+                }
+
+                relatedItem = findRelatedEntityItem(context, metadataValue);
             }
+
+            enhanceableMetadataValues.addAll(
+                itemService.getMetadata(relatedItem, "organization", "parentOrganization", null, null));
 
             if (wasValueAlreadyUsedForEnhancement(item, metadataValue)) {
                 continue;
             }
 
+            MetadataValue finalMetadataValue = metadataValue;
 
-//            if (relatedItem == null) {
-//                enhanceVirtualFields(context, item, new MetadataValueVO(null, PLACEHOLDER_PARENT_METADATA_VALUE),
-//                                     new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
-//                continue;
-//            }
-
-            List<MetadataValue> relatedItemMetadataValues =
-                itemService.getMetadataByMetadataString(relatedItem, relatedItemMetadataField);
-
-            if (relatedItemMetadataValues.isEmpty()) {
-//                enhanceVirtualFields(context, item, metadataValue,
-//                                     new MetadataValueVO(PLACEHOLDER_PARENT_METADATA_VALUE));
-                continue;
-            }
-
-            relatedItemMetadataValues
-                .stream()
-                .map(MetadataValue::getValue)
-                .filter(StringUtils::isNotBlank)
-                .map(relatedValue -> new MetadataValueVO(relatedValue, metadataValue.getAuthority()))
-                .forEach(throwingConsumerWrapper(
-                    relatedValueVO -> enhanceVirtualFields(context, item, metadataValue, relatedValueVO)
-                ));
-
-//            List<MetadataValue> parentOrganizationMetadataValue =
-//                itemService.getMetadata(relatedItem, "organization", "parentOrganization", null, null);
-//
-//            if (!parentOrganizationMetadataValue.isEmpty()) {
-//                enhanceableMetadataValues.add(parentOrganizationMetadataValue.get(0));
-//            }
+            itemService.getMetadataByMetadataString(relatedItem, relatedItemMetadataField)
+                       .stream()
+                       .map(MetadataValue::getValue)
+                       .filter(StringUtils::isNotBlank)
+                       .map(relatedValue -> new MetadataValueVO(relatedValue, finalMetadataValue.getAuthority()))
+                       .forEach(throwingConsumerWrapper(
+                           relatedValueVO -> enhanceVirtualFields(context, item, finalMetadataValue, relatedValueVO)
+                       ));
         }
     }
 
@@ -176,6 +161,14 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
+    }
+
+    private MetadataValue getPersonAffiliationMetadataValue(Item person) {
+        return itemService.getMetadataByMetadataString(person, "person.affiliation.name")
+                          .stream()
+                          .filter(mv -> StringUtils.isNotEmpty(mv.getAuthority()))
+                          .findFirst()
+                          .orElse(null);
     }
 
     private List<MetadataValue> getEnhanceableMetadataValue(Item item) {
@@ -208,12 +201,6 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
                                         MetadataValueVO relatedItemMetadataValue) throws SQLException {
         addVirtualField(context, item, relatedItemMetadataValue);
         addVirtualSourceField(context, item, new MetadataValueVO(metadataValue));
-    }
-
-    protected void enhanceVirtualFields(Context context, Item item, MetadataValueVO metadataValue,
-                                        MetadataValueVO relatedItemMetadataValue) throws SQLException {
-        addVirtualField(context, item, relatedItemMetadataValue);
-        addVirtualSourceField(context, item, metadataValue);
     }
 
     public void setSourceEntityType(String sourceEntityType) {
