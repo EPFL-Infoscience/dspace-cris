@@ -166,14 +166,15 @@ public class SynchronizationOfOrgUnitsScript
 
         String acronym = getAcronym(orgUnit);
         OrgUnitDTO epflOrgUnit;
+        List<MetadataValueDTO> metadataValues;
         try {
             epflOrgUnit = epflApiClient.getOrgUnit(acronym, EpflApiClient.Language.EN).orElseThrow();
+            metadataValues = orgUnitApiService.getMetadataValues(acronym);
         } catch (RuntimeException e) {
             logInfo("An exception occurred while getting data for " + acronym + ": " + e.getMessage() +
                 ", unit not synchronized");
             return;
         }
-        List<MetadataValueDTO> metadataValues = orgUnitApiService.getMetadataValues(acronym);
         if (metadataValues.isEmpty()) {
             logInfo("Unable to update metadata for acronym " + acronym);
             return;
@@ -241,9 +242,15 @@ public class SynchronizationOfOrgUnitsScript
             logInfo(parentAcronymValue + " already in the repository");
         } else {
             logInfo(parentAcronymValue + " not in the repository, creating it");
-            parentUnit = createOrgUnit(epflApiClient
-                                           .getOrgUnit(parentAcronymValue, EpflApiClient.Language.EN)
-                                           .orElseThrow(),
+            Optional<OrgUnitDTO> orgUnit;
+            try {
+                orgUnit = epflApiClient
+                    .getOrgUnit(parentAcronymValue, EpflApiClient.Language.EN);
+            } catch (RuntimeException e) {
+                logInfo("Unable to create parent orgunit " + parentAcronymValue + ": " + e.getMessage());
+                return;
+            }
+            parentUnit = createOrgUnit(orgUnit.orElseThrow(),
                                        orgunit.getOwningCollection());
             createdAcronyms.put(parentAcronymValue, parentUnit);
         }
@@ -330,6 +337,9 @@ public class SynchronizationOfOrgUnitsScript
                 if (ePersonFromEpfl == null) {
                     ePersonFromEpfl = createUser(epflOrgUnit);
                 }
+                if (ePersonFromEpfl == null) {
+                    return;
+                }
                 ResearcherProfile researcherProfile =
                     findRelatedResearcherProfile(ePersonFromEpfl);
                 if (researcherProfile != null) {
@@ -399,8 +409,15 @@ public class SynchronizationOfOrgUnitsScript
         EPerson newEPerson = null;
         try {
             logInfo("Creation of person with sciper " + epflOrgUnit.getHead().getSciper() + " started");
-            PersonDTO epflPerson = epflApiClient.getPerson(epflOrgUnit.getHead().getSciper(),
-                    EpflApiClient.Language.EN).orElse(null);
+            PersonDTO epflPerson;
+            try {
+                epflPerson = epflApiClient.getPerson(epflOrgUnit.getHead().getSciper(),
+                                                     EpflApiClient.Language.EN).orElse(null);
+            } catch (RuntimeException e) {
+                logInfo("unable to gather data for person with sciper: " + epflOrgUnit.getHead().getSciper() + ":"
+                + e.getMessage());
+                return null;
+            }
 
             newEPerson = ePersonService.create(context);
 
@@ -430,7 +447,13 @@ public class SynchronizationOfOrgUnitsScript
     private boolean tryToGetAcronymFromHead(Item orgUnit) {
         String headSciper = directorSciper(orgUnit);
 
-        Optional<PersonDTO> epflPersonOption = epflApiClient.getPerson(headSciper, EpflApiClient.Language.EN);
+        Optional<PersonDTO> epflPersonOption;
+        try {
+            epflPersonOption = epflApiClient.getPerson(headSciper, EpflApiClient.Language.EN);
+        } catch (RuntimeException e) {
+            logInfo("Error while getting acronym from head of unit: " + e.getMessage());
+            return false;
+        }
         if (epflPersonOption.isPresent()) {
             PersonDTO epflPerson = epflPersonOption.get();
             PersonDTO.Accred epflPersonAccred = Arrays.stream(epflPerson.getAccreds())
@@ -553,7 +576,13 @@ public class SynchronizationOfOrgUnitsScript
         if (metadataValue == null) {
             return false;
         }
-        return epflApiClient.getOrgUnit(metadataValue.getValue(), EpflApiClient.Language.EN).isPresent();
+        try
+        {
+            return epflApiClient.getOrgUnit(metadataValue.getValue(), EpflApiClient.Language.EN).isPresent();
+        } catch (RuntimeException e) {
+            logInfo("Unable to find orgunit from epfl " + metadataValue.getValue() + ": " + e.getMessage());
+            return false;
+        }
     }
 
     private MetadataValue getMetadataValue(Item orgUnit, String schema, String element, String qualifier) {
