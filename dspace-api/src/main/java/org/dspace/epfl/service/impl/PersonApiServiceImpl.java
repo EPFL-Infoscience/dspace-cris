@@ -173,7 +173,8 @@ public class PersonApiServiceImpl implements PersonApiService {
         return affiliationMetadataValues;
     }
 
-    private List<MetadataValueDTO> getAffiliationValues(Context context, Accred accred, String positionField, String affiliationField,
+    private List<MetadataValueDTO> getAffiliationValues(Context context, Accred accred, String positionField,
+                                                        String affiliationField,
                                                         int place) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
@@ -318,9 +319,10 @@ public class PersonApiServiceImpl implements PersonApiService {
     private void setOwner(Context context, Item item, EPerson ePerson) {
         try {
             itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
-            itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(),
+            itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getFullName(),
                                     ePerson.getID().toString(), CF_ACCEPTED);
-        } catch (SQLException e) {
+            itemService.update(context, item);
+        } catch (AuthorizeException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
