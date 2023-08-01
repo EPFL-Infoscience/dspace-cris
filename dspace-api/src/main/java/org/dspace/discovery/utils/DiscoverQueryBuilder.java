@@ -21,6 +21,7 @@ import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.dspace.discovery.DiscoverFacetField;
@@ -33,6 +34,7 @@ import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
+import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
@@ -41,6 +43,7 @@ import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFunctionConfiguration;
 import org.dspace.discovery.configuration.MultiLanguageDiscoverSearchFilterFacet;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.discovery.indexobject.factory.IndexFactory;
 import org.dspace.discovery.utils.parameter.QueryBuilderSearchFilter;
 import org.dspace.services.ConfigurationService;
@@ -53,6 +56,9 @@ public class DiscoverQueryBuilder implements InitializingBean {
 
     @Autowired
     private SearchService searchService;
+
+    @Autowired
+    private DiscoveryConfigurationUtilsService discoveryConfigurationUtilsService;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -305,25 +311,19 @@ public class DiscoverQueryBuilder implements InitializingBean {
     }
 
     private DiscoverQuery buildBaseQueryForConfiguration(DiscoveryConfiguration discoveryConfiguration,
-        IndexableObject scope) {
-
+                                                         IndexableObject scope) {
         DiscoverQuery queryArgs = new DiscoverQuery();
         queryArgs.setDiscoveryConfigurationName(discoveryConfiguration.getId());
 
-        String[] queryArray = discoveryConfiguration.getDefaultFilterQueries()
-            .toArray(new String[discoveryConfiguration.getDefaultFilterQueries().size()]);
-
-        if (scope != null && discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration) {
-            if (queryArray != null) {
-                for (int i = 0; i < queryArray.length; i++) {
-                    queryArray[i] = MessageFormat.format(queryArray[i], scope.getID());
-                }
-            } else {
-                log.warn("you are trying to set queries parameters on an empty queries list");
-            }
+        if (scope == null || !(discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration)) {
+            queryArgs.addFilterQueries(discoveryConfiguration.getDefaultFilterQueries().toArray(new String[0]));
+            return queryArgs;
         }
 
-        queryArgs.addFilterQueries(queryArray);
+        Item item = ((IndexableItem) scope).getIndexedObject();
+        discoveryConfigurationUtilsService.processAndAddDefaultQueries(
+            discoveryConfiguration.getDefaultFilterQueries(), item, queryArgs);
+
         return queryArgs;
     }
 
