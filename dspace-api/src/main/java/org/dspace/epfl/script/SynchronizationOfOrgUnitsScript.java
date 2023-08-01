@@ -88,6 +88,8 @@ public class SynchronizationOfOrgUnitsScript
 
     private List<String> acronyms = List.of();
 
+    private String email;
+
     private Map<String, Item> createdAcronyms = new HashMap<>();
 
     @Override
@@ -116,6 +118,7 @@ public class SynchronizationOfOrgUnitsScript
         if (StringUtils.isNotBlank(acronyms)) {
             this.acronyms = List.of(StringUtils.split(acronyms, ","));
         }
+        email = commandLine.getOptionValue("e");
     }
 
     @Override
@@ -162,10 +165,18 @@ public class SynchronizationOfOrgUnitsScript
     private void syncOrgUnit(Item orgUnit) {
 
         String acronym = getAcronym(orgUnit);
-        OrgUnitDTO epflOrgUnit = epflApiClient.getOrgUnit(acronym, EpflApiClient.Language.EN).orElseThrow();
+        OrgUnitDTO epflOrgUnit;
+        try {
+            epflOrgUnit = epflApiClient.getOrgUnit(acronym, EpflApiClient.Language.EN).orElseThrow();
+        } catch (RuntimeException e) {
+            logInfo("An exception occurred while getting data for " + acronym + ": " + e.getMessage() +
+                ", unit not synchronized");
+            return;
+        }
         List<MetadataValueDTO> metadataValues = orgUnitApiService.getMetadataValues(acronym);
         if (metadataValues.isEmpty()) {
             logInfo("Unable to update metadata for acronym " + acronym);
+            return;
         }
         logInfo("Synchronization for orgUnit with acronym " + acronym + " is started");
 
@@ -597,9 +608,14 @@ public class SynchronizationOfOrgUnitsScript
     }
 
     private void assignCurrentUserInContext() throws SQLException {
+        if (StringUtils.isNotBlank(this.email)) {
+            EPerson eperson = ePersonService.findByEmail(context, this.email);
+            context.setCurrentUser(eperson);
+            return;
+        }
         UUID uuid = getEpersonIdentifier();
         if (uuid != null) {
-            EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
+            EPerson ePerson = ePersonService.find(context, uuid);
             context.setCurrentUser(ePerson);
         }
     }

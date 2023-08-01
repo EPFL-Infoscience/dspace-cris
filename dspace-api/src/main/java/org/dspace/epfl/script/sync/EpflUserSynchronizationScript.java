@@ -69,6 +69,8 @@ public class EpflUserSynchronizationScript
     private int createdPersonCount = 0;
     private int updatedPersonCount = 0;
 
+    private String email;
+
     private Context context;
     private ResearcherProfileService researcherProfileService;
     private EPersonServiceImpl ePersonService;
@@ -104,6 +106,7 @@ public class EpflUserSynchronizationScript
         groupService = EPersonServiceFactory.getInstance().getGroupService();
         inputFile = commandLine.getOptionValue('f');
         query = commandLine.getOptionValue('q');
+        email = commandLine.getOptionValue('e');
 
 
         log = "";
@@ -300,7 +303,7 @@ public class EpflUserSynchronizationScript
         EPerson newEPerson = ePersonService.create(context);
 
         newEPerson.setNetid(epflPerson.getSciper() + "@epfl.ch");
-        newEPerson.setEmail(epflPerson.getEmail());
+        newEPerson.setEmail(Optional.ofNullable(epflPerson.getEmail()).orElse(epflPerson.getSciper() + "@epfl.ch"));
         newEPerson.setFirstName(context, epflPerson.getFirstname());
         newEPerson.setLastName(context, epflPerson.getName());
         newEPerson.setCanLogIn(true);
@@ -344,9 +347,14 @@ public class EpflUserSynchronizationScript
     }
 
     private void assignCurrentUserInContext() throws SQLException {
+        if (StringUtils.isNotBlank(this.email)) {
+            EPerson eperson = ePersonService.findByEmail(context, this.email);
+            context.setCurrentUser(eperson);
+            return;
+        }
         UUID uuid = getEpersonIdentifier();
         if (uuid != null) {
-            EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
+            EPerson ePerson = ePersonService.find(context, uuid);
             context.setCurrentUser(ePerson);
         }
     }

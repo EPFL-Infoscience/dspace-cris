@@ -58,6 +58,10 @@ public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchr
             options.getOption("q").setType(String.class);
             options.getOption("q").setRequired(false);
 
+            options.addOption("e", "email", true, "optional email of the ePerson performing this action");
+            options.getOption("e").setType(String.class);
+            options.getOption("e").setRequired(false);
+
             super.options = options;
         }
         return options;
