@@ -390,4 +390,22 @@
         <qualifier>description</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier />
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier>query</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier>curator</qualifier>
+    </dc-type>
+
 </dspace-dc-types>
