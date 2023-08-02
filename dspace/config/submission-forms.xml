@@ -163,6 +163,56 @@
           <hint />
         </field>
       </row>
+    </form>
+    <form name="patent-crispatent-document-kind">
+      <row>
+        <field>
+          <dc-schema>crispatent</dc-schema>
+          <dc-element>document</dc-element>
+          <dc-qualifier>kind</dc-qualifier>
+          <label>Kind Code</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter the kind code.</required>
+          <style>col-xs-12 col-md-6</style>
+          <hint />
+        </field>
+        <field>
+          <dc-schema>crispatent</dc-schema>
+          <dc-element>document</dc-element>
+          <dc-qualifier>issueDate</dc-qualifier>
+          <label>Publication Date</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter the publication date.</required>
+          <style>col-xs-12 col-md-6</style>
+          <hint />
+        </field>
+        <field>
+          <dc-schema>crispatent</dc-schema>
+          <dc-element>document</dc-element>
+          <dc-qualifier>title</dc-qualifier>
+          <label>Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-12</style>
+          <hint />
+        </field>
+        <field>
+          <dc-schema>crispatent</dc-schema>
+          <dc-element>document</dc-element>
+          <dc-qualifier>description</dc-qualifier>
+          <label>Abstract</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-12</style>
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="person-oairecerif-person-affiliation">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
@@ -818,8 +868,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
-          <readonly>all</readonly>
           <hint />
+          <readonly>all</readonly>
         </field>
         <field>
           <dc-schema>oairecerif</dc-schema>
@@ -830,8 +880,8 @@
           <repeatable>false</repeatable>
           <required>You must enter at least the organisation of your affiliation.</required>
           <style>col-xs-12 col-md-6 col-lg-3</style>
-          <readonly>all</readonly>
           <hint />
+          <readonly>all</readonly>
         </field>
         <field>
           <dc-schema>oairecerif</dc-schema>
@@ -842,8 +892,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
-          <readonly>all</readonly>
           <hint />
+          <readonly>all</readonly>
         </field>
         <field>
           <dc-schema>oairecerif</dc-schema>
@@ -852,10 +902,10 @@
           <label>End Date</label>
           <input-type>date</input-type>
           <repeatable>false</repeatable>
-          <readonly>all</readonly>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
+          <readonly>all</readonly>
         </field>
       </row>
     </form>
@@ -1163,8 +1213,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>textarea</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>Enter the abstract of the item.</hint>
           <language value-pairs-name="supported_languages">true</language>
+          <hint>Enter the abstract of the item.</hint>
         </field>
       </row>
       <row>
@@ -1176,9 +1226,9 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>textarea</input-type>
           <repeatable>true</repeatable>
           <required />
+          <language value-pairs-name="supported_languages">true</language>
           <hint>What programs and/or software are required to open the data files included with your submission? If proprietary, include open-source alternatives.</hint>
           <type-bind>product-coar-types:c_ddb1,product-coar-types:ACF7-8YT9,product-coar-types:c_cb28,product-coar-types:FXF3-D3G7,product-coar-types:AM6W-6QAW,product-coar-types:63NG-B465,product-coar-types:A8F1-NPV9,product-coar-types:H41Y-FW7B,product-coar-types:DD58-GFSX,product-coar-types:FF4C-28RK,product-coar-types:CQMR-7K63,product-coar-types:W2XT-7017,product-coar-types:NHD0-W6SY,product-coar-types:c_5ce6,product-coar-types:QH80-2R4E,</type-bind>
-          <language value-pairs-name="supported_languages">true</language>
         </field>
       </row>
       <row>
@@ -1240,8 +1290,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>Optionally enter an additional title of the item.</hint>
           <language value-pairs-name="supported_languages">true</language>
+          <hint>Optionally enter an additional title of the item.</hint>
         </field>
       </row>
       <row>
@@ -1252,8 +1302,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>textarea</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>Optionally add a note or description</hint>
           <language value-pairs-name="supported_languages">true</language>
+          <hint>Optionally add a note or description</hint>
         </field>
       </row>
       <row>
@@ -1677,6 +1727,15 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
+          <dc-schema>crispatent</dc-schema>
+          <dc-element>kind</dc-element>
+          <label>Kind Code</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The kind code</hint>
+        </field>
+        <field>
           <dc-schema>dc</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>applicationnumber</dc-qualifier>
@@ -1774,6 +1833,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required>You must select a patent type</required>
           <hint>Select the type of content of the patent.</hint>
           <vocabulary>patent-coar-types</vocabulary>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>crispatent</dc-schema>
+          <dc-element>document</dc-element>
+          <dc-qualifier>kind</dc-qualifier>
+          <label>Patent History</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
         </field>
       </row>
       <row>

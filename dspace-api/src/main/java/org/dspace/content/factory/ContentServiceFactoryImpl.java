@@ -34,6 +34,7 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.submit.model.AccessConditionConfigurationService;
+import org.dspace.unpaywall.service.UnpaywallService;
 import org.dspace.workflow.WorkflowItemService;
 import org.dspace.workflow.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private WorkflowService workflowService;
     @Autowired
     private AccessConditionConfigurationService accessConditionConfigurationService;
+    @Autowired(required = true)
+    private UnpaywallService unpaywallService;
 
     @Override
     public List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices() {
@@ -227,5 +230,10 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Override
     public WorkflowService getWorkflowService() {
         return workflowService;
+    }
+
+    @Override
+    public UnpaywallService getUnpaywallService() {
+        return unpaywallService;
     }
 }
