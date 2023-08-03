@@ -919,7 +919,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find PoolTask and ClaimedTask -->
-                <value>(search.resourcetype:PoolTask OR search.resourcetype:ClaimedTask) AND latestVersion:true</value>
+                <value>(search.resourcetype:PoolTask OR search.resourcetype:ClaimedTask) AND -latestVersion:false</value>
             </list>
         </property>
         <!--Default result per page  -->
