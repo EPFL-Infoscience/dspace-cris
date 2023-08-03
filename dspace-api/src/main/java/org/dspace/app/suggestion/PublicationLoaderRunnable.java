@@ -13,12 +13,14 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.suggestion.oaire.OAIREPublicationLoader;
+import org.dspace.app.suggestion.orcid.OrcidPublicationLoader;
 import org.dspace.app.suggestion.pubmed.PubmedPublicationLoader;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DCDate;
@@ -155,6 +157,10 @@ public class PublicationLoaderRunnable
                 publicationLoader = new DSpace().getServiceManager().getServiceByName(
                     "pubmedPublicationLoader", PubmedPublicationLoader.class);
                 break;
+            case "orcid" :
+                publicationLoader = new DSpace().getServiceManager().getServiceByName(
+                    "orcidPublicationLoader", OrcidPublicationLoader.class);
+                break;
             default:
                 throw new IllegalArgumentException("IllegalArgumentException: " +
                     "Provider for: " + loader + " couldn't be found");
@@ -208,6 +214,8 @@ public class PublicationLoaderRunnable
         discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.setMaxResults(20);
         discoverQuery.addFilterQueries("dspace.entity.type:Person");
+        Optional.of(loaderFilterQueries()).filter(StringUtils::isNotBlank)
+                    .ifPresent(discoverQuery::addFilterQueries);
 
         String lastImportMetadataField = getLastImportMetadataField();
         if (withLastImport) {
@@ -221,7 +229,14 @@ public class PublicationLoaderRunnable
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
     }
 
-    private void setLastImportMetadataValue(Item item) {
+    private String loaderFilterQueries() {
+        if (loader.equals("orcid")) {
+            return "person.identifier.orcid:*";
+        }
+        return "";
+    }
+
+        private void setLastImportMetadataValue(Item item) {
         try {
             item = context.reloadEntity(item);
             String metadataField = "cris.lastimport.loader-" + loader;
