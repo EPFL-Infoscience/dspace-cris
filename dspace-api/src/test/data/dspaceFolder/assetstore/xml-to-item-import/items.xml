@@ -1,0 +1,31 @@
+<collection xmlns="http://ead.nb.admin.ch/web/standards/slb/MARC21/MARC21slim.xsd">
+<record>
+  <datafield tag="024" ind1="7" ind2=" ">
+   <subfield code="a">10.5075/epfl-thesis-10200</subfield>
+   <subfield code="2">doi</subfield>
+  </datafield>
+  <datafield tag="041" ind1=" " ind2=" ">
+   <subfield code="a">eng</subfield>
+  </datafield>
+  <datafield tag="088" ind1=" " ind2=" ">
+   <subfield code="a">10200</subfield>
+  </datafield>
+  <datafield tag="245" ind1=" " ind2=" ">
+   <subfield code="a">Expanding computational biochemistry towards complex and non-natural compounds</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+   <subfield code="a">Lausanne</subfield>
+   <subfield code="b">EPFL</subfield>
+   <subfield code="c">2023</subfield>
+  </datafield>
+</record>
+<record>
+  <datafield tag="024" ind1="7" ind2=" ">
+   <subfield code="a">10.5075/epfl-thesis-10200</subfield>
+   <subfield code="2">doi</subfield>
+  </datafield>
+    <datafield tag="245" ind1=" " ind2=" ">
+   <subfield code="a">Expanding computational biochemistry towards complex and non-natural compounds</subfield>
+  </datafield>
+</record>
+</collection>

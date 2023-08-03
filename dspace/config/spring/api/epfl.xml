@@ -22,8 +22,11 @@
     
     <bean class="org.dspace.epfl.client.EpflItemsClientImpl" />
     <bean class="org.dspace.epfl.script.service.impl.ItemsS3ServiceImpl" />
+    <bean class="org.dspace.epfl.script.service.impl.BitstreamUploadS3ServiceImpl" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportSimpleReader" />
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamTitleReader" />
     
     <bean class="org.dspace.epfl.script.service.impl.MarcXmlParserImpl" />
     
@@ -82,6 +85,11 @@
                 <entry key="dc.contributor.author" value="./subfield[@code = 'g']"/>
             </util:map>
         </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.author" value="will be generated::SCIPER-ID::"/>
+            </util:map>
+        </property>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
@@ -95,6 +103,11 @@
         <property name="authorityPaths">
             <util:map>
                 <entry key="dc.contributor.editor" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.editor" value="will be generated::SCIPER-ID::"/>
             </util:map>
         </property>
     </bean>
@@ -112,6 +125,11 @@
                 <entry key="dc.contributor.advisor" value="./subfield[@code = 'g']"/>
             </util:map>
         </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.advisor" value="will be generated::SCIPER-ID::"/>
+            </util:map>
+        </property>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
@@ -125,6 +143,11 @@
         <property name="authorityPaths">
             <util:map>
                 <entry key="dc.contributor.scientificeditor" value="./subfield[@code = 'g']"/>
+            </util:map>
+        </property>
+        <property name="authorityPrefixes">
+            <util:map>
+                <entry key="dc.contributor.scientificeditor" value="will be generated::SCIPER-ID::"/>
             </util:map>
         </property>
     </bean>
@@ -144,7 +167,7 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="dc.relation.type" value="./subfield[@code = '2']"/>
-                <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
     </bean>
@@ -166,6 +189,11 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportKeywordsReader" >
         <property name="alternativeMetadataField" value="epfl.tto" />
         <property name="prefix" value="TTO:" />
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
+        <property name="readerName" value="coarVersion" />
+        <property name="propertiesPath" value="crosswalks/mapConverter-coarVersions.properties" />
     </bean>
     
 </beans>

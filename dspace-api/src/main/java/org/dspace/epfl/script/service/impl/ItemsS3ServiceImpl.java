@@ -42,6 +42,11 @@ public class ItemsS3ServiceImpl implements ItemsS3Service {
         return itemsClient.get(key);
     }
 
+    @Override
+    public String getCreationDate(String id) {
+        return itemsClient.getCreationDate(id);
+    }
+
     private <T> Stream<T> streamOf(Iterator<T> iterator) {
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
     }

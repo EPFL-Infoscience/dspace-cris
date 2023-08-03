@@ -96,7 +96,7 @@
                             </property>
                             <property name="submissionDefinition" value="orgunit-edit" />
                         </bean>
-<!--                         <bean class="org.dspace.content.edit.EditItemMode">
+                        <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="DIRECTOR" />
                             <property name="security">
                               <value type="org.dspace.content.security.CrisSecurity">
@@ -109,7 +109,7 @@
                             		<value>crisou.director</value>
                             	</list>
                             </property>
-                        </bean> -->
+                        </bean>
                     </list>
                 </entry>
                 <entry key="patent">
@@ -188,6 +188,19 @@
                                 </value>
                             </property>
                             <property name="submissionDefinition" value="event-edit" />
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="content">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULL" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="content-edit" />
                         </bean>
                     </list>
                 </entry>

@@ -9,8 +9,11 @@ package org.dspace.xmlworkflow;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
@@ -44,6 +48,7 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -141,6 +146,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
     protected EventService eventService;
     @Autowired(required = true)
     private EPersonService ePersonService;
+    @Autowired(required = true)
+    protected MetadataValueService metadataValueService;
 
     protected XmlWorkflowServiceImpl() {
 
@@ -255,10 +262,35 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
             }
 
+            removeRejectMetadata(context, myitem);
+
+            addStartDateMetadata(context, myitem);
             context.restoreAuthSystemState();
             return wfi;
         } catch (WorkflowConfigurationException e) {
             throw new WorkflowException(e);
+        }
+    }
+
+    private void addStartDateMetadata(Context context, Item myitem) throws SQLException, AuthorizeException {
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        df.setTimeZone(tz);
+        String date = df.format(new Date());
+
+        itemService.addMetadata(context, myitem,
+                "epfl", "workflow",
+                "startDateTime", null, date);
+        itemService.update(context, myitem);
+    }
+
+    private void removeRejectMetadata(Context context, Item myitem)
+            throws SQLException, AuthorizeException, IOException {
+        List<MetadataValue> metadataValues = itemService.getMetadata(myitem,"epfl", "workflow", "rejected", null);
+        if (metadataValues.size() > 0) {
+            MetadataValue metadataValue = metadataValueService.find(context, metadataValues.get(0).getID());
+            itemService.removeMetadataValues(context, myitem, List.of(metadataValue));
+            itemService.update(context, myitem);
         }
     }
 
@@ -1190,6 +1222,53 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
         c.restoreAuthSystemState();
         return wsi;
+    }
+
+    @Override
+    public void restartWorkflow(Context context, XmlWorkflowItem wi, EPerson decliner, String provenance)
+        throws SQLException, AuthorizeException, IOException, WorkflowException {
+        if (!authorizeService.isAdmin(context)) {
+            throw new AuthorizeException("You must be an admin to restart a workflow");
+        }
+        context.turnOffAuthorisationSystem();
+
+        // rejection provenance
+        Item myitem = wi.getItem();
+
+        // Here's what happened
+        String provDescription =
+            provenance + " Declined by " + getEPersonName(decliner) + " on " + DCDate.getCurrent().toString() +
+                " (GMT) ";
+
+        // Add to item as a DC field
+        itemService
+            .addMetadata(context, myitem, MetadataSchemaEnum.DC.getName(),
+                "description", "provenance", "en", provDescription);
+
+        //Clear any workflow schema related metadata
+        itemService
+            .clearMetadata(context, myitem, WorkflowRequirementsService.WORKFLOW_SCHEMA, Item.ANY, Item.ANY, Item.ANY);
+
+        itemService.update(context, myitem);
+
+        // remove policy for controller
+        removeUserItemPolicies(context, myitem, decliner);
+        revokeReviewerPolicies(context, myitem);
+
+        // convert into personal workspace
+        WorkspaceItem wsi = returnToWorkspace(context, wi);
+
+        // Because of issue of xmlWorkflowItemService not realising wfi wrapper has been deleted
+        context.commit();
+        wsi = context.reloadEntity(wsi);
+
+        log.info(LogHelper.getHeader(context, "decline_workflow", "workflow_item_id="
+            + wi.getID() + "item_id=" + wi.getItem().getID() + "collection_id=" + wi.getCollection().getID() +
+            "eperson_id=" + decliner.getID()));
+
+        // Restart workflow
+        this.startWithoutNotify(context, wsi);
+        context.restoreAuthSystemState();
     }
 
     /**
