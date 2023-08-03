@@ -8,17 +8,23 @@
 package org.dspace.epfl.script.service.impl;
 
 import static java.util.stream.Collectors.toMap;
+import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -26,11 +32,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -38,16 +39,26 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.content.authority.Choice;
+import org.dspace.content.authority.ChoiceAuthority;
+import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.dto.ResourcePolicyDTO;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.epfl.script.model.ItemsImportMapping;
 import org.dspace.epfl.script.model.ItemsImportMapping.Bitstreams;
 import org.dspace.epfl.script.model.ItemsImportMapping.MetadataField;
 import org.dspace.epfl.script.reader.ItemsImportMetadataFieldReader;
+import org.dspace.epfl.script.service.ItemsS3Service;
 import org.dspace.epfl.script.service.MarcXmlParser;
+import org.dspace.services.ConfigurationService;
+import org.dspace.util.MultiFormatDateParser;
 import org.dspace.utils.DSpace;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -55,9 +66,28 @@ import org.xml.sax.SAXException;
 
 public class MarcXmlParserImpl implements MarcXmlParser {
 
+    public static final String TYPE_FILTER_PROPERTY_PREFIX = "epfl.items-import.types";
+
+    public static final String TYPE_VOCABULARY_PROPERTY_PREFIX = "epfl.items-import.vocabulary";
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Autowired
+    private ItemsS3Service itemsS3Service;
+
+    @Autowired
+    private ChoiceAuthorityService choiceAuthorityService;
+
     private DocumentBuilder documentBuilder;
 
     private Map<String, ItemsImportMetadataFieldReader> readers;
+
+    private Map<String, String> typeFilters;
+
+    private Map<String, String> typeVocabularies;
+
+    private DateFormat CREATION_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     private XPath xPath;
 
@@ -70,11 +100,20 @@ public class MarcXmlParserImpl implements MarcXmlParser {
             throw new RuntimeException(e);
         }
 
+        typeFilters = readAllTypeFilters();
+
+        typeVocabularies = readAllTypeVocabularies();
+
         readers = new DSpace().getServiceManager().getServicesByType(ItemsImportMetadataFieldReader.class)
             .stream().collect(toMap(ItemsImportMetadataFieldReader::getReaderName, Function.identity()));
 
         xPath = XPathFactory.newInstance().newXPath();
 
+    }
+
+    @Override
+    public Set<String> getAllRecordTypes() {
+        return typeFilters.keySet();
     }
 
     @Override
@@ -96,29 +135,83 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     }
 
     @Override
-    public Node parse(InputStream source, ItemsImportMapping mapping) {
+    public Node parse(InputStream source, String recordXPath) {
         try {
             Document document = documentBuilder.parse(source);
-            return getNode(document, mapping.getItemXPath());
+            return getNode(document, recordXPath);
         } catch (SAXException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public ItemDTO readSingleItem(Context context, String id, InputStream source, ItemsImportMapping mapping) {
+    public Optional<String> getRecordType(Node record) {
+        for (String filterName : typeFilters.keySet()) {
+            String filter = typeFilters.get(filterName);
+            if (evaluateFilter(record, filter)) {
+                return Optional.of(filterName);
+            }
+        }
+        return Optional.empty();
+    }
 
-        Node record = parse(source, mapping);
+    @Override
+    public ItemDTO readSingleItem(Context context, String id, Node record, ItemsImportMapping mapping) {
 
-        printDocument(record, System.out);
+        String recordType = getRecordType(record)
+            .orElseThrow(() -> new IllegalArgumentException("No type found for the given record"));
+
+        return readSingleItem(context, id, recordType, record, mapping);
+    }
+
+    @Override
+    public ItemDTO readSingleItem(Context context, String id, String recordType, Node record,
+        ItemsImportMapping mapping) {
 
         List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
 
-        List<BitstreamDTO> bitstreams = readBitstreams(context, record, mapping);
+        metadataValues.addAll(getCreationDateMetadataValues(id));
+
+        List<BitstreamDTO> bitstreams = readBitstreams(context, id, record, mapping);
 
         String submitter = readSubmitter(context, record, mapping);
 
         return new ItemDTO("LEGACY-ID::" + id, submitter, metadataValues, bitstreams);
+
+    }
+
+    private MetadataValueDTO getItemType(Context context, String recordType) {
+
+        String vocabulary = typeVocabularies.get(recordType);
+
+        if (StringUtils.isBlank(vocabulary)) {
+            throw new IllegalStateException("No vocabulary defined for record type " + recordType);
+        }
+
+        ChoiceAuthority authority = choiceAuthorityService.getChoiceAuthorityByAuthorityName(vocabulary.split(":")[0]);
+
+        Choice choice = authority.getChoice(vocabulary, context.getCurrentLocale().toString());
+        if (choice == null) {
+            throw new IllegalStateException("No choice found by vocabulary " + vocabulary);
+        }
+
+        return new MetadataValueDTO("dc.type", choice.value, vocabulary, Choices.CF_ACCEPTED);
+    }
+
+    @Override
+    public List<List<MetadataValueDTO>> readItems (Context context, InputStream source,
+                                                   ItemsImportMapping mapping, String expression) {
+        try {
+            Document document = documentBuilder.parse(source);
+            NodeList nodeList = getNodeList(document, expression);
+            List<List<MetadataValueDTO>> records = new ArrayList<List<MetadataValueDTO>>();
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                records.add(readItemMetadataValues(context,nodeList.item(i),mapping));
+            }
+            return records;
+        } catch (SAXException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -126,7 +219,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         ItemsImportMapping mapping) {
 
         try {
-            Node record = parse(source, mapping);
+            Node record = parse(source, mapping.getItemXPath());
             return readItemMetadataValues(context, record, mapping);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -136,11 +229,12 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     @Override
     public List<MetadataValueDTO> readItemMetadataValues(Context context, Node record, ItemsImportMapping mapping) {
-        return readMetadataValues(context, record, mapping.getMetadataFields().getMetadataFields());
+        String recordType = getRecordType(record).orElse(null);
+        return readItemMetadataValues(context, record, recordType, mapping);
     }
 
     @Override
-    public List<BitstreamDTO> readBitstreams(Context context, Node record, ItemsImportMapping mapping) {
+    public List<BitstreamDTO> readBitstreams(Context context, String id, Node record, ItemsImportMapping mapping) {
 
         String bitstreamXPath = mapping.getBitstreams().getBitstreamXPath();
         if (StringUtils.isBlank(bitstreamXPath)) {
@@ -153,7 +247,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         for (int i = 0; i < bitstreamNodeList.getLength(); i++) {
             Node bitstreamNode = bitstreamNodeList.item(i);
-            bitstreams.add(readBitstream(context, bitstreamNode, mapping));
+            readBitstream(context, id, bitstreamNode, i, mapping).ifPresent(bitstreams::add);
         }
 
         return bitstreams;
@@ -168,27 +262,78 @@ public class MarcXmlParserImpl implements MarcXmlParser {
             .orElse(null);
     }
 
-    private BitstreamDTO readBitstream(Context context, Node bitstreamNode, ItemsImportMapping mapping) {
+    private Optional<BitstreamDTO> readBitstream(Context context, String id, Node bitstreamNode, int position,
+        ItemsImportMapping mapping) {
 
         Bitstreams bitstreamsMapping = mapping.getBitstreams();
 
-        String location = getSingleValue(bitstreamNode, bitstreamsMapping.getUriXPath());
-
-        List<MetadataValueDTO> metadataValues = readMetadataValues(context, bitstreamNode,
+        List<MetadataValueDTO> metadataValues = readMetadataValues(context, bitstreamNode, null,
             bitstreamsMapping.getMetadataFields().getMetadataFields());
 
-        return new BitstreamDTO("ORIGINAL", location, metadataValues);
+        String fileName = getFileNameFromMetadataValues(metadataValues);
+        if (StringUtils.isBlank(fileName)) {
+            return Optional.empty();
+        }
+
+        List<ResourcePolicyDTO> policies = readResourcePolicies(bitstreamNode, bitstreamsMapping);
+
+        String location = getBitstreamUrl() + id + "_" + fileName;
+        String checksum = getSingleValue(bitstreamNode, bitstreamsMapping.getChecksumXPath());
+
+        return Optional.of(new BitstreamDTO("ORIGINAL", location, checksum, metadataValues, policies));
+
     }
 
-    private List<MetadataValueDTO> readMetadataValues(Context context, Node node, List<MetadataField> fields) {
+    private List<ResourcePolicyDTO> readResourcePolicies(Node bitstreamNode, Bitstreams bitstreamsMapping) {
+
+        List<ResourcePolicyDTO> policies = new ArrayList<ResourcePolicyDTO>();
+
+        String accessCondition = getSingleValue(bitstreamNode, bitstreamsMapping.getAccessConditionXPath());
+
+        if (StringUtils.isEmpty(accessCondition)) {
+            return policies;
+        }
+
+        String name = "openaccess";
+        Date startDate = null;
+
+        if (accessCondition.equalsIgnoreCase("Private") || accessCondition.equalsIgnoreCase("Role")) {
+            name = "reserved";
+        } else if (accessCondition.equalsIgnoreCase("Restricted")) {
+            name = "restricted";
+        } else if (accessCondition.toLowerCase().startsWith("embargo")) {
+            name = "embargo";
+            startDate = MultiFormatDateParser.parse(substringBetween(accessCondition, "(", ")"));
+        }
+
+        policies.add(new ResourcePolicyDTO(name, null, Constants.READ, TYPE_CUSTOM, startDate, null));
+
+        return policies;
+    }
+
+    private String substringBetween(String str, String firstDelimiter, String secondDelimiter) {
+        return str.substring(str.indexOf(firstDelimiter) + 1, str.indexOf(secondDelimiter)).trim();
+    }
+
+    private List<MetadataValueDTO> readItemMetadataValues(Context context, Node record, String recordType,
+        ItemsImportMapping mapping) {
+        return readMetadataValues(context, record, recordType, mapping.getMetadataFields().getMetadataFields());
+    }
+
+    private List<MetadataValueDTO> readMetadataValues(Context context, Node record, String recordType,
+        List<MetadataField> fields) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
+
+        if (recordType != null) {
+            metadataValues.add(getItemType(context, recordType));
+        }
 
         for (ItemsImportMapping.MetadataField metadataField : fields) {
 
             ItemsImportMetadataFieldReader reader = readers.get(metadataField.getReader());
 
-            NodeList nodeList = getNodeList(node, metadataField.getXPath());
+            NodeList nodeList = getNodeList(record, metadataField.getXPath());
 
             List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
 
@@ -197,6 +342,56 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         return metadataValues;
 
+    }
+
+    private List<MetadataValueDTO> getCreationDateMetadataValues(String id) {
+        String value = itemsS3Service.getCreationDate(id);
+        String[] metadataFields = getCreationDateMetadataFields();
+        return Arrays.stream(metadataFields)
+            .map(metadataField -> getCreationDateMetadataValue(metadataField, value))
+            .collect(Collectors.toList());
+    }
+
+    private MetadataValueDTO getCreationDateMetadataValue(String metadataField, String value) {
+
+        String dateFormat = getCreationDateFormat(metadataField);
+
+        if (StringUtils.isBlank(dateFormat)) {
+            return new MetadataValueDTO(metadataField, value);
+        }
+
+        Date creationDate = parseCreationDate(value);
+        return new MetadataValueDTO(metadataField, new SimpleDateFormat(dateFormat).format(creationDate));
+
+    }
+
+    private Date parseCreationDate(String creationDate) {
+        try {
+            return CREATION_DATE_FORMAT.parse(creationDate);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getCreationDateFormat(String metadataField) {
+        String field = StringUtils.replace(metadataField, ".", "-");
+        return configurationService.getProperty("epfl.items-import.creation-date." + field + ".format");
+    }
+
+    private String[] getCreationDateMetadataFields() {
+        return configurationService.getArrayProperty("epfl.items-import.creation-date.fields");
+    }
+
+    private String getBitstreamUrl() {
+        return configurationService.getProperty("epfl.items-import.upload-aws.url");
+    }
+
+    private String getFileNameFromMetadataValues(List<MetadataValueDTO> metadataValues) {
+        return metadataValues.stream()
+            .filter(metadataValue -> "dc.title".equals(metadataValue.getMetadataField()))
+            .map(MetadataValueDTO::getValue)
+            .findFirst()
+            .orElse(null);
     }
 
     private NodeList getNodeList(Object item, String expression) {
@@ -212,6 +407,14 @@ public class MarcXmlParserImpl implements MarcXmlParser {
             return (Node) xPath.compile(expression).evaluate(item, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new RuntimeException("An error occurs evaluating path " + expression, e);
+        }
+    }
+
+    private Boolean evaluateFilter(Node node, String path) {
+        try {
+            return (Boolean) xPath.compile(path).evaluate(node, XPathConstants.BOOLEAN);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + path, e);
         }
     }
 
@@ -243,22 +446,37 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         }
     }
 
-    private void printDocument(Node record, OutputStream out) {
-        try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+    private Map<String, String> readAllTypeFilters() {
 
-            transformer.transform(new DOMSource(record),
-                new StreamResult(new OutputStreamWriter(out, "UTF-8")));
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        Map<String, String> filters = new HashMap<>();
+
+        List<String> propertyKeys = configurationService.getPropertyKeys(TYPE_FILTER_PROPERTY_PREFIX);
+
+        for (String propertyKey : propertyKeys) {
+
+            String filter = configurationService.getProperty(propertyKey);
+            String filterName = StringUtils.removeStart(propertyKey, TYPE_FILTER_PROPERTY_PREFIX + ".");
+
+            filters.put(filterName, filter);
+
         }
+
+        return filters;
+    }
+
+    private Map<String, String> readAllTypeVocabularies() {
+
+        Map<String, String> vocabularies = new HashMap<>();
+
+        for (String recordType : getAllRecordTypes()) {
+            String vocabulary = configurationService.getProperty(TYPE_VOCABULARY_PROPERTY_PREFIX + "." + recordType);
+            if (StringUtils.isNotBlank(vocabulary)) {
+                vocabularies.put(recordType, vocabulary);
+            }
+        }
+
+        return vocabularies;
+
     }
 
 }

@@ -6,6 +6,7 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest.authorization.impl;
+
 import java.sql.SQLException;
 
 import org.dspace.app.rest.authorization.AuthorizationFeature;
@@ -15,6 +16,7 @@ import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.service.RelationshipManagementService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,14 +39,18 @@ public class CanManageRelationshipsFeature implements AuthorizationFeature {
     private AuthorizeService authorizeService;
 
     @Autowired
+    private RelationshipManagementService relationshipManagementService;
+
+    @Autowired
     private Utils utils;
 
     @Override
     public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException {
         if (object instanceof ItemRest) {
             DSpaceObject dSpaceObject = (DSpaceObject) utils.getDSpaceAPIObjectFromRest(context, object);
-            return authorizeService.authorizeActionBoolean(context, context.getCurrentUser(),
-                    dSpaceObject, Constants.WRITE, true);
+            boolean authorized = authorizeService.authorizeActionBoolean(context, context.getCurrentUser(),
+                                                                dSpaceObject, Constants.WRITE, true);
+            return authorized || relationshipManagementService.canManageRelationships(context, dSpaceObject);
         }
         return false;
     }

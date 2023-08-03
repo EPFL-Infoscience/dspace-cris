@@ -32,7 +32,7 @@
           <label>File type</label>
           <input-type value-pairs-name="bitstream_types">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required>You must select a file type for each file.</required>
           <hint />
         </field>
       </row>
@@ -67,7 +67,7 @@
           <label>File type</label>
           <input-type value-pairs-name="publication_bitstream_types">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required>You must select a file type for each file.</required>
           <hint />
         </field>
       </row>
@@ -84,10 +84,10 @@
       </row>
       <row>
         <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>licenseName</dc-element>
-          <label>Custom license name</label>
-          <input-type>onebox</input-type>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>version</dc-element>
+          <label>File version</label>
+          <input-type value-pairs-name="coar_versions">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -124,7 +124,7 @@
           <label>File type</label>
           <input-type value-pairs-name="product_bitstream_types">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required>You must select a file type for each file.</required>
           <hint />
         </field>
       </row>
@@ -136,18 +136,7 @@
           <input-type value-pairs-name="licenses">opendropdown</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>licenseName</dc-element>
-          <label>Custom license name</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
+          <hint>The &amp;lt;a href="https://vocabularies.coar-repositories.org/access_rights/" target="_blank"&amp;gt;Access Rights vocabulary&amp;lt;/a&amp;gt; defines concepts to declare the access status of a resource.</hint>
         </field>
       </row>
     </form>
@@ -181,16 +170,16 @@
           <label>File type</label>
           <input-type value-pairs-name="patent_bitstream_types">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required>You must select a file type for each file.</required>
           <hint />
         </field>
       </row>
       <row>
         <field>
           <dc-schema>oaire</dc-schema>
-          <dc-element>licenseCondition</dc-element>
+          <dc-element>version</dc-element>
           <label>License</label>
-          <input-type value-pairs-name="licenses">opendropdown</input-type>
+          <input-type value-pairs-name="coar_versions">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -200,7 +189,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>licenseName</dc-element>
-          <label>Custom license name</label>
+          <label>File version</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -462,7 +451,7 @@
           <label>Author</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter at least the author.</required>
+          <required></required>
           <hint>Enter the names of the authors of this item written as Last Name, First Name.</hint>
         </field>
       </row>
@@ -471,11 +460,47 @@
           <dc-schema>oairecerif</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>affiliation</dc-qualifier>
-          <label>Affiliation</label>
+          <label>Institution</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint>Enter the affiliation of the author as stated on the publication.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>affiliation</dc-element>
+          <dc-qualifier>orgunit</dc-qualifier>
+          <label>Unit or Lab</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter the affiliation unit of the author as stated on the publication.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>person</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>orcid</dc-qualifier>
+          <label>ORCID</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter the ORCID identifier of the author.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>corresponding</dc-qualifier>
+          <label>Corresponding Author?</label>
+          <input-type value-pairs-name="is_corresponding">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
         </field>
       </row>
     </form>
@@ -497,118 +522,217 @@
           <dc-schema>oairecerif</dc-schema>
           <dc-element>editor</dc-element>
           <dc-qualifier>affiliation</dc-qualifier>
-          <label>Affiliation</label>
+          <label>Institution</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint>Enter the affiliation of the editor as stated on the publication.</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>affiliation</dc-element>
+          <dc-qualifier>orgunit</dc-qualifier>
+          <label>Unit or Lab</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter the affiliation unit of the editor as stated on the publication.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>person</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>orcid</dc-qualifier>
+          <label>ORCID</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter the ORCID identifier of the author.</hint>
+        </field>
+      </row>
     </form>
-    <form name="publication_references-dc-relation-funding">
+    <form name="basic_information-dc-contributor-supervisor">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>supervisor</dc-qualifier>
+          <label>Supervisor</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter at least the author.</required>
+          <hint>The supervisor of the thesis.</hint>
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>author</dc-element>
+          <dc-qualifier>affiliation</dc-qualifier>
+          <label>Institution</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter the affiliation of the supervisor as stated on the publication.</hint>
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>affiliation</dc-element>
+          <dc-qualifier>orgunit</dc-qualifier>
+          <label>Unit or Lab</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter the affiliation unit of the supervisor as stated on the publication.</hint>
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>person</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>orcid</dc-qualifier>
+          <label>ORCID</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Enter the ORCID identifier of the supervisor.</hint>
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+      </row>
+    </form>
+    <form name="grants-dc-relation-funding">
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>funder</dc-element>
+          <label>Granting organization</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter at least the funder.</required>
+          <hint />
+        </field>
+      </row>
       <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>funding</dc-qualifier>
-          <label>Funding</label>
-          <input-type>onebox</input-type>
+          <label>Grant</label>
+          <input-type value-pairs-name="funders">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter at least the funding name.</required>
-          <hint>Acknowledge the funding received for this publication.</hint>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint>Enter the name of award. If the funding is not found in the system please enter the funding identifier / grant no</hint>
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>grantno</dc-qualifier>
-          <label>Grant Number / Funding identifier</label>
+          <label>Grant Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>If the funding is not found in the system please enter the funding identifier / grant no</hint>
+          <style>col-xs-12 col-md-4</style>
+          <hint />
         </field>
-      </row>
-    </form>
-    <form name="publication_references-dc-relation-product">
-      <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>product</dc-qualifier>
-          <label>Datasets or products</label>
+          <dc-schema>crisfund</dc-schema>
+          <dc-element>award</dc-element>
+          <dc-qualifier>uri</dc-qualifier>
+          <label>Grant URL</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
-        </field>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relationproduct</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>Type</label>
-          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required>epfl_relation_type</required>
+          <style>col-xs-12 col-md-4</style>
           <hint />
         </field>
       </row>
     </form>
-    <form name="product_references-dc-relation-funding">
+    <form name="thesis_awards-epfl-award">
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>funding</dc-qualifier>
-          <label>Funding</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter at least the funding name.</required>
-          <hint>Enter the name of funding, if any, that has supported this product</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>grantno</dc-qualifier>
-          <label>Grant Number / Funding identifier</label>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>award</dc-element>
+          <label>Award</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>If the funding is not found in the system please enter the funding identifier / grant no</hint>
+          <style>col-xs-12 col-md-8</style>
+          <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>award</dc-element>
+          <dc-qualifier>year</dc-qualifier>
+          <label>Award Year</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
         </field>
       </row>
     </form>
-    <form name="product_references-dc-relation-publication">
+    <form name="related_works-dc-relation-publication">
       <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationpublication</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Relation</label>
+          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-2</style>
+          <hint />
+        </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>publication</dc-qualifier>
-          <label>Publication</label>
+          <label>Publication title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required>You must enter at least the publication title / citation</required>
-          <style>col-xs-12 col-md-9</style>
-          <hint>Enter the publication title or citation, if any, that uses this product</hint>
+          <style>col-xs-12 col-md-6</style>
+          <hint>Link the item to one or more existent publication in the repository used or described by the publication</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>doi</dc-qualifier>
-          <label>DOI</label>
+          <dc-qualifier>identifier</dc-qualifier>
+          <label>DOI or URL</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <style>col-xs-12 col-md-3</style>
-          <hint>If the publication is not found in the system please enter the DOI identifier</hint>
+          <style>col-xs-12 col-md-4</style>
+          <hint>If the publication is not found in the system please enter a DOI or URL</hint>
         </field>
       </row>
     </form>
-    <form name="product_references-dc-relation-product">
+    <form name="related_works-dc-relation-product">
       <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationproduct</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Relation</label>
+          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-2</style>
+          <hint />
+        </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
@@ -617,17 +741,19 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
+          <style>col-xs-12 col-md-6</style>
+          <hint>Link the item to one or more existent dataset in the repository used or described by the publication</hint>
         </field>
         <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relationproduct</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>Type</label>
-          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>identifier</dc-qualifier>
+          <label>DOI or URL</label>
+          <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>epfl_relation_type</required>
-          <hint />
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint>If the dataset is not found in the system please enter a DOI or URL</hint>
         </field>
       </row>
     </form>
@@ -676,7 +802,7 @@
           <label>Type</label>
           <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required>epfl_relation_type</required>
+          <required />
           <hint />
         </field>
       </row>
@@ -692,6 +818,7 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
+          <readonly>all</readonly>
           <hint />
         </field>
         <field>
@@ -703,6 +830,7 @@
           <repeatable>false</repeatable>
           <required>You must enter at least the organisation of your affiliation.</required>
           <style>col-xs-12 col-md-6 col-lg-3</style>
+          <readonly>all</readonly>
           <hint />
         </field>
         <field>
@@ -714,6 +842,7 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
+          <readonly>all</readonly>
           <hint />
         </field>
         <field>
@@ -723,100 +852,7 @@
           <label>End Date</label>
           <input-type>date</input-type>
           <repeatable>false</repeatable>
-          <required />
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-      </row>
-    </form>
-    <form name="person-crisrp-qualification">
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>qualification</dc-element>
-          <label>Organisation name</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter the organisation</required>
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>qualification</dc-element>
-          <dc-qualifier>role</dc-qualifier>
-          <label>Qualification Title</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter the qualification title.</required>
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>qualification</dc-element>
-          <dc-qualifier>start</dc-qualifier>
-          <label>Start Date</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>qualification</dc-element>
-          <dc-qualifier>end</dc-qualifier>
-          <label>End Date</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-      </row>
-    </form>
-    <form name="person-crisrp-education">
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>education</dc-element>
-          <dc-qualifier>role</dc-qualifier>
-          <label>Degree/Title</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter the degree/title</required>
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>education</dc-element>
-          <label>Organisation name</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter the organisation</required>
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>education</dc-element>
-          <dc-qualifier>start</dc-qualifier>
-          <label>Start Date</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <style>col-xs-12 col-md-6 col-lg-3</style>
-          <hint />
-        </field>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>education</dc-element>
-          <dc-qualifier>end</dc-qualifier>
-          <label>End Date</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
+          <readonly>all</readonly>
           <required />
           <style>col-xs-12 col-md-6 col-lg-3</style>
           <hint />
@@ -875,29 +911,68 @@
         </field>
       </row>
     </form>
-    <form name="publication_bibliographic_details-dc-relation-publication">
+    <form name="conf_details-dc-relation-conference">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
-          <label>Part Of</label>
+          <dc-qualifier>conference</dc-qualifier>
+          <label>Conference Name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
+          <style>col-xs-12 col-md-4</style>
+          <hint />
+          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+        </field>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>conferencePlace</dc-qualifier>
+          <label>Conference Place</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint />
+          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+        </field>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>conferenceDate</dc-qualifier>
+          <label>Conference Date</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint />
+          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+        </field>
+      </row>
+    </form>
+    <form name="additional_fields-epfl-url">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>url</dc-element>
+          <label>URL</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-8</style>
+          <hint />
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>relationpublication</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>Type</label>
-          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
+          <dc-element>url</dc-element>
+          <dc-qualifier>description</dc-qualifier>
+          <label>Description</label>
+          <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
         </field>
       </row>
     </form>
@@ -972,6 +1047,19 @@
 it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>number</dc-qualifier>
+          <label>Thesis Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+      </row>
     </form>
     <form name="publication_type">
       <row>
@@ -1002,32 +1090,6 @@ it, please enter the types and the actual numbers or codes.</hint>
       <row>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>title</dc-element>
-          <dc-qualifier>alternative</dc-qualifier>
-          <label>Additional Titles</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>If the item has any alternative titles, please enter them here.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>issued</dc-qualifier>
-          <label>Date of Issue</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter at least the year.</required>
-          <hint>Please give the date of previous publication or public distribution.
-                        You can leave out the day and/or month if they aren't
-                        applicable.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
           <dc-qualifier>author</dc-qualifier>
           <label>Authors</label>
@@ -1047,6 +1109,49 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>The editors of this publication.</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794,publication-coar-types:c_3248,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>supervisor</dc-qualifier>
+          <label>Supervisors</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>The supervisors of this publication.</hint>
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>issued</dc-qualifier>
+          <label>Issue date</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter at least the year.</required>
+          <hint>Please give the date of previous publication or public distribution.
+                        You can leave out the day and/or month if they aren't
+                        applicable.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>publicDefenseYear</dc-qualifier>
+          <label>Public defense year</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required/>
+          <hint>Please give the date of the public defense of the thesis.
+                        You can leave out the day and/or month if they aren't
+                        applicable.</hint>
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
         </field>
       </row>
       <row>
@@ -1056,20 +1161,37 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-qualifier>abstract</dc-qualifier>
           <label>Abstract</label>
           <input-type>textarea</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint>Enter the abstract of the item.</hint>
+          <language value-pairs-name="supported_languages">true</language>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>usage</dc-qualifier>
+          <label>Usage notes</label>
+          <input-type>textarea</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>What programs and/or software are required to open the data files included with your submission? If proprietary, include open-source alternatives.</hint>
+          <type-bind>product-coar-types:c_ddb1,product-coar-types:ACF7-8YT9,product-coar-types:c_cb28,product-coar-types:FXF3-D3G7,product-coar-types:AM6W-6QAW,product-coar-types:63NG-B465,product-coar-types:A8F1-NPV9,product-coar-types:H41Y-FW7B,product-coar-types:DD58-GFSX,product-coar-types:FF4C-28RK,product-coar-types:CQMR-7K63,product-coar-types:W2XT-7017,product-coar-types:NHD0-W6SY,product-coar-types:c_5ce6,product-coar-types:QH80-2R4E,</type-bind>
+          <language value-pairs-name="supported_languages">true</language>
         </field>
       </row>
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>writtenAt</dc-element>
-          <label>Written At</label>
-          <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>jury</dc-qualifier>
+          <label>Jury</label>
+          <input-type>textarea</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint />
+          <hint>Enter the jury of the thesis</hint>
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
         </field>
       </row>
       <row>
@@ -1077,40 +1199,13 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>oaire</dc-schema>
           <dc-element>version</dc-element>
           <label>Version</label>
-          <input-type value-pairs-name="coar_versions">dropdown</input-type>
+          <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
+          <type-bind>product-coar-types:c_ddb1,product-coar-types:ACF7-8YT9,product-coar-types:c_cb28,product-coar-types:FXF3-D3G7,product-coar-types:AM6W-6QAW,product-coar-types:63NG-B465,product-coar-types:A8F1-NPV9,product-coar-types:H41Y-FW7B,product-coar-types:DD58-GFSX,product-coar-types:FF4C-28RK,product-coar-types:CQMR-7K63,product-coar-types:W2XT-7017,product-coar-types:NHD0-W6SY,product-coar-types:c_5ce6,product-coar-types:QH80-2R4E,</type-bind>
         </field>
       </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>workflow</dc-element>
-          <dc-qualifier>approved</dc-qualifier>
-          <label>Approved</label>
-          <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-          <visibility>workflow</visibility>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>workflow</dc-element>
-          <dc-qualifier>lateReview</dc-qualifier>
-          <label>Flagged for late review</label>
-          <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-          <visibility>workflow</visibility>
-        </field>
-      </row>
-    </form>
-    <form name="publication_indexing">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1118,7 +1213,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-qualifier>iso</dc-qualifier>
           <label>Language</label>
           <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint>Select the language of the main content of the item.  If the language does not appear in the list, please select 'Other'.  If the content does not really have a language (for example, if it is a dataset or an image) please select 'N/A'.</hint>
         </field>
@@ -1127,38 +1222,79 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>subject</dc-element>
-          <label>Subject Keywords</label>
+          <label>Keywords</label>
           <input-type>tag</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint>Enter appropriate subject keywords or phrases.</hint>
         </field>
       </row>
-      <row>
-        <field>
-          <dc-schema>datacite</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>fos</dc-qualifier>
-          <label>Fields of Science and Technology (OECD)</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-          <vocabulary closed="true">oecd</vocabulary>
-        </field>
-      </row>
     </form>
-    <form name="publication_bibliographic_details">
+    <form name="additional_fields">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>type</dc-element>
-          <label>Type</label>
+          <dc-element>title</dc-element>
+          <dc-qualifier>alternative</dc-qualifier>
+          <label>Additional titles</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Optionally enter an additional title of the item.</hint>
+          <language value-pairs-name="supported_languages">true</language>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Note</label>
+          <input-type>textarea</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Optionally add a note or description</hint>
+          <language value-pairs-name="supported_languages">true</language>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>url</dc-element>
+          <label>Supplementary url(s)</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="conf_details">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>conference</dc-qualifier>
+          <label>Related conference</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the name of the conference where the item has been presented, if any.</hint>
+          <type-bind>product-coar-types:c_ddb1,product-coar-types:ACF7-8YT9,product-coar-types:c_cb28,product-coar-types:FXF3-D3G7,product-coar-types:AM6W-6QAW,product-coar-types:63NG-B465,product-coar-types:A8F1-NPV9,product-coar-types:H41Y-FW7B,product-coar-types:DD58-GFSX,product-coar-types:FF4C-28RK,product-coar-types:CQMR-7K63,product-coar-types:W2XT-7017,product-coar-types:NHD0-W6SY,product-coar-types:c_5ce6,product-coar-types:QH80-2R4E,,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+        </field>
+      </row>
+    </form>
+    <form name="book_details">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartof</dc-qualifier>
+          <label>Book Title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must select a publication type</required>
-          <hint>The Resource Type vocabulary defines concepts to identify the genre of a resource, more details at &lt;a href="https://vocabularies.coar-repositories.org/resource_types/" target="_blank"&gt;Controlled Vocabularies for Repositories: Resource Types&lt;/a&gt;.</hint>
-          <vocabulary>publication-coar-types</vocabulary>
+          <required />
+          <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -1169,21 +1305,34 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-6</style>
           <hint>The publisher of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_2f33,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_b239,publication-coar-types:c_6501,publication-coar-types:c_7acd,publication-coar-types:c_beb9,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_7bab,publication-coar-types:c_545b,publication-coar-types:c_998f,publication-coar-types:QX5C-AR31</type-bind>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <dc-qualifier>place</dc-qualifier>
+          <label>Publisher Place</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-6</style>
+          <hint>The publisher place of this publication</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
-          <label>Part Of</label>
-          <input-type>inline-group</input-type>
+          <dc-qualifier>ispartofseries</dc-qualifier>
+          <label>Series title/Series Vol.</label>
+          <input-type>series</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
+          <hint>Enter the series and volume assigned to this item</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -1191,41 +1340,14 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>isbn</dc-qualifier>
-          <label>ISBN (of the container)</label>
+          <label>ISBN</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The ISBN of the book/report if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
+          <style>col-xs-12 col-md-4</style>
+          <hint>The ISBN of the book if it was not found in the system</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
         </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>doi</dc-qualifier>
-          <label>DOI (of the container)</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The DOI of the book/report if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_5794,publication-coar-types:c_6670</type-bind>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>journal</dc-qualifier>
-          <label>Journal or Serie</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The journal or Serie where this publication has been published</hint>
-          <type-bind>publication-coar-types:c_2f33,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_b239,publication-coar-types:c_6501,publication-coar-types:c_7acd,publication-coar-types:c_beb9,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_7bab,publication-coar-types:c_545b,publication-coar-types:c_998f,publication-coar-types:QX5C-AR31</type-bind>
-        </field>
-      </row>
-      <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
@@ -1234,71 +1356,49 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The journal or Serie ISSN if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_2f33,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_b239,publication-coar-types:c_6501,publication-coar-types:c_7acd,publication-coar-types:c_beb9,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_7bab,publication-coar-types:c_545b,publication-coar-types:c_998f,publication-coar-types:QX5C-AR31</type-bind>
+          <style>col-xs-12 col-md-4</style>
+          <hint>The ISSN of the book/series if it was not found in the system</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>doi</dc-qualifier>
+          <label>DOI (of the book or series)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint>The DOI of the book if it was not found in the system</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
         </field>
       </row>
+    </form>
+    <form name="journal_details">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>ispartofseries</dc-qualifier>
-          <label>Series/Report No.</label>
-          <input-type>series</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the series and number assigned to this item by your community.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>coverage</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
-          <label>Review of</label>
+          <dc-qualifier>journal</dc-qualifier>
+          <label>Journal Title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The publication object of the review</hint>
-          <type-bind>publication-coar-types:c_efa0,publication-coar-types:c_ba08,publication-coar-types:c_dcae04bc</type-bind>
+          <style>col-xs-12 col-md-9</style>
+          <hint>The journal where this publication has been published</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>coverage</dc-element>
-          <dc-qualifier>isbn</dc-qualifier>
-          <label>ISBN (of the reviewed item)</label>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>issn</dc-qualifier>
+          <label>ISSN</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The ISBN of the reviewed item if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_efa0,publication-coar-types:c_ba08,publication-coar-types:c_dcae04bc</type-bind>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>coverage</dc-element>
-          <dc-qualifier>doi</dc-qualifier>
-          <label>DOI (of the reviewed item)</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The DOI of the reviewed item if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_efa0,publication-coar-types:c_ba08,publication-coar-types:c_dcae04bc</type-bind>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Sponsors</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the name of any sponsors.</hint>
+          <style>col-xs-12 col-md-3</style>
+          <hint>The journal or Serie ISSN if it was not found in the system</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
         </field>
       </row>
       <row>
@@ -1310,10 +1410,10 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the volume of the publishing channel where this publication appeared</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>oaire</dc-schema>
           <dc-element>citation</dc-element>
@@ -1322,10 +1422,24 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the issue of the publishing channel where this publication appeared</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
         </field>
       </row>
       <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>articlenumber</dc-qualifier>
+          <label>Article Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint>If applicable, the article number of this publication</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+        </field>
         <field>
           <dc-schema>oaire</dc-schema>
           <dc-element>citation</dc-element>
@@ -1334,10 +1448,10 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the page where this publication starts</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>oaire</dc-schema>
           <dc-element>citation</dc-element>
@@ -1346,19 +1460,60 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the page where this publication ends</hint>
+          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+        </field>
+      </row>
+    </form>
+    <form name="involved">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <label>Involved Units</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the name of the unit(s).</hint>
         </field>
       </row>
       <row>
         <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <label>Institution</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required/>
+          <style>col-xs-12 col-md-4</style>
+          <hint>The publisher of this publication</hint>
+          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+        </field>
+        <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>thesis</dc-element>
           <dc-qualifier>faculty</dc-qualifier>
-          <label>Faculty (for thesis)</label>
+          <label>Faculty</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required/>
+          <style>col-xs-12 col-md-4</style>
           <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>institute</dc-qualifier>
+          <label>Institute</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required/>
+          <style>col-xs-12 col-md-4</style>
+          <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
         </field>
       </row>
       <row>
@@ -1366,39 +1521,29 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>epfl</dc-schema>
           <dc-element>thesis</dc-element>
           <dc-qualifier>section</dc-qualifier>
-          <label>Doctoral School (for thesis)</label>
+          <label>Doctoral School</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required/>
+          <style>col-xs-12 col-md-6</style>
           <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
         </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>thesis</dc-element>
-          <dc-qualifier>institute</dc-qualifier>
-          <label>Institute (for thesis)</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>thesis</dc-element>
           <dc-qualifier>doctoralSchool</dc-qualifier>
-          <label>Doctoral program (for thesis)</label>
+          <label>Doctoral program</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required/>
+          <style>col-xs-12 col-md-6</style>
           <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
         </field>
       </row>
     </form>
-    <form name="publication_references">
+    <form name="grants">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1411,39 +1556,32 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint>Acknowledge the funding received for this publication.</hint>
         </field>
       </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>project</dc-qualifier>
-          <label>Projects</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the name of project, if any, that has produced this publication. It is NOT necessary to list the projects connected with an acknowledge funding.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>conference</dc-qualifier>
-          <label>Conference</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the name of the conference where the item has been presented, if any.</hint>
-        </field>
-      </row>
+    </form>
+    <form name="thesis_awards">
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>url</dc-element>
-          <label>Supplementary url(s)</label>
-          <input-type value-pairs-name="supplementary_external_urls">qualdrop_value</input-type>
+          <dc-element>award</dc-element>
+          <label>Award</label>
+          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
+          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+        </field>
+      </row>
+    </form>
+    <form name="related_works">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
+          <label>Related publication</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>A related publication</hint>
         </field>
       </row>
       <row>
@@ -1451,46 +1589,62 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>product</dc-qualifier>
-          <label>Datasets or products</label>
+          <label>Related dataset</label>
           <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
         </field>
       </row>
+    </form>
+    <form name="publishing_information">
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>identifier</dc-element>
-          <dc-qualifier>citation</dc-qualifier>
-          <label>Citation</label>
-          <input-type>onebox</input-type>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>writtenAt</dc-element>
+          <label>Written at EPFL</label>
+          <input-type value-pairs-name="epfl_written_at">list</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Enter the standard citation for the previously issued instance of this item.</hint>
+          <style>col-xs-12 col-md-3</style>
+          <hint />
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>peerreviewed</dc-element>
+          <label>Peer-reviewed</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-3</style>
+          <hint />
+          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,,publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794,publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <label>Description</label>
-          <input-type>textarea</input-type>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>lateReview</dc-qualifier>
+          <label>Flagged for late review</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Enter any other description or comments in this box.</hint>
+          <style>col-xs-12 col-md-3</style>
+          <hint />
+          <visibility>workflow</visibility>
         </field>
-      </row>
-      <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Sponsors</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>additionalInformation</dc-qualifier>
+          <label>Additional information required</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
           <required />
-          <hint>Enter the name of any sponsors.</hint>
+          <style>col-xs-12 col-md-3</style>
+          <hint />
+          <visibility>workflow</visibility>
         </field>
       </row>
     </form>
@@ -1505,188 +1659,6 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required>You must select a publication type</required>
           <hint>The Resource Type vocabulary defines concepts to identify the genre of a resource, more details at &lt;a href="https://vocabularies.coar-repositories.org/resource_types/" target="_blank"&gt;Controlled Vocabularies for Repositories: Resource Types&lt;/a&gt;.</hint>
           <vocabulary>product-coar-types</vocabulary>
-        </field>
-      </row>
-    </form>
-    <form name="product_indexing">
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>language</dc-element>
-          <dc-qualifier>iso</dc-qualifier>
-          <label>Language</label>
-          <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>Select, if applicable, the language of the main content of the item.  If the language does not appear in the list, please select 'Other'.  If the content does not really have a language (for example, if it is a dataset or an image) please select 'N/A'.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>subject</dc-element>
-          <label>Subject Keywords</label>
-          <input-type>tag</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter appropriate subject keywords or phrases.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>datacite</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>fos</dc-qualifier>
-          <label>Fields of Science and Technology (OECD)</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-          <vocabulary closed="true">oecd</vocabulary>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>abstract</dc-qualifier>
-          <label>Abstract</label>
-          <input-type>textarea</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>Enter the abstract of the item.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <label>Other information</label>
-          <input-type>textarea</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>Enter any other relevant information about the dataset</hint>
-        </field>
-      </row>
-    </form>
-    <form name="product_references">
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>publisher</dc-element>
-          <label>Publisher(s)</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The publisher or publishers of this product</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>ispartofseries</dc-qualifier>
-          <label>Series/Report No.</label>
-          <input-type>series</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Link to the research output of which this product is a part (e.g. a data set collection that contains it).</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>issn</dc-qualifier>
-          <label>ISSN</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The journal or Serie ISSN if it was not found in the system</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>funding</dc-qualifier>
-          <label>Funding</label>
-          <input-type>group</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Acknowledge the funding received for this product.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>project</dc-qualifier>
-          <label>Projects</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the name of project, if any, that has produced this product. It is NOT necessary to list the projects connected with an acknowledge funding.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>conference</dc-qualifier>
-          <label>Conference</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The event where this product was presented or that is recorded in the product.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>equipment</dc-qualifier>
-          <label>Generated by</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The equipment that generated this product</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>references</dc-qualifier>
-          <label>References</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Result outputs that are referenced by this product</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
-          <label>Used by</label>
-          <input-type>inline-group</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Result outputs that use this product</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>product</dc-qualifier>
-          <label>Datasets or products</label>
-          <input-type>inline-group</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
         </field>
       </row>
     </form>
@@ -1827,6 +1799,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint />
           <visibility>workflow</visibility>
         </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>additionalInformation</dc-qualifier>
+          <label>Additional information required</label>
+          <input-type value-pairs-name="truefalse">list</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
       </row>
     </form>
     <form name="patent_indexing">
@@ -1851,19 +1834,6 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>Enter appropriate subject keywords or phrases.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>datacite</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>fos</dc-qualifier>
-          <label>Fields of Science and Technology (OECD)</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-          <vocabulary closed="true">oecd</vocabulary>
         </field>
       </row>
       <row>
@@ -1956,52 +1926,6 @@ it, please enter the types and the actual numbers or codes.</hint>
     <form name="person">
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>title</dc-element>
-          <label>Preferred Name</label>
-          <input-type>name</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter least at the Surname.</required>
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>name</dc-element>
-          <label>Fullname</label>
-          <input-type>name</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>name</dc-element>
-          <dc-qualifier>translated</dc-qualifier>
-          <label>Vernacular Name</label>
-          <input-type>name</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>name</dc-element>
-          <dc-qualifier>variant</dc-qualifier>
-          <label>Variants</label>
-          <input-type>name</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
           <dc-schema>person</dc-schema>
           <dc-element>givenName</dc-element>
           <label>First name</label>
@@ -2022,21 +1946,24 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
-          <dc-element>birthDate</dc-element>
-          <label>Birth Date</label>
-          <input-type>date</input-type>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Preferred Name</label>
+          <input-type>name</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required>You must enter least at the Surname.</required>
+          <readonly>all</readonly>
           <hint />
         </field>
+      </row>
+      <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>person</dc-element>
-          <dc-qualifier>gender</dc-qualifier>
-          <label>Gender</label>
-          <input-type value-pairs-name="gender">dropdown</input-type>
-          <repeatable>false</repeatable>
+          <dc-schema>crisrp</dc-schema>
+          <dc-element>name</dc-element>
+          <dc-qualifier>variant</dc-qualifier>
+          <label>Variants</label>
+          <input-type>name</input-type>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
@@ -2059,17 +1986,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>workgroup</dc-element>
-          <label>Working group(s)</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
+          <readonly>all</readonly>
           <hint />
         </field>
       </row>
@@ -2106,7 +2023,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <readonly>all</readonly>
+          <visibility>hidden</visibility>
         </field>
       </row>
       <row>
@@ -2122,19 +2039,6 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>datacite</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>fos</dc-qualifier>
-          <label>Fields of Science and Technology (OECD)</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-          <vocabulary closed="true">oecd</vocabulary>
-        </field>
-      </row>
-      <row>
-        <field>
           <dc-schema>person</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
@@ -2142,31 +2046,30 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint>Settable by connecting the entity with ORCID</hint>
           <readonly>all</readonly>
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>person</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>scopus-author-id</dc-qualifier>
           <label>Scopus Author ID</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint>If applicable, enter your Scopus Author ID. Example: 7102903327.</hint>
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>person</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>rid</dc-qualifier>
           <label>Researcher ID</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
+          <style>col-xs-12 col-md-4</style>
           <hint />
         </field>
       </row>
@@ -2180,6 +2083,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint />
+          <readonly>all</readonly>
         </field>
       </row>
       <row>
@@ -2189,53 +2093,10 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-qualifier>abstract</dc-qualifier>
           <label>Biography</label>
           <input-type>textarea</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>education</dc-element>
-          <label>Education(s)</label>
-          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>country</dc-element>
-          <label>Country</label>
-          <input-type value-pairs-name="common_iso_countries">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>crisrp</dc-schema>
-          <dc-element>qualification</dc-element>
-          <label>Qualification(s)</label>
-          <input-type>inline-group</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
-          <dc-element>knowsLanguage</dc-element>
-          <label>Written Language(s)</label>
-          <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
+          <language value-pairs-name="supported_languages">true</language>
         </field>
       </row>
     </form>
@@ -2299,17 +2160,6 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>crisou</dc-schema>
-          <dc-element>boards</dc-element>
-          <label>Scientifics Board</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
           <dc-schema>organization</dc-schema>
           <dc-element>identifier</dc-element>
           <label>Identifiers</label>
@@ -2345,28 +2195,6 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>organization</dc-schema>
-          <dc-element>address</dc-element>
-          <dc-qualifier>addressLocality</dc-qualifier>
-          <label>City</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-        <field>
-          <dc-schema>organization</dc-schema>
-          <dc-element>address</dc-element>
-          <dc-qualifier>addressCountry</dc-qualifier>
-          <label>Country</label>
-          <input-type value-pairs-name="common_iso_countries">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
           <dc-schema>dc</dc-schema>
           <dc-element>type</dc-element>
           <label>Type</label>
@@ -2385,7 +2213,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <readonly>all</readonly>
+          <visibility>hidden</visibility>
         </field>
       </row>
       <row>
@@ -2398,7 +2226,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <readonly>all</readonly>
+          <visibility>hidden</visibility>
         </field>
       </row>
       <row>
@@ -2411,7 +2239,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <readonly>all</readonly>
+          <visibility>hidden</visibility>
         </field>
       </row>
       <row>
@@ -2424,7 +2252,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <readonly>all</readonly>
+          <visibility>hidden</visibility>
         </field>
       </row>
       <row>
@@ -2437,7 +2265,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <readonly>all</readonly>
+          <visibility>hidden</visibility>
         </field>
       </row>
       <row>
@@ -2450,7 +2278,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <readonly>all</readonly>
+          <visibility>hidden</visibility>
         </field>
       </row>
     </form>
@@ -3152,53 +2980,9 @@ it, please enter the types and the actual numbers or codes.</hint>
       <row>
         <field>
           <dc-schema>ctb</dc-schema>
-          <dc-element>dcXXtitle</dc-element>
-          <label>Common name for files</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>ctb</dc-schema>
-          <dc-element>dcXXdescription</dc-element>
-          <label>Common description for files</label>
-          <input-type>textarea</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>ctb</dc-schema>
-          <dc-element>dcXXtype</dc-element>
-          <label>Common file type</label>
-          <input-type value-pairs-name="publication_bitstream_types">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>ctb</dc-schema>
           <dc-element>oaireXXlicenseCondition</dc-element>
-          <label>Common license</label>
-          <input-type value-pairs-name="licenses">opendropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>ctb</dc-schema>
-          <dc-element>epflXXlicenseName</dc-element>
-          <label>Common Custom license name</label>
-          <input-type>onebox</input-type>
+          <label>Files global license</label>
+          <input-type value-pairs-name="licenses">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -3208,10 +2992,1267 @@ it, please enter the types and the actual numbers or codes.</hint>
     <form name="owner">
       <row>
         <field>
-          <dc-schema>cris</dc-schema>
-          <dc-element>owner</dc-element>
+          <dc-schema>dspace</dc-schema>
+          <dc-element>object</dc-element>
+          <dc-qualifier>owner</dc-qualifier>
           <label>Owner</label>
           <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>workflow</visibility>
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-dc-identifier-patentno">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>patentno</dc-qualifier>
+          <label>Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>patent</dc-element>
+          <dc-qualifier>country</dc-qualifier>
+          <label>Country</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>patent</dc-element>
+          <dc-qualifier>kindcode</dc-qualifier>
+          <label>KindCode</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>issued</dc-qualifier>
+          <label>Date</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-oairecerif-funder">
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>funder</dc-element>
+          <label>Name</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>funder</dc-element>
+          <dc-qualifier>identifier</dc-qualifier>
+          <label>Identifier</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-epfl-award">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>award</dc-element>
+          <label>name</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>award</dc-element>
+          <dc-qualifier>year</dc-qualifier>
+          <label>Year</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-dc-contributor-author">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>author</dc-qualifier>
+          <label>Name</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <label>Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-dc-contributor-editor">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>editor</dc-qualifier>
+          <label>Name</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <label>Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-dc-contributor-advisor">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>advisor</dc-qualifier>
+          <label>Name</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <label>Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-dc-contributor-scientificeditor">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>scientificeditor</dc-qualifier>
+          <label>Name</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <label>Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import">
+      <row>
+        <field>
+          <dc-schema>cris</dc-schema>
+          <dc-element>legacyId</dc-element>
+          <label>Legacy ID</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>modified</dc-qualifier>
+          <label>Modified date</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>patentno</dc-qualifier>
+          <label>Patent</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>created</dc-qualifier>
+          <label>Created date</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>accessioned</dc-qualifier>
+          <label>Accessioned date</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>isbn</dc-qualifier>
+          <label>ISBN</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>issn</dc-qualifier>
+          <label>ISSN</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>doi</dc-qualifier>
+          <label>DOI</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>pmid</dc-qualifier>
+          <label>PMID</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>scopus</dc-qualifier>
+          <label>SCOPUS</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>isi</dc-qualifier>
+          <label>ISI</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>epo</dc-qualifier>
+          <label>EPO</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>iso</dc-qualifier>
+          <label>ISO</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>urn</dc-qualifier>
+          <label>URN</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>submissionform</dc-qualifier>
+          <label>Legacy submission form</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>language</dc-element>
+          <dc-qualifier>iso</dc-qualifier>
+          <label>Language</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>number</dc-qualifier>
+          <label>Thesis number</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>title</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>version</dc-qualifier>
+          <label>version</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <dc-qualifier>place</dc-qualifier>
+          <label>Publisher place</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <label>Publisher</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>issued</dc-qualifier>
+          <label>Date issued</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>size</dc-element>
+          <label>Size</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>format</dc-element>
+          <dc-qualifier>extent</dc-qualifier>
+          <label>Format</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>itemtype</dc-qualifier>
+          <label>Legacy item type</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>datatype</dc-element>
+          <label>Data type</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Description</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartof</dc-qualifier>
+          <label>Is part of</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>notes</dc-qualifier>
+          <label>Notes</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>jury</dc-qualifier>
+          <label>Jury</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>abstract</dc-qualifier>
+          <label>Abstract</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>funder</dc-element>
+          <label>Funder</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>rights</dc-element>
+          <dc-qualifier>accessRights</dc-qualifier>
+          <label>Access rights</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>award</dc-element>
+          <label>Award</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <label>Subject(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>tto</dc-element>
+          <label>TTO</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>author</dc-qualifier>
+          <label>Author</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>editor</dc-qualifier>
+          <label>Editor</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>advisor</dc-qualifier>
+          <label>Advisor</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>scientificeditor</dc-qualifier>
+          <label>Scientific editor</label>
+          <input-type>group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <label>Contributor</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>conference</dc-qualifier>
+          <label>Conference</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>conferencePlace</dc-qualifier>
+          <label>Conference place</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>conferenceDate</dc-qualifier>
+          <label>Conference Date</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>standardno</dc-qualifier>
+          <label>Standard NO</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>part</dc-element>
+          <dc-qualifier>name</dc-qualifier>
+          <label>Part name</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>part</dc-element>
+          <dc-qualifier>number</dc-qualifier>
+          <label>Part number</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>volume</dc-qualifier>
+          <label>Volume</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>issue</dc-qualifier>
+          <label>Issue</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>startPage</dc-qualifier>
+          <label>Start page</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>part</dc-element>
+          <dc-qualifier>section</dc-qualifier>
+          <label>Section</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
+          <label>Publication</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>journal</dc-qualifier>
+          <label>Journal</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartofseries</dc-qualifier>
+          <label>Is part of series</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>product</dc-qualifier>
+          <label>Product</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>lastmodified</dc-element>
+          <dc-qualifier>email</dc-qualifier>
+          <label>Last modified email</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dspace</dc-schema>
+          <dc-element>file</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>File Type</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>licenseCondition</dc-element>
+          <label>License condition</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>datacite</dc-schema>
+          <dc-element>rights</dc-element>
+          <label>Rights</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>orgunit</dc-qualifier>
+          <label>OrgUnit</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>oai</dc-element>
+          <dc-qualifier>identifier</dc-qualifier>
+          <label>OAI identifier</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>oai</dc-element>
+          <dc-qualifier>currentset</dc-qualifier>
+          <label>OAI current set</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>rejectedOrgUnit</dc-qualifier>
+          <label>Rejected Orgunit</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>faculty</dc-qualifier>
+          <label>Faculty</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>section</dc-qualifier>
+          <label>Section</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>institute</dc-qualifier>
+          <label>Institute</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>doctoralSchool</dc-qualifier>
+          <label>Doctoral School</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>originalUnit</dc-qualifier>
+          <label>Original OrgUnit</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>publicDefenseYear</dc-qualifier>
+          <label>Public defense year</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>accepted</dc-qualifier>
+          <label>Accepted date</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>audience</dc-element>
+          <label>Audience</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>curator</dc-element>
+          <dc-qualifier>email</dc-qualifier>
+          <label>Curator email</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>writtenat</dc-element>
+          <label>Written at</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>peerreviewed</dc-element>
+          <label>Peer reviewed</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>version</dc-element>
+          <label>Version</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>datacite</dc-schema>
+          <dc-element>geoLocation</dc-element>
+          <label>Geo location</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>source</dc-element>
+          <label>source</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>thesis</dc-element>
+          <dc-qualifier>degreelevel</dc-qualifier>
+          <label>Degree level</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>pendingOrgUnit</dc-qualifier>
+          <label>Pending Orgunit</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>Type</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="notes-for-reviewer">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>workflow</dc-element>
+          <dc-qualifier>notesForReviewer</dc-qualifier>
+          <label>Notes for reviewer</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>If any actions on this Item should be taken by the reviewer, specify them in this field</hint>
+        </field>
+      </row>
+    </form>
+    <form name="content-epfl-content-link">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>link</dc-qualifier>
+          <label>Link</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>linkdescription</dc-qualifier>
+          <label>Link description</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="content">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter the content name.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Description (HTML supported)</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>content</dc-element>
+          <dc-qualifier>link</dc-qualifier>
+          <label>Link(s)</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="bitstream-metadata-content">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Enter the name of the file</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter a title for the file.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Enter a description for the file</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>File Type</label>
+          <input-type value-pairs-name="content_bitstream_types">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -3240,16 +4281,28 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="common_identifiers" dc-term="common_identifiers">
       <pair>
-        <displayed-value>Ark</displayed-value>
-        <stored-value>ark</stored-value>
+        <displayed-value>DOI</displayed-value>
+        <stored-value>doi</stored-value>
       </pair>
       <pair>
         <displayed-value>arXiv ID</displayed-value>
         <stored-value>arxiv</stored-value>
       </pair>
       <pair>
-        <displayed-value>DOI</displayed-value>
-        <stored-value>doi</stored-value>
+        <displayed-value>WOS ID</displayed-value>
+        <stored-value>isi</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Scopus ID</displayed-value>
+        <stored-value>scopus</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Pubmed ID</displayed-value>
+        <stored-value>pmid</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URI</displayed-value>
+        <stored-value>uri</stored-value>
       </pair>
       <pair>
         <displayed-value>Handle</displayed-value>
@@ -3259,37 +4312,19 @@ it, please enter the types and the actual numbers or codes.</hint>
         <displayed-value>ISBN</displayed-value>
         <stored-value>isbn</stored-value>
       </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="title_types" dc-term="title_types">
       <pair>
-        <displayed-value>ISSN</displayed-value>
-        <stored-value>issn</stored-value>
+        <displayed-value>Alternative title</displayed-value>
+        <stored-value>AlternativeTitle</stored-value>
       </pair>
       <pair>
-        <displayed-value>Life Science ID</displayed-value>
-        <stored-value>lsid</stored-value>
+        <displayed-value>Translated title</displayed-value>
+        <stored-value>TranslatedTitle</stored-value>
       </pair>
       <pair>
-        <displayed-value>Pubmed ID</displayed-value>
-        <stored-value>pmid</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Purl</displayed-value>
-        <stored-value>purl</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Scopus ID</displayed-value>
-        <stored-value>scopus</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>URL</displayed-value>
-        <stored-value>url</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>URN</displayed-value>
-        <stored-value>urn</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>WOS ID</displayed-value>
-        <stored-value>isi</stored-value>
+        <displayed-value>Other</displayed-value>
+        <stored-value>Other</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="common_types" dc-term="common_types">
@@ -3384,28 +4419,16 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="common_iso_languages" dc-term="common_iso_languages">
       <pair>
-        <displayed-value>N/A</displayed-value>
-        <stored-value />
-      </pair>
-      <pair>
-        <displayed-value>English (United States)</displayed-value>
-        <stored-value>en_US</stored-value>
-      </pair>
-      <pair>
         <displayed-value>English</displayed-value>
         <stored-value>en</stored-value>
       </pair>
       <pair>
-        <displayed-value>Spanish</displayed-value>
-        <stored-value>es</stored-value>
+        <displayed-value>French</displayed-value>
+        <stored-value>fr</stored-value>
       </pair>
       <pair>
         <displayed-value>German</displayed-value>
         <stored-value>de</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>French</displayed-value>
-        <stored-value>fr</stored-value>
       </pair>
       <pair>
         <displayed-value>Italian</displayed-value>
@@ -3420,11 +4443,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>zh</stored-value>
       </pair>
       <pair>
-        <displayed-value>Turkish</displayed-value>
-        <stored-value>tr</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>(Other)</displayed-value>
+        <displayed-value>Other</displayed-value>
         <stored-value>other</stored-value>
       </pair>
     </value-pairs>
@@ -3734,24 +4753,6 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>Pound sterling</stored-value>
       </pair>
     </value-pairs>
-    <value-pairs value-pairs-name="gender" dc-term="gender">
-      <pair>
-        <displayed-value>Unknown</displayed-value>
-        <stored-value />
-      </pair>
-      <pair>
-        <displayed-value>Male</displayed-value>
-        <stored-value>m</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Woman</displayed-value>
-        <stored-value>f</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Unspecifiied</displayed-value>
-        <stored-value>n/a</stored-value>
-      </pair>
-    </value-pairs>
     <value-pairs value-pairs-name="orgunit_identifiers" dc-term="orgunit_identifiers">
       <pair>
         <displayed-value>CrossRef Funder ID</displayed-value>
@@ -3780,70 +4781,114 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="truefalse" dc-term="truefalse">
       <pair>
-        <displayed-value>True</displayed-value>
+        <displayed-value>Yes</displayed-value>
         <stored-value>true</stored-value>
       </pair>
       <pair>
-        <displayed-value>False</displayed-value>
+        <displayed-value>No</displayed-value>
         <stored-value>false</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="orgunit_types" dc-term="orgunit_types">
       <pair>
-        <displayed-value>Unspecified</displayed-value>
-        <stored-value />
+        <displayed-value>Antenna</displayed-value>
+        <stored-value>antenne</stored-value>
       </pair>
       <pair>
-        <displayed-value>Academic Institute</displayed-value>
-        <stored-value>Academic Institute</stored-value>
+        <displayed-value>Center</displayed-value>
+        <stored-value>centre</stored-value>
       </pair>
       <pair>
-        <displayed-value>University</displayed-value>
-        <stored-value>University</stored-value>
+        <displayed-value>Chair</displayed-value>
+        <stored-value>chaire</stored-value>
       </pair>
       <pair>
-        <displayed-value>University College</displayed-value>
-        <stored-value>University College</stored-value>
+        <displayed-value>College</displayed-value>
+        <stored-value>collège</stored-value>
       </pair>
       <pair>
-        <displayed-value>Research Institute</displayed-value>
-        <stored-value>Research Institute</stored-value>
+        <displayed-value>Direction</displayed-value>
+        <stored-value>direction</stored-value>
       </pair>
       <pair>
-        <displayed-value>Strategic Research Institute</displayed-value>
-        <stored-value>Strategic Research Insitute</stored-value>
+        <displayed-value>Department</displayed-value>
+        <stored-value>dpt</stored-value>
       </pair>
       <pair>
-        <displayed-value>Company</displayed-value>
-        <stored-value>Company</stored-value>
+        <displayed-value>School</displayed-value>
+        <stored-value>école</stored-value>
       </pair>
       <pair>
-        <displayed-value>SME</displayed-value>
-        <stored-value>SME</stored-value>
+        <displayed-value>EHE</displayed-value>
+        <stored-value>ehe</stored-value>
       </pair>
       <pair>
-        <displayed-value>Government</displayed-value>
-        <stored-value>Government</stored-value>
+        <displayed-value>Companies</displayed-value>
+        <stored-value>entreprises</stored-value>
       </pair>
       <pair>
-        <displayed-value>Higher Education</displayed-value>
-        <stored-value>Higher Education</stored-value>
+        <displayed-value>Faculty</displayed-value>
+        <stored-value>faculté</stored-value>
       </pair>
       <pair>
-        <displayed-value>Private non-profit</displayed-value>
-        <stored-value>Private non-profit</stored-value>
+        <displayed-value>Foundation</displayed-value>
+        <stored-value>fondation</stored-value>
       </pair>
       <pair>
-        <displayed-value>Intergovernmental</displayed-value>
-        <stored-value>Intergovernmental</stored-value>
+        <displayed-value>Group</displayed-value>
+        <stored-value>groupe</stored-value>
       </pair>
       <pair>
-        <displayed-value>Charity</displayed-value>
-        <stored-value>Charity</stored-value>
+        <displayed-value>Institute</displayed-value>
+        <stored-value>institut</stored-value>
       </pair>
       <pair>
-        <displayed-value>National Health Service</displayed-value>
-        <stored-value>National Health Service</stored-value>
+        <displayed-value>Lab</displayed-value>
+        <stored-value>labo</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Organizational chart</displayed-value>
+        <stored-value>organigramme</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Orientation</displayed-value>
+        <stored-value>orientat</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Participation</displayed-value>
+        <stored-value>participation</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Program</displayed-value>
+        <stored-value>programme</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Grouping</displayed-value>
+        <stored-value>regroupement</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Section</displayed-value>
+        <stored-value>section</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Semester</displayed-value>
+        <stored-value>semestre</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Central service</displayed-value>
+        <stored-value>service-central</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>General service</displayed-value>
+        <stored-value>service-général</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Technical</displayed-value>
+        <stored-value>technique</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Other</displayed-value>
+        <stored-value>autre</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="project_types" dc-term="project_types">
@@ -4926,10 +5971,6 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="licenses" dc-term="licenses">
       <pair>
-        <displayed-value>Unspecified</displayed-value>
-        <stored-value />
-      </pair>
-      <pair>
         <displayed-value>Creative Commons Attribution</displayed-value>
         <stored-value>CC BY</stored-value>
       </pair>
@@ -4964,62 +6005,50 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="publication_bitstream_types" dc-term="publication_bitstream_types">
       <pair>
-        <displayed-value>Unspecified</displayed-value>
-        <stored-value />
+        <displayed-value>Main document</displayed-value>
+        <stored-value>main document</stored-value>
       </pair>
       <pair>
-        <displayed-value>Main Article</displayed-value>
-        <stored-value>main article</stored-value>
+        <displayed-value>supplementary material/Information</displayed-value>
+        <stored-value>supplementary material/Information</stored-value>
       </pair>
       <pair>
-        <displayed-value>Presentation</displayed-value>
+        <displayed-value>presentation</displayed-value>
         <stored-value>presentation</stored-value>
       </pair>
       <pair>
-        <displayed-value>Video Recording</displayed-value>
-        <stored-value>video recording</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Figures</displayed-value>
+        <displayed-value>figures</displayed-value>
         <stored-value>figures</stored-value>
       </pair>
       <pair>
-        <displayed-value>Supplemantary Material</displayed-value>
-        <stored-value>supplemantary material</stored-value>
+        <displayed-value>video</displayed-value>
+        <stored-value>video</stored-value>
       </pair>
       <pair>
-        <displayed-value>Source code</displayed-value>
+        <displayed-value>poster</displayed-value>
+        <stored-value>poster</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>source code</displayed-value>
         <stored-value>source code</stored-value>
       </pair>
       <pair>
-        <displayed-value>Preprint</displayed-value>
-        <stored-value>preprint</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Submitted version</displayed-value>
-        <stored-value>submitted version</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Accepted version</displayed-value>
-        <stored-value>accepted version</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Published version</displayed-value>
-        <stored-value>published version</stored-value>
+        <displayed-value>Other</displayed-value>
+        <stored-value>Other</stored-value>
       </pair>
       <pair>
         <displayed-value>Thumbnail</displayed-value>
-        <stored-value>logo</stored-value>
+        <stored-value>thumbnail</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="product_bitstream_types" dc-term="product_bitstream_types">
       <pair>
-        <displayed-value>Unspecified</displayed-value>
-        <stored-value />
+        <displayed-value>Main dataset</displayed-value>
+        <stored-value>main dataset</stored-value>
       </pair>
       <pair>
-        <displayed-value>Main Article</displayed-value>
-        <stored-value>main article</stored-value>
+        <displayed-value>Readme File</displayed-value>
+        <stored-value>readme</stored-value>
       </pair>
       <pair>
         <displayed-value>Raw Data</displayed-value>
@@ -5030,8 +6059,8 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>anonymized data</stored-value>
       </pair>
       <pair>
-        <displayed-value>Figures</displayed-value>
-        <stored-value>figures</stored-value>
+        <displayed-value>Processed data</displayed-value>
+        <stored-value>processed data</stored-value>
       </pair>
       <pair>
         <displayed-value>Presentation</displayed-value>
@@ -5046,32 +6075,20 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>figures</stored-value>
       </pair>
       <pair>
-        <displayed-value>Supplemantary Material</displayed-value>
-        <stored-value>supplemantary material</stored-value>
+        <displayed-value>supplementary material/Information</displayed-value>
+        <stored-value>supplementary material/Information</stored-value>
       </pair>
       <pair>
         <displayed-value>Source code</displayed-value>
         <stored-value>source code</stored-value>
       </pair>
       <pair>
-        <displayed-value>Preprint</displayed-value>
-        <stored-value>preprint</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Submitted version</displayed-value>
-        <stored-value>submitted version</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Accepted version</displayed-value>
-        <stored-value>accepted version</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Published version</displayed-value>
-        <stored-value>published version</stored-value>
+        <displayed-value>Other</displayed-value>
+        <stored-value>Other</stored-value>
       </pair>
       <pair>
         <displayed-value>Thumbnail</displayed-value>
-        <stored-value>logo</stored-value>
+        <stored-value>thumbnail</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="patent_bitstream_types" dc-term="patent_bitstream_types">
@@ -5187,54 +6204,52 @@ it, please enter the types and the actual numbers or codes.</hint>
       </pair>
       <pair>
         <displayed-value>Agreement</displayed-value>
-        <stored-value>agreement</stored-value>
+        <stored-value>Yes</stored-value>
       </pair>
       <pair>
         <displayed-value>Proposal</displayed-value>
-        <stored-value>proposal</stored-value>
+        <stored-value />
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="is_corresponding" dc-term="is_corresponding">
+      <pair>
+        <displayed-value>Oui</displayed-value>
+        <stored-value>true</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="epfl_written_at" dc-term="epfl_written_at">
       <pair>
-        <displayed-value>EPFL</displayed-value>
+        <displayed-value>Yes</displayed-value>
         <stored-value>EPFL</stored-value>
       </pair>
       <pair>
-        <displayed-value>other</displayed-value>
+        <displayed-value>No</displayed-value>
         <stored-value>other</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="coar_versions" dc-term="coar_versions">
       <pair>
-        <displayed-value>Unspecified</displayed-value>
-        <stored-value />
-      </pair>
-      <pair>
         <displayed-value>Author’s Original</displayed-value>
         <stored-value>http://purl.org/coar/version/c_b1a7d7d4d402bcce</stored-value>
       </pair>
       <pair>
-        <displayed-value>Submitted Manuscript Under Review</displayed-value>
+        <displayed-value>Submitted version</displayed-value>
         <stored-value>http://purl.org/coar/version/c_71e4c1898caa6e32</stored-value>
       </pair>
       <pair>
-        <displayed-value>Accepted Manuscript</displayed-value>
+        <displayed-value>Accepted version</displayed-value>
         <stored-value>http://purl.org/coar/version/c_ab4af688f83e57aa</stored-value>
       </pair>
       <pair>
-        <displayed-value>Proof</displayed-value>
-        <stored-value>http://purl.org/coar/version/c_fa2ee174bc00049f</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Version of Record</displayed-value>
+        <displayed-value>Published version</displayed-value>
         <stored-value>http://purl.org/coar/version/c_970fb48d4fbd8a85</stored-value>
       </pair>
       <pair>
-        <displayed-value>Corrected Version of Record</displayed-value>
+        <displayed-value>Corrected Version</displayed-value>
         <stored-value>http://purl.org/coar/version/c_e19f295774971610</stored-value>
       </pair>
       <pair>
-        <displayed-value>Enhanced Version of Record</displayed-value>
+        <displayed-value>Enhanced Version</displayed-value>
         <stored-value>http://purl.org/coar/version/c_dc82b40f9837b551</stored-value>
       </pair>
       <pair>
@@ -5382,6 +6397,20 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>fr</stored-value>
       </pair>
     </value-pairs>
+    <value-pairs value-pairs-name="funders" dc-term="funders">
+      <pair>
+        <displayed-value>Alternative title</displayed-value>
+        <stored-value>AlternativeTitle</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Translated title</displayed-value>
+        <stored-value>TranslatedTitle</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Other</displayed-value>
+        <stored-value>Other</stored-value>
+      </pair>
+    </value-pairs>
     <value-pairs value-pairs-name="supplementary_external_urls" dc-term="supplementary_external_urls">
       <pair>
         <displayed-value>arXiv</displayed-value>
@@ -5406,6 +6435,16 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Other</displayed-value>
         <stored-value>other</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="content_bitstream_types" dc-term="content_bitstream_types">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value />
+      </pair>
+      <pair>
+        <displayed-value>Logo</displayed-value>
+        <stored-value>logo</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>

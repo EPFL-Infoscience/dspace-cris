@@ -12,7 +12,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
                 <!-- <ref bean="networkAdministration"/> -->
             </list>
         </property>
@@ -38,9 +38,9 @@
         <property name="startDateLimit" value="+36MONTHS"/>
         <property name="hasEndDate" value="false"/>
     </bean>
-    <bean id="administrator" class="org.dspace.submit.model.AccessConditionOption">
-        <property name="groupName" value="Administrator"/>
-        <property name="name" value="administrator"/>
+    <bean id="reserved" class="org.dspace.submit.model.AccessConditionOption">
+        <property name="groupName" value="ReservedAccess"/>
+        <property name="name" value="reserved"/>
         <property name="hasStartDate" value="false"/>
         <property name="hasEndDate" value="false"/>
     </bean>
@@ -64,6 +64,7 @@
                 <entry key="upload-journal" value-ref="uploadConfigurationJournal" />
                 <entry key="upload-project" value-ref="uploadConfigurationProject" />
                 <entry key="upload-funding" value-ref="uploadConfigurationFunding" />
+                <entry key="upload-content" value-ref="uploadConfigurationContent" />
             </map>
         </property>
     </bean>
@@ -81,7 +82,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -102,7 +103,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -116,7 +117,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -130,7 +131,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -144,7 +145,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -158,7 +159,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -172,7 +173,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -186,7 +187,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -201,7 +202,7 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -216,7 +217,21 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="administrator"/>
+                <ref bean="reserved"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationContent" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-publication"></property>
+        <property name="metadata" value="bitstream-metadata-content" />
+        <property name="singleAccessCondition" value="true" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
