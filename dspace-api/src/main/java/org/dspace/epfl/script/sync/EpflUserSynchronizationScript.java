@@ -130,8 +130,8 @@ public class EpflUserSynchronizationScript
                 executeScriptWithQuery();
             }
 
-            finalLogging();
             context.complete();
+            finalLogging();
         } finally {
             context.restoreAuthSystemState();
         }
@@ -205,14 +205,14 @@ public class EpflUserSynchronizationScript
             List<PersonDTO> epflPersonList = epflApiClient.getPersons(query, EpflApiClient.Language.EN);
             for (PersonDTO epflPerson : epflPersonList) {
                 EPerson ePerson = findPerson(epflPerson);
-                if (ePerson == null) {
-                    createAndSyncEPerson(epflPerson);
-                } else {
-                    try {
+                try {
+                    if (ePerson == null) {
+                        createAndSyncEPerson(epflPerson);
+                    } else {
                         syncEPerson(epflPerson, ePerson);
-                    } catch (IllegalStateException e) {
-                        logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
                     }
+                } catch (IllegalStateException e) {
+                    logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
                 }
             }
         }
