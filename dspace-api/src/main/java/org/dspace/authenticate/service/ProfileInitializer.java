@@ -33,6 +33,9 @@ import javax.mail.MessagingException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.dspace.app.util.DCInputSet;
+import org.dspace.app.util.DCInputsReader;
+import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
@@ -64,7 +67,7 @@ public class ProfileInitializer {
         List.of("oairecerif.affiliation.role", "oairecerif.person.affiliation",
                 "oairecerif.affiliation.startDate", "oairecerif.affiliation.endDate");
     private final static Logger LOGGER = LoggerFactory.getLogger(ProfileInitializer.class);
-    private static final String SUBMITTERS = "Submitters";
+    private static final String SUBMITTERS = "Submitter";
 
     @Autowired
     private ResearcherProfileService researcherProfileService;
@@ -86,6 +89,8 @@ public class ProfileInitializer {
 
     @Autowired
     private GroupService groupService;
+
+    private DCInputsReader dcInputsReader;
 
     public void initialize(Context context, EPerson eperson) {
 
@@ -129,15 +134,23 @@ public class ProfileInitializer {
             .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(), eperson));
 
         try {
-            Group submittersGroup = groupService.findByName(context, SUBMITTERS);
-
-            if (atLeastAnActiveAccreditation(researcherProfile.getItem())) {
-                groupService.addMember(context, submittersGroup, eperson);
-            } else {
-                groupService.removeMember(context, submittersGroup, eperson);
-            }
+            addToSubmittersGroup(context, eperson, researcherProfile);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void addToSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile) throws SQLException {
+        Group submittersGroup = groupService.findByName(context, SUBMITTERS);
+        if (submittersGroup == null) {
+            throw new RuntimeException(SUBMITTERS + " group not found, it must be created in order to correctly " +
+                                           "synchronize users.");
+        }
+
+        if (atLeastAnActiveAccreditation(researcherProfile.getItem())) {
+            groupService.addMember(context, submittersGroup, eperson);
+        } else if (groupService.isMember(context, eperson, submittersGroup)){
+            groupService.removeMember(context, submittersGroup, eperson);
         }
     }
 
@@ -278,7 +291,7 @@ public class ProfileInitializer {
         List<Integer> affiliationsToClosePositions = affiliationsToBeClosedPositions(item, context,
                                                                                      epflPerson, personAffiliations);
         clearMetadataValues(context, item);
-        addEndDateToExpierdedAccreds(context, item, affiliationsToClosePositions);
+        addEndDateToExpiredAccreds(context, item, affiliationsToClosePositions);
         List<PersonAffiliation> apiAffiliations = apiAffiliations(metadataValues);
         List<PersonAffiliation> alreadySetAffiliations =
             alreadyPresentAffiliations(personAffiliations, apiAffiliations);
@@ -367,7 +380,9 @@ public class ProfileInitializer {
             .findFirst().orElse(null);
     }
 
-    private void addEndDateToExpierdedAccreds(Context context, Item item, List<Integer> endDatesMetadataPositions) {
+    private void addEndDateToExpiredAccreds(Context context, Item item, List<Integer> endDatesMetadataPositions) {
+        // if some placeholder values in affiliation nested metadata are missing, this method might throw an exception
+        fillAffiliationsMetadata(context, item);
         List<MetadataValue> values = itemService.getMetadataByMetadataString(item, "oairecerif.affiliation.endDate");
         Map<Integer, MetadataValue> endDates =
             values.stream().collect(Collectors.toMap(mv -> mv.getPlace(), Function.identity()));
@@ -384,21 +399,52 @@ public class ProfileInitializer {
                 }
             }
         );
-//        try {
-//            itemService.clearMetadata(context, item, "oairecerif", "affiliation", "endDate", Item.ANY);
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//        ePersonUniqueAccredsNames.stream()
-//                                 .map(name -> item.getMetadata()
-//                                                  .stream()
-//                                                  .filter(metadataValue -> metadataValue
-//                                                      .getValue()
-//                                                      .equals(name))
-//                                                  .map(MetadataValue::getPlace)
-//                                                  .collect(Collectors.toList()))
-//                                 .flatMap(Collection::stream)
-//                                 .forEach(place -> addEndDateMetadata(place, context, item, ePerson));
+    }
+
+    private void fillAffiliationsMetadata(Context context, Item item) {
+        try {
+            List<MetadataValue> affiliationMetadata =
+                itemService.getMetadataByMetadataString(item, "oairecerif.person.affiliation");
+            DCInputSet inputs = dcInputsReader().getInputsByFormName("person-oairecerif-person-affiliation");
+            List<String> metadataToAdd =
+                inputs.getMetadataFields().stream().filter(s -> !"oairecerif.person.affiliation".equals(s))
+                      .collect(Collectors.toList());
+            affiliationMetadata.forEach(mv -> addPlaceholders(context, mv.getPlace(), item, metadataToAdd));
+            itemService.update(context, item);
+
+        } catch (DCInputsReaderException | SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private DCInputsReader dcInputsReader() throws DCInputsReaderException {
+        return new DCInputsReader();
+    }
+
+    private void addPlaceholders(Context context, int place, Item item, List<String> metadataToAdd) {
+        metadataToAdd.stream()
+            .filter(s -> notAlreadySet(item, s, place))
+            .map(mv -> toMetadataValue(context, item, place, mv))
+            .forEach(mv -> addMetadataValueInPosition(context, item, mv));
+    }
+
+    private boolean notAlreadySet(Item item, String field, int place) {
+        return itemService.getMetadataByMetadataString(item, field)
+            .stream().noneMatch(mv -> place == mv.getPlace());
+    }
+
+    private MetadataValueDTO toMetadataValue(Context context, Item item, int place, String mv) {
+        return new MetadataValueDTO(mv, PLACEHOLDER_PARENT_METADATA_VALUE, place);
+    }
+
+    private void addMetadataValueInPosition(Context context, Item item, MetadataValueDTO mv) {
+        try {
+            itemService.addMetadata(context, item, mv.getSchema(), mv.getElement(), mv.getQualifier(),
+                                    null, mv.getValue(), mv.getAuthority(), mv.getConfidence(),
+                                    mv.getPlace());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private boolean valueToBeReplaced(MetadataValue metadataValue) {

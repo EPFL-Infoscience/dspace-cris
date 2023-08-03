@@ -104,7 +104,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
                                     .withEntityType("OrgUnit")
                                     .build();
 
-        submitters = GroupBuilder.createGroup(context).withName("Submitters").build();
+        submitters = GroupBuilder.createGroup(context).withName("Submitter").build();
 
         context.restoreAuthSystemState();
 

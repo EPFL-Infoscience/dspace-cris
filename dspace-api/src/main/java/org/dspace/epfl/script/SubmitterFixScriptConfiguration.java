@@ -5,9 +5,9 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.epfl.script.sync;
 
-import java.io.InputStream;
+package org.dspace.epfl.script;
+
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Options;
@@ -16,15 +16,12 @@ import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
-public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchronizationScript>
-    extends ScriptConfiguration<T> {
+public class SubmitterFixScriptConfiguration<T extends SubmitterFixScript> extends ScriptConfiguration<T> {
 
     @Autowired
     private AuthorizeService authorizeService;
 
     private Class<T> dspaceRunnableClass;
-
     @Override
     public Class<T> getDspaceRunnableClass() {
         return dspaceRunnableClass;
@@ -49,18 +46,9 @@ public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchr
         if (options == null) {
             Options options = new Options();
 
-            options.addOption("f", "file", true,
-                              "optional, a csv file with comma separated scipers to be imported / updated");
-            options.getOption("f").setType(InputStream.class);
-            options.getOption("f").setRequired(false);
-
-            options.addOption("q", "query", true, "optional parameter (query) to be used to query epfl's ldap system");
-            options.getOption("q").setType(String.class);
-            options.getOption("q").setRequired(false);
-
-            options.addOption("e", "email", true, "optional email of the ePerson performing this action");
-            options.getOption("e").setType(String.class);
-            options.getOption("e").setRequired(false);
+            options.addOption("c", "collection", true, "the own collection of the imported items");
+            options.getOption("c").setType(String.class);
+            options.getOption("c").setRequired(true);
 
             super.options = options;
         }

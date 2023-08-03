@@ -11,6 +11,7 @@ package org.dspace.content.security;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -41,7 +42,9 @@ public class RelationshipManagementServiceImpl implements RelationshipManagement
     private boolean hasAccessMode(Context context, DSpaceObject dSpaceObject) {
         Item item = (Item) dSpaceObject;
         String entityType = itemService.getEntityType(item);
-        return accessModes.get(entityType.toLowerCase()).stream().anyMatch(am -> hasAccess(context, am, item));
+        return Optional.ofNullable(accessModes.get(entityType.toLowerCase()))
+                       .map(modes -> modes.stream()
+                                          .anyMatch(am -> hasAccess(context, am, item))).orElse(false);
     }
 
     private boolean hasAccess(Context context, AccessItemMode am, Item item) {

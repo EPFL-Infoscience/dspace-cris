@@ -124,8 +124,10 @@ public class CopyToBitstreamConsumer implements Consumer {
         String mdString = metadataString(schema, element, qualifier);
         List<MetadataValue> itemMetadata =
             itemService.getMetadataByMetadataString(item, mdString);
-        MetadataValue bitstreamMetadata =
-            bitstreamService.getMetadataByMetadataString(bitstreams.get(0), mdString).get(0);
+        List<MetadataValue> metadata =
+            bitstreamService.getMetadataByMetadataString(bitstreams.get(0), mdString);
+        MetadataValue bitstreamMetadata = (metadata != null && !metadata.isEmpty()) ?
+            metadata.get(0) : null;
 
         boolean valueToBeUpdated = bitstreamMetadata != null
             &&

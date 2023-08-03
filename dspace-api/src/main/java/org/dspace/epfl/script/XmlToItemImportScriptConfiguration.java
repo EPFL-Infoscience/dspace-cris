@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.epfl.script.sync;
+package org.dspace.epfl.script;
 
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -16,8 +16,7 @@ import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
-public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchronizationScript>
+public class XmlToItemImportScriptConfiguration<T extends XmlToItemImportScript>
     extends ScriptConfiguration<T> {
 
     @Autowired
@@ -48,22 +47,15 @@ public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchr
     public Options getOptions() {
         if (options == null) {
             Options options = new Options();
-
-            options.addOption("f", "file", true,
-                              "optional, a csv file with comma separated scipers to be imported / updated");
+            options.addOption("f", "file", true, "xml file to import");
             options.getOption("f").setType(InputStream.class);
-            options.getOption("f").setRequired(false);
-
-            options.addOption("q", "query", true, "optional parameter (query) to be used to query epfl's ldap system");
-            options.getOption("q").setType(String.class);
-            options.getOption("q").setRequired(false);
-
-            options.addOption("e", "email", true, "optional email of the ePerson performing this action");
-            options.getOption("e").setType(String.class);
-            options.getOption("e").setRequired(false);
-
+            options.getOption("f").setRequired(true);
+            options.addOption("c", "collection-uuid", true, "collection-uuid into which to make import");
+            options.getOption("c").setType(String.class);
+            options.getOption("c").setRequired(true);
             super.options = options;
         }
         return options;
     }
+
 }

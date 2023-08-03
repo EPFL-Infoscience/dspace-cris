@@ -143,6 +143,8 @@
                 <entry key="multilanguage-types" value-ref="multilanguage-types"/>
                 <entry key="aliases" value-ref="aliases"/>
                 <entry key="RELATION.Site.researchoutputs" value-ref="relationSiteResearchOutputsConfiguration"/>
+                <!-- discovery configuration for epfl enac affinity map -->
+                <entry key="affinitySearch" value-ref="researchoutputsByParentOrganization"/>
             </map>
         </property>
         <property name="toIgnoreMetadataFields">
@@ -362,7 +364,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items-->
-                <value>search.resourcetype:Item</value>
+                <value>search.resourcetype:Item AND latestVersion:true</value>
                 <!-- Only find withdrawn or undiscoverable-->
                 <value>withdrawn:true OR discoverable:false</value>
             </list>
@@ -496,7 +498,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items-->
-                <value>search.resourcetype:Item</value>
+                <value>search.resourcetype:Item AND latestVersion:true</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -759,7 +761,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, workspace and accepted for workflow -->
-                <value>(latestVersion:true AND search.resourcetype:Item) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
+                <value>(latestVersion:true AND search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -828,7 +830,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find items, workspace and accepted for workflow -->
-                <value>search.resourcetype:WorkspaceItem</value>
+                <value>search.resourcetype:WorkspaceItem AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -917,7 +919,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find PoolTask and ClaimedTask -->
-                <value>search.resourcetype:PoolTask OR search.resourcetype:ClaimedTask</value>
+                <value>(search.resourcetype:PoolTask OR search.resourcetype:ClaimedTask) AND -latestVersion:false</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -987,7 +989,7 @@
             queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
-                <value>search.resourcetype:XmlWorkflowItem</value>
+                <value>search.resourcetype:XmlWorkflowItem AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1058,7 +1060,7 @@
             queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
-                <value>search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
+                <value>(search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem) AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1128,7 +1130,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>projectinvestigators_authority:{0} AND search.resourcetype:Item</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1217,7 +1219,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>author_authority:{0} AND search.resourcetype:Item</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1305,7 +1307,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>editor_authority:{0} AND search.resourcetype:Item</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1346,7 +1348,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>'{'!join from=search.resourceid to=projectinvestigators_authority fromIndex=${solr.multicorePrefix}search'}'person.affiliation.name_authority:{0}</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1418,7 +1420,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>dc.description.sponsorship_authority:{0}</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1490,7 +1492,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>'{'!join from=search.resourceid to=author_authority fromIndex=${solr.multicorePrefix}search'}'person.affiliation.name_authority:{0}</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1521,7 +1523,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>(person.affiliation.name_authority:{0} OR oairecerif.person.affiliation_authority:{0})</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1548,7 +1550,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>involvedorganisation_authority:{0}</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1585,7 +1587,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>organization.parentOrganization_authority:{0}</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1612,7 +1614,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>dc.relation.project_authority:{0} AND entityType_keyword:Project</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1639,7 +1641,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>dc.relation.project_authority:{0} AND entityType_keyword:Funding</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1678,7 +1680,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>dc.relation.project_authority:{0} AND entityType_keyword:Publication</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1701,7 +1703,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>(entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent)</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -1762,7 +1764,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:Publication</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -1850,7 +1852,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -1876,6 +1878,40 @@
         <property name="defaultFilterQueries">
             <list>
                 <value>original_bundle_datacite_rights_keyword:openaccess</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="researchoutputsByParentOrganization" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration"
+      scope="prototype">
+        <property name="id" value="researchoutputsByParentOrganization"/>
+        <property name="indexAlways" value="true"/>
+        <property name="sidebarFacets">
+            <list/>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list/>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortScore" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+                <!--Only find items with metadata authority equal to scope. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>cris.virtual.parent-organization_authority:{0}</value>
             </list>
         </property>
     </bean>
@@ -1924,7 +1960,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:Person</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1982,7 +2018,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:Project</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:trues</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -2037,7 +2073,7 @@
                 <!--Only find items, communities and collections-->
                 <!-- NOTE: NOT filtered on latestVersion = true -->
                 <value>search.resourcetype:Item AND entityType_keyword:Project</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -2097,7 +2133,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND (entityType_keyword:Project OR entityType_keyword:Funding)</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -2162,7 +2198,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -2216,7 +2252,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:Funding</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -2260,7 +2296,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:Equipment</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
 <!--        &lt;!&ndash;The configuration for the recent submissions&ndash;&gt;-->
@@ -2325,7 +2361,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:JournalIssue</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -2389,7 +2425,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:JournalVolume</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -2448,7 +2484,7 @@
             <list>
                 <!--Only find items, communities and collections-->
                 <value>search.resourcetype:Item AND entityType_keyword:Journal</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--The configuration for the recent submissions-->
@@ -2522,7 +2558,7 @@
             <list>
                 <!--Only find items, and orgunits or persons-->
                 <value>search.resourcetype:Item AND (entityType_keyword:OrgUnit OR entityType_keyword:Person)</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
 
@@ -2578,7 +2614,7 @@
             <list>
                 <!--Only find items that have a entityType=OrgUnit and a dc.type=FundingOrganization -->
                 <value>search.resourcetype:Item AND entityType_keyword:OrgUnit AND dc.type:FundingOrganization</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -2615,7 +2651,7 @@
                 <!--Only find items into claimable collection defined in cfg-->
                 <value>search.resourcetype:Item</value>
                 <value>search.entitytype:${claimable.entityType}</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -2744,7 +2780,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <value>latestVersion:true AND search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent)</value>
-                <value>-withdrawn:true AND -discoverable:false</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
