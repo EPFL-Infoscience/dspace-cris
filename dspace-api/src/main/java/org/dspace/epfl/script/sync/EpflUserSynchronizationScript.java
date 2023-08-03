@@ -130,8 +130,8 @@ public class EpflUserSynchronizationScript
                 executeScriptWithQuery();
             }
 
-            finalLogging();
             context.complete();
+            finalLogging();
         } finally {
             context.restoreAuthSystemState();
         }
