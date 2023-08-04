@@ -12,15 +12,13 @@
         <bean class="org.dspace.versioning.VersioningItemMode">
             <property name="securities">
                 <list>
-                    <value>ADMIN</value>
-                    <value>GROUP</value>
+                    <value>ALL</value>
                 </list>
             </property>
-            <property name="groups" ref="groupListLoggedIn" />
+            <property name="additionalFilter" ref="loggedInFilter" />
         </bean>
     </util:list>
-    <util:list id="groupListLoggedIn" value-type="java.lang.String">
-        <value>LoggedIn</value>
-    </util:list>
-
+    <bean name="loggedInFilter" class="org.dspace.content.security.LoggedInFilter"/>
+    <bean id="org.dspace.versioning.service.ViewStatisticsService"
+          class="org.dspace.versioning.ViewStatisticsServiceImpl"/>
 </beans>

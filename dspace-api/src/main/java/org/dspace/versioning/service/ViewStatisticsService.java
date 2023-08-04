@@ -10,7 +10,7 @@ package org.dspace.versioning.service;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 
-public interface VersioningViewUsageService {
+public interface ViewStatisticsService {
 
     /**
      * Checks wether or not current user can view usage statistics of a given item.
@@ -20,5 +20,5 @@ public interface VersioningViewUsageService {
      * @param item DSpace Item against which check is performed
      * @return
      */
-    boolean canViewUsageStatisticsVersion(Context context, Item item);
+    boolean canViewStatistics(Context context, Item item);
 }

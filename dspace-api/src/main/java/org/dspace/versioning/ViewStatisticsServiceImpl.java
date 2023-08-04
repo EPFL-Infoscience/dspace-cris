@@ -14,12 +14,12 @@ import org.dspace.content.Item;
 import org.dspace.content.security.AccessItemMode;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.core.Context;
-import org.dspace.versioning.service.VersioningViewUsageService;
+import org.dspace.versioning.service.ViewStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 
-public class VersioningViewUsageServiceImpl implements VersioningViewUsageService {
+public class ViewStatisticsServiceImpl implements ViewStatisticsService {
 
     @Autowired
     private CrisSecurityService crisSecurityService;
@@ -29,7 +29,7 @@ public class VersioningViewUsageServiceImpl implements VersioningViewUsageServic
     private List<AccessItemMode> viewUsageStatisticsAccessModes;
 
     @Override
-    public boolean canViewUsageStatisticsVersion(Context context, Item item) {
+    public boolean canViewStatistics(Context context, Item item) {
         return viewUsageStatisticsAccessModes.stream()
                 .anyMatch(am -> isHasAccess(context, item, am));
     }
