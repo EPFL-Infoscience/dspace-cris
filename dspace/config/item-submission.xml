@@ -258,6 +258,11 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="virtual-collection-delegate-curators" mandatory="true">
+      <heading>submit.progressbar.describe.virtual-collection-delegate-curators</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
     <step-definition id="virtual-collection-bind" mandatory="true">
       <heading>submit.progressbar.describe.virtual-collection-bind</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
@@ -522,8 +527,15 @@
       <step id="collection" />
       <step id="custom-url" />
       <step id="virtual-collection" />
+      <step id="virtual-collection-delegate-curators" />
     </submission-process>
     <submission-process name="virtual-collection-edit">
+      <step id="collection" />
+      <step id="custom-url" />
+      <step id="virtual-collection" />
+      <step id="virtual-collection-delegate-curators" />
+    </submission-process>
+    <submission-process name="virtual-collection-delegate-edit">
       <step id="collection" />
       <step id="custom-url" />
       <step id="virtual-collection" />

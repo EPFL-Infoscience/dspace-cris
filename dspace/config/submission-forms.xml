@@ -4290,20 +4290,22 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Query</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
-          <required />
-          <hint />
+          <required>Query is required</required>
+          <hint>Define the SOLR query that is used to list Publications, Products and Patents belonging to this collection.</hint>
         </field>
       </row>
+    </form>
+    <form name="virtual-collection-delegate-curators">
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>virtualCollection</dc-element>
           <dc-qualifier>curator</dc-qualifier>
-          <label>Curator</label>
+          <label>Delegated Collection Curators</label>
           <input-type>onebox</input-type>
+          <hint>Here it is possible to set users which can edit collection details and claim Publications, Products and Patents that can be included into this collection</hint>
           <repeatable>true</repeatable>
           <required />
-          <hint />
         </field>
       </row>
     </form>
