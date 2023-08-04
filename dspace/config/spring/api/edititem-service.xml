@@ -22,11 +22,12 @@
                             <property name="submissionDefinition" value="publication-edit" />
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="CURATOR" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    CUSTOM
-                                </value>
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="groups">
@@ -34,11 +35,16 @@
                                     <value>ThematicAreaCurators</value>
                                 </list>
                             </property>
-                            <property name="items">
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
                                 <list>
-                                    <value>epfl.virtualCollection.curator</value>
+                                    <value>ALL</value>
                                 </list>
                             </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
                     </list>
                 </entry>
@@ -143,11 +149,12 @@
                             <property name="submissionDefinition" value="patent-edit" />
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="CURATOR" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    CUSTOM
-                                </value>
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="groups">
@@ -155,11 +162,16 @@
                                     <value>ThematicAreaCurators</value>
                                 </list>
                             </property>
-                            <property name="items">
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="EDIT-THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
                                 <list>
-                                    <value>epfl.virtualCollection.curator</value>
+                                    <value>ALL</value>
                                 </list>
                             </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
                     </list>
                 </entry>
@@ -202,11 +214,12 @@
                             <property name="submissionDefinition" value="product-edit" />
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="CURATOR" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    CUSTOM
-                                </value>
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="groups">
@@ -214,11 +227,16 @@
                                     <value>ThematicAreaCurators</value>
                                 </list>
                             </property>
-                            <property name="items">
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
                                 <list>
-                                    <value>epfl.virtualCollection.curator</value>
+                                    <value>ALL</value>
                                 </list>
                             </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
                     </list>
                 </entry>
@@ -261,21 +279,32 @@
                         </bean>
                     </list>
                 </entry>
-                <entry key="virtualCollection">
+                <entry key="virtualcollection">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="FULL" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    SUBMITTER
-                                </value>
+                            <property name="securities">
+                                <list>
+                                    <value>SUBMITTER</value>
+                                    <value>ADMIN</value>
+                                </list>
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter" />
+                            <property name="submissionDefinition" value="virtual-collection-delegate-edit" />
                         </bean>
                     </list>
                 </entry>
             </map>
         </property>
     </bean>
-
+    <bean name="thematicAreaDelegateFilter" class="org.dspace.content.security.ThematicCollectionDelegateFilter"/>
 </beans>
