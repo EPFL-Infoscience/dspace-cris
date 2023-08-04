@@ -21,4 +21,6 @@ public interface EpflItemsClient {
 
     InputStream get(String key);
 
+    String getCreationDate(String id);
+
 }

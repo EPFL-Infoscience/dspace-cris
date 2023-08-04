@@ -31,6 +31,7 @@ import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.customurl.service.CustomUrlServiceImpl;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.factory.ItemAuthorityServiceFactory;
 import org.dspace.content.authority.service.ItemAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -46,6 +47,7 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.ItemAuthorityUtils;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
+import org.dspace.web.ContextUtil;
 
 /**
  * Sample authority to link a dspace item with another (i.e a publication with
@@ -55,7 +57,7 @@ import org.dspace.utils.DSpace;
  * @author Giuseppe Digilio
  * @version $Revision $
  */
-public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
+public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, AuthorityVariantsSupport {
     private static Logger log = LogManager.getLogger(ItemAuthority.class);
     final static String CHOICES_EXTERNALSOURCE_PREFIX = "choises.externalsource.";
 
@@ -177,7 +179,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             solrQuery.addFilterQuery("dspace.entity.type:" + entityType);
         }
 
-        customAuthorityFilters.stream().flatMap(caf -> caf.getFilterQueries(this).stream())
+        customAuthorityFilters.stream().flatMap(caf -> caf.getFilterQueries(getContext(), this).stream())
                 .forEach(solrQuery::addFilterQuery);
 
         try {
@@ -309,7 +311,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         solrQuery.addFilterQuery("search.resourceid:" + key);
 
         customAuthorityFilters.stream()
-            .flatMap(caf -> caf.getFilterQueries(this).stream())
+            .flatMap(caf -> caf.getFilterQueries(getContext(), this).stream())
             .forEach(solrQuery::addFilterQuery);
 
         try {
@@ -355,4 +357,32 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         return StringUtils.normalizeSpace(StringUtils.replace(text, ",", " "));
     }
 
+    @Override
+    public List<String> getVariants(String key, String locale) {
+        Context context = getContext();
+        try {
+            Item item = itemService.find(context, UUIDUtils.fromString(key));
+            List<String> variants = item.getMetadata().stream()
+                    .filter(this::isVariant)
+                    .map(MetadataValue::getValue)
+                    .collect(Collectors.toList());
+            return variants;
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    private boolean isVariant(MetadataValue metadataValue) {
+        if (metadataValue.getMetadataField().getQualifier() == null) {
+            return false;
+        }
+
+        return metadataValue.getMetadataField().getQualifier().equals("variant");
+    }
+
+    private Context getContext() {
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        return context != null ? context : new Context();
+    }
 }

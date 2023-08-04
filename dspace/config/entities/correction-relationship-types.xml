@@ -142,5 +142,35 @@
 	    <max>1</max>
         </rightCardinality>
     </type>
+
+    <type>
+        <leftType>Content</leftType>
+        <rightType>Content</rightType>
+        <leftwardType>isCorrectionOfItem</leftwardType>
+        <rightwardType>isCorrectedByItem</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+	    <max>1</max>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+	    <max>1</max>
+        </rightCardinality>
+    </type>
+
+    <type>
+        <leftType>VirtualCollection</leftType>
+        <rightType>VirtualCollection</rightType>
+        <leftwardType>isCorrectionOfItem</leftwardType>
+        <rightwardType>isCorrectedByItem</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+	    <max>1</max>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+	    <max>1</max>
+        </rightCardinality>
+    </type>
     
 </relationships>

@@ -2649,21 +2649,9 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
     }
 
     @Test
-    public void testAuthorFindOne() throws Exception {
+    public void testWorkflowWithHiddenSections() throws Exception {
 
         context.turnOffAuthorisationSystem();
-
-        EPerson user = EPersonBuilder.createEPerson(context)
-            .withCanLogin(true)
-            .withEmail("user@test.com")
-            .withPassword(password)
-            .build();
-
-        EPerson anotherUser = EPersonBuilder.createEPerson(context)
-            .withCanLogin(true)
-            .withEmail("anotheruser@test.com")
-            .withPassword(password)
-            .build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
             .withName("Parent Community")
@@ -2671,41 +2659,52 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
+            .withSubmissionDefinition("test-hidden")
             .withWorkflowGroup(1, eperson)
-            .build();
-
-        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
-            .withName("Collection 2")
-            .withEntityType("Person")
-            .build();
-
-        Item userProfile = ItemBuilder.createItem(context, personCollection)
-            .withTitle("User")
-            .withDspaceObjectOwner(user)
-            .build();
-
-        Item anotherUserProfile = ItemBuilder.createItem(context, personCollection)
-            .withTitle("User")
-            .withDspaceObjectOwner(anotherUser)
             .build();
 
         WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
             .withTitle("Workflow Item")
-            .withIssueDate("2017-10-17")
-            .withAuthor("Author 1")
-            .withAuthor("Author 2", userProfile.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
 
-        getClient(getAuthToken(anotherUser.getEmail(), password))
+        getClient(getAuthToken(admin.getEmail(), password))
             .perform(get("/api/workflow/workflowitems/" + workflowItem.getID()))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.test-outside-workflow-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-outside-submission-hidden").doesNotExist())
+            .andExpect(jsonPath("$.sections.test-never-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-always-hidden").doesNotExist());
 
-        getClient(getAuthToken(user.getEmail(), password))
+    }
+
+    @Test
+    public void testValidationWithHiddenSteps() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withSubmissionDefinition("test-hidden")
+            .withWorkflowGroup(1, eperson)
+            .build();
+
+        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(admin.getEmail(), password))
             .perform(get("/api/workflow/workflowitems/" + workflowItem.getID()))
-            .andExpect(status().isOk());
-
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors", hasSize(1)))
+            .andExpect(jsonPath("$.errors[0].message", is("error.validation.required")))
+            .andExpect(jsonPath("$.errors[0].paths", contains("/sections/test-outside-workflow-hidden/dc.title")));
     }
 
 }

@@ -114,20 +114,33 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
     @Override
     public Workbook build(Context context, Collection collection, Iterator<ItemDTO> items) {
 
+        BulkImportWorkbook bulkImportWorkbook = buildEmptyWorkbook(context, collection);
+
+        writeWorkbookContent(items, bulkImportWorkbook);
+
+        autoSizeColumns(bulkImportWorkbook.getAllSheets());
+
+        return bulkImportWorkbook.getMainSheet().getSheet().getWorkbook();
+
+    }
+
+    @Override
+    public BulkImportWorkbook buildEmptyWorkbook(Context context, Collection collection) {
+
         Workbook workbook = new XSSFWorkbook();
 
         BulkImportSheet mainSheet = writeMainSheetHeader(collection, workbook);
         List<BulkImportSheet> nestedSheets = writeNestedMetadataSheetsHeader(collection, workbook);
         BulkImportSheet bitstreamSheet = writeBitstreamSheetHeader(collection, workbook);
 
-        BulkImportWorkbook bulkImportWorkbook = new BulkImportWorkbook(mainSheet, nestedSheets, bitstreamSheet);
+        return new BulkImportWorkbook(mainSheet, nestedSheets, bitstreamSheet);
+    }
 
-        writeWorkbookContent(items, bulkImportWorkbook);
-
-        autoSizeColumns(bulkImportWorkbook.getAllSheets());
-
-        return workbook;
-
+    @Override
+    public void writeWorkbookContent(ItemDTO item, BulkImportWorkbook workbook) {
+        writeMainSheet(item, workbook.getMainSheet());
+        workbook.getNestedMetadataSheets().forEach(sheet -> writeNestedMetadataSheet(item, sheet));
+        writeBitstreamSheet(item, workbook.getBitstreamSheet());
     }
 
     private BulkImportSheet writeMainSheetHeader(Collection collection, Workbook workbook) {
@@ -176,13 +189,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
     private void writeWorkbookContent(Iterator<ItemDTO> items, BulkImportWorkbook workbook) {
 
         while (items.hasNext()) {
-
-            ItemDTO item = items.next();
-
-            writeMainSheet(item, workbook.getMainSheet());
-            workbook.getNestedMetadataSheets().forEach(sheet -> writeNestedMetadataSheet(item, sheet));
-            writeBitstreamSheet(item, workbook.getBitstreamSheet());
-
+            writeWorkbookContent(items.next(), workbook);
         }
 
     }
