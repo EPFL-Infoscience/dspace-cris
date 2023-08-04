@@ -22,7 +22,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
-import org.dspace.versioning.service.VersioningService;
+import org.dspace.versioning.service.VersioningViewUsageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ public class CanViewUsageStatisticsFeature implements AuthorizationFeature {
     private AuthorizeService authorizeService;
 
     @Autowired
-    protected VersioningService versioningService;
+    protected VersioningViewUsageService versioningViewUsageService;
 
     @Autowired
     private Utils utils;
@@ -63,7 +63,7 @@ public class CanViewUsageStatisticsFeature implements AuthorizationFeature {
                 return authorizeService.isAdmin(context,
                     (DSpaceObject)utils.getDSpaceAPIObjectFromRest(context, object));
             } else {
-                return versioningService.canViewUsageStatisticsVersion(context,
+                return versioningViewUsageService.canViewUsageStatisticsVersion(context,
                         (Item) utils.getDSpaceAPIObjectFromRest(context, object))
                         || authorizeService.authorizeActionBoolean(context,
                     (DSpaceObject)utils.getDSpaceAPIObjectFromRest(context, object), org.dspace.core.Constants.READ);

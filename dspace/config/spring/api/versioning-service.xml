@@ -31,6 +31,12 @@
 
     </bean>
 
+    <bean id="org.dspace.versioning.service.VersioningViewUsageService"
+          class="org.dspace.versioning.VersioningViewUsageServiceImpl"
+          autowire="byType"
+          scope="singleton">
+    </bean>
+
     <bean class="org.dspace.versioning.utils.RelationshipVersioningUtils"/>
 
 </beans>

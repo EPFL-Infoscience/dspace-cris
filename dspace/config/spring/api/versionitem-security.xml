@@ -27,21 +27,6 @@
         <value>dc.contributor.author</value>
     </util:list>
 
-    <util:list id="viewUsageStatisticsAccessModesList">
-        <bean class="org.dspace.versioning.VersioningItemMode">
-            <property name="securities">
-                <list>
-                    <value>ADMIN</value>
-                    <value>GROUP</value>
-                </list>
-            </property>
-            <property name="groups" ref="groupListLoggedIn" />
-        </bean>
-    </util:list>
-    <util:list id="groupListLoggedIn" value-type="java.lang.String">
-        <value>LoggedIn</value>
-    </util:list>
-
     <util:list id="groupList" value-type="java.lang.String">
         <value>Curators</value>
     </util:list>

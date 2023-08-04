@@ -63,10 +63,6 @@ public class VersioningServiceImpl implements VersioningService {
     @Qualifier("deleteVersionAccessModesList")
     private List<AccessItemMode> deleteVersionAccessModes;
 
-    @Autowired
-    @Qualifier("viewUsageStatisticsAccessModesList")
-    private List<AccessItemMode> viewUsageStatisticsAccessModes;
-
     private DefaultItemVersionProvider provider;
 
     @Autowired(required = true)
@@ -272,12 +268,6 @@ public class VersioningServiceImpl implements VersioningService {
 
         return createVersionAccessModes.stream()
                                 .anyMatch(am -> isHasAccess(context, item, am));
-    }
-
-    @Override
-    public boolean canViewUsageStatisticsVersion(Context context, Item item) {
-        return viewUsageStatisticsAccessModes.stream()
-                .anyMatch(am -> isHasAccess(context, item, am));
     }
 
     @Override

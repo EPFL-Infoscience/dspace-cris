@@ -115,15 +115,6 @@ public interface VersioningService {
      */
     boolean canCreateVersion(Context context, Item item);
 
-    /**
-     * Checks wether or not current user can view usage statistics of a given item.
-     * If user passes CRIS security checks defined in configuration file `versionitem-security.xml'
-     *
-     * @param context The relevant DSpace Context
-     * @param item DSpace Item against which check is performed
-     * @return
-     */
-    boolean canViewUsageStatisticsVersion(Context context, Item item);
 
     /**
      *
