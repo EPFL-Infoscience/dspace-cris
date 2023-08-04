@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.dspace.core.Context;
+
 /**
  * Provides some custom filter queries to be used during Item Authority lookup.
  *
@@ -26,8 +28,12 @@ public abstract class CustomAuthorityFilter {
      * @return a list of custom solr filter queries
      */
     public List<String> getFilterQueries(LinkableEntityAuthority linkableEntityAuthority) {
+        return getFilterQueries(null, linkableEntityAuthority);
+    }
+
+    public List<String> getFilterQueries(Context context, LinkableEntityAuthority linkableEntityAuthority) {
         if (appliesTo(linkableEntityAuthority)) {
-            return createFilterQueries();
+            return createFilterQueries(context);
         }
         return Collections.emptyList();
     }
@@ -38,7 +44,7 @@ public abstract class CustomAuthorityFilter {
      */
     public abstract boolean appliesTo(LinkableEntityAuthority linkableEntityAuthority);
 
-    protected final List<String> createFilterQueries() {
+    protected final List<String> createFilterQueries(Context context) {
         return Optional.ofNullable(customQueries).orElseGet(Collections::emptyList);
     }
 
