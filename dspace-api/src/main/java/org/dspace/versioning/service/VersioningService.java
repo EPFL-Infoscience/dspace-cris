@@ -115,6 +115,7 @@ public interface VersioningService {
      */
     boolean canCreateVersion(Context context, Item item);
 
+
     /**
      *
      * Checks if an user can delete a version of an item. Involved item must not be in workflow

@@ -6,12 +6,15 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.discovery.configuration;
+
 import static org.apache.commons.collections4.iterators.EmptyIterator.emptyIterator;
 
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,10 +55,7 @@ public class DiscoveryConfigurationUtilsService {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.setDiscoveryConfigurationName(discoveryConfiguration.getId());
-        List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
-        for (String defaultFilterQuery : defaultFilterQueries) {
-            discoverQuery.addFilterQueries(MessageFormat.format(defaultFilterQuery, item.getID()));
-        }
+        processAndAddDefaultQueries(discoveryConfiguration.getDefaultFilterQueries(), item, discoverQuery);
 
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
     }
@@ -63,6 +63,21 @@ public class DiscoveryConfigurationUtilsService {
     private DiscoveryConfiguration findDiscoveryConfiguration(String entityType, String relationName) {
         String configurationName = "RELATION." + entityType + "." + relationName;
         return searchConfigurationService.getDiscoveryConfigurationByName(configurationName);
+    }
+
+    public void processAndAddDefaultQueries(List<String> queries, Item item, DiscoverQuery discoverQuery) {
+        for (String query : queries) {
+            Matcher matcher = Pattern.compile(".*?(\\S*_query)").matcher(query);
+
+            if (matcher.find()) {
+                // If default query contains "*_query" then replace it with corresponding metadata value
+                String matchedSubString = matcher.group(1);
+                String queryMetadataValue = itemService.getMetadata(item, matchedSubString.split("_")[0]);
+                query = query.replace(matchedSubString, queryMetadataValue);
+            }
+
+            discoverQuery.addFilterQueries(MessageFormat.format(query, item.getID()));
+        }
     }
 
 }
