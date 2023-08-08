@@ -276,20 +276,24 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
             SCORE  + ":[ " + score + " TO * ]",
             PROCESSED + ":false");
 
-        solrQuery.addSort(ascending ? SortClause.asc("trust") : SortClause.desc("trust"));
-        solrQuery.addSort(SortClause.desc("date"));
-        solrQuery.addSort(SortClause.asc("suggestion_id"));
-        solrQuery.addSort(SortClause.asc("title"));
+        return getAllUnprocessedSuggestions(context, source, ascending, solrQuery);
+    }
 
-        QueryResponse response = getSolr().query(solrQuery);
-        List<Suggestion> suggestions = new ArrayList<Suggestion>();
-        for (SolrDocument solrDoc : response.getResults()) {
-            Suggestion suggestion = convertSolrDoc(context, solrDoc, source);
-            if (suggestion != null) {
-                suggestions.add(suggestion);
-            }
-        }
-        return suggestions;
+    @Override
+    public List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndPerson(Context context, String source,
+        String score, String personUuid, int pageSize, long offset, boolean ascending)
+            throws SolrServerException, IOException {
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setRows(pageSize);
+        solrQuery.setStart((int) offset);
+        solrQuery.setQuery("*:*");
+        solrQuery.addFilterQuery(
+                SOURCE + ":" + source,
+                SCORE  + ":[ " + score + " TO * ]",
+                PROCESSED + ":false",
+                TARGET_ID + ":" + personUuid);
+
+        return getAllUnprocessedSuggestions(context, source, ascending, solrQuery);
     }
 
     @Override
@@ -307,6 +311,31 @@ public class SolrSuggestionStorageServiceImpl implements SolrSuggestionStorageSe
             TYPE + ":" + type,
             PROCESSED + ":false");
 
+        return getAllUnprocessedSuggestions(context, source, ascending, solrQuery);
+    }
+
+    @Override
+    public List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndTypeAndPerson(Context context,
+        String source, String score, String type, String personUuid, int pageSize, long offset, boolean ascending)
+            throws SolrServerException, IOException {
+
+        SolrQuery solrQuery = new SolrQuery();
+        solrQuery.setRows(pageSize);
+        solrQuery.setStart((int) offset);
+        solrQuery.setQuery("*:*");
+        solrQuery.addFilterQuery(
+                SOURCE + ":" + source,
+                SCORE  + ":[ " + score + " TO * ]",
+                TYPE + ":" + type,
+                PROCESSED + ":false",
+                TARGET_ID + ":" + personUuid);
+
+        return getAllUnprocessedSuggestions(context, source, ascending, solrQuery);
+    }
+
+    private List<Suggestion> getAllUnprocessedSuggestions(Context context, String source,
+                                                          boolean ascending, SolrQuery solrQuery)
+            throws SolrServerException, IOException {
         solrQuery.addSort(ascending ? SortClause.asc("trust") : SortClause.desc("trust"));
         solrQuery.addSort(SortClause.desc("date"));
         solrQuery.addSort(SortClause.asc("suggestion_id"));
