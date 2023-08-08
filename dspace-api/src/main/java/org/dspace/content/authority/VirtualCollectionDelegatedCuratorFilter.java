@@ -34,7 +34,7 @@ public class VirtualCollectionDelegatedCuratorFilter extends EntityTypeAuthority
     @Override
     public List<String> getFilterQueries(Context context, LinkableEntityAuthority linkableEntityAuthority) {
         try {
-            if (context.getCurrentUser() == null || adminOrCurator(context)) {
+            if (context.getCurrentUser() == null || isAdmin(context)) {
                 return List.of();
             }
         } catch (SQLException e) {
@@ -48,7 +48,8 @@ public class VirtualCollectionDelegatedCuratorFilter extends EntityTypeAuthority
                             .collect(Collectors.toList());
     }
 
-    private boolean adminOrCurator(Context context) throws SQLException {
-        return authorizeService.isAdmin(context) || groupService.isMember(context, CURATORS);
+    private boolean isAdmin(Context context) throws SQLException {
+//        return authorizeService.isAdmin(context) || groupService.isMember(context, CURATORS);
+        return authorizeService.isAdmin(context);
     }
 }

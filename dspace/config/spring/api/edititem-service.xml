@@ -228,7 +228,6 @@
                                 <list>
                                     <value>ThematicAreaCurators</value>
                                     <value>Curators</value>
-                                    <value>Curators</value>
                                 </list>
                             </property>
                         </bean>
