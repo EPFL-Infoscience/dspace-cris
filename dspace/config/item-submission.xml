@@ -302,6 +302,36 @@
       <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
       <type>upload</type>
     </step-definition>
+    <step-definition id="virtual-collection" mandatory="true">
+      <heading>submit.progressbar.describe.virtual-collection</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="virtual-collection-admin" mandatory="true">
+      <heading>submit.progressbar.describe.virtual-collection-admin</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="virtual-collection-delegate-curators" mandatory="true">
+      <heading>submit.progressbar.describe.virtual-collection-delegate-curators</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="virtual-collection-bind" mandatory="true">
+      <heading>submit.progressbar.describe.virtual-collection-bind</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="orgunit-editor" mandatory="true">
+      <heading>submit.progressbar.describe.orgunit-editor</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="orgunit-director" mandatory="true">
+      <heading>submit.progressbar.describe.orgunit-director</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
     <step-definition id="unpaywall" mandatory="true">
       <heading>submit.progressbar.unpaywall</heading>
       <processing-class>org.dspace.app.rest.submit.step.UnpaywallStep</processing-class>
@@ -368,7 +398,21 @@
       <step id="license" />
     </submission-process>
     <submission-process name="orgunit-edit">
+      <step id="orgunit-editor"/>
       <step id="orgunit" />
+      <step id="custom-url" />
+      <step id="detect-duplicate" />
+      <step id="upload-orgunit" />
+    </submission-process>
+    <submission-process name="orgunit-edit-director">
+      <step id="orgunit-editor"/>
+      <step id="orgunit-director" />
+      <step id="custom-url" />
+      <step id="detect-duplicate" />
+      <step id="upload-orgunit" />
+    </submission-process>
+    <submission-process name="orgunit-edit-delegate">
+      <step id="orgunit-director" />
       <step id="custom-url" />
       <step id="detect-duplicate" />
       <step id="upload-orgunit" />
@@ -564,6 +608,34 @@
       <step id="content" />
       <step id="upload-content" />
       <step id="custom-url" />
+    </submission-process>
+    <submission-process name="virtual-collection">
+      <step id="collection" />
+      <step id="custom-url" />
+      <step id="virtual-collection" />
+      <step id="virtual-collection-admin" />
+      <step id="virtual-collection-delegate-curators" />
+    </submission-process>
+    <submission-process name="virtual-collection-edit">
+      <step id="collection" />
+      <step id="custom-url" />
+      <step id="virtual-collection" />
+      <step id="virtual-collection-admin" />
+      <step id="virtual-collection-delegate-curators" />
+    </submission-process>
+    <submission-process name="virtual-collection-curator-edit">
+      <step id="collection" />
+      <step id="custom-url" />
+      <step id="virtual-collection" />
+      <step id="virtual-collection-delegate-curators" />
+    </submission-process>
+    <submission-process name="virtual-collection-delegate-edit">
+      <step id="collection" />
+      <step id="custom-url" />
+      <step id="virtual-collection" />
+    </submission-process>
+    <submission-process name="virtual-collection-bind">
+      <step id="virtual-collection-bind" />
     </submission-process>
   </submission-definitions>
 </item-submission>

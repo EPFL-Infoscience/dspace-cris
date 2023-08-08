@@ -87,6 +87,7 @@ public class ExternalSourceItemImportRunnable
     private String type;
     private String email;
     private String limit;
+    private String person;
     private EPersonService ePersonService;
     private AuthorizeService authorizeService;
     private ItemService itemService;
@@ -115,7 +116,7 @@ public class ExternalSourceItemImportRunnable
         type = commandLine.getOptionValue("ty");
         email = commandLine.getOptionValue("e");
         limit = commandLine.getOptionValue("l");
-
+        person = commandLine.getOptionValue("pe");
     }
 
     @Override
@@ -339,8 +340,13 @@ public class ExternalSourceItemImportRunnable
     private List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScore(Context context, String source,
                                                                            String score, long offset, int pageSize) {
         try {
-            return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScore(context, source, score,
-                pageSize, offset, true);
+            if (StringUtils.isEmpty(person)) {
+                return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScore(context, source,
+                        score, pageSize, offset, true);
+            } else {
+                return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScoreAndPerson(context,
+                        source, score, person, pageSize, offset, true);
+            }
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -350,9 +356,15 @@ public class ExternalSourceItemImportRunnable
                                                                                   String score, String type,
                                                                                   long offset, int pageSize) {
         try {
-            return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScoreAndType(
-                context, source, score, type, pageSize, offset, true
-            );
+            if (StringUtils.isEmpty(person)) {
+                return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScoreAndType(
+                        context, source, score, type, pageSize, offset, true
+                );
+            } else {
+                return solrSuggestionStorageService.findAllUnprocessedSuggestionsBySourceAndScoreAndTypeAndPerson(
+                        context, source, score, type, person, pageSize, offset, true
+                );
+            }
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }

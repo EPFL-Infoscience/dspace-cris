@@ -213,6 +213,11 @@
         <property name="description" value="Update submitters for items where submitter does not have a sciper, with the first author having a sciper"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SubmitterFixScript"/>
     </bean>
+    
+     <bean id="orcid-update" class="org.dspace.orcid.script.OrcidUpdateScriptConfiguration">
+        <property name="description" value="Perform an orcid value update of Person entities using json"/>
+        <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidUpdate"/>
+    </bean>
 
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
