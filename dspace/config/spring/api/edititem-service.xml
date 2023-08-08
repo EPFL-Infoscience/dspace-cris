@@ -308,7 +308,7 @@
                             <property name="submissionDefinition" value="virtual-collection-curator-edit" />
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="name" value="CURATOR" />
                             <property name="securities">
                                 <list>
                                     <value>GROUP</value>
