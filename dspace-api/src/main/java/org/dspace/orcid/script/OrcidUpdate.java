@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.ParseException;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
@@ -121,6 +120,8 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
                 removeAccessToken(item);
                 setOrcidMetadata(item, orcidJsonValue);
             }
+
+            context.uncacheEntity(item);
         }
     }
 
@@ -147,7 +148,6 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
 
     private SolrDocumentList query(SolrQuery solrParams) {
         try {
-            solrParams.addSort("item.id", ORDER.asc);
             QueryResponse response = searchService.getSolrSearchCore().getSolr().query(solrParams);
             return response.getResults();
         } catch (SolrServerException | IOException e) {
@@ -184,9 +184,8 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
     }
 
     private void removeAccessToken(Item profile) throws SQLException {
-        EPerson owner = ePersonService.findByProfileItem(context, profile);
-        orcidTokenService.deleteByEPerson(context, owner);
-        ePersonService.clearMetadata(context, owner, "dspace", "orcid", "authenticated", Item.ANY);
+        orcidTokenService.deleteByProfileItem(context, profile);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "authenticated", Item.ANY);
     }
 
     private String getOrcidSuffix(String orcidUrl) {
