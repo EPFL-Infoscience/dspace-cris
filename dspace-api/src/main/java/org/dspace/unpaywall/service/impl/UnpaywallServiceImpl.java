@@ -219,12 +219,11 @@ public class UnpaywallServiceImpl implements UnpaywallService {
 
     private Optional<String> callUnpaywallApi(String doi) {
         String endpoint = configurationService.getProperty("unpaywall.url");
-        String email = getEmail();
         HttpGet method = null;
 
         try {
             URIBuilder uriBuilder = new URIBuilder(endpoint + doi);
-            uriBuilder.addParameter("email", email);
+            uriBuilder.addParameter("email", getEmail());
             method = new HttpGet(uriBuilder.build());
 
             HttpResponse response = client.execute(method);
