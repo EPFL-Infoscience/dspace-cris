@@ -4336,6 +4336,20 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
     </form>
+    <form name="orgunit-editor">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>editor</dc-qualifier>
+          <label>Delegated head of units</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
   </form-definitions>
   <form-value-pairs>
     <value-pairs value-pairs-name="patent_types" dc-term="patent_types">
