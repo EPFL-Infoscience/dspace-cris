@@ -62,6 +62,18 @@ public class OrcidPublicationLoader extends SolrSuggestionProvider {
         solrSuggestionStorageService.commit();
     }
 
+    @Override
+    public void importAuthorRecords(Context context, Item researcher) throws SolrServerException, IOException {
+       importWorks(context, researcher, itemService.getMetadataFirstValue(researcher, "person", "identifier",
+                                                                          "orcid", Item.ANY));
+    }
+
+    @Override
+    public void importAuthorRecords(Context context, Item researcher, String extraQuery)
+        throws SolrServerException, IOException {
+        importAuthorRecords(context, researcher);
+    }
+
     private List<Suggestion> convertToSuggestions(Item profile, List<ExternalDataObject> externalDataObjects) {
         return externalDataObjects.stream()
             .map(externalDataObject -> convertToSuggestion(profile, externalDataObject))
