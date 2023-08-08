@@ -184,9 +184,8 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
     }
 
     private void removeAccessToken(Item profile) throws SQLException {
-        EPerson owner = ePersonService.findByProfileItem(context, profile);
-        orcidTokenService.deleteByEPerson(context, owner);
-        ePersonService.clearMetadata(context, owner, "dspace", "orcid", "authenticated", Item.ANY);
+        orcidTokenService.deleteByProfileItem(context, profile);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "authenticated", Item.ANY);
     }
 
     private String getOrcidSuffix(String orcidUrl) {
