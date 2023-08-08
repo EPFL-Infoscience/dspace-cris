@@ -298,7 +298,6 @@
                             <property name="securities">
                                 <list>
                                     <value>CUSTOM</value>
-                                    <value>GROUP</value>
                                 </list>
                             </property>
                             <property name="users">
@@ -306,12 +305,21 @@
                                     <value>epfl.virtualCollection.head</value>
                                 </list>
                             </property>
+                            <property name="submissionDefinition" value="virtual-collection-curator-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
                             <property name="groups">
                                 <list>
                                     <value>Curators</value>
                                 </list>
                             </property>
-                            <property name="submissionDefinition" value="virtual-collection-curator-edit" />
+                            <property name="submissionDefinition" value="virtual-collection-delegate-edit" />
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
