@@ -7,18 +7,18 @@
  */
 package org.dspace.versioning.service;
 
-import org.dspace.content.Item;
+import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
 public interface ViewStatisticsService {
 
     /**
-     * Checks wether or not current user can view usage statistics of a given item.
+     * Checks whether or not current user can view usage statistics of a given item.
      * If user passes CRIS security checks defined in configuration file `view-usage-security.xml'
      *
      * @param context The relevant DSpace Context
      * @param item DSpace Item against which check is performed
      * @return
      */
-    boolean canViewStatistics(Context context, Item item);
+    boolean canViewStatistics(Context context, DSpaceObject item);
 }
