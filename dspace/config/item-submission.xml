@@ -310,6 +310,7 @@
   </step-definitions>
   <submission-definitions>
     <submission-process name="product">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
@@ -399,6 +400,7 @@
       <step id="upload-journal" />
     </submission-process>
     <submission-process name="publication">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
@@ -420,7 +422,6 @@
       <step id="publishing_information" />
       <step id="additional_fields" />
       <step id="license" />
-      <step id="unpaywall" />
     </submission-process>
     <submission-process name="publication-edit">
       <step id="extractionstep" />
@@ -507,6 +508,7 @@
       <step id="upload-equipment" />
     </submission-process>
     <submission-process name="patent">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
