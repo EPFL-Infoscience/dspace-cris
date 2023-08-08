@@ -420,6 +420,7 @@
       <step id="publishing_information" />
       <step id="additional_fields" />
       <step id="license" />
+      <step id="unpaywall" />
     </submission-process>
     <submission-process name="publication-edit">
       <step id="extractionstep" />
