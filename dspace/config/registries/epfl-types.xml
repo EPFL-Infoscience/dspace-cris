@@ -408,4 +408,10 @@
         <qualifier>curator</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier>head</qualifier>
+    </dc-type>
+
 </dspace-dc-types>

@@ -33,6 +33,7 @@
                             <property name="groups">
                                 <list>
                                     <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
                                 </list>
                             </property>
                         </bean>
@@ -160,6 +161,7 @@
                             <property name="groups">
                                 <list>
                                     <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
                                 </list>
                             </property>
                         </bean>
@@ -225,6 +227,7 @@
                             <property name="groups">
                                 <list>
                                     <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
                                 </list>
                             </property>
                         </bean>
@@ -285,20 +288,52 @@
                             <property name="name" value="FULL" />
                             <property name="securities">
                                 <list>
-                                    <value>SUBMITTER</value>
                                     <value>ADMIN</value>
                                 </list>
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-edit" />
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>CUSTOM</value>
+                                </list>
+                            </property>
+                            <property name="users">
+                                <list>
+                                    <value>epfl.virtualCollection.head</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-curator-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="groups">
+                                <list>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-delegate-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
                             <property name="securities">
                                 <list>
-                                    <value>ALL</value>
+                                    <value>CUSTOM</value>
                                 </list>
                             </property>
-                            <property name="additionalFilter" ref="thematicAreaDelegateFilter" />
+                            <property name="users">
+                                <list>
+                                    <value>epfl.virtualCollection.curator</value>
+                                </list>
+                            </property>
+<!--                            <property name="additionalFilter" ref="thematicAreaDelegateFilter" />-->
                             <property name="submissionDefinition" value="virtual-collection-delegate-edit" />
                         </bean>
                     </list>

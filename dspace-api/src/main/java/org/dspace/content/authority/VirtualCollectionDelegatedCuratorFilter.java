@@ -16,12 +16,17 @@ import java.util.stream.Collectors;
 
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
+import org.dspace.eperson.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class VirtualCollectionDelegatedCuratorFilter extends EntityTypeAuthorityFilter {
 
+    private static final String CURATORS = "Curators";
     @Autowired
     private AuthorizeService authorizeService;
+
+    @Autowired
+    private GroupService groupService;
     public VirtualCollectionDelegatedCuratorFilter(List<String> customQueries) {
         super(customQueries);
     }
@@ -29,7 +34,7 @@ public class VirtualCollectionDelegatedCuratorFilter extends EntityTypeAuthority
     @Override
     public List<String> getFilterQueries(Context context, LinkableEntityAuthority linkableEntityAuthority) {
         try {
-            if (context.getCurrentUser() == null || authorizeService.isAdmin(context)) {
+            if (context.getCurrentUser() == null || isAdmin(context)) {
                 return List.of();
             }
         } catch (SQLException e) {
@@ -41,5 +46,10 @@ public class VirtualCollectionDelegatedCuratorFilter extends EntityTypeAuthority
                                                             currentUser,
                                                             currentUser))
                             .collect(Collectors.toList());
+    }
+
+    private boolean isAdmin(Context context) throws SQLException {
+//        return authorizeService.isAdmin(context) || groupService.isMember(context, CURATORS);
+        return authorizeService.isAdmin(context);
     }
 }
