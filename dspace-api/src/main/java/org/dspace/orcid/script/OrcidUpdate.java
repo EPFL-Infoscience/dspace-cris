@@ -7,13 +7,10 @@
  */
 package org.dspace.orcid.script;
 
-import static org.dspace.app.nbevent.service.impl.NBEventServiceImpl.RESOURCE_UUID;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,20 +18,15 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.ParseException;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.discovery.SearchService;
-import org.dspace.discovery.SearchUtils;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.EPersonService;
 import org.dspace.importer.external.service.OrcidCheck;
 import org.dspace.orcid.factory.OrcidServiceFactory;
 import org.dspace.orcid.service.OrcidTokenService;
@@ -49,10 +41,6 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
     private static final MetadataFieldName METADATA_EPFL_SCIPERID =
         new MetadataFieldName("epfl", "sciperId", null);
 
-    private EPersonService ePersonService;
-
-    private SearchService searchService;
-
     private OrcidTokenService orcidTokenService;
 
     private ItemService itemService;
@@ -63,11 +51,8 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
 
     @Override
     public void setup() throws ParseException {
-        ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-        searchService = SearchUtils.getSearchService();
         orcidTokenService = OrcidServiceFactory.getInstance().getOrcidTokenService();
         itemService = ContentServiceFactory.getInstance().getItemService();
-
         filename = commandLine.getOptionValue("f");
     }
 
@@ -96,33 +81,54 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
     }
 
     private void performOrcidUpdate(InputStream is) throws Exception {
+
         Map<String, String> orcidBySciperId = parseJson(is);
+
         Iterator<Item> items = findPersonsWithSciperId();
 
         while (items.hasNext()) {
-            Item item = items.next();
-            String orcidJsonValue = getOrcidSuffix(orcidBySciperId.get(
-                itemService.getMetadataFirstValue(item, METADATA_EPFL_SCIPERID, Item.ANY)));
-            String orcidMetadataValue = getOrcidMetadata(item);
 
-            if (orcidJsonValue == null) {
-                removeAccessToken(item);
-                clearOrcidMetadata(item);
-                continue;
-            }
+            Item item = context.reloadEntity(items.next());
 
-            if (orcidMetadataValue == null) {
-                setOrcidMetadata(item, orcidJsonValue);
-                continue;
-            }
+            performOrcidUpdate(item, orcidBySciperId);
 
-            if (!orcidJsonValue.equals(orcidMetadataValue)) {
-                removeAccessToken(item);
-                setOrcidMetadata(item, orcidJsonValue);
-            }
-
-            context.uncacheEntity(item);
+            context.commit();
         }
+
+    }
+
+    private void performOrcidUpdate(Item item, Map<String, String> orcidBySciperId) throws SQLException {
+
+        String sciperId = itemService.getMetadataFirstValue(item, METADATA_EPFL_SCIPERID, Item.ANY);
+
+        String orcidJsonValue = orcidBySciperId.get(sciperId);
+
+        String orcidMetadataValue = getOrcidMetadata(item);
+
+        String logInfoPrefix = "Item with ID " + item.getID() + " and sciperId " + sciperId + " ";
+
+        if (orcidJsonValue == null) {
+
+            removeAccessToken(item);
+            clearOrcidMetadata(item);
+
+            handler.logInfo(logInfoPrefix + "does not have an ORCID ID in the provided json. "
+                + "Removed access token and ORCID ID from the system");
+
+        } else if (orcidMetadataValue == null) {
+
+            setOrcidMetadata(item, orcidJsonValue);
+
+            handler.logInfo(logInfoPrefix + "updated with the ORCID ID present in the provided json.");
+
+        } else if (!orcidJsonValue.equals(orcidMetadataValue)) {
+            removeAccessToken(item);
+            setOrcidMetadata(item, orcidJsonValue);
+
+            handler.logInfo(logInfoPrefix + "has an ORCID ID different from the one present in the provided json. "
+                + "Removed access token and ORCID ID replaced.");
+        }
+
     }
 
     private Map<String, String> parseJson(InputStream is) {
@@ -130,29 +136,21 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
             Map<String, Map<String, String>> rawMap = new ObjectMapper().readValue(is, new TypeReference<>() {});
 
             return rawMap.entrySet()
-                         .stream()
-                         .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get("orcid")));
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> getOrcidSuffix(e.getValue().get("orcid"))));
+
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse json file", e);
         }
     }
 
     private Iterator<Item> findPersonsWithSciperId() throws Exception {
-        SolrDocumentList documents = query(new SolrQuery("epfl.sciperId:* AND entityType:Peron"));
-        List<String> uuids = documents.stream()
-                                      .map(doc -> (String) doc.get(RESOURCE_UUID))
-                                      .collect(Collectors.toList());
 
-        return itemService.findByIds(context, uuids);
-    }
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.setQuery("epfl.sciperId: [* TO *] AND entityType:Person");
 
-    private SolrDocumentList query(SolrQuery solrParams) {
-        try {
-            QueryResponse response = searchService.getSolrSearchCore().getSolr().query(solrParams);
-            return response.getResults();
-        } catch (SolrServerException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new DiscoverResultItemIterator(context, discoverQuery);
+
     }
 
     private void assignCurrentUserInContext() throws SQLException {
@@ -191,7 +189,7 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
     private String getOrcidSuffix(String orcidUrl) {
         return orcidUrl != null && OrcidCheck.isOrcid(orcidUrl)
             ? orcidUrl.trim().substring(orcidUrl.length() - 19)
-            : null;
+            : orcidUrl;
     }
 
     @Override
