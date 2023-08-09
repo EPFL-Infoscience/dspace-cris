@@ -70,6 +70,11 @@ public class ExternalSourceItemImportScriptConfiguration<T extends ExternalSourc
             options.getOption("ty").setType(String.class);
             options.getOption("ty").setRequired(false);
 
+            options.addOption("pe", "person", true, "uuid of a person." +
+                "If set restricts the imported suggestions only to those of this person");
+            options.getOption("pe").setType(String.class);
+            options.getOption("pe").setRequired(false);
+
             // this option is mandatory if we run from CLI
             options.addOption("e", "email", true, "importing eperson email");
             options.getOption("e").setType(String.class);

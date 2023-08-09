@@ -166,6 +166,25 @@ public interface SolrSuggestionStorageService {
         int pageSize, long offset, boolean ascending) throws SolrServerException, IOException;
 
     /**
+     * Find all the unprocessed suggestions related to the given source, person and have score
+     * greater than or equal to given score.
+     * @param  context             the DSpace Context
+     * @param  source              the source name
+     * @param  score               the score
+     * @param  personUuid          the person uuid
+     * @param  pageSize            the page size
+     * @param  offset              the page offset
+     * @param  ascending           true to retrieve the suggestions ordered by score
+     *                             ascending
+     * @return                     the found suggestions
+     * @throws SolrServerException
+     * @throws IOException
+     */
+    List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndPerson(Context context, String source,
+        String score, String personUuid, int pageSize, long offset, boolean ascending)
+            throws SolrServerException, IOException;
+
+    /**
      * Find all the unprocessed suggestions that are related to the given source, have specified type and have score
      * greater than or equal to given score.
      * @param  context             the DSpace Context
@@ -182,6 +201,26 @@ public interface SolrSuggestionStorageService {
      */
     List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndType(Context context, String source, String score,
         String type, int pageSize, long offset, boolean ascending) throws SolrServerException, IOException;
+
+    /**
+     * Find all the unprocessed suggestions that are related to the given source and person, have specified type and
+     * have score greater than or equal to given score.
+     * @param  context             the DSpace Context
+     * @param  source              the source name
+     * @param  score               the score
+     * @param  type                the type
+     * @param  personUuid          the person uuid
+     * @param  pageSize            the page size
+     * @param  offset              the page offset
+     * @param  ascending           true to retrieve the suggestions ordered by score
+     *                             ascending
+     * @return                     the found suggestions
+     * @throws SolrServerException
+     * @throws IOException
+     */
+    List<Suggestion> findAllUnprocessedSuggestionsBySourceAndScoreAndTypeAndPerson(Context context, String source,
+        String score, String type, String personUuid, int pageSize, long offset, boolean ascending)
+            throws SolrServerException, IOException;
 
     /**
      * Find all the unprocessed suggestions related to the given source.

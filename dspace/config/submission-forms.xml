@@ -2282,6 +2282,192 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
       </row>
     </form>
+    <form name="orgunit-director">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Organization name</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required>You must enter the oganization name.</required>
+          <hint />
+          <language value-pairs-name="supported_languages">true</language>
+          <readonly>all</readonly>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>acronym</dc-element>
+          <label>Acronym or short form of title</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+          <readonly>all</readonly>
+          <language value-pairs-name="supported_languages">true</language>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>organization</dc-schema>
+          <dc-element>parentOrganization</dc-element>
+          <label>Parent Organisation</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <readonly>all</readonly>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>crisou</dc-schema>
+          <dc-element>director</dc-element>
+          <label>Director</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <readonly>all</readonly>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>organization</dc-schema>
+          <dc-element>foundingDate</dc-element>
+          <label>Established</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>organization</dc-schema>
+          <dc-element>identifier</dc-element>
+          <label>Identifiers</label>
+          <input-type value-pairs-name="orgunit_identifiers">qualdrop_value</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oairecerif</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>url</dc-qualifier>
+          <label>Website(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>abstract</dc-qualifier>
+          <label>Description for OrgUnit</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <label>Type</label>
+          <input-type value-pairs-name="orgunit_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required>You must specify the organisation type</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>cris</dc-schema>
+          <dc-element>legacyId</dc-element>
+          <label>Legacy ID</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>hidden</visibility>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>unit</dc-element>
+          <dc-qualifier>infoscienceCode</dc-qualifier>
+          <label>InfoScience Code</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>hidden</visibility>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>unit</dc-element>
+          <dc-qualifier>code</dc-qualifier>
+          <label>Unit Code</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>hidden</visibility>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>active</dc-qualifier>
+          <label>Active</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>hidden</visibility>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>status</dc-qualifier>
+          <label>Status</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>hidden</visibility>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>level</dc-qualifier>
+          <label>Level</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <visibility>hidden</visibility>
+        </field>
+      </row>
+    </form>
     <form name="project">
       <row>
         <field>
@@ -4254,6 +4440,97 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>File Type</label>
           <input-type value-pairs-name="content_bitstream_types">dropdown</input-type>
           <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="virtual-collection">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter the virtual collection's name.</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <label>Description (HTML supported)</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="virtual-collection-admin">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>virtualCollection</dc-element>
+          <dc-qualifier>query</dc-qualifier>
+          <label>Query</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required>Query is required</required>
+          <hint>Define the SOLR query that is used to list Publications, Products and Patents belonging to this collection.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>virtualCollection</dc-element>
+          <dc-qualifier>head</dc-qualifier>
+          <label>Curator</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>Curator is required</required>
+          <hint>Principal Curator of this collection</hint>
+        </field>
+      </row>
+    </form>
+    <form name="virtual-collection-delegate-curators">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>virtualCollection</dc-element>
+          <dc-qualifier>curator</dc-qualifier>
+          <label>Delegated Collection Curators</label>
+          <input-type>onebox</input-type>
+          <hint>Here it is possible to set users which can edit collection details and claim Publications, Products and Patents that can be included into this collection</hint>
+          <repeatable>true</repeatable>
+          <required />
+        </field>
+      </row>
+    </form>
+    <form name="virtual-collection-bind">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>virtualCollection</dc-element>
+          <label>Virtual collection</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="orgunit-editor">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>orgUnit</dc-element>
+          <dc-qualifier>editor</dc-qualifier>
+          <label>Delegated head of units</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
