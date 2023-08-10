@@ -140,7 +140,8 @@ public class ProfileInitializer {
         }
     }
 
-    private void addToSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile) throws SQLException {
+    private void addToSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile)
+            throws SQLException {
         Group submittersGroup = groupService.findByName(context, SUBMITTERS);
         if (submittersGroup == null) {
             throw new RuntimeException(SUBMITTERS + " group not found, it must be created in order to correctly " +
@@ -149,7 +150,7 @@ public class ProfileInitializer {
 
         if (atLeastAnActiveAccreditation(researcherProfile.getItem())) {
             groupService.addMember(context, submittersGroup, eperson);
-        } else if (groupService.isMember(context, eperson, submittersGroup)){
+        } else if (groupService.isMember(context, eperson, submittersGroup)) {
             groupService.removeMember(context, submittersGroup, eperson);
         }
     }
