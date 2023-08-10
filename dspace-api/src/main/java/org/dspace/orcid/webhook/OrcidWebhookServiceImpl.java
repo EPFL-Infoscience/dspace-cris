@@ -21,8 +21,11 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.orcid.client.OrcidClient;
+import org.dspace.orcid.client.OrcidResponse;
 import org.dspace.orcid.service.OrcidWebhookService;
 import org.dspace.services.ConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -32,6 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public class OrcidWebhookServiceImpl implements OrcidWebhookService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrcidWebhookServiceImpl.class);
 
     @Autowired
     private ItemService itemService;
@@ -62,7 +67,11 @@ public class OrcidWebhookServiceImpl implements OrcidWebhookService {
         String accessToken = getAccessToken();
         String orcid = getOrcid(profile);
         String webhookUrl = getWebhookUrl(orcid);
-        orcidClient.registerWebhook(accessToken, orcid, webhookUrl);
+        OrcidResponse orcidResponse = orcidClient.registerWebhook(accessToken, orcid, webhookUrl);
+        if (orcidResponse.getStatus() < 200 || orcidResponse.getStatus() > 299) {
+            LOGGER.warn("Unexpected response from ORCID webhook API. Status " + orcidResponse.getStatus() + ". Content:"
+                + orcidResponse.getContent());
+        }
 
         String currentDate = ISO_DATE_TIME.format(now());
         try {
