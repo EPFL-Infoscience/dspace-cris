@@ -401,10 +401,10 @@ public interface AuthorizeService {
     /**
      * removes policies that match the params
      *
-     * @param c    DSpace context
+     * @param context    DSpace context
      * @param o    object to remove policies for
      * @param eperson the eperson that own the policies to be removed
-     * @param type policy type
+     * @param tYPE_SUBMISSION policy type
      * @throws SQLException       if there's a database problem
      * @throws AuthorizeException if authorization error
      */
