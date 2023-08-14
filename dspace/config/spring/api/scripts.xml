@@ -204,6 +204,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitHiddenItemsScript"/>
     </bean>
 
+    <bean id="items-report" class="org.dspace.epfl.script.ItemsReportScriptConfiguration" primary="true">
+        <property name="description" value="Create hidden relationships for Patents, Products and Publications that have epfl.relation.rejectedOrgUnit metadata set"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsReportScript"/>
+    </bean>
+        
     <bean id="is-academia-xml-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
         <property name="description" value="Import the XML IS-ACADEMIA file into a defined collection, items are directly stored in target collection"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
