@@ -62,12 +62,14 @@ import org.dspace.utils.DSpace;
 public class EpflUserSynchronizationScript
     extends DSpaceRunnable<EpflUserSynchronizationScriptConfiguration<EpflUserSynchronizationScript>> {
 
-    private static final String SUBMITTERS = "Submitters";
+    private static final String SUBMITTERS = "Submitter";
     private String inputFile;
     private String query;
     private String log;
     private int createdPersonCount = 0;
     private int updatedPersonCount = 0;
+
+    private String email;
 
     private Context context;
     private ResearcherProfileService researcherProfileService;
@@ -104,6 +106,7 @@ public class EpflUserSynchronizationScript
         groupService = EPersonServiceFactory.getInstance().getGroupService();
         inputFile = commandLine.getOptionValue('f');
         query = commandLine.getOptionValue('q');
+        email = commandLine.getOptionValue('e');
 
 
         log = "";
@@ -118,16 +121,20 @@ public class EpflUserSynchronizationScript
             throw new IllegalArgumentException("query and file parameter cannot be set both when process runs");
         }
 
-        context.turnOffAuthorisationSystem();
+        try {
+            context.turnOffAuthorisationSystem();
 
-        if (inputFile == null && query == null) {
-            executeScriptWithOutQuery();
-        } else {
-            executeScriptWithQuery();
+            if (inputFile == null && query == null) {
+                executeScriptWithOutQuery();
+            } else {
+                executeScriptWithQuery();
+            }
+
+            context.complete();
+            finalLogging();
+        } finally {
+            context.restoreAuthSystemState();
         }
-
-        finalLogging();
-        context.complete();
     }
 
     private void executeScriptWithOutQuery() throws SQLException, AuthorizeException {
@@ -139,7 +146,11 @@ public class EpflUserSynchronizationScript
                 String sciper = ePersonNetid.substring(0, endIndex);
                 Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper, EpflApiClient.Language.EN);
                 if (epflPerson.isPresent()) {
-                    syncEPerson(epflPerson.get(), ePerson);
+                    try {
+                        syncEPerson(epflPerson.get(), ePerson);
+                    }  catch (IllegalStateException e) {
+                        logInfo("Unable to sync profile " + epflPerson.get().getSciper() + ": " + e.getMessage());
+                    }
                 } else {
                     closeAffiliations(ePerson, sciper);
                     setSynchronizationMetadata(ePerson);
@@ -194,10 +205,14 @@ public class EpflUserSynchronizationScript
             List<PersonDTO> epflPersonList = epflApiClient.getPersons(query, EpflApiClient.Language.EN);
             for (PersonDTO epflPerson : epflPersonList) {
                 EPerson ePerson = findPerson(epflPerson);
-                if (ePerson == null) {
-                    createAndSyncEPerson(epflPerson);
-                } else {
-                    syncEPerson(epflPerson, ePerson);
+                try {
+                    if (ePerson == null) {
+                        createAndSyncEPerson(epflPerson);
+                    } else {
+                        syncEPerson(epflPerson, ePerson);
+                    }
+                } catch (IllegalStateException e) {
+                    logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
                 }
             }
         }
@@ -288,9 +303,10 @@ public class EpflUserSynchronizationScript
         EPerson newEPerson = ePersonService.create(context);
 
         newEPerson.setNetid(epflPerson.getSciper() + "@epfl.ch");
-        newEPerson.setEmail(epflPerson.getEmail());
+        newEPerson.setEmail(Optional.ofNullable(epflPerson.getEmail()).orElse(epflPerson.getSciper() + "@epfl.ch"));
         newEPerson.setFirstName(context, epflPerson.getFirstname());
         newEPerson.setLastName(context, epflPerson.getName());
+        newEPerson.setCanLogIn(true);
 
         profileInitializer.initialize(context, newEPerson);
 
@@ -304,7 +320,7 @@ public class EpflUserSynchronizationScript
 
     private void finalLogging() {
         if (createdPersonCount == 0 && updatedPersonCount == 0) {
-            logInfo("There are no changes to import");
+            logInfo("No changes were made by the script");
         } else {
             logInfo("Changes:");
             logInfo("Number of created persons: " + createdPersonCount);
@@ -331,9 +347,14 @@ public class EpflUserSynchronizationScript
     }
 
     private void assignCurrentUserInContext() throws SQLException {
+        if (StringUtils.isNotBlank(this.email)) {
+            EPerson eperson = ePersonService.findByEmail(context, this.email);
+            context.setCurrentUser(eperson);
+            return;
+        }
         UUID uuid = getEpersonIdentifier();
         if (uuid != null) {
-            EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
+            EPerson ePerson = ePersonService.find(context, uuid);
             context.setCurrentUser(ePerson);
         }
     }
@@ -348,6 +369,7 @@ public class EpflUserSynchronizationScript
         try {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(), "epfl-user-synchronization_log"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
+            email.setSubject("INFOSCIENCE - User synchronization process report");
             email.addArgument(log);
             email.send();
         } catch (IOException | MessagingException e) {

@@ -78,6 +78,7 @@ public class EmailAction extends AcceptEditRejectAction {
         options.add(SUBMIT_REJECT);
         options.add(ProcessingAction.SUBMIT_EDIT_METADATA);
         options.add(SUBMIT_MAIL);
+        options.add(RETURN_TO_POOL);
         return options;
     }
 

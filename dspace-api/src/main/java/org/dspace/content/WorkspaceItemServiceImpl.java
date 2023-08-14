@@ -391,7 +391,7 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
     private void addDateCreatedMetadata(Context context, Item item) throws SQLException {
         itemService.setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.created"),
-                                           context.getCurrentLocale().toString(),
+                                           null,
                                            new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
     }
 

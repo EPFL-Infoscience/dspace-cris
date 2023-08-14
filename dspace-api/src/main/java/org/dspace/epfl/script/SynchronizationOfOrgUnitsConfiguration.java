@@ -46,7 +46,18 @@ public class SynchronizationOfOrgUnitsConfiguration<T extends SynchronizationOfO
     @Override
     public Options getOptions() {
         if (options == null) {
-            options = new Options();
+            Options options = new Options();
+
+            options.addOption("a", "acronyms", true,
+                              "optional, comma separated list of acronyms to restrict update only" +
+                                  "to several acronyms");
+            options.getOption("a").setType(String.class);
+            options.getOption("a").setRequired(false);
+
+            options.addOption("e", "email", true, "optional email of the ePerson performing this action");
+            options.getOption("e").setType(String.class);
+            options.getOption("e").setRequired(false);
+
             super.options = options;
         }
         return options;

@@ -110,6 +110,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidBulkPull"/>
     </bean>
 
+    <bean id="orcid-update" class="org.dspace.orcid.script.OrcidUpdateScriptConfiguration">
+        <property name="description" value="Perform an orcid value update of Person entities using json"/>
+        <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidUpdate"/>
+    </bean>
+
     <bean id="subscription-send" class="org.dspace.subscriptions.SubscriptionEmailNotificationCliScriptConfiguration">
         <property name="description" value="Perform subscriptions send"/>
         <property name="dspaceRunnableClass" value="org.dspace.subscriptions.SubscriptionEmailNotificationCli"/>
@@ -180,6 +185,11 @@
     <bean id="items-import-from-s3" class="org.dspace.epfl.script.ItemsImportFromS3ScriptConfiguration" primary="true">
         <property name="description" value="Import items from S3"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsImportFromS3Script"/>
+    </bean>
+
+    <bean id="xml-to-item-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import the XML file to items"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
     </bean>
 
 </beans>

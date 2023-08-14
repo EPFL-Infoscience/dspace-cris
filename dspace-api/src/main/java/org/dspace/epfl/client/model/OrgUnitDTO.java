@@ -110,6 +110,8 @@ public class OrgUnitDTO {
 
         private String firstname;
 
+        private String email;
+
         public String getFullName() {
             return Stream.of(name, firstname)
                 .filter(StringUtils::isNotBlank)
@@ -140,5 +142,12 @@ public class OrgUnitDTO {
             this.firstname = firstname;
         }
 
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getEmail() {
+            return email;
+        }
     }
 }
