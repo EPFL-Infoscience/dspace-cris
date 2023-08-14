@@ -112,7 +112,7 @@ public class ItemsReportScript
 
     private void addBitstreamsToReportWithEmbargo(BitstreamsWithItemsEmbargo bitstreamsWithItemsEmbargo,
                                                   Bitstream bitstream) {
-        Optional<MetadataValue> metadataValueRights = getBitstreamMetadataValue(bitstream, "datacite.rights");
+        Optional<MetadataValue> metadataValueRights = getBitstreamMetadataValue(bitstream, "datacite_rights");
 
         Optional<MetadataValue> metadataValueAvailable = getBitstreamMetadataValue(bitstream, "datacite_available");
 
