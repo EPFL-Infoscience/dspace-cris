@@ -178,7 +178,8 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
 
     @Override
     public String getReportType() {
-        return UsageReportUtils.TOP_ITEMS_REPORT_ID;
+        return getDsoType() == Constants.ITEM ? UsageReportUtils.TOP_ITEMS_REPORT_ID :
+            UsageReportUtils.TOP_DOWNLOADS_REPORT_ID;
     }
 
 
