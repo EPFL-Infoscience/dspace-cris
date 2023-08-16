@@ -171,6 +171,19 @@
         <property name="relation" value="RELATION.Site.researchoutputs" />
     </bean>
 
+    <bean id="itemDownloadsPersonResearchOutputs" class="org.dspace.app.rest.statistics.TopItemsGenerator">
+        <property name="viewMode" value="table"/>
+        <property name="maxResults" value="9999"/>
+        <property name="dsoType" value="0"/>
+        <property name="relation" value="RELATION.Person.researchoutputs" />
+    </bean>
+
+    <bean id="itemVisitsPersonResearchOutputs" class="org.dspace.app.rest.statistics.TopItemsGenerator">
+        <property name="viewMode" value="table"/>
+        <property name="maxResults" value="9999"/>
+        <property name="relation" value="RELATION.Person.researchoutputs" />
+    </bean>
+
     <!--generator supporting relation between orgunit and rppublications-->
     <bean id="topItemsGeneratorRelationOrgUnitRppublications" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
@@ -437,9 +450,11 @@
     </bean>
 
     <bean id="person-publicationsReports" class="org.dspace.app.rest.model.UsageReportCategoryRest">
-        <property name="categoryType" value="publicationsReports"/>
+        <property name="categoryType" value="personPublicationsReports"/>
         <property name="reports">
             <map>
+                <entry key="ItemVisitsPersonResearchOutputs" value-ref="itemVisitsPersonResearchOutputs"/>
+                <entry key="ItemDownloadsPersonResearchOutputs" value-ref="itemDownloadsPersonResearchOutputs"/>
                 <entry key="TotalVisitsPersonResearchoutputs" value-ref="totalVisitGeneratorRelationPersonResearchoutputs"/>
                 <entry key="TopCountriesPersonResearchoutputs" value-ref="topCountriesGeneratorRelationPersonResearchoutputs"/>
                 <entry key="TotalVisitPerPeriodPersonResearchoutputs" value-ref="totalVisitPerPeriodGeneratorRelationPersonResearchoutputs"/>
@@ -703,7 +718,7 @@
                     <list>
                         <ref bean="person-mainReports"/>
                         <ref bean="person-publicationsReports"/>
-                        <ref bean="person-projectsReports"/>
+<!--                        <ref bean="person-projectsReports"/>-->
                     </list>
                 </entry>
                 <entry key="bitstream">
