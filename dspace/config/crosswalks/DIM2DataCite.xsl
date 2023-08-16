@@ -309,14 +309,14 @@
             <creatorName>
                 <xsl:value-of select="." />
             </creatorName>
-            <xsl:if test="contains(., ',')">
-                <givenName>
-                    <xsl:value-of select="substring-after(., ', ')"/>
-                </givenName>
-                <familyName>
-                    <xsl:value-of select="substring-before(., ',')"/>
-                </familyName>
-            </xsl:if>
+<!--            <xsl:if test="contains(., ',')">-->
+<!--                <givenName>-->
+<!--                    <xsl:value-of select="substring-after(., ', ')"/>-->
+<!--                </givenName>-->
+<!--                <familyName>-->
+<!--                    <xsl:value-of select="substring-before(., ',')"/>-->
+<!--                </familyName>-->
+<!--            </xsl:if>-->
             <xsl:if test="//dspace:field[@mdschema='cris' and @element='virtual' and @qualifier='author-orcid'][number($counter)]!=$placeholder and //dspace:field[@mdschema='cris' and @element='virtual' and @qualifier='author-orcid'][number($counter)]!=''">
                 <nameIdentifier>
                     <xsl:attribute name="schemeURI">https://orcid.org/</xsl:attribute>
