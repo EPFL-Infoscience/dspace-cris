@@ -137,7 +137,8 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
     }
 
     private String calculateFacetField(DSpaceObject root) {
-        return getDsoType() == BITSTREAM && root.getType() != Constants.ITEM ? OWNING_ITEM_FIELD : "id";
+//        return getDsoType() == BITSTREAM && root.getType() != Constants.ITEM ? OWNING_ITEM_FIELD : "id";
+        return getDsoType() == BITSTREAM ? OWNING_ITEM_FIELD : "id";
     }
 
     private Pair<String, String> getIdAndName(Context context, String dsoId, String facetField) throws SQLException {
