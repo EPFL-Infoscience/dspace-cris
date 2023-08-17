@@ -62,7 +62,8 @@ public class SolrServiceHiddenRelationsRestrictionPlugin implements SolrServiceS
                                                        final RelationshipTypeService relationshipTypeService,
                                                        final EntityTypeService entityTypeService,
                                                        final AuthorizeService authorizeService,
-                                                       final RelationshipManagementService relationshipManagementService,
+                                                       final RelationshipManagementService
+                                                                   relationshipManagementService,
                                                        ItemService itemService) {
         this.researcherProfileService = researcherProfileService;
         this.relationshipTypeService = relationshipTypeService;

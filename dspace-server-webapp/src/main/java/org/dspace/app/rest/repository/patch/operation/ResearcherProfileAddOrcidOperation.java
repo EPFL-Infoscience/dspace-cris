@@ -52,7 +52,12 @@ public class ResearcherProfileAddOrcidOperation extends PatchOperation<Researche
 
         OrcidTokenResponseDTO accessToken = getAccessToken((String) code);
 
-        orcidSynchronizationService.linkProfile(context, profile.getItem(), accessToken);
+        context.turnOffAuthorisationSystem();
+        try {
+            orcidSynchronizationService.linkProfile(context, profile.getItem(), accessToken);
+        } finally {
+            context.restoreAuthSystemState();
+        }
 
         return profile;
     }

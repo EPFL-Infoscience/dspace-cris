@@ -4477,7 +4477,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-qualifier>query</dc-qualifier>
           <label>Query</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Query is required</required>
           <hint>Define the SOLR query that is used to list Publications, Products and Patents belonging to this collection.</hint>
         </field>
