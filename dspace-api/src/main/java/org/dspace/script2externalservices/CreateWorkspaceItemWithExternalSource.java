@@ -285,7 +285,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     setLastImportMetadataValue(item);
                     totalRecordWorked += userPublicationsProcessed[0];
                     totalItemsProcessed += userPublicationsProcessed[1];
-                    if (userPublicationsProcessed[0] >= 20) {
+                    if (userPublicationsProcessed[0] >= 1) {
                         context.commit();
                         // to ensure that collection's template item is fully initialized
                         reloadCollectionIfNeeded();
