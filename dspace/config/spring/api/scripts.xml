@@ -205,7 +205,7 @@
     </bean>
 
     <bean id="items-report" class="org.dspace.epfl.script.ItemsReportScriptConfiguration" primary="true">
-        <property name="description" value="Create hidden relationships for Patents, Products and Publications that have epfl.relation.rejectedOrgUnit metadata set"/>
+        <property name="description" value="Writes in process' log a status of current access policies set for the items in the repository."/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsReportScript"/>
     </bean>
         
