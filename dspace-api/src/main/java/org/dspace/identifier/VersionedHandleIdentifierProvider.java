@@ -302,6 +302,13 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
         }
     }
 
+    public void createAndPopulateHandlerForBitstreams(Context context, Bitstream bitstream,
+                                                      String itemHandler)
+            throws SQLException, AuthorizeException, IOException {
+        createHandleForBitstream(context, bitstream, itemHandler);
+        populateHandleMetadata(context, bitstream, bitstream.getHandle());
+    }
+
     private void createHandleForBitstream(Context context, Bitstream bitstream, String suppliedHandle) {
         try {
             handleService.createHandleForBitstream(context, bitstream,suppliedHandle);

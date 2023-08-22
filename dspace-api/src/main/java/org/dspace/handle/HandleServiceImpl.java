@@ -151,7 +151,7 @@ public class HandleServiceImpl implements HandleService {
     public String createHandleForBitstream(Context context, Bitstream bitstream, String itemHandle)
             throws SQLException {
         Handle handle = handleDAO.create(context, new Handle());
-        String handleId = itemHandle + "/bitstreams/" + createId(context);
+        String handleId = itemHandle + "/bitstreams/" + bitstream.getID();
 
         setHandle(context, handle, handleId, bitstream);
 

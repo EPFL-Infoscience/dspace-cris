@@ -214,6 +214,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SubmitterFixScript"/>
     </bean>
 
+    <bean id="add-handler-for-all-bitstreams" class="org.dspace.epfl.script.AddHandlerForAllBitstreamsScriptConfiguration" primary="true">
+        <property name="description" value="Add handler for all bitstreams in items that have dc.identifier.uri metadata"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.AddHandlerForAllBitstreamsScript"/>
+    </bean>
+
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
