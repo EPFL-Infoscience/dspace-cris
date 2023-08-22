@@ -139,13 +139,15 @@ public abstract class SolrSuggestionProvider implements SuggestionProvider {
     protected abstract boolean isExternalDataObjectPotentiallySuggested(Context context,
             ExternalDataObject externalDataObject);
 
-    public void importAuthorRecords(Context context,
-                                    Item researcher) throws SolrServerException, IOException {
+    public int importAuthorRecords(Context context,
+                                   Item researcher) throws SolrServerException, IOException {
 
+        return 0;
     }
 
-    public void importAuthorRecords(Context context,
-                                    Item researcher, String extraQuery) throws SolrServerException, IOException {
+    public int importAuthorRecords(Context context,
+                                   Item researcher, String extraQuery) throws SolrServerException, IOException {
 
+        return 0;
     }
 }
