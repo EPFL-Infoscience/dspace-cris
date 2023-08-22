@@ -9,6 +9,7 @@ package org.dspace.epfl.script;
 
 import java.sql.SQLException;
 
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
@@ -47,6 +48,18 @@ public class AddHandlerForAllBitstreamsScriptConfiguration<T extends AddHandlerF
     public Options getOptions() {
         if (options == null) {
             options = new Options();
+            Option item = new Option("i", "item", true,
+                                     "UUID of the item for which bitstreams must be created");
+            item.setRequired(false);
+            item.setType(String.class);
+
+            Option max = new Option("m", "max", true, "Maximum numbers of Items to be " +
+                "checked and updated, if needed");
+            item.setRequired(false);
+            max.setType(Integer.class);
+
+            options.addOption(item);
+            options.addOption(max);
             super.options = options;
         }
         return options;
