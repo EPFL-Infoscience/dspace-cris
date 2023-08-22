@@ -551,6 +551,13 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             }
 
             solr.add(solrDoc);
+
+            // commits are executed automatically using the solr autocommit
+            boolean useAutoCommit = configurationService.getBooleanProperty("solr-statistics.autoCommit", true);
+            if (!useAutoCommit) {
+                solr.commit(false, false);
+            }
+
         } catch (RuntimeException re) {
             throw re;
         } catch (Exception e) {

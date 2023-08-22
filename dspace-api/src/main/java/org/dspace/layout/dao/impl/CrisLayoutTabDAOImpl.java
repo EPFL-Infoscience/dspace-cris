@@ -95,6 +95,8 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
         andPredicates.add(cb.equal(tabRoot.get(CrisLayoutTab_.entity).get(EntityType_.LABEL), entityType));
         if (StringUtils.isNotBlank(customFilter)) {
             andPredicates.add(cb.equal(tabRoot.get(CrisLayoutTab_.CUSTOM_FILTER), customFilter));
+        } else {
+            andPredicates.add(cb.isNull((tabRoot.get(CrisLayoutTab_.CUSTOM_FILTER))));
         }
 
         query
