@@ -18,6 +18,8 @@ import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.SiteRest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -71,8 +73,8 @@ public class CanViewUsageStatisticsFeature implements AuthorizationFeature {
     }
 
     private boolean checkDsoPermissions(Context context, DSpaceObject dso) throws SQLException {
-        if ((dso instanceof Item)) {
-            return viewStatisticsService.canViewStatistics(context, (Item) dso);
+        if (dso instanceof Community || dso instanceof Collection || dso instanceof Item) {
+            return viewStatisticsService.canViewStatistics(context, dso);
         }
         return canRead(context, dso);
     }

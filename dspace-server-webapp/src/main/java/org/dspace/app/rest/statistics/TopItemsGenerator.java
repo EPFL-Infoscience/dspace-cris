@@ -137,7 +137,8 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
     }
 
     private String calculateFacetField(DSpaceObject root) {
-        return getDsoType() == BITSTREAM && root.getType() != Constants.ITEM ? OWNING_ITEM_FIELD : "id";
+//        return getDsoType() == BITSTREAM && root.getType() != Constants.ITEM ? OWNING_ITEM_FIELD : "id";
+        return getDsoType() == BITSTREAM ? OWNING_ITEM_FIELD : "id";
     }
 
     private Pair<String, String> getIdAndName(Context context, String dsoId, String facetField) throws SQLException {
@@ -178,7 +179,8 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
 
     @Override
     public String getReportType() {
-        return UsageReportUtils.TOP_ITEMS_REPORT_ID;
+        return getDsoType() == Constants.ITEM ? UsageReportUtils.TOP_ITEMS_REPORT_ID :
+            UsageReportUtils.TOP_DOWNLOADS_REPORT_ID;
     }
 
 

@@ -291,6 +291,10 @@ public class ExternalSourceItemImportRunnable
             metadata.setSchema("dc");
             metadata.setElement("identifier");
             metadata.setQualifier("pmid");
+        } else if ("oaire".equals(this.source)) {
+            metadata.setSchema("dc");
+            metadata.setElement("identifier");
+            metadata.setQualifier("other");
         }
         return metadata;
     }

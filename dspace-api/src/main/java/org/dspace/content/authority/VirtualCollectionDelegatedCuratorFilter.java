@@ -31,10 +31,11 @@ public class VirtualCollectionDelegatedCuratorFilter extends EntityTypeAuthority
         super(customQueries);
     }
 
+
     @Override
     public List<String> getFilterQueries(Context context, LinkableEntityAuthority linkableEntityAuthority) {
         try {
-            if (context.getCurrentUser() == null || isAdmin(context)) {
+            if (!appliesTo(linkableEntityAuthority) || context.getCurrentUser() == null || isAdmin(context)) {
                 return List.of();
             }
         } catch (SQLException e) {
