@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -246,8 +247,13 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
         Object fieldValue = document.getFieldValue("crisrp.name.variant");
 
         if (fieldValue != null && fieldValue instanceof List) {
+
+            Map<String, String> variantsExtra = new LinkedHashMap<String, String>();
+            variantsExtra.put("variant", title);
+            variantsExtra.putAll(extras);
+
             ((List<String>) fieldValue).stream()
-                .map(variant -> new Choice(authority, variant, variant, Map.of("variant", title)))
+                .map(variant -> new Choice(authority, variant, variant, variantsExtra))
                 .forEach(choices::add);
         }
 
