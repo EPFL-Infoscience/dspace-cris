@@ -10,9 +10,9 @@
 -- Create table for unpaywall api
 -----------------------------------------------------------------------------------
 
-CREATE SEQUENCE cris_unpaywall_seq;
+CREATE SEQUENCE if not exists cris_unpaywall_seq;
 
-CREATE TABLE cris_unpaywall
+CREATE TABLE if not exists cris_unpaywall
 (
 	id number(10,0) not null,
 	doi varchar2(255 char),
