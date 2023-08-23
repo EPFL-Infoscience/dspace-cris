@@ -13,7 +13,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.dspace.app.rest.model.SubmissionSectionRest;
 import org.springframework.data.domain.Page;
 
 /**
