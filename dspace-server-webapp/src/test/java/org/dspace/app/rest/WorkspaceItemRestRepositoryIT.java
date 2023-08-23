@@ -63,7 +63,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.text.StringEscapeUtils;
-import org.dspace.app.rest.exception.ExtractMetadataStepException;
 import org.dspace.app.rest.matcher.CollectionMatcher;
 import org.dspace.app.rest.matcher.ItemMatcher;
 import org.dspace.app.rest.matcher.MetadataMatcher;

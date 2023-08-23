@@ -298,6 +298,7 @@
         <metadata-field>
             <field>oaire.version</field>
             <xpath>./datafield[@tag = '973']/subfield[@code = 's']</xpath>
+            <reader>coarVersion</reader>
         </metadata-field>
         <metadata-field>
             <field>datacite.geoLocation</field>
