@@ -357,7 +357,7 @@ public class DataCiteConnector
         }
 
         String metadataDOI = extractDOI(root);
-        if (null == metadataDOI) {
+        if (StringUtils.isBlank(metadataDOI)) {
             // The DOI will be saved as metadata of dso after successful
             // registration. To register a doi it has to be part of the metadata
             // sent to DataCite. So we add it to the XML we'll send to DataCite
@@ -366,7 +366,7 @@ public class DataCiteConnector
         } else if (!metadataDOI.equals(doi.substring(DOI.SCHEME.length()))) {
             log.error("While reserving a DOI, the "
                           + "crosswalk to generate the metadata used another DOI than "
-                          + "the DOI we're reserving. Cannot reserve DOI " + doi
+                          + "the DOI we're reserving (" + metadataDOI + "). Cannot reserve DOI " + doi
                           + " for " + dSpaceObjectService.getTypeText(dso) + " "
                           + dso.getID() + ".");
             throw new IllegalStateException("An internal error occured while "
