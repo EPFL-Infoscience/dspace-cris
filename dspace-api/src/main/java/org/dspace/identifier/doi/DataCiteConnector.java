@@ -802,9 +802,7 @@ public class DataCiteConnector
         if (null != extractDOI(root)) {
             return root;
         }
-        Element identifier = new Element("identifier",
-                                         configurationService.getProperty(CFG_NAMESPACE,
-                                                                          "http://datacite.org/schema/kernel-3"));
+        Element identifier = new Element("identifier");
         identifier.setAttribute("identifierType", "DOI");
         identifier.addContent(doi.substring(DOI.SCHEME.length()));
         return root.addContent(0, identifier);
