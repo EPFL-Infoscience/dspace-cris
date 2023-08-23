@@ -242,7 +242,7 @@ public class PublicationLoaderRunnable
         return "";
     }
 
-        private void setLastImportMetadataValue(Item item) {
+    private void setLastImportMetadataValue(Item item) {
         try {
             item = context.reloadEntity(item);
             String metadataField = "cris.lastimport.loader-" + loader;
