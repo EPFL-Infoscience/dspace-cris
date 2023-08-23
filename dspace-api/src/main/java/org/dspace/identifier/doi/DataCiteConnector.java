@@ -601,6 +601,8 @@ public class DataCiteConnector
         URIBuilder uribuilder = new URIBuilder();
         uribuilder.setScheme(SCHEME).setHost(HOST).setPath(METADATA_PATH);
 
+        log.info(metadata);
+
         HttpPost httppost = null;
         try {
             httppost = new HttpPost(uribuilder.build());
