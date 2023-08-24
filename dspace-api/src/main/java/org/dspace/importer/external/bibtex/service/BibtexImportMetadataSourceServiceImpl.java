@@ -81,7 +81,8 @@ public class BibtexImportMetadataSourceServiceImpl extends AbstractPlainMetadata
                         String latexString = subentry.getValue().toUserString();
                         try {
                             org.jbibtex.LaTeXParser laTeXParser = new org.jbibtex.LaTeXParser();
-                            List<org.jbibtex.LaTeXObject> latexObjects = laTeXParser.parse(latexString);
+                            List<org.jbibtex.LaTeXObject> latexObjects = laTeXParser
+                                .parse(latexString.replaceAll("\\r", ""));
                             org.jbibtex.LaTeXPrinter laTeXPrinter = new org.jbibtex.LaTeXPrinter();
                             String plainTextString = laTeXPrinter.print(latexObjects);
                             innerItem.setValue(plainTextString.replaceAll("\n", " "));

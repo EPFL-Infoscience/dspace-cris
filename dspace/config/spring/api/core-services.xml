@@ -139,6 +139,8 @@
 
     <bean class="org.dspace.versioning.VersionHistoryServiceImpl"/>
 
+    <bean class="org.dspace.util.FrontendUrlService"/>
+
     <bean class="org.dspace.content.security.MetadataSecurityServiceImpl"/>
     <bean class="org.dspace.metricsSecurity.BoxMetricsLayoutConfigurationService"/>
 
@@ -191,6 +193,8 @@
     <bean class="org.dspace.statistics.LoginStatisticsServiceImpl" />
 
     <bean class="org.dspace.statistics.WorkflowStatisticsServiceImpl" />
+    
+    <bean class="org.dspace.statistics.SearchStatisticsServiceImpl" />
 
     <!-- OIDC Authentication -->
     <bean class="org.dspace.authenticate.OidcAuthenticationBean" id="oidcAuthentication"/>

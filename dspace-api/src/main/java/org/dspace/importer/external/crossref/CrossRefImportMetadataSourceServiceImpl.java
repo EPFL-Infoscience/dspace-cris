@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import javax.el.MethodNotFoundException;
 
@@ -175,9 +176,11 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
                 uriBuilder.addParameter("offset", start.toString());
             }
             String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
-            convertStringJsonToJsonNode(response)
-                .at("/message/items")
-                .forEach(node -> results.add(transformSourceRecords(node.toString())));
+            if (StringUtils.isNotEmpty(response)) {
+                convertStringJsonToJsonNode(response)
+                    .at("/message/items")
+                    .forEach(node -> results.add(transformSourceRecords(node.toString())));
+            }
             return results;
         }
 
@@ -211,24 +214,21 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
         @Override
         public List<ImportRecord> call() throws Exception {
             List<ImportRecord> results = new ArrayList<>();
-            Integer count = query.getParameterAsClass("count", Integer.class);
-            Integer start = query.getParameterAsClass("start", Integer.class);
-
             String ID = URLDecoder.decode(query.getParameterAsClass("id", String.class), UTF_8);
             String separator = ID.contains("filter=") ? "?" : "/";
             URIBuilder uriBuilder = new URIBuilder(url + separator + ID);
 
-            if (Objects.nonNull(count)) {
-                uriBuilder.addParameter("rows", count.toString());
-            }
-            if (Objects.nonNull(start)) {
-                uriBuilder.addParameter("offset", start.toString());
-            }
+            Optional.ofNullable(query.getParameterAsClass("count", Integer.class))
+                    .ifPresent(count -> uriBuilder.addParameter("rows", count.toString()));
+            Optional.ofNullable(query.getParameterAsClass("start", Integer.class))
+                    .ifPresent(start -> uriBuilder.addParameter("offset", start.toString()));
 
-            String response = liveImportClient.executeHttpGetRequest(15000, uriBuilder.toString(), new HashMap<>());
-            convertStringJsonToJsonNode(response)
-                .at("/message/items")
-                .forEach(node -> results.add(transformSourceRecords(node.toString())));
+            String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
+            if (StringUtils.isNotEmpty(response)) {
+                convertStringJsonToJsonNode(response)
+                    .at("/message/items")
+                    .forEach(node -> results.add(transformSourceRecords(node.toString())));
+            }
             return results;
         }
     }
@@ -277,9 +277,11 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
                 uriBuilder.addParameter("query.bibliographic", bibliographics);
             }
             String resp = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
-            convertStringJsonToJsonNode(resp)
-                .at("/message/items")
-                .forEach(node -> results.add(transformSourceRecords(node.toString())));
+            if (StringUtils.isNotEmpty(resp)) {
+                convertStringJsonToJsonNode(resp)
+                    .at("/message/items")
+                    .forEach(node -> results.add(transformSourceRecords(node.toString())));
+            }
             return results;
         }
 
@@ -312,7 +314,9 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             uriBuilder.addParameter("query", query.getParameterAsClass("query", String.class));
             String responseString =
                 liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
-            return convertStringJsonToJsonNode(responseString).at("/message/total-results").asInt();
+            return StringUtils.isNotEmpty(responseString)
+                ? convertStringJsonToJsonNode(responseString).at("/message/total-results").asInt()
+                : 0;
         }
     }
 
