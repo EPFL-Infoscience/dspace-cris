@@ -99,10 +99,13 @@ public class UnpaywallConsumer implements Consumer {
             return;
         }
         try {
-            bitstreamService.addMetadata(ctx, bitstream, fieldName.schema,
-                                         fieldName.element, fieldName.qualifier,
-                                         Item.ANY,
-                                         mappedValue(metadataField, metadataValue));
+            String mappedValue = mappedValue(metadataField, metadataValue);
+            if (StringUtils.isNotBlank(mappedValue)) {
+                bitstreamService.addMetadata(ctx, bitstream, fieldName.schema,
+                                             fieldName.element, fieldName.qualifier,
+                                             Item.ANY,
+                                             mappedValue);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -117,7 +120,7 @@ public class UnpaywallConsumer implements Consumer {
 
     private Optional<UnpaywallApiResponse.OaLocation> bestLocation(UnpaywallApiResponse unpaywallApiResponse) {
         return unpaywallApiResponse.getOaLocations()
-                                   .stream().filter(l -> l.isBest())
+                                   .stream().filter(UnpaywallApiResponse.OaLocation::isBest)
                                    .findFirst();
     }
 
