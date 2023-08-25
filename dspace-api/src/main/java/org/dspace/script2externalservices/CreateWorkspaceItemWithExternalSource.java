@@ -365,7 +365,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 break;
             default:
         }
-        if (StringUtils.isNotBlank(this.extraQuery)) {
+        if (StringUtils.isNotBlank(id.toString()) && StringUtils.isNotBlank(this.extraQuery)) {
             if (this.service.equals(ARXIV)) {
                 id.append(" AND ").append(this.extraQuery);
             } else {
