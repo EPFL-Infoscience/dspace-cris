@@ -144,7 +144,10 @@
                 <!-- OrgUnit Section Related items -->
                 <entry key="RELATION.OrgUnit.publications_section" value-ref="relationOrgunitSectionPublicationsConfiguration"/>
                 <!-- OrgUnit collège and école Related items -->
-                <entry key="RELATION.OrgUnit.institutes" value-ref="relationOrgunitOrgunitsConfiguration"/>
+                <entry key="RELATION.OrgUnit.institutes" value-ref="relationOrgunitInstituteConfiguration"/>
+                <entry key="RELATION.OrgUnit.labs_research_groups" value-ref="relationOrgunitLabConfiguration"/>
+                <!-- OrgUnit and SubOrgUnits publications, speficif for collège and école -->
+                <entry key="RELATION.OrgUnit.publications_school_college" value-ref="relationOrgunitPublicationsSchoolCollege"/>
                 <!-- Project Related items -->
                 <entry key="RELATION.Project.projects" value-ref="relationProjectProjectsConfiguration"/>
                 <entry key="RELATION.Project.fundings" value-ref="relationProjectFundingsConfiguration"/>
@@ -1441,7 +1444,56 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>dc.description.sponsorship_authority:{0}</value>
+                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+            </list>
+        </property>
+    </bean>
+    <bean id="relationOrgunitPublicationsSchoolCollege" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--<property name="defaultSort" ref="sortDateIssued"/>-->
+                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Which sidebar facets are to be displayed-->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterOrgUnit" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterOrgUnit" />
+            </list>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+                queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0} OR cris.virtual.parent-organization_authority:{0}</value>
+                <value>entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1586,8 +1638,8 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>dc.description.sponsorship_authority:{0}</value>
-                <value>dc.type:*doctoral thesis OR dc.type:*master thesis OR dc.type:*bachelor thesis OR dc.type:*thesis OR dc.type:*project deliverable</value>
+                <value>(dc.description.sponsorship_authority:{0} OR organization_authority:{0})</value>
+                <value>dc.type:"*thesis" OR dc.type:"*project deliverable"</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1659,8 +1711,8 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>dc.description.sponsorship_authority:{0}</value>
-                <value>dc.type:*doctoral thesis OR dc.type:*master thesis OR dc.type:*bachelor thesis OR dc.type:*thesis OR dc.type:*project deliverable OR dc.type:*learning object</value>
+                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}</value>
+                <value>dc.type:*thesis OR dc.type:"*project deliverable" OR dc.type:"*interactive resource" OR dc.type:"Teaching material"</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1845,6 +1897,32 @@
         </property>
     </bean>
 
+    <bean id="relationOrgunitInstituteConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration" parent="relationOrgunitOrgunitsConfiguration">
+
+        <!--Any default filter queries, these filter queries will be used for all
+                queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>organization.parentOrganization_authority:{0} AND dc.type:institut</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="relationOrgunitLabConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration" parent="relationOrgunitOrgunitsConfiguration">
+
+        <!--Any default filter queries, these filter queries will be used for all
+                queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>organization.parentOrganization_authority:{0} AND (dc.type:groupe OR dc.type:labo)</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+            </list>
+        </property>
+    </bean>
+
     <!-- doctoral schools theses by an orgunit -->
     <bean id="relationOrgunitThesesConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
         <!--The sort filters for the discovery search-->
@@ -1911,8 +1989,8 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>dc.description.sponsorship_authority:{0}</value>
-                <value>dc.type:*thesis OR dc.type:*project deliverable</value>
+                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}</value>
+                <value>dc.type:*thesis OR dc.type:*project+deliverable</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1984,8 +2062,8 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>dc.description.sponsorship_authority:{0}</value>
-                <value>dc.type:*thesis OR dc.type:*project deliverable OR dc.type:*learning object</value>
+                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}}</value>
+                <value>dc.type:*thesis OR dc.type:*project+deliverable OR dc.type:*learning+object</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -3282,6 +3360,17 @@
                 <value>dc.type:collège OR dc.type:école</value>
             </list>
         </property>
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterTypes" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterTypes"/>
+            </list>
+        </property>
     </bean>
 
 
@@ -3292,6 +3381,17 @@
             <list>
                 <!--Only find research centers and platforms-->
                 <value>dc.type:centre OR dc.type:labo</value>
+            </list>
+        </property>
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterTypes" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterTypes"/>
             </list>
         </property>
     </bean>
@@ -3306,6 +3406,15 @@
                 <value>dc.type:section</value>
             </list>
         </property>
+        <property name="sidebarFacets">
+            <list>
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+            </list>
+        </property>
     </bean>
 
 
@@ -3316,6 +3425,15 @@
             <list>
                 <!--Only find doctoral schools-->
                 <value>dc.type:dpt</value>
+            </list>
+        </property>
+        <property name="sidebarFacets">
+            <list>
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
             </list>
         </property>
     </bean>
