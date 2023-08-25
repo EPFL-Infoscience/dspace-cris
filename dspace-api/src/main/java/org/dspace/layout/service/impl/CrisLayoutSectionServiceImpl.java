@@ -10,6 +10,7 @@ package org.dspace.layout.service.impl;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.dspace.layout.CrisLayoutSection;
 import org.dspace.layout.service.CrisLayoutSectionService;
@@ -32,8 +33,11 @@ public class CrisLayoutSectionServiceImpl implements CrisLayoutSectionService {
 
     @Override
     public CrisLayoutSection findOne(String id) {
-        return components.stream().filter(
-            component -> component.getId().equals(id)).findFirst().orElse(null);
+        Stream<CrisLayoutSection> crisLayoutSectionStream =
+            components.stream().filter(c -> !c.getNestedSections().isEmpty())
+                      .flatMap(c -> c.getNestedSections().stream());
+        return Stream.concat(components.stream(), crisLayoutSectionStream)
+            .filter(c -> c.getId().equals(id)).findFirst().orElse(null);
     }
 
     @Override
