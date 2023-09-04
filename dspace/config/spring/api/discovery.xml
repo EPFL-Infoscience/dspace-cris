@@ -623,8 +623,8 @@
         <!--Which sidebar facets are to be displayed (same as defaultConfiguration above)-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterEpflResourceType" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
