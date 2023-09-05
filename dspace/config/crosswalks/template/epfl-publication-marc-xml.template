@@ -189,7 +189,7 @@
         <subfield code="f">@epfl.part.number@</subfield>
         <subfield code="j">@oaire.citation.volume@</subfield>
         <subfield code="s">@epfl.part.section@</subfield>
-        <subfield code="t">@dc.relation.ispartof@</subfield>
+        <subfield code="t">@dc.relation.ispartof/dc.relation.journal/dc.relation.ispartofseries@</subfield>
         @if.metadata.oaire-citation-startPage.start@
         <subfield code="q">@virtual.fullpage@</subfield>
         @if.metadata.oaire-citation-startPage.end@
@@ -205,7 +205,7 @@
     @if.metadata.dc-relation-product.start@
     <datafield tag="790" ind1=" " ind2=" ">
         <subfield code="2">@dc.relation.type@</subfield>
-        <subfield code="w">@dc.relation.product@</subfield>
+        <subfield code="w">@virtual.config.dspace-ui-url@/items/@virtual.id@</subfield>
     </datafield>
     @if.metadata.dc-relation-product.end@
     @if.metadata.epfl-lastmodified-email.start@
@@ -233,7 +233,7 @@
     @relation.person-affiliation-name.start@
     @if.metadata.cris-legacyId.start@
     <datafield tag="909" ind1="C" ind2="0">
-		    <subfield code="p">@oairecerif.acronym@</subfield>
+		    <subfield code="p">@epfl.relation.orgunit@</subfield>
 		    <subfield code="x">U@cris.legacyId@</subfield>
 		    <subfield code="0">@epfl.relation.orgunit@</subfield>
     </datafield>
@@ -247,9 +247,6 @@
     </datafield>
 	  @group.epfl-oai-currentset.end@
     @group.epfl-relation-orgunit.start@
-    <datafield tag="910" ind1="C" ind2="0">
-		    <subfield code="0">@epfl.relation.orgunit@/@epfl.relation.rejectedOrgUnit@</subfield>
-    </datafield>
 	  @group.epfl-relation-orgunit.end@
 	 @group.epfl-thesis-faculty.start@
     <datafield tag="918" ind1=" " ind2=" ">
@@ -296,11 +293,19 @@
     <datafield tag="980" ind1=" " ind2=" ">
 		    <subfield code="a">@dc.source@</subfield>
 		    <subfield code="b">@epfl.thesis.degreelevel@</subfield>
+		    <subfield code="c">approved</subfield>
     </datafield>
 	@group.dc-source.end@
     @group.epfl-relation-orgunit.start@
     <datafield tag="999" ind1="C" ind2="0">
 		    <subfield code="0">@epfl.relation.orgunit@/@epfl.relation.pendingOrgUnit@</subfield>
     </datafield>
-	  @group.epfl-relation-orgunit.end@
+	@group.epfl-relation-orgunit.end@
+    <datafield tag="269" ind1=" " ind2=" ">
+    </datafield>
+    @group.oairecerif-author-affiliation.start@
+    <datafield tag="720" ind1="5" ind2="a">
+            <subfield code="0">@oairecerif.author.affiliation@</subfield>
+    </datafield>
+    @group.oairecerif-author-affiliation.end@
 </record>
