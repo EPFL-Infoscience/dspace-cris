@@ -92,7 +92,7 @@
     </type>
     <type>
         <leftType>Publication</leftType>
-        <rightType>Publication</rightType>
+        <rightType>VirtualCollection</rightType>
         <leftwardType>isPublicationsHiddenFor</leftwardType>
         <rightwardType>notDisplayingPublications</rightwardType>
         <leftCardinality>
@@ -104,7 +104,7 @@
     </type>
     <type>
         <leftType>Publication</leftType>
-        <rightType>Publication</rightType>
+        <rightType>VirtualCollection</rightType>
         <leftwardType>isPublicationsSelectedFor</leftwardType>
         <rightwardType>hasSelectedPublications</rightwardType>
         <leftCardinality>
