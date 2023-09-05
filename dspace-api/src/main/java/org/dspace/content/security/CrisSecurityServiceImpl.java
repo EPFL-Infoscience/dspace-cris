@@ -94,7 +94,8 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             case CUSTOM:
                 return hasAccessByCustomPolicy(context, item, user, accessMode);
             case GROUP:
-                return hasAccessByGroup(context, user, accessMode.getGroups());
+                return hasAccessByGroup(context, user, accessMode.getGroups())
+                        && !authorizeService.isAdmin(context, user);
             case ITEM_ADMIN:
                 return authorizeService.isAdmin(context, user, item);
             case OWNER:
@@ -104,7 +105,8 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             case SUBMITTER_GROUP:
                 return isUserInSubmitterGroup(context, item, user);
             case ALL:
-                return true;
+                return !hasAccessByGroup(context, user, accessMode.getGroups())
+                        && authorizeService.isAdmin(context, user);
             case NONE:
             default:
                 return false;
