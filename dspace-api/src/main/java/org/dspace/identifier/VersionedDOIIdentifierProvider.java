@@ -95,7 +95,8 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider {
             String bareDOI = getBareDOI(metadataDOI);
             int versionNumber;
             try {
-                versionNumber = versionHistoryService.getVersion(context, history, item).getVersionNumber();
+                Version version = versionHistoryService.getVersion(context, history, item);
+                versionNumber = version != null ? version.getVersionNumber() : 0;
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
@@ -215,10 +216,18 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider {
         String doiPrefix = DOI.SCHEME.concat(getPrefix())
                                      .concat(String.valueOf(SLASH))
                                      .concat(getNamespaceSeparator());
-        String doiPostfix = identifier.substring(doiPrefix.length());
-        if (doiPostfix.matches(pattern) && doiPostfix.lastIndexOf(DOT) != -1) {
-            return doiPrefix.concat(doiPostfix.substring(0, doiPostfix.lastIndexOf(DOT)));
+
+        if (StringUtils.startsWith(doiPrefix, identifier)) {
+            String doiPostfix = identifier.substring(doiPrefix.length());
+            if (doiPostfix.matches(pattern) && doiPostfix.lastIndexOf(DOT) != -1) {
+                return doiPrefix.concat(doiPostfix.substring(0, doiPostfix.lastIndexOf(DOT)));
+            }
         }
+
+        if (!StringUtils.startsWith(identifier, DOI.SCHEME)) {
+            return DOI.SCHEME + identifier;
+        }
+
         // if the pattern does not match, we are already working on a bare handle.
         return identifier;
     }
