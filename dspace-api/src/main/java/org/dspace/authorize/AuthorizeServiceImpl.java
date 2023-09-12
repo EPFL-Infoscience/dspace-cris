@@ -279,6 +279,13 @@ public class AuthorizeServiceImpl implements AuthorizeService {
                 c.cacheAuthorizedAction(o, action, e, useInheritance, true, null);
                 return true;
             }
+
+            boolean curatorAuthorized = configurationService.getBooleanProperty("epfl.curator.authorize");
+
+            if (curatorAuthorized && o instanceof Item && isCurator(c)) {
+                c.cacheAuthorizedAction(o, action, e, useInheritance, true, null);
+                return true;
+            }
         }
 
         // In case the dso is an bundle or bitstream we must ignore custom
