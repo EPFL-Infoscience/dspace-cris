@@ -2647,6 +2647,7 @@
                 <ref bean="searchFilterEpflOuTitle"/>
                 <ref bean="searchFilterSubject"/>
                 <ref bean="searchFilterEpflOuActive"/>
+                <ref bean="searchFilterEpflParentOrganization"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -5295,7 +5296,7 @@
 
 
     <bean id="searchFilterEpflParentOrganization" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-        <property name="indexFieldName" value="parentOu"/>
+        <property name="indexFieldName" value="parentOrganization"/>
         <property name="metadataFields">
             <list>
                 <value>organization.parentOrganization</value>
