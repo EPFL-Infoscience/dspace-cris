@@ -2637,6 +2637,7 @@
             <list>
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterEpflOuActive"/>
+                <ref bean="searchFilterEpflParentOrganization"/>
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
@@ -5290,6 +5291,20 @@
         <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
+    </bean>
+
+
+    <bean id="searchFilterEpflParentOrganization" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="parentOu"/>
+        <property name="metadataFields">
+            <list>
+                <value>organization.parentOrganization</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+
     </bean>
 
     <bean id="searchFilterSource" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
