@@ -258,7 +258,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="metadataSortField" value="dc.date.created" />
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -397,7 +397,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="metadataSortField" value="dc.date.created" />
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -529,7 +529,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="metadataSortField" value="dc.date.created" />
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -696,7 +696,7 @@
         <!-- Limit recent submissions on homepage to only 5 (default is 20) -->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="metadataSortField" value="dc.date.created" />
                 <property name="type" value="date"/>
                 <property name="max" value="5"/>
                 <property name="useAsHomePage" value="false"/>
@@ -1766,7 +1766,7 @@
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterAccessioned" />
+                <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
@@ -2247,7 +2247,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="metadataSortField" value="dc.date.created" />
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -2335,7 +2335,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="metadataSortField" value="dc.date.created" />
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -2444,7 +2444,7 @@
         <property name="defaultRpp" value="10"/>
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="5"/>
                 <property name="useAsHomePage" value="false"/>
@@ -2502,7 +2502,7 @@
         <property name="defaultRpp" value="10"/>
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="5"/>
                 <property name="useAsHomePage" value="false"/>
@@ -2557,7 +2557,7 @@
         <property name="defaultRpp" value="10"/>
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="5"/>
                 <property name="useAsHomePage" value="false"/>
@@ -2617,7 +2617,7 @@
         <property name="defaultRpp" value="10"/>
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="5"/>
                 <property name="useAsHomePage" value="false"/>
@@ -2681,7 +2681,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -2779,7 +2779,7 @@
 <!--        &lt;!&ndash;The configuration for the recent submissions&ndash;&gt;-->
 <!--        <property name="recentSubmissionConfiguration">-->
 <!--            <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">-->
-<!--                <property name="metadataSortField" value="dc.date.accessioned"/>-->
+<!--                <property name="metadataSortField" value="dc.date.created"/>-->
 <!--                <property name="type" value="date"/>-->
 <!--                <property name="max" value="20"/>-->
 <!--                &lt;!&ndash; If enabled the collection home page will not display metadata but show a pageable list of recent submissions &ndash;&gt;-->
@@ -2844,7 +2844,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -2908,7 +2908,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -2967,7 +2967,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned"/>
+                <property name="metadataSortField" value="dc.date.created"/>
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
@@ -3338,7 +3338,7 @@
         <!--The configuration for the recent submissions-->
         <property name="recentSubmissionConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="metadataSortField" value="dc.date.created" />
                 <property name="type" value="date"/>
                 <property name="max" value="20"/>
                 <!-- If enabled the collection home page will not display metadata but show a pageable list of recent submissions -->
