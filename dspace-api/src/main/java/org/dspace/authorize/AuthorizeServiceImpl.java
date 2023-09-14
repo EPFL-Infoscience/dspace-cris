@@ -282,7 +282,8 @@ public class AuthorizeServiceImpl implements AuthorizeService {
 
             boolean curatorAuthorized = configurationService.getBooleanProperty("epfl.curator.authorize");
 
-            if (curatorAuthorized && o instanceof Item && isCurator(c)) {
+            if (curatorAuthorized && isCurator(c)
+                && (o instanceof Item || o instanceof Bundle || o instanceof Bitstream || o instanceof Collection)) {
                 c.cacheAuthorizedAction(o, action, e, useInheritance, true, null);
                 return true;
             }
