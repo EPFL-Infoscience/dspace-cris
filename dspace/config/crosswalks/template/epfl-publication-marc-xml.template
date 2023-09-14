@@ -189,7 +189,9 @@
         <subfield code="f">@epfl.part.number@</subfield>
         <subfield code="j">@oaire.citation.volume@</subfield>
         <subfield code="s">@epfl.part.section@</subfield>
-        <subfield code="t">@dc.relation.ispartof/dc.relation.journal/dc.relation.ispartofseries@</subfield>
+        <subfield code="t">@dc.relation.ispartof@</subfield>
+        <subfield code="t">@dc.relation.journal@</subfield>
+        <subfield code="t">@dc.relation.ispartofseries@</subfield>
         @if.metadata.oaire-citation-startPage.start@
         <subfield code="q">@virtual.fullpage@</subfield>
         @if.metadata.oaire-citation-startPage.end@
@@ -301,8 +303,11 @@
 		    <subfield code="0">@epfl.relation.orgunit@/@epfl.relation.pendingOrgUnit@</subfield>
     </datafield>
 	@group.epfl-relation-orgunit.end@
+	@group.dc-date-issued.start@
     <datafield tag="269" ind1=" " ind2=" ">
+    <subfield code="c">@dc.date.issued@</subfield>
     </datafield>
+    @group.dc-date-issued.end@
     @group.oairecerif-author-affiliation.start@
     <datafield tag="720" ind1="5" ind2="a">
             <subfield code="0">@oairecerif.author.affiliation@</subfield>
