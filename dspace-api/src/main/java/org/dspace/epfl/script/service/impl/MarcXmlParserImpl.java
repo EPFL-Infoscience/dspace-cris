@@ -285,7 +285,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     }
 
     private String escapeBitstreamName(String name) {
-        return name.replace("+", "");
+        return name.replace(" ", "").replace("+", "");
     }
 
     private List<ResourcePolicyDTO> readResourcePolicies(Node bitstreamNode, Bitstreams bitstreamsMapping) {

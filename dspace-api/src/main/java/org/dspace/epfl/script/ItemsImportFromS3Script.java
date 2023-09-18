@@ -357,7 +357,7 @@ public class ItemsImportFromS3Script
     }
 
     private String escapeBitstreamName(String name) {
-        return name.replace("+", "");
+        return name.replace(" ", "").replace("+", "");
     }
 
     private void verifyBitstreamChecksum(String fileName, List<BitstreamDTO> bitstreams, InputStream document) {
