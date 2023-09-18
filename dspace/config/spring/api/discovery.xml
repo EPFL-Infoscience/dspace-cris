@@ -3380,7 +3380,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find research centers and platforms-->
-                <value>dc.type:centre OR dc.type:labo</value>
+                <value>dc.type:centre</value>
             </list>
         </property>
         <property name="sidebarFacets">

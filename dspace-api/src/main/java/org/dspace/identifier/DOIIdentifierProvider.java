@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -1036,6 +1037,15 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
                 contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso) + ".");
         }
         Item item = (Item) dso;
+
+        String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
+        if (StringUtils.isNotBlank(doi)) {
+            if (!StringUtils.startsWith(doi, DOI.SCHEME)) {
+                return DOI.SCHEME + doi;
+            } else {
+                return doi;
+            }
+        }
 
         List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
         String leftPart = doiService.getResolver() + SLASH + getPrefix() + SLASH + getNamespaceSeparator();
