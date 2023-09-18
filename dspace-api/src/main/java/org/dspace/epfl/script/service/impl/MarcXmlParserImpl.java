@@ -277,11 +277,15 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         List<ResourcePolicyDTO> policies = readResourcePolicies(bitstreamNode, bitstreamsMapping);
 
-        String location = getBitstreamUrl() + id + "_" + fileName;
+        String location = getBitstreamUrl() + id + "_" + escapeBitstreamName(fileName);
         String checksum = getSingleValue(bitstreamNode, bitstreamsMapping.getChecksumXPath());
 
         return Optional.of(new BitstreamDTO("ORIGINAL", location, checksum, metadataValues, policies));
 
+    }
+
+    private String escapeBitstreamName(String name) {
+        return name.replace("+", "");
     }
 
     private List<ResourcePolicyDTO> readResourcePolicies(Node bitstreamNode, Bitstreams bitstreamsMapping) {

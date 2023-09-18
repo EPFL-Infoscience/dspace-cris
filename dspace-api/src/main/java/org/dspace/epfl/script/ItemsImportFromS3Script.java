@@ -347,13 +347,17 @@ public class ItemsImportFromS3Script
 
                 verifyBitstreamChecksum(fileName, bitstreams, zipFile.getInputStream(entry));
 
-                String bitstreamName = id + "_" + fileName;
+                String bitstreamName = id + "_" + escapeBitstreamName(fileName);
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
 
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
+    }
+
+    private String escapeBitstreamName(String name) {
+        return name.replace("+", "");
     }
 
     private void verifyBitstreamChecksum(String fileName, List<BitstreamDTO> bitstreams, InputStream document) {
