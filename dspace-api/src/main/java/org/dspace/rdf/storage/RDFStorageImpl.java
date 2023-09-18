@@ -88,7 +88,9 @@ public class RDFStorageImpl
 
     @Override
     public void delete(String uri) {
-        this.getAccessor().httpDelete(NodeFactory.createURI(uri));
+        Node node = NodeFactory.createURI(uri);
+        report("node for deletion: " + node, "debug");
+        this.getAccessor().httpDelete(node);
     }
 
     @Override
@@ -96,6 +98,7 @@ public class RDFStorageImpl
         for (String graph : this.getAllStoredGraphs()) {
             report("Deleting graph: " + graph, "debug");
             this.delete(graph);
+            report("Deleted graph: " + graph, "debug");
         }
         // clean default graph:
         this.getAccessor().httpDelete();
