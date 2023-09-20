@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mapping>
 
-    <item-xpath>/record</item-xpath>
+    <item-xpath>//record</item-xpath>
     
     <submitter-xpath>./datafield[@tag = '960']/subfield[@code = 'a']</submitter-xpath>
     
