@@ -379,7 +379,7 @@
                         <ref bean="sortScore" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -513,7 +513,7 @@
                         <ref bean="sortScore" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -674,8 +674,8 @@
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1238,8 +1238,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1326,8 +1326,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1406,8 +1406,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1475,8 +1475,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1527,8 +1527,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1600,8 +1600,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1673,8 +1673,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1747,8 +1747,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1809,8 +1809,8 @@
                         <ref bean="sortByPeopleSelection" />
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortTitleDesc"/>
-                        <ref bean="sortDateCreatedAsc"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                         <ref bean="sortDateModifiedAsc"/>
                         <ref bean="sortDateModifiedDesc"/>
                     </list>
@@ -1875,8 +1875,8 @@
                         <ref bean="sortOrganizationAddressLocalityDesc"/>
                         <ref bean="sortOrganizationFoundingDateAsc"/>
                         <ref bean="sortOrganizationFoundingDate"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1951,8 +1951,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2024,8 +2024,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2151,8 +2151,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2235,8 +2235,8 @@
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
-                        <ref bean="sortDateCreatedAsc"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -2323,8 +2323,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2427,8 +2427,8 @@
                     <list>
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortTitleDesc"/>
-                        <ref bean="sortDateCreatedAsc"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                         <ref bean="sortDateModifiedAsc"/>
                         <ref bean="sortDateModifiedDesc"/>
                         <ref bean="sortScoreAsc" />
@@ -2669,8 +2669,8 @@
                         <ref bean="sortOrganizationFoundingDate"/>
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2767,8 +2767,8 @@
                     <list>
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortTitleDesc"/>
-                        <ref bean="sortDateCreatedAsc"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -2830,8 +2830,8 @@
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortCreativeWorkDatePublishedAsc"/>
                         <ref bean="sortCreativeWorkDatePublished"/>
-                        <ref bean="sortDateCreatedAsc"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
                     </list>
@@ -2894,8 +2894,8 @@
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortCreativeWorkDatePublishedAsc"/>
                         <ref bean="sortCreativeWorkDatePublished"/>
-                        <ref bean="sortDateCreatedAsc"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
                     </list>
@@ -2956,7 +2956,7 @@
                         <ref bean="sortScore" />
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortCreativeWorkDatePublished"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -3027,7 +3027,7 @@
                         <ref bean="sortOrganizationAddressCountry"/>
                         <ref bean="sortOrganizationAddressLocality"/>
                         <ref bean="sortOrganizationFoundingDate"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                         <ref bean="sortFamilyName"/>
                         <ref bean="sortGivenName"/>
                         <ref bean="sortBirthDate"/>
@@ -3086,7 +3086,7 @@
                         <ref bean="sortOrganizationAddressCountry"/>
                         <ref bean="sortOrganizationAddressLocality"/>
                         <ref bean="sortOrganizationFoundingDate"/>
-                        <ref bean="sortDateCreatedDesc"/>
+                        <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -3252,7 +3252,7 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedDesc" />
                         <ref bean="sortViews" />
                     </list>
                 </property>
@@ -3326,8 +3326,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -4752,17 +4752,29 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
-    <bean id="sortDateCreatedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="dc.date.created"/>
+    <bean id="sortDateAccessionedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="dc.date.accessioned"/>
         <property name="type" value="date"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
-    <bean id="sortDateCreatedDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="dc.date.created"/>
+    <bean id="sortDateAccessionedDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="dc.date.accessioned"/>
         <property name="type" value="date"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
+
+  <bean id="sortDateCreatedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+    <property name="metadataField" value="dc.date.created"/>
+    <property name="type" value="date"/>
+    <property name="defaultSortOrder" value="asc"/>
+  </bean>
+
+  <bean id="sortDateCreatedDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+    <property name="metadataField" value="dc.date.created"/>
+    <property name="type" value="date"/>
+    <property name="defaultSortOrder" value="desc"/>
+  </bean>
 
     <bean id="sortDateModifiedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="dc.date.modified" />
