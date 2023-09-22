@@ -97,10 +97,18 @@
             - Predefined DSpace fields don't allow to set this up with a default.
          -->
         <Context baseurl="openaire4" name="OpenAIRE 4 Context">
+
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaire4Transformer"/>
             <!-- OpenAIRE filter -->
             <Filter ref="openAIRE4Filter"/>
+            <Set ref="thesesSet"/>
+            <Set ref="openaireDataset"/>
+            <Set ref="doisSet"/>
+            <Set ref="fulltextSet"/>
+            <Set ref="fulltextPublicSet"/>
+            <Set ref="openaire4Set"/>
+            <Set ref="oaiOpenaireSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="oaiopenaire"/>
@@ -1064,6 +1072,16 @@
                 </list>
             </Configuration>
         </CustomCondition>
+        <CustomCondition id="datasetTypeCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">ends_with</string>
+                <list name="values">
+                    <string>dataset</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
     </Filters>
 
     <Sets>
@@ -1124,11 +1142,11 @@
             <Filter ref="fundingSetFilter" />
         </Set>
         <!-- set the OpenAIRE Data Archive OAI Set. See: https://guidelines.openaire.eu/en/latest/data/use_of_oai_pmh.html -->
-        <Set id="openaireDataSet">
-            <Spec>openaire_data</Spec>
-            <Name>OpenAIRE</Name>
-            <!-- Just an alias or set a filter condition to expose only specific kind of items (dataset) -->
-        </Set>
+<!--        <Set id="openaireDataSet">-->
+<!--            <Spec>openaire_data</Spec>-->
+<!--            <Name>OpenAIRE</Name>-->
+<!--            &lt;!&ndash; Just an alias or set a filter condition to expose only specific kind of items (dataset) &ndash;&gt;-->
+<!--        </Set>-->
         <Set id="thesesSet">
             <Spec>theses-bn</Spec>
             <Name>theses-bn</Name>
