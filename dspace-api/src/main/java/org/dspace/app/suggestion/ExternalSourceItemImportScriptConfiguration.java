@@ -66,7 +66,7 @@ public class ExternalSourceItemImportScriptConfiguration<T extends ExternalSourc
             options.getOption("t").setType(String.class);
             options.getOption("t").setRequired(true);
 
-            options.addOption("ty", "type", true, "entity type");
+            options.addOption("ty", "type", true, "dc.type metadata value");
             options.getOption("ty").setType(String.class);
             options.getOption("ty").setRequired(false);
 
