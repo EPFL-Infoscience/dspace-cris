@@ -47,7 +47,7 @@
                 <entry key="dc.identifier.patentno" value="./subfield[@code = 'a']"/>
                 <entry key="oairecerif.patent.country" value="./subfield[@code = 'b']"/>
                 <entry key="epfl.patent.kindcode" value="./subfield[@code = 'c']"/>
-                <entry key="dc.date.issued" value="./subfield[@code = 'd']"/>
+                <entry key="epfl.patent.date" value="./subfield[@code = 'd']"/>
             </util:map>
         </property>
     </bean>
@@ -194,6 +194,10 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
         <property name="readerName" value="coarVersion" />
         <property name="propertiesPath" value="crosswalks/mapConverter-coarVersions.properties" />
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportIsbnReader">
+        <property name="containerMetadataField" value="dc.identifier.isbn" />
     </bean>
     
 </beans>
