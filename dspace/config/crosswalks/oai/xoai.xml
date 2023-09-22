@@ -18,6 +18,7 @@
             <Filter ref="defaultFilter"/>
 
             <Set ref="thesesSet"/>
+            <Set ref="openaireDataset"/>
             <Set ref="doisSet"/>
             <Set ref="fulltextSet"/>
             <Set ref="fulltextPublicSet"/>
@@ -777,6 +778,18 @@
                 </And>
             </Definition>
         </Filter>
+        <Filter id="datasetFilters">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Custom ref="productSetFilter"/>
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="datasetTypeCondition"/>
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
         <Filter id="doisFilter">
             <Definition>
                 <And>
@@ -1120,6 +1133,12 @@
             <Spec>theses-bn</Spec>
             <Name>theses-bn</Name>
             <Filter ref="thesesFilter"/>
+        </Set>
+        <!-- openaire datasets -->
+        <Set id="openaireDataset">
+            <Spec>openaire_data</Spec>
+            <Name>openaire_data</Name>
+            <Filter ref="datasetFilters"/>
         </Set>
         <!-- EPFL managed DOIs -->
         <Set id="doisSet">
