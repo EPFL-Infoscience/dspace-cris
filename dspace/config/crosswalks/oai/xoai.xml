@@ -742,6 +742,8 @@
                 <list name="values">
                     <string>Publication</string>
                     <string>publication</string>
+                    <string>Product</string>
+                    <string>product</string>
                     <!-- and other alternative names for publications types -->
                 </list>
             </Configuration>
