@@ -774,7 +774,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                    	<ref bean="sortLastModified" />
+                    	  <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
                     </list>
@@ -843,7 +844,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortLastModified" />
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
                     </list>
@@ -927,6 +929,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortUnitAsc" />
@@ -1003,6 +1007,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortScore" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
@@ -1805,8 +1811,8 @@
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
-                        <ref bean="sortLastModifiedAsc"/>
-                        <ref bean="sortLastModified"/>
+                        <ref bean="sortDateModifiedAsc"/>
+                        <ref bean="sortDateModifiedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -2423,8 +2429,8 @@
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
-                        <ref bean="sortLastModifiedAsc"/>
-                        <ref bean="sortLastModified"/>
+                        <ref bean="sortDateModifiedAsc"/>
+                        <ref bean="sortDateModifiedDesc"/>
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
                     </list>
@@ -4758,17 +4764,29 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
-    <bean id="sortLastModifiedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-		<property name="metadataField" value="lastModified" />
-		<property name="type" value="date" />
-        <property name="defaultSortOrder" value="asc"/>
-	</bean>
+  <bean id="sortDateCreatedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+    <property name="metadataField" value="dc.date.created"/>
+    <property name="type" value="date"/>
+    <property name="defaultSortOrder" value="asc"/>
+  </bean>
 
-    <bean id="sortLastModified" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-		<property name="metadataField" value="lastModified" />
-		<property name="type" value="date" />
+  <bean id="sortDateCreatedDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+    <property name="metadataField" value="dc.date.created"/>
+    <property name="type" value="date"/>
+    <property name="defaultSortOrder" value="desc"/>
+  </bean>
+
+    <bean id="sortDateModifiedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="dc.date.modified" />
+		    <property name="type" value="date" />
+        <property name="defaultSortOrder" value="asc"/>
+	  </bean>
+
+    <bean id="sortDateModifiedDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+		    <property name="metadataField" value="dc.date.modified" />
+		    <property name="type" value="date" />
         <property name="defaultSortOrder" value="desc"/>
-	</bean>
+	  </bean>
 
     <bean id="sortUnitAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="oairecerif.author.affiliation" />
