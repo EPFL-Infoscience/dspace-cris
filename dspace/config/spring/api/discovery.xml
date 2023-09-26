@@ -623,8 +623,8 @@
         <!--Which sidebar facets are to be displayed (same as defaultConfiguration above)-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterEpflResourceType" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
@@ -2661,6 +2661,7 @@
             <list>
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterEpflOuActive"/>
+                <ref bean="searchFilterEpflParentOrganization"/>
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
@@ -2670,6 +2671,7 @@
                 <ref bean="searchFilterEpflOuTitle"/>
                 <ref bean="searchFilterSubject"/>
                 <ref bean="searchFilterEpflOuActive"/>
+                <ref bean="searchFilterEpflParentOrganization"/>
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -5334,6 +5336,20 @@
         <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
+    </bean>
+
+
+    <bean id="searchFilterEpflParentOrganization" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="parentOrganization"/>
+        <property name="metadataFields">
+            <list>
+                <value>organization.parentOrganization</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+
     </bean>
 
     <bean id="searchFilterSource" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
