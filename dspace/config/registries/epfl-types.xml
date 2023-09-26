@@ -321,6 +321,12 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>patent</element>
+        <qualifier>date</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>award</element>
         <qualifier></qualifier>
     </dc-type>

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mapping>
 
-    <item-xpath>/record</item-xpath>
+    <item-xpath>//record</item-xpath>
     
     <submitter-xpath>./datafield[@tag = '960']/subfield[@code = 'a']</submitter-xpath>
     
@@ -22,6 +22,7 @@
         <metadata-field>
             <field>dc.relation.isbn</field>
             <xpath>./datafield[@tag = '020']/subfield[@code = 'a']</xpath>
+            <reader>isbn</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.issn</field>
@@ -29,7 +30,7 @@
         </metadata-field>
         <metadata-field>
             <field>dc.identifier</field>
-            <xpath>./datafield[@tag = '024' and @ind1 = '7' and @ind2 = ' ']</xpath>
+            <xpath>./datafield[@tag = '024' and @ind1 = '7' and ( @ind2 = ' ' or @ind2 = '0')]</xpath>
             <reader>identifier</reader>
         </metadata-field>
         <metadata-field>

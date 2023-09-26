@@ -69,7 +69,7 @@ public class SubmitterFixScript
 
         Collection collection = collectionService.find(context, UUIDUtils.fromString(collectionId));
         if (Objects.isNull(collection)) {
-            throw new IllegalArgumentException("Collection speficied in input has not been found");
+            throw new IllegalArgumentException("Collection specified in input has not been found");
         }
 
         context.turnOffAuthorisationSystem();
@@ -78,10 +78,11 @@ public class SubmitterFixScript
         try {
             itemIterator.forEachRemaining(this::updateSubmitter);
             context.complete();
-            context.restoreAuthSystemState();
         } catch (Exception e) {
             handler.handleException(e);
             context.abort();
+        } finally {
+            context.restoreAuthSystemState();
         }
 
     }

@@ -1302,6 +1302,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 String authority = metadataValue.getAuthority();
                 int confidence = metadataValue.getConfidence();
                 String value = metadataValue.getValue();
+
+                if (value != null && "dc.identifier.doi".equals(field)) {
+                    value = replaceOldDoiPrefix(value);
+                }
+
                 Integer security = metadataValue.getSecurityLevel();
                 if (StringUtils.isNotEmpty(value)) {
                     dSpaceObjectService.addSecuredMetadata(context, dso, metadataField, lang, value,
@@ -1598,6 +1603,12 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             .collect(Collectors.toMap(AccessConditionOption::getName, Function.identity()));
 
         return uploadAccessConditions;
+    }
+
+    private String replaceOldDoiPrefix(String value) {
+        String oldPrefix = configurationService.getProperty("epfl.bulk-import.old-doi-prefix", "");
+        String newPrefix = configurationService.getProperty("identifier.doi.prefix", "");
+        return value.replace(oldPrefix, newPrefix);
     }
 
     private boolean isConfidenceNotValid(String confidence) {
