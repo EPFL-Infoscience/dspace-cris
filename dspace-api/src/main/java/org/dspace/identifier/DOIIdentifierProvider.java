@@ -69,7 +69,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
 
     static final String CFG_PREFIX = "identifier.doi.prefix";
     static final String CFG_NAMESPACE_SEPARATOR = "identifier.doi.namespaceseparator";
-    static final String DOI_METADATA = "identifier.doi.metadata";
+    private static final String DOI_METADATA = "identifier.doi.metadata";
     static final char SLASH = '/';
 
     // Metadata field name elements
