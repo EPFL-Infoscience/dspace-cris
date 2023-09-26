@@ -920,6 +920,7 @@
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterLateReview" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -996,6 +997,7 @@
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1208,6 +1210,7 @@
                 <ref bean="searchFilterFunding" />
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterType" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1296,6 +1299,7 @@
                 <ref bean="searchFilterFunding" />
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterType" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1437,6 +1441,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1485,6 +1490,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1558,6 +1564,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1631,6 +1638,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1704,6 +1712,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1778,6 +1787,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1884,6 +1894,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1982,6 +1993,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2055,6 +2067,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2295,6 +2308,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2368,7 +2382,9 @@
         </property>
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
-            <list/>
+            <list>
+                <ref bean="searchFilterEntityType"/>
+            </list>
         </property>
         <!--The sort filters for the discovery search-->
         <property name="searchSortConfiguration">
@@ -2412,6 +2428,7 @@
                 <ref bean="searchFilterPersonIdentifier" />
                 <ref bean="searchFilterSubject" />
                 <ref bean="searchFilterEpflResearcherActive" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2474,6 +2491,7 @@
                 <ref bean="searchFilterIsPublicationOfProjectRelation"/>
                 <ref bean="searchFilterProjectInvestigator"/>
                 <ref bean="searchFilterProjectOrganisation"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2646,6 +2664,7 @@
                 <ref bean="searchFilterEpflOuTitle"/>
                 <ref bean="searchFilterSubject"/>
                 <ref bean="searchFilterEpflOuActive"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2721,6 +2740,7 @@
                 <ref bean="searchFilterTitle"/>
                 <ref bean="searchFilterFunderName"/>
                 <ref bean="searchFilterFundingProgram"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2940,6 +2960,7 @@
                 <ref bean="searchFilterCreativeWorkEditor"/>
                 <ref bean="searchFilterIsIssueOfJournalVolumeRelation"/>
                 <ref bean="searchFilterIsVolumeOfJournalRelation"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3298,6 +3319,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3369,6 +3391,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTypes"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
@@ -3392,6 +3415,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTypes"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
@@ -3413,6 +3437,7 @@
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
@@ -3434,6 +3459,7 @@
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
