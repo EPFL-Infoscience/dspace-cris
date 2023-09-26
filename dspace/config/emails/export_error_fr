@@ -1,0 +1,20 @@
+## Email sent to DSpace users when they successfully export an item or collection.
+  ## Parameters: {0} the export error
+  ## {1} the URL to the feedback page
+  ##
+  ##
+  ## See org.dspace.core.Email for information on the format of this file.
+  ##
+  #set($subject = 'Infoscience : L'export demandé n'a pas abouti')
+  
+ Bonjour !
+ 
+ L'export que vous avez demandé dans Infoscience n'a pas pu être effectué à la suite du problème :
+ ${params[0]}
+  
+ N'hésitez pas à nous contacter si vous avez besoin d'aide : ${params[1]}
+  
+ Meilleures salutations,
+ 
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

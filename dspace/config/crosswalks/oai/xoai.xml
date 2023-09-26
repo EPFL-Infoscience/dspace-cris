@@ -13,33 +13,34 @@
     maxListSetsSize="100" stylesheet="static/style.xsl" xmlns="http://www.lyncode.com/XOAIConfiguration">
 
     <Contexts>
-        <Context baseurl="request" name="Default Context">
-            <!-- Restrict access to hidden items by default -->
-            <Filter ref="defaultFilter"/>
+<!--        <Context baseurl="request" name="Default Context">-->
+<!--            &lt;!&ndash; Restrict access to hidden items by default &ndash;&gt;-->
+<!--            <Filter ref="defaultFilter"/>-->
 
-            <Set ref="thesesSet"/>
-            <Set ref="doisSet"/>
-            <Set ref="fulltextSet"/>
-            <Set ref="fulltextPublicSet"/>
-            <Set ref="openaire4Set"/>
-            <Set ref="oaiOpenaireSet"/>
-            <Format ref="oaidc"/>
-            <Format ref="mets"/>
-            <!--  <Format ref="xoai"/>-->
-            <Format ref="didl"/>
-            <Format ref="dim"/>
-            <Format ref="ore"/>
-            <Format ref="rdf"/>
-            <Format ref="etdms"/>
-            <Format ref="mods"/>
-            <Format ref="qdc"/>
-            <Format ref="marc"/>
-            <Format ref="uketd_dc"/>
-            <!--<Format ref="junii2" />-->
-            <Description>
-                This is the default context of the DSpace OAI-PMH data provider.
-            </Description>
-        </Context>
+<!--            <Set ref="thesesSet"/>-->
+<!--            <Set ref="openaireDataset"/>-->
+<!--            <Set ref="doisSet"/>-->
+<!--            <Set ref="fulltextSet"/>-->
+<!--            <Set ref="fulltextPublicSet"/>-->
+<!--            <Set ref="openaire4Set"/>-->
+<!--            <Set ref="oaiOpenaireSet"/>-->
+<!--            <Format ref="oaidc"/>-->
+<!--            <Format ref="mets"/>-->
+<!--            &lt;!&ndash;  <Format ref="xoai"/>&ndash;&gt;-->
+<!--            <Format ref="didl"/>-->
+<!--            <Format ref="dim"/>-->
+<!--            <Format ref="ore"/>-->
+<!--            <Format ref="rdf"/>-->
+<!--            <Format ref="etdms"/>-->
+<!--            <Format ref="mods"/>-->
+<!--            <Format ref="qdc"/>-->
+<!--            <Format ref="marc"/>-->
+<!--            <Format ref="uketd_dc"/>-->
+<!--            &lt;!&ndash;<Format ref="junii2" />&ndash;&gt;-->
+<!--            <Description>-->
+<!--                This is the default context of the DSpace OAI-PMH data provider.-->
+<!--            </Description>-->
+<!--        </Context>-->
 
         <!--
             Driver Guidelines:
@@ -96,13 +97,31 @@
             - Predefined DSpace fields don't allow to set this up with a default.
          -->
         <Context baseurl="openaire4" name="OpenAIRE 4 Context">
+
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaire4Transformer"/>
             <!-- OpenAIRE filter -->
             <Filter ref="openAIRE4Filter"/>
+            <Set ref="thesesSet"/>
+            <Set ref="openaireDataset"/>
+            <Set ref="doisSet"/>
+            <Set ref="fulltextSet"/>
+            <Set ref="fulltextPublicSet"/>
+            <Set ref="openaire4Set"/>
+            <Set ref="oaiOpenaireSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="oaiopenaire"/>
+            <Format ref="mets"/>
+            <Format ref="didl"/>
+            <Format ref="dim"/>
+            <Format ref="ore"/>
+            <Format ref="rdf"/>
+            <Format ref="etdms"/>
+            <Format ref="mods"/>
+            <Format ref="qdc"/>
+            <Format ref="marc"/>
+            <Format ref="uketd_dc"/>
             <Description>
                 This contexts complies with OpenAIRE Guidelines for Literature Repositories v4.0.
             </Description>
@@ -733,6 +752,8 @@
                 <list name="values">
                     <string>Publication</string>
                     <string>publication</string>
+                    <string>Product</string>
+                    <string>product</string>
                     <!-- and other alternative names for publications types -->
                 </list>
             </Configuration>
@@ -773,6 +794,18 @@
                                 <Custom ref="publicationDateFilter"/>
                             </RightCondition>
                         </And>
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+        <Filter id="datasetFilters">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Custom ref="productSetFilter"/>
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="datasetTypeCondition"/>
                     </RightCondition>
                 </And>
             </Definition>
@@ -1051,6 +1084,16 @@
                 </list>
             </Configuration>
         </CustomCondition>
+        <CustomCondition id="datasetTypeCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">ends_with</string>
+                <list name="values">
+                    <string>dataset</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
     </Filters>
 
     <Sets>
@@ -1111,15 +1154,21 @@
             <Filter ref="fundingSetFilter" />
         </Set>
         <!-- set the OpenAIRE Data Archive OAI Set. See: https://guidelines.openaire.eu/en/latest/data/use_of_oai_pmh.html -->
-        <Set id="openaireDataSet">
-            <Spec>openaire_data</Spec>
-            <Name>OpenAIRE</Name>
-            <!-- Just an alias or set a filter condition to expose only specific kind of items (dataset) -->
-        </Set>
+<!--        <Set id="openaireDataSet">-->
+<!--            <Spec>openaire_data</Spec>-->
+<!--            <Name>OpenAIRE</Name>-->
+<!--            &lt;!&ndash; Just an alias or set a filter condition to expose only specific kind of items (dataset) &ndash;&gt;-->
+<!--        </Set>-->
         <Set id="thesesSet">
             <Spec>theses-bn</Spec>
             <Name>theses-bn</Name>
             <Filter ref="thesesFilter"/>
+        </Set>
+        <!-- openaire datasets -->
+        <Set id="openaireDataset">
+            <Spec>openaire_data</Spec>
+            <Name>openaire_data</Name>
+            <Filter ref="datasetFilters"/>
         </Set>
         <!-- EPFL managed DOIs -->
         <Set id="doisSet">

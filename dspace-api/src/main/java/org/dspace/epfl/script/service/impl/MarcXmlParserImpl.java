@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,6 +33,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -138,9 +143,24 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     public Node parse(InputStream source, String recordXPath) {
         try {
             Document document = documentBuilder.parse(source);
+            toString(document);
             return getNode(document, recordXPath);
         } catch (SAXException | IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static void toString(Document newDoc) {
+        try {
+            DOMSource domSource = new DOMSource(newDoc);
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            StringWriter sw = new StringWriter();
+            StreamResult sr = new StreamResult(sw);
+            transformer.transform(domSource, sr);
+            System.out.println(sw.toString());
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
@@ -168,7 +188,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     public ItemDTO readSingleItem(Context context, String id, String recordType, Node record,
         ItemsImportMapping mapping) {
 
-        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
+        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, recordType, mapping);
 
         metadataValues.addAll(getCreationDateMetadataValues(id));
 
@@ -339,7 +359,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
             NodeList nodeList = getNodeList(record, metadataField.getXPath());
 
-            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
+            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), recordType, nodeList);
 
             metadataValues.addAll(values);
         }
