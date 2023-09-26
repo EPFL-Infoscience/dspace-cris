@@ -94,6 +94,13 @@ public class OrcidSynchronizationServiceImpl implements OrcidSynchronizationServ
         String accessToken = token.getAccessToken();
         String[] scopes = token.getScopeAsArray();
 
+        String metadataOrcid = itemService.getMetadataFirstValue(profile, "person", "identifier", "orcid", Item.ANY);
+
+        if (metadataOrcid != null && !metadataOrcid.equals(orcid)) {
+            throw new RuntimeException(
+                "Orcid from metadata (" + metadataOrcid + ") does not match orcid from orcid system (" + orcid + ")");
+        }
+
         itemService.setMetadataSingleValue(context, profile, "person", "identifier", "orcid", null, orcid);
         itemService.clearMetadata(context, profile, "dspace", "orcid", "scope", Item.ANY);
         for (String scope : scopes) {

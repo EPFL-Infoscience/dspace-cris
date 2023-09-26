@@ -321,6 +321,12 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>patent</element>
+        <qualifier>date</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>award</element>
         <qualifier></qualifier>
     </dc-type>
@@ -388,6 +394,30 @@
         <schema>epfl</schema>
         <element>url</element>
         <qualifier>description</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier />
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier>query</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier>curator</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>virtualCollection</element>
+        <qualifier>head</qualifier>
     </dc-type>
 
 </dspace-dc-types>

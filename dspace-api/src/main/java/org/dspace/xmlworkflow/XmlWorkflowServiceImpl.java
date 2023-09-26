@@ -313,15 +313,24 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             // suppress email, and delete key
             noEMail.remove(wfi.getItem().getID());
         } else {
-            Email mail = Email.getEmail(I18nUtil.getEmailFilename(c.getCurrentLocale(), emailTemplate));
-            for (String argument : arguments) {
-                mail.addArgument(argument);
-            }
-            for (EPerson anEpa : epa) {
-                mail.addRecipient(anEpa.getEmail());
-            }
 
-            mail.send();
+            for (EPerson ep : epa) {
+
+                Locale locale = I18nUtil.getEPersonLocale(ep);
+
+                Email mail = Email.getEmail(I18nUtil.getEmailFilename(locale, emailTemplate));
+                for (String argument : arguments) {
+                    if (argument.equals("New task available.") && locale.getLanguage().equals("fr")) {
+                        mail.addArgument("Nouvelle tâche disponible.");
+                    } else {
+                        mail.addArgument(argument);
+                    }
+                }
+
+                mail.addRecipient(ep.getEmail());
+                mail.send();
+
+            }
         }
     }
 
@@ -1377,7 +1386,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
                 // Get rejector's name
                 String rejector = getEPersonName(e);
-                Locale supportedLocale = I18nUtil.getEPersonLocale(e);
+                Locale supportedLocale = I18nUtil.getEPersonLocale(eperson);
                 Email email = Email.getEmail(I18nUtil.getEmailFilename(supportedLocale, "submit_reject"));
 
                 email.addRecipient(eperson.getEmail());

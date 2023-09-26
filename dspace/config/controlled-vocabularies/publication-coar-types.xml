@@ -18,11 +18,11 @@
           <hasNote>A piece of writing or other item of content published on a blog. [Source: https://www.lexico.com/definition/blog_post]
           </hasNote>
         </node>
-        <node id="c_2f33" label="book">
+        <node id="c_2f33" label="book/monograph">
           <hasNote>A non-serial publication that is complete in one volume or a designated finite number of volumes. [Source: Adapted from http://purl.org/eprint/type/Book]
           </hasNote>
           <isComposedBy>
-            <node id="c_3248" label="book part">
+            <node id="c_3248" label="book part or chapter">
               <hasNote>A defined chapter or section of a book, usually with a separate title or number. [Source: http://purl.org/spar/fabio/BookChapter]
               </hasNote>
             </node>
@@ -100,7 +100,7 @@
             </node>
           </isComposedBy>
         </node>
-        <node id="c_8544" label="lecture">
+        <node id="c_8544" label="lecture/talk">
           <hasNote>Transcription of an oral presentation/talk intended to present information or teach people about a particular subject, for example by a university or college teacher. [Source: Adopted from https://en.wikipedia.org/wiki/Lecture]
           </hasNote>
         </node>
@@ -199,7 +199,7 @@
             </node>
           </isComposedBy>
         </node>
-        <node id="c_71bd" label="technical documentation">
+        <node id="c_71bd" label="technical documentation or standard">
           <hasNote>Technical documentation refers to any type of documentation that describes handling, functionality and architecture of a technical product or a product under development or use. [Source: https://en.wikipedia.org/wiki/Technical_documentation]
           </hasNote>
         </node>

@@ -1,0 +1,23 @@
+## Email sent to DSpace users when they successfully export an item or collection.
+  ##
+  ## Parameters: {0} is expanded to a special URL
+  ## {1} configurable time (hours) an export file will be kept
+  ##
+  ## See org.dspace.core.Email for information on the format of this file.
+  ##
+  #set($subject = 'Infoscience : Votre export est prêt pour le téléchargement')
+ 
+ Bonjour,
+ 
+ L'export que vous avez demandé depuis Infoscience est prêt.
+ Vous pouvez télécharger le fichier compressé en utilisant le lien suivant :
+ ${params[0]}
+  
+ Ce fichier restera disponible au moins durant ${params[1]} heures.
+  
+ N'hésitez pas à nous contacter en cas de besoin.
+ 
+ Meilleures salutations,
+  
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

@@ -1,0 +1,37 @@
+## E-mail sent to a restricted Item's author when a user requests a copy.
+  ##
+  ## Parameters: 0 requester's name
+  ## 1 requester's address
+  ## 2 name of a single bitstream, or "all"
+  ## 3 item Handle
+  ## 4 item title
+  ## 5 message from requester
+  ## 6 link back to DSpace for action
+  ## 7 corresponding author name
+  ## 8 corresponding author email
+  ## 9 configuration property "dspace.name"
+  ## 10 configuration property "mail.helpdesk"
+  #set($subject = 'Infoscience : demande de document'
+  
+ Bonjour ${params[7]},
+  
+ Un·e utilisateur·trice d'${params[9]}, nommé·e ${params[0]} (${params[1]}), a sollicité une copie du ou des fichier(s) associé(s) au document que vous avez déposé : 
+ "${params[4]}" (${params[3]}).
+  
+ La demande est accompagnée du message suivant :
+ "${params[5]}"
+  
+ Que vous acceptiez ou rejetiez cette demande, nous vous remercions de prendre le temps d'y répondre. 
+ Pour répondre à l'utilisateur·trice, veuillez cliquez sur ce lien : ${params[6]}.
+ 
+ Si vous n'êtes pas l'auteur·trice du document, mais la personne qui l'a déposé en son (leur) nom(s), nous vous prions de lui (leur) transferer ce message. 
+ Seul·es les auteur·trices sont autorisé·es à accepter ou rejeter l'envoi d'une copie de leur(s) fichier(s).
+  
+ Si vous n'êtes pas concerné·e par cette demande, si vous ne pouvez pas y répondre ou la transférer, ou si vous avez besoin d'assistance, merci de nous contacter : ${params[10]}
+  
+ Nous vous remercions de votre aimable coopération, l'EPFL encourage toute démarche favorisant l'Open Science.
+  
+ Meilleures salutations,
+  
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

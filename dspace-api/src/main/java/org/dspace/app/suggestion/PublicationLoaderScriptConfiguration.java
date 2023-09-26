@@ -55,7 +55,7 @@ public class PublicationLoaderScriptConfiguration<T extends PublicationLoaderRun
             options.getOption("s").setType(String.class);
 
             options.addOption("l", "loader", true, "publication loader to be used " +
-                "(oaire, pubmed)");
+                "(oaire, pubmed, orcid)");
             options.getOption("l").setRequired(true);
 
             options.addOption("q", "query", true, "extra parameters to append to the generated query "

@@ -475,7 +475,14 @@
         <element>lastimport</element>
         <qualifier>loader-pubmed</qualifier>
         <scope_note />
-    </dc-type>        
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>loader-orcid</qualifier>
+        <scope_note />
+    </dc-type>
 
     <dc-type>
         <schema>cris</schema>

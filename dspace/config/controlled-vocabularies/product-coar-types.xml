@@ -116,7 +116,7 @@ Source: http://purl.org/dc/dcmitype/InteractiveResource
         </node>
       </isComposedBy>
     </node>
-    <node id="c_e059" label="learning object">
+    <node id="c_e059" label="Teaching material">
       <hasNote>A digital resource that can be reused to enhance teaching and learning. [Source: https://icas-ca.org/archive/projects/coerc/oer-glossary]
       </hasNote>
     </node>
