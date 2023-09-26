@@ -21,7 +21,7 @@ import org.w3c.dom.NodeList;
 public class ItemsImportBitstreamTitleReader implements ItemsImportMetadataFieldReader {
 
     @Override
-    public List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList) {
+    public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 

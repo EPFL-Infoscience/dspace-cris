@@ -38,7 +38,7 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
     private Map<String, String> authorityPrefixes = new HashMap<String, String>();
 
     @Override
-    public List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList) {
+    public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
@@ -59,7 +59,7 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
     private MetadataValueDTO readNestedValue(Node node, String nestedMetadataField) {
 
         String path = metadataFieldsPaths.get(nestedMetadataField);
-        String value = getSingleValue(node, xPath, path);
+        String value = convertIfDate(getSingleValue(node, xPath, path));
 
         if (StringUtils.isBlank(value)) {
             return new MetadataValueDTO(nestedMetadataField, PLACEHOLDER_PARENT_METADATA_VALUE);

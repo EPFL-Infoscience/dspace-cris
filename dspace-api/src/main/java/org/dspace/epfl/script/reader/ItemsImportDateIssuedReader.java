@@ -20,7 +20,7 @@ import org.w3c.dom.NodeList;
 public class ItemsImportDateIssuedReader implements ItemsImportMetadataFieldReader {
 
     @Override
-    public List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList) {
+    public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
 
         return getAllValues(nodeList).stream()
             .sorted(this::compareByPrecision)

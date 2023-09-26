@@ -1,0 +1,15 @@
+## E-mail sent to designated address when a harvest process concluded with errors
+ ##
+ ## Parameters: {0} Collection id
+ ## {1} Date & time
+ ## {2} Status flag
+ ##
+ ## See org.dspace.core.Email for information on the format of this file.
+ ##
+ #set($subject = 'Infoscience : Erreurs dans le moissonnage')
+ Le moissonnage de la collection ${params[0]} s'est terminé avec des erreurs :
+ 
+ Date : ${params[1]}
+ Indicateur d'état :  ${params[2]}
+ 
+ Voir l'annexe jointe pour le détail des erreurs survenues.

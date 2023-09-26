@@ -1,0 +1,28 @@
+## E-mail sent to designated address about updates on subscribed items
+  ##
+  ## Parameters: {0} Collections updates
+  ## {1} Communities updates
+  ## {2} Items updates
+  ##
+  #set($subject = 'Infoscience : Mise à jour des notices liées à vos préférences'
+  
+ Bonjour !
+ 
+ Cet e-mail automatique vous est envoyé par Infoscience sur la base des préférences que vous avez indiquées :
+  
+ Communautés
+  -------------------
+ Notices modifiées : ${params[0]}
+  
+ Collections
+  ----------------
+ Notices modifiées : ${params[1]}
+  
+ Notices
+  -----------------
+ Notices modifiées : ${params[2]}
+  
+ Meilleures salutations,
+ 
+ Équipe Infoscience
+ Bibliothèque de l'EPFL
