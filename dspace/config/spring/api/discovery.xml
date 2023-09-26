@@ -623,8 +623,8 @@
         <!--Which sidebar facets are to be displayed (same as defaultConfiguration above)-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterEpflResourceType" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
@@ -674,8 +674,8 @@
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -774,7 +774,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                    	<ref bean="sortLastModified" />
+                    	  <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
                     </list>
@@ -843,7 +844,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortLastModified" />
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
                     </list>
@@ -920,6 +922,7 @@
                 <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterLateReview" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -927,6 +930,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortUnitAsc" />
@@ -996,6 +1001,7 @@
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1003,6 +1009,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortScore" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
@@ -1208,6 +1216,7 @@
                 <ref bean="searchFilterFunding" />
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterType" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1232,8 +1241,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1296,6 +1305,7 @@
                 <ref bean="searchFilterFunding" />
                 <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterType" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1320,8 +1330,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1400,8 +1410,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1437,6 +1447,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1469,8 +1480,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1485,6 +1496,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1521,8 +1533,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1558,6 +1570,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1594,8 +1607,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1631,6 +1644,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1667,8 +1681,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1704,6 +1718,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1741,8 +1756,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1778,6 +1793,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1805,8 +1821,8 @@
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
-                        <ref bean="sortLastModifiedAsc"/>
-                        <ref bean="sortLastModified"/>
+                        <ref bean="sortDateModifiedAsc"/>
+                        <ref bean="sortDateModifiedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -1869,8 +1885,8 @@
                         <ref bean="sortOrganizationAddressLocalityDesc"/>
                         <ref bean="sortOrganizationFoundingDateAsc"/>
                         <ref bean="sortOrganizationFoundingDate"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1884,6 +1900,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -1945,8 +1962,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -1982,6 +1999,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2018,8 +2036,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2055,6 +2073,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2145,8 +2164,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2295,6 +2314,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2317,8 +2337,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2368,7 +2388,9 @@
         </property>
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
-            <list/>
+            <list>
+                <ref bean="searchFilterEntityType"/>
+            </list>
         </property>
         <!--The sort filters for the discovery search-->
         <property name="searchSortConfiguration">
@@ -2412,6 +2434,7 @@
                 <ref bean="searchFilterPersonIdentifier" />
                 <ref bean="searchFilterSubject" />
                 <ref bean="searchFilterEpflResearcherActive" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2423,8 +2446,8 @@
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
-                        <ref bean="sortLastModifiedAsc"/>
-                        <ref bean="sortLastModified"/>
+                        <ref bean="sortDateModifiedAsc"/>
+                        <ref bean="sortDateModifiedDesc"/>
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
                     </list>
@@ -2474,6 +2497,7 @@
                 <ref bean="searchFilterIsPublicationOfProjectRelation"/>
                 <ref bean="searchFilterProjectInvestigator"/>
                 <ref bean="searchFilterProjectOrganisation"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2637,6 +2661,7 @@
             <list>
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterEpflOuActive"/>
+                <ref bean="searchFilterEpflParentOrganization"/>
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
@@ -2646,6 +2671,8 @@
                 <ref bean="searchFilterEpflOuTitle"/>
                 <ref bean="searchFilterSubject"/>
                 <ref bean="searchFilterEpflOuActive"/>
+                <ref bean="searchFilterEpflParentOrganization"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2663,8 +2690,8 @@
                         <ref bean="sortOrganizationFoundingDate"/>
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -2721,6 +2748,7 @@
                 <ref bean="searchFilterTitle"/>
                 <ref bean="searchFilterFunderName"/>
                 <ref bean="searchFilterFundingProgram"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2940,6 +2968,7 @@
                 <ref bean="searchFilterCreativeWorkEditor"/>
                 <ref bean="searchFilterIsIssueOfJournalVolumeRelation"/>
                 <ref bean="searchFilterIsVolumeOfJournalRelation"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3246,7 +3275,7 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedDesc" />
                         <ref bean="sortViews" />
                     </list>
                 </property>
@@ -3298,6 +3327,7 @@
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
                 <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3320,8 +3350,8 @@
                         <ref bean="sortDownloads"/>
                         <ref bean="sortCitationsAsc"/>
                         <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -3369,6 +3399,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTypes"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
@@ -3392,6 +3423,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTypes"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
@@ -3413,6 +3445,7 @@
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
@@ -3434,6 +3467,7 @@
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
     </bean>
@@ -4758,17 +4792,29 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
-    <bean id="sortLastModifiedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-		<property name="metadataField" value="lastModified" />
-		<property name="type" value="date" />
-        <property name="defaultSortOrder" value="asc"/>
-	</bean>
+  <bean id="sortDateCreatedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+    <property name="metadataField" value="dc.date.created"/>
+    <property name="type" value="date"/>
+    <property name="defaultSortOrder" value="asc"/>
+  </bean>
 
-    <bean id="sortLastModified" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-		<property name="metadataField" value="lastModified" />
-		<property name="type" value="date" />
+  <bean id="sortDateCreatedDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+    <property name="metadataField" value="dc.date.created"/>
+    <property name="type" value="date"/>
+    <property name="defaultSortOrder" value="desc"/>
+  </bean>
+
+    <bean id="sortDateModifiedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="dc.date.modified" />
+		    <property name="type" value="date" />
+        <property name="defaultSortOrder" value="asc"/>
+	  </bean>
+
+    <bean id="sortDateModifiedDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+		    <property name="metadataField" value="dc.date.modified" />
+		    <property name="type" value="date" />
         <property name="defaultSortOrder" value="desc"/>
-	</bean>
+	  </bean>
 
     <bean id="sortUnitAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="oairecerif.author.affiliation" />
@@ -5290,6 +5336,20 @@
         <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
+    </bean>
+
+
+    <bean id="searchFilterEpflParentOrganization" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="parentOrganization"/>
+        <property name="metadataFields">
+            <list>
+                <value>organization.parentOrganization</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+
     </bean>
 
     <bean id="searchFilterSource" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
