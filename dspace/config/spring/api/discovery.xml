@@ -778,6 +778,8 @@
                         <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                     </list>
                 </property>
             </bean>
@@ -934,6 +936,8 @@
                         <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateCreatedDesc" />
                         <ref bean="sortUnitAsc" />
                         <ref bean="sortUnitDesc" />
                         <ref bean="sortAuthorAsc" />
