@@ -47,7 +47,8 @@
         </metadata-field>
         <metadata-field>
             <field>dc.title</field>
-            <xpath>./datafield[@tag = '245']/subfield[@code = 'a' or @code = 'b']</xpath>
+            <xpath>./datafield[@tag = '245']</xpath>
+            <reader>title</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.description.version</field>
@@ -88,6 +89,11 @@
         </metadata-field>
         <metadata-field>
             <field>dc.relation.ispartof</field>
+            <xpath>./datafield[@tag = '490']</xpath>
+            <reader>serie</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.ispartofseries</field>
             <xpath>./datafield[@tag = '490']</xpath>
             <reader>serie</reader>
         </metadata-field>

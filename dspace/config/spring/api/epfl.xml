@@ -172,6 +172,11 @@
         </property>
     </bean>
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportTitleReader" >
+        <property name="titleXPath" value="./subfield[@code = 'a']" />
+        <property name="subTitleXPath" value="./subfield[@code = 'b']" />
+    </bean>
+    
     <bean class="org.dspace.epfl.script.reader.ItemsImportAuthorityReader" >
         <property name="readerName" value="accessRights" />
         <property name="authorityPrefix" value="will be referenced::RIGHTS" />

@@ -62,7 +62,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
 
         deleteAllFilesOnExit();
 
-        String[] args = new String[] { "items-import-from-s3", "-k", "55731.zip" };
+        String[] args = new String[] { "items-import-from-s3" };
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
