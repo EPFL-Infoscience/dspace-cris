@@ -155,11 +155,6 @@
             <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'd']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>dc.contributor.editor</field>
-            <xpath>./datafield[@tag = '720' and @ind2 = ' ']</xpath>
-            <reader>editor</reader>
-        </metadata-field>
-        <metadata-field>
             <field>dc.contributor.scientificeditor</field>
             <xpath>./datafield[@tag = '720' and @ind2 = '1']</xpath>
             <reader>scientificeditor</reader>

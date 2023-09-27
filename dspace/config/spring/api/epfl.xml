@@ -93,31 +93,11 @@
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
-        <property name="readerName" value="editor" />
-        <property name="metadataFieldsPaths">
-            <util:map>
-                <entry key="dc.contributor.editor" value="./subfield[@code = 'a']"/>
-                <entry key="epfl.legacy.contributorauthnum" value="./subfield[@code = '0']"/>
-            </util:map>
-        </property>
-        <property name="authorityPaths">
-            <util:map>
-                <entry key="dc.contributor.editor" value="./subfield[@code = 'g']"/>
-            </util:map>
-        </property>
-        <property name="authorityPrefixes">
-            <util:map>
-                <entry key="dc.contributor.editor" value="will be generated::SCIPER-ID::"/>
-            </util:map>
-        </property>
-    </bean>
-    
-    <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
         <property name="readerName" value="advisor" />
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="dc.contributor.advisor" value="./subfield[@code = 'a']"/>
-                <entry key="epfl.legacy.contributorauthnum" value="./subfield[@code = '0']"/>
+                <entry key="epfl.legacy.contributoradvisornum" value="./subfield[@code = '0']"/>
             </util:map>
         </property>
         <property name="authorityPaths">
@@ -137,7 +117,7 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="dc.contributor.scientificeditor" value="./subfield[@code = 'a']"/>
-                <entry key="epfl.legacy.contributorauthnum" value="./subfield[@code = '0']"/>
+                <entry key="epfl.legacy.contributorscientificeditornum" value="./subfield[@code = '0']"/>
             </util:map>
         </property>
         <property name="authorityPaths">
