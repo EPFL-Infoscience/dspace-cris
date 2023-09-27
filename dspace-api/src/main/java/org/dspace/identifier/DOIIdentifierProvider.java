@@ -1121,7 +1121,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         List<String> remainder = new ArrayList<>();
 
         for (MetadataValue id : metadata) {
-            if (!id.getValue().equals(doiService.DOIToExternalForm(doi))) {
+            if (!doiService.DOIToExternalForm(doi).contains(id.getValue())) {
                 remainder.add(id.getValue());
             }
         }
