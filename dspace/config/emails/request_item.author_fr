@@ -11,7 +11,7 @@
   ## 8 corresponding author email
   ## 9 configuration property "dspace.name"
   ## 10 configuration property "mail.helpdesk"
-  #set($subject = 'Infoscience : demande de document'
+  #set($subject = 'Infoscience : demande de document')
   
  Bonjour ${params[7]},
   
