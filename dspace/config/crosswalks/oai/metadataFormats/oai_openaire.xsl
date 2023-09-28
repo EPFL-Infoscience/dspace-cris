@@ -1668,6 +1668,28 @@
         </oaire:licenseCondition>
     </xsl:template>
 
+    <xsl:template match="doc:element[@name='datacite']/doc:element[@name='primary']/doc:element[@name='doi']"
+                  mode="datacite">
+        <!-- only process the first element -->
+        <datacite:identifier>
+            <xsl:attribute name="identifierType">doi</xsl:attribute>
+            <xsl:value-of select="./doc:element[1]/doc:field[@name='value'][1]"/>
+        </datacite:identifier>
+    </xsl:template>
+
+    <!-- for each alternative doi -->
+    <xsl:template match="doc:element[@name='datacite']/doc:element[@name='alternative']/doc:element[@name='doi']" mode="datacite_altid">
+        <xsl:for-each select="./doc:element/doc:field[@name='value']">
+            <!-- don't process the first element -->
+            <xsl:if test="position()>1">
+                <datacite:alternateIdentifier>
+                    <xsl:attribute name="alternateIdentifierType">doi</xsl:attribute>
+                    <xsl:value-of select="./text()"/>
+                </datacite:alternateIdentifier>
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- ignore all non specified text values or attributes -->
     <xsl:template match="text()|@*"/>
     <xsl:template match="text()|@*" mode="oaire"/>
