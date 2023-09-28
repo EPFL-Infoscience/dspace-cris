@@ -118,6 +118,11 @@ public class ProfileInitializer {
 
 
         if (researcherProfile == null) {
+            PersonDTO personDTOForEmail = new PersonDTO();
+            personDTOForEmail.setSciper(sciper);
+            personDTOForEmail.setName(eperson.getName());
+            personDTOForEmail.setFirstname(eperson.getFirstName());
+            sendEmailForNoAffiliations(context, personDTOForEmail);
             LOGGER.info("No valid accreditations for sciper {} profile not created", sciper);
             return;
         }
@@ -131,7 +136,8 @@ public class ProfileInitializer {
         personDTO
 //            .map(person -> sendEmailIfSomethingIsWrong(context, person))
             .filter(this::isMainAffiliationActive)
-            .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(), eperson));
+            .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(),
+                                                eperson, researcherProfile));
 
         try {
             addToSubmittersGroup(context, eperson, researcherProfile);
@@ -155,11 +161,27 @@ public class ProfileInitializer {
         }
     }
 
+    private void removeFromSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile)
+            throws SQLException {
+
+        Group submittersGroup = groupService.findByName(context, SUBMITTERS);
+        if (submittersGroup == null) {
+            throw new RuntimeException(SUBMITTERS + " group not found, it must be created in order to correctly " +
+                    "synchronize users.");
+        }
+
+        if (!atLeastAnActiveAccreditation(researcherProfile.getItem())
+                && groupService.isMember(context, eperson, submittersGroup)) {
+            groupService.removeMember(context, submittersGroup, eperson);
+        }
+    }
+
     private boolean atLeastAnActiveAccreditation(Item item) {
         return item.getMetadata().stream()
                    .filter(mv -> "oairecerif.affiliation.endDate".equals(mv.getMetadataField().toString('.')))
                    .anyMatch(mv -> PLACEHOLDER_PARENT_METADATA_VALUE.equals(mv.getValue()));
     }
+
 
     public Optional<ResearcherProfile> findProfile(Context context, EPerson eperson) {
         try {
@@ -248,10 +270,11 @@ public class ProfileInitializer {
             .orElse(false);
     }
 
-    private void enrichProfile(Context context, PersonDTO person, Item item, EPerson ePerson) {
+    private void enrichProfile(Context context, PersonDTO person, Item item,
+                               EPerson ePerson, ResearcherProfile researcherProfile) {
 
         List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(context, person);
-        replaceMetadataValues(context, item, metadataValues, person);
+        replaceMetadataValues(context, item, metadataValues, person, ePerson, researcherProfile);
 
         String sciper = person.getSciper();
 
@@ -287,10 +310,17 @@ public class ProfileInitializer {
     }
 
     private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues,
-                                       PersonDTO epflPerson) {
+                                       PersonDTO epflPerson, EPerson ePerson, ResearcherProfile researcherProfile) {
         List<PersonAffiliation> personAffiliations = affiliations(context, item);
         List<Integer> affiliationsToClosePositions = affiliationsToBeClosedPositions(item, context,
                                                                                      epflPerson, personAffiliations);
+        if (personAffiliations.isEmpty() || personAffiliations.size() == affiliationsToClosePositions.size()) {
+            try {
+                removeFromSubmittersGroup(context, ePerson, researcherProfile);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
         clearMetadataValues(context, item);
         addEndDateToExpiredAccreds(context, item, affiliationsToClosePositions);
         List<PersonAffiliation> apiAffiliations = apiAffiliations(metadataValues);

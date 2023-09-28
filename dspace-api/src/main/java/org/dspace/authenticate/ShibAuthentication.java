@@ -7,6 +7,10 @@
  */
 package org.dspace.authenticate;
 
+import static java.util.Optional.ofNullable;
+import static org.dspace.core.I18nUtil.getEmailFilename;
+
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
@@ -21,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,6 +45,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Context;
+import org.dspace.core.Email;
 import org.dspace.core.Utils;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -481,6 +487,7 @@ public class ShibAuthentication implements AuthenticationMethod {
         try {
             profileInitializer.initialize(context, eperson);
         } catch (Exception ex) {
+            sendEmailForNoAffiliations(context, eperson);
             log.error("An error occurs initializing EPerson.", ex);
         }
 
@@ -1305,6 +1312,25 @@ public class ShibAuthentication implements AuthenticationMethod {
     @Override
     public boolean canChangePassword(Context context, EPerson ePerson, String currentPassword) {
         return false;
+    }
+
+    private void sendEmailForNoAffiliations(Context context, EPerson person) {
+        try {
+            Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(),
+                    "person_synchronization_no_affiliations"));
+            email.addRecipient(configurationService.getProperty("mail.admin"));
+            email.addArgument(getSciperId(person));
+            email.addArgument(person.getFullName());
+            email.send();
+        } catch (IOException | MessagingException e) {
+            log.error("An error occurs sending the email related to the user synchronization", e);
+        }
+    }
+
+    private Optional<String> getSciperId(EPerson eperson) {
+        return ofNullable(eperson)
+                .flatMap(ePerson -> ofNullable(ePerson.getNetid()))
+                .map(netId -> org.apache.commons.lang.StringUtils.substringBefore(netId, "@"));
     }
 }
 
