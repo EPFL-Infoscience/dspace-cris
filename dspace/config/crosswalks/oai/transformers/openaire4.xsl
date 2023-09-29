@@ -132,7 +132,7 @@
                 <xsl:text>annotation</xsl:text>
             </xsl:when>
             <xsl:when test="$lc_dc_type = 'journal'">
-                <xsl:text>journal</xsl:text>
+                <xsl:text>journal article</xsl:text>
             </xsl:when>
             <xsl:when
                 test="contains($lc_dc_type,'::journal article') and not(contains($lc_dc_type,'journal article::')) or $lc_dc_type = 'journal article' or $lc_dc_type = 'article' or $lc_dc_type = 'journalarticle' or $dc_type = 'http://purl.org/coar/resource_type/c_6501'">
