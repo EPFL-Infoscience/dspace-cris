@@ -89,12 +89,12 @@
         </metadata-field>
         <metadata-field>
             <field>dc.relation.ispartof</field>
-            <xpath>./datafield[@tag = '490']</xpath>
+            <xpath>./datafield[@tag = '490'] | ./datafield[@tag = '773']/subfield[@code = 't']</xpath>
             <reader>serie</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.ispartofseries</field>
-            <xpath>./datafield[@tag = '490']</xpath>
+            <xpath>./datafield[@tag = '490'] | ./datafield[@tag = '773']/subfield[@code = 't']</xpath>
             <reader>serie</reader>
         </metadata-field>
         <metadata-field>
@@ -165,6 +165,10 @@
             <reader>advisor</reader>
         </metadata-field>
         <metadata-field>
+            <field>dc.contributor</field>
+            <xpath>./datafield[@tag = '720' and @ind2 = '5']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
             <field>dc.identifier.standardno</field>
             <xpath>./datafield[@tag = '740']/subfield[@code = 'a']</xpath>
         </metadata-field>
@@ -187,14 +191,11 @@
         <metadata-field>
             <field>oaire.citation.startPage</field>
             <xpath>./datafield[@tag = '773']/subfield[@code = 'q']</xpath>
+            <reader>page</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.part.section</field>
             <xpath>./datafield[@tag = '773']/subfield[@code = 's']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>dc.relation.publication</field>
-            <xpath>./datafield[@tag = '773']/subfield[@code = 't']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.journal</field>
