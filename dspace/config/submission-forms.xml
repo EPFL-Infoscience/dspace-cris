@@ -3229,9 +3229,9 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>issued</dc-qualifier>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>patent</dc-element>
+          <dc-qualifier>date</dc-qualifier>
           <label>Date</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3255,7 +3255,7 @@ it, please enter the types and the actual numbers or codes.</hint>
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>funder</dc-element>
+          <dc-element>funding</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>Identifier</label>
           <input-type>onebox</input-type>
@@ -3333,7 +3333,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <dc-qualifier>contributoreditornum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3359,7 +3359,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <dc-qualifier>contributoradvisornum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3373,7 +3373,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <dc-qualifier>scientificeditor</dc-qualifier>
+          <dc-qualifier>contributorscientificeditornum</dc-qualifier>
           <label>Name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3719,6 +3719,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>ispartof</dc-qualifier>
           <label>Is part of</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartofseries</dc-qualifier>
+          <label>Is part of Series</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />

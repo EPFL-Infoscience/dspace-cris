@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mapping>
 
-    <item-xpath>/record</item-xpath>
+    <item-xpath>//record</item-xpath>
     
     <submitter-xpath>./datafield[@tag = '960']/subfield[@code = 'a']</submitter-xpath>
     
@@ -22,6 +22,7 @@
         <metadata-field>
             <field>dc.relation.isbn</field>
             <xpath>./datafield[@tag = '020']/subfield[@code = 'a']</xpath>
+            <reader>isbn</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.issn</field>
@@ -29,7 +30,7 @@
         </metadata-field>
         <metadata-field>
             <field>dc.identifier</field>
-            <xpath>./datafield[@tag = '024' and @ind1 = '7' and @ind2 = ' ']</xpath>
+            <xpath>./datafield[@tag = '024' and @ind1 = '7' and ( @ind2 = ' ' or @ind2 = '0')]</xpath>
             <reader>identifier</reader>
         </metadata-field>
         <metadata-field>
@@ -46,7 +47,8 @@
         </metadata-field>
         <metadata-field>
             <field>dc.title</field>
-            <xpath>./datafield[@tag = '245']/subfield[@code = 'a' or @code = 'b']</xpath>
+            <xpath>./datafield[@tag = '245']</xpath>
+            <reader>title</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.description.version</field>
@@ -87,6 +89,11 @@
         </metadata-field>
         <metadata-field>
             <field>dc.relation.ispartof</field>
+            <xpath>./datafield[@tag = '490']</xpath>
+            <reader>serie</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.ispartofseries</field>
             <xpath>./datafield[@tag = '490']</xpath>
             <reader>serie</reader>
         </metadata-field>
@@ -146,11 +153,6 @@
         <metadata-field>
             <field>oaire.citation.conferenceDate</field>
             <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'd']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>dc.contributor.editor</field>
-            <xpath>./datafield[@tag = '720' and @ind2 = ' ']</xpath>
-            <reader>editor</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.contributor.scientificeditor</field>

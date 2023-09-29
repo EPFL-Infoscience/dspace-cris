@@ -321,6 +321,12 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>patent</element>
+        <qualifier>date</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>award</element>
         <qualifier></qualifier>
     </dc-type>
@@ -335,6 +341,18 @@
         <schema>epfl</schema>
         <element>legacy</element>
         <qualifier>contributorauthnum</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>contributoradvisornum</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>contributorscientificeditornum</qualifier>
     </dc-type>
 
     <dc-type>
@@ -412,6 +430,12 @@
         <schema>epfl</schema>
         <element>virtualCollection</element>
         <qualifier>head</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>patent</element>
+        <qualifier>date</qualifier>
     </dc-type>
 
 </dspace-dc-types>
