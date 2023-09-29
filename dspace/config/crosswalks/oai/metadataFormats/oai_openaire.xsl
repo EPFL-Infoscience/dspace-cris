@@ -77,7 +77,7 @@
                 mode="datacite"/>
             <!-- datacite:rights -->
             <xsl:apply-templates
-                select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']" mode="datacite"/>
+                select="doc:metadata/doc:element[@name='datacite']/doc:element[@name='rights']" mode="datacite"/>
             <!-- datacite:subject -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']" mode="datacite"/>
@@ -639,7 +639,7 @@
 
    <!-- datacite:rights -->
    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_accessrights.html -->
-    <xsl:template match="doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']" mode="datacite">
+    <xsl:template match="doc:element[@name='datacite']/doc:element[@name='rights']/doc:element/doc:field[@name='value']" mode="datacite">
         <xsl:variable name="rightsValue" select="text()"/>
         <xsl:variable name="rightsURI">
             <xsl:call-template name="resolveRightsURI">
@@ -647,8 +647,8 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:variable name="lc_rightsValue">
-            <xsl:call-template name="lowercase">
-                <xsl:with-param name="value" select="$rightsValue"/>
+            <xsl:call-template name="resolveRightsVocabulary">
+                <xsl:with-param name="field" select="$rightsValue"/>
             </xsl:call-template>
         </xsl:variable>
         <!-- We are checking to ensure that only values ending in "access" can be used as datacite:rights. 
@@ -1595,17 +1595,47 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
-            <xsl:when test="$lc_value = 'open access'">
+            <xsl:when test="$lc_value = 'openaccess'">
                 <xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'embargoed access'">
+            <xsl:when test="$lc_value = 'embargoed'">
                 <xsl:text>http://purl.org/coar/access_right/c_f1cf</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'restricted access'">
+            <xsl:when test="$lc_value = 'restricted'">
                 <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'metadata only access'">
+            <xsl:when test="$lc_value = 'administrator'">
+                <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_value = 'metadata-only'">
                 <xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
+            </xsl:when>
+            <xsl:otherwise/>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="resolveRightsVocabulary">
+        <xsl:param name="field"/>
+        <xsl:variable name="original_value">
+            <xsl:call-template name="lowercase">
+                <xsl:with-param name="value" select="$field"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$original_value = 'openaccess'">
+                <xsl:text>open access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'embargoed'">
+                <xsl:text>embargoed access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'restricted'">
+                <xsl:text>restricted access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'administrator'">
+                <xsl:text>restricted access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'metadata-only'">
+                <xsl:text>metadata only access</xsl:text>
             </xsl:when>
             <xsl:otherwise/>
         </xsl:choose>
