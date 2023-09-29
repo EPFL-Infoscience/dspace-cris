@@ -704,7 +704,12 @@
     <xsl:template
         match="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued' or @name='accepted']"
         mode="datacite">
-        <xsl:variable name="dc_date_value" select="doc:element/doc:field[@name='value']/text()"/>
+<!--        <xsl:variable name="dc_date_value" select="doc:element/doc:field[@name='value']/text()"/>-->
+        <xsl:variable name="dc_date_value">
+            <xsl:call-template name="formatDate">
+                <xsl:with-param name="datestr" select="doc:element/doc:field[@name='value']/text()"/>
+            </xsl:call-template>
+        </xsl:variable>
         <datacite:date dateType="Accepted">
             <xsl:value-of select="$dc_date_value"/>
         </datacite:date>
@@ -732,11 +737,16 @@
         </xsl:variable>
         <!-- only consider elements with valid date types -->
         <xsl:if test="$dateType != ''">
+            <xsl:variable name="dc_date_value">
+                <xsl:call-template name="formatDate">
+                    <xsl:with-param name="datestr" select="doc:element/doc:field[@name='value']/text()"/>
+                </xsl:call-template>
+            </xsl:variable>
             <datacite:date>
                 <xsl:attribute name="dateType">
                     <xsl:value-of select="$dateType"/>
                 </xsl:attribute>
-                <xsl:value-of select="./doc:element/doc:field[@name='value']/text()"/>
+                <xsl:value-of select="$dc_date_value"/>
             </datacite:date>
         </xsl:if>
     </xsl:template>
@@ -1703,5 +1713,19 @@
     <xsl:template match="text()|@*" mode="datacite"/>
     <xsl:template match="text()|@*" mode="entity_author"/>
     <xsl:template match="text()|@*" mode="entity_funding"/>
+
+    <!--
+        Date format
+        This template is discarding the " 16:53:24.556" part from a date and time
+        like "2019-04-30 16:53:24.556" to support the YYYY-MM-DD format of
+        ISO 8601 [W3CDTF]
+    -->
+    <xsl:template name="formatDate">
+        <xsl:param name="datestr"/>
+        <xsl:variable name="sub">
+            <xsl:value-of select="substring($datestr,1,10)"/>
+        </xsl:variable>
+        <xsl:value-of select="$sub"/>
+    </xsl:template>
 
 </xsl:stylesheet>
