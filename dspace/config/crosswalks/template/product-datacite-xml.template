@@ -27,6 +27,7 @@
   <resourceType resourceTypeGeneral="Dataset" />
   <alternateIdentifiers>
     <alternateIdentifier alternateIdentifierType="url">@dc.identifier.uri@</alternateIdentifier>
+    <alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</alternateIdentifier>
   </alternateIdentifiers>
   <version>@dc.description.version@</version>
   <rightsList>
