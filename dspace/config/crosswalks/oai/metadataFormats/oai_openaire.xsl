@@ -661,7 +661,7 @@
                     <xsl:value-of select="$rightsURI"/>
                 </xsl:attribute>
                 </xsl:if>
-                <xsl:value-of select="$rightsValue"/>
+                <xsl:value-of select="$lc_rightsValue"/>
             </datacite:rights>
         </xsl:if>
     </xsl:template>
@@ -1598,7 +1598,7 @@
             <xsl:when test="$lc_value = 'openaccess'">
                 <xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'embargoed'">
+            <xsl:when test="$lc_value = 'embargo'">
                 <xsl:text>http://purl.org/coar/access_right/c_f1cf</xsl:text>
             </xsl:when>
             <xsl:when test="$lc_value = 'restricted'">
@@ -1625,7 +1625,7 @@
             <xsl:when test="$original_value = 'openaccess'">
                 <xsl:text>open access</xsl:text>
             </xsl:when>
-            <xsl:when test="$original_value = 'embargoed'">
+            <xsl:when test="$original_value = 'embargo'">
                 <xsl:text>embargoed access</xsl:text>
             </xsl:when>
             <xsl:when test="$original_value = 'restricted'">
