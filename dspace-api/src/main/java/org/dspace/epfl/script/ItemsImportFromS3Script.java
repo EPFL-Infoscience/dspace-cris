@@ -316,7 +316,7 @@ public class ItemsImportFromS3Script
 
             if (isEmpty(recordType)) {
                 skippedItemsCount++;
-                handler.logWarning("Entry with id " + id + " skipped because no item type found");
+                handler.logError("Entry with id " + id + " skipped because no item type found");
                 return null;
             }
 

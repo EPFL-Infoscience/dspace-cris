@@ -93,6 +93,18 @@
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>fileversion</dc-qualifier>
+          <label>File version</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="bitstream-metadata-product">
       <row>

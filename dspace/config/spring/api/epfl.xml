@@ -176,6 +176,14 @@
         <property name="prefix" value="TTO:" />
     </bean>
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportPublicDefenseYearReader" />
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamRelationReader" >
+        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']"/>
+        <property name="relationValueXPath" value = "./subfield[@code = 'u']" />
+        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']"></property>
+    </bean>
+    
     <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
         <property name="readerName" value="coarVersion" />
         <property name="propertiesPath" value="crosswalks/mapConverter-coarVersions.properties" />

@@ -277,6 +277,7 @@
         <metadata-field>
             <field>epfl.thesis.publicDefenseYear</field>
             <xpath>./datafield[@tag = '920']/subfield[@code = 'a']</xpath>
+            <reader>publicDefenseYear</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.date.accepted</field>
@@ -299,7 +300,7 @@
             <xpath>./datafield[@tag = '973']/subfield[@code = 'r']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>oaire.version</field>
+            <field>epfl.publication.version</field>
             <xpath>./datafield[@tag = '973']/subfield[@code = 's']</xpath>
             <reader>coarVersion</reader>
         </metadata-field>
@@ -309,7 +310,7 @@
         </metadata-field>
         <metadata-field>
             <field>dc.source</field>
-            <xpath>./datafield[@tag = '980']/subfield[@code = 'a']</xpath>
+            <xpath>./datafield[@tag = '980']/subfield[@code = 'a' and text()='WoS']</xpath>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.degreelevel</field>
@@ -341,6 +342,24 @@
                 <field>dc.description</field>
                 <xpath>./subfield[@code = 'y']</xpath>
             </metadata-field>
+	        <metadata-field>
+	            <field>oaire.version</field>
+	            <xpath>./subfield[@code = '0']</xpath>
+                <reader>coarVersion</reader>
+	        </metadata-field>
+	        <metadata-field>
+	            <field>oaire.licenseCondition</field>
+	            <xpath>./subfield[@code = '1']</xpath>
+	        </metadata-field>
+	        <metadata-field>
+	            <field>epfl.legacy.fileversion</field>
+	            <xpath>./subfield[@code = 'z']</xpath>
+	        </metadata-field>
+	        <metadata-field>
+                <field>dc.relation</field>
+                <xpath>./self::node()</xpath>
+                <reader>bitstreamRelation</reader>
+	        </metadata-field>
 	    </metadata-fields>
     </bitstreams>
     
