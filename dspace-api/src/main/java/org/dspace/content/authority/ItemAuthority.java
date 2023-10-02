@@ -262,7 +262,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
 
     @Override
     public String getLabel(String key, String locale) {
-        String title = key;
+        String title = null;
         if (key != null) {
             Context context = getContext();
             try {
