@@ -264,9 +264,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
     public String getLabel(String key, String locale) {
         String title = key;
         if (key != null) {
-            Context context = null;
+            Context context = getContext();
             try {
-                context = new Context();
                 DSpaceObject dso = itemService.find(context, UUIDUtils.fromString(key));
                 if (dso != null) {
                     title = dso.getName();
