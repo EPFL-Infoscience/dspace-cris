@@ -136,7 +136,7 @@
         <property name="readerName" value="relatedPublication" />
         <property name="metadataFieldsPaths">
             <util:map>
-                <entry key="dc.relation.type" value="./subfield[@code = 'e']"/>
+                <entry key="epfl.relationpublication.type" value="./subfield[@code = 'e']"/>
                 <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
@@ -146,7 +146,7 @@
         <property name="readerName" value="relatedProduct" />
         <property name="metadataFieldsPaths">
             <util:map>
-                <entry key="dc.relation.type" value="./subfield[@code = '2']"/>
+                <entry key="epfl.relationproduct.type" value="./subfield[@code = '2']"/>
                 <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
@@ -176,6 +176,14 @@
         <property name="prefix" value="TTO:" />
     </bean>
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportPublicDefenseYearReader" />
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamRelationReader" >
+        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']"/>
+        <property name="relationValueXPath" value = "./subfield[@code = 'u']" />
+        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']"></property>
+    </bean>
+    
     <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
         <property name="readerName" value="coarVersion" />
         <property name="propertiesPath" value="crosswalks/mapConverter-coarVersions.properties" />
@@ -183,6 +191,10 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportIsbnReader">
         <property name="containerMetadataField" value="dc.identifier.isbn" />
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportPageReader">
+        <property name="endPageMetadataField" value="oaire.citation.endPage" />
     </bean>
     
 </beans>
