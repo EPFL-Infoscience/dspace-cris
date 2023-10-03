@@ -77,7 +77,7 @@
                 mode="datacite"/>
             <!-- datacite:rights -->
             <xsl:apply-templates
-                select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']" mode="datacite"/>
+                select="doc:metadata/doc:element[@name='datacite']/doc:element[@name='rights']" mode="datacite"/>
             <!-- datacite:subject -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']" mode="datacite"/>
@@ -639,7 +639,7 @@
 
    <!-- datacite:rights -->
    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_accessrights.html -->
-    <xsl:template match="doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']" mode="datacite">
+    <xsl:template match="doc:element[@name='datacite']/doc:element[@name='rights']/doc:element/doc:field[@name='value']" mode="datacite">
         <xsl:variable name="rightsValue" select="text()"/>
         <xsl:variable name="rightsURI">
             <xsl:call-template name="resolveRightsURI">
@@ -647,8 +647,8 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:variable name="lc_rightsValue">
-            <xsl:call-template name="lowercase">
-                <xsl:with-param name="value" select="$rightsValue"/>
+            <xsl:call-template name="resolveRightsVocabulary">
+                <xsl:with-param name="field" select="$rightsValue"/>
             </xsl:call-template>
         </xsl:variable>
         <!-- We are checking to ensure that only values ending in "access" can be used as datacite:rights. 
@@ -661,7 +661,7 @@
                     <xsl:value-of select="$rightsURI"/>
                 </xsl:attribute>
                 </xsl:if>
-                <xsl:value-of select="$rightsValue"/>
+                <xsl:value-of select="$lc_rightsValue"/>
             </datacite:rights>
         </xsl:if>
     </xsl:template>
@@ -704,7 +704,12 @@
     <xsl:template
         match="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued' or @name='accepted']"
         mode="datacite">
-        <xsl:variable name="dc_date_value" select="doc:element/doc:field[@name='value']/text()"/>
+<!--        <xsl:variable name="dc_date_value" select="doc:element/doc:field[@name='value']/text()"/>-->
+        <xsl:variable name="dc_date_value">
+            <xsl:call-template name="formatDate">
+                <xsl:with-param name="datestr" select="doc:element/doc:field[@name='value']/text()"/>
+            </xsl:call-template>
+        </xsl:variable>
         <datacite:date dateType="Accepted">
             <xsl:value-of select="$dc_date_value"/>
         </datacite:date>
@@ -732,11 +737,16 @@
         </xsl:variable>
         <!-- only consider elements with valid date types -->
         <xsl:if test="$dateType != ''">
+            <xsl:variable name="dc_date_value">
+                <xsl:call-template name="formatDate">
+                    <xsl:with-param name="datestr" select="doc:element/doc:field[@name='value']/text()"/>
+                </xsl:call-template>
+            </xsl:variable>
             <datacite:date>
                 <xsl:attribute name="dateType">
                     <xsl:value-of select="$dateType"/>
                 </xsl:attribute>
-                <xsl:value-of select="./doc:element/doc:field[@name='value']/text()"/>
+                <xsl:value-of select="$dc_date_value"/>
             </datacite:date>
         </xsl:if>
     </xsl:template>
@@ -1595,17 +1605,47 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
-            <xsl:when test="$lc_value = 'open access'">
+            <xsl:when test="$lc_value = 'openaccess'">
                 <xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'embargoed access'">
+            <xsl:when test="$lc_value = 'embargo'">
                 <xsl:text>http://purl.org/coar/access_right/c_f1cf</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'restricted access'">
+            <xsl:when test="$lc_value = 'restricted'">
                 <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'metadata only access'">
+            <xsl:when test="$lc_value = 'administrator'">
+                <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_value = 'metadata-only'">
                 <xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
+            </xsl:when>
+            <xsl:otherwise/>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="resolveRightsVocabulary">
+        <xsl:param name="field"/>
+        <xsl:variable name="original_value">
+            <xsl:call-template name="lowercase">
+                <xsl:with-param name="value" select="$field"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$original_value = 'openaccess'">
+                <xsl:text>open access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'embargo'">
+                <xsl:text>embargoed access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'restricted'">
+                <xsl:text>restricted access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'administrator'">
+                <xsl:text>restricted access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'metadata-only'">
+                <xsl:text>metadata only access</xsl:text>
             </xsl:when>
             <xsl:otherwise/>
         </xsl:choose>
@@ -1673,5 +1713,19 @@
     <xsl:template match="text()|@*" mode="datacite"/>
     <xsl:template match="text()|@*" mode="entity_author"/>
     <xsl:template match="text()|@*" mode="entity_funding"/>
+
+    <!--
+        Date format
+        This template is discarding the " 16:53:24.556" part from a date and time
+        like "2019-04-30 16:53:24.556" to support the YYYY-MM-DD format of
+        ISO 8601 [W3CDTF]
+    -->
+    <xsl:template name="formatDate">
+        <xsl:param name="datestr"/>
+        <xsl:variable name="sub">
+            <xsl:value-of select="substring($datestr,1,10)"/>
+        </xsl:variable>
+        <xsl:value-of select="$sub"/>
+    </xsl:template>
 
 </xsl:stylesheet>
