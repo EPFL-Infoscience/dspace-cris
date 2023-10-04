@@ -39,6 +39,24 @@
         <property name="singleResultOnAggregate" value="false"/>
      </bean>
 
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+        <property name="authorityName" value="EventAuthority"/>
+        <property name="keyId" value="oaire_citation_conferencePlace"/>
+        <property name="schema" value="oairecerif"/>
+        <property name="element" value="event"/>
+        <property name="qualifier" value="place"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+        <property name="authorityName" value="EventAuthority"/>
+        <property name="keyId" value="oaire_citation_conferenceDate"/>
+        <property name="schema" value="oairecerif"/>
+        <property name="element" value="event"/>
+        <property name="qualifier" value="startDate"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
      <bean id="org.dspace.content.authority.ZDBExtraIssnMetadataGenerator" 
     	class="org.dspace.content.authority.ZDBExtraIssnMetadataGenerator">
     	<property name="relatedInputformMetadata" value="dc_relation_issn"/>
