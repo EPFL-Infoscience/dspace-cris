@@ -44,11 +44,23 @@
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']" mode="datacite"/>
             <!-- if dc.identifier.uri has more than 1 value -->
             <xsl:if
-                test="count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])>1">
+                test="(count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])>1)
+                       or (count(doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isi']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='pmid']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='hdl']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='arxiv']/doc:element/doc:field[@name='value'])>0)">
                 <datacite:alternateIdentifiers>
                     <xsl:apply-templates
                         select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']"
                         mode="datacite_altid"/>
+                    <xsl:apply-templates
+                            select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']"
+                            mode="datacite_altid" />
+                    <xsl:apply-templates
+                            select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']"
+                            mode="datacite_altid" />
                 </datacite:alternateIdentifiers>
             </xsl:if>
             <!-- datacite:dates and embargo -->
@@ -61,6 +73,9 @@
             <!-- dc:publisher -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']" mode="dc"/>
+            <!-- dc:source -->
+            <xsl:apply-templates
+                select="doc:metadata/doc:element[@name='dc']/doc:element[@name='source']" mode="dc"/>
             <!-- oaire:resourceType -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']" mode="oaire"/>
@@ -97,10 +112,6 @@
             <xsl:apply-templates
                     select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
                     mode="datacite" />
-<!--            alternative doi identifiers-->
-            <xsl:apply-templates
-                    select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']"
-                    mode="datacite_altid" />
         </oaire:resource>
     </xsl:template>
 
@@ -637,6 +648,49 @@
         </xsl:for-each>
     </xsl:template>
 
+    <!--     for each alternative doi -->
+    <xsl:template match="doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']" mode="datacite_altid">
+        <xsl:for-each select="./doc:field[@name='doi']">
+
+            <datacite:alternateIdentifier>
+                <xsl:attribute name="alternateIdentifierType">DOI</xsl:attribute>
+                <xsl:value-of select="./text()"/>
+            </datacite:alternateIdentifier>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!--  alternative identifiers -->
+    <xsl:template match="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']" mode="datacite_altid">
+<!--        <xsl:for-each select="./doc:element/doc:element/doc:field[@name='value']">-->
+        <xsl:for-each select="./doc:element">
+            <xsl:variable name="idType" select="./attribute::name"/>
+            <xsl:variable name="type">
+                <xsl:choose>
+                    <xsl:when test="$idType = 'arxiv'">arXiv</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'isi'">WOS</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'pmid'">PMID</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'hdl'">Handle</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'ISBN'">Handle</xsl:when>
+                </xsl:choose>
+
+            </xsl:variable>
+            <xsl:if test="$type != ''">
+                <datacite:alternateIdentifier>
+                    <xsl:attribute name="alternateIdentifierType"><xsl:value-of select="$type"/></xsl:attribute>
+                    <xsl:value-of select="./doc:element/doc:field[@name='value']/text()"/>
+                </datacite:alternateIdentifier>
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:template>
+
    <!-- datacite:rights -->
    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_accessrights.html -->
     <xsl:template match="doc:element[@name='datacite']/doc:element[@name='rights']/doc:element/doc:field[@name='value']" mode="datacite">
@@ -771,6 +825,16 @@
 	       <dc:publisher>
 	           <xsl:value-of select="./text()"/>
 	       </dc:publisher>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- dc:source -->
+    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_source.html -->
+    <xsl:template match="doc:element[@name='dc']/doc:element[@name='source']" mode="dc">
+    	<xsl:for-each select="./doc:element/doc:field[@name='value']">
+	       <dc:source>
+	           <xsl:value-of select="./text()"/>
+	       </dc:source>
         </xsl:for-each>
     </xsl:template>
 
@@ -1691,20 +1755,9 @@
                   mode="datacite">
         <!-- only process the first element -->
         <datacite:identifier>
-            <xsl:attribute name="identifierType">doi</xsl:attribute>
+            <xsl:attribute name="identifierType">DOI</xsl:attribute>
             <xsl:value-of select="./doc:field[@name='doi']/text()"/>
         </datacite:identifier>
-    </xsl:template>
-
-    <!-- for each alternative doi -->
-    <xsl:template match="doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']" mode="datacite_altid">
-        <xsl:for-each select="./doc:field[@name='doi']">
-
-                <datacite:alternateIdentifier>
-                    <xsl:attribute name="alternateIdentifierType">doi</xsl:attribute>
-                    <xsl:value-of select="./text()"/>
-                </datacite:alternateIdentifier>
-        </xsl:for-each>
     </xsl:template>
 
     <!-- ignore all non specified text values or attributes -->
