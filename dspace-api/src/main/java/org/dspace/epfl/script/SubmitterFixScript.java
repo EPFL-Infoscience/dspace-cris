@@ -31,12 +31,17 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 
 public class SubmitterFixScript
     extends DSpaceRunnable<SubmitterFixScriptConfiguration<SubmitterFixScript>> {
     private String collectionId;
+
+    private String email;
+
+    private String defaultEmail;
 
     private CollectionService collectionService;
 
@@ -59,6 +64,9 @@ public class SubmitterFixScript
         itemService = ContentServiceFactory.getInstance().getItemService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         collectionId = commandLine.getOptionValue('c');
+        email = commandLine.getOptionValue('e');
+        defaultEmail = DSpaceServicesFactory.getInstance().getConfigurationService()
+                                            .getProperty("epfl.default-submitter.email");
     }
 
     @Override
