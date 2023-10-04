@@ -33,11 +33,11 @@ public class ItemsImportPageReader implements ItemsImportMetadataFieldReader {
                 continue;
             }
 
-            String[] pages = value.split("-");
-            metadataValues.add(new MetadataValueDTO(metadataField, pages[0]));
+            String[] pages = value.contains("–") ? value.split("–") : value.split("-");
+            metadataValues.add(new MetadataValueDTO(metadataField, pages[0].trim()));
 
             if (pages.length > 1) {
-                metadataValues.add(new MetadataValueDTO(endPageMetadataField, pages[1]));
+                metadataValues.add(new MetadataValueDTO(endPageMetadataField, pages[1].trim()));
             }
 
         }
