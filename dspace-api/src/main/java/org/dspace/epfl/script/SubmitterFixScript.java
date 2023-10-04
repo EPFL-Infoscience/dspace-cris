@@ -54,8 +54,7 @@ public class SubmitterFixScript
     @Override
     public SubmitterFixScriptConfiguration<SubmitterFixScript> getScriptConfiguration() {
         return new DSpace().getServiceManager()
-                           .getServiceByName("epfl-update-submitter",
-                                             SubmitterFixScriptConfiguration.class);
+                           .getServiceByName("epfl-update-submitter", SubmitterFixScriptConfiguration.class);
     }
 
     @Override
@@ -113,20 +112,14 @@ public class SubmitterFixScript
     }
 
     private Optional<EPerson> firstAuthorWithSciper(Item item) {
-        List<MetadataValue> authors =
-            itemService.getMetadataByMetadataString(item, "dc.contributor.author");
-        return authors.stream()
+        return itemService
+            .getMetadataByMetadataString(item, "dc.contributor.author")
+            .stream()
             .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
-            .map(
-                throwingMapperWrapper( mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority())),
-                                       null)
-             ).map(
-                 throwingMapperWrapper(
-                     this::owner, null
-                 )
-               )
+            .map(throwingMapperWrapper(mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority())), null))
+            .map(throwingMapperWrapper(this::owner, null))
             .filter(Objects::nonNull)
-            .filter(this::hasASciper)
+            .filter(this::hasSciper)
             .findFirst();
     }
 
@@ -148,9 +141,8 @@ public class SubmitterFixScript
         }
     }
 
-    private boolean hasASciper(EPerson ePerson) {
-        String netid = ePerson.getNetid();
-        return StringUtils.isNotBlank(netid);
+    private boolean hasSciper(EPerson ePerson) {
+        return ePerson != null && StringUtils.isNotBlank(ePerson.getNetid());
     }
 
     private void assignCurrentUserInContext() {
