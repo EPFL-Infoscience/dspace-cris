@@ -105,9 +105,9 @@
             <!-- oaire:citation* -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='citation']" mode="oaire"/>
-            <!-- CREATIVE COMMON LICENSE -->
+            <!-- oaire:licenseCondition -->
             <xsl:apply-templates
-                select="doc:metadata/doc:element[@name='others']/doc:element[@name='cc']" mode="oaire" />
+                select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='licenseCondition']" mode="oaire" />
             <!-- primary doi identifier -->
             <xsl:apply-templates
                     select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
@@ -1738,7 +1738,7 @@
     </xsl:variable>
     
     <xsl:template
-        match="doc:element[@name='others']/doc:element[@name='cc']"
+        match="doc:element[@name='oaire']/doc:element[@name='licenseCondition']"
         mode="oaire">
         <oaire:licenseCondition>
             <xsl:attribute name="startDate">
@@ -1746,10 +1746,75 @@
                     select="$ccstart"/>
             </xsl:attribute>
             <xsl:attribute name="uri">
-                <xsl:value-of select="./doc:field[@name='uri']/text()" />
+                <xsl:call-template name="resolveLicenseUrl">
+                    <xsl:with-param name="licenseCode" select="./doc:element/doc:field[@name='value']/text()"/>
+                </xsl:call-template>
             </xsl:attribute>
-            <xsl:value-of select="./doc:field[@name='name']/text()" />
+            <xsl:call-template name="resolveLicenseName">
+                <xsl:with-param name="licenseCode" select="./doc:element/doc:field[@name='value']/text()"/>
+            </xsl:call-template>
         </oaire:licenseCondition>
+    </xsl:template>
+
+
+    <xsl:template name="resolveLicenseUrl">
+        <xsl:param name="licenseCode"/>
+        <xsl:choose>
+            <xsl:when test="$licenseCode = 'CC BY'">
+                <xsl:text>https://creativecommons.org/licenses/by/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-SA'">
+                <xsl:text>https://creativecommons.org/licenses/by-sa/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-ND'">
+                <xsl:text>https://creativecommons.org/licenses/by-nd/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC'">
+                <xsl:text>https://creativecommons.org/licenses/by-nc/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-SA'">
+                <xsl:text>https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-ND'">
+                <xsl:text>https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC0'">
+                <xsl:text>https://creativecommons.org/share-your-work/public-domain/cc0/</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'PDM'">
+                <xsl:text>https://creativecommons.org/publicdomain/mark/1.0/</xsl:text>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="resolveLicenseName">
+        <xsl:param name="licenseCode"/>
+        <xsl:choose>
+            <xsl:when test="$licenseCode = 'CC BY'">
+                <xsl:text>Creative Commons Attribution</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-SA'">
+                <xsl:text>Creative Commons Attribution-ShareAlike</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-ND'">
+                <xsl:text>Creative Commons Attribution-NoDerivs</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC'">
+                <xsl:text>Creative Commons Attribution-NonCommercial</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-SA'">
+                <xsl:text>Creative Commons Attribution-NonCommercial-ShareAlike</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-ND'">
+                <xsl:text>Creative Commons Attribution-NonCommercial-NoDerivs</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC0'">
+                <xsl:text>No Rights Reserved – CC0</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'PDM'">
+                <xsl:text>Public Domain Mark</xsl:text>
+            </xsl:when>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template match="doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
