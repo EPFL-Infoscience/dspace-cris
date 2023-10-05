@@ -927,27 +927,28 @@
     <!-- processing of each bitstream entry -->
     <xsl:template match="doc:element[@name='bitstreams']/doc:element[@name='bitstream']" mode="oaire">
         <oaire:file>
+            <xsl:variable name="fileRightsValue" select="doc:field[@name='rights']"/>
             <xsl:attribute name="accessRightsURI">
-                <xsl:call-template name="getRightsURI"/>
+                <xsl:call-template name="resolveRightsURI">
+                    <xsl:with-param name="field" select="$fileRightsValue"/>
+                </xsl:call-template>
          </xsl:attribute>
             <xsl:attribute name="mimeType">
             <xsl:value-of select="doc:field[@name='format']"/>
          </xsl:attribute>
+            <xsl:variable name="type" select="doc:field[@name='type']"/>
             <xsl:attribute name="objectType">
             <xsl:choose>
-                <!-- Currently there is no available way to identify the type of the bitstream -->
-                <xsl:when test="1">
+                <xsl:when test="$type = 'main document'">
                     <xsl:text>fulltext</xsl:text>
                 </xsl:when>
-                <!--xsl:when test="$type='dataset'">
-                    <xsl:text>dataset</xsl:text>
-                </xsl:when>
-                <xsl:when test="$type='software'">
+                <xsl:when test="$type = 'source code'">
                     <xsl:text>software</xsl:text>
                 </xsl:when>
-                <xsl:when test="$type='article'">
-                    <xsl:text>fulltext</xsl:text>
-                </xsl:when-->
+                <xsl:when test="($type = 'main dataset') or ($type = 'raw data') or ($type = 'anonymized data')
+                                or ($type = 'processed data')">
+                    <xsl:text>dataset</xsl:text>
+                </xsl:when>
                 <xsl:otherwise>                  
                     <xsl:text>other</xsl:text>
                 </xsl:otherwise>
