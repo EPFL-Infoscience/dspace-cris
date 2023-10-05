@@ -105,6 +105,9 @@
             <!-- oaire:citation* -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='citation']" mode="oaire"/>
+            <!-- oaire:version -->
+            <xsl:apply-templates
+                select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='version']" mode="oaire"/>
             <!-- oaire:licenseCondition -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='licenseCondition']" mode="oaire" />
@@ -1038,6 +1041,43 @@
         <oaire:citationConferenceDate>
             <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
         </oaire:citationConferenceDate>
+    </xsl:template>
+
+    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_resourceversion.html -->
+    <xsl:template
+        match="doc:element[@name='oaire']/doc:element[@name='version']" mode="oaire">
+        <xsl:variable name="version">
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </xsl:variable>
+        <oaire:version>
+            <xsl:attribute name="uri">
+                <xsl:value-of select="$version"/>
+            </xsl:attribute>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_b1a7d7d4d402bcce'">AO</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_71e4c1898caa6e32'">SMUR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_ab4af688f83e57aa'">AM</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_fa2ee174bc00049f'">P</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_970fb48d4fbd8a85'">VoR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_e19f295774971610'">CVoR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_dc82b40f9837b551'">EVoR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_be7fb7dd8ff6fe43'">NA</xsl:when>
+            </xsl:choose>
+        </oaire:version>
     </xsl:template>
 
 
