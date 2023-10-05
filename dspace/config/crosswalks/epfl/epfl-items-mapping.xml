@@ -324,9 +324,8 @@
     </metadata-fields>
     
     <bitstreams>
-        <bitstream-xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']</bitstream-xpath>
+        <bitstream-xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]</bitstream-xpath>
         <checksum-xpath>./subfield[@code = '2']</checksum-xpath>
-        <format-xpath>./subfield[@code = 'x']</format-xpath>
         <access-condition-xpath>./subfield[@code = 'e']</access-condition-xpath>
         <metadata-fields>
             <metadata-field>
