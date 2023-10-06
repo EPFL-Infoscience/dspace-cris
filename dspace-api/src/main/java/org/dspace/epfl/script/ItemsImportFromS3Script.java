@@ -195,8 +195,7 @@ public class ItemsImportFromS3Script
 
         Map<String, BulkImportWorkbook> workbooks = new HashMap<String, BulkImportWorkbook>();
 
-//        Iterator<ItemImportDTO> items = readItems();
-        Iterator<ItemImportDTO> items = getObjectTest("183187.zip").stream().iterator();
+        Iterator<ItemImportDTO> items = readItems();
 
         while (items.hasNext()) {
             ItemImportDTO item = items.next();
@@ -239,20 +238,6 @@ public class ItemsImportFromS3Script
 
         try {
             InputStream content = itemsS3Service.getObject(key);
-            return parseZip(key, content);
-        } catch (Exception ex) {
-            handler.logError("An error occurs reading entry with key " + key, ex);
-            errorsCount++;
-            return Optional.empty();
-        }
-
-    }
-
-    private Optional<ItemImportDTO> getObjectTest(String key) {
-
-        try {
-            File initialFile = new File("/home/user/test-data/" + key);
-            InputStream content = new FileInputStream(initialFile);
             return parseZip(key, content);
         } catch (Exception ex) {
             handler.logError("An error occurs reading entry with key " + key, ex);
