@@ -243,7 +243,7 @@ public class SolrBrowseDAO implements BrowseDAO {
 
     private void addStatusFilter(DiscoverQuery query) {
         try {
-            if (!authorizeService.isAdmin(context)
+            if (!(authorizeService.isAdmin(context) || authorizeService.isCurator(context))
                 && (authorizeService.isCommunityAdmin(context)
                 || authorizeService.isCollectionAdmin(context))) {
                 query.addFilterQueries(searcher.createLocationQueryForAdministrableItems(context));

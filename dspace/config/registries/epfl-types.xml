@@ -345,6 +345,18 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>contributoradvisornum</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>contributorscientificeditornum</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>synchronization</element>
         <qualifier>date</qualifier>
     </dc-type>
@@ -418,6 +430,30 @@
         <schema>epfl</schema>
         <element>virtualCollection</element>
         <qualifier>head</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>patent</element>
+        <qualifier>date</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relationpublication</element>
+        <qualifier>type</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relationproduct</element>
+        <qualifier>type</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>publication</element>
+        <qualifier>version</qualifier>
     </dc-type>
 
 </dspace-dc-types>

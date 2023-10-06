@@ -138,7 +138,7 @@ public class ItemSimpleAuthorityMetadataGenerator implements ItemAuthorityExtraM
         }
     }
 
-    private List<MetadataValueDTO> getMetadataValueDTOsFromSolr(String schema, String element, String qualifier,
+    protected List<MetadataValueDTO> getMetadataValueDTOsFromSolr(String schema, String element, String qualifier,
             SolrDocument solrDocument) {
         if (!projectionFieldsContain(schema, element, qualifier)) {
             log.error("the metadata " + getMetadata(schema, element, qualifier)

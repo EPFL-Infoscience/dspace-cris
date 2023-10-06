@@ -25,7 +25,7 @@ public class ItemsImportDateIssuedReader implements ItemsImportMetadataFieldRead
         return getAllValues(nodeList).stream()
             .sorted(this::compareByPrecision)
             .limit(1L)
-            .map(value -> new MetadataValueDTO(metadataField, value))
+            .map(value -> new MetadataValueDTO(metadataField, convertIfDate(value)))
             .collect(Collectors.toList());
     }
 
