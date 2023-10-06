@@ -17,6 +17,7 @@ import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.util.IOUtils;
+import org.apache.tika.Tika;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.dspace.app.bulkimport.exception.BulkImportException;
 import org.dspace.app.bulkimport.model.BulkImportWorkbook;
 import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilder;
@@ -80,6 +85,8 @@ public class ItemsImportFromS3Script
     private MarcXmlParser marcXmlParser;
 
     private BitstreamUploadS3Service bitstreamUploadS3Service;
+    private MimeTypes mimeRepository;
+    private Tika tika;
 
     private Context context;
 
@@ -119,6 +126,8 @@ public class ItemsImportFromS3Script
             .getServicesByType(MarcXmlParser.class).get(0);
         this.bitstreamUploadS3Service = new DSpace().getServiceManager()
             .getServicesByType(BitstreamUploadS3Service.class).get(0);
+        this.mimeRepository = TikaConfig.getDefaultConfig().getMimeRepository();
+        this.tika = new Tika();
 
         if (commandLine.hasOption('k')) {
             keys.addAll(asList(commandLine.getOptionValues('k')));
@@ -186,7 +195,8 @@ public class ItemsImportFromS3Script
 
         Map<String, BulkImportWorkbook> workbooks = new HashMap<String, BulkImportWorkbook>();
 
-        Iterator<ItemImportDTO> items = readItems();
+//        Iterator<ItemImportDTO> items = readItems();
+        Iterator<ItemImportDTO> items = getObjectTest("183187.zip").stream().iterator();
 
         while (items.hasNext()) {
             ItemImportDTO item = items.next();
@@ -229,6 +239,20 @@ public class ItemsImportFromS3Script
 
         try {
             InputStream content = itemsS3Service.getObject(key);
+            return parseZip(key, content);
+        } catch (Exception ex) {
+            handler.logError("An error occurs reading entry with key " + key, ex);
+            errorsCount++;
+            return Optional.empty();
+        }
+
+    }
+
+    private Optional<ItemImportDTO> getObjectTest(String key) {
+
+        try {
+            File initialFile = new File("/home/user/test-data/" + key);
+            InputStream content = new FileInputStream(initialFile);
             return parseZip(key, content);
         } catch (Exception ex) {
             handler.logError("An error occurs reading entry with key " + key, ex);
@@ -347,13 +371,19 @@ public class ItemsImportFromS3Script
 
                 verifyBitstreamChecksum(fileName, bitstreams, zipFile.getInputStream(entry));
 
-                String bitstreamName = id + "_" + escapeBitstreamName(fileName);
+                String bitstreamName = id + "_" + escapeBitstreamName(fileName)
+                        + getExtensionFromFile(zipFile.getInputStream(entry));
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
 
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
+    }
+
+    private String getExtensionFromFile(InputStream file) throws IOException, MimeTypeException {
+        String detect = tika.detect(file);
+        return mimeRepository.forName(detect).getExtension();
     }
 
     private String escapeBitstreamName(String name) {
