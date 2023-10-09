@@ -8,11 +8,11 @@
 ##
 ## See org.dspace.core.Email for information on the format of this file.
 ##
-#set($subject = 'DSpace: Harvesting Error')
+#set($subject = 'Infoscience: Harvesting error')
 Collection ${params[0]} failed on harvest:
 
-Date:       	${params[1]}
-Status Flag: 	${params[2]}
+Date:               ${params[1]}
+Status Flag:         ${params[2]}
 
 ${params[3]}
 

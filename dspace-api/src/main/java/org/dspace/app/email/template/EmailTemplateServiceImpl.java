@@ -45,7 +45,7 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         XmlWorkflowItem workflowItem = claimedTask.getWorkflowItem();
         Item item = workflowItem.getItem();
         Collection collection = workflowItem.getCollection();
-        EPerson submitter = claimedTask.getOwner();
+        EPerson submitter = item.getSubmitter();
         String fullName = submitter.getFullName();
         String email = submitter.getEmail();
         String itemName = item.getName();

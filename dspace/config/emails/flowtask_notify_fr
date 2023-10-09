@@ -1,0 +1,25 @@
+## Workflow curation task notification email message
+##
+## {0}  Title of submission
+## {1}  Name of collection
+## {2}  Submitter's name
+## {3}  Name of task operating
+## {4}  Task result
+## {5}  Workflow action taken
+##
+#set($subject = 'Infoscience : Rapport de curation')
+
+Titre :         ${params[0]}
+Collection :    ${params[1]}
+Soumis par :  ${params[2]}
+
+La tâche de curation ${params[3]} a été effectuée avec le résultat suivant :
+
+${params[4]}
+
+Action prise lors du processus : ${params[5]}
+
+Meilleures salutations,
+
+Équipe Infoscience
+Bibliothèque de l'EPFL

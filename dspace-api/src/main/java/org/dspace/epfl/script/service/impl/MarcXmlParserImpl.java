@@ -168,7 +168,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     public ItemDTO readSingleItem(Context context, String id, String recordType, Node record,
         ItemsImportMapping mapping) {
 
-        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
+        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, recordType, mapping);
 
         metadataValues.addAll(getCreationDateMetadataValues(id));
 
@@ -339,7 +339,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
             NodeList nodeList = getNodeList(record, metadataField.getXPath());
 
-            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
+            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), recordType, nodeList);
 
             metadataValues.addAll(values);
         }

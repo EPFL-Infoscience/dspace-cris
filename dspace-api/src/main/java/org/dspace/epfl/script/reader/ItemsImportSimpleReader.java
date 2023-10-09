@@ -21,7 +21,7 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
     public static final String DEFAULT_METADATAFIELDS_READER = "default";
 
     @Override
-    public List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList) {
+    public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
@@ -29,7 +29,7 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
             Node node = nodeList.item(i);
             String value = node.getTextContent();
             if (StringUtils.isNotBlank(value)) {
-                metadataValues.add(new MetadataValueDTO(metadataField, value));
+                metadataValues.add(new MetadataValueDTO(metadataField, convertIfDate(value)));
             }
         }
 
