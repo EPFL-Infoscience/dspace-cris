@@ -154,7 +154,7 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
 
     }
 
-    private void assignCurrentUserInContext() {
+    private void assignCurrentUserInContext() throws SQLException {
         UUID uuid = getEpersonIdentifier();
         if (uuid != null) {
             EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
