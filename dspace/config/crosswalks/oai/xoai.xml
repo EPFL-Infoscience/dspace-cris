@@ -13,79 +13,6 @@
     maxListSetsSize="100" stylesheet="static/style.xsl" xmlns="http://www.lyncode.com/XOAIConfiguration">
 
     <Contexts>
-<!--        <Context baseurl="request" name="Default Context">-->
-<!--            &lt;!&ndash; Restrict access to hidden items by default &ndash;&gt;-->
-<!--            <Filter ref="defaultFilter"/>-->
-
-<!--            <Set ref="thesesSet"/>-->
-<!--            <Set ref="openaireDataset"/>-->
-<!--            <Set ref="doisSet"/>-->
-<!--            <Set ref="fulltextSet"/>-->
-<!--            <Set ref="fulltextPublicSet"/>-->
-<!--            <Set ref="openaire4Set"/>-->
-<!--            <Set ref="oaiOpenaireSet"/>-->
-<!--            <Format ref="oaidc"/>-->
-<!--            <Format ref="mets"/>-->
-<!--            &lt;!&ndash;  <Format ref="xoai"/>&ndash;&gt;-->
-<!--            <Format ref="didl"/>-->
-<!--            <Format ref="dim"/>-->
-<!--            <Format ref="ore"/>-->
-<!--            <Format ref="rdf"/>-->
-<!--            <Format ref="etdms"/>-->
-<!--            <Format ref="mods"/>-->
-<!--            <Format ref="qdc"/>-->
-<!--            <Format ref="marc"/>-->
-<!--            <Format ref="uketd_dc"/>-->
-<!--            &lt;!&ndash;<Format ref="junii2" />&ndash;&gt;-->
-<!--            <Description>-->
-<!--                This is the default context of the DSpace OAI-PMH data provider.-->
-<!--            </Description>-->
-<!--        </Context>-->
-
-        <!--
-            Driver Guidelines:
-
-            - https://guidelines.openaire.eu/en/latest/literature/use_of_oai_pmh.html
-         -->
-<!--        <Context baseurl="driver" name="Driver Context">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="driverTransformer"/>-->
-<!--            &lt;!&ndash; The driver filter &ndash;&gt;-->
-<!--            <Filter ref="driverFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="driverSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            <Format ref="mets"/>-->
-<!--            <Format ref="didl"/>-->
-<!--            <Description>-->
-<!--                This context complies with Driver rules.-->
-<!--            </Description>-->
-<!--        </Context>-->
-
-        <!--
-            OpenAIRE Guidelines 3.0:
-
-            - https://guidelines.openaire.eu/
-
-            There is a limitation over the embargoedEndDate parameter:
-
-            - Predefined DSpace fields don't allow to set this up with a default.
-         -->
-<!--        <Context baseurl="openaire" name="OpenAIRE Context">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="openaireTransformer"/>-->
-<!--            &lt;!&ndash; OpenAIRE filter &ndash;&gt;-->
-<!--            <Filter ref="openAireFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="openaireFundedResourcesSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            <Format ref="mets"/>-->
-<!--            <Description>-->
-<!--                This contexts complies with OpenAIRE Guidelines for Literature Repositories v3.0.-->
-<!--            </Description>-->
-<!--        </Context>-->
 
         <!--
             OpenAIRE Guidelines 4.0:
@@ -108,6 +35,9 @@
             <Set ref="fulltextSet"/>
             <Set ref="fulltextPublicSet"/>
             <Set ref="openaire4Set"/>
+            <Set ref="openairePublicationsCrisSet"/>
+            <Set ref="openaireProductsCrisSet"/>
+            <Set ref="openairePatentsCrisSet"/>
             <Set ref="oaiOpenaireSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
@@ -126,54 +56,6 @@
                 This contexts complies with OpenAIRE Guidelines for Literature Repositories v4.0.
             </Description>
         </Context>
-
-<!--        <Context baseurl="theses" name="Theses Context">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="driverTransformer"/>-->
-<!--            &lt;!&ndash; Theses filter &ndash;&gt;-->
-<!--            <Filter ref="thesesFilter"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="mets"/>-->
-<!--            <Description>-->
-<!--                This contexts can be used to harvest theses data-->
-<!--            </Description>-->
-<!--        </Context>-->
-
-<!--        <Context baseurl="openairecris" name="OpenAIRE Context for CRIS System">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="openairecrisTransformer"/>-->
-<!--            <Filter ref="openAireCRISFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="openairePublicationsCrisSet"/>-->
-<!--            <Set ref="openaireProductsCrisSet"/>-->
-<!--            <Set ref="openairePatentsCrisSet"/>-->
-<!--            <Set ref="openairePersonsCrisSet"/>-->
-<!--            <Set ref="openaireOrgunitsCrisSet"/>-->
-<!--            <Set ref="openaireProjectsCrisSet"/>-->
-<!--            <Set ref="openaireEventsCrisSet"/>-->
-<!--            <Set ref="openaireEquipmentsCrisSet"/>-->
-<!--            <Set ref="openaireFundingCrisSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            <Format ref="oai_cerif"/>-->
-<!--            <Description>-->
-<!--                This contexts complies with OpenAIRE rules for CRIS system v 1.1.1-->
-<!--            </Description>-->
-<!--        </Context>-->
-
-<!--        <Context baseurl="openairedata" name="OpenAIRE Data Repository Context">-->
-<!--            &lt;!&ndash; OpenAIRE DataArchive filter &ndash;&gt;-->
-<!--            <Filter ref="openaireDataFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="openaireDataSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            &lt;!&ndash; set the reference at the new format called datacite41_openaire &ndash;&gt;-->
-<!--            <Format ref="datacite41_openaire"/>-->
-<!--            <Description>-->
-<!--                This contexts complies with Data Archive OpenAIRE rules.-->
-<!--            </Description>-->
-<!--        </Context>-->
 
     </Contexts>
 
@@ -754,6 +636,8 @@
                     <string>publication</string>
                     <string>Product</string>
                     <string>product</string>
+                    <string>Patent</string>
+                    <string>patent</string>
                     <!-- and other alternative names for publications types -->
                 </list>
             </Configuration>
