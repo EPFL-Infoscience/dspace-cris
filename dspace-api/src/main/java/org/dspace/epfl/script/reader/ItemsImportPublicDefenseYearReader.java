@@ -7,6 +7,8 @@
  */
 package org.dspace.epfl.script.reader;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,9 +18,9 @@ import org.dspace.core.Context;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
+public class ItemsImportPublicDefenseYearReader implements ItemsImportMetadataFieldReader {
 
-    public static final String DEFAULT_METADATAFIELDS_READER = "default";
+    private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -28,7 +30,7 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             String value = node.getTextContent();
-            if (StringUtils.isNotBlank(value)) {
+            if (StringUtils.isNotBlank(value) && hasExpectedFormat(value)) {
                 metadataValues.add(new MetadataValueDTO(metadataField, convertIfDate(value)));
             }
         }
@@ -36,9 +38,18 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
         return metadataValues;
     }
 
+    private boolean hasExpectedFormat(String date) {
+        try {
+            DATE_FORMAT.parse(date);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
     @Override
     public String getReaderName() {
-        return DEFAULT_METADATAFIELDS_READER;
+        return "publicDefenseYear";
     }
 
 }

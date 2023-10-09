@@ -8,17 +8,23 @@
 package org.dspace.epfl.script.reader;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
+public class ItemsImportIsbnReader implements ItemsImportMetadataFieldReader {
 
-    public static final String DEFAULT_METADATAFIELDS_READER = "default";
+    @Autowired
+    private ConfigurationService configurationService;
+
+    private String containerMetadataField;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -28,17 +34,35 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             String value = node.getTextContent();
+            String field = isContainerType(type) ? containerMetadataField : metadataField;
             if (StringUtils.isNotBlank(value)) {
-                metadataValues.add(new MetadataValueDTO(metadataField, convertIfDate(value)));
+                metadataValues.add(new MetadataValueDTO(field, value));
             }
         }
 
         return metadataValues;
     }
 
+    private boolean isContainerType(String type) {
+        return getContainerTypes().contains(type);
+    }
+
+    private List<String> getContainerTypes() {
+        return Arrays.asList(configurationService.getArrayProperty("epfl.items-import.container-types"));
+    }
+
     @Override
     public String getReaderName() {
-        return DEFAULT_METADATAFIELDS_READER;
+        return "isbn";
     }
+
+    public String getContainerMetadataField() {
+        return containerMetadataField;
+    }
+
+    public void setContainerMetadataField(String containerMetadataField) {
+        this.containerMetadataField = containerMetadataField;
+    }
+
 
 }

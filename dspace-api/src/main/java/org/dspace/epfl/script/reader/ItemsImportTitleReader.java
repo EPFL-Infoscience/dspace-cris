@@ -14,47 +14,45 @@ import java.util.stream.Stream;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ItemsImportSeriesReader implements ItemsImportMetadataFieldReader {
+public class ItemsImportTitleReader implements ItemsImportMetadataFieldReader {
 
     private XPath xPath = XPathFactory.newInstance().newXPath();
 
     private String titleXPath;
 
-    private String numberXPath;
+    private String subTitleXPath;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
-
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
-
         for (int i = 0; i < nodeList.getLength(); i++) {
+
             Node node = nodeList.item(i);
 
             String title = getSingleValue(node, xPath, titleXPath);
-            String number = getSingleValue(node, xPath, numberXPath);
+            String subTitle = getSingleValue(node, xPath, subTitleXPath);
 
-            String value = Stream.of(title, number)
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.joining("; "));
+            String metadataValue = Stream.of(title, subTitle)
+                .filter(value -> StringUtils.isNotBlank(value))
+                .collect(Collectors.joining(": "));
 
-            if (StringUtils.isNotBlank(value)) {
-                metadataValues.add(new MetadataValueDTO(metadataField, value));
+            if (StringUtils.isNotBlank(metadataValue)) {
+                metadataValues.add(new MetadataValueDTO(metadataField, metadataValue));
             }
 
         }
-
         return metadataValues;
     }
 
     @Override
     public String getReaderName() {
-        return "serie";
+        return "title";
     }
 
     public String getTitleXPath() {
@@ -65,12 +63,13 @@ public class ItemsImportSeriesReader implements ItemsImportMetadataFieldReader {
         this.titleXPath = titleXPath;
     }
 
-    public String getNumberXPath() {
-        return numberXPath;
+    public String getSubTitleXPath() {
+        return subTitleXPath;
     }
 
-    public void setNumberXPath(String numberXPath) {
-        this.numberXPath = numberXPath;
+    public void setSubTitleXPath(String subTitleXPath) {
+        this.subTitleXPath = subTitleXPath;
     }
+
 
 }

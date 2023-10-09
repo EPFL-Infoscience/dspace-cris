@@ -16,9 +16,9 @@ import org.dspace.core.Context;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
+public class ItemsImportPageReader implements ItemsImportMetadataFieldReader {
 
-    public static final String DEFAULT_METADATAFIELDS_READER = "default";
+    private String endPageMetadataField;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -28,9 +28,18 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             String value = node.getTextContent();
-            if (StringUtils.isNotBlank(value)) {
-                metadataValues.add(new MetadataValueDTO(metadataField, convertIfDate(value)));
+
+            if (StringUtils.isBlank(value)) {
+                continue;
             }
+
+            String[] pages = value.contains("–") ? value.split("–") : value.split("-");
+            metadataValues.add(new MetadataValueDTO(metadataField, pages[0].trim()));
+
+            if (pages.length > 1) {
+                metadataValues.add(new MetadataValueDTO(endPageMetadataField, pages[1].trim()));
+            }
+
         }
 
         return metadataValues;
@@ -38,7 +47,16 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
 
     @Override
     public String getReaderName() {
-        return DEFAULT_METADATAFIELDS_READER;
+        return "page";
     }
+
+    public String getEndPageMetadataField() {
+        return endPageMetadataField;
+    }
+
+    public void setEndPageMetadataField(String endPageMetadataField) {
+        this.endPageMetadataField = endPageMetadataField;
+    }
+
 
 }
