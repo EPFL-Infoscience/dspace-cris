@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
-
 import javax.mail.MessagingException;
 
 import org.apache.logging.log4j.LogManager;
@@ -94,7 +93,6 @@ public class RequestItemEmailNotifier {
         }
 
         for (RequestItemAuthor author : authors) {
-            
             Locale locale = I18nUtil.getDefaultLocale();
 
             EPerson ePerson = ePersonService.findByEmail(context, author.getEmail());
@@ -141,7 +139,6 @@ public class RequestItemEmailNotifier {
             }
 
         }
-        
         Bitstream bitstream = ri.getBitstream();
         String bitstreamID;
         if (null == bitstream) {
