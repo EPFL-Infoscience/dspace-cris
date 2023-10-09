@@ -43,6 +43,7 @@
     <bean class="org.dspace.content.BitstreamFormatServiceImpl"/>
     <bean class="org.dspace.content.BitstreamServiceImpl"/>
     <bean class="org.dspace.content.BundleServiceImpl"/>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.ItemDOIService"/>
     <bean class="org.dspace.content.CommunityServiceImpl"/>
     <bean class="org.dspace.content.InstallItemServiceImpl"/>
     <bean class="org.dspace.content.ItemServiceImpl"/>
@@ -138,6 +139,8 @@
     <bean id="clientInfoService" class="org.dspace.service.impl.ClientInfoServiceImpl"/>
 
     <bean class="org.dspace.versioning.VersionHistoryServiceImpl"/>
+
+    <bean class="org.dspace.util.FrontendUrlService"/>
 
     <bean class="org.dspace.content.security.MetadataSecurityServiceImpl"/>
     <bean class="org.dspace.metricsSecurity.BoxMetricsLayoutConfigurationService"/>

@@ -1,0 +1,25 @@
+## Rejection email message
+  ##
+  ## {0} Title of submission
+  ## {1} Name of collection
+  ## {2} Fullname of the Submitter
+  ## {3} Email of the Submitter
+  ## {4} Name of the rejector
+  ## {5} Email of the rejector
+  ## {6} Link to 'My DSpace' page
+  ##
+  #set($subject = 'Infoscience : Votre notice doit être complétée')
+ 
+ Bonjour ${params[2]},
+ 
+ Nous avons identifié des erreurs dans la notice ${params[0]} que vous avez déposée dans la collection ${params[1]}.
+ Nous vous remercions de les corriger, et ensuite de soumettre à nouveau la notice.
+  
+ Vous trouverez la notice dans votre espace "Mon Infoscience" ${params[6]}.
+  
+ N'hésitez pas à nous contacter à l'adresse ${params[5]} si vous avez des questions.
+ 
+ Meilleures salutations,
+ 
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

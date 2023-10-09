@@ -7,19 +7,26 @@
  */
 package org.dspace.epfl.script.reader;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
+import org.dspace.util.MultiFormatDateParser;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public interface ItemsImportMetadataFieldReader {
 
-    List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList);
+    public static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
+    List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList);
 
     String getReaderName();
 
@@ -29,6 +36,20 @@ public interface ItemsImportMetadataFieldReader {
         } catch (XPathExpressionException e) {
             throw new RuntimeException("An error occurs evaluating path " + path, e);
         }
+    }
+
+    default String convertIfDate(String value) {
+
+        if (StringUtils.isBlank(value)) {
+            return value;
+        }
+
+        Date date = MultiFormatDateParser.parse(value);
+        if (date != null) {
+            return DATE_FORMAT.format(date);
+        }
+
+        return value;
     }
 
 }

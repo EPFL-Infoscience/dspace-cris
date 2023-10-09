@@ -1,0 +1,20 @@
+## E-mail sent to DSpace users when they register for an account
+  ##
+  ## Parameters: {0} is expanded to a special registration URL
+  ##
+  ## See org.dspace.core.Email for information on the format of this file.
+  ##
+  #set($subject = ${config.get('dspace.name')} Votre inscription sur Infoscience")
+  #set($phone = ${config.get('mail.message.helpdesk.telephone')})
+ 
+ Bonjour !
+ 
+ Pour finaliser la création de votre compte sur Infoscience, veuillez cliquer sur le lien suivant :
+  ${params[0]}
+  
+ Pour plus d'informations, n'hésitez pas à nous contacter : ${config.get("mail.helpdesk")}
+ 
+ Meilleures salutations,
+ 
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

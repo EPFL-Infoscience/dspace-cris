@@ -247,6 +247,10 @@ public class ItemUtils {
                 bitstream.getField().add(createValue("checksumAlgorithm", cka));
                 bitstream.getField().add(createValue("sid", bit.getSequenceID() + ""));
                 bitstream.getField().add(createValue("rights", bit.getRights()));
+                bitstream.getField().add(createValue("type",
+                                                     bitstreamService.getMetadataFirstValue(bit,
+                                                                                            "dc", "type", null,
+                                                                                                    Item.ANY)));
             }
         }
 

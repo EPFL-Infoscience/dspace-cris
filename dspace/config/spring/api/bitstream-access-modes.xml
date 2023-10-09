@@ -12,7 +12,6 @@
 				<ref bean="submitterCorrectItemMode" />
 				<ref bean="customCorrectItemMode" />
 				<ref bean="adminCuratorsCorrectItemMode" />
-				<ref bean="directorsAndDelegateCorrectItemMode" />
 			</list>
 		</entry>
 		<entry key="Product">
@@ -20,7 +19,6 @@
 				<ref bean="submitterCorrectItemMode" />
 				<ref bean="customCorrectItemMode" />
 				<ref bean="adminCuratorsCorrectItemMode" />
-				<ref bean="directorsAndDelegateCorrectItemMode" />
 			</list>
 		</entry>
 		<entry key="Patent">
@@ -28,7 +26,6 @@
 				<ref bean="submitterCorrectItemMode" />
 				<ref bean="customCorrectItemMode" />
 				<ref bean="adminCuratorsCorrectItemMode" />
-				<ref bean="directorsAndDelegateCorrectItemMode" />
 			</list>
 		</entry>
 	</util:map>

@@ -168,7 +168,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     public ItemDTO readSingleItem(Context context, String id, String recordType, Node record,
         ItemsImportMapping mapping) {
 
-        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
+        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, recordType, mapping);
 
         metadataValues.addAll(getCreationDateMetadataValues(id));
 
@@ -277,11 +277,15 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         List<ResourcePolicyDTO> policies = readResourcePolicies(bitstreamNode, bitstreamsMapping);
 
-        String location = getBitstreamUrl() + id + "_" + fileName;
+        String location = getBitstreamUrl() + id + "_" + escapeBitstreamName(fileName);
         String checksum = getSingleValue(bitstreamNode, bitstreamsMapping.getChecksumXPath());
 
         return Optional.of(new BitstreamDTO("ORIGINAL", location, checksum, metadataValues, policies));
 
+    }
+
+    private String escapeBitstreamName(String name) {
+        return name.replace(" ", "").replace("+", "");
     }
 
     private List<ResourcePolicyDTO> readResourcePolicies(Node bitstreamNode, Bitstreams bitstreamsMapping) {
@@ -335,7 +339,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
             NodeList nodeList = getNodeList(record, metadataField.getXPath());
 
-            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
+            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), recordType, nodeList);
 
             metadataValues.addAll(values);
         }

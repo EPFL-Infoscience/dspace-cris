@@ -18,6 +18,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.Constants;
@@ -141,6 +142,23 @@ public class HandleServiceImpl implements HandleService {
         Handle handle = handleDAO.create(context, new Handle());
         String handleId = createId(context);
 
+        setHandle(context, handle, handleId, dso);
+
+        return handleId;
+    }
+
+    @Override
+    public String createHandleForBitstream(Context context, Bitstream bitstream, String itemHandle)
+            throws SQLException {
+        Handle handle = handleDAO.create(context, new Handle());
+        String handleId = itemHandle + "/bitstreams/" + bitstream.getID();
+
+        setHandle(context, handle, handleId, bitstream);
+
+        return handleId;
+    }
+
+    private void setHandle(Context context, Handle handle, String handleId, DSpaceObject dso) throws SQLException {
         handle.setHandle(handleId);
         handle.setDSpaceObject(dso);
         dso.addHandle(handle);
@@ -151,8 +169,6 @@ public class HandleServiceImpl implements HandleService {
             () -> Constants.typeText[dso.getType()],
             () -> dso.getID(),
             () -> handleId);
-
-        return handleId;
     }
 
     @Override

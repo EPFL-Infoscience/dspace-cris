@@ -1,0 +1,16 @@
+## Registration notification email
+ ##
+ ## Parameters: {0} The name of the DSpace instance
+ ## {1} The URL of the DSpace instance
+ ## {2} Name:
+ ## {3} Email:
+ ## {4} Registration Date:
+ ##
+ ## See org.dspace.core.Email for information on the format of this file.
+ ##
+ #set($subject = 'Infoscience : Nouvel·le utilisateur·trice')
+ 
+ Un·e nouvel·le utilisateur·trice a été enregistré·e dans ${params[0]} à l'adresse ${params[1]} :
+ 
+ Nom : ${params[2]}
+ E-mail : ${params[3]}

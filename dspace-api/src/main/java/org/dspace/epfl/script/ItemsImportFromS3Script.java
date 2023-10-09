@@ -316,7 +316,7 @@ public class ItemsImportFromS3Script
 
             if (isEmpty(recordType)) {
                 skippedItemsCount++;
-                handler.logWarning("Entry with id " + id + " skipped because no item type found");
+                handler.logError("Entry with id " + id + " skipped because no item type found");
                 return null;
             }
 
@@ -347,13 +347,17 @@ public class ItemsImportFromS3Script
 
                 verifyBitstreamChecksum(fileName, bitstreams, zipFile.getInputStream(entry));
 
-                String bitstreamName = id + "_" + fileName;
+                String bitstreamName = id + "_" + escapeBitstreamName(fileName);
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
 
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
+    }
+
+    private String escapeBitstreamName(String name) {
+        return name.replace(" ", "").replace("+", "");
     }
 
     private void verifyBitstreamChecksum(String fileName, List<BitstreamDTO> bitstreams, InputStream document) {

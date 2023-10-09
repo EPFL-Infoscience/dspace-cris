@@ -130,11 +130,17 @@ public class PublicationLoaderRunnable
             Iterator<Item> researchers = findResearchers();
             while (researchers.hasNext()) {
                 Item researcher = researchers.next();
+                handler.logInfo("Querying external system for author " + researcher.getName() + " id: "
+                    + researcher.getID());
+                handler.logInfo("Extra query: " + extraQuery);
+                int createdSuggestions = 0;
                 if (StringUtils.isBlank(extraQuery)) {
-                    publicationLoader.importAuthorRecords(context, researcher);
+                    createdSuggestions = publicationLoader.importAuthorRecords(context, researcher);
                 } else {
-                    publicationLoader.importAuthorRecords(context, researcher, extraQuery);
+                    createdSuggestions = publicationLoader.importAuthorRecords(context, researcher, extraQuery);
                 }
+                handler.logInfo(createdSuggestions + " suggestions created for author " + researcher.getName() +
+                                    " id: " + researcher.getID());
                 setLastImportMetadataValue(researcher);
             }
 
@@ -236,7 +242,7 @@ public class PublicationLoaderRunnable
         return "";
     }
 
-        private void setLastImportMetadataValue(Item item) {
+    private void setLastImportMetadataValue(Item item) {
         try {
             item = context.reloadEntity(item);
             String metadataField = "cris.lastimport.loader-" + loader;
