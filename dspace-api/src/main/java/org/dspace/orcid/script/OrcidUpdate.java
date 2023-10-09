@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -107,12 +108,12 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
 
         String logInfoPrefix = "Item with ID " + item.getID() + " and sciperId " + sciperId + " ";
 
-        if (orcidJsonValue == null) {
+        if (StringUtils.isBlank(orcidJsonValue)) {
 
             removeAccessToken(item);
             clearOrcidMetadata(item);
 
-            handler.logInfo(logInfoPrefix + "does not have an ORCID ID in the provided json. "
+            handler.logInfo(logInfoPrefix + "does not have a valid ORCID ID in the provided json. "
                 + "Removed access token and ORCID ID from the system");
 
         } else if (orcidMetadataValue == null) {
@@ -144,7 +145,7 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
         }
     }
 
-    private Iterator<Item> findPersonsWithSciperId() throws Exception {
+    private Iterator<Item> findPersonsWithSciperId() {
 
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setQuery("epfl.sciperId: [* TO *] AND entityType:Person");
@@ -153,7 +154,7 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
 
     }
 
-    private void assignCurrentUserInContext() throws SQLException {
+    private void assignCurrentUserInContext() {
         UUID uuid = getEpersonIdentifier();
         if (uuid != null) {
             EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
@@ -187,9 +188,12 @@ public class OrcidUpdate extends DSpaceRunnable<OrcidUpdateScriptConfiguration<O
     }
 
     private String getOrcidSuffix(String orcidUrl) {
-        return orcidUrl != null && OrcidCheck.isOrcid(orcidUrl)
-            ? orcidUrl.trim().substring(orcidUrl.length() - 19)
-            : orcidUrl;
+        return StringUtils.isNotBlank(orcidUrl) && orcidUrl.length() >= 19 && OrcidCheck.isOrcid(getSuffix(orcidUrl))
+            ? getSuffix(orcidUrl) : "";
+    }
+
+    private String getSuffix(String orcid) {
+        return orcid.trim().substring(orcid.length() - 19);
     }
 
     @Override
