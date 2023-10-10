@@ -40,7 +40,7 @@ public class DoiFilter implements Filter {
         if (isEmpty(type)) {
             return false;
         }
-        return type.contains("thesis");
+        return type.contains("thesis") || type.contains("::thèse::");
     }
 
     private boolean hasNotDoiOrHasCustomerDoi(Item item) {
