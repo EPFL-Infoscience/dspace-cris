@@ -488,8 +488,10 @@ public class ShibAuthentication implements AuthenticationMethod {
         try {
             profileInitializer.initialize(context, eperson);
         } catch (NoPersonFoundException ex) {
-            sendEmailForNoAffiliations(context, eperson);
+            sendEmailForNoPersonFound(context, eperson);
+            deleteEperson(context, eperson);
         } catch (Exception ex) {
+            deleteEperson(context, eperson);
             log.error("An error occurs initializing EPerson.", ex);
         }
 
@@ -1316,13 +1318,12 @@ public class ShibAuthentication implements AuthenticationMethod {
         return false;
     }
 
-    private void sendEmailForNoAffiliations(Context context, EPerson person) {
+    private void sendEmailForNoPersonFound(Context context, EPerson person) {
         try {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(),
                     "no_person_found_by_sciper"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
             email.addArgument(getSciperId(person));
-            email.addArgument(person.getFullName());
             email.send();
         } catch (IOException | MessagingException e) {
             log.error("An error occurs sending the email related to the user synchronization", e);
@@ -1333,6 +1334,14 @@ public class ShibAuthentication implements AuthenticationMethod {
         return ofNullable(eperson)
                 .flatMap(ePerson -> ofNullable(ePerson.getNetid()))
                 .map(netId -> org.apache.commons.lang.StringUtils.substringBefore(netId, "@"));
+    }
+
+    private void deleteEperson(Context context, EPerson ePerson) {
+        try {
+            ePersonService.delete(context, ePerson);
+        } catch (SQLException | AuthorizeException | IOException e) {
+            log.error("An error occurs when trying to delete ePerson " + ePerson.getID() , e);
+        }
     }
 }
 

@@ -133,6 +133,7 @@ public class ProfileInitializer {
         try {
             setPublicVisibility(context, researcherProfile);
         } catch (AuthorizeException | SQLException e) {
+            sendEmailForError(context, personDTO.get());
             throw new RuntimeException(e);
         }
 
@@ -145,8 +146,10 @@ public class ProfileInitializer {
         try {
             addToSubmittersGroup(context, eperson, researcherProfile);
         } catch (SQLException e) {
+            sendEmailForError(context, personDTO.get());
             throw new RuntimeException(e);
         }
+        sendEmailForSuccess(context, personDTO.get());
     }
 
     private void addToSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile)
@@ -298,6 +301,14 @@ public class ProfileInitializer {
 
     private void sendEmailForNoMainAffiliation(Context context, PersonDTO person) {
         sendEmail(context, person, "person_synchronization_no_main_affiliation");
+    }
+
+    private void sendEmailForSuccess(Context context, PersonDTO person) {
+        sendEmail(context, person, "error_during_profile_initialization");
+    }
+
+    private void sendEmailForError(Context context, PersonDTO person) {
+        sendEmail(context, person, "error_during_profile_initialization");
     }
 
     private void sendEmail(Context context, PersonDTO person, String templateName) {

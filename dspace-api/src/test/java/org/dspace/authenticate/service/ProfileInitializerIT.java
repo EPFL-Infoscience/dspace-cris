@@ -56,6 +56,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
+    private static final String SUBMITTERS = "Submitter";
 
     private ProfileInitializer profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
 
@@ -613,6 +614,37 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         ));
 
     }
+
+    @Test
+    public void testRemoveFromSubmitters() throws SQLException {
+        context.turnOffAuthorisationSystem();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withTitle("Laboratory of Sensing and Networking Systems")
+                .withAcronym("SENS").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withTitle("SSC - Teaching")
+                .withAcronym("SSC-ENS").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withTitle("SIN - Teaching")
+                .withAcronym("SIN-ENS").build();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Test", "User")
+                .withEmail("test@user.it")
+                .withNetId("352234@epfl.ch")
+                .build();
+        groupService.addMember(context, submitters, eperson);
+        context.restoreAuthSystemState();
+
+        profileInitializer.initialize(context, eperson);
+
+        assertThat(groupService.allMemberGroupsSet(context, eperson)
+                .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(false));
+    }
+
 
 
     private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {
