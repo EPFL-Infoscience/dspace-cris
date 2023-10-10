@@ -197,4 +197,9 @@
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
     </bean>
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportIsPartOfReader">
+        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
+        <property name="journalMetadataField" value="dc.relation.journal" />
+    </bean>
+    
 </beans>
