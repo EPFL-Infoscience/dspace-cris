@@ -12,6 +12,7 @@ import static org.apache.commons.lang.StringUtils.startsWith;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -508,8 +509,9 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     public List<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName,
             Map<String, String> filterMetadata, boolean filterNonRestricted) throws SQLException {
 
-        Stream<Bitstream> stream = streamOf(bitstreamDAO.findShowableByItem(context, itemId, bundleName))
-            .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata));
+        Stream<Bitstream> stream =
+            streamOf(bitstreamDAO.findShowableByItem(context, itemId, bundleName))
+                .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata));
         if (filterNonRestricted) {
             stream = stream.filter(bitstream -> {
                 try {
@@ -521,8 +523,30 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             });
         }
 
-        return stream.collect(Collectors.toList());
+        return orderBitstream(stream, filterMetadata).collect(Collectors.toList());
+    }
 
+    private long computeScore(Bitstream bitstream, Map<String, String> filterMetadata) {
+        return filterMetadata.keySet()
+                             .stream()
+                             .filter(metadataField ->
+                                 matchesMetadataValue(bitstream, metadataField, filterMetadata.get(metadataField)))
+                             .count();
+    }
+
+    private boolean matchesMetadataValue(Bitstream bitstream, String metadataField, String value) {
+        return bitstream.getMetadata().stream()
+                        .filter(metadataValue -> metadataValue.getMetadataField().toString('.').equals(metadataField))
+                        .anyMatch(metadataValue -> matchesMetadataValue(metadataValue, value));
+    }
+
+    private Stream<Bitstream> orderBitstream(Stream<Bitstream> stream, Map<String, String> filterMetadata) {
+        if (filterMetadata.values().stream().map(this::isOptionalMatch).findAny().isPresent()) {
+            return stream.sorted(
+                Comparator.comparingLong(bitstream -> computeScore((Bitstream) bitstream, filterMetadata)).reversed()
+            );
+        }
+        return stream;
     }
 
     @Override
@@ -531,10 +555,13 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 
         try {
 
-            return streamOf(getItemBitstreams(context, item))
-                .filter(bitstream -> isContainedInBundleNamed(bitstream, bundleName))
-                .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata))
-                .collect(Collectors.toList());
+            return orderBitstream(
+                streamOf(getItemBitstreams(context, item))
+                    .filter(bitstream -> isContainedInBundleNamed(bitstream, bundleName))
+                    .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata)),
+                filterMetadata
+            )
+            .collect(Collectors.toList());
 
         } catch (SQLException ex) {
             throw new SQLRuntimeException(ex);
@@ -614,7 +641,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     }
 
     private boolean hasMetadataValue(Bitstream bitstream, String metadataField, String value) {
-        if (StringUtils.isEmpty(metadataField) || StringUtils.isEmpty(value)) {
+        if (StringUtils.isEmpty(metadataField) || StringUtils.isEmpty(value) || isOptionalMatch(value)) {
             return true;
         }
         List<MetadataValue> metadata = bitstream.getMetadata().stream()
@@ -630,6 +657,10 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         return StringUtils.startsWith(value, "!");
     }
 
+    private boolean isOptionalMatch(String value) {
+        return StringUtils.startsWith(value, "*");
+    }
+
     private boolean isRegexMatch(String value) {
         String tmpValue = value;
         if (isNegativeMatch(value)) {
@@ -640,7 +671,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 
     private String getMatchValue(String value) {
         String tmpValue = value;
-        if (isNegativeMatch(value)) {
+        if (isNegativeMatch(value) || isOptionalMatch(value)) {
             tmpValue = value.substring(1);
         }
         if (isRegexMatch(tmpValue)) {
