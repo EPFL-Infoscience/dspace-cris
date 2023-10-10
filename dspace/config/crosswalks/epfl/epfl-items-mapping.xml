@@ -89,12 +89,12 @@
         </metadata-field>
         <metadata-field>
             <field>dc.relation.ispartof</field>
-            <xpath>./datafield[@tag = '490'] | ./datafield[@tag = '773']/subfield[@code = 't']</xpath>
+            <xpath>./datafield[@tag = '490']</xpath>
             <reader>serie</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.ispartofseries</field>
-            <xpath>./datafield[@tag = '490'] | ./datafield[@tag = '773']/subfield[@code = 't']</xpath>
+            <xpath>./datafield[@tag = '490']</xpath>
             <reader>serie</reader>
         </metadata-field>
         <metadata-field>
@@ -198,12 +198,9 @@
             <xpath>./datafield[@tag = '773']/subfield[@code = 's']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>dc.relation.journal</field>
-            <xpath>self::node()[./datafield[@tag = '336']/subfield[@code = 'a'] = 'Journal Articles']/datafield[@tag = '773']/subfield[@code = 't']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>dc.relation.ispartofseries</field>
-            <xpath>self::node()[string-length(./datafield[@tag = '490']/subfield[@code = 'a']) > 0 or string-length(./datafield[@tag = '490']/subfield[@code = 'v']) > 0]/datafield[@tag = '773']/subfield[@code = 't']</xpath>
+            <field>dc.relation.ispartof</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 't']</xpath>
+            <reader>isPartOf</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.publication</field>
@@ -237,7 +234,7 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'z']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>epfl.relation.orgunit</field>
+            <field>dc.relation.sponsorship</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = '0']</xpath>
             <reader>orgUnit</reader>
         </metadata-field>
