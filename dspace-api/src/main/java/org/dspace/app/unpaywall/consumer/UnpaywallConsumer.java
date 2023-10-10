@@ -11,6 +11,7 @@ package org.dspace.app.unpaywall.consumer;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,7 +67,20 @@ public class UnpaywallConsumer implements Consumer {
             if (null == bitstream || bitstreamsAlreadyProcessed.contains(bitstream)) {
                 return;
             }
-            Item item = bitstream.getBundles().get(0).getItems().get(0);
+
+            Optional<Item> optionalItem =
+                Optional.ofNullable(bitstream.getBundles())
+                        .filter(bundles -> !bundles.isEmpty())
+                        .map(bundles -> bundles.get(0))
+                        .map(bundle -> bundle.getItems())
+                        .filter(items -> !items.isEmpty())
+                        .map(items -> items.get(0));
+
+            if (optionalItem.isEmpty()) {
+                return;
+            }
+
+            Item item = optionalItem.get();
             String doi = itemService.getMetadataFirstValue(item,
                                                            "dc", "identifier", "doi", Item.ANY);
             if (StringUtils.isBlank(doi)) {

@@ -188,16 +188,24 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
                 .map(metadatas -> metadatas.get(0))
                 .map(metadata ->
                     findValidEntityType(context, entityTypeValue, metadata.getAuthority())
-                        .orElse(
-                            findValidEntityType(context, entityTypeValue, metadata.getValue())
+                        .orElseGet(
+                            () -> findValidEntityType(context, entityTypeValue, metadata.getValue())
                                 .orElse(null)
                         )
                 )
-                .orElse(findByEntityType(context, entityTypeValue, null));
+                .orElseGet(() -> getByEntityType(context, entityTypeValue));
         if (layoutTabs == null) {
             return Collections.emptyList();
         }
         return layoutTabs;
+    }
+
+    private List<CrisLayoutTab> getByEntityType(Context context, String entityTypeValue){
+        try {
+            return findByEntityType(context, entityTypeValue, null);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Optional<List<CrisLayoutTab>> findValidEntityType(Context context, String entityTypeValue,

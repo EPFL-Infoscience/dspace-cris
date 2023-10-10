@@ -219,7 +219,10 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     }
 
     private boolean isBitstreamPresent(Context context, Item item, CrisLayoutFieldBitstream field) {
-        Map<String, String> filters = Map.of(field.getMetadataField().toString('.'), field.getMetadataValue());
+        Map<String, String> filters = Map.of();
+        if (field.getMetadataField() != null && field.getMetadataValue() != null) {
+            filters = Map.of(field.getMetadataField().toString('.'), field.getMetadataValue());
+        }
         try {
             return bitstreamService.findShowableByItem(context, item.getID(), field.getBundle(),
                 filters, false).size() > 0;
