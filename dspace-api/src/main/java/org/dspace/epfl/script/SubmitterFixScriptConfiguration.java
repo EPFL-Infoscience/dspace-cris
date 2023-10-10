@@ -50,6 +50,10 @@ public class SubmitterFixScriptConfiguration<T extends SubmitterFixScript> exten
             options.getOption("c").setType(String.class);
             options.getOption("c").setRequired(true);
 
+            options.addOption("e", "email", true, "the email of the submitter if none found");
+            options.getOption("e").setType(String.class);
+            options.getOption("e").setRequired(false);
+
             super.options = options;
         }
         return options;
