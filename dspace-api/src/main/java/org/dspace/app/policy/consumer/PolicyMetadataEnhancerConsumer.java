@@ -77,11 +77,13 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private static final MetadataFieldName viewerMetadata = new MetadataFieldName("bitstream", "viewer", "provider");
     private static final MetadataFieldName oaireLicenseMetadata = new MetadataFieldName("oaire", "licenseCondition");
     private static final MetadataFieldName epflLicenseMetadata = new MetadataFieldName("epfl", "licenseName");
+    private static final MetadataFieldName oaireVersionMetadata = new MetadataFieldName("oaire", "version");
     private static final List<MetadataFieldName> bitstreamToItemMetadatas = List.of(
         oaireLicenseMetadata,
         dataciteAvailableMetadata,
         dataciteRightsMetadata,
-        epflLicenseMetadata
+        epflLicenseMetadata,
+        oaireVersionMetadata
     );
     private static final Map<MetadataFieldName, List<String>> defaultItemMetadatas = Map.of(dataciteRightsMetadata,
             List.of(METADATA_ONLY));
@@ -209,6 +211,9 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                     )
                 );
 
+            handleDateAvailableMetadata(ctx, item);
+
+
         } catch (SQLException e) {
             logger.error(MessageFormat.format("Error while processing item {}!", item.getID().toString()), e);
             throw new SQLRuntimeException(e);
@@ -246,6 +251,31 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         } catch (SQLException e) {
             logger.error(MessageFormat.format("Error while bitstream {}!", bitstream.getID().toString()), e);
             throw new SQLRuntimeException(e);
+        }
+    }
+
+    private void handleDateAvailableMetadata(Context ctx, Item item) throws SQLException {
+        String rights = itemService.getMetadataFirstValue(item, "datacite", "rights", null, Item.ANY);
+        if (null == rights || rights.trim().isEmpty()) {
+            return;
+        }
+        if (List.of(METADATA_ONLY, ACCESS_OPEN).contains(rights)) {
+            String dateAccessioned = itemService.getMetadataFirstValue(item, "dc", "date", "accessioned", Item.ANY);
+            String dateAvailable = itemService.getMetadataFirstValue(item, "dc", "date", "available", Item.ANY);
+            if (Objects.nonNull(dateAccessioned) && !dateAccessioned.equals(dateAvailable)) {
+                updateDateAvailableMetadata(ctx, item, dateAccessioned);
+            }
+            return;
+        }
+        String dataciteAvailable = itemService.getMetadataFirstValue(item, "datacite", "available", null, Item.ANY);
+        updateDateAvailableMetadata(ctx, item, dataciteAvailable);
+    }
+
+    private void updateDateAvailableMetadata(Context ctx, Item item, String date) throws SQLException {
+        List<MetadataValue> dateAvailable = itemService.getMetadata(item, "dc", "date", "available", Item.ANY);
+        itemService.removeMetadataValues(ctx, item, dateAvailable);
+        if (null != date && !date.trim().isEmpty()) {
+            itemService.addMetadata(ctx, item, "dc", "date", "available", null, date);
         }
     }
 
