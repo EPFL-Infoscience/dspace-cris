@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -207,19 +206,7 @@ public class EpflUserSynchronizationScript
         List<String> queryStrings = extractQueryParameters();
 
         for (String query : queryStrings) {
-//            List<PersonDTO> epflPersonList = epflApiClient.getPersons(query, EpflApiClient.Language.EN);
-            PersonDTO mockPerson = new PersonDTO();
-            mockPerson.setName("Glatt");
-            mockPerson.setFirstname("Charlotte");
-            mockPerson.setEmail("charlotte.glatt@epfl.ch");
-            mockPerson.setSciper("171899");
-            mockPerson.setProfile("charlotte.glatt");
-            mockPerson.setRank(0);
-            mockPerson.setAccreds(null);
-
-            List<PersonDTO> epflPersonList = new ArrayList<>();
-            epflPersonList.add(mockPerson);
-
+            List<PersonDTO> epflPersonList = epflApiClient.getPersons(query, EpflApiClient.Language.EN);
             for (PersonDTO epflPerson : epflPersonList) {
                 EPerson ePerson = findPerson(epflPerson);
                 try {

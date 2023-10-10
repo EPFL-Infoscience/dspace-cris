@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
+import org.dspace.authenticate.service.NoPersonFoundException;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
@@ -486,8 +487,9 @@ public class ShibAuthentication implements AuthenticationMethod {
 
         try {
             profileInitializer.initialize(context, eperson);
-        } catch (Exception ex) {
+        } catch (NoPersonFoundException ex) {
             sendEmailForNoAffiliations(context, eperson);
+        } catch (Exception ex) {
             log.error("An error occurs initializing EPerson.", ex);
         }
 
@@ -1317,7 +1319,7 @@ public class ShibAuthentication implements AuthenticationMethod {
     private void sendEmailForNoAffiliations(Context context, EPerson person) {
         try {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(),
-                    "person_synchronization_no_affiliations"));
+                    "no_person_found_by_sciper"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
             email.addArgument(getSciperId(person));
             email.addArgument(person.getFullName());

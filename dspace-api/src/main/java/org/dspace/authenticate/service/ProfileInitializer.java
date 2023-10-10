@@ -100,7 +100,6 @@ public class ProfileInitializer {
 
             Optional<String> sciper = getSciperId(eperson);
             sciper.ifPresent(s -> initialize(context, eperson, s));
-
         } finally {
             context.restoreAuthSystemState();
         }
@@ -110,6 +109,10 @@ public class ProfileInitializer {
     private void initialize(Context context, EPerson eperson, String sciper) {
 
         Optional<PersonDTO> personDTO = personApiService.getPerson(sciper);
+
+        if (personDTO.isEmpty()) {
+            throw new NoPersonFoundException("No person for sciper " + sciper + " was not found");
+        }
 
         ResearcherProfile researcherProfile = findProfile(context, eperson)
             .or(() -> personApiService.findProfileBySciper(context, eperson, sciper))
