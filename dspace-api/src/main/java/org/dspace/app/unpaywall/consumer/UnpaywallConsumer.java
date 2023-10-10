@@ -11,7 +11,6 @@ package org.dspace.app.unpaywall.consumer;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;

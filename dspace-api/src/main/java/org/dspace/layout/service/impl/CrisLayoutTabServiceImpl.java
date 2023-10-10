@@ -200,7 +200,7 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
         return layoutTabs;
     }
 
-    private List<CrisLayoutTab> getByEntityType(Context context, String entityTypeValue){
+    private List<CrisLayoutTab> getByEntityType(Context context, String entityTypeValue) {
         try {
             return findByEntityType(context, entityTypeValue, null);
         } catch (SQLException e) {
