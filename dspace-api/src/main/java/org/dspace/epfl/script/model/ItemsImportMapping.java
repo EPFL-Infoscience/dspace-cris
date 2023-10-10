@@ -135,9 +135,6 @@ public class ItemsImportMapping {
         @XmlElement(name = "checksum-xpath")
         private String checksumXPath;
 
-        @XmlElement(name = "format-xpath")
-        private String formatXPath;
-
         @XmlElement(name = "access-condition-xpath")
         private String accessConditionXPath;
 
@@ -161,14 +158,6 @@ public class ItemsImportMapping {
 
         public void setChecksumXPath(String checksumXPath) {
             this.checksumXPath = checksumXPath;
-        }
-
-        public String getFormatXPath() {
-            return formatXPath;
-        }
-
-        public void setFormatXPath(String formatXPath) {
-            this.formatXPath = formatXPath;
         }
 
         public String getBitstreamXPath() {

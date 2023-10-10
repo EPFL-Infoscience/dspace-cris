@@ -1,0 +1,21 @@
+## E-mail sent to a DSpace user after a new account is registered.
+ ##
+ ## See org.dspace.core.Email for information on the format of this file.
+ ##
+ #set($subject = "Bienvenue sur Infoscience !")
+
+Bonjour,
+
+Nous vous souhaitons la bienvenue sur Infoscience !
+Votre inscription est effective et vous permet de déposer des publications, modifier et valider des notices, selon les droits qui vous sont attribués.
+Vous avez également la possibilité de créer des alertes en fonction de vos centres d'intérêt.
+
+Nous vous invitons à consulter le guide de l'utilisateur pour plus d'informations <<https://www.epfl.ch/campus/library/fr/services-chercheurs/infoscience/aide-infoscience/>> 
+Si vous avez besoin d'aide, n'hésitez à nous contacter à l'adresse : ${config.get("mail.admin")}.
+
+Nous nous réjouissons de collaborer avec vous.
+
+Meilleures salutations,
+
+Équipe Infoscience
+Bibliothèque de l'EPFL

@@ -1,29 +1,30 @@
 ## Item Archived email message
-## This message is sent to a submitter when Infoscience curator
-## has approved the submission, and the item is maked available into
-## the repository.
-##
-## {0}  Title of the item
-## {1}  The handle identifier of the item
-## {2}  The submitters full name
-##
-#set($subject = "Infoscience submission approved and available : ${params[0]}")
-
-Dear ${params[2]},
-
-Thank you for your submission to Infoscience repository.
-Your publication, "${params[0]}", has been approved and it is now available using the following URL :
-${params[1]}
-
-Check out the information for depositors at https://help-infoscience.epfl.ch
-- How can I see how often my publication is viewed and downloaded?
-- How can I add my publication on my people page?
-- Can my publication be submitted in open access?
-- and more!
-
-Thanks again for taking this important step to make available and share your research output.
-
-We welcome your feedback! Contact us at infoscience@epfl.ch.
-
-The Infoscience Team
-infoscience.epfl.ch
+ ## This message is sent to a submitter when Infoscience curator
+ ## has approved the submission, and the item is maked available into
+ ## the repository.
+ ##
+ ## {0} Title of the item
+ ## {1} The handle identifier of the item
+ ## {2} The submitters full name
+ ##
+ #set($subject = "Infoscience: Your submission is approved and available")
+ 
+ Hello ${params[2]},
+ 
+ Thank you for your submission to Infoscience: "${params[0]}".
+ After checking, the Library has validated your record and made it available online: ${params[1]}
+ 
+ By disseminating your research output via Infoscience, you contribute to Open Science and knowledge sharing.
+  
+ You can find useful information for submitters here: https://help-infoscience.epfl.ch
+ - how can I see how often my publication is viewed and downloaded?
+ - how can I add my publication on my people page?
+ - can my publication be submitted in open access?
+ ... and more!
+ 
+ We welcome your feedback! Contact us at infoscience@epfl.ch
+ 
+ Best regards,
+ 
+ Infoscience Team
+ EPFL Library

@@ -93,6 +93,29 @@
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>fileversion</dc-qualifier>
+          <label>File version</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <label>Relation</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="bitstream-metadata-product">
       <row>
@@ -3229,9 +3252,9 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>issued</dc-qualifier>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>patent</dc-element>
+          <dc-qualifier>date</dc-qualifier>
           <label>Date</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3255,7 +3278,7 @@ it, please enter the types and the actual numbers or codes.</hint>
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>funder</dc-element>
+          <dc-element>funding</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>Identifier</label>
           <input-type>onebox</input-type>
@@ -3333,7 +3356,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <dc-qualifier>contributoreditornum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3359,7 +3382,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <dc-qualifier>contributoradvisornum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3705,6 +3728,17 @@ it, please enter the types and the actual numbers or codes.</hint>
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <label>Contributors</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <label>Description</label>
           <input-type>onebox</input-type>
@@ -3719,6 +3753,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>ispartof</dc-qualifier>
           <label>Is part of</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartofseries</dc-qualifier>
+          <label>Is part of Series</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -3978,6 +4024,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>citation</dc-element>
           <dc-qualifier>startPage</dc-qualifier>
           <label>Start page</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>endPage</dc-qualifier>
+          <label>End page</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
