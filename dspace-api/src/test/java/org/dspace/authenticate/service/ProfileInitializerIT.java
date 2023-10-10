@@ -56,7 +56,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
-    private static final String SUBMITTERS = "Submitter";
 
     private ProfileInitializer profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
 
