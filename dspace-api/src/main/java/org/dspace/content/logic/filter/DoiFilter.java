@@ -7,6 +7,7 @@
  */
 package org.dspace.content.logic.filter;
 
+import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 
@@ -50,7 +51,7 @@ public class DoiFilter implements Filter {
         }
 
         String doiPrefix = configurationService.getProperty("identifier.doi.prefix");
-        return startsWith(doi, doiPrefix);
+        return contains(doi, doiPrefix);
     }
 
     @Override
