@@ -9,7 +9,6 @@ package org.dspace.content.logic.filter;
 
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.startsWith;
 
 import org.dspace.content.Item;
 import org.dspace.content.logic.Filter;
