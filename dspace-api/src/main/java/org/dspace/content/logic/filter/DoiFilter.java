@@ -7,7 +7,6 @@
  */
 package org.dspace.content.logic.filter;
 
-import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import org.dspace.content.Item;
@@ -50,7 +49,7 @@ public class DoiFilter implements Filter {
         }
 
         String doiPrefix = configurationService.getProperty("identifier.doi.prefix");
-        return contains(doi, doiPrefix);
+        return doi.contains(doiPrefix);
     }
 
     @Override
