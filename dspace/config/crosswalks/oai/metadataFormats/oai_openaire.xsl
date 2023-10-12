@@ -688,7 +688,10 @@
                     <xsl:when test="$idType = 'hdl'">Handle</xsl:when>
                 </xsl:choose>
                 <xsl:choose>
-                    <xsl:when test="$idType = 'ISBN'">Handle</xsl:when>
+                    <xsl:when test="$idType = 'isbn'">ISBN</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'issn'">ISSN</xsl:when>
                 </xsl:choose>
 
             </xsl:variable>
