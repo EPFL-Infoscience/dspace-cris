@@ -3777,6 +3777,8 @@
                 <value>dc.relation.journal</value>
                 <value>dc.identifier.issn</value>
                 <value>dc.identifier.isbn</value>
+                <value>dc.relation.ispartof</value>
+                <value>dc.relation.ispartofseries</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
@@ -5276,7 +5278,7 @@
                 <value>person.identifier.orcid</value>
                 <value>person.identifier.scopus-author-id</value>
                 <value>person.identifier.rid</value>
-                <value>person.identifier.rid</value>
+                <value>epfl.sciperId</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
@@ -5286,6 +5288,7 @@
         <property name="indexFieldName" value="fundingname"/>
         <property name="metadataFields">
             <list>
+                <value>dc.relation.funding</value>
                 <value>oairecerif.funder</value>
                 <value>oairecerif.funding.identifier</value>
             </list>
