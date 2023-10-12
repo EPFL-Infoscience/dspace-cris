@@ -105,7 +105,7 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
             // if no data
             if (topCounts.length == 0) {
                 UsageReportPointDsoTotalVisitsRest totalVisitPoint = new UsageReportPointDsoTotalVisitsRest();
-                totalVisitPoint.addValue("views", 0);
+                addValueToPoint(totalVisitPoint, 0);
                 totalVisitPoint.setType(getType(facetField));
                 usageReportRest.addPoint(totalVisitPoint);
             }
@@ -126,13 +126,21 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
                 totalVisitPoint.setType(getType(facetField));
                 totalVisitPoint.setId(idAndName.getFirst());
                 totalVisitPoint.setLabel(idAndName.getSecond() + legacyNote);
-                totalVisitPoint.addValue("views", (int) count.getCount());
+                addValueToPoint(totalVisitPoint, (int) count.getCount());
                 usageReportRest.addPoint(totalVisitPoint);
 
             }
             return usageReportRest;
         } catch (SQLException | SolrServerException | IOException e) {
             throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private void addValueToPoint(UsageReportPointDsoTotalVisitsRest totalVisitPoint, int count) {
+        if ( dsoType == BITSTREAM) {
+            totalVisitPoint.addValue("downloads", count);
+        } else {
+            totalVisitPoint.addValue("views", count);
         }
     }
 

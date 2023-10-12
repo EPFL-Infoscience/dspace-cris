@@ -13,7 +13,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 import static org.apache.commons.lang3.StringUtils.isAllBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.splitByWholeSeparator;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
@@ -624,7 +624,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         for (int index = firstMetadataIndex; index < row.getLastCellNum(); index++) {
 
             String cellValue = WorkbookUtils.getCellValue(row, index);
-            String[] values = isNotBlank(cellValue) ? split(cellValue, METADATA_SEPARATOR) : new String[] { "" };
+            String[] values = isNotBlank(cellValue) ? splitByWholeSeparator(cellValue, METADATA_SEPARATOR)
+                : new String[] { "" };
             if (values.length > 1 && !manyMetadataValuesAllowed) {
                 handleValidationErrorOnRow(row, "Multiple metadata value on the same cell not allowed "
                     + "in the metadata group sheets: " + cellValue);
@@ -758,7 +759,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         Map<String, AccessConditionOption> accessConditionOptions = getUploadAccessConditions();
 
         return Arrays.stream(getAccessConditionValues(row))
-            .map(accessCondition -> split(accessCondition, ACCESS_CONDITION_ATTRIBUTES_SEPARATOR)[0])
+            .map(accessCondition -> splitByWholeSeparator(accessCondition, ACCESS_CONDITION_ATTRIBUTES_SEPARATOR)[0])
             .filter(accessConditionName -> !accessConditionOptions.containsKey(accessConditionName))
             .collect(Collectors.toList());
     }
@@ -803,14 +804,14 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
 
         return Arrays.stream(accessConditions)
-            .map(accessCondition -> split(accessCondition, ACCESS_CONDITION_ATTRIBUTES_SEPARATOR))
+            .map(accessCondition -> splitByWholeSeparator(accessCondition, ACCESS_CONDITION_ATTRIBUTES_SEPARATOR))
             .map(accessConditionAttributes -> buildAccessCondition(accessConditionAttributes))
             .collect(Collectors.toList());
     }
 
     private String[] getAccessConditionValues(Row row) {
         String accessConditionCellValue = getCellValue(row, ACCESS_CONDITION_HEADER);
-        return split(accessConditionCellValue, METADATA_SEPARATOR);
+        return splitByWholeSeparator(accessConditionCellValue, METADATA_SEPARATOR);
     }
 
     private AccessCondition buildAccessCondition(String[] accessCondition) {
@@ -1302,6 +1303,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 String authority = metadataValue.getAuthority();
                 int confidence = metadataValue.getConfidence();
                 String value = metadataValue.getValue();
+
+                if (value != null && "dc.identifier.doi".equals(field)) {
+                    value = replaceOldDoiPrefix(value);
+                }
+
                 Integer security = metadataValue.getSecurityLevel();
                 if (StringUtils.isNotEmpty(value)) {
                     dSpaceObjectService.addSecuredMetadata(context, dso, metadataField, lang, value,
@@ -1345,12 +1351,13 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
     }
 
     private String getMetadataField(String field) {
-        return field.contains(LANGUAGE_SEPARATOR_PREFIX) ? split(field, LANGUAGE_SEPARATOR_PREFIX)[0] : field;
+        return field.contains(LANGUAGE_SEPARATOR_PREFIX) ? splitByWholeSeparator(field, LANGUAGE_SEPARATOR_PREFIX)[0]
+            : field;
     }
 
     private String getMetadataLanguage(String field) {
         if (field.contains(LANGUAGE_SEPARATOR_PREFIX)) {
-            return split(field, LANGUAGE_SEPARATOR_PREFIX)[1].replace(LANGUAGE_SEPARATOR_SUFFIX, "");
+            return splitByWholeSeparator(field, LANGUAGE_SEPARATOR_PREFIX)[1].replace(LANGUAGE_SEPARATOR_SUFFIX, "");
         }
         return null;
     }
@@ -1407,7 +1414,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             if (index >= firstMetadataIndex) {
 
                 String cellValue = WorkbookUtils.getCellValue(row, index);
-                String[] values = isNotBlank(cellValue) ? split(cellValue, METADATA_SEPARATOR) : new String[] { "" };
+                String[] values = isNotBlank(cellValue) ? splitByWholeSeparator(cellValue, METADATA_SEPARATOR)
+                    : new String[] { "" };
 
                 List<MetadataValueVO> metadataValues = Arrays.stream(values)
                     .map(value -> buildMetadataValueVO(row, value, isMetadataGroupsSheet))
@@ -1598,6 +1606,12 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             .collect(Collectors.toMap(AccessConditionOption::getName, Function.identity()));
 
         return uploadAccessConditions;
+    }
+
+    private String replaceOldDoiPrefix(String value) {
+        String oldPrefix = configurationService.getProperty("epfl.bulk-import.old-doi-prefix", "");
+        String newPrefix = configurationService.getProperty("identifier.doi.prefix", "");
+        return value.replace(oldPrefix, newPrefix);
     }
 
     private boolean isConfidenceNotValid(String confidence) {

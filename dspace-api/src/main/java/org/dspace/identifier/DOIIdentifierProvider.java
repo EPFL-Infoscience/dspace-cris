@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -67,13 +69,14 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
 
     static final String CFG_PREFIX = "identifier.doi.prefix";
     static final String CFG_NAMESPACE_SEPARATOR = "identifier.doi.namespaceseparator";
+    private static final String DOI_METADATA = "identifier.doi.metadata";
     static final char SLASH = '/';
 
     // Metadata field name elements
     // TODO: move these to MetadataSchema or some such?
-    public static final String MD_SCHEMA = "dc";
-    public static final String DOI_ELEMENT = "identifier";
-    public static final String DOI_QUALIFIER = "uri";
+    public String MD_SCHEMA = "dc";
+    public String DOI_ELEMENT = "identifier";
+    public String DOI_QUALIFIER = "doi";
     // The DOI is queued for registered with the service provider
     public static final Integer TO_BE_REGISTERED = 1;
     // The DOI is queued for reservation with the service provider
@@ -168,6 +171,17 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
             }
         }
         return this.NAMESPACE_SEPARATOR;
+    }
+
+    @PostConstruct
+    protected void setDoiMetadata() {
+        String doiMetadata = this.configurationService.getProperty(DOI_METADATA);
+        if (doiMetadata != null) {
+            String[] parts = doiMetadata.split("\\.");
+            this.MD_SCHEMA = parts[0];
+            this.DOI_ELEMENT = parts[1];
+            this.DOI_QUALIFIER = parts[2];
+        }
     }
 
     /**
@@ -1037,6 +1051,15 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         }
         Item item = (Item) dso;
 
+        String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
+        if (StringUtils.isNotBlank(doi)) {
+            if (!StringUtils.startsWith(doi, DOI.SCHEME)) {
+                return DOI.SCHEME + doi;
+            } else {
+                return doi;
+            }
+        }
+
         List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
         String leftPart = doiService.getResolver() + SLASH + getPrefix() + SLASH + getNamespaceSeparator();
         for (MetadataValue id : metadata) {
@@ -1098,7 +1121,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         List<String> remainder = new ArrayList<>();
 
         for (MetadataValue id : metadata) {
-            if (!id.getValue().equals(doiService.DOIToExternalForm(doi))) {
+            if (!doiService.DOIToExternalForm(doi).contains(id.getValue())) {
                 remainder.add(id.getValue());
             }
         }

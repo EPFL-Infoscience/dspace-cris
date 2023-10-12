@@ -187,8 +187,8 @@ public class RDFUtil {
                                                  .getConfigurationService()
                                                  .getArrayProperty(CONVERTER_DSOTYPES_KEY);
         if (dsoTypes == null || dsoTypes.length == 0) {
-            log.warn("Property rdf." + CONVERTER_DSOTYPES_KEY + " was not found "
-                         + "or is empty. Will convert all type of DSpace Objects.");
+            report("Property rdf." + CONVERTER_DSOTYPES_KEY + " was not found "
+                         + "or is empty. Will convert all type of DSpace Objects.", "warn");
         } else {
             boolean found = false;
             for (String type : dsoTypes) {
@@ -198,9 +198,9 @@ public class RDFUtil {
                 }
             }
             if (!found) {
-                log.warn("Configuration of DSpaceObjects of type "
+                report("Configuration of DSpaceObjects of type "
                              + Constants.typeText[dso.getType()]
-                             + " prohibitted by configuration.");
+                             + " prohibitted by configuration.", "warn");
                 return null;
             }
         }
@@ -241,13 +241,14 @@ public class RDFUtil {
         throws RDFMissingIdentifierException, SQLException, ItemNotArchivedException,
         ItemWithdrawnException, ItemNotDiscoverableException,
         AuthorizeException, IllegalArgumentException {
+        report("Starting to convert item " + dso.getID(), "debug");
         Model convertedData = convert(context, dso);
 
         String identifier = generateIdentifier(context, dso);
         if (StringUtils.isEmpty(identifier)) {
-            log.error("Cannot generate identifier for dso from type "
+            report("Cannot generate identifier for dso from type "
                           + ContentServiceFactory.getInstance().getDSpaceObjectService(dso)
-                                                 .getTypeText(dso) + " (id: " + dso.getID() + ").");
+                                                 .getTypeText(dso) + " (id: " + dso.getID() + ").", "error");
             if (convertedData != null) {
                 convertedData.close();
             }
@@ -260,8 +261,9 @@ public class RDFUtil {
             RDFFactory.getInstance().getRDFStorage().delete(identifier);
             return null;
         }
-
+        report("Starting storing item " + dso.getID(), "debug");
         RDFFactory.getInstance().getRDFStorage().store(identifier, convertedData);
+        report("Item " + dso.getID() + " is added to store", "debug");
         return convertedData;
     }
 
@@ -367,6 +369,22 @@ public class RDFUtil {
             RDFFactory.getInstance().getRDFStorage().delete(uri);
         } else {
             throw new RDFMissingIdentifierException(type, id);
+        }
+    }
+
+    protected static void report(String message, String method) {
+        switch (method) {
+            case "error":
+                log.error(message);
+                System.err.println("ERROR: " + message);
+                break;
+            case "warn":
+                log.warn(message);
+                System.err.println("WARN: " + message);
+                break;
+            default:
+                log.debug(message);
+                System.err.println("INFO: " + message);
         }
     }
 

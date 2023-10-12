@@ -46,6 +46,11 @@
             <maxDocs>10000</maxDocs> <!--Commit every 10.000 documents-->
             <maxTime>${solr.autoCommit.maxTime:10000}</maxTime> <!--Commit every 10 seconds-->
         </autoCommit>
+
+        <!-- This is required for Atomic Updates -->
+        <updateLog>
+            <str name="dir">${solr.ulog.dir:}</str>
+        </updateLog>
     </updateHandler>
 
     <!-- Settings for how Solr will process & respond to queries -->
