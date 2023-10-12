@@ -107,6 +107,10 @@
                 <entry key="researchoutputsoa" value-ref="researchoutputsoa"/>
                 <entry key="person" value-ref="person"/>
                 <entry key="orgunit" value-ref="orgUnit"/>
+                <entry key="virtual" value-ref="virtualCollectionConfiguration"/>
+                <entry key="${collection.handler.virtualCollection}" value-ref="virtualCollectionConfiguration"/>
+                <entry key="content" value-ref="contentCollectionConfiguration"/>
+                <entry key="${collection.handler.contentCollection}" value-ref="contentCollectionConfiguration"/>
                 <entry key="infrastructure" value-ref="infrastructure"/>
                 <entry key="funding" value-ref="funding"/>
                 <entry key="journalissue" value-ref="journalIssue"/>
@@ -230,6 +234,30 @@
             <list>
                 <!--Only find communities and Collections-->
                 <value>search.resourcetype:Community OR search.resourcetype:Collection</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- The virtual collection setting for discovery -->
+    <bean id="virtualCollectionConfiguration" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype" parent="commonConfiguration">
+        <property name="id" value="virtualCollectionConfiguration"/>
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find VirtualCollections -->
+                <value>search.resourcetype:Item AND entityType_keyword:VirtualCollection AND latestVersion:true</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- The content collection setting for discovery -->
+    <bean id="contentCollectionConfiguration" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype" parent="commonConfiguration">
+        <property name="id" value="contentCollectionConfiguration"/>
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find Content -->
+                <value>search.resourcetype:Item AND entityType_keyword:Content AND latestVersion:true</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
     </bean>
