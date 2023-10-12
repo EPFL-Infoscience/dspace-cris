@@ -253,17 +253,7 @@ public class RequestItemEmailNotifier {
         }
 
         // Who gets this message?
-        String recipient;
-        EPerson submitter = item.getSubmitter();
-        if (submitter != null) {
-            recipient = submitter.getEmail();
-        } else {
-            recipient = configurationService.getProperty("mail.helpdesk");
-        }
-        if (null == recipient) {
-            recipient = configurationService.getProperty("mail.admin");
-        }
-        message.addRecipient(recipient);
+        message.addRecipient(configurationService.getProperty("mail.admin"));
 
         // Send the message.
         try {
