@@ -50,6 +50,8 @@
                        or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='pmid']/doc:element/doc:field[@name='value'])>0)
                        or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='hdl']/doc:element/doc:field[@name='value'])>0)
                        or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='scopus']/doc:element/doc:field[@name='value'])>0)
                        or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='arxiv']/doc:element/doc:field[@name='value'])>0)">
                 <datacite:alternateIdentifiers>
                     <xsl:apply-templates
@@ -693,6 +695,9 @@
                 <xsl:choose>
                     <xsl:when test="$idType = 'issn'">ISSN</xsl:when>
                 </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'scopus'">Scopus</xsl:when>
+                </xsl:choose>
 
             </xsl:variable>
             <xsl:if test="$type != ''">
@@ -971,6 +976,38 @@
         </oaire:file>
     </xsl:template>
 
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='journal']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='conference']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartofseries']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
 
     <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_citationtitle.html -->
     <xsl:template
