@@ -1,0 +1,21 @@
+## Rejection email message
+ ##
+ ## {0} Title of submission
+ ## {1} Name of collection
+ ## {2} Fullname of the Submitter
+ ## {3} Email of the Submitter
+ ## {4} Name of the rejector
+ ## {5} Email of the rejector
+ ## {6} Link to 'My DSpace' page
+ ##
+ #set($subject = 'Infoscience : Demande d'informations complémentaires')
+ Bonjour ${params[2]},
+ 
+ Nous avons besoin d'informations complémentaires concernant la notice : ${params[0]} que vous avez soumise dans la collection ${params[1]}.
+ 
+ Veuillez prendre contact avec nous à l'adresse : ${params[5]}
+ 
+ Meilleures salutations, 
+ 
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

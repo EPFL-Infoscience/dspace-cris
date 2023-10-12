@@ -29,7 +29,7 @@ public class ItemsImportSeriesReader implements ItemsImportMetadataFieldReader {
     private String numberXPath;
 
     @Override
-    public List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList) {
+    public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 

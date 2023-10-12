@@ -320,7 +320,8 @@ public class PersonApiServiceImpl implements PersonApiService {
             itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
             itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(),
                                     ePerson.getID().toString(), CF_ACCEPTED);
-        } catch (SQLException e) {
+            itemService.update(context, item);
+        } catch (AuthorizeException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
