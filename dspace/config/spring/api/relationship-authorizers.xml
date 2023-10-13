@@ -91,6 +91,28 @@
         <property name="rightwardType" value="notDisplayingPatents" />
         <property name="andCondition" value="true"/>
     </bean>
+
+    <!-- RelationshipAuthorizerImpl instance that matches isPublicationsHiddenFor relationship type
+         and verify if the current user can manage relationships for involved VirtualCollection -->
+    <bean id="isPublicationsHiddenForVirtualCollectionAuthorizer" class="org.dspace.authorize.relationship.RelationshipAuthorizerImpl">
+        <constructor-arg name="leftItemAuthorizer" ref="relationshipItemAlwaysTrueAuthorizer"/>
+        <constructor-arg name="rightItemAuthorizer" ref="relationshipItemOrgunitEditorAuthorizer"/>
+        <property name="rightEntityType" value="VirtualCollection" />
+        <property name="leftwardType" value="isPublicationsHiddenFor" />
+        <property name="rightwardType" value="notDisplayingPublications" />
+        <property name="andCondition" value="true"/>
+    </bean>
+
+    <!-- RelationshipAuthorizerImpl instance that matches isResearchoutputsSelectedFor relationship type
+         and verify if the current user can manage relationships for involved VirtualCollection -->
+    <bean id="isResearchoutputsSelectedForVirtualCollectionRelationshipAuthorizer" class="org.dspace.authorize.relationship.RelationshipAuthorizerImpl">
+        <constructor-arg name="leftItemAuthorizer" ref="relationshipItemAlwaysTrueAuthorizer"/>
+        <constructor-arg name="rightItemAuthorizer" ref="relationshipItemOrgunitEditorAuthorizer"/>
+        <property name="rightEntityType" value="VirtualCollection" />
+        <property name="leftwardType" value="isPublicationsSelectedFor" />
+        <property name="rightwardType" value="hasSelectedPublications" />
+        <property name="andCondition" value="true"/>
+    </bean>
     
     <bean id="relationshipItemAlwaysTrueAuthorizer" class="org.dspace.authorize.relationship.RelationshipItemAlwaysTrueAuthorizer" />
     <bean id="relationshipItemWritePolicyAuthorizer" class="org.dspace.authorize.relationship.RelationshipItemWritePolicyAuthorizer" />
