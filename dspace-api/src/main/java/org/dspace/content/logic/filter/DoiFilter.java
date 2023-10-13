@@ -8,7 +8,6 @@
 package org.dspace.content.logic.filter;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.startsWith;
 
 import org.dspace.content.Item;
 import org.dspace.content.logic.Filter;
@@ -40,7 +39,7 @@ public class DoiFilter implements Filter {
         if (isEmpty(type)) {
             return false;
         }
-        return type.contains("thesis") || type.contains("::thèse::");
+        return type.contains("thesis") || type.contains("::thèse");
     }
 
     private boolean hasNotDoiOrHasCustomerDoi(Item item) {
@@ -50,7 +49,7 @@ public class DoiFilter implements Filter {
         }
 
         String doiPrefix = configurationService.getProperty("identifier.doi.prefix");
-        return startsWith(doi, doiPrefix);
+        return doi.contains(doiPrefix);
     }
 
     @Override

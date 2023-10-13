@@ -9,7 +9,6 @@ package org.dspace.content.security;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,7 +19,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.logic.Filter;
+import org.dspace.content.logic.LogicalStatement;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -75,7 +74,7 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         try {
 
             boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
-            Filter additionalFilter = accessMode.getAdditionalFilter();
+            LogicalStatement additionalFilter = accessMode.getAdditionalFilter();
 
             return additionalFilter == null ? checkSecurity
                 : checkSecurity && additionalFilter.getResult(context, item);
@@ -212,37 +211,31 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             return false;
         }
 
-        try {
-            for (Group group : context.getSpecialGroups()) {
-                if (groupService.isMember(context, user, group)) {
-                    return true;
-                }
-            }
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e.getMessage(), e);
-        }
-
-        List<Group> userGroups = Optional.ofNullable(user).map(EPerson::getGroups)
-                                         .orElseGet(Collections::emptyList);
+        List<Group> userGroups = user.getGroups();
         if (CollectionUtils.isEmpty(userGroups)) {
             return false;
         }
 
         return groups.stream()
-                     .map(group -> findGroupByNameOrUUID(context, group))
+                     .map(group -> findGroupOrSpecialGroups(context, group))
                      .filter(group -> Objects.nonNull(group))
-                     .anyMatch(group -> userGroups.contains(group) || isSpecialGroup(context, group));
+                     .anyMatch(group -> userGroups.contains(group));
     }
 
-    private boolean isSpecialGroup(Context context, Group group) {
-        return findInSpecialGroups(context, group) != null;
+    private Group findGroupOrSpecialGroups(Context context, String group) {
+        return Optional.ofNullable(findGroupByNameOrUUID(context, group))
+            .or(() -> Optional.ofNullable(findInSpecialGroups(context, group)))
+            .orElse(null);
     }
 
-    private Group findInSpecialGroups(Context context, Group group) {
+    private Group findInSpecialGroups(Context context, String group) {
         try {
             return context.getSpecialGroups()
                 .stream()
-                .filter(specialGroup -> specialGroup != null && specialGroup.equals(group))
+                .filter(specialGroup ->
+                    specialGroup.getName().equals(group) ||
+                    specialGroup.getID().toString().equals(group)
+                )
                 .findFirst()
                 .orElse(null);
         } catch (SQLException e) {

@@ -11,7 +11,7 @@ package org.dspace.versioning;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dspace.content.logic.Filter;
+import org.dspace.content.logic.LogicalStatement;
 import org.dspace.content.security.AccessItemMode;
 import org.dspace.content.security.CrisSecurity;
 
@@ -32,7 +32,7 @@ public class VersioningItemMode implements AccessItemMode {
      * Contains the list of users metadata for CUSTOM security
      */
     private List<String> items = new ArrayList<String>();
-    private Filter additionalFilter;
+    private LogicalStatement additionalFilter;
 
     @Override
     public List<CrisSecurity> getSecurities() {
@@ -60,11 +60,11 @@ public class VersioningItemMode implements AccessItemMode {
     }
 
     @Override
-    public Filter getAdditionalFilter() {
+    public LogicalStatement getAdditionalFilter() {
         return additionalFilter;
     }
 
-    public void setAdditionalFilter(Filter additionalFilter) {
+    public void setAdditionalFilter(LogicalStatement additionalFilter) {
         this.additionalFilter = additionalFilter;
     }
 
