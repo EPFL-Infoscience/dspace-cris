@@ -254,18 +254,22 @@
         <metadata-field>
             <field>epfl.thesis.faculty</field>
             <xpath>./datafield[@tag = '918']/subfield[@code = 'a']</xpath>
+            <reader>thesis</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.section</field>
             <xpath>./datafield[@tag = '918']/subfield[@code = 'b']</xpath>
+            <reader>thesis</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.institute</field>
             <xpath>./datafield[@tag = '918']/subfield[@code = 'c']</xpath>
+            <reader>thesis</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.doctoralSchool</field>
             <xpath>./datafield[@tag = '918']/subfield[@code = 'd']</xpath>
+            <reader>thesis</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.originalUnit</field>

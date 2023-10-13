@@ -202,4 +202,8 @@
         <property name="journalMetadataField" value="dc.relation.journal" />
     </bean>
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportThesisReader">
+        <property name="authorityPrefix" value="will be referenced::ACRONYM::" />
+    </bean>
+    
 </beans>
