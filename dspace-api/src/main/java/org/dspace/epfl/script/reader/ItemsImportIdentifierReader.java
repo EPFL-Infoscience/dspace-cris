@@ -8,6 +8,7 @@
 package org.dspace.epfl.script.reader;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -28,7 +30,7 @@ public class ItemsImportIdentifierReader implements ItemsImportMetadataFieldRead
     private String valueXPath;
 
     @Override
-    public List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList) {
+    public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
@@ -38,7 +40,7 @@ public class ItemsImportIdentifierReader implements ItemsImportMetadataFieldRead
 
             String value = getSingleValue(node, xPath, valueXPath);
 
-            String qualifier = getSingleValue(node, xPath, qualifierXPath);
+            String qualifier = getQualifier(node);
             String identifierField = isNotBlank(qualifier) ? metadataField + "." + qualifier : metadataField;
 
             metadataValues.add(new MetadataValueDTO(identifierField, value));
@@ -47,6 +49,24 @@ public class ItemsImportIdentifierReader implements ItemsImportMetadataFieldRead
 
         return metadataValues;
 
+    }
+
+    private String getQualifier(Node node) {
+
+        String qualifier = getSingleValue(node, xPath, qualifierXPath);
+
+        qualifier = lowerCase(qualifier);
+        qualifier = StringUtils.replace(qualifier, " ", "-");
+
+        if ("scopusid".equals(qualifier)) {
+            return "scopus";
+        }
+
+        if (qualifier != null && qualifier.startsWith("epo")) {
+            return "epo";
+        }
+
+        return qualifier;
     }
 
     @Override

@@ -10,6 +10,7 @@ package org.dspace.handle.service;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
@@ -85,6 +86,18 @@ public interface HandleService {
      */
     public String createHandle(Context context, DSpaceObject dso)
         throws SQLException;
+
+    /**
+     * Creates a new handle in the database for bitstream.
+     *
+     * @param context DSpace context
+     * @param bitstream     The DSpaceObject to create a handle for
+     * @param itemHandle existing handle value
+     * @return The newly created handle
+     * @throws SQLException If a database error occurs
+     */
+    public String createHandleForBitstream(Context context, Bitstream bitstream, String itemHandle)
+            throws SQLException;
 
     /**
      * Creates a handle entry, but with a handle supplied by the caller (new

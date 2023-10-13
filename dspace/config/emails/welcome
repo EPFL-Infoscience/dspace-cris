@@ -1,15 +1,22 @@
 ## E-mail sent to a DSpace user after a new account is registered.
-##
-## See org.dspace.core.Email for information on the format of this file.
-##
-#set($subject = "Welcome new registered ${config.get('dspace.name')} user!")
-Thank you for registering an account.  Your new account can be used immediately
-to subscribe to notices of new content arriving in collections of your choice.
-
-Your new account can also be granted privileges to submit new content, or to
-edit and/or approve submissions.
-
-If you need assistance with your account, please email
-${config.get("mail.admin")}.
-
-The ${config.get('dspace.name')} Team
+ ##
+ ## See org.dspace.core.Email for information on the format of this file.
+ ##
+ #set($subject = "Welcome to Infoscience!")
+ 
+ Hello,
+ 
+ Welcome to Infoscience!
+ Your registration is now complete, and allows you to submit publications, modify and validate records, according to your assigned rights.
+ You can also create alerts based on your interests.
+ 
+ We invite you to consult the user guide for more information:  <<https://www.epfl.ch/campus/library/fr/services-chercheurs/infoscience/aide-infoscience/>>
+ 
+ If you need any help, please don't hesitate to contact us at: ${config.get("mail.admin")}.
+ 
+ We look forward to working with you.
+ 
+ Best regard,
+ 
+ Infoscience Team
+ EPFL Library

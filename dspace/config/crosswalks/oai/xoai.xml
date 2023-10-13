@@ -13,73 +13,6 @@
     maxListSetsSize="100" stylesheet="static/style.xsl" xmlns="http://www.lyncode.com/XOAIConfiguration">
 
     <Contexts>
-        <Context baseurl="request" name="Default Context">
-            <!-- Restrict access to hidden items by default -->
-            <Filter ref="defaultFilter"/>
-
-            <Set ref="thesesSet"/>
-            <Format ref="oaidc"/>
-            <Format ref="mets"/>
-            <!--  <Format ref="xoai"/>-->
-            <Format ref="didl"/>
-            <Format ref="dim"/>
-            <Format ref="ore"/>
-            <Format ref="rdf"/>
-            <Format ref="etdms"/>
-            <Format ref="mods"/>
-            <Format ref="qdc"/>
-            <Format ref="marc"/>
-            <Format ref="uketd_dc"/>
-            <!--<Format ref="junii2" />-->
-            <Description>
-                This is the default context of the DSpace OAI-PMH data provider.
-            </Description>
-        </Context>
-
-        <!--
-            Driver Guidelines:
-
-            - https://guidelines.openaire.eu/en/latest/literature/use_of_oai_pmh.html
-         -->
-<!--        <Context baseurl="driver" name="Driver Context">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="driverTransformer"/>-->
-<!--            &lt;!&ndash; The driver filter &ndash;&gt;-->
-<!--            <Filter ref="driverFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="driverSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            <Format ref="mets"/>-->
-<!--            <Format ref="didl"/>-->
-<!--            <Description>-->
-<!--                This context complies with Driver rules.-->
-<!--            </Description>-->
-<!--        </Context>-->
-
-        <!--
-            OpenAIRE Guidelines 3.0:
-
-            - https://guidelines.openaire.eu/
-
-            There is a limitation over the embargoedEndDate parameter:
-
-            - Predefined DSpace fields don't allow to set this up with a default.
-         -->
-<!--        <Context baseurl="openaire" name="OpenAIRE Context">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="openaireTransformer"/>-->
-<!--            &lt;!&ndash; OpenAIRE filter &ndash;&gt;-->
-<!--            <Filter ref="openAireFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="openaireFundedResourcesSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            <Format ref="mets"/>-->
-<!--            <Description>-->
-<!--                This contexts complies with OpenAIRE Guidelines for Literature Repositories v3.0.-->
-<!--            </Description>-->
-<!--        </Context>-->
 
         <!--
             OpenAIRE Guidelines 4.0:
@@ -91,65 +24,38 @@
             - Predefined DSpace fields don't allow to set this up with a default.
          -->
         <Context baseurl="openaire4" name="OpenAIRE 4 Context">
+
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaire4Transformer"/>
             <!-- OpenAIRE filter -->
             <Filter ref="openAIRE4Filter"/>
+            <Set ref="thesesSet"/>
+            <Set ref="openaireDataset"/>
+            <Set ref="doisSet"/>
+            <Set ref="fulltextSet"/>
+            <Set ref="fulltextPublicSet"/>
+            <Set ref="openaire4Set"/>
+            <Set ref="openairePublicationsCrisSet"/>
+            <Set ref="openaireProductsCrisSet"/>
+            <Set ref="openairePatentsCrisSet"/>
+            <Set ref="oaiOpenaireSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="oaiopenaire"/>
+            <Format ref="mets"/>
+            <Format ref="didl"/>
+            <Format ref="dim"/>
+            <Format ref="ore"/>
+            <Format ref="rdf"/>
+            <Format ref="etdms"/>
+            <Format ref="mods"/>
+            <Format ref="qdc"/>
+            <Format ref="marc"/>
+            <Format ref="uketd_dc"/>
             <Description>
                 This contexts complies with OpenAIRE Guidelines for Literature Repositories v4.0.
             </Description>
         </Context>
-
-<!--        <Context baseurl="theses" name="Theses Context">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="driverTransformer"/>-->
-<!--            &lt;!&ndash; Theses filter &ndash;&gt;-->
-<!--            <Filter ref="thesesFilter"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="mets"/>-->
-<!--            <Description>-->
-<!--                This contexts can be used to harvest theses data-->
-<!--            </Description>-->
-<!--        </Context>-->
-
-<!--        <Context baseurl="openairecris" name="OpenAIRE Context for CRIS System">-->
-<!--            &lt;!&ndash; Date format, field prefixes, etc are ensured by the transformer &ndash;&gt;-->
-<!--            <Transformer ref="openairecrisTransformer"/>-->
-<!--            <Filter ref="openAireCRISFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="openairePublicationsCrisSet"/>-->
-<!--            <Set ref="openaireProductsCrisSet"/>-->
-<!--            <Set ref="openairePatentsCrisSet"/>-->
-<!--            <Set ref="openairePersonsCrisSet"/>-->
-<!--            <Set ref="openaireOrgunitsCrisSet"/>-->
-<!--            <Set ref="openaireProjectsCrisSet"/>-->
-<!--            <Set ref="openaireEventsCrisSet"/>-->
-<!--            <Set ref="openaireEquipmentsCrisSet"/>-->
-<!--            <Set ref="openaireFundingCrisSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            <Format ref="oai_cerif"/>-->
-<!--            <Description>-->
-<!--                This contexts complies with OpenAIRE rules for CRIS system v 1.1.1-->
-<!--            </Description>-->
-<!--        </Context>-->
-
-<!--        <Context baseurl="openairedata" name="OpenAIRE Data Repository Context">-->
-<!--            &lt;!&ndash; OpenAIRE DataArchive filter &ndash;&gt;-->
-<!--            <Filter ref="openaireDataFilter"/>-->
-<!--            &lt;!&ndash; Just an alias, in fact it returns all items within the driver context &ndash;&gt;-->
-<!--            <Set ref="openaireDataSet"/>-->
-<!--            &lt;!&ndash; Metadata Formats &ndash;&gt;-->
-<!--            <Format ref="oaidc"/>-->
-<!--            &lt;!&ndash; set the reference at the new format called datacite41_openaire &ndash;&gt;-->
-<!--            <Format ref="datacite41_openaire"/>-->
-<!--            <Description>-->
-<!--                This contexts complies with Data Archive OpenAIRE rules.-->
-<!--            </Description>-->
-<!--        </Context>-->
 
     </Contexts>
 
@@ -218,7 +124,7 @@
             <SchemaLocation>http://dublincore.org/schemas/xmls/qdc/2006/01/06/dcterms.xsd</SchemaLocation>
         </Format>
         <Format id="marc">
-            <Prefix>marc</Prefix>
+            <Prefix>marcxml</Prefix>
             <XSLT>metadataFormats/marc.xsl</XSLT>
             <Namespace>http://www.loc.gov/MARC21/slim</Namespace>
             <SchemaLocation>http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd</SchemaLocation>
@@ -728,6 +634,10 @@
                 <list name="values">
                     <string>Publication</string>
                     <string>publication</string>
+                    <string>Product</string>
+                    <string>product</string>
+                    <string>Patent</string>
+                    <string>patent</string>
                     <!-- and other alternative names for publications types -->
                 </list>
             </Configuration>
@@ -772,6 +682,77 @@
                 </And>
             </Definition>
         </Filter>
+        <Filter id="datasetFilters">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Custom ref="productSetFilter"/>
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="datasetTypeCondition"/>
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+        <Filter id="doisFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Custom ref="epflDoiCondition" />
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="dataArchiveTypeCondition" />
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+        <Filter id="fulltextFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Custom ref="fullTextCondition" />
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="dataArchiveTypeCondition" />
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+        <Filter id="fulltextPublicFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Custom ref="fullTextPublicCondition" />
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="dataArchiveTypeCondition" />
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+        <Filter id="openaireFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Or>
+                            <LeftCondition>
+                                <Custom ref="legacyOpenaireSetCondition"/>
+                            </LeftCondition>
+                            <RightCondition>
+                                <Not>
+                                    <Condition>
+                                        <Custom ref="teachingResOrDatasetsOrPhisicalObjectsCondition"/>
+                                    </Condition>
+                                </Not>
+                            </RightCondition>
+                        </Or>
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="dataArchiveTypeCondition" />
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
 
         <CustomCondition id="publicationDateFilter">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
@@ -802,6 +783,19 @@
                     <string>c_970fb48d4fbd8a85</string>
                     <string>c_e19f295774971610</string>
                     <string>c_dc82b40f9837b551</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+
+        <CustomCondition id="epflDoiCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.identifier.doi</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>10.5075</string>
+                    <!-- this second condition is to check DOIs with text prefix, better to remove it before go-live -->
+                    <string>10.82741</string>
                 </list>
             </Configuration>
         </CustomCondition>
@@ -927,6 +921,63 @@
             </Configuration>
         </CustomCondition>
 
+        <CustomCondition id="fullTextCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">datacite.rights</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>administrator</string>
+                    <string>embargo</string>
+                    <string>openaccess</string>
+                    <string>restricted</string>
+                    <string>reserved</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+
+        <CustomCondition id="fullTextPublicCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">datacite.rights</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>openaccess</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+        <CustomCondition id="legacyOpenaireSetCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">epfl.oai.currentset</string>
+                <string name="operator">contains</string>
+                <list name="values">
+                    <string>OpenAIREv4</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+        <CustomCondition id="teachingResOrDatasetsOrPhisicalObjectsCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">ends_with</string>
+                <list name="values">
+                    <string>dataset</string>
+                    <string>Teaching material</string>
+                    <string>design</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+        <CustomCondition id="datasetTypeCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">ends_with</string>
+                <list name="values">
+                    <string>dataset</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
     </Filters>
 
     <Sets>
@@ -987,15 +1038,48 @@
             <Filter ref="fundingSetFilter" />
         </Set>
         <!-- set the OpenAIRE Data Archive OAI Set. See: https://guidelines.openaire.eu/en/latest/data/use_of_oai_pmh.html -->
-        <Set id="openaireDataSet">
-            <Spec>openaire_data</Spec>
-            <Name>OpenAIRE</Name>
-            <!-- Just an alias or set a filter condition to expose only specific kind of items (dataset) -->
-        </Set>
+<!--        <Set id="openaireDataSet">-->
+<!--            <Spec>openaire_data</Spec>-->
+<!--            <Name>OpenAIRE</Name>-->
+<!--            &lt;!&ndash; Just an alias or set a filter condition to expose only specific kind of items (dataset) &ndash;&gt;-->
+<!--        </Set>-->
         <Set id="thesesSet">
-            <Spec>epfl_theses</Spec>
-            <Name>Theses</Name>
+            <Spec>theses-bn</Spec>
+            <Name>theses-bn</Name>
             <Filter ref="thesesFilter"/>
+        </Set>
+        <!-- openaire datasets -->
+        <Set id="openaireDataset">
+            <Spec>openaire_data</Spec>
+            <Name>openaire_data</Name>
+            <Filter ref="datasetFilters"/>
+        </Set>
+        <!-- EPFL managed DOIs -->
+        <Set id="doisSet">
+            <Spec>doi</Spec>
+            <Name>DOI</Name>
+            <Filter ref="doisFilter"/>
+        </Set>
+        <!-- Public and restricted records with fulltext access -->
+        <Set id="fulltextSet">
+            <Spec>fulltext</Spec>
+            <Name>fulltext</Name>
+            <Filter ref="fulltextFilter"/>
+        </Set>
+        <Set id="fulltextPublicSet">
+            <Spec>fulltext-public</Spec>
+            <Name>fulltext-public</Name>
+            <Filter ref="fulltextPublicFilter"/>
+        </Set>
+        <Set id="openaire4Set">
+            <Spec>OpenAIREv4</Spec>
+            <Name>OpenAIREv4</Name>
+            <Filter ref="openaireFilter"/>
+        </Set>
+        <Set id="oaiOpenaireSet">
+            <Spec>oai_openaire</Spec>
+            <Name>oai_openaire</Name>
+            <Filter ref="openaireFilter"/>
         </Set>
     </Sets>
 </Configuration>

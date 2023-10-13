@@ -105,7 +105,7 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
             // if no data
             if (topCounts.length == 0) {
                 UsageReportPointDsoTotalVisitsRest totalVisitPoint = new UsageReportPointDsoTotalVisitsRest();
-                totalVisitPoint.addValue("views", 0);
+                addValueToPoint(totalVisitPoint, 0);
                 totalVisitPoint.setType(getType(facetField));
                 usageReportRest.addPoint(totalVisitPoint);
             }
@@ -126,7 +126,7 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
                 totalVisitPoint.setType(getType(facetField));
                 totalVisitPoint.setId(idAndName.getFirst());
                 totalVisitPoint.setLabel(idAndName.getSecond() + legacyNote);
-                totalVisitPoint.addValue("views", (int) count.getCount());
+                addValueToPoint(totalVisitPoint, (int) count.getCount());
                 usageReportRest.addPoint(totalVisitPoint);
 
             }
@@ -136,8 +136,17 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
         }
     }
 
+    private void addValueToPoint(UsageReportPointDsoTotalVisitsRest totalVisitPoint, int count) {
+        if ( dsoType == BITSTREAM) {
+            totalVisitPoint.addValue("downloads", count);
+        } else {
+            totalVisitPoint.addValue("views", count);
+        }
+    }
+
     private String calculateFacetField(DSpaceObject root) {
-        return getDsoType() == BITSTREAM && root.getType() != Constants.ITEM ? OWNING_ITEM_FIELD : "id";
+//        return getDsoType() == BITSTREAM && root.getType() != Constants.ITEM ? OWNING_ITEM_FIELD : "id";
+        return getDsoType() == BITSTREAM ? OWNING_ITEM_FIELD : "id";
     }
 
     private Pair<String, String> getIdAndName(Context context, String dsoId, String facetField) throws SQLException {
@@ -178,7 +187,8 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
 
     @Override
     public String getReportType() {
-        return UsageReportUtils.TOP_ITEMS_REPORT_ID;
+        return getDsoType() == Constants.ITEM ? UsageReportUtils.TOP_ITEMS_REPORT_ID :
+            UsageReportUtils.TOP_DOWNLOADS_REPORT_ID;
     }
 
 

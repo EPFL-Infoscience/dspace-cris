@@ -51,7 +51,7 @@ public class OrcidPublicationLoader extends SolrSuggestionProvider {
      * @throws IOException         for IO errors
      * @throws SolrServerException for Solr errors
      */
-    public void importWorks(Context context, Item profile, String orcid) throws SolrServerException, IOException {
+    public int importWorks(Context context, Item profile, String orcid) throws SolrServerException, IOException {
         List<ExternalDataObject> externalObjects = provider.searchExternalDataObjects(orcid, 0, -1);
 
         List<Suggestion> suggestions = convertToSuggestions(profile, externalObjects);
@@ -60,6 +60,20 @@ public class OrcidPublicationLoader extends SolrSuggestionProvider {
         }
 
         solrSuggestionStorageService.commit();
+        return suggestions.size();
+    }
+
+    @Override
+    public int importAuthorRecords(Context context, Item researcher) throws SolrServerException, IOException {
+        return importWorks(context, researcher, itemService.getMetadataFirstValue(researcher,
+                                                                                  "person", "identifier",
+                                                                                  "orcid", Item.ANY));
+    }
+
+    @Override
+    public int importAuthorRecords(Context context, Item researcher, String extraQuery)
+        throws SolrServerException, IOException {
+        return importAuthorRecords(context, researcher);
     }
 
     private List<Suggestion> convertToSuggestions(Item profile, List<ExternalDataObject> externalDataObjects) {
