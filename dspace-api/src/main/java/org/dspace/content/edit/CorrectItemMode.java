@@ -10,7 +10,6 @@ package org.dspace.content.edit;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dspace.content.logic.Filter;
 import org.dspace.content.logic.LogicalStatement;
 import org.dspace.content.security.AccessItemMode;
 import org.dspace.content.security.CrisSecurity;

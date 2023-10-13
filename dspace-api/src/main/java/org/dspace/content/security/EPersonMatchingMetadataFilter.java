@@ -37,7 +37,7 @@ public class EPersonMatchingMetadataFilter implements Filter {
         }
         return itemService.getMetadataByMetadataString(item, metadataName).stream()
                           .anyMatch(
-                               mv -> UUIDUtils.toString(context.getCurrentUser().getID()).equals(mv.getAuthority()));
+                              mv -> UUIDUtils.toString(context.getCurrentUser().getID()).equals(mv.getAuthority()));
     }
 
     @Override
