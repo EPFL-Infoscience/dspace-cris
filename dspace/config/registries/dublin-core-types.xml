@@ -404,6 +404,13 @@
   </dc-type>
 
   <dc-type>
+    <schema>dc</schema>
+    <element>relation</element>
+    <qualifier>sponsorship</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+  
+  <dc-type>
 	<schema>dc</schema>
     <element>description</element>
     <qualifier>statementofresponsibility</qualifier>

@@ -507,11 +507,11 @@
           <dc-schema>person</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
-          <label>ORCID</label>
+          <label>ORCID (external author)</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Enter the ORCID identifier of the author.</hint>
+          <hint>Enter the ORCID of the external author.</hint>
         </field>
       </row>
       <row>
@@ -2229,6 +2229,17 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <label>Subject(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
           <dc-schema>cris</dc-schema>
           <dc-element>legacyId</dc-element>
           <label>Legacy ID</label>
@@ -3423,6 +3434,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>cris</dc-schema>
           <dc-element>legacyId</dc-element>
           <label>Legacy ID</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <label>sponsorship</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />

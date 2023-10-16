@@ -334,6 +334,7 @@
                                 </list>
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-delegate-edit" />
+                            <property name="additionalFilter" ref="notHeadOfVirtualCollection"/>
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
@@ -347,7 +348,7 @@
                                     <value>epfl.virtualCollection.curator</value>
                                 </list>
                             </property>
-<!--                            <property name="additionalFilter" ref="thematicAreaDelegateFilter" />-->
+                            <property name="additionalFilter" ref="notHeadOfVirtualCollection"/>
                             <property name="submissionDefinition" value="virtual-collection-delegate-edit" />
                         </bean>
                     </list>
@@ -356,4 +357,11 @@
         </property>
     </bean>
     <bean name="thematicAreaDelegateFilter" class="org.dspace.content.security.ThematicCollectionDelegateFilter"/>
+
+    <bean class="org.dspace.content.logic.operator.Not" id="notHeadOfVirtualCollection">
+        <property name="statements" ref="headOfVirtualCollection"/>
+    </bean>
+    <bean name="headOfVirtualCollection" class="org.dspace.content.security.EPersonMatchingMetadataFilter">
+        <constructor-arg name="metadataName" value="epfl.virtualCollection.head"/>
+    </bean>
 </beans>
