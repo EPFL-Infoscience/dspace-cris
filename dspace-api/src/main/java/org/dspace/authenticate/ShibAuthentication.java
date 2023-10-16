@@ -1338,9 +1338,12 @@ public class ShibAuthentication implements AuthenticationMethod {
 
     private void deleteEperson(Context context, EPerson ePerson) {
         try {
+            context.turnOffAuthorisationSystem();
             ePersonService.delete(context, ePerson);
         } catch (SQLException | AuthorizeException | IOException e) {
             log.error("An error occurs when trying to delete ePerson " + ePerson.getID() , e);
+        } finally {
+            context.restoreAuthSystemState();
         }
     }
 }
