@@ -125,8 +125,8 @@ public class ProfileInitializer {
             personDTOForEmail.setSciper(sciper);
             personDTOForEmail.setName(eperson.getName());
             personDTOForEmail.setFirstname(eperson.getFirstName());
-            sendEmailForNoAffiliations(context, personDTOForEmail);
-            LOGGER.info("No valid accreditations for sciper {} profile not created", sciper);
+            sendEmailForNoValidAffiliations(context, personDTOForEmail);
+            LOGGER.warn("No valid accreditations for sciper {} profile not created", sciper);
             return;
         }
 
@@ -297,6 +297,10 @@ public class ProfileInitializer {
 
     private void sendEmailForNoAffiliations(Context context, PersonDTO person) {
         sendEmail(context, person, "person_synchronization_no_affiliations");
+    }
+
+    private void sendEmailForNoValidAffiliations(Context context, PersonDTO person) {
+        sendEmail(context, person, "person_synchronization_no_valid_affiliations");
     }
 
     private void sendEmailForNoMainAffiliation(Context context, PersonDTO person) {
