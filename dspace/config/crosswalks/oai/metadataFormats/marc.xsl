@@ -143,8 +143,7 @@
 					<xsl:for-each select="doc:element[@name='bitstreams']/doc:element">
 						<datafield ind2=" " ind1="4" tag="856">
 							<xsl:if test="doc:field[@name='format']">
-								<subfield code="z">
-									<xsl:value-of select="doc:field[@name='format']/text()" /></subfield>
+								<subfield code="z"><xsl:value-of select="doc:field[@name='format']/text()" /></subfield>
 							</xsl:if>
 							<xsl:if test="doc:field[@name='name']">
 								<subfield code="f"><xsl:value-of select="doc:field[@name='name']/text()" /></subfield>
