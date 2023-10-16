@@ -178,7 +178,9 @@ public class ProfileInitializer {
 
         if (!atLeastAnActiveAccreditation(researcherProfile.getItem())
                 && groupService.isMember(context, eperson, submittersGroup)) {
+            context.turnOffAuthorisationSystem();
             groupService.removeMember(context, submittersGroup, eperson);
+            context.restoreAuthSystemState();
         }
     }
 
