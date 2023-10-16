@@ -125,6 +125,19 @@
 					<subfield code="d"><xsl:value-of select="." /></subfield>
 				</xsl:for-each>
 			</datafield>
+
+			<!-- These variables are needed because oairecerif.author.affiliation value would be evaluated incorrectly inside the following 'for-each'-->
+			<xsl:variable name="hasAuthorAffiliation">
+				<xsl:if test="doc:metadata/doc:element[@name='oairecerif']/doc:element[@name='author']/doc:element[@name='affiliation']/doc:element/doc:field[@name='value']">
+					<xsl:text>true</xsl:text>
+				</xsl:if>
+			</xsl:variable>
+			<xsl:variable name="authorAffiliation">
+				<xsl:if test="$hasAuthorAffiliation='true'">
+					<xsl:value-of select="doc:metadata/doc:element[@name='oairecerif']/doc:element[@name='author']/doc:element[@name='affiliation']/doc:element/doc:field[@name='value']/text()" />
+				</xsl:if>
+			</xsl:variable>
+
 			<xsl:for-each select="doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle']">
 				<xsl:if test="doc:field[@name='name']/text() = 'ORIGINAL'">
 					<xsl:for-each select="doc:element[@name='bitstreams']/doc:element">
@@ -144,9 +157,14 @@
 							</xsl:if>
 						</datafield>
 					</xsl:for-each>
-					<xsl:if test="doc:element[@name='bitstreams']/doc:field[@name='elements']">
+					<xsl:if test="doc:element[@name='bitstreams']/doc:field[@name='elements'] or $hasAuthorAffiliation='true'">
 						<datafield ind2=" " ind1=" " tag="919">
-							<subfield code="o"><xsl:value-of select="doc:element[@name='bitstreams']/doc:field[@name='elements']/text()" /></subfield>
+							<xsl:if test="doc:element[@name='bitstreams']/doc:field[@name='elements']">
+								<subfield code="o"><xsl:value-of select="doc:element[@name='bitstreams']/doc:field[@name='elements']/text()" /></subfield>
+							</xsl:if>
+							<xsl:if test="$hasAuthorAffiliation='true'">
+								<subfield code="a"><xsl:value-of select="$authorAffiliation" /></subfield>
+							</xsl:if>
 						</datafield>
 					</xsl:if>
 				</xsl:if>
