@@ -93,8 +93,8 @@ public class RequestItemEmailNotifier {
         }
 
         for (RequestItemAuthor author : authors) {
-            Locale locale = I18nUtil.getDefaultLocale();
 
+            Locale locale = I18nUtil.getDefaultLocale();
             EPerson ePerson = ePersonService.findByEmail(context, author.getEmail());
             if (ePerson != null) {
                 locale = I18nUtil.getEPersonLocale(ePerson);

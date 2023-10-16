@@ -31,12 +31,17 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 
 public class SubmitterFixScript
     extends DSpaceRunnable<SubmitterFixScriptConfiguration<SubmitterFixScript>> {
     private String collectionId;
+
+    private String email;
+
+    private String defaultEmail;
 
     private CollectionService collectionService;
 
@@ -49,8 +54,7 @@ public class SubmitterFixScript
     @Override
     public SubmitterFixScriptConfiguration<SubmitterFixScript> getScriptConfiguration() {
         return new DSpace().getServiceManager()
-                           .getServiceByName("epfl-update-submitter",
-                                             SubmitterFixScriptConfiguration.class);
+                           .getServiceByName("epfl-update-submitter", SubmitterFixScriptConfiguration.class);
     }
 
     @Override
@@ -59,6 +63,9 @@ public class SubmitterFixScript
         itemService = ContentServiceFactory.getInstance().getItemService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         collectionId = commandLine.getOptionValue('c');
+        email = commandLine.getOptionValue('e');
+        defaultEmail = DSpaceServicesFactory.getInstance().getConfigurationService()
+                                            .getProperty("epfl.default-submitter.email");
     }
 
     @Override
@@ -88,37 +95,68 @@ public class SubmitterFixScript
     }
 
     private void updateSubmitter(Item item) {
-        if (hasASciper(item.getSubmitter())) {
+        if (hasSciper(item.getSubmitter())) {
             handler.logInfo("Item " + item.getID() + " already has a submitter with sciper, not changed.");
             return;
         }
+
+        EPerson newSubmitter = getEPersonFromMetadata(item, "epfl.lastmodified.email");
+        if (hasSciper(newSubmitter)) {
+            updateSubmitter(item, newSubmitter);
+            return;
+        }
+
+        newSubmitter = getEPersonFromMetadata(item, "epfl.curator.email");
+        if (hasSciper(newSubmitter)) {
+            updateSubmitter(item, newSubmitter);
+            return;
+        }
+
         firstAuthorWithSciper(item)
-            .ifPresent(a -> {
-                handler.logInfo("Item " + item.getID() + " submitter updated with eperson: " + a.getEmail());
-                item.setSubmitter(a);
-                try {
-                    itemService.update(context, item);
-                } catch (SQLException | AuthorizeException e) {
-                    handler.handleException(e);
-                }
-            });
+            .ifPresentOrElse(
+                ePerson -> updateSubmitter(item, ePerson),
+                () -> updateSubmitter(item, StringUtils.isNotBlank(email) ? email : defaultEmail)
+            );
+    }
+
+    private void updateSubmitter(Item item, String email) {
+        try {
+            EPerson submitter = ePersonService.findByEmail(context, email);
+            if (submitter == null) {
+                handler.logInfo("Item " + item.getID() +
+                                ". No person found for email " + email + ", submitter not changed");
+                return;
+            }
+            updateSubmitter(item, submitter);
+        } catch (SQLException e) {
+            handler.handleException(e);
+        }
+    }
+
+    private void updateSubmitter(Item item, EPerson submitter) {
+        if (!StringUtils.equalsIgnoreCase(item.getSubmitter().getEmail(), submitter.getEmail())) {
+            handler.logInfo("Item " + item.getID() + " submitter updated from " + item.getSubmitter().getEmail() +
+                            " to " + submitter.getEmail());
+            item.setSubmitter(submitter);
+
+            try {
+                itemService.setMetadataSingleValue(context, item, "dc", "provenance", null, null, submitter.getEmail());
+                itemService.update(context, item);
+            } catch (SQLException | AuthorizeException e) {
+                handler.handleException(e);
+            }
+        }
     }
 
     private Optional<EPerson> firstAuthorWithSciper(Item item) {
-        List<MetadataValue> authors =
-            itemService.getMetadataByMetadataString(item, "dc.contributor.author");
-        return authors.stream()
+        return itemService
+            .getMetadataByMetadataString(item, "dc.contributor.author")
+            .stream()
             .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
-            .map(
-                throwingMapperWrapper( mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority())),
-                                       null)
-             ).map(
-                 throwingMapperWrapper(
-                     this::owner, null
-                 )
-               )
+            .map(throwingMapperWrapper(mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority())), null))
+            .map(throwingMapperWrapper(this::owner, null))
             .filter(Objects::nonNull)
-            .filter(this::hasASciper)
+            .filter(this::hasSciper)
             .findFirst();
     }
 
@@ -140,9 +178,18 @@ public class SubmitterFixScript
         }
     }
 
-    private boolean hasASciper(EPerson ePerson) {
-        String netid = ePerson.getNetid();
-        return StringUtils.isNotBlank(netid);
+    private EPerson getEPersonFromMetadata(Item item, String metadata) {
+        String email = itemService.getMetadata(item, metadata);
+
+        try {
+            return ePersonService.findByEmail(context, email);
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    private boolean hasSciper(EPerson ePerson) {
+        return ePerson != null && StringUtils.isNotBlank(ePerson.getNetid());
     }
 
     private void assignCurrentUserInContext() {

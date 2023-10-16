@@ -10,6 +10,7 @@ package org.dspace.app.policy.consumer;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 import java.io.FileNotFoundException;
@@ -19,6 +20,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.tools.ant.filters.StringInputStream;
 import org.dspace.AbstractIntegrationTestWithDatabase;
@@ -33,6 +35,7 @@ import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -89,6 +92,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", accessionedDate.get())));
     }
 
     @Test
@@ -112,6 +118,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", accessionedDate.get())));
     }
 
     @Test
@@ -149,6 +159,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                 not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED))));
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", accessionedDate.get())));
     }
 
     @Test
@@ -173,6 +186,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", accessionedDate.get())));
 
         context.turnOffAuthorisationSystem();
 
@@ -206,6 +222,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(item.getMetadata(),
                 not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.date.available", null))));
     }
 
     @Test
@@ -230,6 +247,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(item.getMetadata(), hasItem(with("datacite.rights",
                 PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", null))));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", accessionedDate.get())));
     }
 
     @Test
@@ -254,6 +274,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.available", embargoDate)));
         assertThat(item.getMetadata(), hasItem(with("datacite.rights", "embargo")));
         assertThat(item.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", embargoDate)));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.date.available", accessionedDate.get()))));
     }
 
     @Test
@@ -301,6 +325,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(bitstream.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
         assertThat(item.getMetadata(), hasItem(with("datacite.rights", "test")));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.date.available", embargoDate))));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.date.available", accessionedDate.get()))));
     }
 
     @Test
@@ -331,6 +359,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(bitstream.getMetadata(), hasItem(with("datacite.available", embargoDate)));
         assertThat(item.getMetadata(), hasItem(with("datacite.rights", "embargo")));
         assertThat(item.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", embargoDate)));
 
         List<ResourcePolicy> resourcePolicies = bitstream.getResourcePolicies();
         ResourcePolicy resourcePolicy = resourcePolicies
@@ -361,6 +390,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN)));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.date.available", embargoDate))));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", accessionedDate.get())));
     }
 
     @Test
@@ -404,6 +437,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(bitstream2.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
         assertThat(item.getMetadata(), hasItem(with("datacite.rights", "embargo")));
         assertThat(item.getMetadata(), hasItem(with("datacite.available", embargoDate)));
+        assertThat(item.getMetadata(), hasItem(with("dc.date.available", embargoDate)));
         assertThat(item.getMetadata(),
                 not(hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_OPEN))));
 
@@ -468,6 +502,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)));
         assertThat(item.getMetadata(), not(hasItem(with("datacite.available", embargoDate))));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.date.available", embargoDate))));
+        Optional<String> accessionedDate = getAccessionedDate(item);
+        assertThat(accessionedDate.isPresent(), is(true));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.date.available", accessionedDate.get()))));
     }
 
     @Test
@@ -478,13 +516,6 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Bitstream pdfBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test"))
                                                  .withMimeType("application/pdf")
                                                  .build();
-        Bitstream jpgBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test2"))
-                                                 .withMimeType("image/jpeg")
-                                                 .build();
-        Bitstream pngBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test3"))
-                                                 .withMimeType("image/png")
-                                                 .build();
-
         Bitstream txtBitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test4"))
                                                  .withMimeType("text/plain")
                                                  .build();
@@ -496,17 +527,139 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         context.commit();
 
         pdfBitstream = context.reloadEntity(pdfBitstream);
-        jpgBitstream = context.reloadEntity(jpgBitstream);
-        pngBitstream = context.reloadEntity(pngBitstream);
         txtBitstream = context.reloadEntity(txtBitstream);
         noMimeTypeBitstream = context.reloadEntity(noMimeTypeBitstream);
 
         assertThat(pdfBitstream.getMetadata(), hasItem(with("bitstream.viewer.provider", "pdf")));
-        assertThat(jpgBitstream.getMetadata(), hasItem(with("bitstream.viewer.provider", "iiif")));
-        assertThat(pngBitstream.getMetadata(), hasItem(with("bitstream.viewer.provider", "iiif")));
-        assertThat(txtBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "iiif"))));
         assertThat(txtBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "pdf"))));
         assertThat(noMimeTypeBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "iiif"))));
         assertThat(noMimeTypeBitstream.getMetadata(), not(hasItem(with("bitstream.viewer.provider", "pdf"))));
     }
+
+    @Test
+    public void testCreateItemWithoutBitstream()
+            throws SQLException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        item = context.reloadEntity(item);
+
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+
+    }
+
+    @Test
+    public void testCreateItemWithOneBitstream()
+            throws SQLException, AuthorizeException, IOException, ParseException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test"))
+                .withMimeType("application/pdf")
+                .build();
+
+        String embargoDate = "2022-08-16";
+        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
+                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("restricted")
+                .withStartDate(dateFormat.parse(embargoDate)).build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        bitstream = context.reloadEntity(bitstream);
+        item = context.reloadEntity(item);
+
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", "restricted")));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights", "restricted")));
+    }
+
+    @Test
+    public void testCreateItemWithBitstreamsWithMainDocument()
+            throws SQLException, AuthorizeException, IOException, ParseException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test"))
+                .withMimeType("application/pdf")
+                .build();
+        Bitstream bitstream2 = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test2"))
+                .withMimeType("application/pdf")
+                .withMetadata("dc", "type", null, "main document")
+                .build();
+
+        String embargoDate = "2022-08-16";
+        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
+                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("openaccess")
+                .withStartDate(dateFormat.parse(embargoDate)).build();
+
+        context.commit();
+        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream2).withAction(Constants.READ)
+                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("restricted")
+                .withStartDate(dateFormat.parse(embargoDate)).build();
+        context.commit();
+
+        context.restoreAuthSystemState();
+        bitstream = context.reloadEntity(bitstream);
+        bitstream2 = context.reloadEntity(bitstream2);
+        item = context.reloadEntity(item);
+
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", "openaccess")));
+        assertThat(bitstream2.getMetadata(), hasItem(with("datacite.rights", "restricted")));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights", "restricted")));
+    }
+
+    @Test
+    public void testCreateItemWithBitstreamsWithFirstBitstreamAsJpeg()
+            throws SQLException, AuthorizeException, IOException, ParseException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test"))
+                .withMimeType("image/jpeg")
+                .build();
+        Bitstream bitstream2 = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test2"))
+                .withMimeType("application/pdf")
+                .build();
+        Bitstream bitstream3 = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test3"))
+                .withMimeType("application/pdf")
+                .build();
+
+        String embargoDate = "2022-08-16";
+        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
+                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("openaccess")
+                .withStartDate(dateFormat.parse(embargoDate)).build();
+        context.commit();
+
+        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream2).withAction(Constants.READ)
+                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("restricted")
+                .withStartDate(dateFormat.parse(embargoDate)).build();
+        context.commit();
+
+        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream3).withAction(Constants.READ)
+                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("openaccess")
+                .withStartDate(dateFormat.parse(embargoDate)).build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        bitstream = context.reloadEntity(bitstream);
+        bitstream2 = context.reloadEntity(bitstream2);
+        bitstream3 = context.reloadEntity(bitstream3);
+        item = context.reloadEntity(item);
+
+        assertThat(bitstream.getMetadata(), hasItem(with("datacite.rights", "openaccess")));
+        assertThat(bitstream2.getMetadata(), hasItem(with("datacite.rights", "restricted")));
+        assertThat(bitstream3.getMetadata(), hasItem(with("datacite.rights", "openaccess")));
+        assertThat(item.getMetadata(), hasItem(with("datacite.rights", "restricted")));
+
+
+    }
+
+    private Optional<String> getAccessionedDate(Item item) {
+        Optional<String> accessionedDate =
+            item.getMetadata().stream().filter(mv -> "dc_date_accessioned".equals(mv.getMetadataField().toString()))
+                .findFirst()
+                .map(MetadataValue::getValue);
+        return accessionedDate;
+    }
+
 }

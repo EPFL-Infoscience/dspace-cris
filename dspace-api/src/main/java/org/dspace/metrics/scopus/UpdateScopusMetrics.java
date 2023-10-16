@@ -153,7 +153,7 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
                 .map(Optional::get)
                 .reduce(joiningOr())
                 .map(StringBuilder::toString)
-                .orElse(null);
+                .orElse("dummy");
     }
 
     private String doi(Item item) {
@@ -175,11 +175,11 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
             .map(Optional::get)
             .reduce(joiningOr())
             .map(StringBuilder::toString)
-            .orElse(null);
+            .orElse("dummy");
     }
 
     private BinaryOperator<StringBuilder> joiningOr() {
-        return (query, clause) -> query.append(" OR ").append(clause);
+        return (query, clause) -> !clause.toString().equals("dummy") ? query.append(" OR ").append(clause) : query;
     }
 
     private Optional<StringBuilder> mapClause(String field, String function) {

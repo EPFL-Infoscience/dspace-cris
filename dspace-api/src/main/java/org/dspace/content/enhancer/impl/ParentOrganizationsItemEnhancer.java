@@ -116,6 +116,9 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
                 }
 
                 relatedItem = findRelatedEntityItem(context, metadataValue);
+                if (relatedItem == null) {
+                    continue;
+                }
             }
 
             enhanceableMetadataValues.addAll(
