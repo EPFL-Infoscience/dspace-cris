@@ -507,11 +507,11 @@
           <dc-schema>person</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
-          <label>ORCID</label>
+          <label>ORCID (external author)</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Enter the ORCID identifier of the author.</hint>
+          <hint>Enter the ORCID of the external author.</hint>
         </field>
       </row>
       <row>
