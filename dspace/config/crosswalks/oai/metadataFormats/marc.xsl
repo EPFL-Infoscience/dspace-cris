@@ -130,16 +130,17 @@
 					<xsl:for-each select="doc:element[@name='bitstreams']/doc:element">
 						<datafield ind2=" " ind1="4" tag="856">
 							<xsl:if test="doc:field[@name='format']">
-								<subfield code="z"><xsl:value-of select="doc:field[@name='format']/text()"></xsl:value-of></subfield>
+								<subfield code="z">
+									<xsl:value-of select="doc:field[@name='format']/text()" /></subfield>
 							</xsl:if>
 							<xsl:if test="doc:field[@name='name']">
-								<subfield code="f"><xsl:value-of select="doc:field[@name='name']/text()"></xsl:value-of></subfield>
+								<subfield code="f"><xsl:value-of select="doc:field[@name='name']/text()" /></subfield>
 							</xsl:if>
 							<xsl:if test="doc:field[@name='rights']">
-								<subfield code="e"><xsl:value-of select="doc:field[@name='rights']/text()"></xsl:value-of></subfield>
+								<subfield code="e"><xsl:value-of select="doc:field[@name='rights']/text()" /></subfield>
 							</xsl:if>
 							<xsl:if test="doc:field[@name='url']">
-								<subfield code="u"><xsl:value-of select="doc:field[@name='url']/text()"></xsl:value-of></subfield>
+								<subfield code="u"><xsl:value-of select="doc:field[@name='url']/text()" /></subfield>
 							</xsl:if>
 						</datafield>
 					</xsl:for-each>
@@ -148,7 +149,6 @@
 							<subfield code="o"><xsl:value-of select="doc:element[@name='bitstreams']/doc:field[@name='elements']/text()" /></subfield>
 						</datafield>
 					</xsl:if>
-
 				</xsl:if>
 			</xsl:for-each>
 		</record>
