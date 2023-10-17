@@ -1,5 +1,0 @@
-## E-mail sent to administrators during the users synchronization when sync happened correctly
-##
-## Parameters: {0} is the sciper id, {1} is the user name
-#set($subject = 'User synchronization success')
-For user having sciper ${params[0]} (${params[1]}) synchronization happened correctly

@@ -149,7 +149,6 @@ public class ProfileInitializer {
             sendEmailForError(context, personDTO.get());
             throw new RuntimeException(e);
         }
-        sendEmailForSuccess(context, personDTO.get());
     }
 
     private void addToSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile)
