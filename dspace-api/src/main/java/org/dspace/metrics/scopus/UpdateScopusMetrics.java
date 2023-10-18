@@ -43,6 +43,8 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
 
     public static final String SCOPUS_CITATION = "scopusCitation";
 
+    private List<String> logsCache = new ArrayList<>();
+
     @Autowired
     private ScopusProvider scopusProvider;
 
@@ -60,6 +62,10 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
     @Override
     public List<String> getFilters() {
         return Arrays.asList("dspace.entity.type:Publication", "dc.identifier.doi:* OR dc.identifier.pmid:*");
+    }
+
+    public List<String> getLogs() {
+        return logsCache;
     }
 
     @Override
@@ -83,10 +89,13 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
                 List<Item> itemList = new ArrayList<>();
                 for (int i = 0; i < fetchSize && itemIterator.hasNext(); i++) {
                     Item item = itemIterator.next();
+                    logAndCache("Adding item with uuid: " + item.getID());
                     setLastImportMetadataValue(context, item);
                     itemList.add(item);
                 }
                 foundItems += itemList.size();
+                String id = this.generateQuery(queryMap, itemList);
+                logAndCache("Getting scopus metrics for " + id);
                 updatedItems +=
                         scopusProvider.getScopusList(this.generateQuery(queryMap, itemList))
                             .stream()
@@ -106,7 +115,7 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
             log.error("Error while updating scopus' metrics", e);
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            log.info("Found and fetched {} with {} api calls!", foundItems, apiCalls);
+            logAndCache("Found and fetched " + foundItems + " with " + apiCalls + " api calls!");
         }
         return updatedItems;
     }
@@ -241,5 +250,10 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
             return currentMetric.getMetricCount() - metric.map(CrisMetrics::getMetricCount).orElse(Double.valueOf(0));
         }
         return null;
+    }
+
+    private void logAndCache(String message) {
+        logsCache.add(message);
+        log.info(message);
     }
 }
