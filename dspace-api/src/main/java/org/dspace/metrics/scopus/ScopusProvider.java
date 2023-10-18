@@ -61,8 +61,12 @@ public class ScopusProvider {
             // explore all linked items with next clause
             while (crisMetricList != null && !crisMetricList.isEmpty() && StringUtils.isNotEmpty(nextItemUrl)) {
                 scopusResponse = this.scopusRestConnector.getNextItem(nextItemUrl);
-                crisMetricList.addAll(mapToCrisMetricList(scopusResponse));
-                nextItemUrl = this.getNext(scopusResponse);
+                if (StringUtils.isNotEmpty(scopusResponse)) {
+                    crisMetricList.addAll(mapToCrisMetricList(scopusResponse));
+                    nextItemUrl = this.getNext(scopusResponse);
+                } else {
+                    nextItemUrl = null;
+                }
             }
             return crisMetricList;
         }
