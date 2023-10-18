@@ -64,7 +64,7 @@ public class OrcidPublicationLoader extends SolrSuggestionProvider {
 
     @Override
     public void importAuthorRecords(Context context, Item researcher) throws SolrServerException, IOException {
-       importWorks(context, researcher, itemService.getMetadataFirstValue(researcher, "person", "identifier",
+        importWorks(context, researcher, itemService.getMetadataFirstValue(researcher, "person", "identifier",
                                                                           "orcid", Item.ANY));
     }
 
