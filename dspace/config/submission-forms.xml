@@ -105,6 +105,17 @@
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <label>Relation</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="bitstream-metadata-product">
       <row>
@@ -2218,6 +2229,17 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <label>Subject(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
           <dc-schema>cris</dc-schema>
           <dc-element>legacyId</dc-element>
           <label>Legacy ID</label>
@@ -3385,7 +3407,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <dc-qualifier>contributorscientificeditornum</dc-qualifier>
+          <dc-qualifier>scientificeditor</dc-qualifier>
           <label>Name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3412,6 +3434,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>cris</dc-schema>
           <dc-element>legacyId</dc-element>
           <label>Legacy ID</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <label>sponsorship</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
