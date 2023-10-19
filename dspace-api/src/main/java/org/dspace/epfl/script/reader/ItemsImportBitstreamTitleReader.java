@@ -9,6 +9,8 @@ package org.dspace.epfl.script.reader;
 
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +31,8 @@ public class ItemsImportBitstreamTitleReader implements ItemsImportMetadataField
             Node node = nodeList.item(i);
             String value = node.getTextContent();
             if (StringUtils.isNotBlank(value)) {
-                String title = substringAfterLast(value, "/");
+                String title = URLDecoder.decode(substringAfterLast(value, "/"),
+                                                 StandardCharsets.UTF_8);
                 metadataValues.add(new MetadataValueDTO(metadataField, title));
             }
         }
