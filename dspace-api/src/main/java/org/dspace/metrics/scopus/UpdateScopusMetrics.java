@@ -83,6 +83,7 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
         long updatedItems = 0;
         long foundItems = 0;
         long apiCalls = 0;
+        logsCache = new ArrayList<>();
         try {
             while (itemIterator.hasNext()) {
                 Map<String, Item> queryMap = new HashMap<>();
@@ -112,11 +113,11 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
                 context.commit();
             }
         } catch (SQLException e) {
-            log.error("Error while updating scopus' metrics", e);
-            throw new RuntimeException(e.getMessage(), e);
+            logAndCacheError("Error while updating scopus' metrics", e);
         } finally {
             logAndCache("Found and fetched " + foundItems + " with " + apiCalls + " api calls!");
         }
+        logsCache.addAll(scopusProvider.getLogs());
         return updatedItems;
     }
 
@@ -228,6 +229,7 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
 
             createNewScopusMetrics(context,currentItem, scopusMetric, deltaPeriod1, deltaPeriod2);
         } catch (SQLException | AuthorizeException e) {
+            logsCache.add(e.getMessage());
             log.error(e.getMessage(), e);
         }
         return true;
@@ -253,7 +255,12 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
     }
 
     private void logAndCache(String message) {
-        logsCache.add(message);
+        logsCache.add("INFO: " + message);
         log.info(message);
+    }
+
+    private void logAndCacheError(String message, Throwable e) {
+        logsCache.add("ERROR: " + message + '\n' + e.getMessage());
+        log.error(message, e);
     }
 }
