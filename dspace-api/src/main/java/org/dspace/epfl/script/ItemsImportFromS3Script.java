@@ -17,7 +17,6 @@ import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -356,8 +355,18 @@ public class ItemsImportFromS3Script
 
                 verifyBitstreamChecksum(fileName, bitstreams, zipFile.getInputStream(entry));
 
-                String bitstreamName = id + "_" + escapeBitstreamName(fileName)
-                        + getExtensionFromFile(zipFile.getInputStream(entry));
+                String bitstreamName = id + "_" + escapeBitstreamName(fileName);
+                String fileExtension = getExtensionFromFile(zipFile.getInputStream(entry));
+                if (!bitstreamName.endsWith(fileExtension)) {
+                    bitstreams.stream().map(bitstreamDTO -> bitstreamDTO.getMetadataValues().stream()
+                                    .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals("dc.title"))
+                                    .findFirst().orElse(null))
+                            .filter(metadata -> escapeBitstreamName(fileName).equals(metadata.getValue()))
+                            .findFirst().ifPresent(titleMetadata -> titleMetadata
+                                    .setValue(titleMetadata.getValue() + fileExtension));
+                    bitstreamName += fileExtension;
+                }
+
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
 
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
