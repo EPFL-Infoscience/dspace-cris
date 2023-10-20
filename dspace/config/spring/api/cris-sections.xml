@@ -19,6 +19,7 @@
         <property name="nestedSections">
             <list>
                 <ref bean="sectionresearchoutputs" />
+                <ref bean="sectionresearchoutputsoa" />
                 <ref bean="sectionresearcherprofiles" />
                 <ref bean="sectionorgunits" />
             </list>
