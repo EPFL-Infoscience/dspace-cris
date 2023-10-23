@@ -278,7 +278,7 @@
         <metadata-field>
             <field>epfl.thesis.publicDefenseYear</field>
             <xpath>./datafield[@tag = '920']/subfield[@code = 'a']</xpath>
-            <reader>publicDefenseYear</reader>
+            <reader>dateIssued</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.date.accepted</field>
