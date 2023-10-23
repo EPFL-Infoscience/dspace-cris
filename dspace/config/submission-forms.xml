@@ -4420,9 +4420,8 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>identifier</dc-element>
-          <dc-qualifier>isbn</dc-qualifier>
-          <label>ISBN</label>
-          <input-type>onebox</input-type>
+          <label>Identifiers</label>
+          <input-type value-pairs-name="import_identifiers">qualdrop_value</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
@@ -6815,6 +6814,48 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Logo</displayed-value>
         <stored-value>logo</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="import_identifiers" dc-term="import_identifiers">
+      <pair>
+        <displayed-value>DOI</displayed-value>
+        <stored-value>doi</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>arXiv ID</displayed-value>
+        <stored-value>arxiv</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>WOS ID</displayed-value>
+        <stored-value>isi</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Scopus ID</displayed-value>
+        <stored-value>scopus</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Pubmed ID</displayed-value>
+        <stored-value>pmid</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URI</displayed-value>
+        <stored-value>uri</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Handle</displayed-value>
+        <stored-value>hdl</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ISBN</displayed-value>
+        <stored-value>isbn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ACOUA</displayed-value>
+        <stored-value>acoua</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>EPO</displayed-value>
+        <stored-value>epo</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>
