@@ -355,14 +355,27 @@ public class ItemsImportFromS3Script
 
                 verifyBitstreamChecksum(fileName, bitstreams, zipFile.getInputStream(entry));
 
-                String bitstreamName = id + "_" + escapeBitstreamName(fileName)
-                        + getExtensionFromFile(zipFile.getInputStream(entry));
+                String bitstreamName = id + "_" + escapeBitstreamName(fileName);
+                String fileExtension = getExtensionFromFile(zipFile.getInputStream(entry));
+                if (!bitstreamName.endsWith(fileExtension)) {
+                    bitstreams.stream().filter(bs -> hasTitleEqualsTo(bs, fileName))
+                                  .findFirst().ifPresent(bs -> updateExtension(bs, fileExtension));
+
+
+                    bitstreamName += fileExtension;
+                }
+
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
 
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
+    }
+
+    private void updateExtension(BitstreamDTO bs, String fileExtension) {
+        bs.updateLocationWithExtension(fileExtension);
+        bs.getMetadataValues("dc.title").forEach(mv -> mv.setValue(mv.getValue() + fileExtension));
     }
 
     private String getExtensionFromFile(InputStream file) throws IOException, MimeTypeException {
