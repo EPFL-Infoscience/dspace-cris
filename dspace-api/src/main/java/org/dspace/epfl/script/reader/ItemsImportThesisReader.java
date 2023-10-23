@@ -10,15 +10,16 @@ package org.dspace.epfl.script.reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ItemsImportPageReader implements ItemsImportMetadataFieldReader {
+public class ItemsImportThesisReader implements ItemsImportMetadataFieldReader {
 
-    private String endPageMetadataField;
+    private String authorityPrefix;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -28,18 +29,10 @@ public class ItemsImportPageReader implements ItemsImportMetadataFieldReader {
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             String value = node.getTextContent();
-
-            if (StringUtils.isBlank(value)) {
-                continue;
+            if (StringUtils.isNotBlank(value)) {
+                String authority = authorityPrefix + value;
+                metadataValues.add(new MetadataValueDTO(metadataField, value, authority, Choices.CF_AMBIGUOUS));
             }
-
-            String[] pages = value.contains("–") ? value.split("–") : value.split("-");
-            metadataValues.add(new MetadataValueDTO(metadataField, pages[0].trim()));
-
-            if (pages.length > 1) {
-                metadataValues.add(new MetadataValueDTO(endPageMetadataField, pages[1].trim()));
-            }
-
         }
 
         return metadataValues;
@@ -47,16 +40,15 @@ public class ItemsImportPageReader implements ItemsImportMetadataFieldReader {
 
     @Override
     public String getReaderName() {
-        return "page";
+        return "thesis";
     }
 
-    public String getEndPageMetadataField() {
-        return endPageMetadataField;
+    public String getAuthorityPrefix() {
+        return authorityPrefix;
     }
 
-    public void setEndPageMetadataField(String endPageMetadataField) {
-        this.endPageMetadataField = endPageMetadataField;
+    public void setAuthorityPrefix(String authorityPrefix) {
+        this.authorityPrefix = authorityPrefix;
     }
-
 
 }

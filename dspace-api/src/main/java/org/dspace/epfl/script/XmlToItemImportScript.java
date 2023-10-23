@@ -51,7 +51,7 @@ import org.dspace.utils.DSpace;
 public class XmlToItemImportScript extends DSpaceRunnable<XmlToItemImportScriptConfiguration<XmlToItemImportScript>> {
 
     private static final Logger log = LogManager.getLogger(CreateWorkspaceItemWithExternalSource.class);
-    private static final String XML_MAPPING_PATH = "/config/crosswalks/epfl/epfl-items-mapping.xml";
+    private static final String XML_MAPPING_PATH = "/config/crosswalks/epfl/epfl-items-mapping-for-xml-import.xml";
     private static final String DSPACE_DIR_PROPERTY_NAME = "dspace.dir";
     private static final String ITEMS_XPATH = "//record";
     private String xmlFile;

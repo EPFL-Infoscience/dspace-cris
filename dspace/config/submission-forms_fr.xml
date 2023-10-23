@@ -5149,19 +5149,19 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="orgunit_types" dc-term="orgunit_types">
       <pair>
-        <displayed-value>Antenna</displayed-value>
+        <displayed-value>Antenne</displayed-value>
         <stored-value>antenne</stored-value>
       </pair>
       <pair>
-        <displayed-value>Center</displayed-value>
+        <displayed-value>Centre</displayed-value>
         <stored-value>centre</stored-value>
       </pair>
       <pair>
-        <displayed-value>Chair</displayed-value>
+        <displayed-value>Chaire</displayed-value>
         <stored-value>chaire</stored-value>
       </pair>
       <pair>
-        <displayed-value>College</displayed-value>
+        <displayed-value>Collège</displayed-value>
         <stored-value>collège</stored-value>
       </pair>
       <pair>
@@ -5169,11 +5169,11 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>direction</stored-value>
       </pair>
       <pair>
-        <displayed-value>Department</displayed-value>
+        <displayed-value>Dpt</displayed-value>
         <stored-value>dpt</stored-value>
       </pair>
       <pair>
-        <displayed-value>School</displayed-value>
+        <displayed-value>École</displayed-value>
         <stored-value>école</stored-value>
       </pair>
       <pair>
@@ -5181,35 +5181,35 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>ehe</stored-value>
       </pair>
       <pair>
-        <displayed-value>Companies</displayed-value>
+        <displayed-value>Entreprises</displayed-value>
         <stored-value>entreprises</stored-value>
       </pair>
       <pair>
-        <displayed-value>Faculty</displayed-value>
+        <displayed-value>Faculté</displayed-value>
         <stored-value>faculté</stored-value>
       </pair>
       <pair>
-        <displayed-value>Foundation</displayed-value>
+        <displayed-value>Fondation</displayed-value>
         <stored-value>fondation</stored-value>
       </pair>
       <pair>
-        <displayed-value>Group</displayed-value>
+        <displayed-value>Groupe</displayed-value>
         <stored-value>groupe</stored-value>
       </pair>
       <pair>
-        <displayed-value>Institute</displayed-value>
+        <displayed-value>Institut</displayed-value>
         <stored-value>institut</stored-value>
       </pair>
       <pair>
-        <displayed-value>Lab</displayed-value>
+        <displayed-value>Labo</displayed-value>
         <stored-value>labo</stored-value>
       </pair>
       <pair>
-        <displayed-value>Organizational chart</displayed-value>
+        <displayed-value>Organigramme</displayed-value>
         <stored-value>organigramme</stored-value>
       </pair>
       <pair>
-        <displayed-value>Orientation</displayed-value>
+        <displayed-value>Orientat</displayed-value>
         <stored-value>orientat</stored-value>
       </pair>
       <pair>
@@ -5217,11 +5217,11 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>participation</stored-value>
       </pair>
       <pair>
-        <displayed-value>Program</displayed-value>
+        <displayed-value>Programme</displayed-value>
         <stored-value>programme</stored-value>
       </pair>
       <pair>
-        <displayed-value>Grouping</displayed-value>
+        <displayed-value>Regroupement</displayed-value>
         <stored-value>regroupement</stored-value>
       </pair>
       <pair>
@@ -5229,23 +5229,23 @@ it, please enter the types and the actual numbers or codes.</hint>
         <stored-value>section</stored-value>
       </pair>
       <pair>
-        <displayed-value>Semester</displayed-value>
+        <displayed-value>Semestre</displayed-value>
         <stored-value>semestre</stored-value>
       </pair>
       <pair>
-        <displayed-value>Central service</displayed-value>
+        <displayed-value>Service-Central</displayed-value>
         <stored-value>service-central</stored-value>
       </pair>
       <pair>
-        <displayed-value>General service</displayed-value>
+        <displayed-value>Service-Général</displayed-value>
         <stored-value>service-général</stored-value>
       </pair>
       <pair>
-        <displayed-value>Technical</displayed-value>
+        <displayed-value>Technique</displayed-value>
         <stored-value>technique</stored-value>
       </pair>
       <pair>
-        <displayed-value>Other</displayed-value>
+        <displayed-value>Autre</displayed-value>
         <stored-value>autre</stored-value>
       </pair>
     </value-pairs>
