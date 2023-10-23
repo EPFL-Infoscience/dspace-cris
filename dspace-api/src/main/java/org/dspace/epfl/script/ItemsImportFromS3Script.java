@@ -17,6 +17,7 @@ import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -358,12 +359,10 @@ public class ItemsImportFromS3Script
                 String bitstreamName = id + "_" + escapeBitstreamName(fileName);
                 String fileExtension = getExtensionFromFile(zipFile.getInputStream(entry));
                 if (!bitstreamName.endsWith(fileExtension)) {
-                    bitstreams.stream().map(bitstreamDTO -> bitstreamDTO.getMetadataValues().stream()
-                                    .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals("dc.title"))
-                                    .findFirst().orElse(null))
-                            .filter(metadata -> escapeBitstreamName(fileName).equals(metadata.getValue()))
-                            .findFirst().ifPresent(titleMetadata -> titleMetadata
-                                    .setValue(titleMetadata.getValue() + fileExtension));
+                    bitstreams.stream().filter(bs -> hasTitleEqualsTo(bs, fileName))
+                                  .findFirst().ifPresent(bs -> updateExtension(bs, fileExtension));
+
+
                     bitstreamName += fileExtension;
                 }
 
@@ -373,6 +372,11 @@ public class ItemsImportFromS3Script
             }
         }
 
+    }
+
+    private void updateExtension(BitstreamDTO bs, String fileExtension) {
+        bs.updateLocationWithExtension(fileExtension);
+        bs.getMetadataValues("dc.title").forEach(mv -> mv.setValue(mv.getValue() + fileExtension));
     }
 
     private String getExtensionFromFile(InputStream file) throws IOException, MimeTypeException {
