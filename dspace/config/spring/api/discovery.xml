@@ -107,6 +107,10 @@
                 <entry key="researchoutputsoa" value-ref="researchoutputsoa"/>
                 <entry key="person" value-ref="person"/>
                 <entry key="orgunit" value-ref="orgUnit"/>
+                <entry key="virtual" value-ref="virtualCollectionConfiguration"/>
+                <entry key="${collection.handler.virtualCollection}" value-ref="virtualCollectionConfiguration"/>
+                <entry key="content" value-ref="contentCollectionConfiguration"/>
+                <entry key="${collection.handler.contentCollection}" value-ref="contentCollectionConfiguration"/>
                 <entry key="infrastructure" value-ref="infrastructure"/>
                 <entry key="funding" value-ref="funding"/>
                 <entry key="journalissue" value-ref="journalIssue"/>
@@ -154,6 +158,10 @@
                 <entry key="RELATION.Project.researchoutputs" value-ref="relationProjectPublicationConfiguration"/>
                 <!-- VirtualCollection Related items -->
                 <entry key="RELATION.VirtualCollection.publications" value-ref="relationVirtualCollectionPublicationsConfiguration"/>
+                <!-- Event Related items -->
+                <entry key="RELATION.Event.researchoutputs" value-ref="relationEventResearchOutputsConfiguration"/>
+                <!-- Journal Related items -->
+                <entry key="RELATION.Journal.researchoutputs" value-ref="relationJournalResearchOutputsConfiguration"/>
                 <!-- Edit Configurations -->
                 <entry key="editCommunity" value-ref="editCommunityConfiguration"/>
                 <entry key="editCollection" value-ref="editCollectionConfiguration"/>
@@ -213,7 +221,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find Products, Patents and Publications-->
-                <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product) AND latestVersion:true</value>
+                <value>search.resourcetype:Item AND latestVersion:true</value>
                 <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
@@ -228,6 +236,30 @@
             <list>
                 <!--Only find communities and Collections-->
                 <value>search.resourcetype:Community OR search.resourcetype:Collection</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- The virtual collection setting for discovery -->
+    <bean id="virtualCollectionConfiguration" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype" parent="commonConfiguration">
+        <property name="id" value="virtualCollectionConfiguration"/>
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find VirtualCollections -->
+                <value>search.resourcetype:Item AND entityType_keyword:VirtualCollection AND latestVersion:true</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- The content collection setting for discovery -->
+    <bean id="contentCollectionConfiguration" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype" parent="commonConfiguration">
+        <property name="id" value="contentCollectionConfiguration"/>
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find Content -->
+                <value>search.resourcetype:Item AND entityType_keyword:Content AND latestVersion:true</value>
+                <value>-withdrawn:true AND -discoverable:false</value>
             </list>
         </property>
     </bean>
@@ -1459,7 +1491,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}</value>
+                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0} OR epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0} OR epfl.thesis.doctoralSchool_authority:{0} OR oairecerif.affiliation.orgunit_authority:{0}</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -2185,6 +2217,152 @@
         </property>
     </bean>
 
+    <!-- publications related to a conference (event) -->
+    <bean id="relationEventResearchOutputsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--<property name="defaultSort" ref="sortDateIssued"/>-->
+                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortByPublicationsSelection" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Which sidebar facets are to be displayed-->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterOaireLicense" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterAll" />
+                <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterPublisher" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterAbstract" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterIdentifier"/>
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterOaireLicense" />
+                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
+            </list>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+                queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>dc.relation.conference_authority:{0}</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- publications related to a journal -->
+    <bean id="relationJournalResearchOutputsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--<property name="defaultSort" ref="sortDateIssued"/>-->
+                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortByPublicationsSelection" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc"/>
+                        <ref bean="sortViews"/>
+                        <ref bean="sortDownloadsAsc"/>
+                        <ref bean="sortDownloads"/>
+                        <ref bean="sortCitationsAsc"/>
+                        <ref bean="sortCitations"/>
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Which sidebar facets are to be displayed-->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterOaireLicense" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterAll" />
+                <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterPublisher" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterAbstract" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterIdentifier"/>
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterOaireLicense" />
+                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterEntityType"/>
+            </list>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+                queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>dc.relation.journal_authority:{0}</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+            </list>
+        </property>
+    </bean>
+
     <bean id="relationSiteResearchOutputsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
         <!--The sort filters for the discovery search-->
         <property name="searchSortConfiguration">
@@ -2294,6 +2472,7 @@
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSource" />
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnitOrLab" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
@@ -2309,6 +2488,7 @@
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnitOrLab" />
                 <ref bean="searchFilterAbstract" />
                 <ref bean="searchFilterFullText" />
                 <ref bean="searchFilterTypes" />
@@ -2379,6 +2559,8 @@
         <property name="defaultFilterQueries">
             <list>
                 <value>original_bundle_datacite_rights_keyword:openaccess</value>
+                <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
@@ -3394,6 +3576,8 @@
             <list>
                 <!--Only find schools and colleges-->
                 <value>dc.type:collège OR dc.type:école</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <property name="sidebarFacets">
@@ -3418,6 +3602,8 @@
             <list>
                 <!--Only find research centers and platforms-->
                 <value>dc.type:centre</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <property name="sidebarFacets">
@@ -3442,6 +3628,8 @@
             <list>
                 <!--Only find sections-->
                 <value>dc.type:section</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <property name="sidebarFacets">
@@ -3464,6 +3652,8 @@
             <list>
                 <!--Only find doctoral schools-->
                 <value>dc.type:dpt</value>
+                <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
         <property name="sidebarFacets">
@@ -3702,6 +3892,8 @@
                 <value>dc.relation.journal</value>
                 <value>dc.identifier.issn</value>
                 <value>dc.identifier.isbn</value>
+                <value>dc.relation.ispartof</value>
+                <value>dc.relation.ispartofseries</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
@@ -3776,6 +3968,22 @@
                 <value>oairecerif.author.affiliation</value>
                 <value>oairecerif.editor.affiliation</value>
                 <value>dc.description.sponsorship</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
+
+    <bean id="searchFilterUnitOrLab" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="unitOrLab"/>
+        <property name="metadataFields">
+            <list>
+                <value>oairecerif.affiliation.orgunit</value>
+                <value>cris.virtual.department</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
@@ -5201,7 +5409,7 @@
                 <value>person.identifier.orcid</value>
                 <value>person.identifier.scopus-author-id</value>
                 <value>person.identifier.rid</value>
-                <value>person.identifier.rid</value>
+                <value>epfl.sciperId</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
@@ -5211,6 +5419,7 @@
         <property name="indexFieldName" value="fundingname"/>
         <property name="metadataFields">
             <list>
+                <value>dc.relation.funding</value>
                 <value>oairecerif.funder</value>
                 <value>oairecerif.funding.identifier</value>
             </list>

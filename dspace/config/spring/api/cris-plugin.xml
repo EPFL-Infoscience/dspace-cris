@@ -99,6 +99,27 @@
 						</property>
 					</bean>
 				</entry>
+				<entry key="dc.relation.conference">
+					<bean class="org.dspace.authority.filler.MetadataConfiguration">
+						<property name="updateEnabled" value="false" />
+						<property name="mapping">
+							<map>
+								<entry key="oaire.citation.conferencePlace">
+									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="oairecerif.event.place" />
+									</bean>
+								</entry>
+								<entry key="oaire.citation.conferenceDate">
+									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="oairecerif.event.startDate" />
+									</bean>
+								</entry>
+							</map>
+						</property>
+					</bean>
+				</entry>
 			</map>
 		</property>
 	</bean>

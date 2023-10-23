@@ -7,20 +7,19 @@
  */
 package org.dspace.epfl.script.reader;
 
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ItemsImportBitstreamTitleReader implements ItemsImportMetadataFieldReader {
+public class ItemsImportThesisReader implements ItemsImportMetadataFieldReader {
+
+    private String authorityPrefix;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -31,9 +30,8 @@ public class ItemsImportBitstreamTitleReader implements ItemsImportMetadataField
             Node node = nodeList.item(i);
             String value = node.getTextContent();
             if (StringUtils.isNotBlank(value)) {
-                String title = URLDecoder.decode(substringAfterLast(value, "/"),
-                                                 StandardCharsets.UTF_8);
-                metadataValues.add(new MetadataValueDTO(metadataField, title));
+                String authority = authorityPrefix + value;
+                metadataValues.add(new MetadataValueDTO(metadataField, value, authority, Choices.CF_AMBIGUOUS));
             }
         }
 
@@ -42,7 +40,15 @@ public class ItemsImportBitstreamTitleReader implements ItemsImportMetadataField
 
     @Override
     public String getReaderName() {
-        return "bitstreamTitle";
+        return "thesis";
+    }
+
+    public String getAuthorityPrefix() {
+        return authorityPrefix;
+    }
+
+    public void setAuthorityPrefix(String authorityPrefix) {
+        this.authorityPrefix = authorityPrefix;
     }
 
 }

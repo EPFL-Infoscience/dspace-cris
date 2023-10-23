@@ -143,6 +143,10 @@ public class EpflUserSynchronizationScript
             String ePersonNetid = ePerson.getNetid();
             if (ePersonNetid != null) {
                 int endIndex = ePersonNetid.indexOf("@");
+                if (endIndex < 1) {
+                    logInfo("User  " + ePerson.getID() + " has sciper in the wrong form");
+                    continue;
+                }
                 String sciper = ePersonNetid.substring(0, endIndex);
                 Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper, EpflApiClient.Language.EN);
                 if (epflPerson.isPresent()) {
@@ -379,11 +383,17 @@ public class EpflUserSynchronizationScript
     }
 
     private boolean isNeedToSyncAffiliations(EPerson ePerson, PersonDTO epflPerson) {
-        Optional<ResearcherProfile> researcherProfileOptional = profileInitializer
-            .findProfile(context, ePerson)
-            .or(() -> personApiService.findProfileBySciper(
-                context, ePerson,
-                epflPerson.getSciper()));
+        Optional<ResearcherProfile> researcherProfileOptional;
+        try {
+            researcherProfileOptional = profileInitializer
+                    .findProfile(context, ePerson)
+                    .or(() -> personApiService.findProfileBySciper(
+                            context, ePerson,
+                            epflPerson.getSciper()));
+        } catch (Exception e) {
+            logInfo("Error during sync of user " + ePerson.getID() + ": " + e.getMessage());
+            return false;
+        }
         ResearcherProfile researcherProfile = null;
 
         if (epflPerson.getMainAffiliation().isEmpty() && researcherProfileOptional.isEmpty()) {

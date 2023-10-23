@@ -9,7 +9,7 @@ package org.dspace.content.security;
 
 import java.util.List;
 
-import org.dspace.content.logic.Filter;
+import org.dspace.content.logic.LogicalStatement;
 
 /**
  * Interface to be extended for the configuration related to access item modes.
@@ -53,5 +53,5 @@ public interface AccessItemMode {
      */
     public List<String> getGroups();
 
-    public Filter getAdditionalFilter();
+    public LogicalStatement getAdditionalFilter();
 }

@@ -1,0 +1,6 @@
+## E-mail sent to administrators during the users synchronization when EPFL LDAP web service did not return information about user affiliations
+##
+## Parameters: {0} is the sciper id, {1} is the user name
+##
+#set($subject = 'Infoscience: Error during user synchronization')
+For user having sciper ${params[0]} (${params[1]}) there are no units in DSpace-CRIS matching accreditations returned by EPFL LDAP.
