@@ -181,7 +181,7 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamRelationReader" >
         <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']"/>
         <property name="relationValueXPath" value = "./subfield[@code = 'u']" />
-        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']"></property>
+        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]"></property>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
@@ -195,6 +195,15 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPageReader">
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportIsPartOfReader">
+        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
+        <property name="journalMetadataField" value="dc.relation.journal" />
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.reader.ItemsImportThesisReader">
+        <property name="authorityPrefix" value="will be referenced::ACRONYM::" />
     </bean>
     
 </beans>

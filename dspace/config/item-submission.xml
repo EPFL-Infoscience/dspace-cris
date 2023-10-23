@@ -536,7 +536,7 @@
     <submission-process name="event-edit">
       <step id="event" />
       <step id="detect-duplicate" />
-      <step id="upload-equipment" />
+      <step id="upload-event" />
     </submission-process>
     <submission-process name="equipment">
       <step id="collection" />

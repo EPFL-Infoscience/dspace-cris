@@ -33,6 +33,8 @@
 
     <bean class="org.dspace.xoai.app.DataciteDOIItemCompilePlugin"/>
 
+    <bean class="org.dspace.xoai.app.LinkedItemsCompilePlugin"/>
+
         <!--
          This is no longer needed as the orcid information are consolidated in the publication's metadata via an Item Enhancer
          see metadata-enancers.xml
