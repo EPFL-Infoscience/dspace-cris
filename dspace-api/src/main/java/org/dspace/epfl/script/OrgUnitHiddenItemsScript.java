@@ -10,11 +10,15 @@ package org.dspace.epfl.script;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.cli.ParseException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
+import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -23,6 +27,8 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.util.FunctionalUtils;
+import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 
 public class OrgUnitHiddenItemsScript
@@ -63,20 +69,40 @@ public class OrgUnitHiddenItemsScript
         while (items.hasNext()) {
             Item item = items.next();
 
-            String rejectedOrgUnitAuthority =
-                itemService.getMetadata(item, "epfl", "relation", "rejectedOrgUnit", Item.ANY)
-                           .get(0)
-                           .getAuthority();
+            Set<String> orgUnits =
+                itemService.getMetadata(item, "epfl", "relation", "rejectedOrgUnit", Item.ANY).stream()
+                           .map(mv -> mv.getAuthority())
+                           .collect(Collectors.toSet());
 
-            Item orgUnit = itemService.find(context, UUID.fromString(rejectedOrgUnitAuthority));
+            orgUnits.stream()
+                .map(UUIDUtils::fromString)
+                .filter(Objects::nonNull)
+                .map(FunctionalUtils.throwingMapperWrapper(id -> itemService.find(context, id), null))
+                .filter(Objects::nonNull)
+                .forEach(ou -> {
+                    try {
+                        createRelationship(ou, item);
+                    } catch (SQLException | AuthorizeException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+        }
+    }
 
-            if (orgUnit != null) {
-                List<RelationshipType> relationshipType = getRelationshipType(item);
-                for (RelationshipType type : relationshipType) {
-//                    relationshipService.create(context, item, orgUnit, type, false);
-                    relationshipService.create(context, item, orgUnit, type,
-                                               0, 0, type.getLeftwardType(), type.getRightwardType());
+    private void createRelationship(Item orgUnit, Item item) throws SQLException, AuthorizeException {
+        if (orgUnit != null) {
+            List<RelationshipType> relationshipType = getRelationshipType(item);
+            for (RelationshipType type : relationshipType) {
+                Optional<Relationship> alreadyStored = relationshipService
+                    .findByItemAndRelationshipType(context, item, type, true)
+                    .stream().filter(
+                        r -> r.getRightItem().getID().equals(orgUnit.getID()))
+                    .findFirst();
+                if (alreadyStored.isPresent()) {
+                    continue;
                 }
+                relationshipService.create(context, item, orgUnit, type,
+                                           0, 0, type.getLeftwardType(), type.getRightwardType());
             }
         }
     }
