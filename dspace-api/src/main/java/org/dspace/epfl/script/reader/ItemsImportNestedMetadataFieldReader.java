@@ -36,6 +36,7 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
     private Map<String, String> authorityPaths = new HashMap<String, String>();
 
     private Map<String, String> authorityPrefixes = new HashMap<String, String>();
+    private boolean skipDateConversion = false;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -59,7 +60,8 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
     private MetadataValueDTO readNestedValue(Node node, String nestedMetadataField) {
 
         String path = metadataFieldsPaths.get(nestedMetadataField);
-        String value = convertIfDate(getSingleValue(node, xPath, path));
+        String singleValue = getSingleValue(node, xPath, path);
+        String value = skipDateConversion ? singleValue : convertIfDate(singleValue);
 
         if (StringUtils.isBlank(value)) {
             return new MetadataValueDTO(nestedMetadataField, PLACEHOLDER_PARENT_METADATA_VALUE);
@@ -122,4 +124,7 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
         this.authorityPrefixes = authorityPrefixes;
     }
 
+    public void setSkipDateConversion(boolean skipDateConversion) {
+        this.skipDateConversion = skipDateConversion;
+    }
 }
