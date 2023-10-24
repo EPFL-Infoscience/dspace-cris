@@ -79,8 +79,8 @@ public class RDFStorageImpl
             accessor = new DatasetGraphAccessorHTTP(getGraphStoreEndpoint(),
                                                     httpAuthenticator);
         } else {
-            log.debug("Did not found credential to use for our connection to the "
-                          + "Graph Store HTTP endpoint, trying to connect unauthenticated.");
+            report("Did not found credential to use for our connection to the "
+                          + "Graph Store HTTP endpoint, trying to connect unauthenticated.", "debug");
             accessor = new DatasetGraphAccessorHTTP(getGraphStoreEndpoint());
         }
         return accessor;
@@ -88,20 +88,26 @@ public class RDFStorageImpl
 
     @Override
     public void delete(String uri) {
-        this.getAccessor().httpDelete(NodeFactory.createURI(uri));
+        Node node = NodeFactory.createURI(uri);
+        report("node for deletion: " + node, "debug");
+        this.getAccessor().httpDelete(node);
     }
 
     @Override
     public void deleteAll() {
         for (String graph : this.getAllStoredGraphs()) {
+            report("Deleting graph: " + graph, "debug");
             this.delete(graph);
+            report("Deleted graph: " + graph, "debug");
         }
         // clean default graph:
         this.getAccessor().httpDelete();
+        report("Default graph is cleaned", "debug");
     }
 
     @Override
     public List<String> getAllStoredGraphs() {
+        report("Start getting all stored graphs", "debug");
         String queryString = "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }";
         QueryExecution qexec;
         if (configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY)
@@ -115,8 +121,9 @@ public class RDFStorageImpl
             qexec = QueryExecutionFactory.sparqlService(getSparqlEndpoint(),
                                                         queryString);
         }
-
+        report("Request has been created. Start executing the request for getting all stored graphs", "debug");
         ResultSet rs = qexec.execSelect();
+        report("Request has been exec. Result received for all stored graphs", "debug");
         List<String> graphs = Collections.synchronizedList(new ArrayList<String>());
         while (rs.hasNext()) {
             QuerySolution solution = rs.next();
@@ -125,15 +132,16 @@ public class RDFStorageImpl
             }
         }
         qexec.close();
+        report("Ended getting all stored graphs", "debug");
         return graphs;
     }
 
     protected String getGraphStoreEndpoint() {
         String endpoint = configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_ENDPOINT_KEY);
         if (StringUtils.isEmpty(endpoint)) {
-            log.warn("Cannot load Graph Store HTTP Protocol endpoint! Property "
+            report("Cannot load Graph Store HTTP Protocol endpoint! Property "
                          + RDFUtil.STORAGE_GRAPHSTORE_ENDPOINT_KEY + " does not "
-                         + "exist or is empty.");
+                         + "exist or is empty.", "warn");
             throw new RuntimeException("Cannot load Graph Store HTTP Protocol "
                                            + "endpoint! Property "
                                            + RDFUtil.STORAGE_GRAPHSTORE_ENDPOINT_KEY + " does not "
@@ -151,10 +159,21 @@ public class RDFStorageImpl
         }
         // check if we found an endpoint
         if (StringUtils.isEmpty(endpoint)) {
-            log.warn("Cannot load internal or public SPARQL endpoint!");
+            report("Cannot load internal or public SPARQL endpoint!", "warn");
             throw new RuntimeException("Cannot load internal or public SPARQL "
                                            + "endpoint!");
         }
         return endpoint;
+    }
+
+    protected void report(String message, String method) {
+        if (method.equals("warn")) {
+            log.warn(message);
+            System.err.println("WARN: " + message);
+        } else {
+            log.debug(message);
+            System.err.println("INFO: " + message);
+        }
+
     }
 }

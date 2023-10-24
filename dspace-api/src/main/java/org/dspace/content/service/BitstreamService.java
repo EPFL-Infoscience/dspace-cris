@@ -22,6 +22,7 @@ import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 
@@ -246,5 +247,10 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
         Map<String, String> filterMetadata);
 
     void replacePersonalPicture(Context context, Item item, String name, InputStream content);
+
+    boolean isOriginalBitstream(DSpaceObject dso) throws SQLException;
+
+    void updateThumbnailResourcePolicies(Context context, Bitstream bitstream) throws SQLException;
+
 
 }
