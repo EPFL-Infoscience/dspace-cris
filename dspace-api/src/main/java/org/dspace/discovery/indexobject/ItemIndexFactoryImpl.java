@@ -448,6 +448,13 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                         doc.addField(searchFilter.getIndexFieldName(), value);
                         doc.addField(searchFilter.getIndexFieldName() + "_keyword", value);
 
+                        if (authority == null && isAuthorityControlled && meta.getAuthority() != null
+                            && meta.getConfidence() >= minConfidence) {
+
+                            doc.addField(searchFilter.getIndexFieldName() + "_authority", meta.getAuthority());
+
+                        }
+
                         if (authority != null && preferedLabel == null) {
                             doc.addField(searchFilter.getIndexFieldName()
                                     + "_keyword", value + SearchUtils.AUTHORITY_SEPARATOR
