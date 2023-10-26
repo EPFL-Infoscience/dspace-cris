@@ -27,7 +27,7 @@ public class BitstreamDTO {
 
     private final Integer position;
 
-    private final String location;
+    private String location;
 
     private final String checksum;
 
@@ -94,4 +94,7 @@ public class BitstreamDTO {
             .collect(Collectors.toList());
     }
 
+    public void updateLocationWithExtension(String fileExtension) {
+        location += fileExtension;
+    }
 }

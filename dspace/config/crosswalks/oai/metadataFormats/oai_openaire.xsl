@@ -41,14 +41,28 @@
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']" mode="oaire"/>
             <!-- datacite:relatedIdentifier -->
             <xsl:apply-templates
-                select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']" mode="datacite"/>
+                select="doc:metadata/doc:element[@name='others']/doc:element[@name='linkedItems']" mode="datacite"/>
             <!-- if dc.identifier.uri has more than 1 value -->
             <xsl:if
-                test="count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])>1">
+                test="(count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value'])>1)
+                       or (count(doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isi']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='pmid']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='hdl']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='scopus']/doc:element/doc:field[@name='value'])>0)
+                       or (count(doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='arxiv']/doc:element/doc:field[@name='value'])>0)">
                 <datacite:alternateIdentifiers>
                     <xsl:apply-templates
                         select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']"
                         mode="datacite_altid"/>
+                    <xsl:apply-templates
+                            select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']"
+                            mode="datacite_altid" />
+                    <xsl:apply-templates
+                            select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']"
+                            mode="datacite_altid" />
                 </datacite:alternateIdentifiers>
             </xsl:if>
             <!-- datacite:dates and embargo -->
@@ -61,6 +75,9 @@
             <!-- dc:publisher -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']" mode="dc"/>
+            <!-- dc:source -->
+            <xsl:apply-templates
+                select="doc:metadata/doc:element[@name='dc']/doc:element[@name='source']" mode="dc"/>
             <!-- oaire:resourceType -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']" mode="oaire"/>
@@ -77,7 +94,7 @@
                 mode="datacite"/>
             <!-- datacite:rights -->
             <xsl:apply-templates
-                select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']" mode="datacite"/>
+                select="doc:metadata/doc:element[@name='datacite']/doc:element[@name='rights']" mode="datacite"/>
             <!-- datacite:subject -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']" mode="datacite"/>
@@ -90,9 +107,16 @@
             <!-- oaire:citation* -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='citation']" mode="oaire"/>
-            <!-- CREATIVE COMMON LICENSE -->
+            <!-- oaire:version -->
             <xsl:apply-templates
-                select="doc:metadata/doc:element[@name='others']/doc:element[@name='cc']" mode="oaire" />
+                select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='version']" mode="oaire"/>
+            <!-- oaire:licenseCondition -->
+            <xsl:apply-templates
+                select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='licenseCondition']" mode="oaire" />
+            <!-- primary doi identifier -->
+            <xsl:apply-templates
+                    select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
+                    mode="datacite" />
         </oaire:resource>
     </xsl:template>
 
@@ -480,95 +504,102 @@
 
     <!-- datacite:relatedIdentifiers -->
     <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_relatedidentifier.html -->
-    <xsl:template match="doc:element[@name='dc']/doc:element[@name='identifier']" mode="datacite">
+    <xsl:template match="doc:element[@name='others']/doc:element[@name='linkedItems']" mode="datacite">
         <datacite:relatedIdentifiers>
-            <xsl:apply-templates select="./doc:element" mode="datacite_ids"/>
+            <xsl:for-each select=".//doc:element[@name='linkedItem']">
+                <datacite:relatedIdentifier>
+                    <xsl:attribute name="relatedIdentifierType"><xsl:value-of select="./doc:field[@name='identifierType']/text()"/></xsl:attribute>
+                    <xsl:attribute name="relationType"><xsl:value-of select="./doc:field[@name='type']/text()"/></xsl:attribute>
+                    <xsl:value-of select="./doc:field[@name='link']/text()"/>
+                </datacite:relatedIdentifier>
+            </xsl:for-each>
+<!--            <xsl:apply-templates select="./doc:element" mode="datacite_ids"/>-->
         </datacite:relatedIdentifiers>
     </xsl:template>
         
    <!-- datacite:relatedIdentifier -->
    <!-- handle: dc.identifier.issn -->
-    <xsl:template match="doc:element[@name='issn']" mode="datacite_ids">
-        <xsl:for-each select=".//doc:field[@name='value']">
-            <xsl:call-template name="relatedIdentifierTemplate">
-                <xsl:with-param name="value" select="text()"/>
-                <xsl:with-param name="relatedIdentifierType" select="'ISSN'"/>
-                <xsl:with-param name="relationType" select="'IsPartOf'"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>
+<!--    <xsl:template match="doc:element[@name='issn']" mode="datacite_ids">-->
+<!--        <xsl:for-each select=".//doc:field[@name='value']">-->
+<!--            <xsl:call-template name="relatedIdentifierTemplate">-->
+<!--                <xsl:with-param name="value" select="text()"/>-->
+<!--                <xsl:with-param name="relatedIdentifierType" select="'ISSN'"/>-->
+<!--                <xsl:with-param name="relationType" select="'IsPartOf'"/>-->
+<!--            </xsl:call-template>-->
+<!--        </xsl:for-each>-->
+<!--    </xsl:template>-->
 
     <!-- handle: dc.identifier.ismn -->
-    <xsl:template match="doc:element[@name='ismn']" mode="datacite_ids">
-        <xsl:for-each select=".//doc:field[@name='value']">
-            <xsl:call-template name="relatedIdentifierTemplate">
-                <xsl:with-param name="value"
-                    select="concat('ISMN:',normalize-space(text()))"/>
-                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>
-                <xsl:with-param name="relationType" select="'IsPartOf'"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>
+<!--    <xsl:template match="doc:element[@name='ismn']" mode="datacite_ids">-->
+<!--        <xsl:for-each select=".//doc:field[@name='value']">-->
+<!--            <xsl:call-template name="relatedIdentifierTemplate">-->
+<!--                <xsl:with-param name="value"-->
+<!--                    select="concat('ISMN:',normalize-space(text()))"/>-->
+<!--                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>-->
+<!--                <xsl:with-param name="relationType" select="'IsPartOf'"/>-->
+<!--            </xsl:call-template>-->
+<!--        </xsl:for-each>-->
+<!--    </xsl:template>-->
 
     <!-- handle: dc.identifier.govdoc -->
-    <xsl:template match="doc:element[@name='govdoc']" mode="datacite_ids">
-        <xsl:for-each select=".//doc:field[@name='value']">
-            <xsl:call-template name="relatedIdentifierTemplate">
-                <xsl:with-param name="value"
-                    select="concat('govdoc:',normalize-space(text()))"/>
-                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>
-                <xsl:with-param name="relationType" select="'IsPartOf'"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>
+<!--    <xsl:template match="doc:element[@name='govdoc']" mode="datacite_ids">-->
+<!--        <xsl:for-each select=".//doc:field[@name='value']">-->
+<!--            <xsl:call-template name="relatedIdentifierTemplate">-->
+<!--                <xsl:with-param name="value"-->
+<!--                    select="concat('govdoc:',normalize-space(text()))"/>-->
+<!--                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>-->
+<!--                <xsl:with-param name="relationType" select="'IsPartOf'"/>-->
+<!--            </xsl:call-template>-->
+<!--        </xsl:for-each>-->
+<!--    </xsl:template>-->
 
     <!-- handle: dc.identifier.isbn -->
-    <xsl:template match="doc:element[@name='isbn']" mode="datacite_ids">
-        <xsl:for-each select=".//doc:field[@name='value']">
-            <xsl:call-template name="relatedIdentifierTemplate">
-                <xsl:with-param name="value" select="text()"/>
-                <xsl:with-param name="relatedIdentifierType" select="'ISBN'"/>
-                <xsl:with-param name="relationType" select="'IsPartOf'"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>
+<!--    <xsl:template match="doc:element[@name='isbn']" mode="datacite_ids">-->
+<!--        <xsl:for-each select=".//doc:field[@name='value']">-->
+<!--            <xsl:call-template name="relatedIdentifierTemplate">-->
+<!--                <xsl:with-param name="value" select="text()"/>-->
+<!--                <xsl:with-param name="relatedIdentifierType" select="'ISBN'"/>-->
+<!--                <xsl:with-param name="relationType" select="'IsPartOf'"/>-->
+<!--            </xsl:call-template>-->
+<!--        </xsl:for-each>-->
+<!--    </xsl:template>-->
 
     <!-- handle: dc.identifier.sici -->
-    <xsl:template match="doc:element[@name='sici']" mode="datacite_ids">
-        <xsl:for-each select=".//doc:field[@name='value']">
-            <xsl:call-template name="relatedIdentifierTemplate">
-                <xsl:with-param name="value"
-                    select="concat('sici:',normalize-space(text()))"/>
-                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>
-                <xsl:with-param name="relationType" select="'IsPartOf'"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>
+<!--    <xsl:template match="doc:element[@name='sici']" mode="datacite_ids">-->
+<!--        <xsl:for-each select=".//doc:field[@name='value']">-->
+<!--            <xsl:call-template name="relatedIdentifierTemplate">-->
+<!--                <xsl:with-param name="value"-->
+<!--                    select="concat('sici:',normalize-space(text()))"/>-->
+<!--                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>-->
+<!--                <xsl:with-param name="relationType" select="'IsPartOf'"/>-->
+<!--            </xsl:call-template>-->
+<!--        </xsl:for-each>-->
+<!--    </xsl:template>-->
 
     <!-- handle: dc.identifier.other -->
-    <xsl:template match="doc:element[@name='other']" mode="datacite_ids">
-        <xsl:for-each select=".//doc:field[@name='value']">
-            <xsl:call-template name="relatedIdentifierTemplate">
-                <xsl:with-param name="value" select="text()"/>
-                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>
-                <xsl:with-param name="relationType" select="'IsPartOf'"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>    
+<!--    <xsl:template match="doc:element[@name='other']" mode="datacite_ids">-->
+<!--        <xsl:for-each select=".//doc:field[@name='value']">-->
+<!--            <xsl:call-template name="relatedIdentifierTemplate">-->
+<!--                <xsl:with-param name="value" select="text()"/>-->
+<!--                <xsl:with-param name="relatedIdentifierType" select="'URN'"/>-->
+<!--                <xsl:with-param name="relationType" select="'IsPartOf'"/>-->
+<!--            </xsl:call-template>-->
+<!--        </xsl:for-each>-->
+<!--    </xsl:template>    -->
 
     <!-- handle: dc.identifier.doi -->
-    <xsl:template match="doc:element[@name='doi']" mode="datacite_ids">
-        <xsl:for-each select=".//doc:field[@name='value']">
-            <xsl:call-template name="relatedIdentifierTemplate">
-                <xsl:with-param name="value" select="text()"/>
-                <xsl:with-param name="relatedIdentifierType" select="'DOI'"/>
-                <xsl:with-param name="relationType" select="'IsPartOf'"/>
-            </xsl:call-template>
-        </xsl:for-each>
-    </xsl:template>
+<!--    <xsl:template match="doc:element[@name='doi']" mode="datacite_ids">-->
+<!--        <xsl:for-each select=".//doc:field[@name='value']">-->
+<!--            <xsl:call-template name="relatedIdentifierTemplate">-->
+<!--                <xsl:with-param name="value" select="text()"/>-->
+<!--                <xsl:with-param name="relatedIdentifierType" select="'DOI'"/>-->
+<!--                <xsl:with-param name="relationType" select="'IsPartOf'"/>-->
+<!--            </xsl:call-template>-->
+<!--        </xsl:for-each>-->
+<!--    </xsl:template>-->
 
     <!-- handle: dc.identifier.* -->
-    <xsl:template match="doc:element" mode="datacite_ids"/>
+<!--    <xsl:template match="doc:element" mode="datacite_ids"/>-->
     
     <!-- template for all relatedIdentifier -->
     <xsl:template name="relatedIdentifierTemplate">
@@ -629,9 +660,58 @@
         </xsl:for-each>
     </xsl:template>
 
+    <!--     for each alternative doi -->
+    <xsl:template match="doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']" mode="datacite_altid">
+        <xsl:for-each select="./doc:field[@name='doi']">
+
+            <datacite:alternateIdentifier>
+                <xsl:attribute name="alternateIdentifierType">DOI</xsl:attribute>
+                <xsl:value-of select="./text()"/>
+            </datacite:alternateIdentifier>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!--  alternative identifiers -->
+    <xsl:template match="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']" mode="datacite_altid">
+<!--        <xsl:for-each select="./doc:element/doc:element/doc:field[@name='value']">-->
+        <xsl:for-each select="./doc:element">
+            <xsl:variable name="idType" select="./attribute::name"/>
+            <xsl:variable name="type">
+                <xsl:choose>
+                    <xsl:when test="$idType = 'arxiv'">arXiv</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'isi'">WOS</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'pmid'">PMID</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'hdl'">Handle</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'isbn'">ISBN</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'issn'">ISSN</xsl:when>
+                </xsl:choose>
+                <xsl:choose>
+                    <xsl:when test="$idType = 'scopus'">Scopus</xsl:when>
+                </xsl:choose>
+
+            </xsl:variable>
+            <xsl:if test="$type != ''">
+                <datacite:alternateIdentifier>
+                    <xsl:attribute name="alternateIdentifierType"><xsl:value-of select="$type"/></xsl:attribute>
+                    <xsl:value-of select="./doc:element/doc:field[@name='value']/text()"/>
+                </datacite:alternateIdentifier>
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:template>
+
    <!-- datacite:rights -->
    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_accessrights.html -->
-    <xsl:template match="doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']" mode="datacite">
+    <xsl:template match="doc:element[@name='datacite']/doc:element[@name='rights']/doc:element/doc:field[@name='value']" mode="datacite">
         <xsl:variable name="rightsValue" select="text()"/>
         <xsl:variable name="rightsURI">
             <xsl:call-template name="resolveRightsURI">
@@ -639,8 +719,8 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:variable name="lc_rightsValue">
-            <xsl:call-template name="lowercase">
-                <xsl:with-param name="value" select="$rightsValue"/>
+            <xsl:call-template name="resolveRightsVocabulary">
+                <xsl:with-param name="field" select="$rightsValue"/>
             </xsl:call-template>
         </xsl:variable>
         <!-- We are checking to ensure that only values ending in "access" can be used as datacite:rights. 
@@ -653,7 +733,7 @@
                     <xsl:value-of select="$rightsURI"/>
                 </xsl:attribute>
                 </xsl:if>
-                <xsl:value-of select="$rightsValue"/>
+                <xsl:value-of select="$lc_rightsValue"/>
             </datacite:rights>
         </xsl:if>
     </xsl:template>
@@ -696,7 +776,12 @@
     <xsl:template
         match="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued' or @name='accepted']"
         mode="datacite">
-        <xsl:variable name="dc_date_value" select="doc:element/doc:field[@name='value']/text()"/>
+<!--        <xsl:variable name="dc_date_value" select="doc:element/doc:field[@name='value']/text()"/>-->
+        <xsl:variable name="dc_date_value">
+            <xsl:call-template name="formatDate">
+                <xsl:with-param name="datestr" select="doc:element/doc:field[@name='value']/text()"/>
+            </xsl:call-template>
+        </xsl:variable>
         <datacite:date dateType="Accepted">
             <xsl:value-of select="$dc_date_value"/>
         </datacite:date>
@@ -724,11 +809,16 @@
         </xsl:variable>
         <!-- only consider elements with valid date types -->
         <xsl:if test="$dateType != ''">
+            <xsl:variable name="dc_date_value">
+                <xsl:call-template name="formatDate">
+                    <xsl:with-param name="datestr" select="doc:element/doc:field[@name='value']/text()"/>
+                </xsl:call-template>
+            </xsl:variable>
             <datacite:date>
                 <xsl:attribute name="dateType">
                     <xsl:value-of select="$dateType"/>
                 </xsl:attribute>
-                <xsl:value-of select="./doc:element/doc:field[@name='value']/text()"/>
+                <xsl:value-of select="$dc_date_value"/>
             </datacite:date>
         </xsl:if>
     </xsl:template>
@@ -753,6 +843,16 @@
 	       <dc:publisher>
 	           <xsl:value-of select="./text()"/>
 	       </dc:publisher>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- dc:source -->
+    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_source.html -->
+    <xsl:template match="doc:element[@name='dc']/doc:element[@name='source']" mode="dc">
+    	<xsl:for-each select="./doc:element/doc:field[@name='value']">
+	       <dc:source>
+	           <xsl:value-of select="./text()"/>
+	       </dc:source>
         </xsl:for-each>
     </xsl:template>
 
@@ -845,27 +945,28 @@
     <!-- processing of each bitstream entry -->
     <xsl:template match="doc:element[@name='bitstreams']/doc:element[@name='bitstream']" mode="oaire">
         <oaire:file>
+            <xsl:variable name="fileRightsValue" select="doc:field[@name='rights']"/>
             <xsl:attribute name="accessRightsURI">
-                <xsl:call-template name="getRightsURI"/>
+                <xsl:call-template name="resolveRightsURI">
+                    <xsl:with-param name="field" select="$fileRightsValue"/>
+                </xsl:call-template>
          </xsl:attribute>
             <xsl:attribute name="mimeType">
             <xsl:value-of select="doc:field[@name='format']"/>
          </xsl:attribute>
+            <xsl:variable name="type" select="doc:field[@name='type']"/>
             <xsl:attribute name="objectType">
             <xsl:choose>
-                <!-- Currently there is no available way to identify the type of the bitstream -->
-                <xsl:when test="1">
+                <xsl:when test="$type = 'main document'">
                     <xsl:text>fulltext</xsl:text>
                 </xsl:when>
-                <!--xsl:when test="$type='dataset'">
-                    <xsl:text>dataset</xsl:text>
-                </xsl:when>
-                <xsl:when test="$type='software'">
+                <xsl:when test="$type = 'source code'">
                     <xsl:text>software</xsl:text>
                 </xsl:when>
-                <xsl:when test="$type='article'">
-                    <xsl:text>fulltext</xsl:text>
-                </xsl:when-->
+                <xsl:when test="($type = 'main dataset') or ($type = 'raw data') or ($type = 'anonymized data')
+                                or ($type = 'processed data')">
+                    <xsl:text>dataset</xsl:text>
+                </xsl:when>
                 <xsl:otherwise>                  
                     <xsl:text>other</xsl:text>
                 </xsl:otherwise>
@@ -875,6 +976,38 @@
         </oaire:file>
     </xsl:template>
 
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='journal']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='conference']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
+
+    <xsl:template
+            match="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartofseries']" mode="oaire">
+        <!-- citationTitle -->
+        <oaire:citationTitle>
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </oaire:citationTitle>
+    </xsl:template>
 
     <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_citationtitle.html -->
     <xsl:template
@@ -948,6 +1081,43 @@
         <oaire:citationConferenceDate>
             <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
         </oaire:citationConferenceDate>
+    </xsl:template>
+
+    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_resourceversion.html -->
+    <xsl:template
+        match="doc:element[@name='oaire']/doc:element[@name='version']" mode="oaire">
+        <xsl:variable name="version">
+            <xsl:value-of select="./doc:element/doc:field[@name='value']"/>
+        </xsl:variable>
+        <oaire:version>
+            <xsl:attribute name="uri">
+                <xsl:value-of select="$version"/>
+            </xsl:attribute>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_b1a7d7d4d402bcce'">AO</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_71e4c1898caa6e32'">SMUR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_ab4af688f83e57aa'">AM</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_fa2ee174bc00049f'">P</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_970fb48d4fbd8a85'">VoR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_e19f295774971610'">CVoR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_dc82b40f9837b551'">EVoR</xsl:when>
+            </xsl:choose>
+            <xsl:choose>
+                <xsl:when test="$version = 'http://purl.org/coar/version/c_be7fb7dd8ff6fe43'">NA</xsl:when>
+            </xsl:choose>
+        </oaire:version>
     </xsl:template>
 
 
@@ -1380,8 +1550,11 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
-            <xsl:when test="$lc_dc_type = 'article'">
-                <xsl:text>literature</xsl:text>
+            <xsl:when test="$lc_dc_type = 'dataset'">
+                <xsl:text>dataset</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'software'">
+                <xsl:text>software</xsl:text>
             </xsl:when>
             <xsl:when test="$lc_dc_type = 'journal article'">
                 <xsl:text>literature</xsl:text>
@@ -1389,17 +1562,8 @@
             <xsl:when test="$lc_dc_type = 'book'">
                 <xsl:text>literature</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'book part'">
-                <xsl:text>literature</xsl:text>
-            </xsl:when>
             <xsl:when test="$lc_dc_type = 'book review'">
                 <xsl:text>literature</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'dataset'">
-                <xsl:text>dataset</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'software'">
-                <xsl:text>software</xsl:text>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:text>other research product</xsl:text>
@@ -1424,177 +1588,154 @@
             <xsl:when test="$lc_dc_type = 'annotation'">
                 <xsl:text>http://purl.org/coar/resource_type/c_1162</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'journal'">
-                <xsl:text>http://purl.org/coar/resource_type/c_0640</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'article'">
-                <xsl:text>http://purl.org/coar/resource_type/c_6501</xsl:text>
-            </xsl:when>
             <xsl:when test="$lc_dc_type = 'journal article'">
                 <xsl:text>http://purl.org/coar/resource_type/c_6501</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'editorial'">
-                <xsl:text>http://purl.org/coar/resource_type/c_b239</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'bachelor thesis'">
-                <xsl:text>http://purl.org/coar/resource_type/c_7a1f</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'bibliography'">
-                <xsl:text>http://purl.org/coar/resource_type/c_86bc</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'book'">
-                <xsl:text>http://purl.org/coar/resource_type/c_2f33</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'book part'">
-                <xsl:text>http://purl.org/coar/resource_type/c_3248</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'book review'">
-                <xsl:text>http://purl.org/coar/resource_type/c_ba08</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'website'">
-                <xsl:text>http://purl.org/coar/resource_type/c_7ad9</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'interactive resource'">
-                <xsl:text>http://purl.org/coar/resource_type/c_e9a0</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'conference proceedings'">
-                <xsl:text>http://purl.org/coar/resource_type/c_f744</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'conference object'">
-                <xsl:text>http://purl.org/coar/resource_type/c_c94f</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'conference paper'">
-                <xsl:text>http://purl.org/coar/resource_type/c_5794</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'conference poster'">
-                <xsl:text>http://purl.org/coar/resource_type/c_6670</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'contribution to journal'">
-                <xsl:text>http://purl.org/coar/resource_type/c_3e5a</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'data paper'">
-                <xsl:text>http://purl.org/coar/resource_type/c_beb9</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'dataset'">
-                <xsl:text>http://purl.org/coar/resource_type/c_ddb1</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'doctoral thesis'">
-                <xsl:text>http://purl.org/coar/resource_type/c_db06</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'image'">
-                <xsl:text>http://purl.org/coar/resource_type/c_c513</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'lecture'">
-                <xsl:text>http://purl.org/coar/resource_type/c_8544</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'letter'">
-                <xsl:text>http://purl.org/coar/resource_type/c_0857</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'master thesis'">
-                <xsl:text>http://purl.org/coar/resource_type/c_bdcc</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'moving image'">
-                <xsl:text>http://purl.org/coar/resource_type/c_8a7e</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'periodical'">
-                <xsl:text>http://purl.org/coar/resource_type/c_2659</xsl:text>
             </xsl:when>
             <xsl:when test="$lc_dc_type = 'letter to the editor'">
                 <xsl:text>http://purl.org/coar/resource_type/c_545b</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'patent'">
-                <xsl:text>http://purl.org/coar/resource_type/c_15cd</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'preprint'">
-                <xsl:text>http://purl.org/coar/resource_type/c_816b</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'report'">
-                <xsl:text>http://purl.org/coar/resource_type/c_93fc</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'report part'">
-                <xsl:text>http://purl.org/coar/resource_type/c_ba1f</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'research proposal'">
-                <xsl:text>http://purl.org/coar/resource_type/c_baaf</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'review'">
-                <xsl:text>http://purl.org/coar/resource_type/c_efa0</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'software'">
-                <xsl:text>http://purl.org/coar/resource_type/c_5ce6</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'still image'">
-                <xsl:text>http://purl.org/coar/resource_type/c_ecc8</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'technical documentation'">
-                <xsl:text>http://purl.org/coar/resource_type/c_71bd</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'workflow'">
-                <xsl:text>http://purl.org/coar/resource_type/c_393c</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'working paper'">
-                <xsl:text>http://purl.org/coar/resource_type/c_8042</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'thesis'">
-                <xsl:text>http://purl.org/coar/resource_type/c_46ec</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'cartographic material'">
-                <xsl:text>http://purl.org/coar/resource_type/c_12cc</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'map'">
-                <xsl:text>http://purl.org/coar/resource_type/c_12cd</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'video'">
-                <xsl:text>http://purl.org/coar/resource_type/c_12ce</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'sound'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18cc</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'musical composition'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18cd</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'text'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18cf</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'conference paper not in proceedings'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18cp</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'conference poster not in proceedings'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18co</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'musical notation'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18cw</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'internal report'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18ww</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'memorandum'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18wz</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'other type of report'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18wq</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'policy report'">
-                <xsl:text>http://purl.org/coar/resource_type/c_186u</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'project deliverable'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18op</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'report to funding agency'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18hj</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'research report'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18ws</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'technical report'">
-                <xsl:text>http://purl.org/coar/resource_type/c_18gh</xsl:text>
-            </xsl:when>
-            <xsl:when test="$lc_dc_type = 'review article'">
-                <xsl:text>http://purl.org/coar/resource_type/c_dcae04bc</xsl:text>
+            <xsl:when test="$lc_dc_type = 'editorial'">
+                <xsl:text>http://purl.org/coar/resource_type/c_b239</xsl:text>
             </xsl:when>
             <xsl:when test="$lc_dc_type = 'research article'">
                 <xsl:text>http://purl.org/coar/resource_type/c_2df8fbb1</xsl:text>
             </xsl:when>
+            <xsl:when test="$lc_dc_type = 'review article'">
+                <xsl:text>http://purl.org/coar/resource_type/c_dcae04bc</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'data paper'">
+                <xsl:text>http://purl.org/coar/resource_type/c_beb9</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'book review'">
+                <xsl:text>http://purl.org/coar/resource_type/c_ba08</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'book part or chapter'">
+                <xsl:text>http://purl.org/coar/resource_type/c_3248</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'book'">
+                <xsl:text>http://purl.org/coar/resource_type/c_2f33</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'bibliography'">
+                <xsl:text>http://purl.org/coar/resource_type/c_86bc</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'preprint'">
+                <xsl:text>http://purl.org/coar/resource_type/c_816b</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'working paper'">
+                <xsl:text>http://purl.org/coar/resource_type/c_8042</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type ='technical documentation'">
+                <xsl:text>http://purl.org/coar/resource_type/c_71bd</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'technical report'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18gh</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'research report'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18ws</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'project deliverable'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18op</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'policy report'">
+                <xsl:text>http://purl.org/coar/resource_type/c_186u</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'memorandum'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18wz</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'review'">
+                <xsl:text>http://purl.org/coar/resource_type/c_efa0</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'research proposal'">
+                <xsl:text>http://purl.org/coar/resource_type/c_baaf</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'report'">
+                <xsl:text>http://purl.org/coar/resource_type/c_93fc</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'patent'">
+                <xsl:text>http://purl.org/coar/resource_type/c_15cd</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'conference poster not in proceedings'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18co</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'conference paper not in proceedings'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18cp</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'conference poster'">
+                <xsl:text>http://purl.org/coar/resource_type/c_6670</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'conference paper'">
+                <xsl:text>http://purl.org/coar/resource_type/c_5794</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'conference object'">
+                <xsl:text>http://purl.org/coar/resource_type/c_c94f</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'conference proceedings'">
+                <xsl:text>http://purl.org/coar/resource_type/c_f744</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'bachelor thesis'">
+                <xsl:text>http://purl.org/coar/resource_type/c_7a1f</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'master thesis'">
+                <xsl:text>http://purl.org/coar/resource_type/c_bdcc</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'doctoral thesis'">
+                <xsl:text>http://purl.org/coar/resource_type/c_db06</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'thesis'">
+                <xsl:text>http://purl.org/coar/resource_type/c_46ec</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'letter'">
+                <xsl:text>http://purl.org/coar/resource_type/c_0857</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'lecture'">
+                <xsl:text>http://purl.org/coar/resource_type/c_8544</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'text'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18cf</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'musical notation'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18cw</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'musical composition'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18cd</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'sound'">
+                <xsl:text>http://purl.org/coar/resource_type/c_18cc</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'video'">
+                <xsl:text>http://purl.org/coar/resource_type/c_12ce</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'moving image'">
+                <xsl:text>http://purl.org/coar/resource_type/c_8a7e</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'still image'">
+                <xsl:text>http://purl.org/coar/resource_type/c_ecc8</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'image'">
+                <xsl:text>http://purl.org/coar/resource_type/c_c513</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'map'">
+                <xsl:text>http://purl.org/coar/resource_type/c_12cd</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'cartographic material'">
+                <xsl:text>http://purl.org/coar/resource_type/c_12cc</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'software'">
+                <xsl:text>http://purl.org/coar/resource_type/c_5ce6</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'dataset'">
+                <xsl:text>http://purl.org/coar/resource_type/c_ddb1</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'interactive resource'">
+                <xsl:text>http://purl.org/coar/resource_type/c_e9a0</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'website'">
+                <xsl:text>http://purl.org/coar/resource_type/c_7ad9</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'workflow'">
+                <xsl:text>http://purl.org/coar/resource_type/c_393c</xsl:text>
+            </xsl:when>
+
             <!-- other -->
             <xsl:otherwise>
                 <xsl:text>http://purl.org/coar/resource_type/c_1843</xsl:text>
@@ -1616,17 +1757,47 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
-            <xsl:when test="$lc_value = 'open access'">
+            <xsl:when test="$lc_value = 'openaccess'">
                 <xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'embargoed access'">
+            <xsl:when test="$lc_value = 'embargo'">
                 <xsl:text>http://purl.org/coar/access_right/c_f1cf</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'restricted access'">
+            <xsl:when test="$lc_value = 'restricted'">
                 <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'metadata only access'">
+            <xsl:when test="$lc_value = 'administrator'">
+                <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_value = 'metadata-only'">
                 <xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
+            </xsl:when>
+            <xsl:otherwise/>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="resolveRightsVocabulary">
+        <xsl:param name="field"/>
+        <xsl:variable name="original_value">
+            <xsl:call-template name="lowercase">
+                <xsl:with-param name="value" select="$field"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$original_value = 'openaccess'">
+                <xsl:text>open access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'embargo'">
+                <xsl:text>embargoed access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'restricted'">
+                <xsl:text>restricted access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'administrator'">
+                <xsl:text>restricted access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$original_value = 'metadata-only'">
+                <xsl:text>metadata only access</xsl:text>
             </xsl:when>
             <xsl:otherwise/>
         </xsl:choose>
@@ -1654,7 +1825,7 @@
     </xsl:variable>
     
     <xsl:template
-        match="doc:element[@name='others']/doc:element[@name='cc']"
+        match="doc:element[@name='oaire']/doc:element[@name='licenseCondition']"
         mode="oaire">
         <oaire:licenseCondition>
             <xsl:attribute name="startDate">
@@ -1662,10 +1833,84 @@
                     select="$ccstart"/>
             </xsl:attribute>
             <xsl:attribute name="uri">
-                <xsl:value-of select="./doc:field[@name='uri']/text()" />
+                <xsl:call-template name="resolveLicenseUrl">
+                    <xsl:with-param name="licenseCode" select="./doc:element/doc:field[@name='value']/text()"/>
+                </xsl:call-template>
             </xsl:attribute>
-            <xsl:value-of select="./doc:field[@name='name']/text()" />
+            <xsl:call-template name="resolveLicenseName">
+                <xsl:with-param name="licenseCode" select="./doc:element/doc:field[@name='value']/text()"/>
+            </xsl:call-template>
         </oaire:licenseCondition>
+    </xsl:template>
+
+
+    <xsl:template name="resolveLicenseUrl">
+        <xsl:param name="licenseCode"/>
+        <xsl:choose>
+            <xsl:when test="$licenseCode = 'CC BY'">
+                <xsl:text>https://creativecommons.org/licenses/by/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-SA'">
+                <xsl:text>https://creativecommons.org/licenses/by-sa/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-ND'">
+                <xsl:text>https://creativecommons.org/licenses/by-nd/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC'">
+                <xsl:text>https://creativecommons.org/licenses/by-nc/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-SA'">
+                <xsl:text>https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-ND'">
+                <xsl:text>https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC0'">
+                <xsl:text>https://creativecommons.org/share-your-work/public-domain/cc0/</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'PDM'">
+                <xsl:text>https://creativecommons.org/publicdomain/mark/1.0/</xsl:text>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="resolveLicenseName">
+        <xsl:param name="licenseCode"/>
+        <xsl:choose>
+            <xsl:when test="$licenseCode = 'CC BY'">
+                <xsl:text>Creative Commons Attribution</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-SA'">
+                <xsl:text>Creative Commons Attribution-ShareAlike</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-ND'">
+                <xsl:text>Creative Commons Attribution-NoDerivs</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC'">
+                <xsl:text>Creative Commons Attribution-NonCommercial</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-SA'">
+                <xsl:text>Creative Commons Attribution-NonCommercial-ShareAlike</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC BY-NC-ND'">
+                <xsl:text>Creative Commons Attribution-NonCommercial-NoDerivs</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'CC0'">
+                <xsl:text>No Rights Reserved – CC0</xsl:text>
+            </xsl:when>
+            <xsl:when test="$licenseCode = 'PDM'">
+                <xsl:text>Public Domain Mark</xsl:text>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
+                  mode="datacite">
+        <!-- only process the first element -->
+        <datacite:identifier>
+            <xsl:attribute name="identifierType">DOI</xsl:attribute>
+            <xsl:value-of select="./doc:field[@name='doi']/text()"/>
+        </datacite:identifier>
     </xsl:template>
 
     <!-- ignore all non specified text values or attributes -->
@@ -1674,5 +1919,19 @@
     <xsl:template match="text()|@*" mode="datacite"/>
     <xsl:template match="text()|@*" mode="entity_author"/>
     <xsl:template match="text()|@*" mode="entity_funding"/>
+
+    <!--
+        Date format
+        This template is discarding the " 16:53:24.556" part from a date and time
+        like "2019-04-30 16:53:24.556" to support the YYYY-MM-DD format of
+        ISO 8601 [W3CDTF]
+    -->
+    <xsl:template name="formatDate">
+        <xsl:param name="datestr"/>
+        <xsl:variable name="sub">
+            <xsl:value-of select="substring($datestr,1,10)"/>
+        </xsl:variable>
+        <xsl:value-of select="$sub"/>
+    </xsl:template>
 
 </xsl:stylesheet>

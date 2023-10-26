@@ -65,6 +65,8 @@ import org.dspace.app.rest.model.PropertyRest;
 import org.dspace.app.rest.model.ResourcePolicyRest;
 import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.RestModel;
+import org.dspace.app.rest.model.SearchStatisticsRest;
+import org.dspace.app.rest.model.SubmissionSectionRest;
 import org.dspace.app.rest.model.SupervisionOrderRest;
 import org.dspace.app.rest.model.UsageReportCategoryRest;
 import org.dspace.app.rest.model.VersionHistoryRest;
@@ -331,6 +333,9 @@ public class Utils {
         }
         if (StringUtils.equals(modelPlural, "supervisionorders")) {
             return SupervisionOrderRest.NAME;
+        }
+        if (StringUtils.equals(modelPlural, "searches")) {
+            return SearchStatisticsRest.NAME;
         }
         return modelPlural.replaceAll("s$", "");
     }
@@ -899,9 +904,15 @@ public class Utils {
             // The full list has been retrieved and we need to provide the first page for embedding
             List<RestAddressableModel> list = (List<RestAddressableModel>) linkedObject;
             if (list.size() > 0) {
+                //FIXME: fix to deal with multiple submission forms sections,
+                // to be resolved by on angular side eventually
+                int pageSize = DEFAULT_PAGE_SIZE;
+                if (SubmissionSectionRest.ATTRIBUTE_NAME.equals(link.getRel().value())) {
+                    pageSize = DEFAULT_PAGE_SIZE * 3;
+                }
                 PageImpl<RestAddressableModel> page = new PageImpl(
-                        list.subList(0, list.size() > DEFAULT_PAGE_SIZE ? DEFAULT_PAGE_SIZE : list.size()),
-                        PageRequest.of(0, DEFAULT_PAGE_SIZE), list.size());
+                    list.subList(0, list.size() > pageSize ? pageSize : list.size()),
+                    PageRequest.of(0, pageSize), list.size());
                 return new EmbeddedPage(link.getHref(),
                         page.map((restObject) -> {
                             restObject.setEmbedLevel(childEmbedLevel);

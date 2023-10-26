@@ -128,60 +128,63 @@
         </xsl:variable>
         <xsl:choose>
             <xsl:when
-                test="$lc_dc_type = 'annotation' or $dc_type = 'http://purl.org/coar/resource_type/c_1162'">
+                test="contains($lc_dc_type,'::annotation') or $lc_dc_type = 'annotation' or $dc_type = 'http://purl.org/coar/resource_type/c_1162'">
                 <xsl:text>annotation</xsl:text>
             </xsl:when>
             <xsl:when test="$lc_dc_type = 'journal'">
-                <xsl:text>journal</xsl:text>
-            </xsl:when>
-            <xsl:when
-                test="$lc_dc_type = 'journal article' or $lc_dc_type = 'article' or $lc_dc_type = 'journalarticle' or $dc_type = 'http://purl.org/coar/resource_type/c_6501'">
                 <xsl:text>journal article</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'editorial' or $dc_type = 'http://purl.org/coar/resource_type/c_b239'">
+                test="contains($lc_dc_type,'::journal article') and not(contains($lc_dc_type,'journal article::')) or $lc_dc_type = 'journal article' or $lc_dc_type = 'article' or $lc_dc_type = 'journalarticle' or $dc_type = 'http://purl.org/coar/resource_type/c_6501'">
+                <xsl:text>journal article</xsl:text>
+            </xsl:when>
+            <xsl:when
+                test="contains($lc_dc_type,'::editorial') or contains($lc_dc_type,'::editorial') or $lc_dc_type = 'editorial' or $dc_type = 'http://purl.org/coar/resource_type/c_b239'">
                 <xsl:text>editorial</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'bachelor thesis' or $lc_dc_type = 'bachelorthesis' or $dc_type = 'http://purl.org/coar/resource_type/c_7a1f'">
+                test="contains($lc_dc_type,'::bachelor thesis') or $lc_dc_type = 'bachelor thesis' or $lc_dc_type = 'bachelorthesis' or $dc_type = 'http://purl.org/coar/resource_type/c_7a1f'">
                 <xsl:text>bachelor thesis</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'bibliography' or $dc_type = 'http://purl.org/coar/resource_type/c_86bc'">
+                test="contains($lc_dc_type,'::bibliography') or $lc_dc_type = 'bibliography' or $dc_type = 'http://purl.org/coar/resource_type/c_86bc'">
                 <xsl:text>bibliography</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'book' or $dc_type = 'http://purl.org/coar/resource_type/c_2f33'">
+            <xsl:when test="contains($lc_dc_type,'::book/monograph') and not(contains($lc_dc_type,'book/monograph::')) or $lc_dc_type = 'book' or $dc_type = 'http://purl.org/coar/resource_type/c_2f33'">
                 <xsl:text>book</xsl:text>
             </xsl:when>
             <xsl:when
                 test="$lc_dc_type = 'book part' or $lc_dc_type = 'bookpart' or $dc_type = 'http://purl.org/coar/resource_type/c_3248'">
                 <xsl:text>book part</xsl:text>
             </xsl:when>
+            <xsl:when test="contains($lc_dc_type,'::book part or chapter')">
+                <xsl:text>book part or chapter</xsl:text>
+            </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'book review' or $lc_dc_type = 'bookreview' or $dc_type = 'http://purl.org/coar/resource_type/c_ba08'">
+                test="contains($lc_dc_type,'::book review') or $lc_dc_type = 'book review' or $lc_dc_type = 'bookreview' or $dc_type = 'http://purl.org/coar/resource_type/c_ba08'">
                 <xsl:text>book review</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'website' or $dc_type = 'http://purl.org/coar/resource_type/c_7ad9'">
+            <xsl:when test="contains($lc_dc_type,'::website') or $lc_dc_type = 'website' or $dc_type = 'http://purl.org/coar/resource_type/c_7ad9'">
                 <xsl:text>website</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'interactive resource' or $lc_dc_type = 'interactiveresource' or $dc_type = 'http://purl.org/coar/resource_type/c_e9a0'">
+                test="(contains($lc_dc_type,'::interactive resource') and not(contains($lc_dc_type,'interactive resource::'))) or $lc_dc_type = 'interactive resource' or $lc_dc_type = 'interactiveresource' or $dc_type = 'http://purl.org/coar/resource_type/c_e9a0'">
                 <xsl:text>interactive resource</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'conference proceedings' or $lc_dc_type = 'conferenceproceedings' or $dc_type = 'http://purl.org/coar/resource_type/c_f744'">
+                test="contains($lc_dc_type,'::conference proceedings') or $lc_dc_type = 'conference proceedings' or $lc_dc_type = 'conferenceproceedings' or $dc_type = 'http://purl.org/coar/resource_type/c_f744'">
                 <xsl:text>conference proceedings</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'conference object' or $lc_dc_type = 'conferenceobject' or $dc_type = 'http://purl.org/coar/resource_type/c_c94f'">
+                test="contains($lc_dc_type,'::conference object') or $lc_dc_type = 'conference object' or $lc_dc_type = 'conferenceobject' or $dc_type = 'http://purl.org/coar/resource_type/c_c94f'">
                 <xsl:text>conference object</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'conference paper' or $lc_dc_type = 'conferencepaper' or $dc_type = 'http://purl.org/coar/resource_type/c_5794'">
+                test="contains($lc_dc_type,'::conference paper') or $lc_dc_type = 'conference paper' or $lc_dc_type = 'conferencepaper' or $dc_type = 'http://purl.org/coar/resource_type/c_5794'">
                 <xsl:text>conference paper</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'conference poster' or $lc_dc_type = 'conferenceposter' or $dc_type = 'http://purl.org/coar/resource_type/c_6670'">
+                test="contains($lc_dc_type,'::conference poster') or $lc_dc_type = 'conference poster' or $lc_dc_type = 'conferenceposter' or $dc_type = 'http://purl.org/coar/resource_type/c_6670'">
                 <xsl:text>conference poster</xsl:text>
             </xsl:when>
             <xsl:when
@@ -189,31 +192,31 @@
                 <xsl:text>contribution to journal</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'datapaper' or $dc_type = 'http://purl.org/coar/resource_type/c_beb9'">
+                test="contains($lc_dc_type,'::data paper') or $lc_dc_type = 'datapaper' or $dc_type = 'http://purl.org/coar/resource_type/c_beb9'">
                 <xsl:text>data paper</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'dataset' or $dc_type = 'http://purl.org/coar/resource_type/c_ddb1'">
+            <xsl:when test="(contains($lc_dc_type,'::dataset') and not(contains($lc_dc_type,'dataset::'))) or $lc_dc_type = 'dataset' or $dc_type = 'http://purl.org/coar/resource_type/c_ddb1'">
                 <xsl:text>dataset</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'doctoral thesis' or $lc_dc_type = 'doctoralthesis' or $dc_type = 'http://purl.org/coar/resource_type/c_db06'">
+                test="contains($lc_dc_type,'::doctoral thesis') or $lc_dc_type = 'doctoral thesis' or $lc_dc_type = 'doctoralthesis' or $dc_type = 'http://purl.org/coar/resource_type/c_db06'">
                 <xsl:text>doctoral thesis</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'image' or $dc_type = 'http://purl.org/coar/resource_type/c_c513'">
+            <xsl:when test="(contains($lc_dc_type,'::image') and not(contains($lc_dc_type,'image::')))  or $lc_dc_type = 'image' or $dc_type = 'http://purl.org/coar/resource_type/c_c513'">
                 <xsl:text>image</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'lecture' or $dc_type = 'http://purl.org/coar/resource_type/c_8544'">
+            <xsl:when test="contains($lc_dc_type,'::lecture/talk') or $lc_dc_type = 'lecture' or $dc_type = 'http://purl.org/coar/resource_type/c_8544'">
                 <xsl:text>lecture</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'letter' or $dc_type = 'http://purl.org/coar/resource_type/c_0857'">
+            <xsl:when test="contains($lc_dc_type,'::letter') or $lc_dc_type = 'letter' or $dc_type = 'http://purl.org/coar/resource_type/c_0857'">
                 <xsl:text>letter</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'master thesis' or $lc_dc_type = 'masterthesis' or $dc_type = 'http://purl.org/coar/resource_type/c_bdcc'">
+                test="contains($lc_dc_type,'::master thesis') or $lc_dc_type = 'master thesis' or $lc_dc_type = 'masterthesis' or $dc_type = 'http://purl.org/coar/resource_type/c_bdcc'">
                 <xsl:text>master thesis</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'moving image' or $lc_dc_type = 'movingimage' or $dc_type = 'http://purl.org/coar/resource_type/c_8a7e'">
+                test="contains($lc_dc_type,'::moving image') or $lc_dc_type = 'moving image' or $lc_dc_type = 'movingimage' or $dc_type = 'http://purl.org/coar/resource_type/c_8a7e'">
                 <xsl:text>moving image</xsl:text>
             </xsl:when>
             <xsl:when
@@ -221,16 +224,16 @@
                 <xsl:text>periodical</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'letter to the editor' or $lc_dc_type = 'lettertotheeditor' or $dc_type = 'http://purl.org/coar/resource_type/c_545b'">
+                test="contains($lc_dc_type,'::letter to the editor') or $lc_dc_type = 'letter to the editor' or $lc_dc_type = 'lettertotheeditor' or $dc_type = 'http://purl.org/coar/resource_type/c_545b'">
                 <xsl:text>letter to the editor</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'patent' or $dc_type = 'http://purl.org/coar/resource_type/c_15cd'">
+            <xsl:when test="(contains($lc_dc_type,'patent') and not(contains($lc_dc_type,'patent::'))) or $lc_dc_type = 'patent' or $dc_type = 'http://purl.org/coar/resource_type/c_15cd'">
                 <xsl:text>patent</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'preprint' or $dc_type = 'http://purl.org/coar/resource_type/c_816b'">
+            <xsl:when test="contains($lc_dc_type,'::preprint') or $lc_dc_type = 'preprint' or $dc_type = 'http://purl.org/coar/resource_type/c_816b'">
                 <xsl:text>preprint</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'report' or $dc_type = 'http://purl.org/coar/resource_type/c_93fc'">
+            <xsl:when test="(contains($lc_dc_type,'::report') and not(contains($lc_dc_type,'::report::'))) or $lc_dc_type = 'report' or $dc_type = 'http://purl.org/coar/resource_type/c_93fc'">
                 <xsl:text>report</xsl:text>
             </xsl:when>
             <xsl:when
@@ -238,63 +241,63 @@
                 <xsl:text>report part</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'research proposal' or $lc_dc_type = 'researchproposal' or $dc_type = 'http://purl.org/coar/resource_type/c_baaf'">
+                test="contains($lc_dc_type,'::research proposal') or $lc_dc_type = 'research proposal' or $lc_dc_type = 'researchproposal' or $dc_type = 'http://purl.org/coar/resource_type/c_baaf'">
                 <xsl:text>research proposal</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'review' or $dc_type = 'http://purl.org/coar/resource_type/c_efa0'">
+            <xsl:when test="(contains($lc_dc_type,'::review') and not(contains($lc_dc_type,'review::'))) or $lc_dc_type = 'review' or $dc_type = 'http://purl.org/coar/resource_type/c_efa0'">
                 <xsl:text>review</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'software' or $dc_type = 'http://purl.org/coar/resource_type/c_5ce6'">
+            <xsl:when test="contains($lc_dc_type,'::software') or $lc_dc_type = 'software' or $dc_type = 'http://purl.org/coar/resource_type/c_5ce6'">
                 <xsl:text>software</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'still image' or $lc_dc_type = 'stillimage' or $dc_type = 'http://purl.org/coar/resource_type/c_ecc8'">
+                test="contains($lc_dc_type,'::still image') or $lc_dc_type = 'still image' or $lc_dc_type = 'stillimage' or $dc_type = 'http://purl.org/coar/resource_type/c_ecc8'">
                 <xsl:text>still image</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'technical documentation' or $lc_dc_type = 'technicaldocumentation' or $dc_type = 'http://purl.org/coar/resource_type/c_71bd'">
+                test="contains($lc_dc_type,'::technical documentation or standard') or $lc_dc_type = 'technical documentation' or $lc_dc_type = 'technicaldocumentation' or $dc_type = 'http://purl.org/coar/resource_type/c_71bd'">
                 <xsl:text>technical documentation</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'workflow' or $dc_type = 'http://purl.org/coar/resource_type/c_393c'">
+            <xsl:when test="contains($lc_dc_type,'::workflow') or $lc_dc_type = 'workflow' or $dc_type = 'http://purl.org/coar/resource_type/c_393c'">
                 <xsl:text>workflow</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'working paper' or $lc_dc_type = 'workingpaper' or $dc_type = 'http://purl.org/coar/resource_type/c_8042'">
+                test="contains($lc_dc_type,'::working paper') or $lc_dc_type = 'working paper' or $lc_dc_type = 'workingpaper' or $dc_type = 'http://purl.org/coar/resource_type/c_8042'">
                 <xsl:text>working paper</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'thesis' or $dc_type = 'http://purl.org/coar/resource_type/c_46ec'">
+            <xsl:when test="(contains($lc_dc_type,'::thesis') and not(contains($lc_dc_type,'thesis::'))) or $lc_dc_type = 'thesis' or $dc_type = 'http://purl.org/coar/resource_type/c_46ec'">
                 <xsl:text>thesis</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'cartographic material' or $lc_dc_type = 'cartographicmaterial' or $dc_type = 'http://purl.org/coar/resource_type/c_12cc'">
+                test="(contains($lc_dc_type,'::cartographic material') and not(contains($lc_dc_type,'cartographic material::'))) or $lc_dc_type = 'cartographic material' or $lc_dc_type = 'cartographicmaterial' or $dc_type = 'http://purl.org/coar/resource_type/c_12cc'">
                 <xsl:text>cartographic material</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'map' or $dc_type = 'http://purl.org/coar/resource_type/c_12cd'">
+            <xsl:when test="contains($lc_dc_type,'::map') or $lc_dc_type = 'map' or $dc_type = 'http://purl.org/coar/resource_type/c_12cd'">
                 <xsl:text>map</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'video' or $dc_type = 'http://purl.org/coar/resource_type/c_12ce'">
+            <xsl:when test="contains($lc_dc_type,'::video') or $lc_dc_type = 'video' or $dc_type = 'http://purl.org/coar/resource_type/c_12ce'">
                 <xsl:text>video</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'sound' or $dc_type = 'http://purl.org/coar/resource_type/c_18cc'">
+            <xsl:when test="(contains($lc_dc_type,'::sound') and not(contains($lc_dc_type,'sound::'))) or $lc_dc_type = 'sound' or $dc_type = 'http://purl.org/coar/resource_type/c_18cc'">
                 <xsl:text>sound</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'musical composition' or $lc_dc_type = 'musicalcomposition' or $dc_type = 'http://purl.org/coar/resource_type/c_18cd'">
+                test="contains($lc_dc_type,'::musical notation') or $lc_dc_type = 'musical composition' or $lc_dc_type = 'musicalcomposition' or $dc_type = 'http://purl.org/coar/resource_type/c_18cd'">
                 <xsl:text>musical composition</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_dc_type = 'text' or $dc_type = 'http://purl.org/coar/resource_type/c_18cf'">
+            <xsl:when test="(contains($lc_dc_type,'text') and not(contains($lc_dc_type,'text::'))) or$lc_dc_type = 'text' or $dc_type = 'http://purl.org/coar/resource_type/c_18cf'">
                 <xsl:text>text</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'conference paper not in proceedings' or $lc_dc_type = 'conferencepapernotinproceedings' or $dc_type = 'http://purl.org/coar/resource_type/c_18cp'">
+                test="contains($lc_dc_type,'::conference paper not in proceedings') or $lc_dc_type = 'conference paper not in proceedings' or $lc_dc_type = 'conferencepapernotinproceedings' or $dc_type = 'http://purl.org/coar/resource_type/c_18cp'">
                 <xsl:text>conference paper not in proceedings</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'conference poster not in proceedings' or $lc_dc_type = 'conferenceposternotinproceedings' or $dc_type = 'http://purl.org/coar/resource_type/c_18co'">
+                test="contains($lc_dc_type,'::conference poster not in proceedings') or $lc_dc_type = 'conference poster not in proceedings' or $lc_dc_type = 'conferenceposternotinproceedings' or $dc_type = 'http://purl.org/coar/resource_type/c_18co'">
                 <xsl:text>conference poster not in proceedings</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'musical notation' or $dc_type = 'http://purl.org/coar/resource_type/c_18cw'">
+                test="contains($lc_dc_type,'::musical notation') or $lc_dc_type = 'musical notation' or $dc_type = 'http://purl.org/coar/resource_type/c_18cw'">
                 <xsl:text>musical notation</xsl:text>
             </xsl:when>
             <xsl:when
@@ -302,7 +305,7 @@
                 <xsl:text>internal report</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'memorandum' or $dc_type = 'http://purl.org/coar/resource_type/c_18wz'">
+                test="contains($lc_dc_type,'::memorandum') or $lc_dc_type = 'memorandum' or $dc_type = 'http://purl.org/coar/resource_type/c_18wz'">
                 <xsl:text>memorandum</xsl:text>
             </xsl:when>
             <xsl:when
@@ -310,11 +313,11 @@
                 <xsl:text>other type of report</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'policy report' or $lc_dc_type = 'policyreport'  or $dc_type = 'http://purl.org/coar/resource_type/c_186u'">
+                test="contains($lc_dc_type,'::policy report') or $lc_dc_type = 'policy report' or $lc_dc_type = 'policyreport'  or $dc_type = 'http://purl.org/coar/resource_type/c_186u'">
                 <xsl:text>policy report</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'project deliverable' or $lc_dc_type = 'projectdeliverable' or $dc_type = 'http://purl.org/coar/resource_type/c_18op'">
+                test="contains($lc_dc_type,'::project deliverable') or $lc_dc_type = 'project deliverable' or $lc_dc_type = 'projectdeliverable' or $dc_type = 'http://purl.org/coar/resource_type/c_18op'">
                 <xsl:text>project deliverable</xsl:text>
             </xsl:when>
             <xsl:when
@@ -322,19 +325,19 @@
                 <xsl:text>report to funding agency</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'research report' or $lc_dc_type = 'researchreport' or $dc_type = 'http://purl.org/coar/resource_type/c_18ws'">
+                test="contains($lc_dc_type,'::research report') or $lc_dc_type = 'research report' or $lc_dc_type = 'researchreport' or $dc_type = 'http://purl.org/coar/resource_type/c_18ws'">
                 <xsl:text>research report</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'technical report' or $lc_dc_type = 'technicalreport' or $dc_type = 'http://purl.org/coar/resource_type/c_18gh'">
+                test="contains($lc_dc_type,'::technical report') or $lc_dc_type = 'technical report' or $lc_dc_type = 'technicalreport' or $dc_type = 'http://purl.org/coar/resource_type/c_18gh'">
                 <xsl:text>technical report</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'review article' or $lc_dc_type = 'reviewarticle' or $dc_type = 'http://purl.org/coar/resource_type/c_dcae04bc'">
+                test="contains($lc_dc_type,'::review article') or $lc_dc_type = 'review article' or $lc_dc_type = 'reviewarticle' or $dc_type = 'http://purl.org/coar/resource_type/c_dcae04bc'">
                 <xsl:text>review article</xsl:text>
             </xsl:when>
             <xsl:when
-                test="$lc_dc_type = 'research article' or $lc_dc_type = 'researcharticle' or $dc_type = 'http://purl.org/coar/resource_type/c_2df8fbb1'">
+                test="contains($lc_dc_type,'::research article') or $lc_dc_type = 'research article' or $lc_dc_type = 'researcharticle' or $dc_type = 'http://purl.org/coar/resource_type/c_2df8fbb1'">
                 <xsl:text>research article</xsl:text>
             </xsl:when>
             <xsl:otherwise>

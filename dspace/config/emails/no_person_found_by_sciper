@@ -1,0 +1,6 @@
+## E-mail sent to administrators during the shib authentication when no person was found by sciper id.
+##
+## Parameters: {0} is the sciper id
+##
+#set($subject = 'Error during user synchronization')
+For sciper ${params[0]} EPFL LDAP web service did not return information about user.

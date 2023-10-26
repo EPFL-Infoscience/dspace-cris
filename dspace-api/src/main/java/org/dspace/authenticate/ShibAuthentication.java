@@ -7,6 +7,10 @@
  */
 package org.dspace.authenticate;
 
+import static java.util.Optional.ofNullable;
+import static org.dspace.core.I18nUtil.getEmailFilename;
+
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
@@ -21,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -28,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
+import org.dspace.authenticate.service.NoPersonFoundException;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
@@ -40,6 +46,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.Context;
+import org.dspace.core.Email;
 import org.dspace.core.Utils;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -480,7 +487,11 @@ public class ShibAuthentication implements AuthenticationMethod {
 
         try {
             profileInitializer.initialize(context, eperson);
+        } catch (NoPersonFoundException ex) {
+            sendEmailForNoPersonFound(context, eperson);
+            deleteEperson(context, eperson);
         } catch (Exception ex) {
+            deleteEperson(context, eperson);
             log.error("An error occurs initializing EPerson.", ex);
         }
 
@@ -1305,6 +1316,35 @@ public class ShibAuthentication implements AuthenticationMethod {
     @Override
     public boolean canChangePassword(Context context, EPerson ePerson, String currentPassword) {
         return false;
+    }
+
+    private void sendEmailForNoPersonFound(Context context, EPerson person) {
+        try {
+            Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(),
+                    "no_person_found_by_sciper"));
+            email.addRecipient(configurationService.getProperty("mail.admin"));
+            email.addArgument(getSciperId(person));
+            email.send();
+        } catch (IOException | MessagingException e) {
+            log.error("An error occurs sending the email related to the user synchronization", e);
+        }
+    }
+
+    private Optional<String> getSciperId(EPerson eperson) {
+        return ofNullable(eperson)
+                .flatMap(ePerson -> ofNullable(ePerson.getNetid()))
+                .map(netId -> org.apache.commons.lang.StringUtils.substringBefore(netId, "@"));
+    }
+
+    private void deleteEperson(Context context, EPerson ePerson) {
+        try {
+            context.turnOffAuthorisationSystem();
+            ePersonService.delete(context, ePerson);
+        } catch (SQLException | AuthorizeException | IOException e) {
+            log.error("An error occurs when trying to delete ePerson " + ePerson.getID() , e);
+        } finally {
+            context.restoreAuthSystemState();
+        }
     }
 }
 

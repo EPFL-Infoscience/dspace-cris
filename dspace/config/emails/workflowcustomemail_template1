@@ -1,17 +1,22 @@
 ## Rejection email message
-##
-## {0}  Title of submission
-## {1}  Name of collection
-## {2}  Fullname of the Submitter
-## {3}  Email of the Submitter
-## {4}  Name of the rejector
-## {5}  Email of the rejector
-## {6}  Link to 'My DSpace' page
-##
-#set($subject = 'DSpace: Additional information required')
-Dear ${params[2]}
-I need more information about your submission ${params[0]} in the collection ${params[1]}
-
-Please reach me at ${params[5]}
-Best regards, 
-${params[4]}
+ ##
+ ## {0} Title of submission
+ ## {1} Name of collection
+ ## {2} Fullname of the Submitter
+ ## {3} Email of the Submitter
+ ## {4} Name of the rejector
+ ## {5} Email of the rejector
+ ## {6} Link to 'My DSpace' page
+ ##
+ #set($subject = 'Infoscience: Additional information required')
+ 
+ Hello ${params[2]},
+ 
+ We need more information about your submission: ${params[0]} in the collection ${params[1]}.
+ 
+ Please reach us at: ${params[5]}
+ 
+ Best regards,
+ 
+ Infoscience Team
+ EPFL Library

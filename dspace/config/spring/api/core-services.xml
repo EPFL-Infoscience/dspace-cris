@@ -43,6 +43,7 @@
     <bean class="org.dspace.content.BitstreamFormatServiceImpl"/>
     <bean class="org.dspace.content.BitstreamServiceImpl"/>
     <bean class="org.dspace.content.BundleServiceImpl"/>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.ItemDOIService"/>
     <bean class="org.dspace.content.CommunityServiceImpl"/>
     <bean class="org.dspace.content.InstallItemServiceImpl"/>
     <bean class="org.dspace.content.ItemServiceImpl"/>
@@ -139,6 +140,8 @@
 
     <bean class="org.dspace.versioning.VersionHistoryServiceImpl"/>
 
+    <bean class="org.dspace.util.FrontendUrlService"/>
+
     <bean class="org.dspace.content.security.MetadataSecurityServiceImpl"/>
     <bean class="org.dspace.metricsSecurity.BoxMetricsLayoutConfigurationService"/>
 
@@ -191,6 +194,8 @@
     <bean class="org.dspace.statistics.LoginStatisticsServiceImpl" />
 
     <bean class="org.dspace.statistics.WorkflowStatisticsServiceImpl" />
+    
+    <bean class="org.dspace.statistics.SearchStatisticsServiceImpl" />
 
     <!-- OIDC Authentication -->
     <bean class="org.dspace.authenticate.OidcAuthenticationBean" id="oidcAuthentication"/>

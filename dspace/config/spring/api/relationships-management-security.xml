@@ -10,6 +10,7 @@
 
     <util:map id="relationshipsManagementAccessPolicies">
         <entry key="orgunit" value-ref="orgunitEditorsAccessModeList"/>
+        <entry key="virtualcollection" value-ref="virtualCollectionCuratorsAccessModeList"/>
     </util:map>
 
     <util:list id="orgunitEditorsAccessModeList">
@@ -25,6 +26,23 @@
 
     <util:list id="orgunitEditor" value-type="java.lang.String">
         <value>epfl.orgUnit.editor</value>
+        <value>crisou.director</value>
+    </util:list>
+
+    <util:list id="virtualCollectionCuratorsAccessModeList">
+        <bean class="org.dspace.versioning.VersioningItemMode">
+            <property name="securities">
+                <list>
+                    <value>CUSTOM</value>
+                </list>
+            </property>
+            <property name="users" ref="virtualCollectionCurator" />
+        </bean>
+    </util:list>
+
+    <util:list id="virtualCollectionCurator" value-type="java.lang.String">
+        <value>epfl.virtualCollection.head</value>
+        <value>epfl.virtualCollection.curator</value>
     </util:list>
 
 </beans>

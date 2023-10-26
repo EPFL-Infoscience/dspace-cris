@@ -47,6 +47,7 @@ import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableCommunity;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
@@ -275,6 +276,14 @@ public class AuthorizeServiceImpl implements AuthorizeService {
                                                                       .getAdminObject(c, o, action) : null;
 
             if (isAdmin(c, e, adminObject)) {
+                c.cacheAuthorizedAction(o, action, e, useInheritance, true, null);
+                return true;
+            }
+
+            boolean curatorAuthorized = configurationService.getBooleanProperty("epfl.curator.authorize");
+
+            if (curatorAuthorized && isCurator(c)
+                && (o instanceof Item || o instanceof Bundle || o instanceof Bitstream || o instanceof Collection)) {
                 c.cacheAuthorizedAction(o, action, e, useInheritance, true, null);
                 return true;
             }
@@ -840,6 +849,27 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         return performCheck(context, "search.resourcetype:" + IndexableCollection.TYPE);
     }
 
+    private boolean isVirtualCollectionSubmitter(Context context) throws SQLException {
+        if (context.getCurrentUser() == null) {
+            return false;
+        }
+        String query = "search.resourcetype:" + IndexableItem.TYPE +
+            " AND entityType_keyword:VirtualCollection AND submitter_authority:"
+            + context.getCurrentUser().getID();
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.setQuery(query);
+        discoverQuery.setMaxResults(1);
+        try {
+            DiscoverResult discoverResult = searchService.search(context, discoverQuery);
+            return !discoverResult.getIndexableObjects().isEmpty();
+        } catch (SearchServiceException e) {
+            log.error("Failed getting getting virtual collection submitter status for "
+                          + context.getCurrentUser().getEmail() + " The search error is: " + e.getMessage()
+                          + " The search resourceType filter was: " + query);
+        }
+        return false;
+    }
+
     /**
      * Checks that the context's current user is a community or collection admin in the site.
      *
@@ -950,7 +980,8 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     public boolean isAccountManager(Context context) {
         try {
             return (canCommunityAdminManageAccounts() && isCommunityAdmin(context)
-                || canCollectionAdminManageAccounts() && isCollectionAdmin(context));
+                || canCollectionAdminManageAccounts() && isCollectionAdmin(context)
+                || canCollectionAdminManageAccounts() && isVirtualCollectionSubmitter(context));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

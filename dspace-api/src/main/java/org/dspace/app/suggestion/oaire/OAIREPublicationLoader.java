@@ -98,24 +98,25 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
      * Save a List of ImportRecord into Solr.
      * ImportRecord will be translated into a SolrDocument by the method translateImportRecordToSolrDocument.
      *
-     * @param context the DSpace Context
+     * @param context    the DSpace Context
      * @param researcher a DSpace Item
+     * @return
      * @throws SolrServerException
      * @throws IOException
      */
     @Override
-    public void importAuthorRecords(Context context, Item researcher)
+    public int importAuthorRecords(Context context, Item researcher)
             throws SolrServerException, IOException {
-        saveRecordsInSolr(researcher, getImportRecords(researcher));
+        return saveRecordsInSolr(researcher, getImportRecords(researcher));
     }
 
     @Override
-    public void importAuthorRecords(Context context, Item researcher, String extraQuery)
+    public int importAuthorRecords(Context context, Item researcher, String extraQuery)
         throws SolrServerException, IOException {
-        saveRecordsInSolr(researcher, getImportRecords(researcher, extraQuery));
+        return saveRecordsInSolr(researcher, getImportRecords(researcher, extraQuery));
     }
 
-    private void saveRecordsInSolr(Item researcher, List<ExternalDataObject> metadata)
+    private int saveRecordsInSolr(Item researcher, List<ExternalDataObject> metadata)
         throws SolrServerException, IOException {
 
         List<Suggestion> records = reduceAndTransform(researcher, metadata);
@@ -123,6 +124,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
             solrSuggestionStorageService.addSuggestion(record, false, false);
         }
         solrSuggestionStorageService.commit();
+        return records.size();
     }
 
     /**
