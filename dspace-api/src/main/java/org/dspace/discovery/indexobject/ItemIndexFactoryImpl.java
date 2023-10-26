@@ -681,6 +681,8 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                 doc.addField(field, value);
                 if (authority != null) {
                     doc.addField(field + "_authority", authority);
+                } else if (meta.getAuthority() != null) {
+                    doc.addField(field + "_authority", meta.getAuthority());
                 }
 
                 if (meta.getAuthority() != null) {
