@@ -115,6 +115,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 addField(document, fieldName, value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
             }
         };
     private static final BiFunction<SolrInputDocument, String, Consumer<String>> oaireSolrIndexAdder =
@@ -125,6 +126,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                     addField(document, fieldName, value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
                 }
             }
         };
@@ -145,6 +147,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 addField(document, baseIndex, value);
                 addField(document, baseIndex.concat(SOLR_POSTFIX_KEYWORD), value);
                 addField(document, baseIndex.concat(SOLR_POSTFIX_FILTER), value);
+                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
             }
         };
 
