@@ -212,7 +212,7 @@ public class DiscoveryRestController implements InitializingBean {
 
         try {
 
-            if (prefix != null && !StringUtils.isAllUpperCase(prefix)) {
+            if (prefix != null && !prefix.toUpperCase().equals(prefix)) {
                 prefix = prefix.toLowerCase();
             }
 
