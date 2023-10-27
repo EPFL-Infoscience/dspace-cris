@@ -37,6 +37,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.packager.PackageUtils;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -219,6 +220,8 @@ public class ExternalSourceItemImportRunnable
                     suggestion.getExternalSourceUri());
                 handler.logInfo("Created item with id: " + workspaceItem.getItem().getID() +
                     " from suggestion " + suggestion.getID());
+                Item itemFromWs = workspaceItem.getItem();
+                PackageUtils.addDepositLicense(context, null, itemFromWs, workspaceItem.getCollection());
                 Item target = suggestion.getTarget();
                 if (Objects.nonNull(target)
                     && StringUtils.isNotBlank(target.getName())) {
@@ -291,6 +294,10 @@ public class ExternalSourceItemImportRunnable
             metadata.setSchema("dc");
             metadata.setElement("identifier");
             metadata.setQualifier("pmid");
+        } else if ("oaire".equals(this.source)) {
+            metadata.setSchema("dc");
+            metadata.setElement("identifier");
+            metadata.setQualifier("other");
         }
         return metadata;
     }

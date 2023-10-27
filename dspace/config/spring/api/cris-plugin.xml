@@ -99,6 +99,27 @@
 						</property>
 					</bean>
 				</entry>
+				<entry key="dc.relation.conference">
+					<bean class="org.dspace.authority.filler.MetadataConfiguration">
+						<property name="updateEnabled" value="false" />
+						<property name="mapping">
+							<map>
+								<entry key="oaire.citation.conferencePlace">
+									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="oairecerif.event.place" />
+									</bean>
+								</entry>
+								<entry key="oaire.citation.conferenceDate">
+									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="oairecerif.event.startDate" />
+									</bean>
+								</entry>
+							</map>
+						</property>
+					</bean>
+				</entry>
 			</map>
 		</property>
 	</bean>
@@ -134,6 +155,7 @@
                 <entry key="SCIPER-ID" value-ref="itemSearcherBySciper"/>
 				<entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
 				<entry key="SCOPUS-AUTHOR-ID" value-ref="itemSearcherByScopusAuthorId"/>
+				<entry key="ROR-ID" value-ref="itemSearcherByRorId"/>
 			</map>
 		</constructor-arg>
 		<constructor-arg index="1">
@@ -190,6 +212,11 @@
         <constructor-arg value="person.identifier.scopus-author-id"></constructor-arg>
         <constructor-arg value="SCOPUS-AUTHOR-ID"></constructor-arg>
     </bean>
+
+	<bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByRorId">
+		<constructor-arg value="organization.identifier.ror"></constructor-arg>
+		<constructor-arg value="ROR-ID"></constructor-arg>
+	</bean>
 	
 	<bean class="org.dspace.authority.service.impl.ItemSearchServiceImpl" name="org.dspace.authority.service.ItemSearchService"/>
 	<bean class="org.dspace.authority.service.impl.ItemReferenceResolverServiceImpl" name="org.dspace.authority.service.ItemReferenceResolverService"/>

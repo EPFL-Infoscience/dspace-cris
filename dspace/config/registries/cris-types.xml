@@ -263,6 +263,20 @@
 
     <dc-type>
         <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>scientificeditor-sciperId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>scientificeditor-sciperId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
         <element>cms</element>
         <qualifier>home-header</qualifier>
         <scope_note />

@@ -11,6 +11,7 @@ package org.dspace.app.requestitem;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import javax.mail.MessagingException;
 
 import org.apache.logging.log4j.LogManager;
@@ -28,6 +29,8 @@ import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogHelper;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
@@ -49,6 +52,8 @@ public class RequestItemEmailNotifier {
 
     private static final HandleService handleService
             = HandleServiceFactory.getInstance().getHandleService();
+
+    private static final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     private static final RequestItemService requestItemService
             = RequestItemServiceFactory.getInstance().getRequestItemService();
@@ -76,29 +81,6 @@ public class RequestItemEmailNotifier {
         List<RequestItemAuthor> authors = requestItemAuthorExtractor
                 .getRequestItemAuthor(context, ri.getItem());
 
-        // Build an email to the approver.
-        Email email = Email.getEmail(I18nUtil.getEmailFilename(context.getCurrentLocale(),
-                "request_item.author"));
-        for (RequestItemAuthor author : authors) {
-            email.addRecipient(author.getEmail());
-        }
-        email.setReplyTo(ri.getReqEmail()); // Requester's address
-
-        email.addArgument(ri.getReqName()); // {0} Requester's name
-
-        email.addArgument(ri.getReqEmail()); // {1} Requester's address
-
-        email.addArgument(ri.isAllfiles() // {2} All bitstreams or just one?
-            ? I18nUtil.getMessage("itemRequest.all") : ri.getBitstream().getName());
-
-        email.addArgument(handleService.getCanonicalForm(ri.getItem().getHandle())); // {3}
-
-        email.addArgument(ri.getItem().getName()); // {4} requested item's title
-
-        email.addArgument(ri.getReqMessage()); // {5} message from requester
-
-        email.addArgument(responseLink); // {6} Link back to DSpace for action
-
         StringBuilder names = new StringBuilder();
         StringBuilder addresses = new StringBuilder();
         for (RequestItemAuthor author : authors) {
@@ -109,32 +91,65 @@ public class RequestItemEmailNotifier {
             names.append(author.getFullName());
             addresses.append(author.getEmail());
         }
-        email.addArgument(names.toString()); // {7} corresponding author name
-        email.addArgument(addresses.toString()); // {8} corresponding author email
 
-        email.addArgument(configurationService.getProperty("dspace.name")); // {9}
+        for (RequestItemAuthor author : authors) {
 
-        email.addArgument(configurationService.getProperty("mail.helpdesk")); // {10}
-
-        // Send the email.
-        try {
-            email.send();
-            Bitstream bitstream = ri.getBitstream();
-            String bitstreamID;
-            if (null == bitstream) {
-                bitstreamID = "null";
-            } else {
-                bitstreamID = ri.getBitstream().getID().toString();
+            Locale locale = I18nUtil.getDefaultLocale();
+            EPerson ePerson = ePersonService.findByEmail(context, author.getEmail());
+            if (ePerson != null) {
+                locale = I18nUtil.getEPersonLocale(ePerson);
             }
-            LOG.info(LogHelper.getHeader(context,
-                    "sent_email_requestItem",
-                    "submitter_id={},bitstream_id={},requestEmail={}"),
-                    ri.getReqEmail(), bitstreamID, ri.getReqEmail());
-        } catch (MessagingException e) {
-            LOG.warn(LogHelper.getHeader(context,
+
+            // Build an email to the approver.
+            Email email = Email.getEmail(I18nUtil.getEmailFilename(locale, "request_item.author"));
+
+            email.addRecipient(author.getEmail());
+            email.setReplyTo(ri.getReqEmail()); // Requester's address
+
+            email.addArgument(ri.getReqName()); // {0} Requester's name
+
+            email.addArgument(ri.getReqEmail()); // {1} Requester's address
+
+            email.addArgument(ri.isAllfiles() // {2} All bitstreams or just one?
+                ? I18nUtil.getMessage("itemRequest.all")
+                : ri.getBitstream().getName());
+
+            email.addArgument(handleService.getCanonicalForm(ri.getItem().getHandle())); // {3}
+
+            email.addArgument(ri.getItem().getName()); // {4} requested item's title
+
+            email.addArgument(ri.getReqMessage()); // {5} message from requester
+
+            email.addArgument(responseLink); // {6} Link back to DSpace for action
+
+            email.addArgument(names.toString()); // {7} corresponding author name
+            email.addArgument(addresses.toString()); // {8} corresponding author email
+
+            email.addArgument(configurationService.getProperty("dspace.name")); // {9}
+
+            email.addArgument(configurationService.getProperty("mail.helpdesk")); // {10}
+
+            // Send the email.
+            try {
+                email.send();
+            } catch (MessagingException e) {
+                LOG.warn(LogHelper.getHeader(context,
                     "error_mailing_requestItem", e.getMessage()));
-            throw new IOException("Request not sent:  " + e.getMessage());
+                throw new IOException("Request not sent:  " + e.getMessage());
+            }
+
         }
+        Bitstream bitstream = ri.getBitstream();
+        String bitstreamID;
+        if (null == bitstream) {
+            bitstreamID = "null";
+        } else {
+            bitstreamID = ri.getBitstream().getID().toString();
+        }
+        LOG.info(LogHelper.getHeader(context,
+                "sent_email_requestItem",
+                "submitter_id={},bitstream_id={},requestEmail={}"),
+                ri.getReqEmail(), bitstreamID, ri.getReqEmail());
     }
 
     /**
@@ -238,17 +253,7 @@ public class RequestItemEmailNotifier {
         }
 
         // Who gets this message?
-        String recipient;
-        EPerson submitter = item.getSubmitter();
-        if (submitter != null) {
-            recipient = submitter.getEmail();
-        } else {
-            recipient = configurationService.getProperty("mail.helpdesk");
-        }
-        if (null == recipient) {
-            recipient = configurationService.getProperty("mail.admin");
-        }
-        message.addRecipient(recipient);
+        message.addRecipient(configurationService.getProperty("mail.admin"));
 
         // Send the message.
         try {

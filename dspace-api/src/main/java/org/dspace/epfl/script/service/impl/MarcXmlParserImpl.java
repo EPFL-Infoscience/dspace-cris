@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -168,7 +170,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
     public ItemDTO readSingleItem(Context context, String id, String recordType, Node record,
         ItemsImportMapping mapping) {
 
-        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, mapping);
+        List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, recordType, mapping);
 
         metadataValues.addAll(getCreationDateMetadataValues(id));
 
@@ -277,11 +279,16 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         List<ResourcePolicyDTO> policies = readResourcePolicies(bitstreamNode, bitstreamsMapping);
 
-        String location = getBitstreamUrl() + id + "_" + fileName;
+        String location = getBitstreamUrl() + id + "_" + escapeBitstreamName(fileName);
         String checksum = getSingleValue(bitstreamNode, bitstreamsMapping.getChecksumXPath());
 
         return Optional.of(new BitstreamDTO("ORIGINAL", location, checksum, metadataValues, policies));
 
+    }
+
+    private String escapeBitstreamName(String name) {
+        return URLEncoder.encode(name.replace(" ", "").replace("+", ""),
+                                 StandardCharsets.UTF_8);
     }
 
     private List<ResourcePolicyDTO> readResourcePolicies(Node bitstreamNode, Bitstreams bitstreamsMapping) {
@@ -335,7 +342,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
             NodeList nodeList = getNodeList(record, metadataField.getXPath());
 
-            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), nodeList);
+            List<MetadataValueDTO> values = reader.readValues(context, metadataField.getField(), recordType, nodeList);
 
             metadataValues.addAll(values);
         }

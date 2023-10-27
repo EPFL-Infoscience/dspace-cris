@@ -157,7 +157,7 @@ public class ItemsReportScript
 
         handler.logInfo("--------------------------------------------------------");
         handler.logInfo("Number of items having at least one attachment in their “original” bundle which have "
-                + bitstreamsWithItems.getLogMessage() + " policy: " + bitstreamsWithItems.getBitstreams().size());
+                + bitstreamsWithItems.getLogMessage() + " policy: " + bitstreamsWithItems.getItems().size());
         handler.logInfo("List of items matching above conditions:");
         bitstreamsWithItems.getItems().forEach(item ->
                 handler.logInfo("Items title: " + item.getName() + ", uuid: " + item.getID()));
@@ -250,7 +250,9 @@ public class ItemsReportScript
         }
 
         public void addItem(Item item) {
-            items.add(item);
+            if (items.stream().noneMatch(itemFromList -> itemFromList.getID() == item.getID())) {
+                items.add(item);
+            }
             needToAddItem = false;
         }
 

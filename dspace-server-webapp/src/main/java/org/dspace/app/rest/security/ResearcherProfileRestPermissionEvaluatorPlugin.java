@@ -53,7 +53,8 @@ public class ResearcherProfileRestPermissionEvaluatorPlugin extends RestObjectPe
             return false;
         }
 
-        if (onlyAdminCanManageProfiles() && (DELETE.equals(restPermission) || WRITE.equals(restPermission))) {
+        if (onlyAdminCanManageProfiles() && isNotPatchRequest()
+            && (DELETE.equals(restPermission) || WRITE.equals(restPermission))) {
             return false;
         }
 
@@ -79,6 +80,14 @@ public class ResearcherProfileRestPermissionEvaluatorPlugin extends RestObjectPe
         }
 
         return false;
+    }
+
+    private boolean isNotPatchRequest() {
+        Request request = requestService.getCurrentRequest();
+        if (request == null) {
+            return true;
+        }
+        return !request.getHttpServletRequest().getMethod().equalsIgnoreCase("PATCH");
     }
 
     private boolean onlyAdminCanManageProfiles() {

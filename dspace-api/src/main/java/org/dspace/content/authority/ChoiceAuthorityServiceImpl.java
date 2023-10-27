@@ -7,6 +7,7 @@
  */
 package org.dspace.content.authority;
 
+import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.ArrayList;
@@ -675,14 +676,24 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
 
         String relatedItemTitle = itemService.getMetadata(item, "dc.title");
 
-        if (isNotBlank(relatedItemTitle) && isValueOverwritingEnabledOnReferenceResolution()) {
+        if (isNotBlank(relatedItemTitle) && isValueOverwritingEnabledOnReferenceResolution(metadataValue)) {
             metadataValue.setValue(relatedItemTitle);
         }
 
     }
 
-    private boolean isValueOverwritingEnabledOnReferenceResolution() {
-        return configurationService.getBooleanProperty("cris.item-reference-resolution.override-metadata-value");
+    private boolean isValueOverwritingEnabledOnReferenceResolution(MetadataValue metadataValue) {
+
+        boolean override = configurationService
+            .getBooleanProperty("cris.item-reference-resolution.override-metadata-value");
+
+        String[] exceptionFields = configurationService
+            .getArrayProperty("cris.item-reference-resolution.override-metadata-value.exception-fields");
+
+        boolean isExceptionField = contains(exceptionFields, metadataValue.getMetadataField().toString('.'));
+
+        return override ? !isExceptionField : isExceptionField;
+
     }
 
     private boolean isLinkableToAnEntityWithEntityType(ChoiceAuthority choiceAuthority, String entityType) {

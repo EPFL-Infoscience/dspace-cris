@@ -93,6 +93,29 @@
           <hint />
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>fileversion</dc-qualifier>
+          <label>File version</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <label>Relation</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
     </form>
     <form name="bitstream-metadata-product">
       <row>
@@ -484,11 +507,11 @@
           <dc-schema>person</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
-          <label>ORCID</label>
+          <label>ORCID (external author)</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Enter the ORCID identifier of the author.</hint>
+          <hint>Enter the ORCID of the external author.</hint>
         </field>
       </row>
       <row>
@@ -565,7 +588,7 @@
           <repeatable>false</repeatable>
           <required>You must enter at least the author.</required>
           <hint>The supervisor of the thesis.</hint>
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
       <row>
@@ -578,7 +601,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>Enter the affiliation of the supervisor as stated on the publication.</hint>
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
       <row>
@@ -591,7 +614,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>Enter the affiliation unit of the supervisor as stated on the publication.</hint>
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
       <row>
@@ -604,7 +627,7 @@
           <repeatable>false</repeatable>
           <required />
           <hint>Enter the ORCID identifier of the supervisor.</hint>
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
     </form>
@@ -667,7 +690,7 @@
           <required />
           <style>col-xs-12 col-md-8</style>
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -679,7 +702,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
     </form>
@@ -923,7 +946,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+          <type-bind>publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -935,7 +958,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+          <type-bind>publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -947,7 +970,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+          <type-bind>publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
     </form>
@@ -1057,7 +1080,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
     </form>
@@ -1109,7 +1132,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>The editors of this publication.</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794,publication-coar-types:c_3248,publication-coar-types:c_f744,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation</type-bind>
         </field>
       </row>
       <row>
@@ -1122,7 +1145,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>The supervisors of this publication.</hint>
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
       <row>
@@ -1151,7 +1174,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint>Please give the date of the public defense of the thesis.
                         You can leave out the day and/or month if they aren't
                         applicable.</hint>
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
       <row>
@@ -1177,7 +1200,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>What programs and/or software are required to open the data files included with your submission? If proprietary, include open-source alternatives.</hint>
-          <type-bind>product-coar-types:c_ddb1,product-coar-types:ACF7-8YT9,product-coar-types:c_cb28,product-coar-types:FXF3-D3G7,product-coar-types:AM6W-6QAW,product-coar-types:63NG-B465,product-coar-types:A8F1-NPV9,product-coar-types:H41Y-FW7B,product-coar-types:DD58-GFSX,product-coar-types:FF4C-28RK,product-coar-types:CQMR-7K63,product-coar-types:W2XT-7017,product-coar-types:NHD0-W6SY,product-coar-types:c_5ce6,product-coar-types:QH80-2R4E,</type-bind>
+          <type-bind>product-coar-types:c_ddb1,dataset,product-coar-types:ACF7-8YT9,dataset::aggregated data,product-coar-types:c_cb28,dataset::clinical trial data,product-coar-types:FXF3-D3G7,dataset::compiled data,product-coar-types:AM6W-6QAW,dataset::encoded data,product-coar-types:63NG-B465,dataset::experimental data,product-coar-types:A8F1-NPV9,dataset::genomic data,product-coar-types:H41Y-FW7B,dataset::laboratory notebook,product-coar-types:DD58-GFSX,dataset::measurement and test data,product-coar-types:FF4C-28RK,dataset::observational data,product-coar-types:CQMR-7K63,dataset::recorded data,product-coar-types:W2XT-7017,dataset::simulation data,product-coar-types:NHD0-W6SY,dataset::survey data,product-coar-types:c_5ce6,software,product-coar-types:QH80-2R4E,software::source code</type-bind>
           <language value-pairs-name="supported_languages">true</language>
         </field>
       </row>
@@ -1191,7 +1214,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint>Enter the jury of the thesis</hint>
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
       <row>
@@ -1203,7 +1226,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint />
-          <type-bind>product-coar-types:c_ddb1,product-coar-types:ACF7-8YT9,product-coar-types:c_cb28,product-coar-types:FXF3-D3G7,product-coar-types:AM6W-6QAW,product-coar-types:63NG-B465,product-coar-types:A8F1-NPV9,product-coar-types:H41Y-FW7B,product-coar-types:DD58-GFSX,product-coar-types:FF4C-28RK,product-coar-types:CQMR-7K63,product-coar-types:W2XT-7017,product-coar-types:NHD0-W6SY,product-coar-types:c_5ce6,product-coar-types:QH80-2R4E,</type-bind>
+          <type-bind>product-coar-types:c_ddb1,dataset,product-coar-types:ACF7-8YT9,dataset::aggregated data,product-coar-types:c_cb28,dataset::clinical trial data,product-coar-types:FXF3-D3G7,dataset::compiled data,product-coar-types:AM6W-6QAW,dataset::encoded data,product-coar-types:63NG-B465,dataset::experimental data,product-coar-types:A8F1-NPV9,dataset::genomic data,product-coar-types:H41Y-FW7B,dataset::laboratory notebook,product-coar-types:DD58-GFSX,dataset::measurement and test data,product-coar-types:FF4C-28RK,dataset::observational data,product-coar-types:CQMR-7K63,dataset::recorded data,product-coar-types:W2XT-7017,dataset::simulation data,product-coar-types:NHD0-W6SY,dataset::survey data,product-coar-types:c_5ce6,software,product-coar-types:QH80-2R4E,software::source code</type-bind>
         </field>
       </row>
       <row>
@@ -1279,7 +1302,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>Enter the name of the conference where the item has been presented, if any.</hint>
-          <type-bind>product-coar-types:c_ddb1,product-coar-types:ACF7-8YT9,product-coar-types:c_cb28,product-coar-types:FXF3-D3G7,product-coar-types:AM6W-6QAW,product-coar-types:63NG-B465,product-coar-types:A8F1-NPV9,product-coar-types:H41Y-FW7B,product-coar-types:DD58-GFSX,product-coar-types:FF4C-28RK,product-coar-types:CQMR-7K63,product-coar-types:W2XT-7017,product-coar-types:NHD0-W6SY,product-coar-types:c_5ce6,product-coar-types:QH80-2R4E,,publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,</type-bind>
+          <type-bind>product-coar-types:c_ddb1,dataset,product-coar-types:ACF7-8YT9,dataset::aggregated data,product-coar-types:c_cb28,dataset::clinical trial data,product-coar-types:FXF3-D3G7,dataset::compiled data,product-coar-types:AM6W-6QAW,dataset::encoded data,product-coar-types:63NG-B465,dataset::experimental data,product-coar-types:A8F1-NPV9,dataset::genomic data,product-coar-types:H41Y-FW7B,dataset::laboratory notebook,product-coar-types:DD58-GFSX,dataset::measurement and test data,product-coar-types:FF4C-28RK,dataset::observational data,product-coar-types:CQMR-7K63,dataset::recorded data,product-coar-types:W2XT-7017,dataset::simulation data,product-coar-types:NHD0-W6SY,dataset::survey data,product-coar-types:c_5ce6,software,product-coar-types:QH80-2R4E,software::source code,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
     </form>
@@ -1294,7 +1317,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -1307,7 +1330,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>The publisher of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1319,7 +1342,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>The publisher place of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -1332,7 +1355,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>Enter the series and volume assigned to this item</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -1346,7 +1369,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>The ISBN of the book if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1358,7 +1381,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>The ISSN of the book/series if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1370,7 +1393,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>The DOI of the book if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
     </form>
@@ -1386,7 +1409,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-9</style>
           <hint>The journal where this publication has been published</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1398,7 +1421,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint>The journal or Serie ISSN if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper</type-bind>
         </field>
       </row>
       <row>
@@ -1412,7 +1435,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the volume of the publishing channel where this publication appeared</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -1424,7 +1447,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the issue of the publishing channel where this publication appeared</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper</type-bind>
         </field>
       </row>
       <row>
@@ -1438,7 +1461,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the article number of this publication</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -1450,7 +1473,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the page where this publication starts</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -1462,7 +1485,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>If applicable, the page where this publication ends</hint>
-          <type-bind>publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper</type-bind>
         </field>
       </row>
     </form>
@@ -1489,7 +1512,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required/>
           <style>col-xs-12 col-md-4</style>
           <hint>The publisher of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -1501,7 +1524,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required/>
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -1513,7 +1536,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required/>
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
       <row>
@@ -1527,7 +1550,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required/>
           <style>col-xs-12 col-md-6</style>
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -1539,7 +1562,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required/>
           <style>col-xs-12 col-md-6</style>
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
     </form>
@@ -1567,7 +1590,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint />
-          <type-bind>publication-coar-types:c_46ec,publication-coar-types:c_7a1f,publication-coar-types:c_db06,publication-coar-types:c_bdcc</type-bind>
+          <type-bind>publication-coar-types:c_46ec,text::thesis,publication-coar-types:c_7a1f,text::thesis::bachelor thesis,publication-coar-types:c_db06,text::thesis::doctoral thesis,publication-coar-types:c_bdcc,text::thesis::master thesis</type-bind>
         </field>
       </row>
     </form>
@@ -1618,7 +1641,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>publication-coar-types:c_5794,publication-coar-types:c_6670,publication-coar-types:c_18cp,publication-coar-types:c_18co,publication-coar-types:R60J-J5BD,publication-coar-types:c_f744,,,publication-coar-types:c_6501,publication-coar-types:c_2df8fbb1,publication-coar-types:c_dcae04bc,publication-coar-types:c_beb9,publication-coar-types:c_7bab,publication-coar-types:c_b239,publication-coar-types:c_5794,publication-coar-types:c_3248,publication-coar-types:c_f744</type-bind>
+          <type-bind>publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -2201,6 +2224,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type value-pairs-name="orgunit_types">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>You must specify the organisation type</required>
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <label>Subject(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
           <hint />
         </field>
       </row>
@@ -3229,9 +3263,9 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>issued</dc-qualifier>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>patent</dc-element>
+          <dc-qualifier>date</dc-qualifier>
           <label>Date</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3255,7 +3289,7 @@ it, please enter the types and the actual numbers or codes.</hint>
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>funder</dc-element>
+          <dc-element>funding</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>Identifier</label>
           <input-type>onebox</input-type>
@@ -3333,7 +3367,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <dc-qualifier>contributoreditornum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3359,7 +3393,7 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <dc-qualifier>contributoradvisornum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -3385,9 +3419,61 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorauthnum</dc-qualifier>
+          <dc-qualifier>contributorscientificeditornum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-dc-relation-publication">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
+          <label>Publication</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationpublication</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Type</label>
+          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="publication-import-dc-relation-product">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>product</dc-qualifier>
+          <label>Product</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationproduct</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Type</label>
+          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -3400,6 +3486,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>cris</dc-schema>
           <dc-element>legacyId</dc-element>
           <label>Legacy ID</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <label>sponsorship</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -3705,6 +3803,17 @@ it, please enter the types and the actual numbers or codes.</hint>
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <label>Contributors</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <label>Description</label>
           <input-type>onebox</input-type>
@@ -3719,6 +3828,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>ispartof</dc-qualifier>
           <label>Is part of</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartofseries</dc-qualifier>
+          <label>Is part of Series</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -3986,6 +4107,18 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>endPage</dc-qualifier>
+          <label>End page</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>part</dc-element>
           <dc-qualifier>section</dc-qualifier>
@@ -4002,7 +4135,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>publication</dc-qualifier>
           <label>Publication</label>
-          <input-type>onebox</input-type>
+          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
@@ -4038,7 +4171,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>product</dc-qualifier>
           <label>Product</label>
-          <input-type>onebox</input-type>
+          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
@@ -4104,9 +4237,9 @@ it, please enter the types and the actual numbers or codes.</hint>
       </row>
       <row>
         <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>oai</dc-element>
-          <dc-qualifier>identifier</dc-qualifier>
+          <dc-schema>dspace</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>oai-identifier</dc-qualifier>
           <label>OAI identifier</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
@@ -4331,6 +4464,17 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Type</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <label>Identifiers</label>
+          <input-type value-pairs-name="import_identifiers">qualdrop_value</input-type>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
@@ -6722,6 +6866,48 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Logo</displayed-value>
         <stored-value>logo</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="import_identifiers" dc-term="import_identifiers">
+      <pair>
+        <displayed-value>DOI</displayed-value>
+        <stored-value>doi</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>arXiv ID</displayed-value>
+        <stored-value>arxiv</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>WOS ID</displayed-value>
+        <stored-value>isi</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Scopus ID</displayed-value>
+        <stored-value>scopus</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Pubmed ID</displayed-value>
+        <stored-value>pmid</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URI</displayed-value>
+        <stored-value>uri</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Handle</displayed-value>
+        <stored-value>hdl</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ISBN</displayed-value>
+        <stored-value>isbn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ACOUA</displayed-value>
+        <stored-value>acoua</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>EPO</displayed-value>
+        <stored-value>epo</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>

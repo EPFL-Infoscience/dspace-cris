@@ -1,0 +1,6 @@
+## E-mail sent to administrators during the users synchronization when EPFL LDAP web service did not return information about user affiliations
+ ##
+ ## Parameters: {0} is the sciper id, {1} is the user name
+ ##
+ #set($subject = 'Infoscience : Erreur synchronisation données utilisateur·trice - affiliations secondaires')
+Le web service EPFL LDAP n'a pas renvoyé d'informations sur les affiliations secondaires de l'utilisateur.rice avec le no de sciper ${params[0]}- (${params[1]}).

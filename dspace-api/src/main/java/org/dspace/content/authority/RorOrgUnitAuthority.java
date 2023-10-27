@@ -33,9 +33,12 @@ public class RorOrgUnitAuthority extends ItemAuthority {
     @Override
     public Choices getMatches(String text, int start, int limit, String locale) {
         super.setPluginInstanceName(authorityName);
-        Choices solrChoices = super.getMatches(text, start, limit, locale);
 
-        return solrChoices.values.length == 0 ? getRORApiMatches(text, start, limit) : solrChoices;
+        if (configurationService.getBooleanProperty("ror.lookup.by_internal", true)) {
+            Choices solrChoices = super.getMatches(text, start, limit, locale);
+            return solrChoices.values.length == 0 ? getRORApiMatches(text, start, limit) : solrChoices;
+        }
+        return getRORApiMatches(text, start, limit);
     }
 
     private Choices getRORApiMatches(String text, int start, int limit) {
@@ -68,7 +71,7 @@ public class RorOrgUnitAuthority extends ItemAuthority {
     //FIXME: currently we do not need to generate internal orgunit
     private String composeAuthorityValue(String rorId) {
         String prefix = configurationService.getProperty("ror.authority.prefix", "ROR-ID:");
-        return prefix + rorId;
+        return "will be referenced::" + prefix + rorId;
     }
 
     @Override

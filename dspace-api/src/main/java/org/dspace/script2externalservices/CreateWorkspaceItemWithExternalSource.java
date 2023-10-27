@@ -42,6 +42,7 @@ import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.packager.PackageUtils;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -285,7 +286,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     setLastImportMetadataValue(item);
                     totalRecordWorked += userPublicationsProcessed[0];
                     totalItemsProcessed += userPublicationsProcessed[1];
-                    if (userPublicationsProcessed[0] >= 20) {
+                    if (userPublicationsProcessed[0] >= 1) {
                         context.commit();
                         // to ensure that collection's template item is fully initialized
                         reloadCollectionIfNeeded();
@@ -365,7 +366,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 break;
             default:
         }
-        if (StringUtils.isNotBlank(this.extraQuery)) {
+        if (StringUtils.isNotBlank(id.toString()) && StringUtils.isNotBlank(this.extraQuery)) {
             if (this.service.equals(ARXIV)) {
                 id.append(" AND ").append(this.extraQuery);
             } else {
@@ -384,6 +385,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 if (!exist(dataObject.getMetadata())) {
                     WorkspaceItem wsItem = externalDataService.createWorkspaceItemFromExternalDataObject(context,
                                                                dataObject, this.collection);
+                    Item itemFromWs = wsItem.getItem();
+                    PackageUtils.addDepositLicense(context, null, itemFromWs, wsItem.getCollection());
                     for (List<MetadataValueDTO> metadataList : metadataValueToAdd(wsItem.getItem())) {
                         addMetadata(wsItem.getItem(), metadataList);
                     }

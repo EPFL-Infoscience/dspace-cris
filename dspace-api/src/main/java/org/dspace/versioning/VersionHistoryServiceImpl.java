@@ -108,9 +108,6 @@ public class VersionHistoryServiceImpl implements VersionHistoryService {
         throws SQLException {
         Version v = versioningService.getVersion(context, item);
         if (v != null) {
-            ;
-        }
-        {
             if (versionHistory.equals(v.getVersionHistory())) {
                 return v;
             }

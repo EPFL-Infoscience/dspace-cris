@@ -6,7 +6,7 @@
 ## {3}  Description of task
 ## {4}  link to 'my DSpace' page
 ##
-#set($subject = 'DSpace: You have a new task')
+#set($subject = 'Infoscience: You have a new task')
 
 A new item has been submitted:
 
@@ -14,11 +14,11 @@ Title:        ${params[0]}
 Collection:   ${params[1]}
 Submitted by: ${params[2]}
 
-${params[3]}
+Task description: ${params[3]}
 
-To claim this task, please visit your "My DSpace"
-page:  ${params[4]}
+To claim this task, please visit your "My Infoscience" at this page:  ${params[4]}
 
-Many thanks!
+Best regards,
 
-DSpace
+Infoscience Team
+EPFL Library

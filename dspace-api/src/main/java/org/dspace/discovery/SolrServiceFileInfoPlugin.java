@@ -98,6 +98,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     private static final String SOLR_FIELD_NAME_FOR_SHORT_DESCRIPTION = "original_bundle_short_description";
     private static final String SOLR_POSTFIX_FILTER = "_filter";
     private static final String SOLR_POSTFIX_KEYWORD = "_keyword";
+    private static final String SOLR_POSTFIX_PREFIX = "_prefix";
     private static final String BITSTREAM_METADATA_SOLR_PREFIX_KEYWORD = "bitstreams.";
     // used for facets and filters of type Date to correctly search them and visualize in facets.
     private static final String SOLR_POSTFIX_YEAR = ".year";
@@ -114,6 +115,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 addField(document, fieldName, value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
             }
         };
     private static final BiFunction<SolrInputDocument, String, Consumer<String>> oaireSolrIndexAdder =
@@ -124,6 +126,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                     addField(document, fieldName, value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                     addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                    addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
                 }
             }
         };
@@ -144,6 +147,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 addField(document, baseIndex, value);
                 addField(document, baseIndex.concat(SOLR_POSTFIX_KEYWORD), value);
                 addField(document, baseIndex.concat(SOLR_POSTFIX_FILTER), value);
+                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
             }
         };
 
@@ -154,6 +158,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 addField(document, fieldName, value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
+                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
                 addField(document, fieldName.concat(SOLR_POSTFIX_YEAR), dtf.parseLocalDate(value).getYear());
             }
         };

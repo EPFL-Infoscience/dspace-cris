@@ -26,25 +26,48 @@
 				<subfield code="e">author</subfield>
 			</datafield>
 			</xsl:for-each>
-			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
-			<datafield ind2=" " ind1=" " tag="260">
-				<subfield code="c"><xsl:value-of select="." /></subfield>
-			</datafield>
-			</xsl:for-each>
+<!--			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">-->
+<!--			<datafield ind2=" " ind1=" " tag="260">-->
+<!--				<subfield code="c"><xsl:value-of select="." /></subfield>-->
+<!--			</datafield>-->
+<!--			</xsl:for-each>-->
+			<xsl:if test="
+				doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']
+			 	or doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element[@name='place']/doc:element/doc:field[@name='value']
+			 	or doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']
+			">
+				<datafield ind2=" " ind1=" " tag="260">
+					<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element[@name='place']/doc:element/doc:field[@name='value']">
+						<subfield code="a"><xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element[@name='place']/doc:element/doc:field[@name='value']/text()" /></subfield>
+					</xsl:if>
+					<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']">
+						<subfield code="b"><xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']/text()" /></subfield>
+					</xsl:if>
+					<xsl:if test="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
+						<subfield code="c"><xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']/text()" /></subfield>
+					</xsl:if>
+				</datafield>
+			</xsl:if>
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
 			<datafield ind2=" " ind1=" " tag="520">
 				<subfield code="a"><xsl:value-of select="." /></subfield>
 			</datafield>
 			</xsl:for-each>
-			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element/doc:element/doc:field[@name='value']">
-			<datafield ind1="8" ind2=" " tag="024">
-				<subfield code="a"><xsl:value-of select="." /></subfield>
-			</datafield>
-			</xsl:for-each>
+<!--			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element/doc:element/doc:field[@name='value']">-->
+<!--			<datafield ind1="8" ind2=" " tag="024">-->
+<!--				<subfield code="a"><xsl:value-of select="." /></subfield>-->
+<!--			</datafield>-->
+<!--			</xsl:for-each>-->
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
 				<datafield ind2="0" ind1="7" tag="024">
 					<subfield code="a"><xsl:value-of select="." /></subfield>
 					<subfield code="2">url</subfield>
+				</datafield>
+			</xsl:for-each>
+			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='doi']/doc:element/doc:field[@name='value']">
+				<datafield ind2="0" ind1="7" tag="024">
+					<subfield code="a"><xsl:value-of select="." /></subfield>
+					<subfield code="2">doi</subfield>
 				</datafield>
 			</xsl:for-each>
 			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value']">
@@ -102,30 +125,47 @@
 					<subfield code="d"><xsl:value-of select="." /></subfield>
 				</xsl:for-each>
 			</datafield>
+
+			<!-- These variables are needed because oairecerif.author.affiliation value would be evaluated incorrectly inside the following 'for-each'-->
+			<xsl:variable name="hasAuthorAffiliation">
+				<xsl:if test="doc:metadata/doc:element[@name='oairecerif']/doc:element[@name='author']/doc:element[@name='affiliation']/doc:element/doc:field[@name='value']">
+					<xsl:text>true</xsl:text>
+				</xsl:if>
+			</xsl:variable>
+			<xsl:variable name="authorAffiliation">
+				<xsl:if test="$hasAuthorAffiliation='true'">
+					<xsl:value-of select="doc:metadata/doc:element[@name='oairecerif']/doc:element[@name='author']/doc:element[@name='affiliation']/doc:element/doc:field[@name='value']/text()" />
+				</xsl:if>
+			</xsl:variable>
+
 			<xsl:for-each select="doc:metadata/doc:element[@name='bundles']/doc:element[@name='bundle']">
 				<xsl:if test="doc:field[@name='name']/text() = 'ORIGINAL'">
 					<xsl:for-each select="doc:element[@name='bitstreams']/doc:element">
 						<datafield ind2=" " ind1="4" tag="856">
 							<xsl:if test="doc:field[@name='format']">
-								<subfield code="z"><xsl:value-of select="doc:field[@name='format']/text()"></xsl:value-of></subfield>
+								<subfield code="z"><xsl:value-of select="doc:field[@name='format']/text()" /></subfield>
 							</xsl:if>
 							<xsl:if test="doc:field[@name='name']">
-								<subfield code="f"><xsl:value-of select="doc:field[@name='name']/text()"></xsl:value-of></subfield>
+								<subfield code="f"><xsl:value-of select="doc:field[@name='name']/text()" /></subfield>
 							</xsl:if>
 							<xsl:if test="doc:field[@name='rights']">
-								<subfield code="e"><xsl:value-of select="doc:field[@name='rights']/text()"></xsl:value-of></subfield>
+								<subfield code="e"><xsl:value-of select="doc:field[@name='rights']/text()" /></subfield>
 							</xsl:if>
 							<xsl:if test="doc:field[@name='url']">
-								<subfield code="u"><xsl:value-of select="doc:field[@name='url']/text()"></xsl:value-of></subfield>
+								<subfield code="u"><xsl:value-of select="doc:field[@name='url']/text()" /></subfield>
 							</xsl:if>
 						</datafield>
 					</xsl:for-each>
-					<xsl:if test="doc:element[@name='bitstreams']/doc:field[@name='elements']">
+					<xsl:if test="doc:element[@name='bitstreams']/doc:field[@name='elements'] or $hasAuthorAffiliation='true'">
 						<datafield ind2=" " ind1=" " tag="919">
-							<subfield code="o"><xsl:value-of select="doc:element[@name='bitstreams']/doc:field[@name='elements']/text()" /></subfield>
+							<xsl:if test="doc:element[@name='bitstreams']/doc:field[@name='elements']">
+								<subfield code="o"><xsl:value-of select="doc:element[@name='bitstreams']/doc:field[@name='elements']/text()" /></subfield>
+							</xsl:if>
+							<xsl:if test="$hasAuthorAffiliation='true'">
+								<subfield code="a"><xsl:value-of select="$authorAffiliation" /></subfield>
+							</xsl:if>
 						</datafield>
 					</xsl:if>
-
 				</xsl:if>
 			</xsl:for-each>
 		</record>
