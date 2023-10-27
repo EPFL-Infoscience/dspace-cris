@@ -1,0 +1,19 @@
+## E-mail sent to DSpace users when new items appear in collections they are
+  ## subscribed to
+  ##
+  ## Parameters: {0} is the details of the new collections and items
+  ## See org.dspace.core.Email for information on the format of this file.
+  ##
+  #set($subject = 'Infoscience: Nouvelles notices liées à vos préférences'
+  
+ Bonjour !
+ 
+ Cet email automatique vous est envoyé par Infoscience.
+ 
+ De nouvelles notices sont disponibles dans les collections auxquelles vous êtes abonné·e :
+ ${params[0]}
+  
+ Meilleures salutations,
+  
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

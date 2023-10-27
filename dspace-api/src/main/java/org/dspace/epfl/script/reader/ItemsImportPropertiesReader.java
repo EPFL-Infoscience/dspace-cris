@@ -52,7 +52,7 @@ public class ItemsImportPropertiesReader implements ItemsImportMetadataFieldRead
     }
 
     @Override
-    public List<MetadataValueDTO> readValues(Context context, String metadataField, NodeList nodeList) {
+    public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
         for (int i = 0; i < nodeList.getLength(); i++) {

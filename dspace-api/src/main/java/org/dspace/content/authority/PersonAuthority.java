@@ -30,6 +30,10 @@ public class PersonAuthority extends ItemAuthority {
 
     private static final String DATA_AUTHOR_AFFILIATION = "data-oairecerif_author_affiliation";
 
+    private static final String AUTHOR_ORGUNIT = "oairecerif_affiliation_orgunit";
+
+    private static final String DATA_AUTHOR_ORGUNIT = "data-oairecerif_affiliation_orgunit";
+
     private static final String EDITOR_AFFILIATION = "oairecerif_editor_affiliation";
 
     private static final String DATA_EDITOR_AFFILIATION = "data-oairecerif_editor_affiliation";
@@ -89,8 +93,11 @@ public class PersonAuthority extends ItemAuthority {
     }
 
     private void buildAuthorExtras(Map<String, String> extras, Accred accred) {
-        extras.put(DATA_AUTHOR_AFFILIATION, composePersonAffiliationValue(accred));
-        extras.put(AUTHOR_AFFILIATION, accred.getName());
+        extras.put(DATA_AUTHOR_ORGUNIT, composePersonAffiliationValue(accred));
+        extras.put(AUTHOR_ORGUNIT, accred.getName());
+
+        extras.put(DATA_AUTHOR_AFFILIATION, "EPFL" + "::" + configurationService.getProperty("epfl.head-orgunit.uuid"));
+        extras.put(AUTHOR_AFFILIATION, "EPFL");
     }
 
     private void buildEditorExtras(Map<String, String> extras, Accred accred) {

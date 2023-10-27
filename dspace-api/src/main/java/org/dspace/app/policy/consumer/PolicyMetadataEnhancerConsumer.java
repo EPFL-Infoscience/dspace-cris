@@ -65,6 +65,10 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     public static final String ACCESS_OPEN = "openaccess";
     public static final String METADATA_ONLY = "metadata-only";
 
+    private static final String MAIN_DOC_TYPE = "main document";
+
+    private static final String METADATA_DC_TYPE = "dc.type";
+
     private static final Logger logger = LoggerFactory.getLogger(PolicyMetadataEnhancerConsumer.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -73,11 +77,13 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private static final MetadataFieldName viewerMetadata = new MetadataFieldName("bitstream", "viewer", "provider");
     private static final MetadataFieldName oaireLicenseMetadata = new MetadataFieldName("oaire", "licenseCondition");
     private static final MetadataFieldName epflLicenseMetadata = new MetadataFieldName("epfl", "licenseName");
+    private static final MetadataFieldName oaireVersionMetadata = new MetadataFieldName("oaire", "version");
     private static final List<MetadataFieldName> bitstreamToItemMetadatas = List.of(
         oaireLicenseMetadata,
         dataciteAvailableMetadata,
         dataciteRightsMetadata,
-        epflLicenseMetadata
+        epflLicenseMetadata,
+        oaireVersionMetadata
     );
     private static final Map<MetadataFieldName, List<String>> defaultItemMetadatas = Map.of(dataciteRightsMetadata,
             List.of(METADATA_ONLY));
@@ -188,7 +194,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                         .map(bundles -> bundles.get(0))
                         .map(Bundle::getBitstreams)
                         .filter(bitstreams -> !bitstreams.isEmpty())
-                        .map(bitstreams -> bitstreams.get(0))
+                        .map(bitstreams -> getRightBitstream(bitstreams, ctx))
                         .map(bitstream -> getMetadatasForItem(ctx, List.of(bitstream)).collect(Collectors.toList()))
                         .map(metadatas -> groupByMetadataField(metadatas))
                         .filter(metadatas -> !metadatas.isEmpty())
@@ -205,11 +211,72 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                     )
                 );
 
+            handleDateAvailableMetadata(ctx, item);
+
+
         } catch (SQLException e) {
             logger.error(MessageFormat.format("Error while processing item {}!", item.getID().toString()), e);
             throw new SQLRuntimeException(e);
         }
 
+    }
+
+    private Bitstream getRightBitstream(List<Bitstream> bitstreams, Context ctx) {
+        if (bitstreams.size() == 1) {
+            return bitstreams.get(0);
+        } else {
+            return bitstreams.stream()
+                    .filter(bitstream -> isMetadataType(bitstream, METADATA_DC_TYPE, MAIN_DOC_TYPE))
+                    .findFirst()
+                    .orElse(bitstreams.stream()
+                            .filter(bitstream -> isNotBitstreamType(bitstream, ctx, "image"))
+                            .findFirst()
+                            .orElse(bitstreams.get(0)));
+        }
+    }
+
+    private boolean isMetadataType(Bitstream bitstream, String metadataField, String targetType) {
+        return bitstream.getMetadata()
+                .stream()
+                .filter(metadataValue -> metadataValue.getMetadataField().toString('.').equals(metadataField))
+                .map(MetadataValue::getValue)
+                .findFirst()
+                .orElse("dummy")
+                .equals(targetType);
+    }
+
+    private boolean isNotBitstreamType(Bitstream bitstream, Context ctx, String type) {
+        try {
+            return !bitstream.getFormat(ctx).getMIMEType().split("/")[0].equals(type);
+        } catch (SQLException e) {
+            logger.error(MessageFormat.format("Error while bitstream {}!", bitstream.getID().toString()), e);
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    private void handleDateAvailableMetadata(Context ctx, Item item) throws SQLException {
+        String rights = itemService.getMetadataFirstValue(item, "datacite", "rights", null, Item.ANY);
+        if (null == rights || rights.trim().isEmpty()) {
+            return;
+        }
+        if (List.of(METADATA_ONLY, ACCESS_OPEN).contains(rights)) {
+            String dateAccessioned = itemService.getMetadataFirstValue(item, "dc", "date", "accessioned", Item.ANY);
+            String dateAvailable = itemService.getMetadataFirstValue(item, "dc", "date", "available", Item.ANY);
+            if (Objects.nonNull(dateAccessioned) && !dateAccessioned.equals(dateAvailable)) {
+                updateDateAvailableMetadata(ctx, item, dateAccessioned);
+            }
+            return;
+        }
+        String dataciteAvailable = itemService.getMetadataFirstValue(item, "datacite", "available", null, Item.ANY);
+        updateDateAvailableMetadata(ctx, item, dataciteAvailable);
+    }
+
+    private void updateDateAvailableMetadata(Context ctx, Item item, String date) throws SQLException {
+        List<MetadataValue> dateAvailable = itemService.getMetadata(item, "dc", "date", "available", Item.ANY);
+        itemService.removeMetadataValues(ctx, item, dateAvailable);
+        if (null != date && !date.trim().isEmpty()) {
+            itemService.addMetadata(ctx, item, "dc", "date", "available", null, date);
+        }
     }
 
     private Map<MetadataField, List<String>> mapWithMetadataField(Context ctx,

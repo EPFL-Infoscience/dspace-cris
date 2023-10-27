@@ -43,6 +43,8 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
 
     public static final String SCOPUS_CITATION = "scopusCitation";
 
+    private List<String> logsCache = new ArrayList<>();
+
     @Autowired
     private ScopusProvider scopusProvider;
 
@@ -62,6 +64,10 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
         return Arrays.asList("dspace.entity.type:Publication", "dc.identifier.doi:* OR dc.identifier.pmid:*");
     }
 
+    public List<String> getLogs() {
+        return logsCache;
+    }
+
     @Override
     public boolean updateMetric(Context context, Item item, String param) {
         String id = buildQuery(item);
@@ -77,16 +83,20 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
         long updatedItems = 0;
         long foundItems = 0;
         long apiCalls = 0;
+        logsCache = new ArrayList<>();
         try {
             while (itemIterator.hasNext()) {
                 Map<String, Item> queryMap = new HashMap<>();
                 List<Item> itemList = new ArrayList<>();
                 for (int i = 0; i < fetchSize && itemIterator.hasNext(); i++) {
                     Item item = itemIterator.next();
+                    logAndCache("Adding item with uuid: " + item.getID());
                     setLastImportMetadataValue(context, item);
                     itemList.add(item);
                 }
                 foundItems += itemList.size();
+                String id = this.generateQuery(queryMap, itemList);
+                logAndCache("Getting scopus metrics for " + id);
                 updatedItems +=
                         scopusProvider.getScopusList(this.generateQuery(queryMap, itemList))
                             .stream()
@@ -103,11 +113,11 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
                 context.commit();
             }
         } catch (SQLException e) {
-            log.error("Error while updating scopus' metrics", e);
-            throw new RuntimeException(e.getMessage(), e);
+            logAndCacheError("Error while updating scopus' metrics", e);
         } finally {
-            log.info("Found and fetched {} with {} api calls!", foundItems, apiCalls);
+            logAndCache("Found and fetched " + foundItems + " with " + apiCalls + " api calls!");
         }
+        logsCache.addAll(scopusProvider.getLogs());
         return updatedItems;
     }
 
@@ -153,7 +163,7 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
                 .map(Optional::get)
                 .reduce(joiningOr())
                 .map(StringBuilder::toString)
-                .orElse(null);
+                .orElse("dummy");
     }
 
     private String doi(Item item) {
@@ -175,11 +185,11 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
             .map(Optional::get)
             .reduce(joiningOr())
             .map(StringBuilder::toString)
-            .orElse(null);
+            .orElse("dummy");
     }
 
     private BinaryOperator<StringBuilder> joiningOr() {
-        return (query, clause) -> query.append(" OR ").append(clause);
+        return (query, clause) -> !clause.toString().equals("dummy") ? query.append(" OR ").append(clause) : query;
     }
 
     private Optional<StringBuilder> mapClause(String field, String function) {
@@ -219,6 +229,7 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
 
             createNewScopusMetrics(context,currentItem, scopusMetric, deltaPeriod1, deltaPeriod2);
         } catch (SQLException | AuthorizeException e) {
+            logsCache.add(e.getMessage());
             log.error(e.getMessage(), e);
         }
         return true;
@@ -241,5 +252,15 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
             return currentMetric.getMetricCount() - metric.map(CrisMetrics::getMetricCount).orElse(Double.valueOf(0));
         }
         return null;
+    }
+
+    private void logAndCache(String message) {
+        logsCache.add("INFO: " + message);
+        log.info(message);
+    }
+
+    private void logAndCacheError(String message, Throwable e) {
+        logsCache.add("ERROR: " + message + '\n' + e.getMessage());
+        log.error(message, e);
     }
 }

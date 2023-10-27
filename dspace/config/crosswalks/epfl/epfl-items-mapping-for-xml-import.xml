@@ -1,0 +1,312 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mapping>
+    <item-xpath>/record</item-xpath>
+    
+    <submitter-xpath>./datafield[@tag = '960']/subfield[@code = 'a']</submitter-xpath>
+    
+    <metadata-fields>
+        <metadata-field>
+            <field>dc.date.modified</field>
+            <xpath>./controlfield[@tag = '005']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.identifier.patentno</field>
+            <xpath>./datafield[@tag = '013']</xpath>
+            <reader>patentNumber</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.isbn</field>
+            <xpath>./datafield[@tag = '020']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.issn</field>
+            <xpath>./datafield[@tag = '022']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.identifier</field>
+            <xpath>./datafield[@tag = '024' and @ind1 = '7' and @ind2 = ' ']</xpath>
+            <reader>identifier</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.language.iso</field>
+            <xpath>./datafield[@tag = '041']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.number</field>
+            <xpath>./datafield[@tag = '088']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.title</field>
+            <xpath>./datafield[@tag = '245']/subfield[@code = 'a' or @code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.version</field>
+            <xpath>./datafield[@tag = '251']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.publisher.place</field>
+            <xpath>./datafield[@tag = '260']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.publisher</field>
+            <xpath>./datafield[@tag = '260']/subfield[@code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.date.issued</field>
+            <xpath>./datafield[@tag = '260']/subfield[@code = 'c'] | ./datafield[@tag = '269']/subfield[@code = 'a']</xpath>
+            <reader>dateIssued</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.size</field>
+            <xpath>./datafield[@tag = '300']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.format.extent</field>
+            <xpath>./datafield[@tag = '300']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.datatype</field>
+            <xpath>./datafield[@tag = '336']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description</field>
+            <xpath>./datafield[@tag = '340']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.ispartof</field>
+            <xpath>./datafield[@tag = '490']</xpath>
+            <reader>serie</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.notes</field>
+            <xpath>./datafield[@tag = '500']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.jury</field>
+            <xpath>./datafield[@tag = '502']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.abstract</field>
+            <xpath>./datafield[@tag = '520']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oairecerif.funder</field>
+            <xpath>./datafield[@tag = '536']</xpath>
+            <reader>funders</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.rights.accessRights</field>
+            <xpath>./datafield[@tag = '542']</xpath>
+            <reader>accessRights</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.award</field>
+            <xpath>./datafield[@tag = '586']</xpath>
+            <reader>award</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.subject</field>
+            <xpath>./datafield[@tag = '650']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.subject</field>
+            <xpath>./datafield[@tag = '653']/subfield[@code = 'a']</xpath>
+            <reader>keywords</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor.author</field>
+            <xpath>./datafield[@tag = '700']</xpath>
+            <reader>author</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor</field>
+            <xpath>./datafield[@tag = '710']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.conference</field>
+            <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.conferencePlace</field>
+            <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.conferenceDate</field>
+            <xpath>./datafield[@tag = '711' and @ind1 = '2']/subfield[@code = 'd']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor.scientificeditor</field>
+            <xpath>./datafield[@tag = '720' and @ind2 = '1']</xpath>
+            <reader>scientificeditor</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.contributor.advisor</field>
+            <xpath>./datafield[@tag = '720' and @ind2 = '2']</xpath>
+            <reader>advisor</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.identifier.standardno</field>
+            <xpath>./datafield[@tag = '740']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.part.name</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'e']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.part.number</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'f']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.volume</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'j']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.issue</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'k']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.citation.startPage</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 'q']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.part.section</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 's']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.publication</field>
+            <xpath>./datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.journal</field>
+            <xpath>self::node()[./datafield[@tag = '336']/subfield[@code = 'a'] = 'Journal Articles']/datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.ispartofseries</field>
+            <xpath>self::node()[string-length(./datafield[@tag = '490']/subfield[@code = 'a']) > 0 or string-length(./datafield[@tag = '490']/subfield[@code = 'v']) > 0]/datafield[@tag = '773']/subfield[@code = 't']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.publication</field>
+            <xpath>./datafield[@tag = '787']</xpath>
+            <reader>relatedPublication</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.relation.product</field>
+            <xpath>./datafield[@tag = '790']</xpath>
+            <reader>relatedProduct</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.lastmodified.email</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '0']/subfield[@code = 'f']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>oaire.licenseCondition</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '1']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>datacite.rights</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'e']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.relation.orgunit</field>
+            <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = '0']</xpath>
+            <reader>orgUnit</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>dspace.legacy.oai-identifier</field>
+            <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = 'O']/subfield[@code = 'o']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.oai.currentset</field>
+            <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = 'O']/subfield[@code = 'p']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.relation.rejectedOrgUnit</field>
+            <xpath>./datafield[@tag = '910' and @ind1 = 'C' and @ind2 = '0']</xpath>
+            <reader>orgUnit</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.faculty</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.section</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.institute</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'c']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.doctoralSchool</field>
+            <xpath>./datafield[@tag = '918']/subfield[@code = 'd']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.originalUnit</field>
+            <xpath>./datafield[@tag = '919']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.publicDefenseYear</field>
+            <xpath>./datafield[@tag = '920']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.date.accepted</field>
+            <xpath>./datafield[@tag = '920']/subfield[@code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.audience</field>
+            <xpath>./datafield[@tag = '954']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.curator.email</field>
+            <xpath>./datafield[@tag = '961']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.writtenat</field>
+            <xpath>./datafield[@tag = '973']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.peerreviewed</field>
+            <xpath>./datafield[@tag = '973']/subfield[@code = 'r']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>datacite.geoLocation</field>
+            <xpath>./datafield[@tag = '975']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.source</field>
+            <xpath>./datafield[@tag = '980']/subfield[@code = 'a']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.thesis.degreelevel</field>
+            <xpath>./datafield[@tag = '980']/subfield[@code = 'b']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.relation.pendingOrgUnit</field>
+            <xpath>./datafield[@tag = '999' and @ind1 = 'C' and @ind2 = '0']</xpath>
+            <reader>orgUnit</reader>
+        </metadata-field>
+    </metadata-fields>
+    
+    <bitstreams>
+        <bitstream-xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']</bitstream-xpath>
+        <checksum-xpath>./subfield[@code = '2']</checksum-xpath>
+        <format-xpath>./subfield[@code = 'x']</format-xpath>
+        <access-condition-xpath>./subfield[@code = 'e']</access-condition-xpath>
+        <metadata-fields>
+            <metadata-field>
+                <field>dc.title</field>
+                <xpath>./subfield[@code = 'u']</xpath>
+                <reader>bitstreamTitle</reader>
+            </metadata-field>
+	        <metadata-field>
+	            <field>dc.type</field>
+	            <xpath>./subfield[@code = '0']</xpath>
+	        </metadata-field>
+            <metadata-field>
+                <field>dc.description</field>
+                <xpath>./subfield[@code = 'y']</xpath>
+            </metadata-field>
+	    </metadata-fields>
+    </bitstreams>
+    
+</mapping>

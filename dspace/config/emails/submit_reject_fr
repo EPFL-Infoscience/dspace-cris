@@ -1,0 +1,24 @@
+## Rejection email message
+ ##
+ ## {0} Title of submission
+ ## {1} Name of collection
+ ## {2} Name of the rejector
+ ## {3} Reason for the rejection
+ ## {4} Link to 'My DSpace' page
+ ##
+ #set($subject = 'Infoscience : Votre dépôt a été rejeté')
+ 
+ Bonjour !
+ 
+ Merci d'avoir déposé: ${params[0]}
+ dans la collection : ${params[1]}
+ 
+ Après vérification, la Bibliothèque a rejeté la notice pour le motif suivant :
+ ${params[3]}
+ 
+ Veuillez noter que votre dépôt n'a pas été effacé, vous pouvez y accéder sur votre page "Mon Infoscience": ${params[4]}
+ 
+ Meilleures salutations,
+ 
+ Équipe Infoscience
+ Bibliothèque de l'EPFL

@@ -41,6 +41,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.util.IOUtils;
+import org.apache.tika.Tika;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.dspace.app.bulkimport.exception.BulkImportException;
 import org.dspace.app.bulkimport.model.BulkImportWorkbook;
 import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilder;
@@ -80,6 +84,8 @@ public class ItemsImportFromS3Script
     private MarcXmlParser marcXmlParser;
 
     private BitstreamUploadS3Service bitstreamUploadS3Service;
+    private MimeTypes mimeRepository;
+    private Tika tika;
 
     private Context context;
 
@@ -119,6 +125,8 @@ public class ItemsImportFromS3Script
             .getServicesByType(MarcXmlParser.class).get(0);
         this.bitstreamUploadS3Service = new DSpace().getServiceManager()
             .getServicesByType(BitstreamUploadS3Service.class).get(0);
+        this.mimeRepository = TikaConfig.getDefaultConfig().getMimeRepository();
+        this.tika = new Tika();
 
         if (commandLine.hasOption('k')) {
             keys.addAll(asList(commandLine.getOptionValues('k')));
@@ -316,7 +324,7 @@ public class ItemsImportFromS3Script
 
             if (isEmpty(recordType)) {
                 skippedItemsCount++;
-                handler.logWarning("Entry with id " + id + " skipped because no item type found");
+                handler.logError("Entry with id " + id + " skipped because no item type found");
                 return null;
             }
 
@@ -348,12 +356,31 @@ public class ItemsImportFromS3Script
                 verifyBitstreamChecksum(fileName, bitstreams, zipFile.getInputStream(entry));
 
                 String bitstreamName = id + "_" + escapeBitstreamName(fileName);
+                String fileExtension = getExtensionFromFile(zipFile.getInputStream(entry));
+                if (!bitstreamName.endsWith(fileExtension)) {
+                    bitstreams.stream().filter(bs -> hasTitleEqualsTo(bs, fileName))
+                                  .findFirst().ifPresent(bs -> updateExtension(bs, fileExtension));
+
+
+                    bitstreamName += fileExtension;
+                }
+
                 bitstreamUploadS3Service.upload(zipFile.getInputStream(entry), bitstreamName);
 
                 handler.logInfo("Bitstream named " + bitstreamName + " uploaded with success");
             }
         }
 
+    }
+
+    private void updateExtension(BitstreamDTO bs, String fileExtension) {
+        bs.updateLocationWithExtension(fileExtension);
+        bs.getMetadataValues("dc.title").forEach(mv -> mv.setValue(mv.getValue() + fileExtension));
+    }
+
+    private String getExtensionFromFile(InputStream file) throws IOException, MimeTypeException {
+        String detect = tika.detect(file);
+        return mimeRepository.forName(detect).getExtension();
     }
 
     private String escapeBitstreamName(String name) {
