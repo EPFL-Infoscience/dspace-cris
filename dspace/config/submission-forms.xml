@@ -1132,7 +1132,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>The editors of this publication.</hint>
-          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation</type-bind>
         </field>
       </row>
       <row>
@@ -1317,7 +1317,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>false</repeatable>
           <required />
           <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -1330,7 +1330,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>The publisher of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1342,7 +1342,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>The publisher place of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -1355,7 +1355,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>Enter the series and volume assigned to this item</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -1369,7 +1369,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>The ISBN of the book if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1381,7 +1381,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>The ISSN of the book/series if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1393,7 +1393,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>The DOI of the book if it was not found in the system</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
     </form>
@@ -1512,7 +1512,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required/>
           <style>col-xs-12 col-md-4</style>
           <hint>The publisher of this publication</hint>
-          <type-bind>publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -1641,7 +1641,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
+          <type-bind>publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,Resource Types::text::book::book part,text::book::book part,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
