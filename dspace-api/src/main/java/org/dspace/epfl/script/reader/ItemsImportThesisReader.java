@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
 import org.w3c.dom.Node;
@@ -30,7 +31,7 @@ public class ItemsImportThesisReader implements ItemsImportMetadataFieldReader {
             String value = node.getTextContent();
             if (StringUtils.isNotBlank(value)) {
                 String authority = authorityPrefix + value;
-                metadataValues.add(new MetadataValueDTO(metadataField, value, authority));
+                metadataValues.add(new MetadataValueDTO(metadataField, value, authority, Choices.CF_AMBIGUOUS));
             }
         }
 

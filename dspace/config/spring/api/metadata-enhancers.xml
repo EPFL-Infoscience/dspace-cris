@@ -115,6 +115,13 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Publication" />
+        <property name="sourceItemMetadataField" value="dc.contributor.scientificeditor" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="scientificeditor-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Product" />
         <property name="sourceItemMetadataField" value="dc.contributor.author" />
         <property name="relatedItemMetadataField" value="person.identifier.orcid" />
@@ -140,6 +147,13 @@
         <property name="sourceItemMetadataField" value="dc.contributor.editor" />
         <property name="relatedItemMetadataField" value="epfl.sciperId" />
         <property name="virtualQualifier" value="editor-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataField" value="dc.contributor.scientificeditor" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="scientificeditor-sciperId" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
@@ -189,6 +203,13 @@
         <property name="sourceItemMetadataField" value="dc.contributor.author" />
         <property name="relatedItemMetadataField" value="epfl.sciperId" />
         <property name="virtualQualifier" value="author-sciperId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Patent" />
+        <property name="sourceItemMetadataField" value="dc.contributor.scientificeditor" />
+        <property name="relatedItemMetadataField" value="epfl.sciperId" />
+        <property name="virtualQualifier" value="scientificeditor-sciperId" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >

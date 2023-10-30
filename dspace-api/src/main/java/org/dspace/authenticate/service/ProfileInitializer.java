@@ -100,7 +100,6 @@ public class ProfileInitializer {
 
             Optional<String> sciper = getSciperId(eperson);
             sciper.ifPresent(s -> initialize(context, eperson, s));
-
         } finally {
             context.restoreAuthSystemState();
         }
@@ -111,6 +110,10 @@ public class ProfileInitializer {
 
         Optional<PersonDTO> personDTO = personApiService.getPerson(sciper);
 
+        if (personDTO.isEmpty()) {
+            throw new NoPersonFoundException("No person for sciper " + sciper + " was not found");
+        }
+
         ResearcherProfile researcherProfile = findProfile(context, eperson)
             .or(() -> personApiService.findProfileBySciper(context, eperson, sciper))
             .orElseGet(() -> createPublicProfile(context, eperson, personDTO));
@@ -118,24 +121,32 @@ public class ProfileInitializer {
 
 
         if (researcherProfile == null) {
-            LOGGER.info("No valid accreditations for sciper {} profile not created", sciper);
+            PersonDTO personDTOForEmail = new PersonDTO();
+            personDTOForEmail.setSciper(sciper);
+            personDTOForEmail.setName(eperson.getName());
+            personDTOForEmail.setFirstname(eperson.getFirstName());
+            sendEmailForNoValidAffiliations(context, personDTOForEmail);
+            LOGGER.warn("No valid accreditations for sciper {} profile not created", sciper);
             return;
         }
 
         try {
             setPublicVisibility(context, researcherProfile);
         } catch (AuthorizeException | SQLException e) {
+            sendEmailForError(context, personDTO.get());
             throw new RuntimeException(e);
         }
 
         personDTO
 //            .map(person -> sendEmailIfSomethingIsWrong(context, person))
             .filter(this::isMainAffiliationActive)
-            .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(), eperson));
+            .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(),
+                                                eperson, researcherProfile));
 
         try {
             addToSubmittersGroup(context, eperson, researcherProfile);
         } catch (SQLException e) {
+            sendEmailForError(context, personDTO.get());
             throw new RuntimeException(e);
         }
     }
@@ -155,11 +166,29 @@ public class ProfileInitializer {
         }
     }
 
+    private void removeFromSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile)
+            throws SQLException {
+
+        Group submittersGroup = groupService.findByName(context, SUBMITTERS);
+        if (submittersGroup == null) {
+            throw new RuntimeException(SUBMITTERS + " group not found, it must be created in order to correctly " +
+                    "synchronize users.");
+        }
+
+        if (!atLeastAnActiveAccreditation(researcherProfile.getItem())
+                && groupService.isMember(context, eperson, submittersGroup)) {
+            context.turnOffAuthorisationSystem();
+            groupService.removeMember(context, submittersGroup, eperson);
+            context.restoreAuthSystemState();
+        }
+    }
+
     private boolean atLeastAnActiveAccreditation(Item item) {
         return item.getMetadata().stream()
                    .filter(mv -> "oairecerif.affiliation.endDate".equals(mv.getMetadataField().toString('.')))
                    .anyMatch(mv -> PLACEHOLDER_PARENT_METADATA_VALUE.equals(mv.getValue()));
     }
+
 
     public Optional<ResearcherProfile> findProfile(Context context, EPerson eperson) {
         try {
@@ -248,10 +277,11 @@ public class ProfileInitializer {
             .orElse(false);
     }
 
-    private void enrichProfile(Context context, PersonDTO person, Item item, EPerson ePerson) {
+    private void enrichProfile(Context context, PersonDTO person, Item item,
+                               EPerson ePerson, ResearcherProfile researcherProfile) {
 
         List<MetadataValueDTO> metadataValues = personApiService.getMetadataValues(context, person);
-        replaceMetadataValues(context, item, metadataValues, person);
+        replaceMetadataValues(context, item, metadataValues, person, ePerson, researcherProfile);
 
         String sciper = person.getSciper();
 
@@ -270,8 +300,20 @@ public class ProfileInitializer {
         sendEmail(context, person, "person_synchronization_no_affiliations");
     }
 
+    private void sendEmailForNoValidAffiliations(Context context, PersonDTO person) {
+        sendEmail(context, person, "person_synchronization_no_valid_affiliations");
+    }
+
     private void sendEmailForNoMainAffiliation(Context context, PersonDTO person) {
         sendEmail(context, person, "person_synchronization_no_main_affiliation");
+    }
+
+    private void sendEmailForSuccess(Context context, PersonDTO person) {
+        sendEmail(context, person, "error_during_profile_initialization");
+    }
+
+    private void sendEmailForError(Context context, PersonDTO person) {
+        sendEmail(context, person, "error_during_profile_initialization");
     }
 
     private void sendEmail(Context context, PersonDTO person, String templateName) {
@@ -287,10 +329,17 @@ public class ProfileInitializer {
     }
 
     private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues,
-                                       PersonDTO epflPerson) {
+                                       PersonDTO epflPerson, EPerson ePerson, ResearcherProfile researcherProfile) {
         List<PersonAffiliation> personAffiliations = affiliations(context, item);
         List<Integer> affiliationsToClosePositions = affiliationsToBeClosedPositions(item, context,
                                                                                      epflPerson, personAffiliations);
+        if (personAffiliations.isEmpty() || personAffiliations.size() == affiliationsToClosePositions.size()) {
+            try {
+                removeFromSubmittersGroup(context, ePerson, researcherProfile);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
         clearMetadataValues(context, item);
         addEndDateToExpiredAccreds(context, item, affiliationsToClosePositions);
         List<PersonAffiliation> apiAffiliations = apiAffiliations(metadataValues);

@@ -3419,61 +3419,9 @@ it, please enter the types and the actual numbers or codes.</hint>
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>legacy</dc-element>
-          <dc-qualifier>contributorscientificeditornum</dc-qualifier>
+          <dc-qualifier>contributorauthnum</dc-qualifier>
           <label>Number</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-    </form>
-    <form name="publication-import-dc-relation-publication">
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
-          <label>Publication</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relationpublication</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>Type</label>
-          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-    </form>
-    <form name="publication-import-dc-relation-product">
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>product</dc-qualifier>
-          <label>Product</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relationproduct</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>Type</label>
-          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -4135,7 +4083,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>publication</dc-qualifier>
           <label>Publication</label>
-          <input-type>inline-group</input-type>
+          <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
@@ -4171,7 +4119,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>product</dc-qualifier>
           <label>Product</label>
-          <input-type>inline-group</input-type>
+          <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
@@ -4464,17 +4412,6 @@ it, please enter the types and the actual numbers or codes.</hint>
           <label>Type</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>identifier</dc-element>
-          <label>Identifiers</label>
-          <input-type value-pairs-name="import_identifiers">qualdrop_value</input-type>
-          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
@@ -5212,80 +5149,104 @@ it, please enter the types and the actual numbers or codes.</hint>
     </value-pairs>
     <value-pairs value-pairs-name="orgunit_types" dc-term="orgunit_types">
       <pair>
-        <displayed-value>Antenna</displayed-value>
-        <stored-value>ANTENNE</stored-value>
+        <displayed-value>Antenne</displayed-value>
+        <stored-value>antenne</stored-value>
       </pair>
       <pair>
-        <displayed-value>Center</displayed-value>
-        <stored-value>CENTRE</stored-value>
+        <displayed-value>Centre</displayed-value>
+        <stored-value>centre</stored-value>
       </pair>
       <pair>
-        <displayed-value>Chair</displayed-value>
-        <stored-value>CHAIRE</stored-value>
+        <displayed-value>Chaire</displayed-value>
+        <stored-value>chaire</stored-value>
       </pair>
       <pair>
-        <displayed-value>College</displayed-value>
-        <stored-value>COLLEGE</stored-value>
+        <displayed-value>Collège</displayed-value>
+        <stored-value>collège</stored-value>
       </pair>
       <pair>
-        <displayed-value>Department</displayed-value>
-        <stored-value>DPT</stored-value>
+        <displayed-value>Direction</displayed-value>
+        <stored-value>direction</stored-value>
       </pair>
       <pair>
-        <displayed-value>Doctoral program</displayed-value>
-        <stored-value>ECOLE</stored-value>
+        <displayed-value>Dpt</displayed-value>
+        <stored-value>dpt</stored-value>
       </pair>
       <pair>
-        <displayed-value>Host entities</displayed-value>
-        <stored-value>EHE</stored-value>
+        <displayed-value>École</displayed-value>
+        <stored-value>école</stored-value>
       </pair>
       <pair>
-        <displayed-value>Corporate Company</displayed-value>
-        <stored-value>ENTERPRISES</stored-value>
+        <displayed-value>EHE</displayed-value>
+        <stored-value>ehe</stored-value>
       </pair>
       <pair>
-        <displayed-value>School</displayed-value>
-        <stored-value>FACULTE</stored-value>
+        <displayed-value>Entreprises</displayed-value>
+        <stored-value>entreprises</stored-value>
       </pair>
       <pair>
-        <displayed-value>Foundation</displayed-value>
-        <stored-value>FONDATION</stored-value>
+        <displayed-value>Faculté</displayed-value>
+        <stored-value>faculté</stored-value>
       </pair>
       <pair>
-        <displayed-value>Group</displayed-value>
-        <stored-value>GROUPE</stored-value>
+        <displayed-value>Fondation</displayed-value>
+        <stored-value>fondation</stored-value>
       </pair>
       <pair>
-        <displayed-value>Institute</displayed-value>
-        <stored-value>INSTITUT</stored-value>
+        <displayed-value>Groupe</displayed-value>
+        <stored-value>groupe</stored-value>
       </pair>
       <pair>
-        <displayed-value>Laboratory</displayed-value>
-        <stored-value>LABO</stored-value>
+        <displayed-value>Institut</displayed-value>
+        <stored-value>institut</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Labo</displayed-value>
+        <stored-value>labo</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Organigramme</displayed-value>
+        <stored-value>organigramme</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Orientat</displayed-value>
+        <stored-value>orientat</stored-value>
       </pair>
       <pair>
         <displayed-value>Participation</displayed-value>
-        <stored-value>PARTICIPATION</stored-value>
+        <stored-value>participation</stored-value>
       </pair>
       <pair>
-        <displayed-value>Program</displayed-value>
-        <stored-value>PROGRAMME</stored-value>
+        <displayed-value>Programme</displayed-value>
+        <stored-value>programme</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Regroupement</displayed-value>
+        <stored-value>regroupement</stored-value>
       </pair>
       <pair>
         <displayed-value>Section</displayed-value>
-        <stored-value>SECTION</stored-value>
+        <stored-value>section</stored-value>
       </pair>
       <pair>
-        <displayed-value>Central service</displayed-value>
-        <stored-value>SERVICE-CENTRAL</stored-value>
+        <displayed-value>Semestre</displayed-value>
+        <stored-value>semestre</stored-value>
       </pair>
       <pair>
-        <displayed-value>General service</displayed-value>
-        <stored-value>SERVICE-GENERAL</stored-value>
+        <displayed-value>Service-Central</displayed-value>
+        <stored-value>service-central</stored-value>
       </pair>
       <pair>
-        <displayed-value>Other</displayed-value>
-        <stored-value>AUTRE</stored-value>
+        <displayed-value>Service-Général</displayed-value>
+        <stored-value>service-général</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Technique</displayed-value>
+        <stored-value>technique</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Autre</displayed-value>
+        <stored-value>autre</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="project_types" dc-term="project_types">
@@ -6842,48 +6803,6 @@ it, please enter the types and the actual numbers or codes.</hint>
       <pair>
         <displayed-value>Logo</displayed-value>
         <stored-value>logo</stored-value>
-      </pair>
-    </value-pairs>
-    <value-pairs value-pairs-name="import_identifiers" dc-term="import_identifiers">
-      <pair>
-        <displayed-value>DOI</displayed-value>
-        <stored-value>doi</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>arXiv ID</displayed-value>
-        <stored-value>arxiv</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>WOS ID</displayed-value>
-        <stored-value>isi</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Scopus ID</displayed-value>
-        <stored-value>scopus</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Pubmed ID</displayed-value>
-        <stored-value>pmid</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>URI</displayed-value>
-        <stored-value>uri</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Handle</displayed-value>
-        <stored-value>hdl</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>ISBN</displayed-value>
-        <stored-value>isbn</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>ACOUA</displayed-value>
-        <stored-value>acoua</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>EPO</displayed-value>
-        <stored-value>epo</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>
