@@ -285,7 +285,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     }
 
     private String prettyPrint(Object json) {
-        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+        return new GsonBuilder().registerTypeAdapter(CSLType.class, new CSLTypeAdapter())
+                .setPrettyPrinting().create().toJson(json);
     }
 
     private String[] parseMetadataField(String metadataField) {
