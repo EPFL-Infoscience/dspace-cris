@@ -357,6 +357,12 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>legacy</element>
+        <qualifier>contributoreditornum</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>synchronization</element>
         <qualifier>date</qualifier>
     </dc-type>

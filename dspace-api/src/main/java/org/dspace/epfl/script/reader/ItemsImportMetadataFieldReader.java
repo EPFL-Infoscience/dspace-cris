@@ -25,6 +25,8 @@ import org.w3c.dom.NodeList;
 public interface ItemsImportMetadataFieldReader {
 
     public static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    public static DateFormat YYYY_DATE_FORMAT = new SimpleDateFormat("yyyy");
+    public static DateFormat YYYY_MM_DATE_FORMAT = new SimpleDateFormat("yyyy-MM");
 
     List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList);
 
@@ -46,6 +48,13 @@ public interface ItemsImportMetadataFieldReader {
 
         Date date = MultiFormatDateParser.parse(value);
         if (date != null) {
+            // Operation to tackle cases having value expressed in yyyy, yyyyMM, yyyy-MM formats
+            if (value.length() == 4) {
+                return YYYY_DATE_FORMAT.format(date);
+            }
+            if (value.length() == 6 || value.length() == 7) {
+                return YYYY_MM_DATE_FORMAT.format(date);
+            }
             return DATE_FORMAT.format(date);
         }
 
