@@ -5150,103 +5150,79 @@ it, please enter the types and the actual numbers or codes.</hint>
     <value-pairs value-pairs-name="orgunit_types" dc-term="orgunit_types">
       <pair>
         <displayed-value>Antenne</displayed-value>
-        <stored-value>antenne</stored-value>
+        <stored-value>ANTENNE</stored-value>
       </pair>
       <pair>
         <displayed-value>Centre</displayed-value>
-        <stored-value>centre</stored-value>
+        <stored-value>CENTRE</stored-value>
       </pair>
       <pair>
         <displayed-value>Chaire</displayed-value>
-        <stored-value>chaire</stored-value>
+        <stored-value>CHAIRE</stored-value>
       </pair>
       <pair>
         <displayed-value>Collège</displayed-value>
-        <stored-value>collège</stored-value>
+        <stored-value>COLLEGE</stored-value>
       </pair>
       <pair>
-        <displayed-value>Direction</displayed-value>
-        <stored-value>direction</stored-value>
+        <displayed-value>Département</displayed-value>
+        <stored-value>DPT</stored-value>
       </pair>
       <pair>
-        <displayed-value>Dpt</displayed-value>
-        <stored-value>dpt</stored-value>
+        <displayed-value>Ecole doctorale</displayed-value>
+        <stored-value>ECOLE</stored-value>
       </pair>
       <pair>
-        <displayed-value>École</displayed-value>
-        <stored-value>école</stored-value>
+        <displayed-value>Entités hôtes de l'EPFL</displayed-value>
+        <stored-value>EHE</stored-value>
       </pair>
       <pair>
-        <displayed-value>EHE</displayed-value>
-        <stored-value>ehe</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Entreprises</displayed-value>
-        <stored-value>entreprises</stored-value>
+        <displayed-value>Entreprises sur site</displayed-value>
+        <stored-value>ENTERPRISES</stored-value>
       </pair>
       <pair>
         <displayed-value>Faculté</displayed-value>
-        <stored-value>faculté</stored-value>
+        <stored-value>FACULTE</stored-value>
       </pair>
       <pair>
         <displayed-value>Fondation</displayed-value>
-        <stored-value>fondation</stored-value>
+        <stored-value>FONDATION</stored-value>
       </pair>
       <pair>
         <displayed-value>Groupe</displayed-value>
-        <stored-value>groupe</stored-value>
+        <stored-value>GROUPE</stored-value>
       </pair>
       <pair>
         <displayed-value>Institut</displayed-value>
-        <stored-value>institut</stored-value>
+        <stored-value>INSTITUT</stored-value>
       </pair>
       <pair>
-        <displayed-value>Labo</displayed-value>
-        <stored-value>labo</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Organigramme</displayed-value>
-        <stored-value>organigramme</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Orientat</displayed-value>
-        <stored-value>orientat</stored-value>
+        <displayed-value>Laboratoire</displayed-value>
+        <stored-value>LABO</stored-value>
       </pair>
       <pair>
         <displayed-value>Participation</displayed-value>
-        <stored-value>participation</stored-value>
+        <stored-value>PARTICIPATION</stored-value>
       </pair>
       <pair>
         <displayed-value>Programme</displayed-value>
-        <stored-value>programme</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Regroupement</displayed-value>
-        <stored-value>regroupement</stored-value>
+        <stored-value>PROGRAMME</stored-value>
       </pair>
       <pair>
         <displayed-value>Section</displayed-value>
-        <stored-value>section</stored-value>
+        <stored-value>SECTION</stored-value>
       </pair>
       <pair>
-        <displayed-value>Semestre</displayed-value>
-        <stored-value>semestre</stored-value>
+        <displayed-value>Service central</displayed-value>
+        <stored-value>SERVICE-CENTRAL</stored-value>
       </pair>
       <pair>
-        <displayed-value>Service-Central</displayed-value>
-        <stored-value>service-central</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Service-Général</displayed-value>
-        <stored-value>service-général</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Technique</displayed-value>
-        <stored-value>technique</stored-value>
+        <displayed-value>Service général</displayed-value>
+        <stored-value>SERVICE-GENERAL</stored-value>
       </pair>
       <pair>
         <displayed-value>Autre</displayed-value>
-        <stored-value>autre</stored-value>
+        <stored-value>AUTRE</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="project_types" dc-term="project_types">
