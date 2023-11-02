@@ -90,7 +90,7 @@
     </datafield>
     @group.dc-type.start@
     <datafield tag="336" ind1=" " ind2=" ">
-        <subfield code="a">@epfl.legacy.itemtype@</subfield>
+        <subfield code="a">@dc.type@</subfield>
         <subfield code="c">@epfl.datatype@</subfield>
     </datafield>
     @group.dc-type.end@
@@ -190,24 +190,33 @@
         <subfield code="j">@oaire.citation.volume@</subfield>
         <subfield code="s">@epfl.part.section@</subfield>
         <subfield code="t">@dc.relation.ispartof@</subfield>
-        <subfield code="t">@dc.relation.journal@</subfield>
-        <subfield code="t">@dc.relation.ispartofseries@</subfield>
         @if.metadata.oaire-citation-startPage.start@
         <subfield code="q">@virtual.fullpage@</subfield>
         @if.metadata.oaire-citation-startPage.end@
         <subfield code="k">@dc.citation.issue@</subfield>
     </datafield>
     @if.metadata.dc-relation-ispartof.end@
+    @if.metadata.dc-relation-journal.start@
+    <datafield tag="773" ind1=" " ind2=" ">
+        <subfield code="t">@dc.relation.journal@</subfield>
+    </datafield>
+    @if.metadata.dc-relation-journal.end@
+    @if.metadata.dc-relation-ispartofseries.start@
+    <datafield tag="773" ind1=" " ind2=" ">
+        <subfield code="t">@dc.relation.ispartofseries@</subfield>
+    </datafield>
+    @if.metadata.dc-relation-ispartofseries.end@
     @if.metadata.dc-relation-publication.start@
     <datafield tag="787" ind1=" " ind2=" ">
-        <subfield code="e">@dc.relation.type@</subfield>
+        <subfield code="e">@epfl.relationpublication.type@</subfield>
         <subfield code="w">@dc.relation.publication@</subfield>
     </datafield>
     @if.metadata.dc-relation-publication.end@
     @if.metadata.dc-relation-product.start@
     <datafield tag="790" ind1=" " ind2=" ">
-        <subfield code="2">@dc.relation.type@</subfield>
-        <subfield code="w">@virtual.config.dspace-ui-url@/items/@virtual.id@</subfield>
+        <subfield code="2">@epfl.relationproduct.type@</subfield>
+        <subfield code="w">@virtual.config.dspace-ui-url@/items/
+@virtual.id@</subfield>
     </datafield>
     @if.metadata.dc-relation-product.end@
     @if.metadata.epfl-lastmodified-email.start@
@@ -231,17 +240,13 @@
         <subfield code="u">@dc.relation@</subfield>
     </datafield>
     @group.dc-relation.end@
-    @relation.dc-contributor-author.start@
-    @relation.person-affiliation-name.start@
-    @if.metadata.cris-legacyId.start@
+    @group.dc-relation-sponsorship.start@
     <datafield tag="909" ind1="C" ind2="0">
-		    <subfield code="p">@epfl.relation.orgunit@</subfield>
+		    <subfield code="p">@dc.relation.sponsorship@</subfield>
 		    <subfield code="x">U@cris.legacyId@</subfield>
-		    <subfield code="0">@epfl.relation.orgunit@</subfield>
+		    <subfield code="0">@dc.relation.sponsorship@</subfield>
     </datafield>
-	  @if.metadata.cris-legacyId.end@
-    @relation.person-affiliation-name.end@
-    @relation.dc-contributor-author.end@
+    @group.dc-relation-sponsorship.end@
     @group.epfl-oai-currentset.start@
     <datafield tag="909" ind1="C" ind2="O">
 		    <subfield code="p">@epfl.oai.currentset@</subfield>
@@ -298,19 +303,14 @@
 		    <subfield code="c">approved</subfield>
     </datafield>
 	@group.dc-source.end@
-    @group.epfl-relation-orgunit.start@
-    <datafield tag="999" ind1="C" ind2="0">
-		    <subfield code="0">@epfl.relation.orgunit@/@epfl.relation.pendingOrgUnit@</subfield>
-    </datafield>
-	@group.epfl-relation-orgunit.end@
 	@group.dc-date-issued.start@
     <datafield tag="269" ind1=" " ind2=" ">
-    <subfield code="c">@dc.date.issued@</subfield>
+        <subfield code="c">@dc.date.issued@</subfield>
     </datafield>
-    @group.dc-date-issued.end@
-    @group.oairecerif-author-affiliation.start@
+  @group.dc-date-issued.end@
+  @group.oairecerif-author-affiliation.start@
     <datafield tag="720" ind1="5" ind2="a">
-            <subfield code="0">@oairecerif.author.affiliation@</subfield>
+        <subfield code="0">@oairecerif.author.affiliation@</subfield>
     </datafield>
-    @group.oairecerif-author-affiliation.end@
+  @group.oairecerif-author-affiliation.end@
 </record>
