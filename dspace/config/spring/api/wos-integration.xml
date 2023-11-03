@@ -26,6 +26,7 @@
         <entry key-ref="wos.type" value-ref="wosTypeContrib"/>
         <entry key-ref="wos.volume" value-ref="wosVolumeContrib"/>
         <entry key-ref="wos.ispartof" value-ref="wosIspartofContrib"/>
+        <entry key-ref="wos.journal" value-ref="wosJournalContrib"/>
         <entry key-ref="wos.ispartofseries" value-ref="wosIspartofseriesContrib"/>
         <entry key-ref="wos.title" value-ref="wosTitleContrib"/>
         <entry key-ref="wos.doi" value-ref="wosIdentifierContrib"/>
@@ -78,7 +79,7 @@
 
     <bean id="wosTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="wos.type"/>
-        <property name="query" value="static_data/summary/pub_info/@pubtype"/>
+        <property name="query" value="static_data/fullrecord_metadata/normalized_doctypes/@doctype"/>
         <property name="prefixToNamespaceMapping" ref="wosNs"/>
     </bean>
     <bean id="wos.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -118,7 +119,7 @@
     </util:map>
 
     <bean id="wos.doi" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.identifier"/>
+        <constructor-arg value="dc.identifier.doi"/>
     </bean>
     <bean id="wos.issn" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.issn"/>
@@ -129,7 +130,7 @@
 
     <bean id="wosLanguageIsoContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="wos.languageIso"/>
-        <property name="query" value="static_data/fullrecord_metadata/normalized_languages/@count"/>
+        <property name="query" value="static_data/fullrecord_metadata/normalized_languages/language/@content"/>
         <property name="prefixToNamespaceMapping" ref="wosNs"/>
     </bean>
     <bean id="wos.languageIso" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -229,6 +230,22 @@
 
     <bean id="wos.ispartof" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.relation.ispartof"/>
+    </bean>
+
+    <bean id="wosJournalContrib" class="org.dspace.importer.external.metadatamapping.contributor.WosAttribute2ValueContributor">
+        <property name="attribute" value="type"/>
+        <property name="prefixToNamespaceMapping" ref="wosNs"/>
+        <property name="query" value="static_data/summary/titles/title"/>
+        <property name="attributeValue2metadata" ref="journal2fields"/>
+    </bean>
+
+    <util:map id="journal2fields" map-class="java.util.HashMap"
+              key-type="java.lang.String" value-type="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <entry key="source" value-ref="wos.ispartof" />
+    </util:map>
+
+    <bean id="wos.journal" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.relation.journal"/>
     </bean>
 
     <bean id="wosIspartofseriesContrib" class="org.dspace.importer.external.metadatamapping.contributor.WosAttribute2ValueContributor">
