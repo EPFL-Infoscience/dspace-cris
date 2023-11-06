@@ -29,7 +29,8 @@ public class ItemsImportSimpleReader implements ItemsImportMetadataFieldReader {
             Node node = nodeList.item(i);
             String value = node.getTextContent();
             if (StringUtils.isNotBlank(value)) {
-                metadataValues.add(new MetadataValueDTO(metadataField, convertIfDate(value)));
+                String v = metadataField.equals("cris.legacyId") ? value : convertIfDate(value);
+                metadataValues.add(new MetadataValueDTO(metadataField, v));
             }
         }
 
