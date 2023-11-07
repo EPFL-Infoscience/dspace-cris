@@ -210,7 +210,7 @@
             <!--Treats the entire field as a single token, regardless of its content-->
             <tokenizer class="solr.KeywordTokenizerFactory"/>
 
-            <!--<filter class="solr.LowerCaseFilterFactory" />-->
+            <filter class="solr.LowerCaseFilterFactory" />
             <filter class="solr.TrimFilterFactory" />
         </analyzer>
     </fieldType>
@@ -506,6 +506,7 @@
     <dynamicField name="*" type="text" multiValued="true"/>
 
     <!-- Leftovers from sample schema.  Are these used? -->
+    <dynamicField name="*_cs"   type="string"  indexed="true" stored="true" docValues="true" multiValued="true"/>
     <dynamicField name="*_i"   type="int"     indexed="true" stored="true" docValues="true"/>
     <dynamicField name="*_s"   type="string"  indexed="true" stored="true" docValues="true" multiValued="true"/>
     <dynamicField name="*_l"   type="long"    indexed="true" stored="true" docValues="true"/>
