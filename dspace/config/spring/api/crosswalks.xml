@@ -733,6 +733,7 @@
 				<entry key="metric" value-ref="virtualFieldMetric" />
 				<entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
 				<entry key="citations" value-ref="virtualFieldCitations" />
+				<entry key="publisher-with-place" value-ref="publisherWithPlace"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -786,6 +787,7 @@
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMetric" id="virtualFieldMetric"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldBitstreamData" id="virtualFieldBitstreamData"/>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldCitations" id="virtualFieldCitations"/>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPublisherWithPlace" id="publisherWithPlace" />
     
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.FirstSelectedCitationsPostProcessor" />
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.GroupByTypeCitationsPostProcessor" />
