@@ -36,6 +36,7 @@
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportSeriesReader">
+        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
         <property name="titleXPath" value="./subfield[@code = 'a']"/>
         <property name="numberXPath" value="./subfield[@code = 'v']"/>
     </bean>
@@ -203,9 +204,8 @@
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
     </bean>
     
-    <bean class="org.dspace.epfl.script.reader.ItemsImportIsPartOfReader">
+    <bean class="org.dspace.epfl.script.reader.ItemsImportJournalReader">
         <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
-        <property name="journalMetadataField" value="dc.relation.journal" />
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportThesisReader">
