@@ -33,6 +33,7 @@
         <entry key-ref="wos.issue" value-ref="wosIssueContrib"/>
         <entry key-ref="wos.abstract" value-ref="wosAbstractContrib"/>
         <entry key-ref="wos.languageIso" value-ref="wosLanguageIsoContrib"/>
+        <entry key-ref="wos.affiliation" value-ref="wosAffiliationContrib"/>
         <entry key-ref="wos.fullName" value-ref="wosFullNameContrib"/>
         <entry key-ref="wos.subject" value-ref="wosSubjectContrib"/>
         <entry key-ref="wos.orcid" value-ref="wosOrcidContrib"/>
@@ -207,6 +208,15 @@
         <constructor-arg value="person.identifier.orcid"/>
     </bean>
 
+    <bean id="wosAffiliationContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+        <property name="field" ref="wos.affiliation"/>
+        <property name="query" value="static_data/fullrecord_metadata/addresses/address_name/address_spec/full_address"/>
+        <property name="prefixToNamespaceMapping" ref="wosNs"/>
+    </bean>
+    <bean id="wos.affiliation" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="oairecerif.affiliation.orgunit"/>
+    </bean>
+
     <bean id="wosPublisherContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="wos.publisher"/>
         <property name="query" value="static_data/summary/publishers/publisher/names/name/display_name"/>
@@ -241,7 +251,7 @@
 
     <util:map id="journal2fields" map-class="java.util.HashMap"
               key-type="java.lang.String" value-type="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <entry key="source" value-ref="wos.ispartof" />
+        <entry key="source" value-ref="wos.journal" />
     </util:map>
 
     <bean id="wos.journal" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -291,9 +301,10 @@
         <constructor-arg value="dc.contributor.editor"/>
     </bean>
 
-    <bean id="wosRidContrib" class="org.dspace.importer.external.metadatamapping.contributor.WosIdentifierRidContributor">
+    <bean id="wosRidContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeContributor">
         <property name="field" ref="wos.rid"/>
-        <property name="query" value="static_data/contributors/contributor"/>
+        <property name="attribute" value="r_id"/>
+        <property name="query" value="static_data/summary/names/name"/>
         <property name="prefixToNamespaceMapping" ref="wosNs"/>
     </bean>
 
