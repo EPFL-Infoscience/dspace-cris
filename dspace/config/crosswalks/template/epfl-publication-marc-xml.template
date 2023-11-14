@@ -90,7 +90,7 @@
     </datafield>
     @group.dc-type.start@
     <datafield tag="336" ind1=" " ind2=" ">
-        <subfield code="a">@dc.type@</subfield>
+        <subfield code="a">@virtual.mapConverter.publicationTypes.dc-type@</subfield>
         <subfield code="c">@epfl.datatype@</subfield>
     </datafield>
     @group.dc-type.end@
