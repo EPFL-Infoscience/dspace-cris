@@ -60,6 +60,9 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
     private MetadataValueDTO readNestedValue(Node node, String nestedMetadataField) {
 
         String path = metadataFieldsPaths.get(nestedMetadataField);
+        if (StringUtils.isBlank(path)) {
+            return new MetadataValueDTO(nestedMetadataField, PLACEHOLDER_PARENT_METADATA_VALUE);
+        }
         String singleValue = getSingleValue(node, xPath, path);
         String value = skipDateConversion ? singleValue : convertIfDate(singleValue);
 

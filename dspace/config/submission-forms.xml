@@ -732,7 +732,7 @@
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
+          <dc-element>relationpublication</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>DOI or URL</label>
           <input-type>onebox</input-type>
@@ -763,13 +763,50 @@
           <label>Datasets or products</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required />
+          <required>You must enter at least the product title</required>
           <style>col-xs-12 col-md-6</style>
           <hint>Link the item to one or more existent dataset in the repository used or described by the publication</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>relationproduct</dc-element>
+          <dc-qualifier>identifier</dc-qualifier>
+          <label>DOI or URL</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint>If the dataset is not found in the system please enter a DOI or URL</hint>
+        </field>
+      </row>
+    </form>
+    <form name="related_works-dc-relation-patent">
+      <row>
+        <field>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relationpatent</dc-element>
+          <dc-qualifier>type</dc-qualifier>
+          <label>Relation</label>
+          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-2</style>
+          <hint />
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
+          <dc-qualifier>patent</dc-qualifier>
+          <label>Datasets or products</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must enter at least the patent title</required>
+          <style>col-xs-12 col-md-6</style>
+          <hint>Link the item to one or more existent dataset in the repository used or described by the patent</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relationpatent</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>DOI or URL</label>
           <input-type>onebox</input-type>
@@ -1617,6 +1654,18 @@ it, please enter the types and the actual numbers or codes.</hint>
           <repeatable>true</repeatable>
           <required />
           <hint>Link the item to one or more existent dataset in the repository used or described by the publication or, put here the dataset citation</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>patent</dc-qualifier>
+          <label>Related patent</label>
+          <input-type>inline-group</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>A related patent</hint>
         </field>
       </row>
     </form>
