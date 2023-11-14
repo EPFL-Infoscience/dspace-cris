@@ -2512,8 +2512,8 @@
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScoreAsc" />
                         <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
                         <ref bean="sortDateIssuedAsc" />
