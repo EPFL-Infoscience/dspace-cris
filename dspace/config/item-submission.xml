@@ -343,6 +343,11 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="unpaywall" mandatory="true">
+      <heading>submit.progressbar.unpaywall</heading>
+      <processing-class>org.dspace.app.rest.submit.step.UnpaywallStep</processing-class>
+      <type>unpaywall</type>
+    </step-definition>
   </step-definitions>
   <submission-definitions>
     <submission-process name="orgunit">
@@ -500,6 +505,7 @@
       <step id="virtual-collection-bind" />
     </submission-process>
     <submission-process name="article">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
@@ -721,6 +727,7 @@
       <step id="grants" />
     </submission-process>
     <submission-process name="conference">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
@@ -932,6 +939,7 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="publication">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
