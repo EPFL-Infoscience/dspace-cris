@@ -23,6 +23,12 @@
 
     <dc-type>
         <schema>epfl</schema>
+        <element>unit</element>
+        <qualifier>alias</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
         <element>orgUnit</element>
         <qualifier>status</qualifier>
     </dc-type>
@@ -460,6 +466,43 @@
         <schema>epfl</schema>
         <element>publication</element>
         <qualifier>version</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>contributor</element>
+        <qualifier>role</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>author</element>
+        <qualifier>role</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relation</element>
+        <qualifier>issuetitle</qualifier>
+    </dc-type>
+
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relation</element>
+        <qualifier>conferenceType</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>conferenceStartDate</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>conferenceEndDate</qualifier>
     </dc-type>
 
 </dspace-dc-types>

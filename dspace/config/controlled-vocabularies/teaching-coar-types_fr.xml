@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This XML was automatically generated from the SKOS sources for the COAR Vocabulary. It follows the schema developed by 4Science (https://www.4science.it/) for DSpace -->
+<node id="http://purl.org/coar/resource_type/scheme" label="Resource Types">
+  <isComposedBy>
+    <node id="c_e059" label="resource pédagogique ou d'enseignement">
+      <hasNote>A digital resource that can be reused to enhance teaching and learning. [Source: https://icas-ca.org/archive/projects/coerc/oer-glossary]
+      </hasNote>
+    </node>
+  </isComposedBy>
+</node>

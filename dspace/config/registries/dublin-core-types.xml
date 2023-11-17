@@ -979,4 +979,25 @@
     <scope_note></scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>prioritynumber</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>reportno</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>description</element>
+    <qualifier>edition</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
 </dspace-dc-types>
