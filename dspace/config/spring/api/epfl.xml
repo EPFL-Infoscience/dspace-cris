@@ -144,6 +144,7 @@
             <util:map>
                 <entry key="epfl.relationpublication.type" value="./subfield[@code = 'e']"/>
                 <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relationpublication.identifier" value=""/>
             </util:map>
         </property>
     </bean>
@@ -155,6 +156,7 @@
             <util:map>
                 <entry key="epfl.relationproduct.type" value="./subfield[@code = '2']"/>
                 <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relationproduct.identifier" value=""/>
             </util:map>
         </property>
     </bean>

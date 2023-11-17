@@ -2512,14 +2512,14 @@
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
-                        <ref bean="sortScoreAsc" />
-                        <ref bean="sortScore" />
                         <ref bean="sortViewsAsc"/>
                         <ref bean="sortViews"/>
                         <ref bean="sortDownloadsAsc"/>
@@ -2563,7 +2563,7 @@
             queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
-                <value>original_bundle_datacite_rights_keyword:openaccess</value>
+                <value>original_bundle_datacite_rights_keyword:openaccess AND -original_bundle_datacite_rights_keyword:restricted AND -original_bundle_datacite_rights_keyword:embargo AND -original_bundle_datacite_rights_keyword:reserved AND -original_bundle_datacite_rights_keyword:administrator</value>
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
