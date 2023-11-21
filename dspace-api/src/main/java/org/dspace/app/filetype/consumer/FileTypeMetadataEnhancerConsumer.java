@@ -204,12 +204,7 @@ public class FileTypeMetadataEnhancerConsumer implements Consumer {
     private Stream<MetadataValue> getMetadatasForItem(Context ctx, List<Bitstream> bitstreams) {
         return bitstreams
             .stream()
-            .map(
-                throwingMapperWrapper(bitstream ->
-                    this.bitstreamService.find(ctx, bitstream.getID()),
-                    null
-                )
-            )
+            .map(throwingMapperWrapper(bitstream -> this.bitstreamService.find(ctx, bitstream.getID())))
             .filter(Objects::nonNull)
             .flatMap(bitstream -> filterBitstreamMetadatasForItem(bitstream));
     }

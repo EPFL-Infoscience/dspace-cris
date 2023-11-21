@@ -203,13 +203,8 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
     private Optional<List<CrisLayoutTab>> findValidEntityType(Context context, String entityTypeValue,
             String customFilter) {
         return Optional.ofNullable(customFilter)
-                .map(
-                    throwingMapperWrapper(
-                        value -> findByEntityType(context, entityTypeValue, value),
-                        null
-                    )
-                )
-                .filter(tabs -> tabs != null && !tabs.isEmpty());
+                .map(throwingMapperWrapper(value -> findByEntityType(context, entityTypeValue, value)))
+                .filter(tabs -> !tabs.isEmpty());
     }
 
 }
