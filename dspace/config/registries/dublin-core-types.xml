@@ -630,6 +630,28 @@
   </dc-type>
 
   <dc-type>
+    <schema>dc</schema>
+    <element>relationpublication</element>
+    <qualifier>identifier</qualifier>
+    <scope_note/>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>relationproduct</element>
+    <qualifier>identifier</qualifier>
+    <scope_note/>
+  </dc-type>
+
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>relationpatent</element>
+    <qualifier>identifier</qualifier>
+    <scope_note/>
+  </dc-type>
+
+  <dc-type>
 	<schema>dc</schema>
     <element>rights</element>
     <!-- unqualified -->
@@ -976,6 +998,27 @@
     <schema>dc</schema>
     <element>contributor</element>
     <qualifier>scientificeditor</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>prioritynumber</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>reportno</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>description</element>
+    <qualifier>edition</qualifier>
     <scope_note></scope_note>
   </dc-type>
 

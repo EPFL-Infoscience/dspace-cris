@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -58,6 +59,10 @@ public class ItemEpflAuthorityMetadataGenerator extends ItemSimpleAuthorityMetad
     }
 
     private boolean isPersonInternal(Context context, String parentOrgUnitUuid, String epflOrgUnitUuid) {
+
+        if (StringUtils.isBlank(parentOrgUnitUuid)) {
+            return false;
+        }
 
         if (parentOrgUnitUuid.equals(epflOrgUnitUuid)) {
             return true;

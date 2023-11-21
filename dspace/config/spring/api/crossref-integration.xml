@@ -50,8 +50,15 @@
     <bean id="crossrefDoiTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.ReplaceFieldWithMapConverterMetadataContributor">
         <property name="field" ref="crossref.type"/>
         <property name="query" value="/type"/>
-        <property name="simpleMapConverter" ref="mapConverterOrcidToDSpacePublicationType"/>
+        <property name="simpleMapConverter" ref="mapConverterCrossrefToDSpacePublicationType"/>
     </bean>
+
+    <bean name="mapConverterCrossrefToDSpacePublicationType" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-crossref-to-dspace-publication-type.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="Controlled Vocabulary for Resource Type Genres::other"/>
+    </bean>
+
     <bean id="crossref.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.type"/>
     </bean>

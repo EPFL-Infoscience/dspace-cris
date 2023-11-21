@@ -19,14 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class ItemsImportIsPartOfReader implements ItemsImportMetadataFieldReader {
+public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader {
 
     @Autowired
     private ConfigurationService configurationService;
 
     private String isPartOfSeriesMetadataField;
-
-    private String journalMetadataField;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -40,14 +38,10 @@ public class ItemsImportIsPartOfReader implements ItemsImportMetadataFieldReader
                 continue;
             }
 
-            metadataValues.add(new MetadataValueDTO(metadataField, value));
-
-            if (isContainerType("series", type)) {
+            if (getJournalOrIsPartOfTypes().contains(type)) {
+                metadataValues.add(new MetadataValueDTO(metadataField, value));
+            } else {
                 metadataValues.add(new MetadataValueDTO(isPartOfSeriesMetadataField, value));
-            }
-
-            if (isContainerType("journal", type)) {
-                metadataValues.add(new MetadataValueDTO(journalMetadataField, value));
             }
 
         }
@@ -55,25 +49,13 @@ public class ItemsImportIsPartOfReader implements ItemsImportMetadataFieldReader
         return metadataValues;
     }
 
-    private boolean isContainerType(String field, String type) {
-        return getContainerTypes(field).contains(type);
-    }
-
-    private List<String> getContainerTypes(String field) {
-        return Arrays.asList(configurationService.getArrayProperty("epfl.items-import.is-part-of." + field + ".types"));
+    private List<String> getJournalOrIsPartOfTypes() {
+        return Arrays.asList(configurationService.getArrayProperty("epfl.items-import.journal-or-is-part-of.types"));
     }
 
     @Override
     public String getReaderName() {
-        return "isPartOf";
-    }
-
-    public String getJournalMetadataField() {
-        return journalMetadataField;
-    }
-
-    public void setJournalMetadataField(String journalMetadataField) {
-        this.journalMetadataField = journalMetadataField;
+        return "journal";
     }
 
     public String getIsPartOfSeriesMetadataField() {

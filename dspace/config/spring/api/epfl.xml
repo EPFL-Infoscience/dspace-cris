@@ -36,6 +36,7 @@
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportSeriesReader">
+        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
         <property name="titleXPath" value="./subfield[@code = 'a']"/>
         <property name="numberXPath" value="./subfield[@code = 'v']"/>
     </bean>
@@ -54,6 +55,7 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
         <property name="readerName" value="funders" />
+        <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="oairecerif.funder" value="./subfield[@code = 'a']"/>
@@ -74,6 +76,7 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
         <property name="readerName" value="author" />
+        <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="dc.contributor.author" value="./subfield[@code = 'a']"/>
@@ -94,6 +97,7 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
         <property name="readerName" value="advisor" />
+        <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="dc.contributor.advisor" value="./subfield[@code = 'a']"/>
@@ -114,6 +118,7 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
         <property name="readerName" value="scientificeditor" />
+        <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="dc.contributor.scientificeditor" value="./subfield[@code = 'a']"/>
@@ -134,20 +139,24 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
         <property name="readerName" value="relatedPublication" />
+        <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="epfl.relationpublication.type" value="./subfield[@code = 'e']"/>
                 <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relationpublication.identifier" value=""/>
             </util:map>
         </property>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportNestedMetadataFieldReader" >
         <property name="readerName" value="relatedProduct" />
+        <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="epfl.relationproduct.type" value="./subfield[@code = '2']"/>
                 <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relationproduct.identifier" value=""/>
             </util:map>
         </property>
     </bean>
@@ -197,9 +206,8 @@
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
     </bean>
     
-    <bean class="org.dspace.epfl.script.reader.ItemsImportIsPartOfReader">
+    <bean class="org.dspace.epfl.script.reader.ItemsImportJournalReader">
         <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
-        <property name="journalMetadataField" value="dc.relation.journal" />
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportThesisReader">

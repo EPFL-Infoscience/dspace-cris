@@ -93,11 +93,6 @@
             <reader>serie</reader>
         </metadata-field>
         <metadata-field>
-            <field>dc.relation.ispartofseries</field>
-            <xpath>./datafield[@tag = '490']</xpath>
-            <reader>serie</reader>
-        </metadata-field>
-        <metadata-field>
             <field>dc.description.notes</field>
             <xpath>./datafield[@tag = '500']/subfield[@code = 'a']</xpath>
         </metadata-field>
@@ -198,9 +193,9 @@
             <xpath>./datafield[@tag = '773']/subfield[@code = 's']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>dc.relation.ispartof</field>
+            <field>dc.relation.journal</field>
             <xpath>./datafield[@tag = '773']/subfield[@code = 't']</xpath>
-            <reader>isPartOf</reader>
+            <reader>journal</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.relation.publication</field>
@@ -278,7 +273,7 @@
         <metadata-field>
             <field>epfl.thesis.publicDefenseYear</field>
             <xpath>./datafield[@tag = '920']/subfield[@code = 'a']</xpath>
-            <reader>publicDefenseYear</reader>
+            <reader>dateIssued</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.date.accepted</field>

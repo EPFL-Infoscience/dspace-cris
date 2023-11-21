@@ -1,70 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE item-submission SYSTEM "item-submission.dtd">
 <item-submission>
-
-  <!-- The process-map maps collection handles to a particular Item -->
-  <!-- Submission Process. This requires that a collection's name be -->
-  <!-- unique, even within a community. DSpace does however ensure that each -->
-  <!-- collection's handle is unique. Process-map provides the means to -->
-  <!-- associate a unique collection name with an Item Submission process. -->
-  <!-- The process-map also provides the special handle "default" (which is -->
-  <!-- never a collection), here mapped to "traditional". Any collection -->
-  <!-- which does not appear in this map will be associated with the mapping -->
-  <!-- for handle "default". -->
   <submission-map>
-    <!-- Default submission process -->
-    <name-map collection-handle="default" submission-name="product"/>
-
-    <!-- Sample Entities Collection configuration based on the demo Entities dataset available at:
-         https://github.com/DSpace-Labs/AIP-Files/releases/tag/demo-entities-data
-         This sets up the following Entity-based Collections in that dataset:
-            "Publication" Collections = "Publications" -> "Articles", "Books", "Publications 2", & "Theses"
-            "OrgUnit" Collection = "Related Objects" -> "OrgUnits"
-            "Person" Collections = "Related Objects" -> "People" & "People 2"
-            "Project" Collections = "Related Objects" -> "Projects" & "Projects 2"
-            "Journal" Collection = "Compound Journals" -> "Journals"
-            "Journal Volume" Collection = "Compound Journals" -> "Journal Volumes"
-            "Journal Issue" Collection = "Compound Journals" ->  "Journal Issues"
-         If you are using that demo dataset, you can simply uncomment the below configuration to enable Entity
-         submission into all of the above Collections.
-    -->
+    <name-map collection-handle="default" submission-name="orgunit" />
   </submission-map>
-
-  <!-- The 'step-definitions' allows you to define steps which you may wish -->
-  <!-- to "share" amongst multiple submission-item definitions. In order to -->
-  <!-- share the same step definition, you can refer to it by its unique id -->
-  <!-- defined in this section. EVERY 'step' in this section MUST have a -->
-  <!-- unique identifier in the 'id' attribute! -->
-  <!-- -->
-  <!-- Each <step-definition> REQUIRES the following attributes (@) and properties: -->
-  <!-- @id - The unique identifier for this step -->
-  <!-- -->
-  <!-- <processing-class> - The class which will process all information for -->
-  <!-- this step. The class must implement -->
-  <!-- 'org.dspace.app.rest.submit.RestProcessingStep' -->
-  <!-- (or one of the org.dspace.rest.submit.step.* classes) -->
-  <!-- This property should reference the full path of the class -->
-  <!-- (e.g. org.dspace.app.rest.submit.step.MyCustomStep) -->
-  <!-- -->
-  <!-- The following properties are OPTIONAL for each <step-definition>: -->
-  <!-- <heading> - References the message key, from the -->
-  <!-- Messages.properties -->
-  <!-- -->
   <step-definitions>
-    <!-- The "collection" step is a "special step" which is *REQUIRED* -->
-    <!-- In DSpace, all submitted items must be immediately assigned -->
-    <!-- to a collection. This step ensures that a collection is always selected. -->
-    <step-definition id="collection" mandatory="true">
-      <heading>submit.progressbar.collection</heading>
-      <processing-class>org.dspace.app.rest.submit.step.CollectionStep</processing-class>
-      <type>collection</type>
-      <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
-    </step-definition>
-    <step-definition id="itemAccessConditions" mandatory="false">
-      <heading>submit.progressbar.itemAccessConditions</heading>
-      <processing-class>org.dspace.app.rest.submit.step.AccessConditionStep</processing-class>
-      <type>accessCondition</type>
-    </step-definition>
     <step-definition id="upload" mandatory="true">
       <heading>submit.progressbar.upload</heading>
       <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
@@ -119,119 +59,25 @@
       <heading>submit.progressbar.upload-person</heading>
       <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
       <type>upload</type>
+      <scope visibilityOutside="hidden">workflow</scope>
     </step-definition>
-    <step-definition id="license" mandatory="true">
-      <heading>submit.progressbar.license</heading>
-      <processing-class>org.dspace.app.rest.submit.step.LicenseStep</processing-class>
-      <type>license</type>
-    </step-definition>
-    <step-definition id="product_type" mandatory="true">
-      <heading>submit.progressbar.describe.product_type</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
+    <step-definition id="upload-content" mandatory="true">
+      <heading>submit.progressbar.upload-content</heading>
+      <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
+      <type>upload</type>
     </step-definition>
     <step-definition id="orgunit" mandatory="true">
       <heading>submit.progressbar.describe.orgunit</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="patent" mandatory="true">
-      <heading>submit.progressbar.describe.patent</heading>
+    <step-definition id="orgunit-editor" mandatory="true">
+      <heading>submit.progressbar.describe.orgunit-editor</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="patent_indexing" mandatory="true">
-      <heading>submit.progressbar.describe.patent_indexing</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="patent_references" mandatory="true">
-      <heading>submit.progressbar.describe.patent_references</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="project" mandatory="true">
-      <heading>submit.progressbar.describe.project</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="journal" mandatory="true">
-      <heading>submit.progressbar.describe.journal</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="publication_type" mandatory="true">
-      <heading>submit.progressbar.describe.publication_type</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="lookup" mandatory="true">
-      <heading>submit.progressbar.describe.lookup</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="basic_information" mandatory="true">
-      <heading>submit.progressbar.describe.basic_information</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="journal_details" mandatory="true" opened="false">
-      <heading>submit.progressbar.describe.journal_details</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="book_details" mandatory="true" opened="false">
-      <heading>submit.progressbar.describe.book_details</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="conf_details" mandatory="true" opened="false">
-      <heading>submit.progressbar.describe.conf_details</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="involved" mandatory="true">
-      <heading>submit.progressbar.describe.involved</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="thesis_awards" mandatory="false">
-      <heading>submit.progressbar.describe.thesis_awards</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="grants" mandatory="true" opened="false">
-      <heading>submit.progressbar.describe.grants</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="publishing_information" mandatory="true">
-      <heading>submit.progressbar.describe.publishing_information</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="additional_fields" mandatory="false">
-      <heading>submit.progressbar.describe.additional_fields</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="related_works" mandatory="true">
-      <heading>submit.progressbar.describe.related_works</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="equipment" mandatory="true">
-      <heading>submit.progressbar.describe.equipment</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="event" mandatory="true">
-      <heading>submit.progressbar.describe.event</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="funding" mandatory="true">
-      <heading>submit.progressbar.describe.funding</heading>
+    <step-definition id="orgunit-director" mandatory="true">
+      <heading>submit.progressbar.describe.orgunit-director</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
@@ -240,55 +86,13 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="owner" mandatory="true">
-      <heading>submit.progressbar.describe.owner</heading>
+    <step-definition id="event" mandatory="true">
+      <heading>submit.progressbar.describe.event</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="ctb-bitstream-metadata" mandatory="false">
-      <heading>submit.progressbar.describe.ctb-bitstream-metadata</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="detect-duplicate" mandatory="true">
-      <heading>submit.progressbar.detect-duplicate</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DetectPotentialDuplicateStep</processing-class>
-      <type>detect-duplicate</type>
-    </step-definition>
-    <step-definition id="cclicense" mandatory="false">
-      <heading>submit.progressbar.CClicense</heading>
-      <processing-class>org.dspace.app.rest.submit.step.CCLicenseStep</processing-class>
-      <type>cclicense</type>
-    </step-definition>
-    <step-definition id="extractionstep" mandatory="true">
-      <heading>submit.progressbar.ExtractMetadataStep</heading>
-      <processing-class>org.dspace.app.rest.submit.step.ExtractMetadataStep</processing-class>
-      <type>extract</type>
-      <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
-    </step-definition>
-    <step-definition id="custom-url" mandatory="false">
-      <heading>submit.progressbar.custom-url</heading>
-      <processing-class>org.dspace.app.rest.submit.step.CustomUrlStep</processing-class>
-      <type>custom-url</type>
-    </step-definition>
-    <step-definition id="correction" mandatory="true">
-      <heading>submit.progressbar.correction</heading>
-      <processing-class>org.dspace.app.rest.submit.step.CorrectionStep</processing-class>
-      <type>correction</type>
-      <scope visibilityOutside="hidden">workflow</scope>
-    </step-definition>
-    <step-definition id="sherpaPolicies" mandatory="true">
-      <heading>submit.progressbar.sherpaPolicies</heading>
-      <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
-      <type>sherpaPolicy</type>
-    </step-definition>
-    <step-definition id="publication-import" mandatory="true">
-      <heading>submit.progressbar.describe.publication-import</heading>
-      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
-      <type>submission-form</type>
-    </step-definition>
-    <step-definition id="notes-for-reviewer" mandatory="true">
-      <heading>submit.progressbar.describe.notes-for-reviewer</heading>
+    <step-definition id="journal" mandatory="true">
+      <heading>submit.progressbar.describe.journal</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
@@ -297,10 +101,20 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="upload-content" mandatory="true">
-      <heading>submit.progressbar.upload-content</heading>
-      <processing-class>org.dspace.app.rest.submit.step.UploadStep</processing-class>
-      <type>upload</type>
+    <step-definition id="project" mandatory="true">
+      <heading>submit.progressbar.describe.project</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="equipment" mandatory="true">
+      <heading>submit.progressbar.describe.equipment</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="funding" mandatory="true">
+      <heading>submit.progressbar.describe.funding</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
     </step-definition>
     <step-definition id="virtual-collection" mandatory="true">
       <heading>submit.progressbar.describe.virtual-collection</heading>
@@ -322,13 +136,210 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="orgunit-editor" mandatory="true">
-      <heading>submit.progressbar.describe.orgunit-editor</heading>
+    <step-definition id="collection" mandatory="true">
+      <heading>submit.progressbar.collection</heading>
+      <processing-class>org.dspace.app.rest.submit.step.CollectionStep</processing-class>
+      <type>collection</type>
+    </step-definition>
+    <step-definition id="extractionstep" mandatory="true">
+      <heading>submit.progressbar.ExtractMetadataStep</heading>
+      <processing-class>org.dspace.app.rest.submit.step.ExtractMetadataStep</processing-class>
+      <type>extract</type>
+      <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
+    </step-definition>
+    <step-definition id="correction" mandatory="true">
+      <heading>submit.progressbar.correction</heading>
+      <processing-class>org.dspace.app.rest.submit.step.CorrectionStep</processing-class>
+      <type>correction</type>
+      <scope visibilityOutside="hidden">workflow</scope>
+    </step-definition>
+    <step-definition id="sherpaPolicies" mandatory="true">
+      <heading>submit.progressbar.sherpaPolicies</heading>
+      <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
+      <type>sherpaPolicy</type>
+    </step-definition>
+    <step-definition id="detect-duplicate" mandatory="true">
+      <heading>submit.progressbar.detect-duplicate</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DetectPotentialDuplicateStep</processing-class>
+      <type>detect-duplicate</type>
+    </step-definition>
+    <step-definition id="license" mandatory="true">
+      <heading>submit.progressbar.license</heading>
+      <processing-class>org.dspace.app.rest.submit.step.LicenseStep</processing-class>
+      <type>license</type>
+    </step-definition>
+    <step-definition id="owner" mandatory="true">
+      <heading>submit.progressbar.describe.owner</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="orgunit-director" mandatory="true">
-      <heading>submit.progressbar.describe.orgunit-director</heading>
+    <step-definition id="notes-for-reviewer" mandatory="true">
+      <heading>submit.progressbar.describe.notes-for-reviewer</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="cclicense" mandatory="false">
+      <heading>submit.progressbar.CClicense</heading>
+      <processing-class>org.dspace.app.rest.submit.step.CCLicenseStep</processing-class>
+      <type>cclicense</type>
+    </step-definition>
+    <step-definition id="custom-url" mandatory="false">
+      <heading>submit.progressbar.custom-url</heading>
+      <processing-class>org.dspace.app.rest.submit.step.CustomUrlStep</processing-class>
+      <type>custom-url</type>
+    </step-definition>
+    <step-definition id="itemAccessConditions" mandatory="true">
+      <heading>submit.progressbar.itemAccessConditions</heading>
+      <processing-class>org.dspace.app.rest.submit.step.AccessConditionStep</processing-class>
+      <type>accessCondition</type>
+    </step-definition>
+    <step-definition id="ctb-bitstream-metadata" mandatory="true">
+      <heading>submit.progressbar.describe.ctb-bitstream-metadata</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="alternative_identifiers" mandatory="true">
+      <heading>submit.progressbar.describe.alternative_identifiers</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="grants" mandatory="true">
+      <heading>submit.progressbar.describe.grants</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="related_works" mandatory="true">
+      <heading>submit.progressbar.describe.related_works</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="related_event" mandatory="true">
+      <heading>submit.progressbar.describe.related_event</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="additional_fields" mandatory="true">
+      <heading>submit.progressbar.describe.additional_fields</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="journalcontainer_details" mandatory="true">
+      <heading>submit.progressbar.describe.journalcontainer_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="bookcontainer_details" mandatory="true">
+      <heading>submit.progressbar.describe.bookcontainer_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="basic_information" mandatory="true">
+      <heading>submit.progressbar.describe.basic_information</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="product_type" mandatory="true">
+      <heading>submit.progressbar.describe.product_type</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="publication_type" mandatory="true">
+      <heading>submit.progressbar.describe.publication_type</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="article_type" mandatory="true">
+      <heading>submit.progressbar.describe.article_type</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="article_details" mandatory="true">
+      <heading>submit.progressbar.describe.article_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="media_details" mandatory="true">
+      <heading>submit.progressbar.describe.media_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="dataset_details" mandatory="true">
+      <heading>submit.progressbar.describe.dataset_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="patent" mandatory="true">
+      <heading>submit.progressbar.describe.patent</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="student_type" mandatory="true">
+      <heading>submit.progressbar.describe.student_type</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="thesis_type" mandatory="true">
+      <heading>submit.progressbar.describe.thesis_type</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="thesis_details" mandatory="true">
+      <heading>submit.progressbar.describe.thesis_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="thesis_awards" mandatory="true">
+      <heading>submit.progressbar.describe.thesis_awards</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="thesis_involved" mandatory="true">
+      <heading>submit.progressbar.describe.thesis_involved</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="conference_details" mandatory="true">
+      <heading>submit.progressbar.describe.conference_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="conference_event" mandatory="true">
+      <heading>submit.progressbar.describe.conference_event</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="report_details" mandatory="true">
+      <heading>submit.progressbar.describe.report_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="design_details" mandatory="true">
+      <heading>submit.progressbar.describe.design_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="preprint_details" mandatory="true">
+      <heading>submit.progressbar.describe.preprint_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="preprint_type" mandatory="true">
+      <heading>submit.progressbar.describe.preprint_type</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="teaching_details" mandatory="true">
+      <heading>submit.progressbar.describe.teaching_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="book_details" mandatory="true">
+      <heading>submit.progressbar.describe.book_details</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="publication-import" mandatory="true">
+      <heading>submit.progressbar.describe.publication-import</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
@@ -339,56 +350,6 @@
     </step-definition>
   </step-definitions>
   <submission-definitions>
-    <submission-process name="product">
-      <step id="unpaywall" />
-      <step id="collection" />
-      <step id="correction" />
-      <step id="extractionstep" />
-      <step id="upload-product" />
-      <step id="itemAccessConditions" />
-      <step id="ctb-bitstream-metadata" />
-      <step id="product_type" />
-      <step id="lookup" />
-      <step id="basic_information" />
-      <step id="conf_details" />
-      <step id="involved" />
-      <step id="grants" />
-      <step id="related_works" />
-      <step id="detect-duplicate" />
-      <step id="publishing_information" />
-      <step id="additional_fields" />
-      <step id="license" />
-    </submission-process>
-    <submission-process name="product-edit">
-      <step id="extractionstep" />
-      <step id="upload-product" />
-      <step id="itemAccessConditions" />
-      <step id="ctb-bitstream-metadata" />
-      <step id="product_type" />
-      <step id="lookup" />
-      <step id="basic_information" />
-      <step id="conf_details" />
-      <step id="involved" />
-      <step id="grants" />
-      <step id="related_works" />
-      <step id="publishing_information" />
-      <step id="additional_fields" />
-      <step id="detect-duplicate" />
-    </submission-process>
-    <submission-process name="product-correction">
-      <step id="extractionstep" />
-      <step id="notes-for-reviewer" />
-      <step id="correction" />
-      <step id="product_type" />
-      <step id="lookup" />
-      <step id="basic_information" />
-      <step id="conf_details" />
-      <step id="involved" />
-      <step id="grants" />
-      <step id="related_works" />
-      <step id="publishing_information" />
-      <step id="additional_fields" />
-    </submission-process>
     <submission-process name="orgunit">
       <step id="collection" />
       <step id="correction" />
@@ -398,14 +359,12 @@
       <step id="license" />
     </submission-process>
     <submission-process name="orgunit-edit">
-      <step id="orgunit-editor"/>
+      <step id="orgunit-editor" />
       <step id="orgunit" />
       <step id="custom-url" />
       <step id="detect-duplicate" />
       <step id="upload-orgunit" />
-    </submission-process>
-    <submission-process name="orgunit-edit-director">
-      <step id="orgunit-editor"/>
+      <step id="orgunit-editor" />
       <step id="orgunit-director" />
       <step id="custom-url" />
       <step id="detect-duplicate" />
@@ -443,67 +402,6 @@
       <step id="detect-duplicate" />
       <step id="upload-journal" />
     </submission-process>
-    <submission-process name="publication">
-      <step id="unpaywall" />
-      <step id="collection" />
-      <step id="correction" />
-      <step id="extractionstep" />
-      <step id="upload-publication" />
-      <step id="itemAccessConditions" />
-      <step id="ctb-bitstream-metadata" />
-      <step id="publication_type" />
-      <step id="lookup" />
-      <step id="basic_information" />
-      <step id="journal_details" />
-      <step id="sherpaPolicies" />
-      <step id="book_details" />
-      <step id="conf_details" />
-      <step id="involved" />
-      <step id="thesis_awards" />
-      <step id="grants" />
-      <step id="related_works" />
-      <step id="detect-duplicate" />
-      <step id="publishing_information" />
-      <step id="additional_fields" />
-      <step id="license" />
-    </submission-process>
-    <submission-process name="publication-edit">
-      <step id="extractionstep" />
-      <step id="upload-publication" />
-      <step id="itemAccessConditions" />
-      <step id="ctb-bitstream-metadata" />
-      <step id="publication_type" />
-      <step id="lookup" />
-      <step id="basic_information" />
-      <step id="journal_details" />
-      <step id="sherpaPolicies" />
-      <step id="book_details" />
-      <step id="conf_details" />
-      <step id="involved" />
-      <step id="thesis_awards" />
-      <step id="grants" />
-      <step id="related_works" />
-      <step id="publishing_information" />
-      <step id="additional_fields" />
-      <step id="detect-duplicate" />
-    </submission-process>
-    <submission-process name="publication-correction">
-      <step id="extractionstep" />
-      <step id="correction" />
-      <step id="notes-for-reviewer" />
-      <step id="publication_type" />
-      <step id="lookup" />
-      <step id="basic_information" />
-      <step id="journal_details" />
-      <step id="book_details" />
-      <step id="conf_details" />
-      <step id="involved" />
-      <step id="thesis_awards" />
-      <step id="grants" />
-      <step id="related_works" />
-      <step id="publishing_information" />
-      <step id="additional_fields" />
-    </submission-process>
     <submission-process name="person">
       <step id="collection" />
       <step id="correction" />
@@ -536,7 +434,7 @@
     <submission-process name="event-edit">
       <step id="event" />
       <step id="detect-duplicate" />
-      <step id="upload-event" />
+      <step id="upload-equipment" />
     </submission-process>
     <submission-process name="equipment">
       <step id="collection" />
@@ -550,28 +448,6 @@
       <step id="equipment" />
       <step id="detect-duplicate" />
       <step id="upload-equipment" />
-    </submission-process>
-    <submission-process name="patent">
-      <step id="unpaywall" />
-      <step id="collection" />
-      <step id="correction" />
-      <step id="extractionstep" />
-      <step id="itemAccessConditions" />
-      <step id="patent" />
-      <step id="patent_indexing" />
-      <step id="patent_references" />
-      <step id="detect-duplicate" />
-      <step id="ctb-bitstream-metadata" />
-      <step id="upload-patent" />
-      <step id="license" />
-    </submission-process>
-    <submission-process name="patent-edit">
-      <step id="extractionstep" />
-      <step id="patent" />
-      <step id="patent_indexing" />
-      <step id="patent_references" />
-      <step id="detect-duplicate" />
-      <step id="upload-patent" />
     </submission-process>
     <submission-process name="funding">
       <step id="collection" />
@@ -589,15 +465,6 @@
     <submission-process name="publication-import">
       <step id="publication-import" />
       <step id="upload-publication" />
-    </submission-process>
-    <submission-process name="patent-correction">
-      <step id="extractionstep" />
-      <step id="correction" />
-      <step id="notes-for-reviewer" />
-      <step id="patent" />
-      <step id="patent_indexing" />
-      <step id="patent_references" />
-      <step id="upload-patent" />
     </submission-process>
     <submission-process name="content">
       <step id="content" />
@@ -636,6 +503,538 @@
     </submission-process>
     <submission-process name="virtual-collection-bind">
       <step id="virtual-collection-bind" />
+    </submission-process>
+    <submission-process name="article">
+      <step id="unpaywall" />
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="article_type" />
+      <step id="alternative_identifiers" />
+      <step id="article_details" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="article-edit">
+      <step id="extractionstep" />
+      <step id="article_type" />
+      <step id="alternative_identifiers" />
+      <step id="article_details" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="article-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="article_type" />
+      <step id="alternative_identifiers" />
+      <step id="article_details" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="media">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="media_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="media-edit">
+      <step id="extractionstep" />
+      <step id="media_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="media-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="media_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="dataset">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="dataset_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="related_event" />
+      <step id="ctb-bitstream-metadata" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-product" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="dataset-edit">
+      <step id="extractionstep" />
+      <step id="dataset_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="related_event" />
+      <step id="ctb-bitstream-metadata" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-product" />
+    </submission-process>
+    <submission-process name="dataset-correction">
+      <step id="extractionstep" />
+      <step id="notes-for-reviewer" />
+      <step id="correction" />
+      <step id="dataset_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="related_event" />
+    </submission-process>
+    <submission-process name="patent">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="patent" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-patent" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="patent-edit">
+      <step id="extractionstep" />
+      <step id="patent" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-patent" />
+    </submission-process>
+    <submission-process name="patent-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="patent" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="thesis">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="thesis_type" />
+      <step id="thesis_details" />
+      <step id="additional_fields" />
+      <step id="thesis_involved" />
+      <step id="thesis_awards" />
+      <step id="related_works" />
+      <step id="grants" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="thesis-edit">
+      <step id="extractionstep" />
+      <step id="thesis_type" />
+      <step id="thesis_details" />
+      <step id="additional_fields" />
+      <step id="thesis_involved" />
+      <step id="thesis_awards" />
+      <step id="related_works" />
+      <step id="grants" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="thesis-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="thesis_type" />
+      <step id="thesis_details" />
+      <step id="additional_fields" />
+      <step id="thesis_involved" />
+      <step id="thesis_awards" />
+      <step id="related_works" />
+      <step id="grants" />
+    </submission-process>
+    <submission-process name="student">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="student_type" />
+      <step id="thesis_details" />
+      <step id="additional_fields" />
+      <step id="thesis_involved" />
+      <step id="thesis_awards" />
+      <step id="related_works" />
+      <step id="grants" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="student-edit">
+      <step id="extractionstep" />
+      <step id="thesis_type" />
+      <step id="thesis_details" />
+      <step id="additional_fields" />
+      <step id="thesis_involved" />
+      <step id="thesis_awards" />
+      <step id="related_works" />
+      <step id="grants" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="student-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="thesis_type" />
+      <step id="thesis_details" />
+      <step id="additional_fields" />
+      <step id="thesis_involved" />
+      <step id="thesis_awards" />
+      <step id="related_works" />
+      <step id="grants" />
+    </submission-process>
+    <submission-process name="conference">
+      <step id="unpaywall" />
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="conference_details" />
+      <step id="bookcontainer_details" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="additional_fields" />
+      <step id="conference_event" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="itemAccessConditions" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="conference-edit">
+      <step id="extractionstep" />
+      <step id="conference_details" />
+      <step id="bookcontainer_details" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="additional_fields" />
+      <step id="conference_event" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="itemAccessConditions" />
+    </submission-process>
+    <submission-process name="conference-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="conference_details" />
+      <step id="bookcontainer_details" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="additional_fields" />
+      <step id="conference_event" />
+      <step id="grants" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="report">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="report_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="report-edit">
+      <step id="extractionstep" />
+      <step id="report_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="report-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="report_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="design">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="design_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="design-edit">
+      <step id="extractionstep" />
+      <step id="design_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="design-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="extractionstep" />
+      <step id="design_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="preprint">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="preprint_type" />
+      <step id="alternative_identifiers" />
+      <step id="preprint_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="preprint-edit">
+      <step id="extractionstep" />
+      <step id="preprint_type" />
+      <step id="alternative_identifiers" />
+      <step id="preprint_details" />
+      <step id="grants" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="preprint-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="preprint_type" />
+      <step id="alternative_identifiers" />
+      <step id="preprint_details" />
+      <step id="grants" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="teaching">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="teaching_details" />
+      <step id="additional_fields" />
+      <step id="related_event" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="teaching-edit">
+      <step id="extractionstep" />
+      <step id="teaching_details" />
+      <step id="additional_fields" />
+      <step id="related_event" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="teaching-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="teaching_details" />
+      <step id="additional_fields" />
+      <step id="related_event" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="book">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="book_details" />
+      <step id="bookcontainer_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="book-edit">
+      <step id="extractionstep" />
+      <step id="book_details" />
+      <step id="bookcontainer_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="itemAccessConditions" />
+      <step id="detect-duplicate" />
+      <step id="upload-publication" />
+    </submission-process>
+    <submission-process name="book-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="book_details" />
+      <step id="bookcontainer_details" />
+      <step id="additional_fields" />
+      <step id="grants" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="publication">
+      <step id="unpaywall" />
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="upload-publication" />
+      <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
+      <step id="publication_type" />
+      <step id="alternative_identifiers" />
+      <step id="basic_information" />
+      <step id="additional_fields" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="bookcontainer_details" />
+      <step id="related_event" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="detect-duplicate" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="publication-edit">
+      <step id="extractionstep" />
+      <step id="upload-publication" />
+      <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
+      <step id="publication_type" />
+      <step id="alternative_identifiers" />
+      <step id="basic_information" />
+      <step id="additional_fields" />
+      <step id="journalcontainer_details" />
+      <step id="sherpaPolicies" />
+      <step id="bookcontainer_details" />
+      <step id="related_event" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="detect-duplicate" />
+    </submission-process>
+    <submission-process name="publication-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="publication_type" />
+      <step id="alternative_identifiers" />
+      <step id="basic_information" />
+      <step id="additional_fields" />
+      <step id="journalcontainer_details" />
+      <step id="bookcontainer_details" />
+      <step id="related_event" />
+      <step id="grants" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="product">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="upload-product" />
+      <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
+      <step id="product_type" />
+      <step id="alternative_identifiers" />
+      <step id="basic_information" />
+      <step id="additional_fields" />
+      <step id="related_event" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="detect-duplicate" />
+      <step id="additional_fields" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="product-edit">
+      <step id="extractionstep" />
+      <step id="upload-product" />
+      <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
+      <step id="product_type" />
+      <step id="alternative_identifiers" />
+      <step id="basic_information" />
+      <step id="additional_fields" />
+      <step id="related_event" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="additional_fields" />
+      <step id="detect-duplicate" />
+    </submission-process>
+    <submission-process name="product-correction">
+      <step id="extractionstep" />
+      <step id="notes-for-reviewer" />
+      <step id="correction" />
+      <step id="product_type" />
+      <step id="alternative_identifiers" />
+      <step id="additional_fields" />
+      <step id="basic_information" />
+      <step id="related_event" />
+      <step id="grants" />
+      <step id="related_works" />
+      <step id="additional_fields" />
     </submission-process>
   </submission-definitions>
 </item-submission>

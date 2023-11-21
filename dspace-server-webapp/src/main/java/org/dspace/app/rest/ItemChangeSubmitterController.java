@@ -118,6 +118,7 @@ public class ItemChangeSubmitterController {
         // authorization have been already verified in the lines above
         context.turnOffAuthorisationSystem();
         changeSubmitterService.setUpSubmitter(context, item, submitterIdentifier);
+        context.turnOffAuthorisationSystem();
         itemService.update(context, item);
         context.restoreAuthSystemState();
         context.complete();

@@ -18,7 +18,6 @@
                     <value>SUBMITTER</value>
                 </list>
             </property>
-            <property name="items" ref="itemsMetadata" />
             <property name="groups" ref="groupList" />
         </bean>
     </util:list>
