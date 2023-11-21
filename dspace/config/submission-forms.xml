@@ -700,6 +700,7 @@
           <dc-element>identifier</dc-element>
           <dc-qualifier>rid</dc-qualifier>
           <label>Researcher ID</label>
+          <input-type>onebox</input-type>
           <required>You must enter at least the product title</required>
           <style>col-xs-12 col-md-6</style>
           <hint>Link the item to one or more existent dataset in the repository used or described by the publication</hint>
