@@ -52,12 +52,14 @@ public class SplitMetadataContributor<T> implements MetadataContributor<T> {
         for (MetadatumDTO metadatumDTO : metadata) {
             String[] split = metadatumDTO.getValue().split(regex);
             for (String splitItem : split) {
-                MetadatumDTO splitMetadatumDTO = new MetadatumDTO();
-                splitMetadatumDTO.setSchema(metadatumDTO.getSchema());
-                splitMetadatumDTO.setElement(metadatumDTO.getElement());
-                splitMetadatumDTO.setQualifier(metadatumDTO.getQualifier());
-                splitMetadatumDTO.setValue(splitItem);
-                splitMetadata.add(splitMetadatumDTO);
+                if (!splitItem.isEmpty()) {
+                    MetadatumDTO splitMetadatumDTO = new MetadatumDTO();
+                    splitMetadatumDTO.setSchema(metadatumDTO.getSchema());
+                    splitMetadatumDTO.setElement(metadatumDTO.getElement());
+                    splitMetadatumDTO.setQualifier(metadatumDTO.getQualifier());
+                    splitMetadatumDTO.setValue(splitItem);
+                    splitMetadata.add(splitMetadatumDTO);
+                }
             }
         }
         return splitMetadata;
