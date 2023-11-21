@@ -53,7 +53,7 @@ public class DeduplicationSetRestController {
      * @param id the id of the set
      * @param uuid the uuid of the item
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @RequestMapping(method = DELETE, path = "/{id}/items/{uuid}")
     public void deleteItem(@PathVariable String id, @PathVariable UUID uuid,
         HttpServletResponse response, HttpServletRequest request)
