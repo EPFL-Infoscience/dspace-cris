@@ -26,6 +26,7 @@
         <entry key-ref="epo.dc.contributor" value-ref="epoApplicantContrib"/>
         <entry key-ref="epo.dc.contributor.author" value-ref="epoInventorContrib"/>
         <entry key-ref="epo.dc.title" value-ref="epoInventionTitleContrib"/>
+        <entry key-ref="epo.dc.title.alternative" value-ref="epoAlternativeTitleContrib"/>
 <!--        <entry key-ref="epo.dc.subject" value-ref="epoIpcContrib"/>-->
         <entry key-ref="epo.dc.description.abstract" value-ref="epoAbstractContrib"/>
         <entry key-ref="epo.local.epo.sourceType" value-ref="epoInnerTypeContrib"/>
@@ -162,11 +163,21 @@
 
     <bean id="epoApplicationNumberContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="epo.dc.identifier"/>
-        <property name="query" value="(//ns:application-reference/ns:document-id[@document-id-type=&quot;original&quot;]/ns:doc-number)[last()]"/>
+        <property name="query" value="(//ns:application-reference/ns:document-id[@document-id-type=&quot;epodoc&quot;]/ns:doc-number)[last()]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.dc.identifier" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.applicationnumber"/>
+    </bean>
+
+    <bean id="epoAlternativeTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
+        <property name="field" ref="epo.dc.title.alternative"/>
+        <property name="query" value="(//ns:exchange-document)[last()]"/>
+        <property name="queryToSubNode" value=".//ns:invention-title[@lang=&quot;fr&quot; or not(@lang)]"/>
+        <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
+    </bean>
+    <bean id="epo.dc.title.alternative" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.title.alternative"/>
     </bean>
 
     <bean id="epoDateContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathDateFormatMetadataContributor">
