@@ -143,7 +143,14 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
         addUriMetadataToOtherItems(context, targetItem, otherItems);
 
-        withdrawOtherItems(context, otherItems);
+        List<Item> itemsToWithdraw = otherItems.isEmpty()
+            ? dedupUtils.findGroup(context, deduplicationSetMergeDTO.getSetId())
+                        .getItems().stream()
+                        .filter(item -> !item.getID().equals(targetItem.getID()))
+                        .collect(Collectors.toList())
+            : otherItems;
+
+        withdrawOtherItems(context, itemsToWithdraw);
         removeItemsFromSet(context, deduplicationSetMergeDTO.getSetId());
 
         createRelationships(context, targetItem, otherItems);
@@ -185,13 +192,12 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         return itemService.find(context, targetUUID);
     }
 
-    private List<Item>  getOtherItems(Context context,
-                                      DeduplicationSetMergeDTO deduplicationSetMergeDTO) throws SQLException {
-        List<Item> items = new ArrayList<>();
-        for (String itemUri : deduplicationSetMergeDTO.getMergedItems()) {
-            items.add(itemService.find(context, getUUIDFromUri(itemUri)));
-        }
-        return items;
+    private List<Item> getOtherItems(Context context, DeduplicationSetMergeDTO deduplicationSetMergeDTO) {
+        return deduplicationSetMergeDTO
+            .getMergedItems().stream()
+            .map(this::getUUIDFromUri)
+            .map(throwingMapperWrapper(uuid -> itemService.find(context, uuid)))
+            .collect(Collectors.toList());
     }
 
     private List<Bitstream> getBitstreams(Context context,
@@ -243,13 +249,20 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 Item item = itemService.find(context, getUUIDFromUri(source.getItem()));
                 MetadataValue metadataValue = getMatchedMetadataValueFromItem(item, source.getPlace(),
                     metadataDTO.getMetadataField());
-                if (!Objects.isNull(metadataValue)) {
+                if (!Objects.isNull(metadataValue) && !isListContainsMetadataValue(metadataValues, metadataValue)) {
                     metadataValues.add(metadataValue);
                 }
             }
         }
 
         return metadataValues;
+    }
+
+    private boolean isListContainsMetadataValue(List<MetadataValue> metadataValues, MetadataValue metadataValue) {
+        return metadataValues
+            .stream()
+            .map(MetadataValue::getValue)
+            .anyMatch(value -> value.equals(metadataValue.getValue()));
     }
 
     private List<DeduplicationMetadataSourcesDTO> sortSourcesAscByPosition(
@@ -303,10 +316,21 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
     private void addBitstreamAndReplacePolicies(Context context, Bundle targetBundle, Bitstream bitstream)
         throws SQLException, AuthorizeException {
+        if (isListContainsBitstream(targetBundle.getBitstreams(), bitstream)) {
+            return;
+        }
+
         List<ResourcePolicy> bundlePolicies = bundleService.getBundlePolicies(context, targetBundle);
         bundleService.addBitstream(context, targetBundle, bitstream);
         bundleService.replaceAllBitstreamPolicies(context, targetBundle, bundlePolicies);
         bundleService.update(context, targetBundle);
+    }
+
+    private boolean isListContainsBitstream(List<Bitstream> bitstreams, Bitstream bitstream) {
+        return bitstreams
+            .stream()
+            .map(Bitstream::getChecksum)
+            .anyMatch(checksum -> checksum.equals(bitstream.getChecksum()));
     }
 
     private void createBundleAndAddBitstream(Context context, Item targetItem, Bitstream bitstream, Bundle oldBundle)
