@@ -18,13 +18,9 @@ import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.SiteRest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.Collection;
-import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
-import org.dspace.versioning.service.ViewStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,9 +44,6 @@ public class CanViewUsageStatisticsFeature implements AuthorizationFeature {
     private AuthorizeService authorizeService;
 
     @Autowired
-    protected ViewStatisticsService viewStatisticsService;
-
-    @Autowired
     private Utils utils;
 
     @Override
@@ -65,23 +58,11 @@ public class CanViewUsageStatisticsFeature implements AuthorizationFeature {
                 return authorizeService.isAdmin(context,
                                                 (DSpaceObject)utils.getDSpaceAPIObjectFromRest(context, object));
             } else {
-                DSpaceObject dso = (DSpaceObject) utils.getDSpaceAPIObjectFromRest(context, object);
-                return checkDsoPermissions(context, dso);
+                return authorizeService.authorizeActionBoolean(context,
+                    (DSpaceObject)utils.getDSpaceAPIObjectFromRest(context, object), org.dspace.core.Constants.READ);
             }
         }
         return false;
-    }
-
-    private boolean checkDsoPermissions(Context context, DSpaceObject dso) throws SQLException {
-        if (dso instanceof Community || dso instanceof Collection || dso instanceof Item) {
-            return viewStatisticsService.canViewStatistics(context, dso);
-        }
-        return canRead(context, dso);
-    }
-
-    private boolean canRead(Context context, DSpaceObject dso) throws SQLException {
-        return authorizeService.authorizeActionBoolean(context,
-                                                       dso, org.dspace.core.Constants.READ);
     }
 
     @Override
