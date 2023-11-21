@@ -119,7 +119,7 @@ public class DeduplicationSetMergeRestRepository
     @Override
     @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     public DeduplicationSetMergeRest put(Context context, HttpServletRequest request,
-                                            String apiCategory, String model, UUID uuid, JsonNode jsonNode) {
+                                         String apiCategory, String model, UUID uuid, JsonNode jsonNode) {
         ObjectMapper mapper = new ObjectMapper();
         DeduplicationSetMergeDTO deduplicationSetMergeDTO;
         DeduplicationSetMerge dedupSetMerge;
@@ -217,15 +217,11 @@ public class DeduplicationSetMergeRestRepository
     }
 
     private List<String> getRepeatedMetadata(List<DeduplicationMetadataDTO> metadataList) {
-        List<String> metadataFields = new ArrayList<>();
-
-        for (DeduplicationMetadataDTO metadataDTO : metadataList) {
-            List<DeduplicationMetadataSourcesDTO> sources = metadataDTO.getSources();
-            if (sources != null && sources.size() > 1) {
-                metadataFields.add(metadataDTO.getMetadataField());
-            }
-        }
-        return metadataFields;
+        return metadataList
+            .stream()
+            .filter(dto -> dto.getSources() != null && dto.getSources().size() > 1)
+            .map(DeduplicationMetadataDTO::getMetadataField)
+            .collect(Collectors.toList());
     }
 
     private void checkAnyRepeatableMetadata(Collection collection, List<String> metadataFields)
@@ -235,7 +231,6 @@ public class DeduplicationSetMergeRestRepository
             for (String field : metadataFields) {
                 Optional<DCInput> dcInput = dcInputSet.getField(field);
                 if (dcInput.isPresent()) {
-
                     if (dcInputSet.findParent(field).isPresent()) {
                         continue;
                     }
@@ -243,7 +238,6 @@ public class DeduplicationSetMergeRestRepository
                     if (!dcInput.get().isRepeatable()) {
                         throw new UnprocessableEntityException("the metadata " + field + " isn't repeatable");
                     }
-
                 }
             }
         }
