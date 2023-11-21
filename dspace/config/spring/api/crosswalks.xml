@@ -802,6 +802,7 @@
 				<entry key="eventTypes" value-ref="mapConverterEventTypes" />
 				<entry key="orgUnitTypes" value-ref="mapConverterOrgUnitTypes" />
 				<entry key="accessRight" value-ref="mapConverterAccessRight" />
+				<entry key="publicationTypes" value-ref="mapConverterPublicationTypes" />
 				<entry key="coarToPublicationTypes" value-ref="mapConverterCoarToPublicationTypes" />
 				<entry key="scopusToCoarPublicationTypes" value-ref="mapConverterScopusToCoarPublicationTypes" />
 				<entry key="pubmedToCoarPublicationTypes" value-ref="mapConverterPubmedToCoarPublicationTypes" />
@@ -848,6 +849,12 @@
 	    <property name="converterNameFile" value="mapConverter-accessRight.properties" />
 	    <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 	    <property name="defaultValue" value=""/>
+	</bean>
+
+	<bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value=""/>
 	</bean>
 	
 	<bean name="mapConverterCoarToPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
