@@ -1498,18 +1498,6 @@
           <hint>If the item has any identifier associated with it, please add it and specify its type (DOI, ArXiv, ISBN, etc.)</hint>
         </field>
       </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>patent</dc-qualifier>
-          <label>Related patent</label>
-          <input-type>inline-group</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>A related patent</hint>
-        </field>
-      </row>
     </form>
     <form name="additional_fields-epfl-url">
       <row>
