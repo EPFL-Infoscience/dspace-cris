@@ -40,7 +40,7 @@ public class ItemsImportTitleReader implements ItemsImportMetadataFieldReader {
 
             String metadataValue = Stream.of(title, subTitle)
                 .filter(value -> StringUtils.isNotBlank(value))
-                .collect(Collectors.joining(": "));
+                .collect(Collectors.joining(" : "));
 
             if (StringUtils.isNotBlank(metadataValue)) {
                 metadataValues.add(new MetadataValueDTO(metadataField, metadataValue));

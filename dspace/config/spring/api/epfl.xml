@@ -198,6 +198,12 @@
         <property name="propertiesPath" value="crosswalks/mapConverter-coarVersions.properties" />
     </bean>
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
+        <property name="readerName" value="language" />
+        <property name="propertiesPath" value="crosswalks/mapConverter-languages.properties" />
+        <property name="defaultValue" value="other" />
+    </bean>
+    
     <bean class="org.dspace.epfl.script.reader.ItemsImportIsbnReader">
         <property name="containerMetadataField" value="dc.identifier.isbn" />
     </bean>

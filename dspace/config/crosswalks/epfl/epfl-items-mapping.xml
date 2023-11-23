@@ -40,6 +40,7 @@
         <metadata-field>
             <field>dc.language.iso</field>
             <xpath>./datafield[@tag = '041']/subfield[@code = 'a']</xpath>
+            <reader>language</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.number</field>
@@ -78,10 +79,6 @@
         <metadata-field>
             <field>epfl.legacy.itemtype</field>
             <xpath>./datafield[@tag = '336']/subfield[@code = 'a']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>epfl.datatype</field>
-            <xpath>./datafield[@tag = '336']/subfield[@code = 'c']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.description</field>
