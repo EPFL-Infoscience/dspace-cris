@@ -226,7 +226,11 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'z']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>dc.relation.sponsorship</field>
+            <field>dc.relation</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]/subfield[@code = 'u']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.sponsorship</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = '0']</xpath>
             <reader>orgUnit</reader>
         </metadata-field>
@@ -346,11 +350,6 @@
 	        <metadata-field>
 	            <field>epfl.legacy.fileversion</field>
 	            <xpath>./subfield[@code = 'z']</xpath>
-	        </metadata-field>
-	        <metadata-field>
-                <field>dc.relation</field>
-                <xpath>./self::node()</xpath>
-                <reader>bitstreamRelation</reader>
 	        </metadata-field>
 	    </metadata-fields>
     </bitstreams>
