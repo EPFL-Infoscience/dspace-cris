@@ -37,23 +37,24 @@ public class XlsCrosswalk extends TabularCrosswalk {
     protected void writeRows(List<List<String>> rows, OutputStream out) {
 
         try (Workbook workbook = new HSSFWorkbook()) {
-
             Sheet sheet = workbook.createSheet(sheetName);
 
-            int rowCount = 0;
-            for (List<String> row : rows) {
-                Row sheetRow = sheet.createRow(rowCount++);
-                int cellCount = 0;
-                for (String field : row) {
-                    Cell cell = sheetRow.createCell(cellCount++);
-                    cell.setCellValue(StringUtils.length(field) > 32726 ? field.substring(0, 32725) + "…" : field );
+            for (int i = 0; i < rows.size(); i++) {
+                List<String> row = rows.get(i);
+                Row sheetRow = sheet.createRow(i);
+
+                for (int j = 0; j < row.size(); j++) {
+                    String field = row.get(j);
+                    sheetRow.createCell(j).setCellValue(
+                        StringUtils.length(field) > 32726
+                            ? "!CELL CONTENT WAS TRUNCATED DURING EXPORT! " + field.substring(0, 32726 - 43 - 1) + "…"
+                            : field
+                    );
                 }
             }
 
             autoSizeColumns(sheet);
-
             workbook.write(out);
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
