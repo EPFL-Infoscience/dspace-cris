@@ -35,7 +35,6 @@ public class XlsCrosswalk extends TabularCrosswalk {
 
     @Override
     protected void writeRows(List<List<String>> rows, OutputStream out) {
-
         try (Workbook workbook = new HSSFWorkbook()) {
             Sheet sheet = workbook.createSheet(sheetName);
 
@@ -45,11 +44,18 @@ public class XlsCrosswalk extends TabularCrosswalk {
 
                 for (int j = 0; j < row.size(); j++) {
                     String field = row.get(j);
-                    sheetRow.createCell(j).setCellValue(
-                        StringUtils.length(field) > 32726
-                            ? "!CELL CONTENT WAS TRUNCATED DURING EXPORT! " + field.substring(0, 32726 - 43 - 1) + "…"
-                            : field
-                    );
+                    Cell cell = sheetRow.createCell(j);
+
+                    if (StringUtils.length(field) > 32726) {
+                        cell.setCellValue(getTruncatedCellPrefix() + field.substring(0, 32726 - 43 - 1) + "…");
+                        Cell headerCell = sheet.getRow(0).getCell(j);
+
+                        if (!headerCell.getStringCellValue().startsWith(getTruncatedHeaderPrefix())) {
+                            headerCell.setCellValue(getTruncatedHeaderPrefix() + headerCell.getStringCellValue());
+                        }
+                    } else {
+                        cell.setCellValue(field);
+                    }
                 }
             }
 
@@ -58,16 +64,11 @@ public class XlsCrosswalk extends TabularCrosswalk {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private void autoSizeColumns(Sheet sheet) {
         if (sheet.getPhysicalNumberOfRows() > 0) {
-            Row row = sheet.getRow(sheet.getFirstRowNum());
-            for (Cell cell : row) {
-                int columnIndex = cell.getColumnIndex();
-                sheet.autoSizeColumn(columnIndex);
-            }
+            sheet.getRow(sheet.getFirstRowNum()).forEach(cell -> sheet.autoSizeColumn(cell.getColumnIndex()));
         }
     }
 
@@ -81,6 +82,20 @@ public class XlsCrosswalk extends TabularCrosswalk {
 
     protected String getInsideNestedSeparator() {
         return configurationService.getProperty("crosswalk.xls.separator.inside-nested", "/");
+    }
+
+    protected String getTruncatedCellPrefix() {
+        return configurationService.getProperty(
+            "crosswalk.xls.truncated-prefix.cell",
+            "!CELL CONTENT WAS TRUNCATED DURING EXPORT! "
+        );
+    }
+
+    protected String getTruncatedHeaderPrefix() {
+        return configurationService.getProperty(
+            "crosswalk.xls.truncated-prefix.header",
+            "!COLUMN CONTAINS TRUNCATED CELL(S)! "
+        );
     }
 
     protected String escapeValue(String value) {
