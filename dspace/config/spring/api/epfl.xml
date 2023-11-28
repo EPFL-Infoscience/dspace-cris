@@ -154,7 +154,7 @@
         <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
-                <entry key="epfl.relationproduct.type" value="./subfield[@code = '2']"/>
+                <entry key="epfl.relationproduct.type" value="static:IsSupplementedBy"/>
                 <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
                 <entry key="dc.relationproduct.identifier" value=""/>
             </util:map>
@@ -188,8 +188,8 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportPublicDefenseYearReader" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamRelationReader" >
-        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']"/>
-        <property name="relationValueXPath" value = "./subfield[@code = 'u']" />
+        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'u']"/>
+        <property name="relationValueXPath" value = "." />
         <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]"></property>
     </bean>
     

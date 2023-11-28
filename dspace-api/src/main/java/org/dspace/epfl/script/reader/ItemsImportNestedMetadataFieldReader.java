@@ -63,7 +63,14 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
         if (StringUtils.isBlank(path)) {
             return new MetadataValueDTO(nestedMetadataField, PLACEHOLDER_PARENT_METADATA_VALUE);
         }
-        String singleValue = getSingleValue(node, xPath, path);
+
+        String singleValue = null;
+        if (path.startsWith("static:")) {
+            singleValue = StringUtils.removeStart(path, "static:");
+        } else {
+            singleValue = getSingleValue(node, xPath, path);
+        }
+
         String value = skipDateConversion ? singleValue : convertIfDate(singleValue);
 
         if (StringUtils.isBlank(value)) {
