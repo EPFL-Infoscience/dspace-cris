@@ -219,7 +219,7 @@ public class EpflUserSynchronizationScript
                     } else {
                         syncEPerson(epflPerson, ePerson);
                     }
-                } catch (IllegalStateException e) {
+                } catch (Exception e) {
                     logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
                 }
             }
