@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authority.service.AuthorityValueService;
@@ -206,11 +207,17 @@ public class EpflUserSynchronizationScript
         List<String> queryStrings = extractQueryParameters();
 
         for (String query : queryStrings) {
+
             query = query.replace("\"", "");
             if (StringUtils.isBlank(query)) {
                 continue;
             }
+
             List<PersonDTO> epflPersonList = epflApiClient.getPersons(query, EpflApiClient.Language.EN);
+            if (CollectionUtils.isEmpty(epflPersonList)) {
+                logInfo("No person found by query " + query);
+            }
+
             for (PersonDTO epflPerson : epflPersonList) {
                 EPerson ePerson = findPerson(epflPerson);
                 try {
@@ -382,7 +389,7 @@ public class EpflUserSynchronizationScript
             email.send();
         } catch (IOException | MessagingException e) {
             handler.logInfo("An error occurs sending the email related to the user synchronization " + e);
-            handler.logInfo("Mail Message content: " + log);
+            // handler.logInfo("Mail Message content: " + log);
         }
     }
 
