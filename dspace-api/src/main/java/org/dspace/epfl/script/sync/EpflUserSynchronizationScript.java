@@ -206,6 +206,10 @@ public class EpflUserSynchronizationScript
         List<String> queryStrings = extractQueryParameters();
 
         for (String query : queryStrings) {
+            query = query.replace("\"", "");
+            if (StringUtils.isBlank(query)) {
+                continue;
+            }
             List<PersonDTO> epflPersonList = epflApiClient.getPersons(query, EpflApiClient.Language.EN);
             for (PersonDTO epflPerson : epflPersonList) {
                 EPerson ePerson = findPerson(epflPerson);
