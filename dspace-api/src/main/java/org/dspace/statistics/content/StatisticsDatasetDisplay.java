@@ -285,7 +285,7 @@ public class StatisticsDatasetDisplay {
                                                   String joinField ) {
         StringBuilder query = new StringBuilder();
         query.append("{!join from=search.resourceid to=");
-        query.append(type == Constants.BITSTREAM ? "owningItem" : joinField);
+        query.append(joinField);
         query.append(" fromIndex=");
         query.append(configurationService.getProperty("solr.multicorePrefix"));
         query.append("search} ");
