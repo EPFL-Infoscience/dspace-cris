@@ -236,6 +236,5 @@
             these must be present. If multiple are present the result is undefined.
         </description>
     </bean>
-    
 
 </beans>

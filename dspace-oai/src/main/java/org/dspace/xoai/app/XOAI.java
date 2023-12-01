@@ -400,7 +400,7 @@ public class XOAI {
         doc.addField("item.id", item.getID().toString());
 
         String legacyOaiId = itemService.getMetadataFirstValue(item, "dspace", "legacy", "oai-identifier", Item.ANY);
-        String handle = item.getHandle();
+        String handle = StringUtils.isNotEmpty(legacyOaiId) ? legacyOaiId.split(":")[2] : item.getHandle();
         doc.addField("item.handle", item.getHandle());
         if (StringUtils.isNotEmpty(legacyOaiId)) {
             doc.addField("item.legacyoaiidentifier", legacyOaiId.split(":")[2]);
