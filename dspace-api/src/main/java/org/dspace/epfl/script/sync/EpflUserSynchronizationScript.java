@@ -208,7 +208,7 @@ public class EpflUserSynchronizationScript
 
         for (String query : queryStrings) {
 
-            query = query.replace("\"", "");
+            query = query.replace("\"", "").trim();
             if (StringUtils.isBlank(query)) {
                 continue;
             }
