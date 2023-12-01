@@ -10,7 +10,7 @@ package org.dspace.epfl.script.service.impl;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 
-import java.io.InputStream;
+import java.io.File;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.stream.Stream;
@@ -38,7 +38,7 @@ public class ItemsS3ServiceImpl implements ItemsS3Service {
     }
 
     @Override
-    public InputStream getObject(String key) {
+    public File getObject(String key) {
         return itemsClient.get(key);
     }
 

@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,9 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.Download;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -49,6 +53,8 @@ public class EpflItemsClientImpl implements EpflItemsClient {
 
     private AmazonS3 s3Service = null;
 
+    private TransferManager transferManager = null;
+
     @PostConstruct
     private void setup() {
 
@@ -57,6 +63,10 @@ public class EpflItemsClientImpl implements EpflItemsClient {
         s3Service = AmazonS3ClientBuilder.standard()
             .withCredentials(new AWSStaticCredentialsProvider(credentials))
             .withRegion(getAwsRegion())
+            .build();
+
+        transferManager = TransferManagerBuilder.standard()
+            .withS3Client(s3Service)
             .build();
 
     }
@@ -100,9 +110,15 @@ public class EpflItemsClientImpl implements EpflItemsClient {
     }
 
     @Override
-    public InputStream get(String key) {
-        S3Object s3Object = s3Service.getObject(getBucketName(), key);
-        return s3Object.getObjectContent().getDelegateStream();
+    public File get(String key) {
+        try {
+            File tempFile = Files.createTempFile(key, ".temp").toFile();
+            Download myDownload = transferManager.download(getBucketName(), key, tempFile);
+            myDownload.waitForCompletion();
+            return tempFile;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -13,6 +13,7 @@ import static org.apache.commons.io.IOUtils.readLines;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,16 +21,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -40,7 +43,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.util.IOUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.mime.MimeTypeException;
@@ -48,11 +50,30 @@ import org.apache.tika.mime.MimeTypes;
 import org.dspace.app.bulkimport.exception.BulkImportException;
 import org.dspace.app.bulkimport.model.BulkImportWorkbook;
 import org.dspace.app.bulkimport.service.BulkImportWorkbookBuilder;
+import org.dspace.authority.service.ItemSearchService;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
+import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.content.dto.ResourcePolicyDTO;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamFormatService;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.eperson.EPerson;
@@ -65,6 +86,9 @@ import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.submit.model.AccessConditionOption;
+import org.dspace.submit.model.UploadConfiguration;
+import org.dspace.submit.model.UploadConfigurationService;
 import org.dspace.utils.DSpace;
 import org.w3c.dom.Node;
 
@@ -77,9 +101,21 @@ public class ItemsImportFromS3Script
 
     private ConfigurationService configurationService;
 
+    private ItemSearchService itemSearchService;
+
+    private ItemService itemService;
+
     private BulkImportWorkbookBuilder workbookBuilder;
 
+    private WorkspaceItemService workspaceItemService;
+
+    private InstallItemService installItemService;
+
     private ItemsS3Service itemsS3Service;
+
+    private ResourcePolicyService resourcePolicyService;
+
+    private Map<String, AccessConditionOption> uploadAccessConditions;
 
     private MarcXmlParser marcXmlParser;
 
@@ -99,6 +135,8 @@ public class ItemsImportFromS3Script
 
     private Map<String, String> collectionIds;
 
+    private BundleService bundleService;
+
     private Map<String, Long> typeCounts;
 
     private int importedItemsCount = 0;
@@ -111,12 +149,24 @@ public class ItemsImportFromS3Script
 
     private boolean skipBitstreamsUpload;
 
+    private boolean workbookMode;
+
+    private boolean overwriteBitstreams;
+
+    private BitstreamService bitstreamService;
+
+    private UploadConfigurationService uploadConfigurationService;
+
+    private BitstreamFormatService bitstreamFormatService;
 
     @Override
     public void setup() throws ParseException {
 
         this.collectionService = ContentServiceFactory.getInstance().getCollectionService();
         this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        this.itemService = ContentServiceFactory.getInstance().getItemService();
+        this.workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
+        this.installItemService = ContentServiceFactory.getInstance().getInstallItemService();
         this.workbookBuilder = new DSpace().getServiceManager()
             .getServicesByType(BulkImportWorkbookBuilder.class).get(0);
         this.itemsS3Service = new DSpace().getServiceManager()
@@ -127,6 +177,12 @@ public class ItemsImportFromS3Script
             .getServicesByType(BitstreamUploadS3Service.class).get(0);
         this.mimeRepository = TikaConfig.getDefaultConfig().getMimeRepository();
         this.tika = new Tika();
+        this.itemSearchService = new DSpace().getSingletonService(ItemSearchService.class);
+        this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        this.bundleService = ContentServiceFactory.getInstance().getBundleService();
+        this.bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
+        this.resourcePolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
+        this.uploadConfigurationService = AuthorizeServiceFactory.getInstance().getUploadConfigurationService();
 
         if (commandLine.hasOption('k')) {
             keys.addAll(asList(commandLine.getOptionValues('k')));
@@ -142,6 +198,9 @@ public class ItemsImportFromS3Script
 
         skipBitstreamsUpload = commandLine.hasOption("sbu");
 
+        overwriteBitstreams = commandLine.hasOption("ob");
+        workbookMode = commandLine.hasOption("w");
+
         String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
         mapping = marcXmlParser.parseMapping(configuration);
 
@@ -152,7 +211,11 @@ public class ItemsImportFromS3Script
     @Override
     public void internalRun() throws Exception {
 
-        context = new Context(Mode.READ_ONLY);
+        if (workbookMode) {
+            context = new Context(Mode.READ_ONLY);
+        } else {
+            context = new Context();
+        }
         assignCurrentUserInContext();
         assignSpecialGroupsInContext();
 
@@ -166,9 +229,12 @@ public class ItemsImportFromS3Script
 
         try {
 
-            Map<String, BulkImportWorkbook> workbooks = buildWorkbooks();
-
-            writeWorkbooks(workbooks);
+            if (workbookMode) {
+                Map<String, BulkImportWorkbook> workbooks = buildWorkbooks();
+                writeWorkbooks(workbooks);
+            } else {
+                importItems();
+            }
 
             context.complete();
             context.restoreAuthSystemState();
@@ -177,6 +243,210 @@ public class ItemsImportFromS3Script
             context.abort();
         }
 
+    }
+
+    private void importItems() throws Exception {
+
+        Iterator<ItemImportDTO> items = readItems();
+
+        int commitCount = 0;
+
+        while (items.hasNext()) {
+            ItemImportDTO item = items.next();
+            try {
+                performItemImport(item);
+                commitCount++;
+                if (commitCount >= 20) {
+                    context.commit();
+                    commitCount = 0;
+                }
+            } catch (Exception ex) {
+                handler.logError("An error occurs importing item with ID " + item.getItem().getId(), ex);
+                errorsCount++;
+            }
+        }
+
+        context.commit();
+
+    }
+
+    private void performItemImport(ItemImportDTO itemImport) throws Exception {
+
+        Item item = searchItemById(itemImport.getItem().getId());
+
+        if (item != null) {
+            item = updateItem(itemImport, item);
+        } else {
+            item = createItem(itemImport);
+        }
+
+        context.uncacheEntity(item);
+
+    }
+
+    private Item updateItem(ItemImportDTO itemImport, Item item) throws Exception {
+        removeItemMetadataValuesAndBitstreams(item);
+
+        addMetadataValues(itemImport, item);
+        if (overwriteBitstreams) {
+            addBitstreams(itemImport, item);
+        }
+
+        itemService.update(context, item);
+
+        handler.logInfo(
+            "Imported record with ID: " + itemImport.getItem().getId() + ". Updated item with UUID: " + item.getID());
+        return item;
+
+    }
+
+    private void removeItemMetadataValuesAndBitstreams(Item item) throws Exception {
+        removeItemMetadataValues(item);
+        if (overwriteBitstreams) {
+            removeItemBitstreams(item);
+        }
+    }
+
+    private void removeItemMetadataValues(Item item) throws SQLException {
+
+        Set<String> metadataFieldsToKeep = getMetadataFieldsToKeep();
+
+        List<MetadataValue> metadataToRemove = item.getMetadata().stream()
+            .filter(value -> !metadataFieldsToKeep.contains(value.getMetadataField().toString('.')))
+            .collect(Collectors.toList());
+
+        itemService.removeMetadataValues(context, item, metadataToRemove);
+
+    }
+
+    private Set<String> getMetadataFieldsToKeep() {
+        return Set.of(configurationService.getArrayProperty("epfl.items-import.update.metadata-to-keep"));
+    }
+
+    private void removeItemBitstreams(Item item) throws Exception {
+        itemService.removeAllBundles(context, item);
+    }
+
+    private Item createItem(ItemImportDTO itemImport) throws Exception {
+
+        Collection collection = getCollection(collectionIds.get(itemImport.getType()));
+        WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
+        Item item = workspaceItem.getItem();
+
+        addMetadataValues(itemImport, item);
+        addBitstreams(itemImport, item);
+
+        item = installItemService.installItem(context, workspaceItem);
+
+        handler.logInfo(
+            "Imported record with ID: " + itemImport.getItem().getId() + ". Created item with UUID: " + item.getID());
+
+        return item;
+
+    }
+
+    private void addBitstreams(ItemImportDTO itemImport, Item item) throws Exception {
+
+        List<BitstreamDTO> bitstreams = itemImport.getItem().getBitstreams();
+
+        for (BitstreamDTO bitstreamDto : bitstreams) {
+
+            String bundleName = bitstreamDto.getBundleName();
+            List<MetadataValueDTO> metadataValues = bitstreamDto.getMetadataValues();
+            List<ResourcePolicyDTO> resourcePolicies = bitstreamDto.getResourcePolicies();
+            String checksum = bitstreamDto.getChecksum();
+            InputStream inputStream = bitstreamDto.getContent();
+
+            Bundle bundle = getBundleByName(item, bundleName)
+                .orElseGet(() -> createBundle(item, bundleName));
+
+            Bitstream bitstream = bitstreamService.create(context, bundle, inputStream);
+            bitstream.setChecksum(checksum);
+            setBitstreamFormat(bitstream);
+            setBitstreamPolicies(bitstream, resourcePolicies);
+            addBitstreamMetadataValues(bitstream, metadataValues);
+
+            bitstreamService.update(context, bitstream);
+
+        }
+
+    }
+
+    private void addBitstreamMetadataValues(Bitstream bitstream, List<MetadataValueDTO> metadataValues)
+        throws SQLException {
+
+        for (MetadataValueDTO metadataValue : metadataValues) {
+            bitstreamService.addMetadata(context, bitstream, metadataValue.getSchema(), metadataValue.getElement(),
+                metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
+                metadataValue.getAuthority(), metadataValue.getConfidence());
+        }
+
+    }
+
+    private void setBitstreamPolicies(Bitstream bitstream, List<ResourcePolicyDTO> resourcePolicies) throws Exception {
+
+        removeReadPolicies(bitstream, TYPE_CUSTOM);
+
+        for (ResourcePolicyDTO policy : resourcePolicies) {
+
+            String name = policy.getName();
+            String description = policy.getDescription();
+            Date startDate = policy.getStartDate();
+            Date endDate = policy.getEndDate();
+
+            for (AccessConditionOption aco : getUploadAccessConditions().values()) {
+                if (aco.getName().equalsIgnoreCase(name)) {
+                    aco.createResourcePolicy(context, bitstream, name, description, startDate, endDate);
+                    break;
+                }
+            }
+
+        }
+
+    }
+
+    private void removeReadPolicies(Bitstream bitstream, String type) {
+        try {
+            resourcePolicyService.removePolicies(context, bitstream, type, Constants.READ);
+        } catch (SQLException | AuthorizeException e) {
+            throw new BulkImportException(e);
+        }
+    }
+
+    private Optional<Bundle> getBundleByName(Item item, String name) {
+        return item.getBundles(name).stream().findFirst();
+    }
+
+    private Bundle createBundle(Item item, String bundleName) {
+        try {
+            return bundleService.create(context, item, bundleName);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setBitstreamFormat(Bitstream bitstream) {
+        try {
+            BitstreamFormat bf = bitstreamFormatService.guessFormat(context, bitstream);
+            bitstreamService.setFormat(context, bitstream, bf);
+            bitstreamService.update(context, bitstream);
+        } catch (SQLException | AuthorizeException e) {
+            handler.logError(e.getMessage());
+        }
+    }
+
+    private void addMetadataValues(ItemImportDTO itemImport, Item item) throws SQLException {
+
+        for (MetadataValueDTO metadataValue : itemImport.getItem().getMetadataValues()) {
+            itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
+                metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
+                metadataValue.getAuthority(), metadataValue.getConfidence());
+        }
+
+    }
+
+    private Item searchItemById(String id) {
+        return itemSearchService.search(context, id);
     }
 
     private List<String> readKeysFile() throws Exception {
@@ -236,7 +506,7 @@ public class ItemsImportFromS3Script
     private Optional<ItemImportDTO> getObject(String key) {
 
         try {
-            InputStream content = itemsS3Service.getObject(key);
+            File content = itemsS3Service.getObject(key);
             return parseZip(key, content);
         } catch (Exception ex) {
             handler.logError("An error occurs reading entry with key " + key, ex);
@@ -246,27 +516,15 @@ public class ItemsImportFromS3Script
 
     }
 
-    private Optional<ItemImportDTO> parseZip(String key, InputStream data) throws Exception {
-
-        File tempFile = createTempFile(key, data);
+    private Optional<ItemImportDTO> parseZip(String key, File data) throws Exception {
 
         try {
-            ZipFile zipFile = parseZip(tempFile);
+            ZipFile zipFile = parseZip(data);
             return readZipContent(key, zipFile);
         } finally {
-            tempFile.delete();
+            data.delete();
         }
 
-    }
-
-    private File createTempFile(String key, InputStream data) {
-        try {
-            File tempFile = Files.createTempFile(key, ".temp").toFile();
-            IOUtils.copy(data, tempFile);
-            return tempFile;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private Optional<ItemImportDTO> readZipContent(String key, ZipFile zipFile) throws Exception {
@@ -285,8 +543,12 @@ public class ItemsImportFromS3Script
             return Optional.empty();
         }
 
-        if (!skipBitstreamsUpload) {
+        if (workbookMode && !skipBitstreamsUpload) {
             uploadBitstreams(item, id, zipFile);
+        }
+
+        if (!workbookMode) {
+            setBitstreamsContent(item, id, zipFile);
         }
 
         handler.logInfo("Entry with key " + key + " successfully read");
@@ -298,6 +560,35 @@ public class ItemsImportFromS3Script
         importedItemsCount++;
 
         return Optional.ofNullable(item);
+    }
+
+    private void setBitstreamsContent(ItemImportDTO item, String id, ZipFile zipFile) throws IOException {
+        List<BitstreamDTO> bitstreams = item.getItem().getBitstreams();
+
+        if (CollectionUtils.isEmpty(bitstreams)) {
+            return;
+        }
+
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            if (entry.getName().startsWith(id + File.separator + "files")) {
+
+                String fileName = substringAfterLast(entry.getName(), File.separator);
+
+                BitstreamDTO bitstreamDto = bitstreams.stream()
+                    .filter(bitstream -> hasTitleEqualsTo(bitstream, fileName))
+                    .findFirst()
+                    .orElse(null);
+
+                if (bitstreamDto != null) {
+                    bitstreamDto.setContent(zipFile.getInputStream(entry));
+                } else {
+                    handler.logError("No content found for entry " + entry.getName());
+                }
+            }
+        }
     }
 
     private ItemImportDTO readItem(String id, ZipFile zipFile) throws Exception {
@@ -493,6 +784,23 @@ public class ItemsImportFromS3Script
         for (UUID uuid : handler.getSpecialGroups()) {
             context.setSpecialGroup(uuid);
         }
+    }
+
+    private Map<String, AccessConditionOption> getUploadAccessConditions() {
+
+        if (uploadAccessConditions != null) {
+            return uploadAccessConditions;
+        }
+
+        UploadConfiguration uploadConfiguration = uploadConfigurationService.getMap().get("upload");
+        if (uploadConfiguration == null) {
+            throw new IllegalStateException("No upload access conditions configuration found");
+        }
+
+        uploadAccessConditions = uploadConfiguration.getOptions().stream()
+            .collect(Collectors.toMap(AccessConditionOption::getName, Function.identity()));
+
+        return uploadAccessConditions;
     }
 
     @Override

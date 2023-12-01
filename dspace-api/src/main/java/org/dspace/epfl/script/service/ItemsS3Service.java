@@ -7,7 +7,7 @@
  */
 package org.dspace.epfl.script.service;
 
-import java.io.InputStream;
+import java.io.File;
 import java.util.stream.Stream;
 
 public interface ItemsS3Service {
@@ -16,7 +16,7 @@ public interface ItemsS3Service {
 
     Stream<String> getItemsKeys(Integer limit, String startAfter);
 
-    InputStream getObject(String key);
+    File getObject(String key);
 
     String getCreationDate(String id);
 

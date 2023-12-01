@@ -353,6 +353,9 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     private List<MetadataValueDTO> getCreationDateMetadataValues(String id) {
         String value = itemsS3Service.getCreationDate(id);
+        if (StringUtils.isEmpty(value)) {
+            return List.of();
+        }
         String[] metadataFields = getCreationDateMetadataFields();
         return Arrays.stream(metadataFields)
             .map(metadataField -> getCreationDateMetadataValue(metadataField, value))

@@ -57,6 +57,14 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("sbu").setType(boolean.class);
             options.getOption("sbu").setRequired(false);
 
+            options.addOption("w", "workbookMode", false, "enable workbook mode");
+            options.getOption("w").setType(boolean.class);
+            options.getOption("w").setRequired(false);
+
+            options.addOption("ob", "overwriteBitstreams", false, "skip the bitstreams overwrite");
+            options.getOption("ob").setType(boolean.class);
+            options.getOption("ob").setRequired(false);
+
             super.options = options;
         }
         return options;
