@@ -19,6 +19,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.WorkspaceItemIndexFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,8 @@ public class WorkspaceItemIndexFactoryImpl
     public SolrInputDocument buildDocument(Context context, IndexableWorkspaceItem indexableObject)
             throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        final SolrInputDocument doc = super.buildDocument(context, indexableObject);
+        final TruncatedSolrInputDocument doc =
+                (TruncatedSolrInputDocument) super.buildDocument(context, indexableObject);
 
         // Add the object type
         String acvalue = DSpaceServicesFactory.getInstance().getConfigurationService()
