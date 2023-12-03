@@ -86,10 +86,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     public static final String SCOPUS = "scopus";
     public static final String CROSSREF = "crossref";
     private static final String ARXIV = "arxiv";
+    private static final String EPO = "epo";
     private static final String WORKFLOW_STATE = "workflow";
     private static final String WORKSPACE_STATE = "workspace";
     private static final String ARCHIVED_ITEM_STATE = "item";
-    private static final String ARXIV = "arxiv";
+    private static final String PUBLICATION = "Publication";
+    private static final String PATENT = "Patent";
     private static final int LIMIT = 10;
 
     private String service;
@@ -140,6 +142,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         putServiceIfExists(WOS, "wosLiveImportDataProvider");
         putServiceIfExists(CROSSREF, "crossRefLiveImportDataProvider");
         putServiceIfExists(ARXIV, "arxivLiveImportDataProvider");
+        putServiceIfExists(EPO, "epoLiveImportDataProvider");
 
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
@@ -184,14 +187,16 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         }
 
         UUID collectionUUID = getCollectionUUID();
-        if (Objects.isNull(collectionUUID)) {
-            this.collection = getPublicationCollection();
-        } else {
-            this.collection = collectionService.find(context, collectionUUID);
-        }
-        if (Objects.isNull(this.collection)) {
+        collection = Objects.nonNull(collectionUUID)
+            ? collectionService.find(context, collectionUUID)
+            : getCollectionByType(EPO.equals(service) ? PATENT : PUBLICATION);
+
+        if (Objects.isNull(collection)) {
             throw new RuntimeException("Collection with uuid" + collectionUUID + "does not exist!");
         }
+
+        validateCollectionEntityType();
+
         if (!authorizeService.isAdmin(context, collection)) {
             throw new RuntimeException("User " + context.getCurrentUser().getEmail() + " cannot submit to collection "
             + collection.getID());
@@ -218,6 +223,26 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return StringUtils.isNoneBlank(collectionUuid)
             ? UUID.fromString(collectionUuid)
             : getUuid(service + ".importworkspaceitem.collection-id");
+    }
+
+    private void validateCollectionEntityType() {
+        String entityType = collection.getEntityType();
+        switch (service) {
+            case SCOPUS:
+            case WOS:
+            case CROSSREF:
+            case ARXIV:
+                if (!PUBLICATION.equals(entityType)) {
+                    throw new RuntimeException("Collection type must be Publication, but actually is " + entityType);
+                }
+                break;
+            case EPO:
+                if (!PATENT.equals(entityType)) {
+                    throw new RuntimeException("Collection type must be Patent, but actually is " + entityType);
+                }
+                break;
+            default:
+        }
     }
 
     private UUID getUuid(final String property) {
@@ -342,11 +367,18 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     id.append(dcTitle);
                 }
                 break;
+            case EPO:
+                id.append("is all ");
+                String epoTitle = itemService.getMetadataFirstValue(item, "dc", "title", null, Item.ANY);
+                if (StringUtils.isNotBlank(epoTitle)) {
+                    id.append("\"").append(epoTitle).append("\"");
+                }
+                break;
             default:
         }
-        if (StringUtils.isNotBlank(id.toString()) && StringUtils.isNotBlank(this.extraQuery)) {
-            if (this.service.equals(ARXIV)) {
-                id.append(" AND ").append(this.extraQuery);
+        if (StringUtils.isNotBlank(id.toString()) && StringUtils.isNotBlank(extraQuery)) {
+            if (List.of(ARXIV, EPO).contains(service)) {
+                id.append(" AND ").append(extraQuery);
             } else {
                 id.append(" ").append(extraQuery);
             }
@@ -480,6 +512,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             case ARXIV:
                 metadata.setQualifier(ARXIV);
                 break;
+            case EPO:
+                metadata.setQualifier("applicationnumber");
+                break;
             default:
         }
         return metadata;
@@ -578,11 +613,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         }
     }
 
-    private Collection getPublicationCollection() {
+    private Collection getCollectionByType(String entityType) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setDSpaceObjectFilter(IndexableCollection.TYPE);
         discoverQuery.setMaxResults(1);
-        discoverQuery.addFilterQueries("search.entitytype:Publication");
+        discoverQuery.addFilterQueries("search.entitytype:" + entityType);
         Iterator<Collection> collections = new DiscoverResultIterator<Collection, UUID>(context, discoverQuery);
         return collections.hasNext() ? collections.next() : null;
     }
