@@ -376,6 +376,10 @@ public class ItemsImportFromS3Script
             String checksum = bitstreamDto.getChecksum();
             InputStream inputStream = bitstreamDto.getContent();
 
+            if (inputStream == null) {
+                handler.logWarning("No content found for bitstream " + bitstreamDto.getLocation());
+            }
+
             Bundle bundle = getBundleByName(item, bundleName)
                 .orElseGet(() -> createBundle(item, bundleName));
 
