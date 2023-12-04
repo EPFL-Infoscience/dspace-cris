@@ -169,8 +169,7 @@ public class OrcidPublicationDataProviderIT extends AbstractIntegrationTestWithD
         assertThat(metadata, has(metadata("dc.contributor.author", "John White")));
         assertThat(metadata, has(metadata("dc.contributor.editor", "Jesse Pinkman")));
         assertThat(metadata, has(metadata("dc.title", "Another cautionary tale.")));
-        assertThat(metadata, has(metadata("dc.type", "Controlled Vocabulary for "
-            + "Resource Type Genres::text::periodical::journal")));
+        assertThat(metadata, has(metadata("dc.type", "text::periodical::journal")));
 
         ExternalDataObject thirdObject = externalObjects.get(2);
         assertThat(thirdObject.getDisplayValue(), is("Branch artery occlusion in a young woman."));
@@ -182,8 +181,7 @@ public class OrcidPublicationDataProviderIT extends AbstractIntegrationTestWithD
         assertThat(metadata, hasSize(3));
         assertThat(metadata, has(metadata("dc.date.issued", "1985-07-01")));
         assertThat(metadata, has(metadata("dc.title", "Branch artery occlusion in a young woman.")));
-        assertThat(metadata, has(metadata("dc.type", "Controlled Vocabulary for "
-            + "Resource Type Genres::text::periodical::journal")));
+        assertThat(metadata, has(metadata("dc.type", "text::periodical::journal")));
 
         verify(orcidClientMock).getReadPublicAccessToken();
         verify(orcidClientMock).getWorks(ACCESS_TOKEN, ORCID);
@@ -353,8 +351,7 @@ public class OrcidPublicationDataProviderIT extends AbstractIntegrationTestWithD
         assertThat(metadata, has(metadata("dc.contributor.author", "John White")));
         assertThat(metadata, has(metadata("dc.contributor.editor", "Jesse Pinkman")));
         assertThat(metadata, has(metadata("dc.title", "Another cautionary tale.")));
-        assertThat(metadata, has(metadata("dc.type", "Controlled Vocabulary for "
-            + "Resource Type Genres::text::periodical::journal")));
+        assertThat(metadata, has(metadata("dc.type", "text::periodical::journal")));
 
         verify(orcidClientMock).getReadPublicAccessToken();
         verify(orcidClientMock).getObject(ACCESS_TOKEN, ORCID, "277902", Work.class);
