@@ -268,16 +268,16 @@ public class ItemsImportFromS3Script
 
         Iterator<ItemImportDTO> items = readItems();
 
-        int commitCount = 0;
+        int count = 0;
 
         while (items.hasNext()) {
             ItemImportDTO item = items.next();
             try {
                 performItemImport(item);
-                commitCount++;
-                if (commitCount >= 20) {
+                count++;
+                if (count % 20 == 0) {
                     context.commit();
-                    commitCount = 0;
+                    handler.logInfo("Imported " + count + " items");
                 }
             } catch (Exception ex) {
                 handler.logError("An error occurs importing item with ID " + item.getItem().getId(), ex);
