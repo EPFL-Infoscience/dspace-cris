@@ -23,4 +23,8 @@ public interface EpflItemsClient {
 
     String getCreationDate(String id);
 
+    String getCreationDateByKey(String key);
+
+    Iterator<S3ObjectSummary> iterateCreationDate();
+
 }

@@ -10,6 +10,7 @@ package org.dspace.epfl.script;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.io.IOUtils.readLines;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
@@ -153,6 +154,8 @@ public class ItemsImportFromS3Script
 
     private boolean overwriteBitstreams;
 
+    private String creationDatesFileName;
+
     private BitstreamService bitstreamService;
 
     private UploadConfigurationService uploadConfigurationService;
@@ -200,6 +203,7 @@ public class ItemsImportFromS3Script
 
         overwriteBitstreams = commandLine.hasOption("ob");
         workbookMode = commandLine.hasOption("w");
+        creationDatesFileName = commandLine.getOptionValue("cd");
 
         String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
         mapping = marcXmlParser.parseMapping(configuration);
@@ -211,7 +215,7 @@ public class ItemsImportFromS3Script
     @Override
     public void internalRun() throws Exception {
 
-        if (workbookMode) {
+        if (workbookMode && isBlank(creationDatesFileName)) {
             context = new Context(Mode.READ_ONLY);
         } else {
             context = new Context();
@@ -220,6 +224,21 @@ public class ItemsImportFromS3Script
         assignSpecialGroupsInContext();
 
         context.turnOffAuthorisationSystem();
+
+        if (isNotBlank(creationDatesFileName)) {
+
+            InputStream inputStream = handler.getFileStream(context, creationDatesFileName)
+                .orElseThrow(() -> new IllegalArgumentException("Error reading file, the file couldn't be "
+                    + "found for filename: " + creationDatesFileName));
+
+            Integer count = itemsS3Service.importCreationDates(context, inputStream, handler);
+            handler.logInfo("Imported " + count + " creation dates");
+
+            context.complete();
+            context.restoreAuthSystemState();
+
+            return;
+        }
 
         collectionIds = readCollectionIds();
 

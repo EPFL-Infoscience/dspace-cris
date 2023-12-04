@@ -132,6 +132,7 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
             item = itemService.create(context, workspaceItem);
         }
         item.setSubmitter(context.getCurrentUser());
+        item.setWorkspaceItem(workspaceItem);
 
         // Now create the policies for the submitter to modify item and contents (bitstreams, bundles)
         int[] actionIds = { Constants.READ, Constants.WRITE, Constants.ADD, Constants.REMOVE, Constants.DELETE };
@@ -263,6 +264,14 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
 
     @Override
     public WorkspaceItem findByItem(Context context, Item item) throws SQLException {
+
+        if (item.getWorkspaceItem() != null) {
+            WorkspaceItem ws = context.reloadEntity(item.getWorkspaceItem());
+            if (ws != null) {
+                return ws;
+            }
+        }
+
         return workspaceItemDAO.findByItem(context, item);
     }
 
@@ -338,7 +347,7 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
                                           + "collection_id=" + workspaceItem.getCollection().getID()));
 
         //        deleteSubmitPermissions();
-
+        item.setWorkspaceItem(null);
         workspaceItemDAO.delete(context, workspaceItem);
 
     }

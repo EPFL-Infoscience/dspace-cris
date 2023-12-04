@@ -81,6 +81,11 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
     private Optional<Item> findByCrisSourceIdAndEntityType(Context context, String crisSourceId,
         String entityType) {
+
+        if (crisSourceId.contains((AuthorityValueService.SPLIT))) {
+            return Optional.empty();
+        }
+
         Iterator<Item> items = findByCrisSourceId(context, crisSourceId);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(items, Spliterator.ORDERED), false)
             .filter(item -> hasEntityTypeEqualsTo(item, entityType))

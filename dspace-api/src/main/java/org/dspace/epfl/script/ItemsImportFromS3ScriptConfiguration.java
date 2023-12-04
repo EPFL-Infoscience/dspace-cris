@@ -65,6 +65,10 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("ob").setType(boolean.class);
             options.getOption("ob").setRequired(false);
 
+            options.addOption("cd", "creationDates", true, "import only zip with creation dates");
+            options.getOption("cd").setType(InputStream.class);
+            options.getOption("cd").setRequired(false);
+
             super.options = options;
         }
         return options;

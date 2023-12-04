@@ -221,4 +221,7 @@
         <property name="authorityPrefix" value="will be referenced::ACRONYM::" />
     </bean>
     
+    <bean class="org.dspace.epfl.script.service.impl.ItemsImportCreationDateDaoImpl">
+    </bean>
+    
 </beans>

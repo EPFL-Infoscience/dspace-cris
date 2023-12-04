@@ -493,7 +493,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Override
     public void updateLastModified(Context context, Item item) throws SQLException, AuthorizeException {
         item.setLastModified(new Date());
-        update(context, item);
+        // update(context, item);
         //Also fire a modified event since the item HAS been modified
         context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, getIdentifiers(context, item)));
 
@@ -508,8 +508,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             authorizeService.authorizeAction(context, item, Constants.WRITE);
         }
 
-        log.info(LogHelper.getHeader(context, "update_item", "item_id="
-                + item.getID()));
+//        log.info(LogHelper.getHeader(context, "update_item", "item_id="
+//                + item.getID()));
 
         super.update(context, item);
 
