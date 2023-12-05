@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,9 +25,15 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authority.service.AuthorityValueService;
@@ -48,7 +55,6 @@ import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.PersonDTO;
-import org.dspace.epfl.script.parser.CSVParserImpl;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.epfl.service.impl.PersonApiServiceImpl;
 import org.dspace.profile.ResearcherProfile;
@@ -58,6 +64,10 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 
 public class EpflUserSynchronizationScript
@@ -83,6 +93,9 @@ public class EpflUserSynchronizationScript
 
     private GroupService groupService;
 
+    private DocumentBuilder documentBuilder;
+
+    private XPath xPath;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -109,6 +122,13 @@ public class EpflUserSynchronizationScript
         query = commandLine.getOptionValue('q');
         email = commandLine.getOptionValue('e');
 
+        try {
+            this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+
+        xPath = XPathFactory.newInstance().newXPath();
 
         log = "";
     }
@@ -203,33 +223,39 @@ public class EpflUserSynchronizationScript
 
     }
 
-    private void executeScriptWithQuery() throws AuthorizeException, IOException, SQLException {
-        List<String> queryStrings = extractQueryParameters();
+    private void executeScriptWithQuery() throws AuthorizeException, IOException, SQLException, SAXException {
+        List<String> sciperIds = extractQueryParameters();
 
-        for (String query : queryStrings) {
+        int count = 0;
 
-            query = query.replace("\"", "").trim();
-            if (StringUtils.isBlank(query)) {
-                continue;
+        for (String sciperId : sciperIds) {
+
+            epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN)
+                .ifPresent(this::createOrSynch);
+
+            count++;
+
+            if (count % 20 == 0) {
+                handler.logInfo("Imported " + count + " persons");
+                context.commit();
             }
 
-            List<PersonDTO> epflPersonList = epflApiClient.getPersons(query, EpflApiClient.Language.EN);
-            if (CollectionUtils.isEmpty(epflPersonList)) {
-                logInfo("No person found by query " + query);
-            }
+        }
 
-            for (PersonDTO epflPerson : epflPersonList) {
-                EPerson ePerson = findPerson(epflPerson);
-                try {
-                    if (ePerson == null) {
-                        createAndSyncEPerson(epflPerson);
-                    } else {
-                        syncEPerson(epflPerson, ePerson);
-                    }
-                } catch (Exception e) {
-                    logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
-                }
+        context.commit();
+
+    }
+
+    private void createOrSynch(PersonDTO epflPerson) {
+        try {
+            EPerson ePerson = findPerson(epflPerson);
+            if (ePerson == null) {
+                createAndSyncEPerson(epflPerson);
+            } else {
+                syncEPerson(epflPerson, ePerson);
             }
+        } catch (Exception e) {
+            logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
         }
     }
 
@@ -349,16 +375,38 @@ public class EpflUserSynchronizationScript
         log = log.concat(message + "\n");
     }
 
-    private List<String> extractQueryParameters() throws AuthorizeException, IOException {
+    private List<String> extractQueryParameters() throws AuthorizeException, IOException, SAXException {
         if (inputFile != null) {
             InputStream inputStream = handler.getFileStream(context, inputFile)
                                              .orElseThrow(() -> new IllegalArgumentException(
                                                  "Error reading file, the file couldn't be "
                                                      + "found for filename: " + inputFile));
 
-            return new CSVParserImpl().parseCSV(inputStream, ",");
+            return parseInputStream(inputStream);
         }
-        return Collections.singletonList(query);
+        return List.of(query);
+    }
+
+    private List<String> parseInputStream(InputStream inputStream) throws IOException, SAXException {
+        Document document = documentBuilder.parse(inputStream);
+
+        NodeList nodeList = getNodeList(document, "//datafield[@tag = '020']/subfield[@code = 'a']");
+
+        List<String> sciperIds = new ArrayList<String>();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node node = nodeList.item(i);
+            sciperIds.add(node.getTextContent());
+        }
+
+        return sciperIds;
+    }
+
+    private NodeList getNodeList(Object item, String expression) {
+        try {
+            return (NodeList) xPath.compile(expression).evaluate(item, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + expression, e);
+        }
     }
 
     private void assignCurrentUserInContext() throws SQLException {

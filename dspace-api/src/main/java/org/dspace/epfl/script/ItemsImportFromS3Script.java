@@ -389,6 +389,7 @@ public class ItemsImportFromS3Script
 
             if (inputStream == null) {
                 handler.logWarning("No content found for bitstream " + bitstreamDto.getLocation());
+                continue;
             }
 
             Bundle bundle = getBundleByName(item, bundleName)
