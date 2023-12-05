@@ -276,12 +276,14 @@ public class ItemsImportFromS3Script
 
         Iterator<ItemImportDTO> items = readItems();
 
+        int count = 0;
+
         while (items.hasNext()) {
             ItemImportDTO item = items.next();
             try {
                 performItemImport(item);
-                importedItemsCount++;
-                if (importedItemsCount % commitSize == 0) {
+                count++;
+                if (count % commitSize == 0) {
                     context.commit();
                     handler.logInfo("Imported " + importedItemsCount + " items");
                 }
@@ -293,7 +295,7 @@ public class ItemsImportFromS3Script
 
         context.commit();
 
-        handler.logInfo("Import completed. Written " + importedItemsCount
+        handler.logInfo("Import completed. Written " + count
             + " items with success. Skipped " + skippedItemsCount + " items. Errors: " + errorsCount);
         for (String type : typeCounts.keySet()) {
             handler.logInfo(type + " - Items count: " + typeCounts.get(type));

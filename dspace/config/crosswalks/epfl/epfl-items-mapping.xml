@@ -218,10 +218,6 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '1']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>datacite.rights</field>
-            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'e']</xpath>
-        </metadata-field>
-        <metadata-field>
             <field>epfl.legacy.fileversion</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'z']</xpath>
         </metadata-field>
