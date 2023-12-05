@@ -320,7 +320,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
                 Email mail = Email.getEmail(I18nUtil.getEmailFilename(locale, emailTemplate));
                 for (String argument : arguments) {
-                    if (argument.equals("New task available.") && locale.getLanguage().equals("fr")) {
+                    if ("New task available.".equals(argument) && "fr".equals(locale.getLanguage())) {
                         mail.addArgument("Nouvelle tâche disponible.");
                     } else {
                         mail.addArgument(argument);
