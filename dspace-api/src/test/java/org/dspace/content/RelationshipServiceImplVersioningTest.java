@@ -9,26 +9,35 @@ package org.dspace.content;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
+import java.sql.SQLException;
 import java.util.List;
 
-import org.dspace.AbstractIntegrationTestWithDatabase;
-import org.dspace.builder.CollectionBuilder;
-import org.dspace.builder.CommunityBuilder;
-import org.dspace.builder.EntityTypeBuilder;
-import org.dspace.builder.ItemBuilder;
-import org.dspace.builder.RelationshipBuilder;
-import org.dspace.builder.RelationshipTypeBuilder;
+import org.apache.logging.log4j.Logger;
+import org.dspace.AbstractUnitTest;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.dao.RelationshipDAO;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.EntityTypeService;
+import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
+import org.dspace.content.service.RelationshipTypeService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-public class RelationshipServiceImplVersioningTest extends AbstractIntegrationTestWithDatabase {
+public class RelationshipServiceImplVersioningTest extends AbstractUnitTest {
+
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(
+        RelationshipServiceImplVersioningTest.class);
 
     private RelationshipService relationshipService;
+    private ItemService itemService;
+    private WorkspaceItemService workspaceItemService;
     private RelationshipDAO relationshipDAO;
 
     protected Community community;
@@ -43,59 +52,51 @@ public class RelationshipServiceImplVersioningTest extends AbstractIntegrationTe
 
     @Override
     @Before
-    public void setUp() throws Exception {
-        super.setUp();
+    public void init() {
+        super.init();
 
-        relationshipService = ContentServiceFactory.getInstance().getRelationshipService();
-        relationshipDAO = DSpaceServicesFactory.getInstance().getServiceManager()
-            .getServicesByType(RelationshipDAO.class).get(0);
+        try {
+            ContentServiceFactory contentServiceFactory = ContentServiceFactory.getInstance();
+            relationshipService = contentServiceFactory.getRelationshipService();
+            CommunityService communityService = contentServiceFactory.getCommunityService();
+            CollectionService collectionService = contentServiceFactory.getCollectionService();
+            RelationshipTypeService relationshipTypeService = contentServiceFactory
+                                                                                   .getRelationshipTypeService();
+            EntityTypeService entityTypeService = contentServiceFactory.getEntityTypeService();
+            itemService = contentServiceFactory.getItemService();
+            workspaceItemService = contentServiceFactory.getWorkspaceItemService();
+            relationshipDAO = DSpaceServicesFactory.getInstance().getServiceManager()
+                .getServicesByType(RelationshipDAO.class).get(0);
 
-        context.turnOffAuthorisationSystem();
+            context.turnOffAuthorisationSystem();
 
-        community = CommunityBuilder.createCommunity(context)
-            .withName("community")
-            .build();
+            community = communityService.create(null, context);
+            collection = collectionService.create(context, community);
+            publicationEntityType = entityTypeService.create(context, "Publication");
+            personEntityType = entityTypeService.create(context, "Person");
 
-        collection = CollectionBuilder.createCollection(context, community)
-            .withName("collection")
-            .build();
+            relationshipType = relationshipTypeService.create(
+                context, publicationEntityType, personEntityType,
+                "isAuthorOfPublication", "isPublicationOfAuthor",
+                null, null, null, null
+            );
+            relationshipType.setCopyToLeft(false);
+            relationshipType.setCopyToRight(false);
 
-        publicationEntityType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication")
-            .build();
+            publication1 = createItem("publication1", publicationEntityType.getLabel());
+            publication2 = createItem("publication2", publicationEntityType.getLabel());
+            publication3 = createItem("publication3", publicationEntityType.getLabel());
 
-        personEntityType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person")
-            .build();
+            person1 = createItem("person1", personEntityType.getLabel());
 
-        relationshipType = RelationshipTypeBuilder.createRelationshipTypeBuilder(
-            context, publicationEntityType, personEntityType,
-            "isAuthorOfPublication", "isPublicationOfAuthor",
-            null, null, null, null
-        )
-            .withCopyToLeft(false)
-            .withCopyToRight(false)
-            .build();
-
-        publication1 = ItemBuilder.createItem(context, collection)
-            .withTitle("publication1")
-            .withMetadata("dspace", "entity", "type", publicationEntityType.getLabel())
-            .build();
-
-        publication2 = ItemBuilder.createItem(context, collection)
-            .withTitle("publication2")
-            .withMetadata("dspace", "entity", "type", publicationEntityType.getLabel())
-            .build();
-
-        publication3 = ItemBuilder.createItem(context, collection)
-            .withTitle("publication3")
-            .withMetadata("dspace", "entity", "type", publicationEntityType.getLabel())
-            .build();
-
-        person1 = ItemBuilder.createItem(context, collection)
-            .withTitle("person1")
-            .withMetadata("dspace", "entity", "type", personEntityType.getLabel())
-            .build();
-
-        context.restoreAuthSystemState();
+            context.restoreAuthSystemState();
+        } catch (AuthorizeException ex) {
+            log.error("Authorization Error in init", ex);
+            fail("Authorization Error in init: " + ex.getMessage());
+        } catch (SQLException ex) {
+            log.error("SQL Error in init", ex);
+            fail("SQL Error in init: " + ex.getMessage());
+        }
     }
 
     @Test
@@ -253,10 +254,12 @@ public class RelationshipServiceImplVersioningTest extends AbstractIntegrationTe
     @Test
     public void testExcludeNonLatestBoth() throws Exception {
         context.turnOffAuthorisationSystem();
-        Relationship relationship1 = RelationshipBuilder
-            .createRelationshipBuilder(context, publication1, person1, relationshipType)
-            .withLatestVersionStatus(Relationship.LatestVersionStatus.BOTH)
-            .build();
+        Relationship relationship1 = new Relationship();
+        relationship1.setLeftItem(publication1);
+        relationship1.setRightItem(person1);
+        relationship1.setRelationshipType(relationshipType);
+        relationship1.setLatestVersionStatus(Relationship.LatestVersionStatus.BOTH);
+        relationship1 = relationshipService.create(context, relationship1);
         context.restoreAuthSystemState();
 
         assertRelationship(
@@ -545,10 +548,12 @@ public class RelationshipServiceImplVersioningTest extends AbstractIntegrationTe
     @Test
     public void testExcludeNonLatestLeftOnly() throws Exception {
         context.turnOffAuthorisationSystem();
-        Relationship relationship1 = RelationshipBuilder
-            .createRelationshipBuilder(context, publication1, person1, relationshipType)
-            .withLatestVersionStatus(Relationship.LatestVersionStatus.LEFT_ONLY)
-            .build();
+        Relationship relationship1 = new Relationship();
+        relationship1.setLeftItem(publication1);
+        relationship1.setRightItem(person1);
+        relationship1.setRelationshipType(relationshipType);
+        relationship1.setLatestVersionStatus(Relationship.LatestVersionStatus.LEFT_ONLY);
+        relationship1 = relationshipService.create(context, relationship1);
         context.restoreAuthSystemState();
 
         assertRelationship(
@@ -825,10 +830,12 @@ public class RelationshipServiceImplVersioningTest extends AbstractIntegrationTe
     @Test
     public void testExcludeNonLatestRightOnly() throws Exception {
         context.turnOffAuthorisationSystem();
-        Relationship relationship1 = RelationshipBuilder
-            .createRelationshipBuilder(context, publication1, person1, relationshipType)
-            .withLatestVersionStatus(Relationship.LatestVersionStatus.RIGHT_ONLY)
-            .build();
+        Relationship relationship1 = new Relationship();
+        relationship1.setLeftItem(publication1);
+        relationship1.setRightItem(person1);
+        relationship1.setRelationshipType(relationshipType);
+        relationship1.setLatestVersionStatus(Relationship.LatestVersionStatus.RIGHT_ONLY);
+        relationship1 = relationshipService.create(context, relationship1);
         context.restoreAuthSystemState();
 
         assertRelationship(
@@ -1100,6 +1107,14 @@ public class RelationshipServiceImplVersioningTest extends AbstractIntegrationTe
         assertEquals(
             0, relationshipService.countByItemAndRelationshipType(context, person1, relationshipType, true, true)
         );
+    }
+
+    private Item createItem(String title, String entityType) throws SQLException, AuthorizeException {
+        WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
+        Item item = workspaceItem.getItem();
+        itemService.setMetadataSingleValue(context, item, new MetadataFieldName("dc.title"), null, title);
+        itemService.setEntityType(context, item, entityType);
+        return item;
     }
 
 }
