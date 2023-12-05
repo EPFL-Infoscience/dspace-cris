@@ -152,8 +152,6 @@ public class ItemsImportFromS3Script
 
     private boolean workbookMode;
 
-    private boolean overwriteBitstreams;
-
     private int commitSize = 20;
 
     private String creationDatesFileName;
@@ -207,7 +205,6 @@ public class ItemsImportFromS3Script
 
         skipBitstreamsUpload = commandLine.hasOption("sbu");
 
-        overwriteBitstreams = commandLine.hasOption("ob");
         workbookMode = commandLine.hasOption("w");
         creationDatesFileName = commandLine.getOptionValue("cd");
 
@@ -279,16 +276,14 @@ public class ItemsImportFromS3Script
 
         Iterator<ItemImportDTO> items = readItems();
 
-        int count = 0;
-
         while (items.hasNext()) {
             ItemImportDTO item = items.next();
             try {
                 performItemImport(item);
-                count++;
-                if (count % commitSize == 0) {
+                importedItemsCount++;
+                if (importedItemsCount % commitSize == 0) {
                     context.commit();
-                    handler.logInfo("Imported " + count + " items");
+                    handler.logInfo("Imported " + importedItemsCount + " items");
                 }
             } catch (Exception ex) {
                 handler.logError("An error occurs importing item with ID " + item.getItem().getId(), ex);
@@ -297,6 +292,12 @@ public class ItemsImportFromS3Script
         }
 
         context.commit();
+
+        handler.logInfo("Import completed. Written " + importedItemsCount
+            + " items with success. Skipped " + skippedItemsCount + " items. Errors: " + errorsCount);
+        for (String type : typeCounts.keySet()) {
+            handler.logInfo(type + " - Items count: " + typeCounts.get(type));
+        }
 
     }
 
@@ -318,9 +319,7 @@ public class ItemsImportFromS3Script
         removeItemMetadataValuesAndBitstreams(item);
 
         addMetadataValues(itemImport, item);
-        if (overwriteBitstreams) {
-            addBitstreams(itemImport, item);
-        }
+        addBitstreams(itemImport, item);
 
         itemService.update(context, item);
 
@@ -332,9 +331,7 @@ public class ItemsImportFromS3Script
 
     private void removeItemMetadataValuesAndBitstreams(Item item) throws Exception {
         removeItemMetadataValues(item);
-        if (overwriteBitstreams) {
-            removeItemBitstreams(item);
-        }
+        removeItemBitstreams(item);
     }
 
     private void removeItemMetadataValues(Item item) throws SQLException {
