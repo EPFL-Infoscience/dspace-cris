@@ -154,6 +154,8 @@ public class ItemsImportFromS3Script
 
     private boolean overwriteBitstreams;
 
+    private int commitSize = 20;
+
     private String creationDatesFileName;
 
     private BitstreamService bitstreamService;
@@ -195,6 +197,10 @@ public class ItemsImportFromS3Script
             limit = Integer.valueOf(commandLine.getOptionValue('l'));
         }
 
+        if (commandLine.hasOption("cs")) {
+            commitSize = Integer.valueOf(commandLine.getOptionValue("cs"));
+        }
+
         startAfter = commandLine.getOptionValue('a');
 
         keysFilename = commandLine.getOptionValue("kf");
@@ -222,6 +228,10 @@ public class ItemsImportFromS3Script
         }
         assignCurrentUserInContext();
         assignSpecialGroupsInContext();
+
+        if (commitSize <= 0) {
+            throw new IllegalArgumentException("The commit size must be greater than 0");
+        }
 
         context.turnOffAuthorisationSystem();
 
@@ -275,7 +285,7 @@ public class ItemsImportFromS3Script
             try {
                 performItemImport(item);
                 count++;
-                if (count % 20 == 0) {
+                if (count % commitSize == 0) {
                     context.commit();
                     handler.logInfo("Imported " + count + " items");
                 }

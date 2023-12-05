@@ -45,6 +45,10 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("l").setType(Integer.class);
             options.getOption("l").setRequired(false);
 
+            options.addOption("cs", "commitSize", true, "the commit size (default 20)");
+            options.getOption("cs").setType(Integer.class);
+            options.getOption("cs").setRequired(false);
+
             options.addOption("a", "after", true, "the key from which to start the download");
             options.getOption("a").setType(String.class);
             options.getOption("a").setRequired(false);
