@@ -225,6 +225,7 @@ public class ItemsImportFromS3Script
             context = new Context(Mode.READ_ONLY);
         } else {
             context = new Context();
+            context.setDispatcher("epfl-migration");
         }
         assignCurrentUserInContext();
         assignSpecialGroupsInContext();
