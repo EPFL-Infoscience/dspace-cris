@@ -27,6 +27,9 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -80,7 +83,7 @@ public class SubmitterFixScript
         }
 
         context.turnOffAuthorisationSystem();
-        Iterator<Item> itemIterator = itemService.findAllByCollection(context, collection);
+        Iterator<Item> itemIterator = findItems();
 
         try {
             itemIterator.forEachRemaining(this::updateSubmitter);
@@ -92,6 +95,13 @@ public class SubmitterFixScript
             context.restoreAuthSystemState();
         }
 
+    }
+
+    private Iterator<Item> findItems() {
+        DiscoverQuery query = new DiscoverQuery();
+        query.setDSpaceObjectFilter(IndexableItem.TYPE);
+        query.addFilterQueries("location.coll:(" + collectionId + ")");
+        return new DiscoverResultItemIterator(context, query);
     }
 
     private void updateSubmitter(Item item) {
@@ -115,8 +125,7 @@ public class SubmitterFixScript
         firstAuthorWithSciper(item)
             .ifPresentOrElse(
                 ePerson -> updateSubmitter(item, ePerson),
-                () -> updateSubmitter(item, StringUtils.isNotBlank(email) ? email : defaultEmail)
-            );
+                () -> updateSubmitter(item, StringUtils.isNotBlank(email) ? email : defaultEmail));
     }
 
     private void updateSubmitter(Item item, String email) {
@@ -161,21 +170,29 @@ public class SubmitterFixScript
     }
 
     private EPerson owner(Item author) {
+
+        if (author == null) {
+            return null;
+        }
+
         List<MetadataValue> metadataByMetadataString = itemService
             .getMetadataByMetadataString(author, "dspace.object.owner");
         if (metadataByMetadataString.isEmpty()) {
             return null;
         }
+
         MetadataValue metadataValue = metadataByMetadataString.get(0);
         if (StringUtils.isBlank(metadataValue.getAuthority())) {
             return null;
         }
+
         try {
             return ePersonService.find(context, UUID.fromString(metadataValue.getAuthority()));
         } catch (SQLException e) {
             handler.handleException(e);
             throw new RuntimeException(e);
         }
+
     }
 
     private EPerson getEPersonFromMetadata(Item item, String metadata) {

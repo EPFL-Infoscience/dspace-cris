@@ -68,6 +68,7 @@ import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.dto.ResourcePolicyDTO;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.packager.PackageUtils;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -367,6 +368,8 @@ public class ItemsImportFromS3Script
         Collection collection = getCollection(collectionIds.get(itemImport.getType()));
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
         Item item = workspaceItem.getItem();
+
+        PackageUtils.addDepositLicense(context, null, item, collection);
 
         addMetadataValues(itemImport, item);
         addBitstreams(itemImport, item);

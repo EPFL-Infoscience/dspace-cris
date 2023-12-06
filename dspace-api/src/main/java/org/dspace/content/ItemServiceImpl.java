@@ -802,11 +802,10 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
             if (item.isMetadataModified()) {
                 context.addEvent(new Event(Event.MODIFY_METADATA, item.getType(), item.getID(), item.getDetails(),
-                        getIdentifiers(context, item)));
+                    new ArrayList<String>()));
             }
 
-            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(),
-                    null, getIdentifiers(context, item)));
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));
             item.clearModified();
             item.clearDetails();
         }
