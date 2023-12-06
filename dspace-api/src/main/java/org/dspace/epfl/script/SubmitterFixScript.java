@@ -86,7 +86,26 @@ public class SubmitterFixScript
         Iterator<Item> itemIterator = findItems();
 
         try {
-            itemIterator.forEachRemaining(this::updateSubmitter);
+
+            int count = 0;
+
+            while (itemIterator.hasNext()) {
+                Item item = itemIterator.next();
+
+                try {
+                    updateSubmitter(item);
+                    count++;
+                } catch (Exception ex) {
+                    handler.logError("An error occurs updating item " + item.getID(), ex);
+                }
+
+                if (count % 20 == 0) {
+                    context.commit();
+                    handler.logInfo("Processed " + count + " items");
+                }
+
+            }
+
             context.complete();
         } catch (Exception e) {
             handler.handleException(e);
