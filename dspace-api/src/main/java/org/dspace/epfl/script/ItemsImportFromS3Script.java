@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.persistence.PersistenceException;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -287,6 +288,11 @@ public class ItemsImportFromS3Script
                     context.commit();
                     handler.logInfo("Imported " + importedItemsCount + " items");
                 }
+            } catch (PersistenceException pex) {
+                handler.logError("An persistence error occurs importing item with ID " + item.getItem().getId()
+                    + ". The previous changes in the current chunck will be rollbacked", pex);
+                errorsCount++;
+                context.rollback();
             } catch (Exception ex) {
                 handler.logError("An error occurs importing item with ID " + item.getItem().getId(), ex);
                 errorsCount++;
@@ -472,9 +478,17 @@ public class ItemsImportFromS3Script
     private void addMetadataValues(ItemImportDTO itemImport, Item item) throws SQLException {
 
         for (MetadataValueDTO metadataValue : itemImport.getItem().getMetadataValues()) {
+            String authority = metadataValue.getAuthority();
+            int confidence = metadataValue.getConfidence();
+            if (StringUtils.isNotBlank(authority) && authority.length() >= 100) {
+                handler.logWarning("Metadata value " + metadataValue.getValue() + " has an authority too longer: "
+                    + authority + ". The authority will be ignored because can't be stored.");
+                authority = null;
+                confidence = -1;
+            }
             itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
                 metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
-                metadataValue.getAuthority(), metadataValue.getConfidence());
+                authority, confidence);
         }
 
     }
