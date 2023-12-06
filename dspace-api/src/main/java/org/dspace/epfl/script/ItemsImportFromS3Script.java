@@ -544,7 +544,7 @@ public class ItemsImportFromS3Script
             return keys.stream();
         }
 
-        if (limit != null) {
+        if (limit != null || startAfter != null) {
             return itemsS3Service.getItemsKeys(limit, startAfter);
         }
 
