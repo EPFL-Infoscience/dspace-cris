@@ -495,7 +495,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         item.setLastModified(new Date());
         // update(context, item);
         //Also fire a modified event since the item HAS been modified
-        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, getIdentifiers(context, item)));
+        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));
 
         setLastModifiedDateMetadata(context, item);
     }

@@ -670,7 +670,7 @@ public class ItemsImportFromS3Script
                 return null;
             }
 
-            ItemDTO item = marcXmlParser.readSingleItem(context, id, record, mapping);
+            ItemDTO item = marcXmlParser.readSingleItem(context, id, recordType, record, mapping);
 
             return new ItemImportDTO(recordType, item);
 

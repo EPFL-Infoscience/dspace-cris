@@ -107,7 +107,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
     private Iterator<Item> findByCrisSourceId(Context context, String crisSourceId) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.addFilterQueries("cris.sourceId:" + crisSourceId);
