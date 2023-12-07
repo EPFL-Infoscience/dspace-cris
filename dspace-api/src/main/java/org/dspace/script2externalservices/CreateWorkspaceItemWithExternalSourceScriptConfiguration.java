@@ -38,7 +38,7 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
 
     private Class<T> dspaceRunnableClass;
 
-    protected Map<String, LiveImportDataProvider> nameToPrider;
+    protected Map<String, LiveImportDataProvider> nameToProvider;
 
     protected ExternalDataService externalDataService;
 
@@ -115,12 +115,12 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
         this.dspaceRunnableClass = dspaceRunnableClass;
     }
 
-    public Map<String, LiveImportDataProvider> getNameToPrider() {
-        return nameToPrider;
+    public Map<String, LiveImportDataProvider> getNameToProvider() {
+        return nameToProvider;
     }
 
-    public void setNameToPrider(Map<String, LiveImportDataProvider> nameToPrider) {
-        this.nameToPrider = nameToPrider;
+    public void setNameToProvider(Map<String, LiveImportDataProvider> nameToProvider) {
+        this.nameToProvider = nameToProvider;
     }
 
     public ExternalDataService getExternalDataService() {
