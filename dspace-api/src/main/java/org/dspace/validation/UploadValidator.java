@@ -128,14 +128,6 @@ public class UploadValidator implements SubmissionStepValidator {
         }
     }
 
-    public boolean hasNotUploadedFiles(Item item) {
-        try {
-            return !itemService.hasUploadedFiles(item);
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
-        }
-    }
-
     public ItemService getItemService() {
         return itemService;
     }
