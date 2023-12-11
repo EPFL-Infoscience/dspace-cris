@@ -99,7 +99,7 @@ public class SubmitterFixScript
                     handler.logError("An error occurs updating item " + item.getID(), ex);
                 }
 
-                if (count % 20 == 0) {
+                if (count % 10 == 0) {
                     context.commit();
                     handler.logInfo("Processed " + count + " items");
                 }
