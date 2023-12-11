@@ -395,6 +395,9 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
         Context context = getContext();
         try {
             Item item = itemService.find(context, UUIDUtils.fromString(key));
+            if (item == null) {
+                return List.of();
+            }
             List<String> variants = item.getMetadata().stream()
                     .filter(this::isVariant)
                     .map(MetadataValue::getValue)

@@ -236,7 +236,7 @@ public class EpflUserSynchronizationScript
             count++;
 
             if (count % 20 == 0) {
-                handler.logInfo("Imported " + count + " persons");
+                handler.logInfo("Processed " + count + " sciper ids");
                 context.commit();
             }
 
@@ -295,7 +295,7 @@ public class EpflUserSynchronizationScript
         }
 
         if (needsToBEUpdated) {
-            profileInitializer.initialize(context, ePerson);
+            profileInitializer.initialize(context, ePerson, epflPerson.getSciper(), Optional.of(epflPerson));
             setSynchronizationMetadata(ePerson);
             ePersonService.update(context, ePerson);
             updatedPersonCount++;
@@ -390,13 +390,15 @@ public class EpflUserSynchronizationScript
     private List<String> parseInputStream(InputStream inputStream) throws IOException, SAXException {
         Document document = documentBuilder.parse(inputStream);
 
-        NodeList nodeList = getNodeList(document, "//datafield[@tag = '020']/subfield[@code = 'a']");
+        NodeList nodeList = getNodeList(document, "/collection/record/datafield[@tag = '935']/subfield[@code = 'a']");
 
         List<String> sciperIds = new ArrayList<String>();
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             sciperIds.add(node.getTextContent());
         }
+
+        handler.logInfo("Found " + sciperIds.size() + " sciper ids to be imported");
 
         return sciperIds;
     }
