@@ -15,14 +15,19 @@
   <titles>
     <title>@dc.title@</title>
   </titles>
-  <publisher>@dc.publisher@</publisher>
+  <publisher>@virtual.publisher-with-place@</publisher>
   <publicationYear>@virtual.date.dc-date-issued.YYYY@</publicationYear>
   <subjects>
     <subject>@dc.subject@</subject>
   </subjects>
   <dates>
     <date dateType="Issued">@dc.date.issued@</date>
+    @if.metadata.datacite-available.start@
     <date dateType="Available">@datacite.available@</date>
+    @if.metadata.datacite-available.end@
+    @if.not.metadata.datacite-available.start@
+    <date dateType="Available">@dc.date.available@</date>
+    @if.not.metadata.datacite-available.end@
   </dates>
   <language>@dc.language.iso@</language>
   <resourceType resourceTypeGeneral="@virtual.mapConverter.type2datacite.dc-type@" />

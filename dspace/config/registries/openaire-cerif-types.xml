@@ -236,4 +236,25 @@
         <scope_note></scope_note>
     </dc-type>
 
+    <dc-type>
+        <schema>oairecerif</schema>
+        <element>contributor</element>
+        <qualifier>affiliation</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>oairecerif</schema>
+        <element>advisor</element>
+        <qualifier>affiliation</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>oairecerif</schema>
+        <element>scientificeditor</element>
+        <qualifier>affiliation</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
 </dspace-dc-types>

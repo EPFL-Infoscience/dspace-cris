@@ -7,6 +7,8 @@
  */
 package org.dspace.importer.external.metadatamapping.contributor;
 
+import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -51,6 +53,8 @@ public class SimpleXpathMetadatumAndAttributeContributor extends SimpleXpathMeta
                 String attributeValue = element.getAttributeValue(this.attribute);
                 if (StringUtils.isNotBlank(attributeValue)) {
                     values.add(metadataFieldMapping.toDCValue(this.field, attributeValue));
+                } else {
+                    values.add(metadataFieldMapping.toDCValue(this.field, PLACEHOLDER_PARENT_METADATA_VALUE));
                 }
             } else {
                 log.warn("node of type: " + el.getClass());

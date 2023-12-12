@@ -36,6 +36,7 @@
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportSeriesReader">
+        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
         <property name="titleXPath" value="./subfield[@code = 'a']"/>
         <property name="numberXPath" value="./subfield[@code = 'v']"/>
     </bean>
@@ -143,6 +144,7 @@
             <util:map>
                 <entry key="epfl.relationpublication.type" value="./subfield[@code = 'e']"/>
                 <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relationpublication.identifier" value=""/>
             </util:map>
         </property>
     </bean>
@@ -152,8 +154,9 @@
         <property name="skipDateConversion" value="true"/>
         <property name="metadataFieldsPaths">
             <util:map>
-                <entry key="epfl.relationproduct.type" value="./subfield[@code = '2']"/>
+                <entry key="epfl.relationproduct.type" value="static:IsSupplementedBy"/>
                 <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
+                <entry key="dc.relationproduct.identifier" value=""/>
             </util:map>
         </property>
     </bean>
@@ -185,8 +188,8 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportPublicDefenseYearReader" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamRelationReader" >
-        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']"/>
-        <property name="relationValueXPath" value = "./subfield[@code = 'u']" />
+        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'u']"/>
+        <property name="relationValueXPath" value = "." />
         <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]"></property>
     </bean>
     
@@ -195,21 +198,30 @@
         <property name="propertiesPath" value="crosswalks/mapConverter-coarVersions.properties" />
     </bean>
     
+    <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
+        <property name="readerName" value="language" />
+        <property name="propertiesPath" value="crosswalks/mapConverter-languages.properties" />
+        <property name="defaultValue" value="other" />
+    </bean>
+    
     <bean class="org.dspace.epfl.script.reader.ItemsImportIsbnReader">
         <property name="containerMetadataField" value="dc.identifier.isbn" />
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPageReader">
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
+        <property name="articleNumberMetadataField" value="oaire.citation.articlenumber"></property>
     </bean>
     
-    <bean class="org.dspace.epfl.script.reader.ItemsImportIsPartOfReader">
+    <bean class="org.dspace.epfl.script.reader.ItemsImportJournalReader">
         <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
-        <property name="journalMetadataField" value="dc.relation.journal" />
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportThesisReader">
         <property name="authorityPrefix" value="will be referenced::ACRONYM::" />
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.service.impl.ItemsImportCreationDateDaoImpl">
     </bean>
     
 </beans>

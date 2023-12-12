@@ -8,16 +8,22 @@
  */
 package org.dspace.importer.external.metadatamapping.contributor;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang.StringUtils;
 import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.util.SimpleMapConverter;
+import org.jdom2.Attribute;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
+import org.jdom2.filter.Filters;
+import org.jdom2.xpath.XPathExpression;
+import org.jdom2.xpath.XPathFactory;
 
 /**
  * This contributor replace metadata value
@@ -34,16 +40,23 @@ public class ReplaceFieldXPathMetadataContributor extends SimpleXpathMetadatumCo
     @Override
     public Collection<MetadatumDTO> contributeMetadata(Element element) {
         List<MetadatumDTO> values = new LinkedList<>();
-        MetadatumDTO metadatum = null;
+
+        List<Namespace> namespaces = new ArrayList<>();
         for (String ns : prefixToNamespaceMapping.keySet()) {
-            List<Element> nodes = element.getChildren(query, Namespace.getNamespace(ns));
-            for (Element el : nodes) {
-                metadatum = getMetadatum(field, el.getValue());
-                if (Objects.nonNull(metadatum)) {
-                    values.add(metadatum);
-                }
+            namespaces.add(Namespace.getNamespace(prefixToNamespaceMapping.get(ns), ns));
+        }
+        XPathExpression<Object> xpath = XPathFactory.instance().compile(query, Filters.fpassthrough(), null,namespaces);
+        List<Object> nodes = xpath.evaluate(element);
+
+        MetadatumDTO metadatum = null;
+
+        for (Object el : nodes) {
+            metadatum = getMetadatum(field, extractValue(el));
+            if (Objects.nonNull(metadatum)) {
+                values.add(metadatum);
             }
         }
+
         return values;
     }
 
@@ -61,6 +74,11 @@ public class ReplaceFieldXPathMetadataContributor extends SimpleXpathMetadatumCo
         dcValue.setQualifier(field.getQualifier());
         dcValue.setSchema(field.getSchema());
         return dcValue;
+    }
+
+    private String extractValue(Object el) {
+        String value = ((Attribute) el).getValue();
+        return StringUtils.isNotBlank(value) ? value : ((Element) el).getValue().trim();
     }
 
     public SimpleMapConverter getSimpleMapConverter() {

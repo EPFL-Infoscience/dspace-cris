@@ -57,6 +57,33 @@
         <property name="singleResultOnAggregate" value="false"/>
      </bean>
 
+    <bean class="org.dspace.content.authority.ItemUriAuthorityMetadataGenerator">
+        <property name="authorityName" value="PublicationAuthority"/>
+        <property name="keyId" value="dc_relationpublication_identifier"/>
+        <property name="schema" value="dc"/>
+        <property name="element" value="identifier"/>
+        <property name="qualifier" value="uri"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemUriAuthorityMetadataGenerator">
+        <property name="authorityName" value="DataSetAuthority"/>
+        <property name="keyId" value="dc_relationproduct_identifier"/>
+        <property name="schema" value="dc"/>
+        <property name="element" value="identifier"/>
+        <property name="qualifier" value="uri"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemUriAuthorityMetadataGenerator">
+        <property name="authorityName" value="PatentAuthority"/>
+        <property name="keyId" value="dc_relationpatent_identifier"/>
+        <property name="schema" value="dc"/>
+        <property name="element" value="identifier"/>
+        <property name="qualifier" value="uri"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="EventAuthority"/>
         <property name="keyId" value="oaire_citation_conferencePlace"/>

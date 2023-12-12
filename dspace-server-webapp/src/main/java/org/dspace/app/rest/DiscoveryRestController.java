@@ -211,6 +211,11 @@ public class DiscoveryRestController implements InitializingBean {
         }
 
         try {
+
+            if (prefix != null && !prefix.toUpperCase().equals(prefix)) {
+                prefix = prefix.toLowerCase();
+            }
+
             FacetResultsRest facetResultsRest = discoveryRestRepository
                 .getFacetObjects(facetName, prefix, query, dsoTypes, dsoScope, configuration, searchFilters, page);
 

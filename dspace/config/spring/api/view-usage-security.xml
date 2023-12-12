@@ -19,6 +19,4 @@
         </bean>
     </util:list>
     <bean name="loggedInFilter" class="org.dspace.content.security.LoggedInFilter"/>
-    <bean id="org.dspace.versioning.service.ViewStatisticsService"
-          class="org.dspace.versioning.ViewStatisticsServiceImpl"/>
 </beans>

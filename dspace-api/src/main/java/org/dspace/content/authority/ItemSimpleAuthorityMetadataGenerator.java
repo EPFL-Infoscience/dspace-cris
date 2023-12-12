@@ -146,18 +146,24 @@ public class ItemSimpleAuthorityMetadataGenerator implements ItemAuthorityExtraM
                     + " check the discovery.index.projection properties in the discovery.cfg");
             return Collections.EMPTY_LIST;
         }
-        String metadata = getMetadata(schema, element, qualifier) + "_stored";
         List<MetadataValueDTO> metadataValues =  new ArrayList<MetadataValueDTO>();
-        ArrayList<String> fieldValue = (ArrayList<String>) solrDocument.getFieldValue(metadata);
-        if (fieldValue != null) {
-            for (String storedValue : fieldValue) {
+        String metadataForName = getMetadata(schema, element, qualifier) + "_stored";
+        String metadataForAuthority = getMetadata(schema, element, qualifier) + "_authority";
+        ArrayList<String> fieldValueOfName = (ArrayList<String>) solrDocument.getFieldValue(metadataForName);
+        ArrayList<String> fieldValueOfAuthority = (ArrayList<String>) solrDocument.getFieldValue(metadataForAuthority);
+        if (fieldValueOfName != null) {
+            for (int i = 0; i < fieldValueOfName.size(); i++) {
                 MetadataValueDTO dto = new MetadataValueDTO();
                 dto.setSchema(schema);
                 dto.setElement(element);
                 dto.setQualifier(qualifier);
-                String[] split = storedValue.split(storedSeparatorSplit);
+                String[] split = fieldValueOfName.get(i).split(storedSeparatorSplit);
                 dto.setValue(nullOrValue(split[0]));
-                dto.setAuthority(nullOrValue(split[3]));
+                if (fieldValueOfAuthority != null && i < fieldValueOfAuthority.size()) {
+                    dto.setAuthority(nullOrValue(fieldValueOfAuthority.get(i)));
+                } else {
+                    dto.setAuthority(null);
+                }
                 dto.setLanguage(nullOrValue(split[4]));
                 metadataValues.add(dto);
             }

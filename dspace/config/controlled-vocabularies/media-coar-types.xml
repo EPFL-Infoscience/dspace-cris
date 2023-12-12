@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This XML was automatically generated from the SKOS sources for the COAR Vocabulary. It follows the schema developed by 4Science (https://www.4science.it/) for DSpace -->
+<node id="http://purl.org/coar/resource_type/scheme" label="Resource Types">
+  <isComposedBy>
+    <node id="c_18cf" label="text">
+      <hasNote>A resource consisting primarily of words for reading. Examples include books, letters, dissertations, poems, newspapers, articles, archives of mailing lists. Note that facsimiles or images of texts are still of the genre Text. [Source: http://purl.org/dc/dcmitype/Text]
+      </hasNote>
+        <isComposedBy>
+          <node id="c_6947" label="blog post">
+            <hasNote>A piece of writing or other item of content published on a blog. [Source: https://www.lexico.com/definition/blog_post]
+            </hasNote>
+           </node>
+          <node id="c_2cd9" label="magazine">
+            <hasNote>A popular interest periodical usually containing articles on a variety of topics, written by various authors in a nonscholarly style or a trade publication, unlike a consumer publication, covers a specific topic for people who work in that particular field or industry. [Source: Adapted from https://www.thebalance.com/what-is-a-trade-publication-exactly-2316039 and http://www.abc-clio.com/ODLIS/odlis_m.aspx]
+            </hasNote>
+          </node>
+          <node id="c_998f" label="newspaper article">
+            <hasNote>Work consisting of a news item appearing in a general-interest newspaper or other general news periodical, containing information of current and timely interest in a field. (Adapted from http://www.reference.md/files/D018/mD018431.html )
+            </hasNote>
+          </node>
+        </isComposedBy>
+    </node>
+  </isComposedBy>
+</node>

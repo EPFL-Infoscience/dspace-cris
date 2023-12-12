@@ -138,6 +138,12 @@
   </dc-type>
 
   <dc-type>
+    <schema>dcterms</schema>
+    <element>rightHolder</element>
+    <scope_note>The holder of patent</scope_note>
+  </dc-type>
+
+  <dc-type>
 	<schema>dcterms</schema>
     <element>description</element>
     <scope_note>An account of the resource.</scope_note>

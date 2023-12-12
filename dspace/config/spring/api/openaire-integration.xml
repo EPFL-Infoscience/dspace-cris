@@ -17,6 +17,8 @@
             only matters here for postprocessing of the value. The mapped MetadatumContributor has full control over
             what metadatafield is generated.
         </description>
+<!--        <entry key-ref="openaire.type" value-ref="openaireTypeTestContrib"/>-->
+        <entry key-ref="openaire.type" value-ref="openaireTypeContrib"/>
         <entry key-ref="openaire.title" value-ref="openaireTitleContrib"/>
         <entry key-ref="openaire.summary" value-ref="openaireSummaryContrib"/>
         <entry key-ref="openaire.published" value-ref="openairePublishedContrib"/>
@@ -27,6 +29,20 @@
         <entry key-ref="openaire.identifier.other" value-ref="openaireOtherContrib"/>
     </util:map>
 
+    <bean id="openaireTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.ReplaceFieldXPathMetadataContributor">
+        <property name="field" ref="openaire.type"/>
+        <property name="query" value="descendant::oaf:result/resourcetype/@classname"/>
+        <property name="simpleMapConverter" ref="mapConverterOpenaireToDSpacePublicationType"/>
+        <property name="prefixToNamespaceMapping" ref="openairePrefixToNamespaceMapping"/>
+    </bean>
+    <bean id="openaire.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.type"/>
+    </bean>
+    <bean name="mapConverterOpenaireToDSpacePublicationType" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-openaire-to-dspace-publication-type.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="Controlled Vocabulary for Resource Type Genres::other"/>
+    </bean>
 
     <bean id="openaireOtherContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="openaire.identifier.other"/>
@@ -35,6 +51,12 @@
     </bean>
     <bean id="openaire.identifier.other" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.other"/>
+    </bean>
+
+    <bean id="openaireTypeTestContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+        <property name="field" ref="openaire.type"/>
+        <property name="query" value="descendant::oaf:result/instancetype"/>
+        <property name="prefixToNamespaceMapping" ref="openairePrefixToNamespaceMapping"/>
     </bean>
 
 
