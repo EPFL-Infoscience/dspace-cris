@@ -139,17 +139,6 @@
             <provenance />
         </collection>
         <collection>
-            <name>Student works</name>
-            <entity-type>Student</entity-type>
-            <submission-type>student</submission-type>
-            <description />
-            <intro />
-            <copyright />
-            <sidebar />
-            <license />
-            <provenance />
-        </collection>
-        <collection>
             <name>Teaching Materials</name>
             <entity-type>Teaching</entity-type>
             <submission-type>teaching</submission-type>

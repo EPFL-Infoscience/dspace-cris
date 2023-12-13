@@ -210,6 +210,7 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPageReader">
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
+        <property name="articleNumberMetadataField" value="oaire.citation.articlenumber"></property>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportJournalReader">
@@ -218,6 +219,9 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportThesisReader">
         <property name="authorityPrefix" value="will be referenced::ACRONYM::" />
+    </bean>
+    
+    <bean class="org.dspace.epfl.script.service.impl.ItemsImportCreationDateDaoImpl">
     </bean>
     
 </beans>

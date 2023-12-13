@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.logic.Filter;
 import org.dspace.content.logic.FilterUtils;
 import org.dspace.core.Constants;
@@ -28,7 +27,6 @@ import org.dspace.identifier.service.DOIService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
-import org.dspace.workflow.factory.WorkflowServiceFactory;
 
 /**
  * @author Pascal-Nicolas Becker (p dot becker at tu hyphen berlin dot de)
@@ -76,8 +74,7 @@ public class DOIConsumer implements Consumer {
         }
         Item item = (Item) dso;
         DOIIdentifierProvider provider = new DSpace().getSingletonService(DOIIdentifierProvider.class);
-        boolean inProgress = (ContentServiceFactory.getInstance().getWorkspaceItemService().findByItem(ctx, item)
-                != null || WorkflowServiceFactory.getInstance().getWorkflowItemService().findByItem(ctx, item) != null);
+        boolean inProgress = !item.isArchived() && !item.isWithdrawn();
         boolean identifiersInSubmission = configurationService.getBooleanProperty("identifiers.submission.register",
                 false);
         DOIService doiService = IdentifierServiceFactory.getInstance().getDOIService();

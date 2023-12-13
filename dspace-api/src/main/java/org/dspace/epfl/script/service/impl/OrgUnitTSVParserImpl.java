@@ -93,14 +93,10 @@ public class OrgUnitTSVParserImpl implements OrgUnitTSVParser {
 
         String[] lineValues = getValuesFromLine(line);
 
-        if (lineValues.length != headers.length) {
-            throw new IllegalArgumentException("The row " + lineCount + " has a number of values not compliance "
-                + "to the header. Expected " + headers.length + ", found " + lineValues.length);
-        }
-
         Map<String, String> values = new HashMap<>();
-        for (int i = 0; i < lineValues.length; i++) {
-            values.put(headers[i], lineValues[i]);
+        for (int i = 0; i < headers.length; i++) {
+            String value = lineValues.length > i ? lineValues[i] : "";
+            values.put(headers[i], value);
         }
 
         return new OrgUnitRow(values, lineCount);
