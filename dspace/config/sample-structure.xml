@@ -8,7 +8,7 @@
 		<sidebar />
 		<collection>
 			<name>Books and Book parts</name>
-			<entity-type>Book</entity-type>
+			<entity-type>Publication</entity-type>
 			<submission-type>book</submission-type>
 			<description />
 			<intro />
@@ -19,7 +19,7 @@
 		</collection>
         <collection>
             <name>Conferences, Workshops, Symposiums, and Seminars</name>
-            <entity-type>Conference</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>conference</submission-type>
             <description />
             <intro />
@@ -30,7 +30,7 @@
         </collection>
         <collection>
             <name>Datasets and Code</name>
-            <entity-type>Dataset</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>dataset</submission-type>
             <description />
             <intro />
@@ -41,7 +41,7 @@
         </collection>
         <collection>
             <name>EPFL thesis</name>
-            <entity-type>Thesis</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>thesis</submission-type>
             <description />
             <intro />
@@ -52,7 +52,7 @@
         </collection>
         <collection>
             <name>Images, Videos, Interactive resources, and Design</name>
-            <entity-type>Design</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>design</submission-type>
             <description />
             <intro />
@@ -63,7 +63,7 @@
         </collection>
         <collection>
             <name>Journal articles</name>
-            <entity-type>Article</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>article</submission-type>
             <description />
             <intro />
@@ -74,7 +74,7 @@
         </collection>
         <collection>
             <name>Newspaper, Magazine, or Blog post</name>
-            <entity-type>Media</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>media</submission-type>
             <description />
             <intro />
@@ -107,7 +107,7 @@
         </collection>
         <collection>
             <name>Preprints and Working Papers</name>
-            <entity-type>Preprint</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>preprint</submission-type>
             <description />
             <intro />
@@ -118,7 +118,7 @@
         </collection>
         <collection>
             <name>Reports, Documentation, and Standards</name>
-            <entity-type>Report</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>report</submission-type>
             <description />
             <intro />
@@ -129,7 +129,7 @@
         </collection>
         <collection>
             <name>Student works</name>
-            <entity-type>Student</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>student</submission-type>
             <description />
             <intro />
@@ -140,7 +140,7 @@
         </collection>
         <collection>
             <name>Teaching Materials</name>
-            <entity-type>Teaching</entity-type>
+            <entity-type>Publication</entity-type>
             <submission-type>teaching</submission-type>
             <description />
             <intro />
