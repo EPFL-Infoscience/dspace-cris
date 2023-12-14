@@ -159,7 +159,7 @@ public class ItemSimpleAuthorityMetadataGenerator implements ItemAuthorityExtraM
                 dto.setQualifier(qualifier);
                 String[] split = fieldValueOfName.get(i).split(storedSeparatorSplit);
                 dto.setValue(nullOrValue(split[0]));
-                if (i < fieldValueOfAuthority.size()) {
+                if (fieldValueOfAuthority != null && i < fieldValueOfAuthority.size()) {
                     dto.setAuthority(nullOrValue(fieldValueOfAuthority.get(i)));
                 } else {
                     dto.setAuthority(null);

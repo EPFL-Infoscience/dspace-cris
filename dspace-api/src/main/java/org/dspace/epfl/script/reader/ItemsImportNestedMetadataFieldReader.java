@@ -45,7 +45,7 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
 
         for (int i = 0; i < nodeList.getLength(); i++) {
 
-            Node node = nodeList.item(i);
+            Node node = nodeList.item(i).cloneNode(true);
 
             for (String nestedMetadataField : metadataFieldsPaths.keySet()) {
                 metadataValues.add(readNestedValue(node, nestedMetadataField));
@@ -63,7 +63,14 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
         if (StringUtils.isBlank(path)) {
             return new MetadataValueDTO(nestedMetadataField, PLACEHOLDER_PARENT_METADATA_VALUE);
         }
-        String singleValue = getSingleValue(node, xPath, path);
+
+        String singleValue = null;
+        if (path.startsWith("static:")) {
+            singleValue = StringUtils.removeStart(path, "static:");
+        } else {
+            singleValue = getSingleValue(node, xPath, path);
+        }
+
         String value = skipDateConversion ? singleValue : convertIfDate(singleValue);
 
         if (StringUtils.isBlank(value)) {

@@ -13,7 +13,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.content.MetadataSchemaEnum.CRIS;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -74,6 +76,8 @@ public class CrisConsumer implements Consumer {
     private final static String NO_ITEM_FOUND_BY_AUTHORITY_MSG = "No related item found by authority {}";
 
     private static Logger log = LogManager.getLogger(CrisConsumer.class);
+
+    private ThreadLocal<Map<String, UUID>> valuesToItemIds = ThreadLocal.withInitial(() -> new HashMap<>());
 
     private Set<Item> itemsAlreadyProcessed = new HashSet<Item>();
 
@@ -155,7 +159,7 @@ public class CrisConsumer implements Consumer {
 
             String crisSourceId = generateCrisSourceId(metadata);
 
-            Item relatedItem = itemSearchService.search(context, crisSourceId, entityType, item);
+            Item relatedItem = search(context, item, entityType, crisSourceId);
             boolean relatedItemAlreadyPresent = relatedItem != null;
 
             if (!relatedItemAlreadyPresent && isNotBlank(authority) && isReferenceAuthority(authority)) {
@@ -177,12 +181,28 @@ public class CrisConsumer implements Consumer {
 
             }
 
+            valuesToItemIds.get().put(crisSourceId, relatedItem.getID());
+
             fillRelatedItem(context, metadata, relatedItem, relatedItemAlreadyPresent);
 
             choiceAuthorityService.setReferenceWithAuthority(metadata, relatedItem);
 
         }
 
+    }
+
+    private Item search(Context context, Item item, String entityType, String crisSourceId) throws SQLException {
+
+        Item relatedItem = null;
+        if (valuesToItemIds.get().containsKey(crisSourceId)) {
+            relatedItem = context.reloadEntity(itemService.find(context, valuesToItemIds.get().get(crisSourceId)));
+        }
+
+        if (relatedItem != null) {
+            return relatedItem;
+        }
+
+        return itemSearchService.search(context, crisSourceId, entityType, item);
     }
 
     private boolean isMetadataSkippable(MetadataValue metadata) {
@@ -240,6 +260,7 @@ public class CrisConsumer implements Consumer {
     @Override
     public void end(Context context) throws Exception {
         itemsAlreadyProcessed.clear();
+        valuesToItemIds.get().clear();
     }
 
     private String getFieldKey(MetadataValue metadata) {

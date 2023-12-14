@@ -27,7 +27,7 @@
         <constructor-arg value="dc.type"/>
     </bean>
      <bean id="dcJournal" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.source"/>
+        <constructor-arg value="dc.relation.journal"/>
     </bean>
  	<bean id="dcTitle" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.title"/>
