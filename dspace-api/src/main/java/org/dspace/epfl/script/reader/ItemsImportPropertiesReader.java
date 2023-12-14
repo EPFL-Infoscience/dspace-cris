@@ -38,6 +38,8 @@ public class ItemsImportPropertiesReader implements ItemsImportMetadataFieldRead
 
     private String propertiesPath;
 
+    private String defaultValue;
+
     @PostConstruct
     private void setupMapping() {
 
@@ -58,9 +60,12 @@ public class ItemsImportPropertiesReader implements ItemsImportMetadataFieldRead
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             String key = node.getTextContent();
-            if (StringUtils.isNotBlank(key) && properties.containsKey(key)) {
-                metadataValues.add(new MetadataValueDTO(metadataField, properties.getProperty(key)));
+
+            if (StringUtils.isBlank(key) || (StringUtils.isBlank(defaultValue) && !properties.containsKey(key))) {
+                continue;
             }
+
+            metadataValues.add(new MetadataValueDTO(metadataField, properties.getProperty(key, defaultValue)));
         }
 
         return metadataValues;
@@ -86,6 +91,14 @@ public class ItemsImportPropertiesReader implements ItemsImportMetadataFieldRead
 
     public void setPropertiesPath(String propertiesPath) {
         this.propertiesPath = propertiesPath;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
     }
 
 }

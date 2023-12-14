@@ -120,6 +120,8 @@
         <mapping class="org.dspace.supervision.SupervisionOrder"/>
 
         <mapping class="org.dspace.unpaywall.model.Unpaywall" />
+        
+        <mapping class="org.dspace.epfl.script.model.ItemsImportCreationDate" />
 
     </session-factory>
 </hibernate-configuration>

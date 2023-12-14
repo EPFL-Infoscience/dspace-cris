@@ -6604,18 +6604,6 @@
       </row>
       <row>
         <field>
-          <dc-schema>dspace</dc-schema>
-          <dc-element>legacy</dc-element>
-          <dc-qualifier>Oai-identifier</dc-qualifier>
-          <label>Identifiant OAI</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>oai</dc-element>
           <dc-qualifier>currentset</dc-qualifier>

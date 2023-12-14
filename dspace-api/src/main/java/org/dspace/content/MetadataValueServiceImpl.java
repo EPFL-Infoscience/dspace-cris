@@ -55,8 +55,8 @@ public class MetadataValueServiceImpl implements MetadataValueService {
 //An update here isn't needed, this is persited upon the merge of the owning object
 //        metadataValueDAO.save(context, metadataValue);
         metadataValue = metadataValueDAO.create(context, metadataValue);
-        log.info(LogHelper.getHeader(context, "add_metadatavalue",
-                                     "metadata_value_id=" + metadataValue.getID()));
+//        log.info(LogHelper.getHeader(context, "add_metadatavalue",
+//                                     "metadata_value_id=" + metadataValue.getID()));
 
         return metadataValue;
     }
@@ -104,8 +104,8 @@ public class MetadataValueServiceImpl implements MetadataValueService {
 
     @Override
     public void delete(Context context, MetadataValue metadataValue) throws SQLException {
-        log.info(LogHelper.getHeader(context, "delete_metadata_value",
-                                      " metadata_value_id=" + metadataValue.getID()));
+//        log.info(LogHelper.getHeader(context, "delete_metadata_value",
+//                                      " metadata_value_id=" + metadataValue.getID()));
         metadataValueDAO.delete(context, metadataValue);
     }
 

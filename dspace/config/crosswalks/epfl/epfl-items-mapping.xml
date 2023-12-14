@@ -40,6 +40,7 @@
         <metadata-field>
             <field>dc.language.iso</field>
             <xpath>./datafield[@tag = '041']/subfield[@code = 'a']</xpath>
+            <reader>language</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.number</field>
@@ -78,10 +79,6 @@
         <metadata-field>
             <field>epfl.legacy.itemtype</field>
             <xpath>./datafield[@tag = '336']/subfield[@code = 'a']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>epfl.datatype</field>
-            <xpath>./datafield[@tag = '336']/subfield[@code = 'c']</xpath>
         </metadata-field>
         <metadata-field>
             <field>dc.description</field>
@@ -221,15 +218,15 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = '1']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>datacite.rights</field>
-            <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'e']</xpath>
-        </metadata-field>
-        <metadata-field>
             <field>epfl.legacy.fileversion</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'z']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>dc.relation.sponsorship</field>
+            <field>dc.relation</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]/subfield[@code = 'u']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>dc.description.sponsorship</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = '0']</xpath>
             <reader>orgUnit</reader>
         </metadata-field>
@@ -349,11 +346,6 @@
 	        <metadata-field>
 	            <field>epfl.legacy.fileversion</field>
 	            <xpath>./subfield[@code = 'z']</xpath>
-	        </metadata-field>
-	        <metadata-field>
-                <field>dc.relation</field>
-                <xpath>./self::node()</xpath>
-                <reader>bitstreamRelation</reader>
 	        </metadata-field>
 	    </metadata-fields>
     </bitstreams>

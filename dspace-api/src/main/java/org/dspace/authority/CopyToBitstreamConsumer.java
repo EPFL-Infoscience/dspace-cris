@@ -285,7 +285,7 @@ public class CopyToBitstreamConsumer implements Consumer {
 
     @Override
     public void end(Context context) throws Exception {
-
+        itemsAlreadyProcessed.clear();
     }
 
     @Override

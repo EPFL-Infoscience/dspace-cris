@@ -32,7 +32,7 @@ public class ItemsImportDateIssuedReader implements ItemsImportMetadataFieldRead
     private int compareByPrecision(String firstDate, String secondDate) {
         Integer firstPrecisionCount = Integer.valueOf(StringUtils.countMatches(firstDate, "-"));
         Integer secondPrecisionCount = Integer.valueOf(StringUtils.countMatches(secondDate, "-"));
-        return firstPrecisionCount.compareTo(secondPrecisionCount);
+        return secondPrecisionCount.compareTo(firstPrecisionCount);
     }
 
     private List<String> getAllValues(NodeList nodeList) {
