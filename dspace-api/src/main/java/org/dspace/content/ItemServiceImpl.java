@@ -493,9 +493,9 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Override
     public void updateLastModified(Context context, Item item) throws SQLException, AuthorizeException {
         item.setLastModified(new Date());
-        update(context, item);
+        // update(context, item);
         //Also fire a modified event since the item HAS been modified
-        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, getIdentifiers(context, item)));
+        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));
 
         setLastModifiedDateMetadata(context, item);
     }
@@ -508,8 +508,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             authorizeService.authorizeAction(context, item, Constants.WRITE);
         }
 
-        log.info(LogHelper.getHeader(context, "update_item", "item_id="
-                + item.getID()));
+//        log.info(LogHelper.getHeader(context, "update_item", "item_id="
+//                + item.getID()));
 
         super.update(context, item);
 
@@ -802,11 +802,10 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
             if (item.isMetadataModified()) {
                 context.addEvent(new Event(Event.MODIFY_METADATA, item.getType(), item.getID(), item.getDetails(),
-                        getIdentifiers(context, item)));
+                    new ArrayList<String>()));
             }
 
-            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(),
-                    null, getIdentifiers(context, item)));
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));
             item.clearModified();
             item.clearDetails();
         }
@@ -1870,8 +1869,7 @@ prevent the generation of resource policy entry values with null dspace_object a
     public List<MetadataValue> getMetadata(Item item, String schema, String element, String qualifier, String lang,
                                            boolean enableVirtualMetadata) {
 
-        enableVirtualMetadata = enableVirtualMetadata
-                && configurationService.getBooleanProperty("item.enable-virtual-metadata", false);
+        enableVirtualMetadata = false;
 
         if (!enableVirtualMetadata) {
             log.debug("Called getMetadata for " + item.getID() + " without enableVirtualMetadata");

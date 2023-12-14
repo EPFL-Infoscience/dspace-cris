@@ -8,7 +8,6 @@
 package org.dspace.authority.service.impl;
 
 import static org.dspace.content.Item.ANY;
-import static org.dspace.content.MetadataSchemaEnum.CRIS;
 
 import java.sql.SQLException;
 import java.util.Iterator;
@@ -26,6 +25,11 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexableWorkflowItem;
+import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,6 +85,11 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
     private Optional<Item> findByCrisSourceIdAndEntityType(Context context, String crisSourceId,
         String entityType) {
+
+        if (crisSourceId.contains((AuthorityValueService.SPLIT))) {
+            return Optional.empty();
+        }
+
         Iterator<Item> items = findByCrisSourceId(context, crisSourceId);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(items, Spliterator.ORDERED), false)
             .filter(item -> hasEntityTypeEqualsTo(item, entityType))
@@ -97,11 +106,12 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     }
 
     private Iterator<Item> findByCrisSourceId(Context context, String crisSourceId) {
-        try {
-            return itemService.findUnfilteredByMetadataField(context, CRIS.getName(), "sourceId", null, crisSourceId);
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException("An error occurs searching items by crisSourceId " + crisSourceId, e);
-        }
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
+        discoverQuery.addFilterQueries("cris.sourceId:" + crisSourceId);
+        return new DiscoverResultItemIterator(context, discoverQuery);
     }
 
     private boolean hasEntityTypeEqualsTo(Item item, String entityType) {
