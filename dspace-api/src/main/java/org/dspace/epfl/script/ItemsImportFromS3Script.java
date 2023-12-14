@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.persistence.PersistenceException;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -67,6 +68,7 @@ import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.dto.ResourcePolicyDTO;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.packager.PackageUtils;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -152,8 +154,6 @@ public class ItemsImportFromS3Script
 
     private boolean workbookMode;
 
-    private boolean overwriteBitstreams;
-
     private int commitSize = 20;
 
     private String creationDatesFileName;
@@ -207,7 +207,6 @@ public class ItemsImportFromS3Script
 
         skipBitstreamsUpload = commandLine.hasOption("sbu");
 
-        overwriteBitstreams = commandLine.hasOption("ob");
         workbookMode = commandLine.hasOption("w");
         creationDatesFileName = commandLine.getOptionValue("cd");
 
@@ -288,8 +287,13 @@ public class ItemsImportFromS3Script
                 count++;
                 if (count % commitSize == 0) {
                     context.commit();
-                    handler.logInfo("Imported " + count + " items");
+                    handler.logInfo("Imported " + importedItemsCount + " items");
                 }
+            } catch (PersistenceException pex) {
+                handler.logError("An persistence error occurs importing item with ID " + item.getItem().getId()
+                    + ". The previous changes in the current chunck will be rollbacked", pex);
+                errorsCount++;
+                context.rollback();
             } catch (Exception ex) {
                 handler.logError("An error occurs importing item with ID " + item.getItem().getId(), ex);
                 errorsCount++;
@@ -297,6 +301,12 @@ public class ItemsImportFromS3Script
         }
 
         context.commit();
+
+        handler.logInfo("Import completed. Written " + count
+            + " items with success. Skipped " + skippedItemsCount + " items. Errors: " + errorsCount);
+        for (String type : typeCounts.keySet()) {
+            handler.logInfo(type + " - Items count: " + typeCounts.get(type));
+        }
 
     }
 
@@ -318,9 +328,7 @@ public class ItemsImportFromS3Script
         removeItemMetadataValuesAndBitstreams(item);
 
         addMetadataValues(itemImport, item);
-        if (overwriteBitstreams) {
-            addBitstreams(itemImport, item);
-        }
+        addBitstreams(itemImport, item);
 
         itemService.update(context, item);
 
@@ -332,9 +340,7 @@ public class ItemsImportFromS3Script
 
     private void removeItemMetadataValuesAndBitstreams(Item item) throws Exception {
         removeItemMetadataValues(item);
-        if (overwriteBitstreams) {
-            removeItemBitstreams(item);
-        }
+        removeItemBitstreams(item);
     }
 
     private void removeItemMetadataValues(Item item) throws SQLException {
@@ -363,6 +369,8 @@ public class ItemsImportFromS3Script
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
         Item item = workspaceItem.getItem();
 
+        PackageUtils.addDepositLicense(context, null, item, collection);
+
         addMetadataValues(itemImport, item);
         addBitstreams(itemImport, item);
 
@@ -389,6 +397,7 @@ public class ItemsImportFromS3Script
 
             if (inputStream == null) {
                 handler.logWarning("No content found for bitstream " + bitstreamDto.getLocation());
+                continue;
             }
 
             Bundle bundle = getBundleByName(item, bundleName)
@@ -472,9 +481,17 @@ public class ItemsImportFromS3Script
     private void addMetadataValues(ItemImportDTO itemImport, Item item) throws SQLException {
 
         for (MetadataValueDTO metadataValue : itemImport.getItem().getMetadataValues()) {
+            String authority = metadataValue.getAuthority();
+            int confidence = metadataValue.getConfidence();
+            if (StringUtils.isNotBlank(authority) && authority.length() >= 100) {
+                handler.logWarning("Metadata value " + metadataValue.getValue() + " has an authority too longer: "
+                    + authority + ". The authority will be ignored because can't be stored.");
+                authority = null;
+                confidence = -1;
+            }
             itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
                 metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
-                metadataValue.getAuthority(), metadataValue.getConfidence());
+                authority, confidence);
         }
 
     }
@@ -530,7 +547,7 @@ public class ItemsImportFromS3Script
             return keys.stream();
         }
 
-        if (limit != null) {
+        if (limit != null || startAfter != null) {
             return itemsS3Service.getItemsKeys(limit, startAfter);
         }
 
@@ -653,7 +670,7 @@ public class ItemsImportFromS3Script
                 return null;
             }
 
-            ItemDTO item = marcXmlParser.readSingleItem(context, id, record, mapping);
+            ItemDTO item = marcXmlParser.readSingleItem(context, id, recordType, record, mapping);
 
             return new ItemImportDTO(recordType, item);
 

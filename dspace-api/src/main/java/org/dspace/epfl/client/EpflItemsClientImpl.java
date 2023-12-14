@@ -42,7 +42,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
 
 public class EpflItemsClientImpl implements EpflItemsClient {
 
@@ -79,7 +78,9 @@ public class EpflItemsClientImpl implements EpflItemsClient {
     @Override
     public List<S3ObjectSummary> getObjects(Integer limit, String startAfter) {
 
-        Assert.notNull(limit, "The limit is mandatory");
+        if (limit == null) {
+            limit = 200000;
+        }
 
         String bucketName = getBucketName();
 

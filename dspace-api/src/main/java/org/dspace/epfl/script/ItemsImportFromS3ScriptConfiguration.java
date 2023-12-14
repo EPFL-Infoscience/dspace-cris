@@ -65,10 +65,6 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("w").setType(boolean.class);
             options.getOption("w").setRequired(false);
 
-            options.addOption("ob", "overwriteBitstreams", false, "skip the bitstreams overwrite");
-            options.getOption("ob").setType(boolean.class);
-            options.getOption("ob").setRequired(false);
-
             options.addOption("cd", "creationDates", true, "import only zip with creation dates");
             options.getOption("cd").setType(InputStream.class);
             options.getOption("cd").setRequired(false);
