@@ -12,6 +12,7 @@ import static org.apache.commons.lang.StringUtils.startsWith;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -254,13 +255,13 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         super.update(context, bitstream);
         if (bitstream.isModified()) {
             context.addEvent(new Event(Event.MODIFY, Constants.BITSTREAM, bitstream.getID(), null,
-                                       getIdentifiers(context, bitstream)));
+                new ArrayList<String>()));
             bitstream.setModified();
         }
         if (bitstream.isMetadataModified()) {
             context.addEvent(
                 new Event(Event.MODIFY_METADATA, Constants.BITSTREAM, bitstream.getID(), bitstream.getDetails(),
-                          getIdentifiers(context, bitstream)));
+                    new ArrayList<String>()));
             bitstream.clearModified();
             bitstream.clearDetails();
         }

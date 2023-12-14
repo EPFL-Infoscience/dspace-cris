@@ -45,6 +45,10 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("l").setType(Integer.class);
             options.getOption("l").setRequired(false);
 
+            options.addOption("cs", "commitSize", true, "the commit size (default 20)");
+            options.getOption("cs").setType(Integer.class);
+            options.getOption("cs").setRequired(false);
+
             options.addOption("a", "after", true, "the key from which to start the download");
             options.getOption("a").setType(String.class);
             options.getOption("a").setRequired(false);
@@ -61,9 +65,9 @@ public class ItemsImportFromS3ScriptConfiguration<T extends ItemsImportFromS3Scr
             options.getOption("w").setType(boolean.class);
             options.getOption("w").setRequired(false);
 
-            options.addOption("ob", "overwriteBitstreams", false, "skip the bitstreams overwrite");
-            options.getOption("ob").setType(boolean.class);
-            options.getOption("ob").setRequired(false);
+            options.addOption("cd", "creationDates", true, "import only zip with creation dates");
+            options.getOption("cd").setType(InputStream.class);
+            options.getOption("cd").setRequired(false);
 
             super.options = options;
         }
