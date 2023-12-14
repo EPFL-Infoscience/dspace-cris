@@ -37,6 +37,8 @@ public class SolrServiceLastImportIndexPlugin implements SolrServiceIndexPlugin 
     @Autowired
     private MetadataFieldService metadataFieldService;
 
+    private List<MetadataFieldName> lastImportMetadataFields;
+
     @Override
     @SuppressWarnings("rawtypes")
     public void additionalIndex(Context context, IndexableObject dso, SolrInputDocument document) {
@@ -55,11 +57,17 @@ public class SolrServiceLastImportIndexPlugin implements SolrServiceIndexPlugin 
     }
 
     private List<MetadataFieldName> getLastImportMetadataFields(Context context) {
-        try {
-            return metadataFieldService.findMetadataFieldNamesBySchemaAndElement(context, "cris", "lastimport");
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
+
+        if (lastImportMetadataFields == null) {
+            try {
+                lastImportMetadataFields = metadataFieldService.findMetadataFieldNamesBySchemaAndElement(context,
+                    "cris", "lastimport");
+            } catch (SQLException e) {
+                throw new SQLRuntimeException(e);
+            }
         }
+
+        return lastImportMetadataFields != null ? lastImportMetadataFields : List.of();
     }
 
     private void addLastImportSortIndex(SolrInputDocument document, MetadataFieldName lastImportField, String value) {
