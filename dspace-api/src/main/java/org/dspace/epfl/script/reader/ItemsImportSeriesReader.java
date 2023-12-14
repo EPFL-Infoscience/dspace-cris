@@ -55,8 +55,6 @@ public class ItemsImportSeriesReader implements ItemsImportMetadataFieldReader {
                 String field = metadataField;
                 if (getIsPartOfSeriesTypes().contains(type)) {
                     field = isPartOfSeriesMetadataField;
-                } else {
-                    System.out.println(type);
                 }
                 metadataValues.add(new MetadataValueDTO(field, value));
             }

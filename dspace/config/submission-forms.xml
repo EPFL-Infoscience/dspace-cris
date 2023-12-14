@@ -6085,6 +6085,20 @@
         </field>
       </row>
       <row>
+      <field>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>citation</dc-element>
+          <dc-qualifier>articlenumber</dc-qualifier>
+          <label>Article Number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-4</style>
+          <hint>e.g. 052005</hint>
+          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f750</type-bind>
+        </field>
+      </row>
+      <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>identifier</dc-element>
@@ -6662,22 +6676,10 @@
       </row>
       <row>
         <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
           <label>OrgUnit</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint />
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dspace</dc-schema>
-          <dc-element>legacy</dc-element>
-          <dc-qualifier>Oai-identifier</dc-qualifier>
-          <label>OAI identifier</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />

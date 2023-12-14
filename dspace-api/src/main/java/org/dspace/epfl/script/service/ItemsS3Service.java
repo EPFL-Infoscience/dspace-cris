@@ -7,8 +7,12 @@
  */
 package org.dspace.epfl.script.service;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.stream.Stream;
+
+import org.dspace.core.Context;
+import org.dspace.scripts.handler.DSpaceRunnableHandler;
 
 public interface ItemsS3Service {
 
@@ -16,8 +20,11 @@ public interface ItemsS3Service {
 
     Stream<String> getItemsKeys(Integer limit, String startAfter);
 
-    InputStream getObject(String key);
+    File getObject(String key);
 
-    String getCreationDate(String id);
+    String getCreationDate(Context context, String id);
+
+    Integer importCreationDates(Context context, InputStream is, DSpaceRunnableHandler handler) throws Exception;
+
 
 }
