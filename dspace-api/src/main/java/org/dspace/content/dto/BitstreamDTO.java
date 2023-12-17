@@ -9,6 +9,7 @@ package org.dspace.content.dto;
 
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,8 @@ public class BitstreamDTO {
     private final Integer position;
 
     private String location;
+
+    private InputStream content;
 
     private final String checksum;
 
@@ -96,5 +99,13 @@ public class BitstreamDTO {
 
     public void updateLocationWithExtension(String fileExtension) {
         location += fileExtension;
+    }
+
+    public InputStream getContent() {
+        return content;
+    }
+
+    public void setContent(InputStream content) {
+        this.content = content;
     }
 }

@@ -10,11 +10,13 @@ package org.dspace.content.enhancer.impl;
 import static org.dspace.util.FunctionalUtils.throwingConsumerWrapper;
 
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -98,10 +100,20 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
             return;
         }
 
+        Set<String> idAlreadyUsed = new HashSet<String>();
+
         Queue<MetadataValue> enhanceableMetadataValues = new LinkedList<>(getEnhanceableMetadataValue(item));
 
         while (enhanceableMetadataValues.peek() != null) {
             MetadataValue metadataValue = enhanceableMetadataValues.poll();
+
+            String authority = metadataValue.getAuthority();
+            if (authority == null || idAlreadyUsed.contains(authority)) {
+                continue;
+            }
+
+            idAlreadyUsed.add(authority);
+
             Item relatedItem = findRelatedEntityItem(context, metadataValue);
 
             if (relatedItem == null) {
