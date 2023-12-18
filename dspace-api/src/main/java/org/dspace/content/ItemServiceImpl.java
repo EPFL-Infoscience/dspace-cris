@@ -2190,7 +2190,7 @@ prevent the generation of resource policy entry values with null dspace_object a
         return configurationService.getBooleanProperty("epfl.item-deletion.replication-enabled");
     }
 
-    private void replicateItem(Context context, Item item) throws IOException {
+    private void replicateItem(Context context, Item item) throws IOException, SQLException {
 
         String taskName = "transmitaip";
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

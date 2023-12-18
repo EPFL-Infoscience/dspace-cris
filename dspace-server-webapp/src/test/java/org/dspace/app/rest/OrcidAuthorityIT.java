@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.dspace.app.rest.matcher.ItemAuthorityMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
@@ -85,7 +86,7 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
     private Collection collection;
 
     @Before
-    public void setup() {
+    public void setup() throws SubmissionConfigReaderException {
 
         context.turnOffAuthorisationSystem();
 
@@ -118,7 +119,7 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
     }
 
     @After
-    public void cleanUp() {
+    public void cleanUp() throws SubmissionConfigReaderException {
 
         OrcidAuthority.setAccessToken(null);
         orcidConfiguration.setClientId(originalClientId);

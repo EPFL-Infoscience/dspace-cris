@@ -71,7 +71,7 @@ public class RorParentOrgUnitMetadataContributor extends SimpleJsonPathMetadataC
         return metadata;
     }
 
-    private JsonNode convertStringJsonToJsonNode(String json) {
+    public JsonNode convertStringJsonToJsonNode(String json) {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode body = null;
         try {

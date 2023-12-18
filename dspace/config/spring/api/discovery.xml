@@ -5189,6 +5189,12 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
+    <bean id="sortLastModified" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="lastModified" />
+        <property name="type" value="date" />
+        <property name="defaultSortOrder" value="desc"/>
+    </bean>
+
     <bean id="sortViews" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="metric.view"/>
         <property name="defaultSortOrder" value="desc"/>

@@ -8,14 +8,11 @@
 package org.dspace.core;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +22,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import javax.activation.DataHandler;
-import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.Address;
 import javax.mail.BodyPart;
@@ -696,113 +692,11 @@ public class Email {
         return fullMessage;
     }
 
-    /**
-     * Utility record class for handling file attachments.
-     *
-     * @author ojd20
-     */
-    private static class FileAttachment {
-        public FileAttachment(File f, String n) {
-            this.file = f;
-            this.name = n;
-        }
-
-        File file;
-
-        String name;
+    public List<FileAttachment> getAttachments() {
+        return attachments;
     }
 
-    /**
-     * Utility record class for handling file attachments.
-     *
-     * @author Adán Román Ruiz at arvo.es
-     */
-    private static class InputStreamAttachment {
-        public InputStreamAttachment(InputStream is, String name, String mimetype) {
-            this.is = is;
-            this.name = name;
-            this.mimetype = mimetype;
-        }
-
-        InputStream is;
-        String mimetype;
-        String name;
-    }
-
-    /**
-     * Wrap an {@link InputStream} in a {@link DataSource}.
-     *
-     * @author arnaldo
-     */
-    public static class InputStreamDataSource implements DataSource {
-        private final String name;
-        private final String contentType;
-        private final ByteArrayOutputStream baos;
-
-        /**
-         * Consume the content of an InputStream and store it in a local buffer.
-         *
-         * @param name give the DataSource a name.
-         * @param contentType the DataSource contains this type of data.
-         * @param inputStream content to be buffered in the DataSource.
-         * @throws IOException if the stream cannot be read.
-         */
-        InputStreamDataSource(String name, String contentType, InputStream inputStream) throws IOException {
-            this.name = name;
-            this.contentType = contentType;
-            baos = new ByteArrayOutputStream();
-            int read;
-            byte[] buff = new byte[256];
-            while ((read = inputStream.read(buff)) != -1) {
-                baos.write(buff, 0, read);
-            }
-        }
-
-        @Override
-        public String getContentType() {
-            return contentType;
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return new ByteArrayInputStream(baos.toByteArray());
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new IOException("Cannot write to this read-only resource");
-        }
-    }
-
-    /**
-     * Wrap ConfigurationService to prevent templates from modifying
-     * the configuration.
-     */
-    public static class UnmodifiableConfigurationService {
-        private final ConfigurationService configurationService;
-
-        /**
-         * Swallow an instance of ConfigurationService.
-         *
-         * @param cs the real instance, to be wrapped.
-         */
-        public UnmodifiableConfigurationService(ConfigurationService cs) {
-            configurationService = cs;
-        }
-
-        /**
-         * Look up a key in the actual ConfigurationService.
-         *
-         * @param key to be looked up in the DSpace configuration.
-         * @return whatever value ConfigurationService associates with {@code key}.
-         */
-        public String get(String key) {
-            return configurationService.getProperty(key);
-        }
+    public List<InputStreamAttachment> getMoreAttachments() {
+        return moreAttachments;
     }
 }

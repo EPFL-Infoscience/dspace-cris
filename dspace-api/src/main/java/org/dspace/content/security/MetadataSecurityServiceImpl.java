@@ -295,6 +295,14 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         return !isNotAdmin(context);
     }
 
+    private boolean isNotAdmin(Context context) {
+        try {
+            return context == null || !authorizeService.isAdmin(context);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
     private boolean isNotAdmin(Context context, Item item) {
         try {
             return context == null || !authorizeService.isAdmin(context, item);

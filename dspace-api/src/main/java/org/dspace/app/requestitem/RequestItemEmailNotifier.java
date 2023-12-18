@@ -61,9 +61,9 @@ public class RequestItemEmailNotifier {
     @Inject
     protected HandleService handleService;
 
-    private static final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    protected EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
-    private static final RequestItemService requestItemService
+    protected RequestItemService requestItemService
             = RequestItemServiceFactory.getInstance().getRequestItemService();
 
     protected final RequestItemAuthorExtractor requestItemAuthorExtractor;
