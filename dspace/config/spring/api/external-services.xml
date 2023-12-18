@@ -22,7 +22,7 @@
             </list>
         </property>
     </bean>
-    
+
     <!--
     <bean class="org.dspace.external.provider.impl.SHERPAv2JournalDataProvider" init-method="init">
         <property name="sourceIdentifier" value="sherpaJournal"/>
@@ -56,7 +56,7 @@
     </bean>
 
  -->
- 
+
      <bean class="org.dspace.external.provider.impl.OrcidV3AuthorDataProvider" init-method="init">
         <property name="sourceIdentifier" value="orcid"/>
         <property name="orcidUrl" value="${orcid.domain-url}" />
@@ -68,6 +68,12 @@
             <list>
                 <value>Person</value>
             </list>
+        </property>
+        <property name="externalIdentifiers">
+            <map>
+                <entry key="Scopus Author ID" value="person.identifier.scopus-author-id"/>
+                <entry key="Researcher ID" value="person.identifier.rid"/>
+            </map>
         </property>
     </bean>
 
@@ -231,6 +237,17 @@
         </property>
     </bean>
  -->
+
+    <bean id="rorDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider" >
+        <property name="metadataSource" ref="rorImportService"/>
+        <property name="sourceIdentifier" value="ror"/>
+        <property name="recordIdMetadata" value="organization.identifier.ror"/>
+        <property name="supportedEntityTypes">
+            <list>
+                <value>OrgUnit</value>
+            </list>
+        </property>
+    </bean>
 
     <bean id="orcidPublicationDataProvider" class="org.dspace.external.provider.impl.OrcidPublicationDataProvider">
         <property name="sourceIdentifier" value="orcidWorks"/>

@@ -22,13 +22,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * XOAIExtensionItemCompilePlugin aims to add structured information about the
- * creative commons license applied to the item (if any).
+ * DOIs of the item (if any).
  * The xoai document will be enriched with a structure like that
  * <code>
  *   <element name="other">
- *       <element name="cc">
- *          <field name="uri"></field>
- *          <field name="name"></field>
+ *       <element name="datacite">
+ *          <element name="primary">
+ *              <field name="doi"></field>
+ *          </element>
+ *          <element name="alternative">
+ *              <field name="doi"></field>
+ *               ...
+ *              <field name="doi"></field>
+ *          </element>
  *       </element>
  *   </element>
  * </code>
