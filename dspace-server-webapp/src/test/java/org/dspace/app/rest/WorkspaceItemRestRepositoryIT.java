@@ -5184,6 +5184,56 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    public void createWorkspaceWithoutRequiredFileMetadata() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                  .withTitle("Test WorkspaceItem")
+                                                  .withIssueDate("2017-10-17")
+                                                  .grantLicense()
+                                                  .build();
+
+        InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
+        final MockMultipartFile pdfFile = new MockMultipartFile("file", "/local/path/simple-article.pdf",
+                                                                "application/pdf", pdf);
+
+        context.restoreAuthSystemState();
+        // upload the file in our workspaceitem
+        getClient(authToken).perform(multipart("/api/submission/workspaceitems/" + witem.getID())
+                                         .file(pdfFile))
+                            .andExpect(status().isCreated())
+                            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.title'][0].value",
+                                                is("simple-article.pdf")))
+                            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.source'][0].value",
+                                                is("/local/path/simple-article.pdf")));
+
+        //Verify there is an error since file was uploaded, but didn't have required metadata set
+        //(with upload required set to true)
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.errors").isNotEmpty())
+                            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.required')]",
+                                                contains(
+                                                    hasJsonPath("$.paths", contains(
+                                                        hasJsonPath("$", Matchers.is("/sections/upload"))
+                                                    )))));
+    }
+
+    @Test
     public void createWorkspaceItemFromExternalSources() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();
