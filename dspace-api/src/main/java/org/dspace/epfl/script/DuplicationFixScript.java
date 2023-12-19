@@ -122,17 +122,17 @@ public class DuplicationFixScript extends DSpaceRunnable<DuplicationFixScriptCon
                 for (MetadataValue mv : item.getMetadata()) {
                     if (itemToBeDeletedId.equals(mv.getAuthority())) {
                         handler.logInfo("Item " + item.getID() + " has a reference and will be updated");
-                        // mv.setAuthority(itemToKeep.getID().toString());
+                        mv.setAuthority(itemToKeep.getID().toString());
                         updatedAuthorityCount++;
                     }
                 }
 
-                // itemService.update(context, item);
+                itemService.update(context, item);
 
             }
 
-            // itemService.delete(context, itemToBeDeleted);
-            handler.logInfo("Deleted item with id" + itemToBeDeletedId +
+            itemService.delete(context, itemToBeDeleted);
+            handler.logInfo("Deleted item " + itemToBeDeletedId +
                 ". Updated " + updatedAuthorityCount + " authorities");
 
         }
