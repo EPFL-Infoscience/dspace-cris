@@ -93,7 +93,7 @@ public class DuplicationFixScript extends DSpaceRunnable<DuplicationFixScriptCon
             return;
         }
 
-        handler.logInfo("Found " + items.size() + "by sciper " + sciperId);
+        handler.logInfo("Found " + items.size() + " items by sciper " + sciperId);
         fixDuplication(items);
 
         context.commit();
@@ -103,7 +103,7 @@ public class DuplicationFixScript extends DSpaceRunnable<DuplicationFixScriptCon
     private void fixDuplication(List<Item> items) throws Exception {
 
         Item itemToKeep = items.get(0);
-        handler.logInfo("Item with uuid " + itemToKeep.getID() + "will be kept");
+        handler.logInfo("Item " + itemToKeep.getID() + " will be kept");
 
         List<Item> itemsToBeDeleted = items.subList(1, items.size());
         handler.logInfo(itemsToBeDeleted.size() + " items will be deleted");
@@ -114,13 +114,14 @@ public class DuplicationFixScript extends DSpaceRunnable<DuplicationFixScriptCon
 
             String itemToBeDeletedId = itemToBeDeleted.getID().toString();
 
-            Iterator<Item> iterator = itemService.findByLikeAuthorityValue(context, itemToBeDeletedId, null);
+            Iterator<Item> iterator = itemService.findRelatedItemsByAuthorityControlledFields(context, itemToBeDeleted,
+                List.of(itemToBeDeletedId));
 
             while (iterator.hasNext()) {
                 Item item = iterator.next();
                 for (MetadataValue mv : item.getMetadata()) {
                     if (itemToBeDeletedId.equals(mv.getAuthority())) {
-                        handler.logInfo("Item with uuid" + item.getID() + " has a reference and will be updated");
+                        handler.logInfo("Item " + item.getID() + " has a reference and will be updated");
                         // mv.setAuthority(itemToKeep.getID().toString());
                         updatedAuthorityCount++;
                     }
