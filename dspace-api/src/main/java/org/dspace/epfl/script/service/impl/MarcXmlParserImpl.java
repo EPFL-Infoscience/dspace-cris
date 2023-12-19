@@ -172,7 +172,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, recordType, mapping);
 
-        metadataValues.addAll(getCreationDateMetadataValues(id));
+        metadataValues.addAll(getCreationDateMetadataValues(context, id));
 
         List<BitstreamDTO> bitstreams = readBitstreams(context, id, record, mapping);
 
@@ -351,8 +351,11 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     }
 
-    private List<MetadataValueDTO> getCreationDateMetadataValues(String id) {
-        String value = itemsS3Service.getCreationDate(id);
+    private List<MetadataValueDTO> getCreationDateMetadataValues(Context context, String id) {
+        String value = itemsS3Service.getCreationDate(context, id);
+        if (StringUtils.isEmpty(value)) {
+            return List.of();
+        }
         String[] metadataFields = getCreationDateMetadataFields();
         return Arrays.stream(metadataFields)
             .map(metadataField -> getCreationDateMetadataValue(metadataField, value))

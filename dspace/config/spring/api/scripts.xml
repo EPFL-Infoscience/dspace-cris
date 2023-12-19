@@ -229,8 +229,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.AddHandlerForAllBitstreamsScript"/>
     </bean>
 
-<!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
-<!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
-<!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
-<!--    </bean>-->
+    <bean id="epfl-duplication-fix" class="org.dspace.epfl.script.DuplicationFixScriptConfiguration" primary="true">
+        <property name="description" value="Fixes all the duplication by sciper id"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.DuplicationFixScript"/>
+    </bean>
+
 </beans>

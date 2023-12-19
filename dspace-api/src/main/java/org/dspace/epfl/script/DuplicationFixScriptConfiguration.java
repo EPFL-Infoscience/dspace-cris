@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.epfl.script.sync;
+package org.dspace.epfl.script;
 
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -16,24 +16,12 @@ import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
-public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchronizationScript>
-    extends ScriptConfiguration<T> {
+public class DuplicationFixScriptConfiguration<T extends DuplicationFixScript> extends ScriptConfiguration<T> {
 
     @Autowired
     private AuthorizeService authorizeService;
 
     private Class<T> dspaceRunnableClass;
-
-    @Override
-    public Class<T> getDspaceRunnableClass() {
-        return dspaceRunnableClass;
-    }
-
-    @Override
-    public void setDspaceRunnableClass(Class<T> dspaceRunnableClass) {
-        this.dspaceRunnableClass = dspaceRunnableClass;
-    }
 
     @Override
     public boolean isAllowedToExecute(Context context) {
@@ -49,21 +37,29 @@ public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchr
         if (options == null) {
             Options options = new Options();
 
-            options.addOption("f", "file", true,
-                "optional, a xml file with scipers to be imported / updated");
+            options.addOption("f", "file", true, "source file");
             options.getOption("f").setType(InputStream.class);
-            options.getOption("f").setRequired(false);
-
-            options.addOption("q", "query", true, "optional parameter (query) to be used to query epfl's ldap system");
-            options.getOption("q").setType(String.class);
-            options.getOption("q").setRequired(false);
-
-            options.addOption("e", "email", true, "optional email of the ePerson performing this action");
-            options.getOption("e").setType(String.class);
-            options.getOption("e").setRequired(false);
+            options.getOption("f").setRequired(true);
 
             super.options = options;
         }
         return options;
     }
+
+    @Override
+    public Class<T> getDspaceRunnableClass() {
+        return dspaceRunnableClass;
+    }
+
+    /**
+     * Generic setter for the dspaceRunnableClass
+     *
+     * @param dspaceRunnableClass The dspaceRunnableClass to be set on this
+     *                            BulkImportScriptConfiguration
+     */
+    @Override
+    public void setDspaceRunnableClass(Class<T> dspaceRunnableClass) {
+        this.dspaceRunnableClass = dspaceRunnableClass;
+    }
+
 }
