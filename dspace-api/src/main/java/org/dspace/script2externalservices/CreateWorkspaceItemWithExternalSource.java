@@ -361,14 +361,19 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 String dcTitle = itemService.getMetadataFirstValue(
                     item, "dc", "title", null, Item.ANY);
                 if (StringUtils.isNotBlank(dcTitle)) {
-                    id.append(dcTitle);
+                    id.append("\"").append(dcTitle).append("\"");
                 }
                 break;
             default:
         }
         if (StringUtils.isNotBlank(id.toString()) && StringUtils.isNotBlank(this.extraQuery)) {
             if (this.service.equals(ARXIV)) {
-                id.append(" AND ").append(this.extraQuery);
+                id.append(" AND ");
+                if (this.extraQuery.startsWith("ti:")) {
+                    id.append("ti:\"").append(this.extraQuery.substring(3)).append("\"");
+                } else {
+                    id.append(this.extraQuery);
+                }
             } else {
                 id.append(" ").append(this.extraQuery);
             }
