@@ -650,7 +650,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private Integer getDefaultPerResearcherSearchLimit() {
-        return configurationService.getIntProperty("importworkspaceitem.limit-total", Integer.MAX_VALUE);
+        return configurationService.getIntProperty("importworkspaceitem.limit-per-researcher", Integer.MAX_VALUE);
     }
 
     public Map<String, LiveImportDataProvider> getNameToProvider() {
