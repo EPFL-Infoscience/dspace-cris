@@ -100,7 +100,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private String finalState;
 
-    private Integer searchLimit;
+    private Integer totalSearchLimit;
+
+    private Integer perResearcherSearchLimit;
 
     private Context context;
 
@@ -161,10 +163,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         this.collectionUuid = commandLine.getOptionValue('c');
         this.extraQuery = commandLine.getOptionValue('q');
         if (commandLine.hasOption('l')) {
-            this.searchLimit = Integer.valueOf(commandLine.getOptionValue('l'));
+            this.totalSearchLimit = Integer.valueOf(commandLine.getOptionValue('l'));
         } else {
-            this.searchLimit = getDefaultSearchLimit();
+            this.totalSearchLimit = getDefaultTotalSearchLimit();
         }
+        this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
     }
 
     @Override
@@ -180,7 +183,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                                              + " it must be one of this: workspace, workflow or item");
         }
 
-        if (searchLimit < 0) {
+        if (totalSearchLimit < 0) {
             throw new IllegalArgumentException("The search limit value must be a positive integer");
         }
 
@@ -265,7 +268,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         try {
             Iterator<Item> itemIterator = findItems();
             handler.logInfo("Update start");
-            while (itemIterator.hasNext() && searchCount < searchLimit) {
+            while (itemIterator.hasNext() && searchCount < totalSearchLimit) {
                 Item item = itemIterator.next();
                 String id = buildID(item);
                 Optional<MetadataValue> owner = getOwner(item);
@@ -274,6 +277,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     int recordsFound = dataProvider.getNumberOfResults(id);
                     handler.logInfo("Found " + recordsFound + " records for researcher " + id +
                                         " that could be imported");
+                    if (recordsFound > perResearcherSearchLimit) {
+                        handler.logInfo(
+                            recordsFound + " exceeds import limit per researcher, importing only first "
+                                + perResearcherSearchLimit + " records");
+                        recordsFound = perResearcherSearchLimit;
+                    }
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
@@ -636,8 +645,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return collections.hasNext() ? collections.next() : null;
     }
 
-    private Integer getDefaultSearchLimit() {
-        return configurationService.getIntProperty("importworkspaceitem.limit", Integer.MAX_VALUE);
+    private Integer getDefaultTotalSearchLimit() {
+        return configurationService.getIntProperty("importworkspaceitem.limit-total", Integer.MAX_VALUE);
+    }
+
+    private Integer getDefaultPerResearcherSearchLimit() {
+        return configurationService.getIntProperty("importworkspaceitem.limit-total", Integer.MAX_VALUE);
     }
 
     public Map<String, LiveImportDataProvider> getNameToProvider() {
