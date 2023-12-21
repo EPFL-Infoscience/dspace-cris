@@ -1495,7 +1495,7 @@
           <dc-element>writtenAt</dc-element>
           <label>Written at EPFL</label>
           <input-type value-pairs-name="epfl_written_at">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The written at EPFL section must be completed</required>
           <style>col-xs-12 col-md-3</style>
           <hint>Please specify whether this work was carried out as an affiliated member of EPFL or not</hint>
@@ -1505,7 +1505,7 @@
           <dc-element>peerreviewed</dc-element>
           <label>Peer-reviewed</label>
           <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The peer-reviewed section must be completed</required>
           <style>col-xs-12 col-md-3</style>
           <hint />
