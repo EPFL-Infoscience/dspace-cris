@@ -139,12 +139,12 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             Group administrators = createNewAdministrators(collection);
             addSubgroup(administrators, curatorsGroup);
             
-            Group firstRoleGroup = createWorkflowRoleGroup(collection, "EPFLReviewer");
+            Group firstRoleGroup = createWorkflowRoleGroup(collection, "epflreviewer");
             addSubgroup(firstRoleGroup, epflReviewersGroup);
             addSubgroup(epflReviewersGroup, curatorsGroup);
             addSubgroup(epflReviewersGroup, adminsGroup);
 
-            Group secondRoleGroup = createWorkflowRoleGroup(collection, "Reviewer");
+            Group secondRoleGroup = createWorkflowRoleGroup(collection, "reviewer");
             addSubgroup(secondRoleGroup, reviewersGroup);
             addSubgroup(reviewersGroup, curatorsGroup);
             addSubgroup(reviewersGroup, adminsGroup);
