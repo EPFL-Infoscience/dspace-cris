@@ -32,18 +32,19 @@ import org.dspace.xoai.util.ItemUtils;
 
 
 /**
- * Utility class to enrich content of 'item.compile' solr document field, which adds a metadata containing cerif
+ * Utility class to enrich content of 'item.compile' solr document field, which adds a metadata containing "format"
  * representation of a DSpace item.
- * Additional xml is written into a node named "cerif." + value of field name passed in plugin configuration
+ * Additional xml is written into a node named "format.fieldName" passed in plugin configuration
  *
  */
-public class XOAICerifItemCompilePlugin implements XOAIExtensionItemCompilePlugin {
+public class XOAIExportTemplateCompilePlugin implements XOAIExtensionItemCompilePlugin {
 
-    private static Logger log = LogManager.getLogger(XOAICerifItemCompilePlugin.class);
+    private static final Logger log = LogManager.getLogger(XOAIExportTemplateCompilePlugin.class);
 
-    private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    private final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     private String generator;
+    private String format;
     private String fieldName;
     private String ePersonName;
 
@@ -55,6 +56,14 @@ public class XOAICerifItemCompilePlugin implements XOAIExtensionItemCompilePlugi
         this.generator = generator;
     }
 
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
     public String getFieldName() {
         return fieldName;
     }
@@ -63,7 +72,7 @@ public class XOAICerifItemCompilePlugin implements XOAIExtensionItemCompilePlugi
         this.fieldName = fieldName;
     }
 
-    public void setePersonName(String ePersonName) {
+    public void setEPersonName(String ePersonName) {
         this.ePersonName = ePersonName;
     }
 
@@ -81,23 +90,25 @@ public class XOAICerifItemCompilePlugin implements XOAIExtensionItemCompilePlugi
             String entityType = itemService.getEntityTypeLabel(item);
             final String crosswalkType = entityType.substring(0, 1).toLowerCase()
                                              + entityType.substring(1) + "-" + generator;
-            StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType(crosswalkType);
+            StreamDisseminationCrosswalk crosswalk =
+                Optional.ofNullable(crosswalkMapper.getByType(crosswalkType))
+                        .orElse(crosswalkMapper.getByType(generator));
             if (crosswalk == null) {
                 log.warn("No Crosswalk found with name " + crosswalkType);
             } else {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 crosswalk.disseminate(context, item, out);
                 List<Element> elementList = metadata.getElement();
-                elementList.add(ItemUtils.create("cerif"));
-                Element cerif = ItemUtils.getElement(elementList, "cerif");
-                if (Objects.isNull(cerif)) {
-                    elementList.add(ItemUtils.create("cerif"));
-                    cerif = ItemUtils.getElement(elementList, "cerif");
+                elementList.add(ItemUtils.create(format));
+                Element format = ItemUtils.getElement(elementList, this.format);
+                if (Objects.isNull(format)) {
+                    elementList.add(ItemUtils.create(this.format));
+                    format = ItemUtils.getElement(elementList, this.format);
                 }
-                Element fieldname = ItemUtils.create(fieldName);
-                cerif.getElement().add(fieldname);
+                Element fieldName = ItemUtils.create(this.fieldName);
+                format.getElement().add(fieldName);
                 Element none = ItemUtils.create("none");
-                fieldname.getElement().add(none);
+                fieldName.getElement().add(none);
                 String xml_presentation = out.toString();
                 // replace \n to avoid invalid element in the xml
                 String toWrite = xml_presentation.replace("\n", "");
