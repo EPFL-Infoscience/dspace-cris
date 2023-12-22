@@ -234,4 +234,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.DuplicationFixScript"/>
     </bean>
 
+    <bean id="epfl-roles-setup" class="org.dspace.epfl.script.RoleSetupScriptConfiguration" primary="true">
+        <property name="description" value="Setup of roles of collections"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.RoleSetupScript"/>
+    </bean>
+
 </beans>
