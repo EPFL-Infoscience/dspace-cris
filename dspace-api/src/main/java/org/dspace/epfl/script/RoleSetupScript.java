@@ -108,6 +108,7 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             context.restoreAuthSystemState();
 
         } catch (Exception e) {
+            context.rollback();
             handler.handleException(e);
             context.abort();
         }
@@ -192,7 +193,7 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
     private Group createNewSubmitters(Collection collection) throws SQLException, AuthorizeException, IOException {
         Group submitters = collection.getSubmitters();
         if(submitters != null) {
-            groupService.delete(context, submitters);
+            collectionService.removeSubmitters(context, collection);
             handler.logInfo("Deleted previous submitters group");
         }
         
@@ -204,7 +205,7 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
     private Group createNewAdministrators(Collection collection) throws SQLException, AuthorizeException, IOException {
         Group administrators = collection.getAdministrators();
         if (administrators != null) {
-            groupService.delete(context, administrators);
+            collectionService.removeAdministrators(context, collection);
             handler.logInfo("Deleted previous administrators group");
         }
 
@@ -215,7 +216,7 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
     private void addSubgroup(Group parent, Group child) throws SQLException {
         groupService.addMember(context, parent, child);
-        handler.logInfo("Configured " + child.getName() + " as subgroup of + " + parent.getName());
+        handler.logInfo("Configured " + child.getName() + " as subgroup of " + parent.getName());
     }
 
     private Community findById(String id) throws SQLException {
