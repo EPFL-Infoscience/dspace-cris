@@ -60,7 +60,10 @@ public class LiveImportClientImpl implements LiveImportClient {
             requestConfigBuilder.setConnectionRequestTimeout(timeout);
             RequestConfig defaultRequestConfig = requestConfigBuilder.build();
 
-            method = new HttpGet(buildUrl(URL, params.get(URI_PARAMETERS)));
+            String url = buildUrl(URL, params.get(URI_PARAMETERS));
+            log.info("Performing GET request to {}", url);
+
+            method = new HttpGet(url);
             method.setConfig(defaultRequestConfig);
 
             Map<String, String> headerParams = params.get(HEADER_PARAMETERS);
