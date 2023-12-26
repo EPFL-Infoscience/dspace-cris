@@ -5,13 +5,16 @@ DA  - @dc.date.issued@
 PY  - @virtual.date.dc-date-issued.YYYY@
 PB  - @dc.publisher@
 T1  - @dc.relation.ispartof@
+T2  - @dc.relation.ispartofseries@
 VL  - @oaire.citation.volume@
 IS  - @oaire.citation.issue@
 AB  - @dc.description.abstract@
 KW  - @dc.subject@
 UR  - @dc.identifier.uri@
 DO  - @dc.identifier.doi@
+SN  - @dc.identifier.isbn@
 SP  - @oaire.citation.startPage@
 EP  - @oaire.citation.endPage@
 LA  - @dc.language.iso@
 SN  - @dc.relation.isbn@
+SV  - @dc.relation.ispartofseries@
