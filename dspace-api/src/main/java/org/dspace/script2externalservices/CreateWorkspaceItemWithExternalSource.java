@@ -185,6 +185,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         if (Objects.isNull(dataProvider)) {
             throw new IllegalArgumentException("The " + service + " provider does not exist");
         }
+        dataProvider.setHandler(handler);
 
         UUID collectionUUID = getCollectionUUID();
         collection = Objects.nonNull(collectionUUID)

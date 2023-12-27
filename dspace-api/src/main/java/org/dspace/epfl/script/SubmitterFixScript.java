@@ -90,7 +90,7 @@ public class SubmitterFixScript
             int count = 0;
 
             while (itemIterator.hasNext()) {
-                Item item = itemIterator.next();
+                Item item = context.reloadEntity(itemIterator.next());
 
                 try {
                     updateSubmitter(item);
