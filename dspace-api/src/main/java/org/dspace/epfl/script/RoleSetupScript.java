@@ -95,7 +95,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
         context.turnOffAuthorisationSystem();
 
         try {
-
             adminsGroup = findByName(ADMINS_GROUP);
             curatorsGroup = findByName(CURATORS_GROUP);
             submittersGroup = findByName(SUBMITTERS_GROUP);
@@ -106,7 +105,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
             context.complete();
             context.restoreAuthSystemState();
-
         } catch (Exception e) {
             context.rollback();
             handler.handleException(e);
@@ -120,26 +118,23 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
     }
 
     private void setupResearchOutputCommunityRoles() throws Exception {
-        
         Community community = findById(researchOutputsCommunityId);
+        List<Collection> collections = community.getCollections();
 
         handler.logInfo("Processing community named " + community.getName());
-        
-        List<Collection> collections = community.getCollections();
-        
-        for(Collection collection : collections) {
-            
+
+        for (Collection collection : collections) {
             String collectioName = collection.getName();
 
             handler.logInfo("Processing collection named " + collectioName);
-            
+
             Group submitters = createNewSubmitters(collection);
             addSubgroup(submitters, submittersGroup);
             addSubgroup(submitters, curatorsGroup);
 
             Group administrators = createNewAdministrators(collection);
             addSubgroup(administrators, curatorsGroup);
-            
+
             Group firstRoleGroup = createWorkflowRoleGroup(collection, "epflreviewer");
             addSubgroup(firstRoleGroup, epflReviewersGroup);
             addSubgroup(epflReviewersGroup, curatorsGroup);
@@ -149,13 +144,10 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             addSubgroup(secondRoleGroup, reviewersGroup);
             addSubgroup(reviewersGroup, curatorsGroup);
             addSubgroup(reviewersGroup, adminsGroup);
-
         }
-        
     }
 
     private void setupEntitiesCommunityRoles() throws Exception {
-
         Community community = findById(entitiesCommunityId);
 
         handler.logInfo("Processing community named " + community.getName());
@@ -163,7 +155,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
         List<Collection> collections = community.getCollections();
 
         for (Collection collection : collections) {
-
             String collectioName = collection.getName();
 
             handler.logInfo("Processing collection named " + collectioName);
@@ -174,9 +165,7 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             if (!collection.getID().toString().equals(virtualCollectionsId)) {
                 addSubgroup(submitters, curatorsGroup);
             }
-
         }
-
     }
 
     private Group createWorkflowRoleGroup(Collection collection, String role) throws Exception {
@@ -190,19 +179,19 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
         return workflowRoleGroup;
     }
 
-    private Group createNewSubmitters(Collection collection) throws SQLException, AuthorizeException, IOException {
+    private Group createNewSubmitters(Collection collection) throws SQLException, AuthorizeException {
         Group submitters = collection.getSubmitters();
-        if(submitters != null) {
+        if (submitters != null) {
             collectionService.removeSubmitters(context, collection);
             handler.logInfo("Deleted previous submitters group");
         }
-        
+
         submitters = collectionService.createSubmitters(context, collection);
         handler.logInfo("Created submitters group named " + submitters.getName());
         return submitters;
     }
 
-    private Group createNewAdministrators(Collection collection) throws SQLException, AuthorizeException, IOException {
+    private Group createNewAdministrators(Collection collection) throws SQLException, AuthorizeException {
         Group administrators = collection.getAdministrators();
         if (administrators != null) {
             collectionService.removeAdministrators(context, collection);
