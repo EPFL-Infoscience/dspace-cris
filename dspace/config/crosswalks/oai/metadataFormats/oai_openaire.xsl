@@ -492,9 +492,26 @@
                         <xsl:value-of select="../../../../../doc:element[@name='oairecerif']/doc:element[@name='funder']/doc:element/doc:field[@name='value'][$index]"/>
                     </oaire:funderName>
                     <!-- Mapping for oaire:awardNumber -->
-                    <oaire:awardNumber awardURI="{../../../../../doc:element[@name='crisfund']/doc:element[@name='award']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][$index]}">
-                        <xsl:value-of select="../../../doc:element[@name='grantno']/doc:element/doc:field[@name='value'][$index]"/>
-                    </oaire:awardNumber>
+                    <xsl:variable name="awardURIValue" select="../../../../../doc:element[@name='crisfund']/doc:element[@name='award']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][$index]"/>
+                    <xsl:variable name="awardNumberValue" select="../../../doc:element[@name='grantno']/doc:element/doc:field[@name='value'][$index]"/>
+                    <xsl:choose>
+                        <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber awardURI="''">
+                                <xsl:value-of select="$awardNumberValue"/>
+                            </oaire:awardNumber>
+                        </xsl:when>
+                        <xsl:when test="$awardURIValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber awardURI="{$awardURIValue}">
+                                <xsl:value-of select="''"/>
+                            </oaire:awardNumber>
+                        </xsl:when>
+                        <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber awardURI="{$awardURIValue}">
+                                <xsl:value-of select="$awardNumberValue"/>
+                            </oaire:awardNumber>
+                        </xsl:when>
+                    </xsl:choose>
+
                     <!-- Mapping for oaire:awardTitle -->
                     <oaire:awardTitle>
                         <xsl:value-of select="./text()"/>

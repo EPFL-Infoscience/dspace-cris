@@ -106,7 +106,7 @@
     </bean>
 
     <bean id="import-publications" class="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCliScriptConfiguration">
-        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv)"/>
+        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv, EspaceNet)"/>
         <property name="dspaceRunnableClass" value="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCli"/>
     </bean>
 
@@ -238,5 +238,10 @@
         <property name="description" value="Exports a given schema into target registry file specified"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.metadata.export.MetadataSchemaExportCliScript"/>
     </bean>
+
+  <bean id="epfl-roles-setup" class="org.dspace.epfl.script.RoleSetupScriptConfiguration" primary="true">
+    <property name="description" value="Setup of roles of collections"/>
+    <property name="dspaceRunnableClass" value="org.dspace.epfl.script.RoleSetupScript"/>
+  </bean>
 
 </beans>
