@@ -192,19 +192,19 @@
                                                         ' | ',
                                                         ../../../../../doc:element[@name='oairecerif']/doc:element[@name='affiliation']/doc:element[@name='orgunit']/doc:element/doc:field[@name='value'][$index])"/>
                             </datacite:affiliation>
-                            <xsl:variable name="rorAffiliationValue" select="../../../../../doc:element[@name='organization']/doc:element[@name='identifier']/doc:field[@name='ror'][$index]"/>
-                            <xsl:if test="$rorAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
-                                <datacite:nameIdentifier nameIdentifierScheme="RID">
-                                    <xsl:value-of select="$rorAffiliationValue"/>
-                                </datacite:nameIdentifier>
-                            </xsl:if>
 
                             <xsl:variable name="personIdentifier" select="../../../../../doc:element[@name='person']/doc:element[@name='identifier']"/>
 
                             <xsl:variable name="scopusAffiliationValue" select="$personIdentifier/doc:element[@name='scopus-author-id']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="scopusInternalValue" select="$personIdentifier/doc:field[@name='scopus-author-id'][$index]"/>
                             <xsl:if test="$scopusAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
                                 <datacite:nameIdentifier nameIdentifierScheme="Scopus Author ID">
                                     <xsl:value-of select="$scopusAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$scopusInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="Scopus Author ID">
+                                    <xsl:value-of select="$scopusInternalValue"/>
                                 </datacite:nameIdentifier>
                             </xsl:if>
                             <xsl:variable name="cienciaAffiliationValue" select="$personIdentifier/doc:element[@name='ciencia-id']/doc:element/doc:field[@name='value'][$index]"/>
@@ -220,9 +220,15 @@
                                 </datacite:nameIdentifier>
                             </xsl:if>
                             <xsl:variable name="orcidAffiliationValue" select="$personIdentifier/doc:element[@name='orcid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="orcidInternalValue" select="$personIdentifier/doc:field[@name='orcid'][$index]"/>
                             <xsl:if test="$orcidAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
                                 <datacite:nameIdentifier nameIdentifierScheme="ORCID">
                                     <xsl:value-of select="$orcidAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$orcidInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="ORCID">
+                                    <xsl:value-of select="$orcidInternalValue"/>
                                 </datacite:nameIdentifier>
                             </xsl:if>
                             <xsl:variable name="isniAffiliationValue" select="$personIdentifier/doc:element[@name='isni']/doc:element/doc:field[@name='value'][$index]"/>
@@ -232,9 +238,15 @@
                                 </datacite:nameIdentifier>
                             </xsl:if>
                             <xsl:variable name="ridAffiliationValue" select="$personIdentifier/doc:element[@name='rid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="ridInternalValue" select="$personIdentifier/doc:field[@name='rid'][$index]"/>
                             <xsl:if test="$ridAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
                                 <datacite:nameIdentifier nameIdentifierScheme="RID">
                                     <xsl:value-of select="$ridAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$ridInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="RID">
+                                    <xsl:value-of select="$ridInternalValue"/>
                                 </datacite:nameIdentifier>
                             </xsl:if>
 
@@ -496,14 +508,12 @@
                     <xsl:variable name="awardNumberValue" select="../../../doc:element[@name='grantno']/doc:element/doc:field[@name='value'][$index]"/>
                     <xsl:choose>
                         <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
-                            <oaire:awardNumber awardURI="''">
+                            <oaire:awardNumber>
                                 <xsl:value-of select="$awardNumberValue"/>
                             </oaire:awardNumber>
                         </xsl:when>
                         <xsl:when test="$awardURIValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
-                            <oaire:awardNumber awardURI="{$awardURIValue}">
-                                <xsl:value-of select="''"/>
-                            </oaire:awardNumber>
+                            <oaire:awardNumber awardURI="{$awardURIValue}" />
                         </xsl:when>
                         <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
                             <oaire:awardNumber awardURI="{$awardURIValue}">
