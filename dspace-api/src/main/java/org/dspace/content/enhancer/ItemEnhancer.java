@@ -47,4 +47,6 @@ public interface ItemEnhancer {
      * @param  item    the item to enhance
      */
     void enhance(Context context, Item item);
+
+    boolean needUpdate(Context context, Item item);
 }

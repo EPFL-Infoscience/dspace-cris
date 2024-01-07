@@ -42,13 +42,20 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
 
     @Override
     public void enhance(Context context, Item item) {
+        boolean isUpdateNeeded = false;
 
-        itemEnhancers.stream()
-            .filter(itemEnhancer -> itemEnhancer.canEnhance(context, item))
-            .forEach(itemEnhancer -> itemEnhancer.enhance(context, item));
+        for (ItemEnhancer itemEnhancer : itemEnhancers) {
+            if (itemEnhancer.canEnhance(context, item)) {
+                if (itemEnhancer.needUpdate(context,item)) {
+                    itemEnhancer.enhance(context, item);
+                    isUpdateNeeded = true;
+                }
+            }
+        }
 
-        updateItem(context, item);
-
+        if (isUpdateNeeded) {
+            updateItem(context, item);
+        }
     }
 
     @Override
@@ -68,7 +75,7 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
         }
 
         try {
-            itemService.removeMetadataValues(context, item, ListUtils.union(virtualFields, virtualSourceFields));
+            itemService.removeMetadataValues(context, item, metadataValuesToRemove);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }

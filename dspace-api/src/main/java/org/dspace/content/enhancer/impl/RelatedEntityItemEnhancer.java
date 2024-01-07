@@ -65,22 +65,78 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     @Override
     public void enhance(Context context, Item item) {
         try {
-            cleanObsoleteVirtualFields(context, item);
-            updateVirtualFieldsPlaces(context, item);
-            performEnhancement(context, item);
+            boolean isMetadataDeleted = cleanObsoleteVirtualFields(context, item);
+            if (isMetadataDeleted) {
+                updateVirtualFieldsPlaces(context, item);
+            }
+            if (needUpdate(context, item)) {
+                performEnhancement(context, item);
+            }
         } catch (SQLException e) {
             LOGGER.error("An error occurs enhancing item with id {}: {}", item.getID(), e.getMessage(), e);
             throw new SQLRuntimeException(e);
         }
     }
 
-    private void cleanObsoleteVirtualFields(Context context, Item item) throws SQLException {
+    @Override
+    public boolean needUpdate(Context context, Item item) {
+        List<MetadataValue> metadataValuesToDelete = getObsoleteVirtualFields(item);
+        boolean isNeedUpdateMetadata = false;
+
+        if (!noEnhanceableMetadata(context, item)) {
+            for (MetadataValue metadataValue : getEnhanceableMetadataValue(item)) {
+                if (wasValueAlreadyUsedForEnhancement(item, metadataValue)) {
+                    continue;
+                }
+
+                Item relatedItem = findRelatedEntityItem(context, metadataValue);
+                if (relatedItem == null) {
+                    isNeedUpdateMetadata = true;
+                    break;
+                }
+
+                List<MetadataValue> relatedItemMetadataValues =
+                        getMetadataValues(relatedItem, relatedItemMetadataField);
+                if (relatedItemMetadataValues.isEmpty()) {
+                    isNeedUpdateMetadata = true;
+                    break;
+                }
+                for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
+                    if (!isContainingMetadata(item, relatedItemMetadataValue.getValue())) {
+                        isNeedUpdateMetadata = true;
+                        break;
+                    }
+                }
+
+            }
+        }
+
+        return !metadataValuesToDelete.isEmpty() || isNeedUpdateMetadata;
+    }
+
+    private boolean isContainingMetadata(Item item, String value) {
+        return itemService.getMetadata(item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_METADATA_ELEMENT,
+                getVirtualQualifier(), null, true).stream()
+                .anyMatch(metadataValue -> metadataValue.getValue().equals(value));
+    }
+
+
+    /**
+     * Clean obsolete virtual fields.
+     *
+     * @param  context the DSpace Context
+     * @param  item    the item to check
+     * @return         true if some metadata is deleted, false if no metadata was deleted
+     */
+    private boolean cleanObsoleteVirtualFields(Context context, Item item) throws SQLException {
 
         List<MetadataValue> metadataValuesToDelete = getObsoleteVirtualFields(item);
         if (!metadataValuesToDelete.isEmpty()) {
             itemService.removeMetadataValues(context, item, metadataValuesToDelete);
+            return true;
+        } else {
+            return false;
         }
-
     }
 
     private void updateVirtualFieldsPlaces(Context context, Item item) {
