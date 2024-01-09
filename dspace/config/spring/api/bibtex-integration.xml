@@ -19,7 +19,7 @@
         </description>
         <entry key-ref="dcType" value-ref="bibtexMappedTypeContrib" />
         <entry key-ref="dcTitle" value-ref="bibtexTitleContrib" />
-        <entry key-ref="dcAllKeyword" value-ref="bibtexKeywordContrib" />
+        <entry key-ref="dcAllKeyword" value-ref="bibtexKeywordsContrib" />
         <entry key-ref="dcAuthors" value-ref="bibtexAuthorsContrib" />
         <entry key-ref="dcJournal" value-ref="bibtexJournalContrib" />
 		    <entry key-ref="dcIssued" value-ref="bibtexIssuedContrib" />
@@ -73,9 +73,14 @@
         <property name="key" value="title" />
     </bean>
 
-    <bean id="bibtexKeywordContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
-        <property name="field" ref="dcAllKeyword"/>
-        <property name="key" value="keywords" />
+    <bean id="bibtexKeywordsContrib"  class="org.dspace.importer.external.metadatamapping.contributor.SplitMetadataContributor">
+        <constructor-arg name="innerContributor">
+            <bean class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
+                <property name="field" ref="dcAllKeyword"/>
+                <property name="key" value="keywords" />
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="regex" value="\s\|\s"/>
     </bean>
 
     <bean id="bibtexMappedTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMappedMetadataContributor">
