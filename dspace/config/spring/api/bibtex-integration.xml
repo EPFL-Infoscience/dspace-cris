@@ -27,7 +27,6 @@
         <entry key-ref="dcJissn" value-ref="bibtexJissnContrib" />
         <entry key-ref="dcIsbn" value-ref="bibtexIsbnContrib" />
 		    <entry key-ref="dcAbstract" value-ref="bibtexAbstractContrib" />
-        <entry key-ref="dcAbstractNote" value-ref="bibtexAbstractNoteContrib" />
         <entry key-ref="dcJDoi" value-ref="bibtexDoiContrib" />
         <entry key-ref="dcVolume" value-ref="bibtexVolumeContrib" />
         <entry key-ref="dcNumber" value-ref="bibtexNumberContrib" />
@@ -76,7 +75,7 @@
 
     <bean id="bibtexKeywordContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcAllKeyword"/>
-        <property name="key" value="title" />
+        <property name="key" value="keywords" />
     </bean>
 
     <bean id="bibtexMappedTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMappedMetadataContributor">
@@ -96,7 +95,7 @@
     </bean>
 
     <bean id="bibtexAbstractNoteContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
-        <property name="field" ref="dcAbstract"/>
+        <property name="field" ref="dcAbstractNote"/>
         <property name="key" value="abstractnote" />
     </bean>
 
@@ -137,7 +136,7 @@
 
     <bean id="bibtexPublisherPlaceContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcPublisherPlace"/>
-        <property name="key" value="publisher place" />
+        <property name="key" value="address" />
     </bean>
 
     <bean id="bibtexPagesStartContrib" class="org.dspace.importer.external.metadatamapping.contributor.SplitMetadataContributor">
