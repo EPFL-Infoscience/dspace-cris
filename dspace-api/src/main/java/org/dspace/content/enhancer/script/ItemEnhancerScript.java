@@ -57,7 +57,7 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
 
         context.turnOffAuthorisationSystem();
         try {
-            enhanceItems();
+            enhanceItems(context);
             context.complete();
             handler.logInfo("Enhancement completed with success");
         } catch (Exception e) {
@@ -68,7 +68,7 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
         }
     }
 
-    private void enhanceItems() {
+    private void enhanceItems(Context context) {
         findItemsToEnhance().forEachRemaining(this::enhanceItem);
     }
 
@@ -87,14 +87,13 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
         } else {
             itemEnhancerService.enhance(context, item);
         }
-
-        uncacheItem(item);
-
+        storeChangesAndFreeResources(context);
     }
 
-    private void uncacheItem(Item item) {
+    private void storeChangesAndFreeResources(Context context) {
         try {
-            context.uncacheEntity(item);
+            context.commit();
+            context.clear();
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
