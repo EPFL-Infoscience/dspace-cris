@@ -31,6 +31,7 @@ import org.dspace.utils.DSpace;
  *
  */
 public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfiguration<ItemEnhancerScript>> {
+    private final int PAGE_SIZE = 20;
 
     private ItemService itemService;
 
@@ -69,33 +70,31 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
     }
 
     private void enhanceItems(Context context) {
-        findItemsToEnhance().forEachRemaining(this::enhanceItem);
+        try {
+            int total = itemService.countArchivedItems(context);
+            for (int offset = 0; offset < total; offset += PAGE_SIZE) {
+                findItemsToEnhance(offset).forEachRemaining(this::enhanceItem);
+            }
+            context.commit();
+            context.clear();
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
-    private Iterator<Item> findItemsToEnhance() {
+    private Iterator<Item> findItemsToEnhance(int offset) {
         try {
-            return itemService.findAll(context);
+            return itemService.findAll(context, PAGE_SIZE, offset);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
     }
 
     private void enhanceItem(Item item) {
-
         if (force) {
             itemEnhancerService.forceEnhancement(context, item);
         } else {
             itemEnhancerService.enhance(context, item);
-        }
-        storeChangesAndFreeResources(context);
-    }
-
-    private void storeChangesAndFreeResources(Context context) {
-        try {
-            context.commit();
-            context.clear();
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
         }
     }
 
