@@ -48,5 +48,14 @@ public interface ItemEnhancer {
      */
     void enhance(Context context, Item item);
 
+    /**
+     * Check if the item needs to be re-evaluated. An item needs to be re-evaluated if the result of the evaluation is
+     * different than its current state. We delegate this check to the individual item enhancer as it can be smarter in
+     * performing this check than the service as it knows its internal logic
+     *
+     * @param context the DSpace Context
+     * @param item the item to check
+     * @return <code>true</code>, if the item must be updated
+     */
     boolean needUpdate(Context context, Item item);
 }
