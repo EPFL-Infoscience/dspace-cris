@@ -355,7 +355,11 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     }
 
     private void addVirtualSourceField(Context context, Item item, MetadataValue sourceValue) throws SQLException {
-        addVirtualSourceField(context, item, sourceValue.getAuthority());
+        if (StringUtils.isNotBlank(sourceValue.getAuthority())) {
+            addVirtualSourceField(context, item, sourceValue.getAuthority());
+        } else {
+            addVirtualSourceField(context, item, PLACEHOLDER_PARENT_METADATA_VALUE);
+        }
     }
 
     private void addVirtualSourceField(Context context, Item item, String sourceValueAuthority) throws SQLException {
