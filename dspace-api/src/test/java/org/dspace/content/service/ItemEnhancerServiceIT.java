@@ -86,9 +86,9 @@ public class ItemEnhancerServiceIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void noUpdateRequiredTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        itemEnhancerService.enhance(context, publication);
+        itemEnhancerService.enhance(context, publication, false);
         verify(spyItemService, never()).update(any(), any());
-        itemEnhancerService.forceEnhancement(context, publication);
+        itemEnhancerService.enhance(context, publication, true);
         verify(spyItemService, never()).update(any(), any());
         context.restoreAuthSystemState();
     }
