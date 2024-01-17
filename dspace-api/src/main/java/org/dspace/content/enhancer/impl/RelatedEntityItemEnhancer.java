@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
@@ -64,8 +63,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         if (!deepMode) {
             try {
                 result = cleanObsoleteVirtualFields(context, item);
-                result = result || updateVirtualFieldsPlaces(context, item);
-                result = result || performEnhancement(context, item);
+                result = updateVirtualFieldsPlaces(context, item) || result;
+                result = performEnhancement(context, item) || result;
             } catch (SQLException e) {
                 LOGGER.error("An error occurs enhancing item with id {}: {}", item.getID(), e.getMessage(), e);
                 throw new SQLRuntimeException(e);
@@ -131,7 +130,6 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                 relatedItem = findRelatedEntityItem(context, virtualSourceField);
             } else {
                 mv.setValue(PLACEHOLDER_PARENT_METADATA_VALUE);
-                relatedItem = findRelatedEntityItem(context, virtualSourceField);
             }
             tobeVirtualMetadata.add(mv);
             if (relatedItem == null) {
@@ -195,8 +193,9 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         boolean result = false;
         List<MetadataValue> virtualSourceFields = getVirtualSourceFields(item);
         for (MetadataValue virtualSourceField : virtualSourceFields) {
-            if (metadataWithPlaceToUpdate(item, virtualSourceField).isPresent()) {
-                updatePlaces(item, virtualSourceField);
+            Optional<MetadataValue> metadataWithPlaceToUpdate = metadataWithPlaceToUpdate(item, virtualSourceField);
+            if (metadataWithPlaceToUpdate.isPresent()) {
+                updatePlaces(item, metadataWithPlaceToUpdate.get(), virtualSourceField);
                 result = true;
             }
         }
@@ -213,12 +212,10 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         return metadataValue -> metadataValue.getPlace() != virtualSourceField.getPlace();
     }
 
-    private Consumer<MetadataValue> updatePlaces(Item item, MetadataValue virtualSourceField) {
-        return mv -> {
-            virtualSourceField.setPlace(mv.getPlace());
-            getRelatedVirtualField(item, mv)
-                .ifPresent(relatedMv -> relatedMv.setPlace(mv.getPlace()));
-        };
+    private void updatePlaces(Item item, MetadataValue mv, MetadataValue virtualSourceField) {
+        virtualSourceField.setPlace(mv.getPlace());
+        getRelatedVirtualField(item, mv)
+            .ifPresent(relatedMv -> relatedMv.setPlace(mv.getPlace()));
     }
 
     private Optional<MetadataValue> findEnhanceableValue(MetadataValue virtualSourceField, Item item) {
@@ -233,7 +230,7 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
         List<MetadataValue> virtualSourceFields = getVirtualSourceFields(item);
         for (MetadataValue virtualSourceField : virtualSourceFields) {
-            if (!isPlaceholder(virtualSourceField) && isRelatedSourceNoMorePresent(item, virtualSourceField)) {
+            if (isRelatedSourceNoMorePresent(item, virtualSourceField)) {
                 obsoleteVirtualFields.add(virtualSourceField);
                 getRelatedVirtualField(item, virtualSourceField).ifPresent(obsoleteVirtualFields::add);
             }
@@ -321,7 +318,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     }
 
     private boolean hasAuthorityEqualsTo(MetadataValue metadataValue, String authority) {
-        return Objects.equals(metadataValue.getAuthority(), authority);
+        return Objects.equals(metadataValue.getAuthority(), authority)
+                || Objects.equals(PLACEHOLDER_PARENT_METADATA_VALUE, authority);
     }
 
     private Item findRelatedEntityItem(Context context, MetadataValue metadataValue) {

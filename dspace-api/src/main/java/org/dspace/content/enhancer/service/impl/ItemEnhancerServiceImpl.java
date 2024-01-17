@@ -38,7 +38,7 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
 
         for (ItemEnhancer itemEnhancer : itemEnhancers) {
             if (itemEnhancer.canEnhance(context, item)) {
-                isUpdateNeeded = isUpdateNeeded || itemEnhancer.enhance(context, item, deepMode);
+                isUpdateNeeded = itemEnhancer.enhance(context, item, deepMode) || isUpdateNeeded;
             }
         }
 
