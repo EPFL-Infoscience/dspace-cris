@@ -2633,14 +2633,14 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
                         <ref bean="sortDateModifiedAsc"/>
                         <ref bean="sortDateModifiedDesc"/>
-                        <ref bean="sortScoreAsc" />
-                        <ref bean="sortScore" />
                     </list>
                 </property>
             </bean>
@@ -2871,6 +2871,8 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortOrganizationLegalName"/>
                         <ref bean="sortOrganizationLegalNameDesc"/>
                         <ref bean="sortOrganizationAddressCountry"/>
@@ -2879,8 +2881,6 @@
                         <ref bean="sortOrganizationAddressLocalityDesc"/>
                         <ref bean="sortOrganizationFoundingDateAsc"/>
                         <ref bean="sortOrganizationFoundingDate"/>
-                        <ref bean="sortScoreAsc" />
-                        <ref bean="sortScore" />
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
