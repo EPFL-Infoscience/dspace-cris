@@ -46,7 +46,7 @@ public class PersonIdentifiersItemCompilePlugin implements XOAIExtensionItemComp
         } else {
             person = personElementFromMetadata.get();
             Optional<Element> identifierElementFromMetadata = metadata.getElement().stream()
-                    .filter(element -> element.getName().equals("person")).findFirst();
+                .filter(element -> element.getName().equals("identifier")).findFirst();
             identifier = identifierElementFromMetadata.orElseGet(() -> ItemUtils.create("identifier"));
         }
         person.getElement().add(identifier);
