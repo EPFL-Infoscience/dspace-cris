@@ -106,6 +106,12 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
     protected RelationshipType isMemberOfOrgUnit;
     protected RelationshipType isIssueOfJournalVolume;
     protected RelationshipType isProjectOfPerson;
+    protected RelationshipType isCorrectionOfPerson;
+    protected RelationshipType isCorrectionOfProject;
+    protected RelationshipType isCorrectionOfOrgUnit;
+    protected RelationshipType isCorrectionOfPublication;
+    protected RelationshipType isCorrectionOfJournalVolume;
+    protected RelationshipType isCorrectionOfJournalIssue;
 
     @Override
     @Before
@@ -228,6 +234,36 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
             .withCopyToLeft(false)
             .withCopyToRight(false)
             .build();
+
+        isCorrectionOfPerson = RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, personEntityType, personEntityType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+
+        isCorrectionOfProject = RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, projectEntityType, projectEntityType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+
+        isCorrectionOfOrgUnit = RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, orgUnitEntityType, orgUnitEntityType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+
+        isCorrectionOfPublication = RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, publicationEntityType, publicationEntityType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+
+        isCorrectionOfJournalVolume = RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, journalVolumeEntityType, journalVolumeEntityType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+
+        isCorrectionOfJournalIssue = RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, journalIssueEntityType, journalIssueEntityType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
     }
 
     protected Relationship getRelationship(
@@ -1790,7 +1826,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
         Item v1_2 = versioningService.createNewVersion(context, v1_1).getItem();
         installItemService.installItem(context, workspaceItemService.findByItem(context, v1_2));
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////
         // create new version - issue 3.2 //
@@ -1798,7 +1834,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
         Item i3_2 = versioningService.createNewVersion(context, i3_1).getItem();
         installItemService.installItem(context, workspaceItemService.findByItem(context, i3_2));
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////////////////
         // after version creation - verify volume 1.1 //
@@ -1895,7 +1931,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
         itemService.delete(context, context.reloadEntity(i3_2));
 
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////
         // after remove 1 - cache busting //
@@ -2000,7 +2036,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
         itemService.removeMetadataValues(context, v1_2, List.of(removeMdv1));
         // NOTE: after removal, update is required to do place recalculation, among other things
         itemService.update(context, v1_2);
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////////
         // after remove 2 - verify volume 1.1 //
@@ -2318,7 +2354,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
                 Item pe3_2 = versioningService.createNewVersion(context, pe3_1).getItem();
                 installItemService.installItem(context, workspaceItemService.findByItem(context, pe3_2));
-                context.commit();
+                context.dispatchEvents();
 
                 //////////////////////////////////////
                 // create new version - project 3.2 //
@@ -2326,7 +2362,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
                 Item pr3_2 = versioningService.createNewVersion(context, pr3_1).getItem();
                 installItemService.installItem(context, workspaceItemService.findByItem(context, pr3_2));
-                context.commit();
+                context.dispatchEvents();
 
                 ////////////////////////////////////////////////
                 // after version creation - verify person 3.1 //
@@ -2536,7 +2572,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
                 assertNotNull(rel1);
 
                 relationshipService.delete(context, rel1, false, false);
-                context.commit();
+                context.dispatchEvents();
 
                 ////////////////////////////////////
                 // after remove 1 - cache busting //
@@ -2755,7 +2791,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
                 itemService.removeMetadataValues(context, pe3_2, List.of(removeMdv1));
                 itemService.update(context, pe3_2);
-                context.commit();
+                context.dispatchEvents();
 
                 ////////////////////////////////////////
                 // after remove 2 - verify person 3.1 //
@@ -3052,7 +3088,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
         Item v1_2 = versioningService.createNewVersion(context, v1_1).getItem();
         installItemService.installItem(context, workspaceItemService.findByItem(context, v1_2));
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////
         // create new version - issue 3.2 //
@@ -3060,7 +3096,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
         Item i3_2 = versioningService.createNewVersion(context, i3_1).getItem();
         installItemService.installItem(context, workspaceItemService.findByItem(context, i3_2));
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////////////////
         // after version creation - verify volume 3.1 //
@@ -3153,7 +3189,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
 
         itemService.delete(context, context.reloadEntity(i3_2));
 
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////
         // after remove 1 - cache busting //
@@ -3259,7 +3295,7 @@ public class VersioningWithRelationshipsIT extends AbstractIntegrationTestWithDa
         RelationshipBuilder.createRelationshipBuilder(context, v1_2, i3_3, isIssueOfJournalVolume, 2, -1)
                 .build();
 
-        context.commit();
+        context.dispatchEvents();
 
         ////////////////////////////////////////////
         // after add relationship - cache busting //
