@@ -7,15 +7,24 @@
  */
 package org.dspace.discovery.configuration;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.indexobject.IndexableDSpaceObject;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -25,8 +34,17 @@ import org.dspace.services.factory.DSpaceServicesFactory;
  */
 public class DiscoveryConfigurationService {
 
+    private static final Logger log = LogManager.getLogger();
+
     private Map<String, DiscoveryConfiguration> map;
     private Map<Integer, List<String>> toIgnoreMetadataFields = new HashMap<>();
+
+    /**
+     * Discovery configurations, cached by Community/Collection UUID. When a  Community or Collection does not have its
+     * own configuration, we take the one of the first parent that does.
+     * This cache ensures we do not have to go up the hierarchy every time.
+     */
+    private final Map<UUID, DiscoveryConfiguration> comColToDiscoveryConfigurationMap = new ConcurrentHashMap<>();
 
     public Map<String, DiscoveryConfiguration> getMap() {
         return map;
@@ -50,23 +68,118 @@ public class DiscoveryConfigurationService {
         this.toIgnoreMetadataFields = toIgnoreMetadataFields;
     }
 
+    /**
+     * Retrieve the discovery configuration for the provided IndexableObject. When a DSpace Object can be retrieved from
+     * the IndexableObject, the discovery configuration will be returned for the DSpace Object. Otherwise, a check will
+     * be done to look for the unique index ID of the IndexableObject. When the IndexableObject is null, the default
+     * configuration will be retrieved
+     *
+     * When no direct match is found, the parent object will
+     * be checked until there is no parent left, in which case the "default" configuration will be returned.
+     * @param context           The database context
+     * @param indexableObject   The IndexableObject to retrieve the configuration for
+     * @return the discovery configuration for the provided IndexableObject.
+     */
     @SuppressWarnings({ "rawtypes" })
-    public DiscoveryConfiguration getDiscoveryConfiguration(IndexableObject dso) {
-        String name = (dso == null)
-            ? "default"
-            : (dso instanceof IndexableDSpaceObject)
-                ? ((IndexableDSpaceObject) dso).getIndexedObject().getHandle()
-                : dso.getUniqueIndexID();
-
-        return getDiscoveryConfigurationByNameOrDefault(name);
+    public DiscoveryConfiguration getDiscoveryConfiguration(Context context, IndexableObject indexableObject) {
+        return indexableObject instanceof IndexableDSpaceObject
+            ? getDiscoveryDSOConfiguration(context, ((IndexableDSpaceObject) indexableObject).getIndexedObject())
+            : getDiscoveryConfiguration(indexableObject == null ? null : indexableObject.getUniqueIndexID());
     }
 
+    /**
+     * Retrieve the discovery configuration for the provided DSO. When no direct match is found, the parent object will
+     * be checked until there is no parent left, in which case the "default" configuration will be returned.
+     * @param context   - The database context
+     * @param dso       - The DSpace object to retrieve the configuration for
+     * @return the discovery configuration for the provided DSO.
+     */
+    public DiscoveryConfiguration getDiscoveryDSOConfiguration(final Context context, DSpaceObject dso) {
+        // Fall back to default configuration
+        if (dso == null) {
+            return getDiscoveryConfiguration(null, true);
+        }
+
+        // Attempt to retrieve cached configuration by UUID
+        if (comColToDiscoveryConfigurationMap.containsKey(dso.getID())) {
+            return comColToDiscoveryConfigurationMap.get(dso.getID());
+        }
+
+        DiscoveryConfiguration configuration;
+
+        // Attempt to retrieve configuration by DSO handle
+        configuration = getDiscoveryConfiguration(dso.getHandle(), false);
+
+        if (configuration == null) {
+            // Recurse up the Comm/Coll hierarchy until a configuration is found
+            DSpaceObjectService<DSpaceObject> dSpaceObjectService =
+                ContentServiceFactory.getInstance().getDSpaceObjectService(dso);
+            DSpaceObject parentObject = null;
+            try {
+                parentObject = dSpaceObjectService.getParentObject(context, dso);
+            } catch (SQLException e) {
+                log.error(e);
+            }
+            configuration = getDiscoveryDSOConfiguration(context, parentObject);
+        }
+
+        // Cache the resulting configuration when the DSO is a Community or Collection
+        if (dso instanceof Community || dso instanceof Collection) {
+            comColToDiscoveryConfigurationMap.put(dso.getID(), configuration);
+        }
+
+        return configuration;
+    }
+
+    /**
+     * Retrieve the Discovery Configuration for the provided name. When no configuration can be found for the name, the
+     * default configuration will be returned.
+     * @param name  - The name of the configuration to be retrieved
+     * @return the Discovery Configuration for the provided name, or default when none was found.
+     */
+    public DiscoveryConfiguration getDiscoveryConfiguration(String name) {
+        return getDiscoveryConfiguration(name, true);
+    }
+
+    /**
+     * Retrieve the configuration for the provided name. When useDefault is set to true, the "default" configuration
+     * will be returned when no match is found. When useDefault is set to false, null will be returned when no match is
+     * found.
+     * @param name          - The name of the configuration to retrieve
+     * @param useDefault    - Whether the default configuration should be used when no match is found
+     * @return the configuration for the provided name
+     */
+    public DiscoveryConfiguration getDiscoveryConfiguration(final String name, boolean useDefault) {
+        DiscoveryConfiguration result = StringUtils.isBlank(name) ? null : map.get(name);
+        return (result == null && useDefault) ? map.get("default") : result;
+    }
+
+    /**
+     * Retrieve the Discovery configuration for the provided name or IndexableObject. The configuration will first be
+     * checked for the provided name. When no match is found for the name, the configuration will be retrieved for the
+     * IndexableObject
+     *
+     * @param context           - The database context
+     * @param configurationName - The name of the configuration to be retrieved
+     * @param indexableObject   - The indexable object to retrieve the configuration for
+     * @return the Discovery configuration for the provided name, or when not found for the provided IndexableObject
+     */
+    @SuppressWarnings({ "rawtypes" })
+    public DiscoveryConfiguration getDiscoveryConfigurationByNameOrIndexableObject(Context context,
+                                                                                   String configurationName,
+                                                                                   IndexableObject indexableObject) {
+        return StringUtils.isNotBlank(configurationName) && getMap().containsKey(configurationName)
+            ? map.get(configurationName)
+            : getDiscoveryConfiguration(context, indexableObject);
+    }
+
+
     public DiscoveryConfiguration getDiscoveryConfigurationByNameOrDefault(final String name) {
-        return Optional.ofNullable(getDiscoveryConfigurationByName(name)).orElse(map.get("default"));
+        return this.getDiscoveryConfiguration(name, true);
     }
 
     public DiscoveryConfiguration getDiscoveryConfigurationByName(String name) {
-        return StringUtils.isBlank(name) ? null : map.get(name);
+        return this.getDiscoveryConfiguration(name, false);
     }
 
     @SuppressWarnings({ "rawtypes" })
@@ -74,7 +187,7 @@ public class DiscoveryConfigurationService {
                                                                        final IndexableObject dso) {
         return (StringUtils.isNotBlank(configurationName) && map.containsKey(configurationName))
             ? map.get(configurationName)
-            : getDiscoveryConfiguration(dso);
+            : getDiscoveryConfiguration(null, dso);
     }
 
     /**
@@ -86,6 +199,18 @@ public class DiscoveryConfigurationService {
         return map.values().stream()
                   .filter(DiscoveryConfiguration::isIndexAlways)
                   .collect(Collectors.toList());
+    }
+
+    /**
+     * @return All configurations for {@link org.dspace.discovery.configuration.DiscoverySearchFilterFacet}
+     */
+    public List<DiscoverySearchFilterFacet> getAllFacetsConfig() {
+        List<DiscoverySearchFilterFacet> configs = new ArrayList<>();
+        for (String key : map.keySet()) {
+            DiscoveryConfiguration config = map.get(key);
+            configs.addAll(config.getSidebarFacets());
+        }
+        return configs;
     }
 
     public static void main(String[] args) {
