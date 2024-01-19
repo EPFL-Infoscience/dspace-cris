@@ -214,7 +214,7 @@
             </list>
         </property>
     </bean>
-    <!--
+
     <bean id="openaireLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="OpenAIREService"/>
         <property name="sourceIdentifier" value="openaireProject"/>
@@ -226,6 +226,7 @@
         </property>
     </bean>
 
+    <!--
     <bean id="vufindLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="vufindImportService"/>
         <property name="sourceIdentifier" value="vufind"/>
