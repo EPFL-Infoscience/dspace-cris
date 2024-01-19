@@ -321,7 +321,7 @@ public class XOAI {
                         list.add(this.index(item));
                     }
                     // Uncache the item to keep memory consumption low
-                    context.uncacheEntity(item);
+                    context.clear();
 
                 } catch (SQLException | IOException | XMLStreamException | WritingXmlException ex) {
                     log.error(ex.getMessage(), ex);

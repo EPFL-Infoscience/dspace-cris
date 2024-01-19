@@ -106,7 +106,7 @@
     </bean>
 
     <bean id="import-publications" class="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCliScriptConfiguration">
-        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv)"/>
+        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv, EspaceNet)"/>
         <property name="dspaceRunnableClass" value="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCli"/>
     </bean>
 
@@ -241,6 +241,16 @@
     <bean id="bulk-access-control" class="org.dspace.app.bulkaccesscontrol.BulkAccessControlCliScriptConfiguration" primary="true">
         <property name="description" value="Bulk access control"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
+    </bean>
+
+    <bean id="epfl-duplication-fix" class="org.dspace.epfl.script.DuplicationFixScriptConfiguration" primary="true">
+        <property name="description" value="Fixes all the duplication by sciper id"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.DuplicationFixScript"/>
+    </bean>
+
+    <bean id="epfl-roles-setup" class="org.dspace.epfl.script.RoleSetupScriptConfiguration" primary="true">
+        <property name="description" value="Setup of roles of collections"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.RoleSetupScript"/>
     </bean>
 
 </beans>

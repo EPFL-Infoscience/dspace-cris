@@ -35,6 +35,10 @@
 
     <bean class="org.dspace.xoai.app.LinkedItemsCompilePlugin"/>
 
+    <bean class="org.dspace.xoai.app.RorItemCompilePlugin"/>
+
+    <bean class="org.dspace.xoai.app.PersonIdentifiersItemCompilePlugin"/>
+
     <!-- Additional item.compile plugin to enrich field with information about
         Access Status metadata -->
     <bean class="org.dspace.xoai.app.plugins.AccessStatusElementItemCompilePlugin"/>
@@ -58,8 +62,4 @@
 <!--			</map>-->
 <!--        </property>-->
 <!--    </bean>-->
-
-	<!-- Additional item.compile plugin to enrich field with information about
-		Access Status metadata -->
-	<bean class="org.dspace.xoai.app.plugins.AccessStatusElementItemCompilePlugin"/>
 </beans>

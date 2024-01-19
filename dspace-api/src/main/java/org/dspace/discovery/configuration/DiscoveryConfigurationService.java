@@ -9,16 +9,17 @@ package org.dspace.discovery.configuration;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -52,14 +53,10 @@ public class DiscoveryConfigurationService {
     public void setMap(Map<String, DiscoveryConfiguration> map) {
         this.map = map;
         if (map != null) {
-            // improve the configuration assigning the map key as id to any configuration
-            // that doesn't have one
-            for (Map.Entry<String, DiscoveryConfiguration> entry : map.entrySet()) {
-                DiscoveryConfiguration conf = entry.getValue();
-                if (StringUtils.isBlank(conf.getId())) {
-                    conf.setId(entry.getKey());
-                }
-            }
+            // improve the configuration assigning the map key as id to any configuration that doesn't have one
+            map.entrySet().stream()
+               .filter(entry -> StringUtils.isBlank(entry.getValue().getId()))
+               .forEach(entry -> entry.getValue().setId(entry.getKey()));
         }
     }
 
@@ -79,20 +76,15 @@ public class DiscoveryConfigurationService {
      *
      * When no direct match is found, the parent object will
      * be checked until there is no parent left, in which case the "default" configuration will be returned.
-     * @param context   - The database context
-     * @param indexableObject       - The IndexableObject to retrieve the configuration for
+     * @param context           The database context
+     * @param indexableObject   The IndexableObject to retrieve the configuration for
      * @return the discovery configuration for the provided IndexableObject.
      */
+    @SuppressWarnings({ "rawtypes" })
     public DiscoveryConfiguration getDiscoveryConfiguration(Context context, IndexableObject indexableObject) {
-        String name;
-        if (indexableObject == null) {
-            return getDiscoveryConfiguration(null);
-        } else if (indexableObject instanceof IndexableDSpaceObject) {
-            return getDiscoveryDSOConfiguration(context, ((IndexableDSpaceObject) indexableObject).getIndexedObject());
-        } else {
-            name = indexableObject.getUniqueIndexID();
-        }
-        return getDiscoveryConfiguration(name);
+        return indexableObject instanceof IndexableDSpaceObject
+            ? getDiscoveryDSOConfiguration(context, ((IndexableDSpaceObject) indexableObject).getIndexedObject())
+            : getDiscoveryConfiguration(indexableObject == null ? null : indexableObject.getUniqueIndexID());
     }
 
     /**
@@ -158,16 +150,8 @@ public class DiscoveryConfigurationService {
      * @return the configuration for the provided name
      */
     public DiscoveryConfiguration getDiscoveryConfiguration(final String name, boolean useDefault) {
-        DiscoveryConfiguration result;
-
-        result = StringUtils.isBlank(name) ? null : getMap().get(name);
-
-        if (result == null && useDefault) {
-            //No specific configuration, get the default one
-            result = getMap().get("default");
-        }
-
-        return result;
+        DiscoveryConfiguration result = StringUtils.isBlank(name) ? null : map.get(name);
+        return (result == null && useDefault) ? map.get("default") : result;
     }
 
     /**
@@ -180,14 +164,13 @@ public class DiscoveryConfigurationService {
      * @param indexableObject   - The indexable object to retrieve the configuration for
      * @return the Discovery configuration for the provided name, or when not found for the provided IndexableObject
      */
+    @SuppressWarnings({ "rawtypes" })
     public DiscoveryConfiguration getDiscoveryConfigurationByNameOrIndexableObject(Context context,
                                                                                    String configurationName,
                                                                                    IndexableObject indexableObject) {
-        if (StringUtils.isNotBlank(configurationName) && getMap().containsKey(configurationName)) {
-            return getMap().get(configurationName);
-        } else {
-            return getDiscoveryConfiguration(context, indexableObject);
-        }
+        return StringUtils.isNotBlank(configurationName) && getMap().containsKey(configurationName)
+            ? map.get(configurationName)
+            : getDiscoveryConfiguration(context, indexableObject);
     }
 
 
@@ -199,13 +182,12 @@ public class DiscoveryConfigurationService {
         return this.getDiscoveryConfiguration(name, false);
     }
 
+    @SuppressWarnings({ "rawtypes" })
     public DiscoveryConfiguration getDiscoveryConfigurationByNameOrDso(final String configurationName,
                                                                        final IndexableObject dso) {
-        if (StringUtils.isNotBlank(configurationName) && getMap().containsKey(configurationName)) {
-            return getMap().get(configurationName);
-        } else {
-            return getDiscoveryConfiguration(null, dso);
-        }
+        return (StringUtils.isNotBlank(configurationName) && map.containsKey(configurationName))
+            ? map.get(configurationName)
+            : getDiscoveryConfiguration(null, dso);
     }
 
     /**
@@ -214,14 +196,9 @@ public class DiscoveryConfigurationService {
      * These configurations should always be included when indexing
      */
     public List<DiscoveryConfiguration> getIndexAlwaysConfigurations() {
-        List<DiscoveryConfiguration> configs = new ArrayList<>();
-        for (String key : map.keySet()) {
-            DiscoveryConfiguration config = map.get(key);
-            if (config.isIndexAlways()) {
-                configs.add(config);
-            }
-        }
-        return configs;
+        return map.values().stream()
+                  .filter(DiscoveryConfiguration::isIndexAlways)
+                  .collect(Collectors.toList());
     }
 
     /**
@@ -238,35 +215,30 @@ public class DiscoveryConfigurationService {
 
     public static void main(String[] args) {
         System.out.println(DSpaceServicesFactory.getInstance().getServiceManager().getServicesNames().size());
-        DiscoveryConfigurationService mainService = DSpaceServicesFactory.getInstance().getServiceManager()
-                                                                         .getServiceByName(
-                                                                             DiscoveryConfigurationService.class
-                                                                                 .getName(),
-                                                                             DiscoveryConfigurationService.class);
+        DiscoveryConfigurationService mainService =
+            DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(
+                DiscoveryConfigurationService.class.getName(),
+                DiscoveryConfigurationService.class
+            );
 
         for (String key : mainService.getMap().keySet()) {
             System.out.println(key);
 
             System.out.println("Facets:");
             DiscoveryConfiguration discoveryConfiguration = mainService.getMap().get(key);
-            for (int i = 0; i < discoveryConfiguration.getSidebarFacets().size(); i++) {
-                DiscoverySearchFilterFacet sidebarFacet = discoveryConfiguration.getSidebarFacets().get(i);
+            discoveryConfiguration.getSidebarFacets().forEach(sidebarFacet -> {
                 System.out.println("\t" + sidebarFacet.getIndexFieldName());
-                for (int j = 0; j < sidebarFacet.getMetadataFields().size(); j++) {
-                    String metadataField = sidebarFacet.getMetadataFields().get(j);
-                    System.out.println("\t\t" + metadataField);
-                }
-            }
+                sidebarFacet.getMetadataFields().stream()
+                            .map(metadataField -> "\t\t" + metadataField)
+                            .forEach(System.out::println);
+            });
 
             System.out.println("Search filters");
-            List<DiscoverySearchFilter> searchFilters = discoveryConfiguration.getSearchFilters();
-            for (DiscoverySearchFilter searchFilter : searchFilters) {
-                for (int i = 0; i < searchFilter.getMetadataFields().size(); i++) {
-                    String metadataField = searchFilter.getMetadataFields().get(i);
-                    System.out.println("\t\t" + metadataField);
-                }
-
-            }
+            discoveryConfiguration.getSearchFilters().stream()
+                                  .map(DiscoverySearchFilter::getMetadataFields)
+                                  .flatMap(Collection::stream)
+                                  .map(metadataField -> "\t\t" + metadataField)
+                                  .forEach(System.out::println);
 
             System.out.println("Recent submissions configuration:");
             DiscoveryRecentSubmissionsConfiguration recentSubmissionConfiguration = discoveryConfiguration
@@ -275,11 +247,9 @@ public class DiscoveryConfigurationService {
             System.out.println("\tMax recent submissions: " + recentSubmissionConfiguration.getMax());
 
             List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
-            if (0 < defaultFilterQueries.size()) {
+            if (!defaultFilterQueries.isEmpty()) {
                 System.out.println("Default filter queries");
-                for (String fq : defaultFilterQueries) {
-                    System.out.println("\t" + fq);
-                }
+                defaultFilterQueries.forEach(fq -> System.out.println("\t" + fq));
             }
         }
     }
@@ -289,16 +259,12 @@ public class DiscoveryConfigurationService {
      * @param prefixConfigurationName string as prefix key
      */
     public List<DiscoveryConfiguration> getDiscoveryConfigurationWithPrefixName(final String prefixConfigurationName) {
-        List<DiscoveryConfiguration> discoveryConfigurationList = new ArrayList<>();
-        if (StringUtils.isNotBlank(prefixConfigurationName)) {
-            for (String key : map.keySet()) {
-                if (key.equals(prefixConfigurationName) || key.startsWith(prefixConfigurationName)) {
-                    DiscoveryConfiguration config = map.get(key);
-                    discoveryConfigurationList.add(config);
-                }
-            }
-        }
-        return discoveryConfigurationList;
+        return StringUtils.isBlank(prefixConfigurationName)
+            ? new ArrayList<>()
+            : map.keySet().stream()
+                 .filter(key -> key.startsWith(prefixConfigurationName))
+                 .map(map::get)
+                 .collect(Collectors.toList());
     }
 
 }
