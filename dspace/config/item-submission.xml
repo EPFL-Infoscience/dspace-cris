@@ -362,18 +362,17 @@
       <step id="orgunit-editor" />
       <step id="orgunit" />
       <step id="custom-url" />
-      <step id="detect-duplicate" />
       <step id="upload-orgunit" />
+    </submission-process>
+    <submission-process name="orgunit-edit-director">
       <step id="orgunit-editor" />
       <step id="orgunit-director" />
       <step id="custom-url" />
-      <step id="detect-duplicate" />
       <step id="upload-orgunit" />
     </submission-process>
     <submission-process name="orgunit-edit-delegate">
       <step id="orgunit-director" />
       <step id="custom-url" />
-      <step id="detect-duplicate" />
       <step id="upload-orgunit" />
     </submission-process>
     <submission-process name="project">
@@ -386,7 +385,6 @@
     </submission-process>
     <submission-process name="project-edit">
       <step id="project" />
-      <step id="detect-duplicate" />
       <step id="upload-project" />
     </submission-process>
     <submission-process name="journal">
@@ -399,7 +397,6 @@
     </submission-process>
     <submission-process name="journal-edit">
       <step id="journal" />
-      <step id="detect-duplicate" />
       <step id="upload-journal" />
     </submission-process>
     <submission-process name="person">
@@ -413,14 +410,12 @@
     <submission-process name="person-edit">
       <step id="person" />
       <step id="custom-url" />
-      <step id="detect-duplicate" />
       <step id="upload-person" />
     </submission-process>
     <submission-process name="admin-person-edit">
       <step id="person" />
       <step id="owner" />
       <step id="custom-url" />
-      <step id="detect-duplicate" />
       <step id="upload-person" />
     </submission-process>
     <submission-process name="event">
@@ -433,7 +428,6 @@
     </submission-process>
     <submission-process name="event-edit">
       <step id="event" />
-      <step id="detect-duplicate" />
       <step id="upload-equipment" />
     </submission-process>
     <submission-process name="equipment">
@@ -446,7 +440,6 @@
     </submission-process>
     <submission-process name="equipment-edit">
       <step id="equipment" />
-      <step id="detect-duplicate" />
       <step id="upload-equipment" />
     </submission-process>
     <submission-process name="funding">
@@ -459,7 +452,6 @@
     </submission-process>
     <submission-process name="funding-edit">
       <step id="funding" />
-      <step id="detect-duplicate" />
       <step id="upload-funding" />
     </submission-process>
     <submission-process name="publication-import">
@@ -533,7 +525,6 @@
       <step id="grants" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="article-correction">
@@ -567,7 +558,6 @@
       <step id="additional_fields" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="media-correction">
@@ -602,7 +592,6 @@
       <step id="related_event" />
       <step id="ctb-bitstream-metadata" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-product" />
     </submission-process>
     <submission-process name="dataset-correction">
@@ -633,7 +622,6 @@
       <step id="additional_fields" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-patent" />
     </submission-process>
     <submission-process name="patent-correction">
@@ -670,7 +658,6 @@
       <step id="related_works" />
       <step id="grants" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="thesis-correction">
@@ -711,7 +698,6 @@
       <step id="related_works" />
       <step id="grants" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="student-correction">
@@ -754,7 +740,6 @@
       <step id="conference_event" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
       <step id="itemAccessConditions" />
     </submission-process>
@@ -791,7 +776,6 @@
       <step id="grants" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="report-correction">
@@ -821,7 +805,6 @@
       <step id="additional_fields" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="design-correction">
@@ -857,7 +840,6 @@
       <step id="additional_fields" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="preprint-correction">
@@ -891,7 +873,6 @@
       <step id="related_event" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="teaching-correction">
@@ -925,7 +906,6 @@
       <step id="grants" />
       <step id="related_works" />
       <step id="itemAccessConditions" />
-      <step id="detect-duplicate" />
       <step id="upload-publication" />
     </submission-process>
     <submission-process name="book-correction">
@@ -974,7 +954,6 @@
       <step id="related_event" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="detect-duplicate" />
     </submission-process>
     <submission-process name="publication-correction">
       <step id="extractionstep" />
@@ -1021,7 +1000,6 @@
       <step id="grants" />
       <step id="related_works" />
       <step id="additional_fields" />
-      <step id="detect-duplicate" />
     </submission-process>
     <submission-process name="product-correction">
       <step id="extractionstep" />

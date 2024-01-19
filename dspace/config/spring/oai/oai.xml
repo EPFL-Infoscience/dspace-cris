@@ -35,6 +35,10 @@
 
     <bean class="org.dspace.xoai.app.LinkedItemsCompilePlugin"/>
 
+    <bean class="org.dspace.xoai.app.RorItemCompilePlugin"/>
+
+    <bean class="org.dspace.xoai.app.PersonIdentifiersItemCompilePlugin"/>
+
         <!--
          This is no longer needed as the orcid information are consolidated in the publication's metadata via an Item Enhancer
          see metadata-enancers.xml

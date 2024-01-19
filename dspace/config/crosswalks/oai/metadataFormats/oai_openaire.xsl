@@ -164,6 +164,8 @@
         <datacite:creators>
             <!-- datacite.creator -->
             <xsl:for-each select="./doc:element/doc:field[@name='value']">
+                <xsl:variable name="index" select="position()"/>
+                <!-- Mapping for oaire:funderName -->
                 <xsl:variable name="isRelatedEntity">
                     <xsl:call-template name="isRelatedEntity">
                         <xsl:with-param name="element" select="."/>
@@ -185,6 +187,70 @@
                             <datacite:creatorName>
                                 <xsl:value-of select="./text()"/>
                             </datacite:creatorName>
+                            <datacite:affiliation>
+                                <xsl:value-of select="concat(../../../../../doc:element[@name='oairecerif']/doc:element[@name='author']/doc:element[@name='affiliation']/doc:element/doc:field[@name='value'][$index],
+                                                        ' | ',
+                                                        ../../../../../doc:element[@name='oairecerif']/doc:element[@name='affiliation']/doc:element[@name='orgunit']/doc:element/doc:field[@name='value'][$index])"/>
+                            </datacite:affiliation>
+
+                            <xsl:variable name="personIdentifier" select="../../../../../doc:element[@name='person']/doc:element[@name='identifier']"/>
+
+                            <xsl:variable name="scopusAffiliationValue" select="$personIdentifier/doc:element[@name='scopus-author-id']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="scopusInternalValue" select="$personIdentifier/doc:field[@name='scopus-author-id'][$index]"/>
+                            <xsl:if test="$scopusAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="Scopus Author ID">
+                                    <xsl:value-of select="$scopusAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$scopusInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="Scopus Author ID">
+                                    <xsl:value-of select="$scopusInternalValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="cienciaAffiliationValue" select="$personIdentifier/doc:element[@name='ciencia-id']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:if test="$cienciaAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="CIENCIA-ID">
+                                    <xsl:value-of select="$cienciaAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="gsidAffiliationValue" select="$personIdentifier/doc:element[@name='gsid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:if test="$gsidAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="GSID">
+                                    <xsl:value-of select="$gsidAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="orcidAffiliationValue" select="$personIdentifier/doc:element[@name='orcid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="orcidInternalValue" select="$personIdentifier/doc:field[@name='orcid'][$index]"/>
+                            <xsl:if test="$orcidAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="ORCID">
+                                    <xsl:value-of select="$orcidAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$orcidInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="ORCID">
+                                    <xsl:value-of select="$orcidInternalValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="isniAffiliationValue" select="$personIdentifier/doc:element[@name='isni']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:if test="$isniAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="ISNI">
+                                    <xsl:value-of select="$isniAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="ridAffiliationValue" select="$personIdentifier/doc:element[@name='rid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="ridInternalValue" select="$personIdentifier/doc:field[@name='rid'][$index]"/>
+                            <xsl:if test="$ridAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="RID">
+                                    <xsl:value-of select="$ridAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$ridInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="RID">
+                                    <xsl:value-of select="$ridInternalValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+
+                            <xsl:apply-templates select="../../../../.." mode="entity_author"/>
                         </datacite:creator>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -430,21 +496,37 @@
     <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_projectid.html -->
     <xsl:template match="doc:element[@name='dc']/doc:element[@name='relation']" mode="oaire">
         <oaire:fundingReferences>
-            <xsl:for-each select="./doc:element/doc:field[@name='value']">
-                <xsl:variable name="isRelatedEntity">
-                    <xsl:call-template name="isRelatedEntity">
-                        <xsl:with-param name="element" select="."/>
-                    </xsl:call-template>
-                </xsl:variable>
-                <!-- if next sibling is authority and starts with virtual:: -->
-                <xsl:if test="$isRelatedEntity = 'true'">
-                    <xsl:variable name="entity">
-                        <xsl:call-template name="buildEntityNode">
-                            <xsl:with-param name="element" select="."/>
-                        </xsl:call-template>
-                    </xsl:variable>
-                    <xsl:apply-templates select="$entity" mode="entity_funding"/>
-                </xsl:if>
+            <xsl:for-each select="./doc:element[@name='funding']/doc:element/doc:field[@name='value']">
+                <oaire:fundingReference>
+                    <xsl:variable name="index" select="position()"/>
+                    <!-- Mapping for oaire:funderName -->
+                    <oaire:funderName>
+                        <xsl:value-of select="../../../../../doc:element[@name='oairecerif']/doc:element[@name='funder']/doc:element/doc:field[@name='value'][$index]"/>
+                    </oaire:funderName>
+                    <!-- Mapping for oaire:awardNumber -->
+                    <xsl:variable name="awardURIValue" select="../../../../../doc:element[@name='crisfund']/doc:element[@name='award']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][$index]"/>
+                    <xsl:variable name="awardNumberValue" select="../../../doc:element[@name='grantno']/doc:element/doc:field[@name='value'][$index]"/>
+                    <xsl:choose>
+                        <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber>
+                                <xsl:value-of select="$awardNumberValue"/>
+                            </oaire:awardNumber>
+                        </xsl:when>
+                        <xsl:when test="$awardURIValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber awardURI="{$awardURIValue}" />
+                        </xsl:when>
+                        <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber awardURI="{$awardURIValue}">
+                                <xsl:value-of select="$awardNumberValue"/>
+                            </oaire:awardNumber>
+                        </xsl:when>
+                    </xsl:choose>
+
+                    <!-- Mapping for oaire:awardTitle -->
+                    <oaire:awardTitle>
+                        <xsl:value-of select="./text()"/>
+                    </oaire:awardTitle>
+                </oaire:fundingReference>
             </xsl:for-each>
         </oaire:fundingReferences>
     </xsl:template>

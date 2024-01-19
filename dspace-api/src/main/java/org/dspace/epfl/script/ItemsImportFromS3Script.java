@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.persistence.PersistenceException;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -67,6 +68,7 @@ import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.dto.ResourcePolicyDTO;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.packager.PackageUtils;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -287,6 +289,11 @@ public class ItemsImportFromS3Script
                     context.commit();
                     handler.logInfo("Imported " + importedItemsCount + " items");
                 }
+            } catch (PersistenceException pex) {
+                handler.logError("An persistence error occurs importing item with ID " + item.getItem().getId()
+                    + ". The previous changes in the current chunck will be rollbacked", pex);
+                errorsCount++;
+                context.rollback();
             } catch (Exception ex) {
                 handler.logError("An error occurs importing item with ID " + item.getItem().getId(), ex);
                 errorsCount++;
@@ -361,6 +368,8 @@ public class ItemsImportFromS3Script
         Collection collection = getCollection(collectionIds.get(itemImport.getType()));
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
         Item item = workspaceItem.getItem();
+
+        PackageUtils.addDepositLicense(context, null, item, collection);
 
         addMetadataValues(itemImport, item);
         addBitstreams(itemImport, item);
@@ -472,11 +481,33 @@ public class ItemsImportFromS3Script
     private void addMetadataValues(ItemImportDTO itemImport, Item item) throws SQLException {
 
         for (MetadataValueDTO metadataValue : itemImport.getItem().getMetadataValues()) {
+
+            String authority = metadataValue.getAuthority();
+            String value = metadataValue.getValue();
+            int confidence = metadataValue.getConfidence();
+
+            if (StringUtils.isNotBlank(authority) && authority.length() >= 100) {
+                handler.logWarning("Metadata value " + metadataValue.getValue() + " has an authority too longer: "
+                    + authority + ". The authority will be ignored because can't be stored.");
+                authority = null;
+                confidence = -1;
+            }
+
+            if (value != null && "dc.identifier.doi".equals(metadataValue.getMetadataField())) {
+                value = replaceOldDoiPrefix(value);
+            }
+
             itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
                 metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
-                metadataValue.getAuthority(), metadataValue.getConfidence());
+                authority, confidence);
         }
 
+    }
+
+    private String replaceOldDoiPrefix(String value) {
+        String oldPrefix = configurationService.getProperty("epfl.bulk-import.old-doi-prefix", "");
+        String newPrefix = configurationService.getProperty("identifier.doi.prefix", "");
+        return value.replace(oldPrefix, newPrefix);
     }
 
     private Item searchItemById(String id) {
@@ -530,7 +561,7 @@ public class ItemsImportFromS3Script
             return keys.stream();
         }
 
-        if (limit != null) {
+        if (limit != null || startAfter != null) {
             return itemsS3Service.getItemsKeys(limit, startAfter);
         }
 
@@ -653,7 +684,7 @@ public class ItemsImportFromS3Script
                 return null;
             }
 
-            ItemDTO item = marcXmlParser.readSingleItem(context, id, record, mapping);
+            ItemDTO item = marcXmlParser.readSingleItem(context, id, recordType, record, mapping);
 
             return new ItemImportDTO(recordType, item);
 
