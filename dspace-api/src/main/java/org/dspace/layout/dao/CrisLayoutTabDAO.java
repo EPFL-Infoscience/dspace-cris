@@ -86,7 +86,7 @@ public interface CrisLayoutTabDAO extends GenericDAO<CrisLayoutTab> {
      * @throws SQLException An exception that provides information on a database errors.
      */
     public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(
-            Context context, String entityType, String customFilter, Integer limit, Integer offset) throws SQLException;
+        Context context, String entityType, String customFilter, Integer limit, Integer offset) throws SQLException;
 
     /**
      * Returns the total number of metadata field associated at tab

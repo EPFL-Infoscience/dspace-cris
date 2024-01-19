@@ -25,7 +25,6 @@ public class VirtualFieldAlternativeDOI implements VirtualField {
             throw new IllegalArgumentException("Invalid field name " + fieldName);
         }
 
-        String metadataField = StringUtils.replaceAll(qualifiers[2], "-", ".");
         return itemDOIService.getAlternativeDOIFromItem(item);
     }
 }

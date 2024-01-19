@@ -73,8 +73,8 @@
 
     <bean id="accessConditionConfigurationDefault" class="org.dspace.submit.model.AccessConditionConfiguration">
         <!-- This name must match the id of the step as defined in the item-submission.xml -->
-        <property name="name" value="itemAccessConditions"></property>
-        <property name="canChangeDiscoverable" value="false"></property>
+        <property name="name" value="itemAccessConditions" />
+        <property name="canChangeDiscoverable" value="false" />
         <property name="singleAccessCondition" value="true" />
         <property name="onlyForOriginalBundle" value="true" />
         <property name="options">
@@ -91,11 +91,11 @@
         <property name="groupName" value="LoggedIn"/>
         <property name="name" value="restricted"/>
         <property name="hasStartDate" value="false"/>
-        <property name="hasEndDate" value="false"/>       
+        <property name="hasEndDate" value="false"/>
     </bean>
-    
+
     <bean id="uploadConfigurationPublication" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-publication"></property>
+        <property name="name" value="upload-publication" />
         <property name="metadata" value="bitstream-metadata-publication" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -109,7 +109,7 @@
     </bean>
 
     <bean id="uploadConfigurationProduct" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-product"></property>
+        <property name="name" value="upload-product" />
         <property name="metadata" value="bitstream-metadata-product" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -123,7 +123,7 @@
     </bean>
 
     <bean id="uploadConfigurationPatent" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-patent"></property>
+        <property name="name" value="upload-patent" />
         <property name="metadata" value="bitstream-metadata-patent" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -137,7 +137,7 @@
     </bean>
 
     <bean id="uploadConfigurationEvent" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-event"></property>
+        <property name="name" value="upload-event" />
         <property name="metadata" value="bitstream-metadata-event" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -151,7 +151,7 @@
     </bean>
 
     <bean id="uploadConfigurationPerson" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-person"></property>
+        <property name="name" value="upload-person" />
         <property name="metadata" value="bitstream-metadata-person" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -165,7 +165,7 @@
     </bean>
 
     <bean id="uploadConfigurationOrgUnit" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-orgunit"></property>
+        <property name="name" value="upload-orgunit" />
         <property name="metadata" value="bitstream-metadata-orgunit" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -179,7 +179,7 @@
     </bean>
 
     <bean id="uploadConfigurationJournal" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-journal"></property>
+        <property name="name" value="upload-journal" />
         <property name="metadata" value="bitstream-metadata-journal" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -194,7 +194,7 @@
 
 
     <bean id="uploadConfigurationProject" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-project"></property>
+        <property name="name" value="upload-project" />
         <property name="metadata" value="bitstream-metadata-project" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -209,7 +209,7 @@
 
 
     <bean id="uploadConfigurationFunding" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-funding"></property>
+        <property name="name" value="upload-funding" />
         <property name="metadata" value="bitstream-metadata-funding" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -223,7 +223,7 @@
     </bean>
 
     <bean id="uploadConfigurationContent" class="org.dspace.submit.model.UploadConfiguration">
-        <property name="name" value="upload-publication"></property>
+        <property name="name" value="upload-publication" />
         <property name="metadata" value="bitstream-metadata-content" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">
@@ -235,4 +235,35 @@
             </list>
         </property>
     </bean>
+
+    <bean id="defaultBulkAccessConditionConfiguration"
+          class="org.dspace.app.bulkaccesscontrol.model.BulkAccessConditionConfiguration">
+        <property name="name" value="default"/>
+        <property name="itemAccessConditionOptions">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+                <ref bean="reserved"/>
+            </list>
+        </property>
+        <property name="bitstreamAccessConditionOptions">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed"/>
+                <ref bean="restricted" />
+                <ref bean="reserved"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="bulkAccessConditionConfigurationService"
+          class="org.dspace.app.bulkaccesscontrol.service.BulkAccessConditionConfigurationService">
+        <property name="bulkAccessConditionConfigurations">
+            <list>
+                <ref bean="defaultBulkAccessConditionConfiguration"/>
+            </list>
+        </property>
+    </bean>
+
 </beans>
