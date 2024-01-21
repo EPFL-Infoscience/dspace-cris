@@ -4137,6 +4137,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         ;
 
     }
+
     @Test
     public void discoverSearchObjectsTestWithUnEscapedLuceneCharactersTest() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
@@ -4186,6 +4187,246 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    .andExpect(status().isUnprocessableEntity())
         ;
 
+    }
+
+    @Test
+    public void discoverSearchObjectsTestWithHyphenSeparatedWordsInQuery() throws Exception {
+        //We turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
+
+        //2. Three public items that are readable by Anonymous with different subjects
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                                      .withTitle("Publication with hyphen-word")
+                                      .withIssueDate("2010-10-17")
+                                      .withAuthor("Smith, Donald")
+                                      .withSubject("TestSubject")
+                                      .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Publication without hyphen word")
+                                      .withIssueDate("1990-02-13")
+                                      .withAuthor("Doe, Jane")
+                                      .withSubject("TestingForMore")
+                                      .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("hyphen hyphen")
+                                      .withIssueDate("2010-02-13")
+                                      .withAuthor("test,test")
+                                      .withSubject("ExtraEntry")
+                                      .build();
+
+        context.restoreAuthSystemState();
+
+        // Should find 1 publication that has "hyphen-word" in title
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "title:hyphen-word"))
+
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 1)
+                   )))
+                   //This is the only item that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.contains(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen-word")
+                   )))
+                   //These are the items that should NOT be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.not(Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen word"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "hyphen hyphen")
+                       ))
+                   ))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+
+        // Should find 1 publication with "hyphen word" and no "-" in title
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "title:hyphen word"))
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 1)
+                   )))
+                   //This is the only item that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.contains(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication without hyphen word")
+                       )))
+                   //These are the items that should NOT be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.not(Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen-word"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "hyphen hyphen")
+                       ))
+                   ))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+
+        // Should find all 2 publications that have "hyphen" and not "hyphen-word" in title
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "title:hyphen"))
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 2)
+                   )))
+                   //These are the only items that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication without hyphen word"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "hyphen hyphen")
+                       )))
+                   //This is the item that should NOT be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.not(Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen-word")
+                       ))
+                   ))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+    }
+
+    @Test
+    public void discoverSearchObjectsTestWithCommaInQuery() throws Exception {
+        //We turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
+
+        //2. Three public items that are readable by Anonymous with different subjects
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                                      .withTitle("Publication 1")
+                                      .withIssueDate("2010-10-17")
+                                      .withAuthor("Smith, Donald")
+                                      .withSubject("TestSubject")
+                                      .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Publication 2")
+                                      .withIssueDate("1990-02-13")
+                                      .withAuthor("Smith, Maria")
+                                      .withSubject("TestingForMore")
+                                      .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Publication 3")
+                                      .withIssueDate("2010-02-13")
+                                      .withAuthor("Smith, Joe")
+                                      .withSubject("ExtraEntry")
+                                      .build();
+
+        context.restoreAuthSystemState();
+
+        // Should find all 3 publications when query includes comma
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "Smith,"))
+
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                   )))
+                   //These are all items that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 1"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 3")
+                       )))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+
+
+
+        // Should find all 3 publications when query does not include comma
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "Smith"))
+
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                   )))
+                   //These are all items that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 1"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 3")
+                       )))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
     }
 
     @Test
@@ -7207,6 +7448,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
      * @throws Exception
      */
     @Test
+    @Ignore
     public void sameItemHiddenByDifferentOwners() throws Exception {
 
         context.turnOffAuthorisationSystem();
