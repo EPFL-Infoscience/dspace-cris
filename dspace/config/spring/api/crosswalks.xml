@@ -76,6 +76,7 @@
 				<entry key="event-cerif-xml" value-ref="referCrosswalkEventCerifXml"></entry>
 				
 				<entry key="collection-xls" value-ref="xlsCrosswalkCollection"></entry>
+        <entry key="item-zip" value-ref="zipCrosswalk"></entry>
         <entry key="METS-zip" value-ref="zipCrosswalk"></entry>
 
 				<entry key="epfl-publication" value-ref="epflPublicationsHtml"></entry>
@@ -693,7 +694,7 @@
         <property name="bitstreamBundle" value="ORIGINAL"/>
         <property name="metadataFileName" value="mets.xml"/>
         <property name="crosswalk" ref="metsCrosswalk"/>
-		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		    <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
         <property name="allowedGroups">
             <list>
                 <value>Administrator</value>
