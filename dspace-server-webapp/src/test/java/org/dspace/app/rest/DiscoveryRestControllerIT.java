@@ -724,7 +724,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The self link needs to contain the query that was specified in the parameters, this is how it
                 // looks like
                 .andExpect(jsonPath("$._links.self.href",
-                                    containsString("query=title%253Atest")))
+                                    containsString("query=title%3Atest")))
                 //This is how the page object must look like because it's the default
                 .andExpect(jsonPath("$.page",
                         is(PageMatcher.pageEntry(0, 20))))
@@ -1143,17 +1143,21 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         List<Matcher<? super Object>> allExpectedSortFields = new ArrayList<>(customSortFields);
         allExpectedSortFields.addAll(List.of(
             SortOptionMatcher.sortOptionMatcher(
-                "score", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
-            SortOptionMatcher.sortOptionMatcher(
-                "score", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
-            SortOptionMatcher.sortOptionMatcher(
                 "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
             SortOptionMatcher.sortOptionMatcher(
                 "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
             SortOptionMatcher.sortOptionMatcher(
+                "dc.contributor.author", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
+            SortOptionMatcher.sortOptionMatcher(
+                "dc.contributor.author", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
+            SortOptionMatcher.sortOptionMatcher(
                 "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
             SortOptionMatcher.sortOptionMatcher(
                 "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
+            SortOptionMatcher.sortOptionMatcher(
+                "score", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
+            SortOptionMatcher.sortOptionMatcher(
+                "score", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
             SortOptionMatcher.sortOptionMatcher(
                 "dc.date.accessioned", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
             SortOptionMatcher.sortOptionMatcher(
