@@ -13,6 +13,7 @@ import static org.dspace.core.I18nUtil.getEmailFilename;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authenticate.factory.AuthenticateServiceFactory;
@@ -489,10 +491,14 @@ public class ShibAuthentication implements AuthenticationMethod {
             profileInitializer.initialize(context, eperson);
         } catch (NoPersonFoundException ex) {
             sendEmailForNoPersonFound(context, eperson);
-            deleteEperson(context, eperson);
         } catch (Exception ex) {
-            deleteEperson(context, eperson);
-            log.error("An error occurs initializing EPerson.", ex);
+            if (ex.getCause() instanceof UnknownHostException) {
+                log.error("Unknown api url", ex);
+            } else if (ex.getCause() instanceof ConnectTimeoutException) {
+                log.error("There is a problem with api connection.", ex);
+            } else {
+                log.error("An error occurs initializing EPerson.", ex);
+            }
         }
 
     }
@@ -1336,15 +1342,5 @@ public class ShibAuthentication implements AuthenticationMethod {
                 .map(netId -> org.apache.commons.lang.StringUtils.substringBefore(netId, "@"));
     }
 
-    private void deleteEperson(Context context, EPerson ePerson) {
-        try {
-            context.turnOffAuthorisationSystem();
-            ePersonService.delete(context, ePerson);
-        } catch (SQLException | AuthorizeException | IOException e) {
-            log.error("An error occurs when trying to delete ePerson " + ePerson.getID() , e);
-        } finally {
-            context.restoreAuthSystemState();
-        }
-    }
 }
 
