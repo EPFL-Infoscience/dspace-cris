@@ -180,7 +180,7 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     private boolean cleanObsoleteVirtualFields(Context context, Item item) throws SQLException {
         boolean result = false;
-        List<MetadataValue> metadataValuesToDelete = getObsoleteVirtualFields(item);
+        List<MetadataValue> metadataValuesToDelete = getObsoleteVirtualFields(context, item);
         if (!metadataValuesToDelete.isEmpty()) {
             itemService.removeMetadataValues(context, item, metadataValuesToDelete);
             result = true;
@@ -238,43 +238,55 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         }
     }
 
-    private List<MetadataValue> getObsoleteVirtualFields(Item item) {
+    private List<MetadataValue> getObsoleteVirtualFields(Context context, Item item) {
 
         List<MetadataValue> obsoleteVirtualFields = new ArrayList<>();
 
         List<MetadataValue> virtualSourceFields = getVirtualSourceFields(item);
         List<MetadataValue> enhanceableMetadata = getEnhanceableMetadataValue(item);
         for (MetadataValue virtualSourceField : virtualSourceFields) {
-            if (isRelatedSourceNoMorePresent(item, enhanceableMetadata, virtualSourceField)) {
+            if (isRelatedSourceNoMorePresentOrMetadataValueChanged( enhanceableMetadata, virtualSourceField)) {
                 obsoleteVirtualFields.add(virtualSourceField);
                 getRelatedVirtualField(item, virtualSourceField).ifPresent(obsoleteVirtualFields::add);
             }
         }
 
         return obsoleteVirtualFields;
-
     }
 
     /**
      * This method will look in the enhanceableMetadata if the source metadata is still present. If so, it will remove
      * form the list as it would not be used to validate other potential duplicate source metadata
-     * 
-     * @param item
+     *
      * @param enhanceableMetadata
      * @param virtualSourceField
      * @return true if the metadata containing a source of enhancement is still present in the list of the metadata to
      * use to enhance the item
      */
-    private boolean isRelatedSourceNoMorePresent(Item item, List<MetadataValue> enhanceableMetadata,
-            MetadataValue virtualSourceField) {
+    private boolean isRelatedSourceNoMorePresentOrMetadataValueChanged(List<MetadataValue> enhanceableMetadata,
+                                                                       MetadataValue virtualSourceField) {
         Optional<MetadataValue> mv = enhanceableMetadata.stream()
                 .filter(metadataValue -> hasAuthorityEqualsTo(metadataValue, virtualSourceField.getValue()))
                 .findFirst();
         if (mv.isPresent()) {
-            enhanceableMetadata.remove(mv.get());
-            return false;
+            if (isRelatedSourceDataChanged(mv.get(), virtualSourceField)) {
+                enhanceableMetadata.remove(mv.get());
+                return false;
+            }
         }
         return true;
+    }
+
+    private boolean isRelatedSourceDataChanged(MetadataValue enhanceableMetadata, MetadataValue virtualSourceField) {
+        String virtualSourceMetadataValue = virtualSourceField.getDSpaceObject().getMetadata().stream()
+                .filter(metadataValue -> metadataValue.getMetadataField()
+                        .toString().equals(relatedItemMetadataField))
+                .map(MetadataValue::getValue).findFirst().orElse("dummy");
+        return enhanceableMetadata.getValue().equals(virtualSourceMetadataValue);
+    }
+
+    private String getMetadataValue(Item item) {
+        return itemService.getMetadata(item, relatedItemMetadataField);
     }
 
     private Optional<MetadataValue> getRelatedVirtualField(Item item, MetadataValue virtualSourceField) {
