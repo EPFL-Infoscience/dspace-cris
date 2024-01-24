@@ -95,7 +95,8 @@ public class GoogleMetadataTest extends AbstractUnitTest {
 
             context.turnOffAuthorisationSystem();
             community = ContentServiceFactory.getInstance().getCommunityService().create(null, context);
-            Collection collection = ContentServiceFactory.getInstance().getCollectionService().create(context, community);
+            Collection collection = ContentServiceFactory.getInstance().getCollectionService()
+                                                         .create(context, community);
             WorkspaceItem wi = ContentServiceFactory.getInstance().getWorkspaceItemService()
                                                     .create(context, collection, true);
             Item item = wi.getItem();
