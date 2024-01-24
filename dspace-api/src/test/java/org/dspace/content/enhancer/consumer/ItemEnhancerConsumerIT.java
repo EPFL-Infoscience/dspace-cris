@@ -31,6 +31,8 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.ReloadableEntity;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,11 +41,12 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
 
     private ItemService itemService;
 
+    private MetadataValueService metadataValueService;
     private Collection collection;
 
     @Before
     public void setup() {
-
+        metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
         itemService = ContentServiceFactory.getInstance().getItemService();
 
         context.turnOffAuthorisationSystem();
@@ -104,9 +107,82 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
         assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
 
-        assertThat(virtualField, equalTo(getFirstMetadataValue(publication, "cris.virtual.department")));
-        assertThat(virtualSourceField, equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department")));
+        assertThat(virtualField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtual.department").getValue()));
+        assertThat(virtualSourceField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department").getValue()));
+    }
 
+    @Test
+    public void testSingleMetadataValueUpdateEnhancement() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item person = ItemBuilder.createItem(context, collection)
+                .withTitle("Walter White")
+                .withPersonMainAffiliation("4Science")
+                .build();
+
+        String personId = person.getID().toString();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+                .withTitle("Test publication")
+                .withEntityType("Publication")
+                .withAuthor("Walter White", personId)
+                .build();
+
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        List<MetadataValue> metadataValues = publication.getMetadata();
+        assertThat(metadataValues, hasSize(11));
+        assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
+
+
+        MetadataValue virtualField = getFirstMetadataValue(publication, "cris.virtual.department");
+        MetadataValue virtualSourceField = getFirstMetadataValue(publication, "cris.virtualsource.department");
+
+        context.turnOffAuthorisationSystem();
+        itemService.addMetadata(context, publication, "dc", "subject", null, null, "Test");
+        itemService.update(context, publication);
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        metadataValues = publication.getMetadata();
+        assertThat(metadataValues, hasSize(12));
+        assertThat(metadataValues, hasItem(with("dc.contributor.author", "Walter White", personId, 600)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
+
+        assertThat(virtualField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtual.department").getValue()));
+        assertThat(virtualSourceField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department").getValue()));
+
+
+        context.turnOffAuthorisationSystem();
+        MetadataValue personAffiliationMetadataValue =
+                itemService.getMetadata(person, "person", "affiliation", "name", null).get(0);
+        personAffiliationMetadataValue.setValue("5Science");
+        metadataValueService.update(context, personAffiliationMetadataValue);
+        itemService.addMetadata(context, publication, "dc", "title", "alternative", null, "Other name");
+        itemService.update(context, person);
+        itemService.update(context, publication);
+        context.commit();
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+        personAffiliationMetadataValue =
+                itemService.getMetadata(person, "person", "affiliation", "name", null).get(0);
+
+        assertThat(personAffiliationMetadataValue.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtual.department").getValue()));
+        assertThat(virtualSourceField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department").getValue()));
     }
 
     @Test

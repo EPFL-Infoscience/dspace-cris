@@ -245,7 +245,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         List<MetadataValue> virtualSourceFields = getVirtualSourceFields(item);
         List<MetadataValue> enhanceableMetadata = getEnhanceableMetadataValue(item);
         for (MetadataValue virtualSourceField : virtualSourceFields) {
-            if (isRelatedSourceNoMorePresentOrMetadataValueChanged( enhanceableMetadata, virtualSourceField)) {
+            if (isRelatedSourceNoMorePresentOrMetadataValueChanged(item, enhanceableMetadata,
+                    virtualSourceField, context)) {
                 obsoleteVirtualFields.add(virtualSourceField);
                 getRelatedVirtualField(item, virtualSourceField).ifPresent(obsoleteVirtualFields::add);
             }
@@ -263,13 +264,15 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
      * @return true if the metadata containing a source of enhancement is still present in the list of the metadata to
      * use to enhance the item
      */
-    private boolean isRelatedSourceNoMorePresentOrMetadataValueChanged(List<MetadataValue> enhanceableMetadata,
-                                                                       MetadataValue virtualSourceField) {
+    private boolean isRelatedSourceNoMorePresentOrMetadataValueChanged(Item item,
+                                                                       List<MetadataValue> enhanceableMetadata,
+                                                                       MetadataValue virtualSourceField,
+                                                                       Context context) {
         Optional<MetadataValue> mv = enhanceableMetadata.stream()
                 .filter(metadataValue -> hasAuthorityEqualsTo(metadataValue, virtualSourceField.getValue()))
                 .findFirst();
         if (mv.isPresent()) {
-            if (isRelatedSourceDataChanged(mv.get(), virtualSourceField)) {
+            if (!isRelatedSourceDataChanged(item, mv.get(), context)) {
                 enhanceableMetadata.remove(mv.get());
                 return false;
             }
@@ -277,16 +280,20 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         return true;
     }
 
-    private boolean isRelatedSourceDataChanged(MetadataValue enhanceableMetadata, MetadataValue virtualSourceField) {
-        String virtualSourceMetadataValue = virtualSourceField.getDSpaceObject().getMetadata().stream()
-                .filter(metadataValue -> metadataValue.getMetadataField()
-                        .toString().equals(relatedItemMetadataField))
-                .map(MetadataValue::getValue).findFirst().orElse("dummy");
-        return enhanceableMetadata.getValue().equals(virtualSourceMetadataValue);
-    }
-
-    private String getMetadataValue(Item item) {
-        return itemService.getMetadata(item, relatedItemMetadataField);
+    private boolean isRelatedSourceDataChanged(Item item, MetadataValue enhanceableMetadata, Context context) {
+        Item relatedItem = findRelatedEntityItem(context, enhanceableMetadata);
+        List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem, relatedItemMetadataField);
+        List<MetadataValue> virtualFields = getVirtualFields(item);
+        for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
+            boolean isMetadataExist = virtualFields.stream()
+                    .filter(virtualField -> virtualField.getValue().equals(relatedItemMetadataValue.getValue()))
+                    .findFirst().map(virtualField -> virtualField.getPlace() == relatedItemMetadataValue.getPlace())
+                    .orElse(false);
+            if (!isMetadataExist) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Optional<MetadataValue> getRelatedVirtualField(Item item, MetadataValue virtualSourceField) {
