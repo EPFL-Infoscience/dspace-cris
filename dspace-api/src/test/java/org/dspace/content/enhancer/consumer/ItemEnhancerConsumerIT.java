@@ -170,11 +170,12 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
                 itemService.getMetadata(person, "person", "affiliation", "name", null).get(0);
         personAffiliationMetadataValue.setValue("5Science");
         metadataValueService.update(context, personAffiliationMetadataValue);
+        itemService.setMetadataModified(person);
         itemService.addMetadata(context, publication, "dc", "title", "alternative", null, "Other name");
         itemService.update(context, person);
         itemService.update(context, publication);
-        context.commit();
         context.restoreAuthSystemState();
+        person = commitAndReload(person);
         publication = commitAndReload(publication);
         personAffiliationMetadataValue =
                 itemService.getMetadata(person, "person", "affiliation", "name", null).get(0);
