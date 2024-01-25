@@ -512,4 +512,11 @@
         <scope_note />
     </dc-type>
 
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>epo-publication</qualifier>
+        <scope_note />
+    </dc-type>
+
 </dspace-dc-types>

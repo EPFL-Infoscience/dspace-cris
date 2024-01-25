@@ -201,7 +201,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                  .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
                                    + ".traditionalpageone['dc.identifier.doi'][0].value", is(doi2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections.license.url",
-                        containsString("/api/core/bitstreams/")))
+                                     containsString("/api/core/bitstreams/")))
                  .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
 

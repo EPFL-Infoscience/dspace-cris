@@ -74,6 +74,7 @@ import org.dspace.harvest.util.NamespaceUtils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.UUIDUtils;
+import org.dspace.validation.LicenseValidator;
 import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
@@ -1317,7 +1318,8 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             assertThat(errorDetails.getMessages(), hasSize(2));
             assertThat(errorDetails.getMessages(), hasItem("error.validation.filerequired - [/sections/upload]"));
             assertThat(errorDetails.getMessages(),
-                hasItem("error.validation.license.notgranted - [/sections/license]"));
+               hasItem(LicenseValidator.ERROR_VALIDATION_LICENSEREQUIRED + " - [/sections/license]")
+            );
 
             verifyNoMoreInteractions(mockClient, mockEmailSender);
 
@@ -1440,7 +1442,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             List<String> messages = errorDetails.getMessages();
             assertThat(messages, hasSize(3));
             assertThat(messages, hasItem("error.validation.filerequired - [/sections/upload]"));
-            assertThat(messages, hasItem("error.validation.license.notgranted - [/sections/license]"));
+            assertThat(messages, hasItem(LicenseValidator.ERROR_VALIDATION_LICENSEREQUIRED + " - [/sections/license]"));
             assertThat(messages, hasItem("error.validation.required - [/sections/publication/dc.date.issued]"));
 
             errorDetails = errors.get("oai:test-harvest:Publications/123456789/1002");
@@ -1448,7 +1450,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             messages = errorDetails.getMessages();
             assertThat(messages, hasSize(3));
             assertThat(messages, hasItem("error.validation.filerequired - [/sections/upload]"));
-            assertThat(messages, hasItem("error.validation.license.notgranted - [/sections/license]"));
+            assertThat(messages, hasItem(LicenseValidator.ERROR_VALIDATION_LICENSEREQUIRED + " - [/sections/license]"));
             assertThat(errorDetails.getMessages(), hasItem(containsString("Element 'oai_cerif:Publishers' "
                 + "cannot have character [children]")));
 
@@ -1457,7 +1459,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             messages = errorDetails.getMessages();
             assertThat(messages, hasSize(2));
             assertThat(messages, hasItem("error.validation.filerequired - [/sections/upload]"));
-            assertThat(messages, hasItem("error.validation.license.notgranted - [/sections/license]"));
+            assertThat(messages, hasItem(LicenseValidator.ERROR_VALIDATION_LICENSEREQUIRED + " - [/sections/license]"));
 
             verifyNoMoreInteractions(mockClient, mockEmailSender);
 
