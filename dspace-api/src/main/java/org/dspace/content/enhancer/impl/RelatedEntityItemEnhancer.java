@@ -282,6 +282,9 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     private boolean isRelatedSourceDataChanged(Item item, MetadataValue enhanceableMetadata, Context context) {
         Item relatedItem = findRelatedEntityItem(context, enhanceableMetadata);
+        if (relatedItem == null) {
+            return false;
+        }
         List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem, relatedItemMetadataField);
         List<MetadataValue> virtualFields = getVirtualFields(item);
         for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
