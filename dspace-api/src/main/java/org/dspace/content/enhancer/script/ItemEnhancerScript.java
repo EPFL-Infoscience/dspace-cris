@@ -69,15 +69,7 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
     }
 
     private void enhanceItems() {
-        try {
-            Item item = itemService.find(context, UUID.fromString("0003501b-9171-4544-94bc-2cb342eafafc"));
-            enhanceItem(item);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-
-       // findItemsToEnhance().forEachRemaining(this::enhanceItem);
+        findItemsToEnhance().forEachRemaining(this::enhanceItem);
     }
 
     private Iterator<Item> findItemsToEnhance() {
