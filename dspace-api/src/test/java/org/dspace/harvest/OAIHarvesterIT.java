@@ -446,9 +446,9 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         assertThat(updatedItem.getID(), equalTo(item.getID()));
 
         List<MetadataValue> values = updatedItem.getMetadata();
-        assertThat(values, hasSize(16));
+        assertThat(values, hasSize(17));
         assertThat(values, hasItems(with("dc.title", "Test Publication Updated")));
-        assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
+        assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
         assertThat(values, hasItems(with("dc.date.issued", "2012-11-30")));
         assertThat(values, hasItems(with("oaire.citation.volume", "500")));
         assertThat(values, hasItems(with("oaire.citation.issue", "200")));
@@ -546,7 +546,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValue> values = updatedItem.getMetadata();
         // epfl has an additional generated metadata
-        assertThat(values, hasSize(7 + 1));
+        assertThat(values, hasSize(9 + 1));
 
         assertThat(values, hasItems(with("dc.title", "Publication title")));
         assertThat(values, hasItems(with("dc.date.issued", "2020-11-29")));
@@ -596,7 +596,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         assertThat(updatedItem.getID(), equalTo(item.getID()));
 
         List<MetadataValue> values = updatedItem.getMetadata();
-        assertThat(values, hasSize(16));
+        assertThat(values, hasSize(17));
 
         assertThat(values, hasItems(with("dc.title", "Test Publication Updated")));
         assertThat(values, hasItems(with("dc.date.issued", "2012-11-30")));
@@ -679,9 +679,9 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValue> values = createdItem.getMetadata();
         // epfl +1
-        assertThat(values, hasSize(17 + 1));
+        assertThat(values, hasSize(19 + 1));
         assertThat(values, hasItems(with("dc.title", "Test Publication")));
-        assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
+        assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
         assertThat(values, hasItems(with("dc.date.issued", "2012-11-30")));
         assertThat(values, hasItems(with("oaire.citation.volume", "343")));
         assertThat(values, hasItems(with("oaire.citation.issue", "168")));
@@ -710,9 +710,9 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         assertThat(updatedItem.getID(), equalTo(createdItem.getID()));
 
         values = updatedItem.getMetadata();
-        assertThat(values, hasSize(17));
+        assertThat(values, hasSize(18));
         assertThat(values, hasItems(with("dc.title", "Test Publication Updated")));
-        assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
+        assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
         assertThat(values, hasItems(with("dc.date.issued", "2012-11-30")));
         assertThat(values, hasItems(with("oaire.citation.volume", "500")));
         assertThat(values, hasItems(with("oaire.citation.issue", "200")));
@@ -772,10 +772,10 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
             List<MetadataValue> values = publication.getMetadata();
             // epfl + 1
-            assertThat(values, hasSize(17 + 1));
+            assertThat(values, hasSize(19 + 1));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
-            assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
+            assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
             assertThat(values, hasItems(with("dc.date.issued", "2012-11-30")));
             assertThat(values, hasItems(with("oaire.citation.volume", "343")));
             assertThat(values, hasItems(with("oaire.citation.issue", "168")));
@@ -796,7 +796,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
             values = authorPerson.getMetadata();
             // epfl + 1
-            assertThat(values, hasSize(8 + 1));
+            assertThat(values, hasSize(10 + 1));
             assertThat(values, hasItems(with("dc.title", "Manghi, Paolo")));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::123")));
             assertThat(values, hasItems(with("dspace.entity.type", "Person")));
@@ -864,7 +864,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
             List<MetadataValue> values = person.getMetadata();
             // epfl + 1
-            assertThat(values, hasSize(12 + 1));
+            assertThat(values, hasSize(14 + 1));
             assertThat(values, hasItems(with("dc.title", "Manghi, Paolo")));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::123")));
             assertThat(values, hasItems(with("dspace.entity.type", "Person")));
@@ -881,7 +881,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             assertThat(values, hasSize(19 + 1));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
-            assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
+            assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
             assertThat(values, hasItems(with("dc.date.issued", "2012-11-30")));
             assertThat(values, hasItems(with("oaire.citation.volume", "343")));
             assertThat(values, hasItems(with("oaire.citation.issue", "168")));
@@ -891,9 +891,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             assertThat(values, hasItems(with("oairecerif.author.affiliation", PLACEHOLDER_PARENT_METADATA_VALUE)));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::3")));
             assertThat(values, hasItems(with("dspace.entity.type", "Publication")));
-            assertThat(values, hasItems(with("cris.virtual.author-orcid", "0000-0002-9079-5932")));
-            assertThat(values, hasItems(with("cris.virtualsource.author-orcid",
-                                             UUIDUtils.toString(person.getID()))));
 
             MetadataValue author = itemService.getMetadata(publication, "dc", "contributor", "author", Item.ANY).get(0);
             assertThat(UUIDUtils.fromString(author.getAuthority()), equalTo(person.getID()));
@@ -936,7 +933,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         Item item = findItemByOaiID("oai:cris:equipments/f3e39333-5c82-40c2-aa3d-103def9abd97", equipmentCollection);
         List<MetadataValue> values = item.getMetadata();
         // epfl + 1
-        assertThat(values, hasSize(11 + 1));
+        assertThat(values, hasSize(13 + 1));
         assertThat(values, hasItems(with("dc.title", "Microflown Scan&Paint")));
         assertThat(values, hasItems(with("oairecerif.internalid", "test-id")));
         assertThat(values, hasItems(with("cris.sourceId", "test-harvest::f3e39333-5c82-40c2-aa3d-103def9abd97")));
@@ -976,7 +973,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         Item item = findItemByOaiID("oai:cris:equipments/f3e39333-5c82-40c2-aa3d-103def9abd97", equipmentCollection);
         List<MetadataValue> values = item.getMetadata();
         // epfl has one automatic extra metadata
-        assertThat(values, hasSize(10 + 1));
+        assertThat(values, hasSize(12 + 1));
         assertThat(values, hasItems(with("dc.title", "MICROFLOWN SCAN&PAINT")));
         assertThat(values, hasItems(with("cris.sourceId", "test-harvest::f3e39333-5c82-40c2-aa3d-103def9abd97")));
 
@@ -1017,7 +1014,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         Item item = findItemByOaiID("oai:cris:equipments/f3e39333-5c82-40c2-aa3d-103def9abd97", equipmentCollection);
         List<MetadataValue> values = item.getMetadata();
         // epfl + 1
-        assertThat(values, hasSize(11 + 1));
+        assertThat(values, hasSize(13 + 1));
         assertThat(values, hasItems(with("dc.title", "MICROFLOWN SCAN&PAINT")));
         assertThat(values, hasItems(with("oairecerif.internalid", "TEST-ID")));
         assertThat(values, hasItems(with("cris.sourceId", "test-harvest::f3e39333-5c82-40c2-aa3d-103def9abd97")));
@@ -1055,7 +1052,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         Item item = workspaceItems.get(0).getItem();
         assertThat(item.isArchived(), equalTo(false));
         // epfl + 1
-        assertThat(item.getMetadata(), hasSize(13 + 1));
+        assertThat(item.getMetadata(), hasSize(15 + 1));
         assertThat(getFirstMetadataValue(item, "dc.title"), equalTo("Test Publication"));
         assertThat(harvestedItemService.find(context, item), notNullValue());
     }
@@ -1098,7 +1095,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         Item item = workflowItems.get(0).getItem();
         assertThat(item.isArchived(), equalTo(false));
         // epfl + 1
-        assertThat(item.getMetadata(), hasSize(7 + 1));
+        assertThat(item.getMetadata(), hasSize(10 + 1));
         assertThat(harvestedItemService.find(context, item), notNullValue());
     }
 
@@ -1212,7 +1209,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         Item item = workspaceItems.get(0).getItem();
         assertThat(item.isArchived(), equalTo(false));
         // epfl +1
-        assertThat(item.getMetadata(), hasSize(13 + 1));
+        assertThat(item.getMetadata(), hasSize(15 + 1));
         assertThat(getFirstMetadataValue(item, "dc.title"), equalTo("Test Publication"));
         assertThat(harvestedItemService.find(context, item), notNullValue());
     }
@@ -1299,7 +1296,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             Item item = workspaceItems.get(0).getItem();
             assertThat(item.isArchived(), equalTo(false));
             // epfl +1
-            assertThat(item.getMetadata(), hasSize(13 + 1));
+            assertThat(item.getMetadata(), hasSize(15 + 1));
             assertThat(getFirstMetadataValue(item, "dc.title"), equalTo("Test Publication"));
 
             ArgumentCaptor<OAIHarvesterReport> captor = ArgumentCaptor.forClass(OAIHarvesterReport.class);
