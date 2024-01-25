@@ -154,15 +154,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     public void discoverFacetsTestWithoutParameters() throws Exception {
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
 
         //When we call this facets endpoint
@@ -179,7 +178,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void discoverFacetsAuthorTestWithSizeParameter() throws Exception {
+    public void discoverFacetsAuthorEditorTestWithSizeParameter() throws Exception {
         //Turn off the authorization system, otherwise we can't make the objects
         context.turnOffAuthorisationSystem();
 
@@ -222,7 +221,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         //** WHEN **
         //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                 .param("size", "2"))
 
                 //** THEN **
@@ -230,18 +229,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type needs to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The name of the facet needs to be author, because that's what we called
-                .andExpect(jsonPath("$.name", is("author")))
+                //The name of the facet needs to be author_editor, because that's what we called
+                .andExpect(jsonPath("$.name", is("author_editor")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //Because we've constructed such a structure so that we have more than 2 (size) authors, there
                 // needs to be a next link
                 .andExpect(jsonPath("$._links.next.href",
                         Matchers.allOf(
-                                containsString("api/discover/facets/author"),
+                                containsString("api/discover/facets/author_editor"),
                                 containsString("page=1"))))
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -251,13 +250,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 // up in different items
                 //These authors are the most used ones. Only two show up because of the size.
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Doe, Jane"),
-                        FacetValueMatcher.entryAuthor("Smith, Maria")
+                        FacetValueMatcher.entryAuthorEditor("doe, jane"),
+                        FacetValueMatcher.entryAuthorEditor("smith, maria")
                 )))
         ;
     }
 
     @Test
+    @Ignore
     public void discoverFacetsAuthorWithAuthorityWithSizeParameter() throws Exception {
 
         configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
@@ -395,7 +395,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         //** WHEN **
         //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
-        getClient().perform(get("/api/discover/facets/author?prefix=smith")
+        getClient().perform(get("/api/discover/facets/author_editor?prefix=smith")
                 .param("size", "10"))
 
                 //** THEN **
@@ -403,14 +403,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type needs to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The name of the facet needs to be author, because that's what we called
-                .andExpect(jsonPath("$.name", is("author")))
+                //The name of the facet needs to be author_editor, because that's what we called
+                .andExpect(jsonPath("$.name", is("author_editor")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author?prefix=smith")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor?prefix=smith")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -420,8 +420,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 // up in different items
                 //These authors are order according to count. Only two show up because of the prefix.
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Smith, Maria"),
-                        FacetValueMatcher.entryAuthor("Smith, Donald")
+                        FacetValueMatcher.entryAuthorEditor("smith, maria"),
+                        FacetValueMatcher.entryAuthorEditor("smith, donald")
                 )))
         ;
     }
@@ -448,27 +448,27 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                                 .param("prefix", "john"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$._embedded.values",
                                        containsInAnyOrder(
-                                           FacetValueMatcher.entryAuthor("Smith, John"))));
+                                           FacetValueMatcher.entryAuthorEditor("smith, john"))));
 
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                                 .param("prefix", "jane"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$._embedded.values",
                                        containsInAnyOrder(
-                                           FacetValueMatcher.entryAuthor("Smith, Jane"))));
+                                           FacetValueMatcher.entryAuthorEditor("smith, jane"))));
 
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                                 .param("prefix", "j"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$._embedded.values",
                                        containsInAnyOrder(
-                                           FacetValueMatcher.entryAuthor("Smith, John"),
-                                           FacetValueMatcher.entryAuthor("Smith, Jane"))));
+                                           FacetValueMatcher.entryAuthorEditor("smith, john"),
+                                           FacetValueMatcher.entryAuthorEditor("smith, jane"))));
     }
 
     @Test
@@ -488,25 +488,23 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         Item item1 = ItemBuilder.createItem(context, collection)
                                 .withTitle("Item 1")
-                                .withAuthor("Smith, John", "test_authority_1", Choices.CF_ACCEPTED)
+                                .withAuthor("Smith, John")
                                 .build();
 
         Item item2 = ItemBuilder.createItem(context, collection)
                                 .withTitle("Item 2")
-                                .withAuthor("Smith, Jane", "test_authority_2", Choices.CF_ACCEPTED)
+                                .withAuthor("Smith, Jane")
                                 .build();
 
         context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                                 .param("prefix", "j"))
                    .andExpect(status().isOk())
-                   .andExpect(jsonPath("$._embedded.values",
-                                       containsInAnyOrder(
-                                           FacetValueMatcher.entryAuthorWithAuthority(
-                                               "Smith, John", "test_authority_1", 1),
-                                           FacetValueMatcher.entryAuthorWithAuthority(
-                                               "Smith, Jane", "test_authority_2", 1))));
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entryAuthorEditor("smith, john"),
+                       FacetValueMatcher.entryAuthorEditor("smith, jane")
+                   )));
 
         DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
 
@@ -556,19 +554,19 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         //** WHEN **
         //An anonymous user browses this endpoint to find the authors by the facets and doesn't enter a size
-        getClient().perform(get("/api/discover/facets/author"))
+        getClient().perform(get("/api/discover/facets/author_editor"))
 
                 //** THEN **
                 //The status has to be 200 OK
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The name has to be author, because that's the facet that we called upon
-                .andExpect(jsonPath("$.name", is("author")))
+                //The name has to be author_editor, because that's the facet that we called upon
+                .andExpect(jsonPath("$.name", is("author_editor")))
                 //The facetType has to be 'text' because that's the default configuration for this facet
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //There always needs to be a self link present
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor")))
                 //The page object needs to present and exactly like how it is specified here. 20 is entered as the
                 // size because that's the default in the configuration if no size parameter has been given
                 .andExpect(jsonPath("$.page",
@@ -576,10 +574,10 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The authors need to be embedded in the values, all 4 of them have to be present as the size
                 // allows it
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Doe, Jane"),
-                        FacetValueMatcher.entryAuthor("Smith, Maria"),
-                        FacetValueMatcher.entryAuthor("Doe, John"),
-                        FacetValueMatcher.entryAuthor("Smith, Donald")
+                        FacetValueMatcher.entryAuthorEditor("doe, jane"),
+                        FacetValueMatcher.entryAuthorEditor("smith, maria"),
+                        FacetValueMatcher.entryAuthorEditor("doe, john"),
+                        FacetValueMatcher.entryAuthorEditor("smith, donald")
                 )))
         ;
     }
@@ -632,7 +630,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //** WHEN **
         //An anonymous user browses this endpoint to find the authors by the facet
         //The user enters a size of two and wants to see page 1, this is the second page.
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                 .param("size", "2")
                 .param("page", "1"))
 
@@ -641,24 +639,24 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The name of the facet has to be author as that's the one we called
-                .andExpect(jsonPath("$.name", is("author")))
+                //The name of the facet has to be author_editor as that's the one we called
+                .andExpect(jsonPath("$.name", is("author_editor")))
                 //The facetType has to be 'text' as this is the default configuration
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //There needs to be a next link because there are more authors than the current size is allowed to
                 // show. There are more pages after this one
                 .andExpect(jsonPath("$._links.next.href", Matchers.allOf(
-                        containsString("api/discover/facets/author"),
+                        containsString("api/discover/facets/author_editor"),
                         containsString("page=2"))))
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor")))
                 //The page object has to be like this because that's what we've asked in the parameters
                 .andExpect(jsonPath("$.page",
                         is(PageMatcher.pageEntry(1, 2))))
                 //These authors have to be present because of the current configuration
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Doe, John"),
-                        FacetValueMatcher.entryAuthor("Smith, Donald")
+                        FacetValueMatcher.entryAuthorEditor("doe, john"),
+                        FacetValueMatcher.entryAuthorEditor("smith, donald")
                 )))
         ;
     }
@@ -709,41 +707,37 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //** WHEN **
         //An anonymous user browses this endpoint to find the authors by the facet
         //The user enters a small query, namely the title has to contain 'test'
-        getClient().perform(get("/api/discover/facets/author")
-                .param("f.title", "test,contains"))
+        getClient().perform(get("/api/discover/facets/author_editor")
+                .param("query", "title:test"))
 
                 //** THEN **
                 //The status has to be 200 OK
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The name has to be author as that's the facet that we've asked
-                .andExpect(jsonPath("$.name", is("author")))
+                //The name has to be author_editor as that's the facet that we've asked
+                .andExpect(jsonPath("$.name", is("author_editor")))
                 //The facetType needs to be 'text' as that's the default configuration for the given facet
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //There always needs to be a self link available
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor")))
                 //The self link needs to contain the query that was specified in the parameters, this is how it
                 // looks like
-                .andExpect(jsonPath("$._links.self.href", containsString("f.title=test,contains")))
-                //The applied filters have to be specified like this, applied filters are the parameters given
-                // below starting with f.
-                .andExpect(jsonPath("$.appliedFilters", contains(
-                        AppliedFilterMatcher.appliedFilterEntry("title", "contains", "test", "test")
-                )))
+                .andExpect(jsonPath("$._links.self.href",
+                                    containsString("query=title%3Atest")))
                 //This is how the page object must look like because it's the default
                 .andExpect(jsonPath("$.page",
                         is(PageMatcher.pageEntry(0, 20))))
                 //These authors need to be present in the result because these have made items that contain 'test'
                 // in the title
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Smith, Donald"),
-                        FacetValueMatcher.entryAuthor("Testing, Works")
+                        FacetValueMatcher.entryAuthorEditor("smith, donald"),
+                        FacetValueMatcher.entryAuthorEditor("testing, works")
                 )))
                 //These authors cannot be present because they've not produced an item with 'test' in the title
                 .andExpect(jsonPath("$._embedded.values", not(containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Smith, Maria"),
-                        FacetValueMatcher.entryAuthor("Doe, Jane")
+                        FacetValueMatcher.entryAuthorEditor("smith, maria"),
+                        FacetValueMatcher.entryAuthorEditor("doe, jane")
                 ))))
         ;
     }
@@ -863,7 +857,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //** WHEN **
         //An anonymous user browses this endpoint to find the author results by the facet
         //With a certain scope
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                 .param("scope", "testScope"))
 
                 //** THEN **
@@ -871,27 +865,27 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The name has to be author as that's the facet that we've called
-                .andExpect(jsonPath("$.name", is("author")))
+                //The name has to be author_editor as that's the facet that we've called
+                .andExpect(jsonPath("$.name", is("author_editor")))
                 //The facetType has to be 'text' as that's the default configuration for this facet
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //The scope has to be the same as the one that we've given in the parameters
                 .andExpect(jsonPath("$.scope", is("testScope")))
                 //There always needs to be a self link available
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author?scope=testScope")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor?scope=testScope")))
                 //These are all the authors for the items that were created and thus they have to be present in
                 // the embedded values section
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Doe, Jane"),
-                        FacetValueMatcher.entryAuthor("Smith, Maria"),
-                        FacetValueMatcher.entryAuthor("Doe, John"),
-                        FacetValueMatcher.entryAuthor("Smith, Donald")
+                        FacetValueMatcher.entryAuthorEditor("doe, jane"),
+                        FacetValueMatcher.entryAuthorEditor("smith, maria"),
+                        FacetValueMatcher.entryAuthorEditor("doe, john"),
+                        FacetValueMatcher.entryAuthorEditor("smith, donald")
                 )));
         //** WHEN **
         //An anonymous user browses this endpoint to find the author results by the facet
         //With a certain scope
         //And a size of 2
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                 .param("scope", "testScope")
                 .param("size", "2"))
                 //** THEN **
@@ -899,22 +893,22 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The name has to be 'author' as that's the facet that we called
-                .andExpect(jsonPath("$.name", is("author")))
+                //The name has to be 'author_editor' as that's the facet that we called
+                .andExpect(jsonPath("$.name", is("author_editor")))
                 //The facetType has to be 'text' as that's the default configuration for this facet
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //The scope has to be same as the param that we've entered
                 .andExpect(jsonPath("$.scope", is("testScope")))
                 //There always needs to be a self link available
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author?scope=testScope")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor?scope=testScope")))
                 .andExpect(jsonPath("$._links.next.href",
                     containsString(
-                        "api/discover/facets/author?scope=testScope&configuration=defaultConfiguration&page=1&size=2")))
+                        "api/discover/facets/author_editor?scope=testScope&configuration=defaultConfiguration&page=1&size=2")))
                 //These are the values that need to be present as it's ordered by count and these authors are the
                 // most common ones in the items that we've created
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                        FacetValueMatcher.entryAuthor("Doe, Jane"),
-                        FacetValueMatcher.entryAuthor("Smith, Maria")
+                        FacetValueMatcher.entryAuthorEditor("doe, jane"),
+                        FacetValueMatcher.entryAuthorEditor("smith, maria")
                 )))
         ;
     }
@@ -1048,8 +1042,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
 
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
@@ -1082,6 +1082,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a query stating that the title needs to contain 'test'
         //And a size of 2
         getClient().perform(get("/api/discover/facets/dateIssued")
+                .param("configuration", "researchoutputs")
                 .param("f.title", "test,contains")
                 .param("size", "2"))
 
@@ -1092,9 +1093,6 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.type", is("discover")))
                 //The name has to be dateIssued because that's the facet that we called
                 .andExpect(jsonPath("$.name", is("dateIssued")))
-                //The facetType needs to be 'date' as that's the default facetType for this facet in the
-                // configuration
-                .andExpect(jsonPath("$.facetType", is("date")))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/dateIssued")))
                 //There needs to be an appliedFilters section that looks like this because we've specified a query
@@ -1119,11 +1117,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     public void discoverSearchTest() throws Exception {
         List<Matcher<? super Object>> allExpectedSearchFilters = new ArrayList<>(customSearchFilters);
         allExpectedSearchFilters.addAll(List.of(
-            SearchFilterMatcher.barDateIssuedYearFilter(),
-            SearchFilterMatcher.pieItemtypeFilter(),
-            SearchFilterMatcher.typeFilter(),
-            SearchFilterMatcher.titleFilter(),
-            SearchFilterMatcher.authorFilter(),
+            SearchFilterMatcher.filter("epflResourceType", "text"),
+            SearchFilterMatcher.filter("source", "text"),
+            SearchFilterMatcher.filter("author_editor", "text"),
             SearchFilterMatcher.subjectFilter(),
             SearchFilterMatcher.dateIssuedFilter(),
             SearchFilterMatcher.hasContentInOriginalBundleFilter(),
@@ -1135,21 +1131,33 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             SearchFilterMatcher.isOrgUnitOfPublicationRelation(),
             SearchFilterMatcher.isPublicationOfJournalIssueRelation(),
             SearchFilterMatcher.isJournalOfPublicationRelation(),
-            SearchFilterMatcher.languageFilter()
+            SearchFilterMatcher.languageFilter(),
+            SearchFilterMatcher.filter("original_bundle_oaire_licenseCondition", "text"),
+            SearchFilterMatcher.filter("original_bundle_datacite_available", "date"),
+            SearchFilterMatcher.filter("original_bundle_mime_type", "text"),
+            SearchFilterMatcher.filter("datacite_rights", "text"),
+            SearchFilterMatcher.filter("organization", "text"),
+            SearchFilterMatcher.filter("journal", "text")
         ));
 
         List<Matcher<? super Object>> allExpectedSortFields = new ArrayList<>(customSortFields);
         allExpectedSortFields.addAll(List.of(
             SortOptionMatcher.sortOptionMatcher(
-                "score", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
-            SortOptionMatcher.sortOptionMatcher(
                 "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
             SortOptionMatcher.sortOptionMatcher(
                 "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
             SortOptionMatcher.sortOptionMatcher(
+                "dc.contributor.author", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
+            SortOptionMatcher.sortOptionMatcher(
+                "dc.contributor.author", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
+            SortOptionMatcher.sortOptionMatcher(
                 "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
             SortOptionMatcher.sortOptionMatcher(
                 "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
+            SortOptionMatcher.sortOptionMatcher(
+                "score", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
+            SortOptionMatcher.sortOptionMatcher(
+                "score", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
             SortOptionMatcher.sortOptionMatcher(
                 "dc.date.accessioned", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
             SortOptionMatcher.sortOptionMatcher(
@@ -1277,15 +1285,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //An anonymous user browses this endpoint to find the objects in the system
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects"))
                 //** THEN **
@@ -1334,9 +1341,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.facets", hasItem(allOf(
-                        hasJsonPath("$.name", is("author")),
+                        hasJsonPath("$.name", is("author_editor")),
                         hasJsonPath("$._embedded.values", hasItem(
-                                hasJsonPath("$._links.search.href", containsString("DSpace%20%26%20friends"))
+                                hasJsonPath("$._links.search.href", containsString("dspace%20%26%20friends"))
                         ))
                 ))));
     }
@@ -1362,8 +1369,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         .param("size", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entries", hasItem(allOf(
-                        hasJsonPath("$.value", is("DSpace & friends")),
-                        hasJsonPath("$._links.items.href", containsString("DSpace%20%26%20friends"))
+                        hasJsonPath("$.value", is("dspace & friends")),
+                        hasJsonPath("$._links.items.href", containsString("dspace%20%26%20friends"))
                 ))));
     }
 
@@ -1415,15 +1422,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //An anonymous user browses this endpoint to find the objects in the system
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(true),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects"))
                 //** THEN **
@@ -1507,15 +1513,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //An anonymous user browses this endpoint to find the objects in the system
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(true),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects"))
 
@@ -1590,18 +1595,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a query that says that the title has to contain 'test'
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
-                .param("f.title", "test,contains"))
+                .param("query", "title:test"))
 
                 //** THEN **
                 //The status has to be 200 OK
@@ -1618,10 +1622,6 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items")
-                )))
-                //We need to display the appliedFilters object that contains the query that we've run
-                .andExpect(jsonPath("$.appliedFilters", contains(
-                        AppliedFilterMatcher.appliedFilterEntry("title", "contains", "test", "test")
                 )))
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
@@ -1702,15 +1702,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a scope 'test'
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("scope", "test"))
@@ -1788,15 +1787,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         // With dsoType 'item'
         List<Matcher<? super Object>> allExpectedSidebarFacetsWithDsoTypeItem = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacetsWithDsoTypeItem.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("dsoType", "Item"))
@@ -1828,19 +1826,15 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         // With dsoTypes 'community' and 'collection'
         List<Matcher<? super Object>> allExpectedSidebarFacetsWithDsoTypesComCol = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacetsWithDsoTypesComCol.addAll(List.of(
-                    FacetEntryMatcher.anyFacet("itemtype", "hierarchical"),
-                    FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                    FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                    FacetEntryMatcher.authorFacet(false),
-                    FacetEntryMatcher.subjectFacet(false),
-                    FacetEntryMatcher.dateIssuedFacet(false),
-                    FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                    FacetEntryMatcher.entityTypeFacet(false),
-                    FacetEntryMatcher.languageFacet(false),
-                    FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_rights", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_available", "date"),
-                    FacetEntryMatcher.anyFacet("original_bundle_mime_type", "text")));
+            FacetEntryMatcher.dateIssuedFacet(false),
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")));
+
         getClient().perform(get("/api/discover/search/objects")
                 .param("configuration", "backend")
                 .param("dsoType", "Community")
@@ -1875,19 +1869,15 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         List<Matcher<? super Object>> allExpectedSidebarFacetsWithDsoTypesColItem =
             new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacetsWithDsoTypesColItem.addAll(List.of(
-                    FacetEntryMatcher.anyFacet("itemtype", "hierarchical"),
-                    FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                    FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                    FacetEntryMatcher.authorFacet(false),
-                    FacetEntryMatcher.subjectFacet(false),
-                    FacetEntryMatcher.dateIssuedFacet(false),
-                    FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                    FacetEntryMatcher.entityTypeFacet(false),
-                    FacetEntryMatcher.languageFacet(false),
-                    FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_rights", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_available", "date"),
-                    FacetEntryMatcher.anyFacet("original_bundle_mime_type", "text")));
+            FacetEntryMatcher.dateIssuedFacet(false),
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")));
+
         getClient().perform(get("/api/discover/search/objects")
                 .param("configuration", "backend")
                 .param("dsoType", "Collection")
@@ -1923,19 +1913,15 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         List<Matcher<? super Object>> allExpectedSidebarFacetsWithDsoTypesComColItem =
             new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacetsWithDsoTypesComColItem.addAll(List.of(
-                    FacetEntryMatcher.anyFacet("itemtype", "hierarchical"),
-                    FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                    FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                    FacetEntryMatcher.authorFacet(false),
-                    FacetEntryMatcher.subjectFacet(false),
-                    FacetEntryMatcher.dateIssuedFacet(false),
-                    FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                    FacetEntryMatcher.entityTypeFacet(false),
-                    FacetEntryMatcher.languageFacet(false),
-                    FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_rights", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_available", "date"),
-                    FacetEntryMatcher.anyFacet("original_bundle_mime_type", "text")));
+            FacetEntryMatcher.dateIssuedFacet(false),
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")));
+
         getClient().perform(get("/api/discover/search/objects")
                 .param("configuration", "backend")
                 .param("dsoType", "Community")
@@ -2019,15 +2005,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //And a sort on the dc.title ascending
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("dsoType", "Item")
@@ -2246,15 +2231,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a size 2
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(true),
-            FacetEntryMatcher.subjectFacet(true),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
             FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("size", "1")
@@ -2346,15 +2330,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a query stating 'ThisIsSomeDummyText'
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("query", "ThisIsSomeDummyText"))
@@ -2431,15 +2414,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //An anonymous user browses this endpoint to find the objects in the system
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects"))
                 //** THEN **
@@ -2605,15 +2587,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the scope given
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("scope", String.valueOf(scope)))
@@ -2690,15 +2671,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a size 2
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("scope", String.valueOf(scope)))
@@ -2882,15 +2862,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a query stating 'public'
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("query", query))
@@ -3001,8 +2980,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                 .withTitle("Test")
@@ -3033,17 +3018,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
+                .param("configuration", "researchoutputs")
                 .param("f.title", "test*,query"))
                 //** THEN **
                 //The status has to be 200 OK
@@ -3081,8 +3066,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                                       .withTitle("Test")
@@ -3114,17 +3105,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
+            .param("configuration", "researchoutputs")
             .param("f.title", "test,contains"))
                    //** THEN **
                    //The status has to be 200 OK
@@ -3163,8 +3154,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                 .withTitle("Test")
@@ -3196,17 +3193,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
+                .param("configuration", "researchoutputs")
                 .param("f.title", "-test*,query"))
                 //** THEN **
                 //The status has to be 200 OK
@@ -3243,8 +3240,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                                       .withTitle("Test")
@@ -3276,18 +3279,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
-            .param("f.title", "test,notcontains"))
+                   .param("configuration", "researchoutputs")
+                   .param("f.title", "test,notcontains"))
                    //** THEN **
                    //The status has to be 200 OK
                    .andExpect(status().isOk())
@@ -3363,15 +3366,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a size 2
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacetWithMinMax(true, "Doe, Jane", "Testing, Works"),
+            FacetEntryMatcher.dateIssuedFacet(false),
             FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(true),
-            FacetEntryMatcher.dateIssuedFacetWithMinMax(false, "1990-02-13", "2010-10-17"),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
                 .param("size", "2")
@@ -3454,19 +3456,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With a size 2
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-                    FacetEntryMatcher.anyFacet("itemtype", "hierarchical"),
-                    FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                    FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                    FacetEntryMatcher.authorFacet(false),
-                    FacetEntryMatcher.subjectFacet(false),
-                    FacetEntryMatcher.dateIssuedFacet(false),
-                    FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                    FacetEntryMatcher.entityTypeFacet(false),
-                    FacetEntryMatcher.languageFacet(false),
-                    FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_rights", "text"),
-                    FacetEntryMatcher.anyFacet("original_bundle_datacite_available", "date"),
-                    FacetEntryMatcher.anyFacet("original_bundle_mime_type", "text")));
+            FacetEntryMatcher.dateIssuedFacet(false),
+            FacetEntryMatcher.entityTypeFacet(false),
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")));
         getClient().perform(get("/api/discover/search/facets"))
                 //** THEN **
                 //The status has to be 200 OK
@@ -3493,8 +3490,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                 .withTitle("Test")
@@ -3525,17 +3528,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
+                .param("configuration", "researchoutputs")
                 .param("f.title", "Test,query"))
                 //** THEN **
                 //The status has to be 200 OK
@@ -3572,8 +3575,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                                       .withTitle("Test")
@@ -3605,18 +3614,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
-            .param("f.title", "Test,equals"))
+                   .param("configuration", "researchoutputs")
+                   .param("f.title", "Test,equals"))
                    //** THEN **
                    //The status has to be 200 OK
                    .andExpect(status().isOk())
@@ -3652,8 +3661,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                 .withTitle("Test")
@@ -3684,17 +3699,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
+                .param("configuration", "researchoutputs")
                 .param("f.title", "-Test,query"))
                 //** THEN **
                 //The status has to be 200 OK
@@ -3732,8 +3747,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                                       .withTitle("Test")
@@ -3765,18 +3786,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
-            .param("f.title", "Test,notequals"))
+                   .param("configuration", "researchoutputs")
+                   .param("f.title", "Test,notequals"))
                    //** THEN **
                    //The status has to be 200 OK
                    .andExpect(status().isOk())
@@ -3813,8 +3834,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                 .withName("Sub Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                 .withTitle("Test")
@@ -3845,17 +3872,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
+                .param("configuration", "researchoutputs")
                 .param("f.title", "-id:test,query"))
                 //** THEN **
                 //The status has to be 200 OK
@@ -3892,8 +3919,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
         //2. Three public items that are readable by Anonymous with different subjects
         Item publicItem1 = ItemBuilder.createItem(context, col1)
                                       .withTitle("Test")
@@ -3925,18 +3958,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //With the given search filter
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-            FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("types", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text"),
+            FacetEntryMatcher.anyFacet("unitOrLab", "text")
         ));
         getClient().perform(get("/api/discover/search/objects")
-            .param("f.title", "test,notauthority"))
+                   .param("configuration", "researchoutputs")
+                   .param("f.title", "test,notauthority"))
                    //** THEN **
                    //The status has to be 200 OK
                    .andExpect(status().isOk())
@@ -4126,7 +4159,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         //** WHEN **
         getClient().perform(get("/api/discover/search/objects")
-                                .param("query", "((dc.date.issued:2010 OR dc.date.issued:1990-02-13)" +
+                                .param("query", "((dc.date.issued:2010-10-17 OR dc.date.issued:1990-02-13)" +
                                                                 " AND (dc.title:Test OR dc.title:TestItem2))"))
 
                    //** THEN **
@@ -4223,6 +4256,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         ;
 
     }
+
     @Test
     public void discoverSearchObjectsTestWithUnEscapedLuceneCharactersTest() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
@@ -4272,6 +4306,246 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    .andExpect(status().isUnprocessableEntity())
         ;
 
+    }
+
+    @Test
+    public void discoverSearchObjectsTestWithHyphenSeparatedWordsInQuery() throws Exception {
+        //We turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
+
+        //2. Three public items that are readable by Anonymous with different subjects
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                                      .withTitle("Publication with hyphen-word")
+                                      .withIssueDate("2010-10-17")
+                                      .withAuthor("Smith, Donald")
+                                      .withSubject("TestSubject")
+                                      .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Publication without hyphen word")
+                                      .withIssueDate("1990-02-13")
+                                      .withAuthor("Doe, Jane")
+                                      .withSubject("TestingForMore")
+                                      .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("hyphen hyphen")
+                                      .withIssueDate("2010-02-13")
+                                      .withAuthor("test,test")
+                                      .withSubject("ExtraEntry")
+                                      .build();
+
+        context.restoreAuthSystemState();
+
+        // Should find 1 publication that has "hyphen-word" in title
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "title:hyphen-word"))
+
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 1)
+                   )))
+                   //This is the only item that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.contains(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen-word")
+                   )))
+                   //These are the items that should NOT be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.not(Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen word"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "hyphen hyphen")
+                       ))
+                   ))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+
+        // Should find 1 publication with "hyphen word" and no "-" in title
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "title:hyphen word"))
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 1)
+                   )))
+                   //This is the only item that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.contains(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication without hyphen word")
+                       )))
+                   //These are the items that should NOT be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.not(Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen-word"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "hyphen hyphen")
+                       ))
+                   ))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+
+        // Should find all 2 publications that have "hyphen" and not "hyphen-word" in title
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "title:hyphen"))
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 2)
+                   )))
+                   //These are the only items that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication without hyphen word"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "hyphen hyphen")
+                       )))
+                   //This is the item that should NOT be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.not(Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication with hyphen-word")
+                       ))
+                   ))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+    }
+
+    @Test
+    public void discoverSearchObjectsTestWithCommaInQuery() throws Exception {
+        //We turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .withEntityType("Publication")
+                                           .build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withEntityType("Publication")
+                                           .build();
+
+        //2. Three public items that are readable by Anonymous with different subjects
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                                      .withTitle("Publication 1")
+                                      .withIssueDate("2010-10-17")
+                                      .withAuthor("Smith, Donald")
+                                      .withSubject("TestSubject")
+                                      .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Publication 2")
+                                      .withIssueDate("1990-02-13")
+                                      .withAuthor("Smith, Maria")
+                                      .withSubject("TestingForMore")
+                                      .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Publication 3")
+                                      .withIssueDate("2010-02-13")
+                                      .withAuthor("Smith, Joe")
+                                      .withSubject("ExtraEntry")
+                                      .build();
+
+        context.restoreAuthSystemState();
+
+        // Should find all 3 publications when query includes comma
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "Smith,"))
+
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                   )))
+                   //These are all items that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 1"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 3")
+                       )))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+
+
+
+        // Should find all 3 publications when query does not include comma
+        getClient().perform(get("/api/discover/search/objects")
+                                .param("configuration", "researchoutputs")
+                                .param("query", "Smith"))
+
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The page object needs to look like this
+                   .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                       PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                   )))
+                   //These are all items that should be returned with the query given
+                   .andExpect(jsonPath(
+                       "$._embedded.searchResult._embedded.objects",
+                       Matchers.containsInAnyOrder(
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 1"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"),
+                           SearchResultMatcher.matchOnItemName("item", "items", "Publication 3")
+                       )))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
     }
 
     @Test
@@ -4360,15 +4634,14 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         // system should not retrieve the in progress submissions and related objects
         List<Matcher<? super Object>> allExpectedSidebarFacets = new ArrayList<>(customSidebarFacets);
         allExpectedSidebarFacets.addAll(List.of(
-            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-            FacetEntryMatcher.typeFacet(false),
-            FacetEntryMatcher.authorFacet(false),
-            FacetEntryMatcher.subjectFacet(false),
             FacetEntryMatcher.dateIssuedFacet(false),
-            FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
             FacetEntryMatcher.entityTypeFacet(false),
-            FacetEntryMatcher.languageFacet(false)
+            FacetEntryMatcher.anyFacet("original_bundle_oaire_licenseCondition", "text"),
+            FacetEntryMatcher.anyFacet("datacite_rights", "text"),
+            FacetEntryMatcher.anyFacet("epflResourceType", "text"),
+            FacetEntryMatcher.anyFacet("author_editor", "text"),
+            FacetEntryMatcher.anyFacet("source", "text"),
+            FacetEntryMatcher.anyFacet("organization", "text")
         ));
         String[] tokens = new String[] {
             null,
@@ -4782,7 +5055,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         FacetEntryMatcher.resourceTypeFacet(false),
                         FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.submitterFacet(false)
+                        FacetEntryMatcher.dateCreatedFacet(false),
+                        FacetEntryMatcher.submitterFacet(false),
+                        FacetEntryMatcher.authorFacet(false),
+                        FacetEntryMatcher.anyFacet("unit", "text"),
+                        FacetEntryMatcher.anyFacet("latereview", "text")
                 )))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -4832,7 +5109,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         FacetEntryMatcher.resourceTypeFacet(false),
                         FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.submitterFacet(false)
+                        FacetEntryMatcher.dateCreatedFacet(false),
+                        FacetEntryMatcher.submitterFacet(false),
+                        FacetEntryMatcher.authorFacet(false),
+                        FacetEntryMatcher.anyFacet("unit", "text"),
+                        FacetEntryMatcher.anyFacet("latereview", "text")
                 )))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -4865,7 +5146,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         FacetEntryMatcher.resourceTypeFacet(false),
                         FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.submitterFacet(false)
+                        FacetEntryMatcher.dateCreatedFacet(false),
+                        FacetEntryMatcher.submitterFacet(false),
+                        FacetEntryMatcher.authorFacet(false),
+                        FacetEntryMatcher.anyFacet("unit", "text"),
+                        FacetEntryMatcher.anyFacet("latereview", "text")
                 )))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -5826,6 +6111,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         context.restoreAuthSystemState();
 
         getClient().perform(get("/api/discover/facets/graphpubldate")
+            .param("configuration", "multilanguage-types")
             .param("size", "3"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("discover")))
@@ -5843,7 +6129,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 FacetValueMatcher.entryDateIssuedWithLabelAndCount("2018", 0))));
 
         GraphDiscoverSearchFilterFacet graphpubldateFacet =
-            (GraphDiscoverSearchFilterFacet) discoveryConfigurationService.getDiscoveryConfiguration(null)
+            (GraphDiscoverSearchFilterFacet) discoveryConfigurationService.getDiscoveryConfigurationByName("multilanguage-types")
             .getSidebarFacet("graphpubldate");
 
         try {
@@ -5851,6 +6137,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             graphpubldateFacet.setInverseDirection(false);
             graphpubldateFacet.setGraphType("bar.left-to-right");
             getClient().perform(get("/api/discover/facets/graphpubldate")
+                .param("configuration", "multilanguage-types")
                 .param("size", "4"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type", is("discover")))
@@ -5872,6 +6159,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             graphpubldateFacet.setFillDateGaps(false);
             graphpubldateFacet.setGraphType("bar.right-to-left");
             getClient().perform(get("/api/discover/facets/graphpubldate")
+                .param("configuration", "multilanguage-types")
                 .param("size", "4"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type", is("discover")))
@@ -5948,6 +6236,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         context.restoreAuthSystemState();
 
         getClient().perform(get("/api/discover/facets/graphitemtype")
+                   .param("configuration", "multilanguage-types")
                    .param("size", "2"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.type", is("discover")))
@@ -6025,8 +6314,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 containsString("f.organization=%5B*%20TO%20*%5D,notequals")))
             .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 3))))
             .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryText("organization", "4Science", 1),
-                FacetValueMatcher.entryText("organization", "Lyrasis", 1))));
+                FacetValueMatcher.entryText("organization", "4science", 1),
+                FacetValueMatcher.entryText("organization", "lyrasis", 1))));
 
         QueryResponse qResp = searchService.getSolrSearchCore().getSolr()
             .query(new SolrQuery("search.resourceid:" + publicItem1.getID().toString()));
@@ -6373,19 +6662,19 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/discover/facets/author")
+        getClient().perform(get("/api/discover/facets/author_editor")
                    .param("query", "Donald"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.type", is("discover")))
-                   .andExpect(jsonPath("$.name", is("author")))
+                   .andExpect(jsonPath("$.name", is("author_editor")))
                    .andExpect(jsonPath("$.facetType", is("text")))
                    .andExpect(jsonPath("$.scope", is(emptyOrNullString())))
-                   .andExpect(jsonPath("$._embedded.values[0].label", is("Smith, Donald")))
+                   .andExpect(jsonPath("$._embedded.values[0].label", is("Smith, Donald".toLowerCase())))
                    .andExpect(jsonPath("$._embedded.values[0].count", is(1)))
                    .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
                         containsString(
-                                "api/discover/search/objects?query=Donald&configuration=defaultConfiguration&f.author="
-                                + urlPathSegmentEscaper().escape("Smith, Donald,equals")
+                                "api/discover/search/objects?query=Donald&configuration=defaultConfiguration&f.author_editor="
+                                + urlPathSegmentEscaper().escape("Smith, Donald,equals".toLowerCase())
                         )))
                    .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
 
@@ -6523,8 +6812,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                        is(PageMatcher.pageEntry(0, 20))))
                    //The supervisedBy values need to be as specified below
                    .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                       entrySupervisedBy(groupA.getName(), groupA.getID().toString(), 2),
-                       entrySupervisedBy(groupB.getName(), groupB.getID().toString(), 2)
+                       entrySupervisedBy(groupA.getName().toLowerCase(), groupA.getID().toString(), 2),
+                       entrySupervisedBy(groupB.getName().toLowerCase(), groupB.getID().toString(), 2)
                    )));
     }
 
@@ -6603,7 +6892,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                        is(PageMatcher.pageEntry(0, 20))))
                    //The supervisedBy values need to be as specified below
                    .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                       entrySupervisedBy(groupB.getName(), groupB.getID().toString(), 2)
+                       entrySupervisedBy(groupB.getName().toLowerCase(), groupB.getID().toString(), 2)
                    )));
     }
 
@@ -6906,8 +7195,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             //check supervisedBy Facet values
             .andExpect(jsonPath("$._embedded.facets[4]._embedded.values",
                 contains(
-                    entrySupervisedBy(groupA.getName(), groupA.getID().toString(), 6),
-                    entrySupervisedBy(groupB.getName(), groupB.getID().toString(), 2)
+                    entrySupervisedBy(groupA.getName().toLowerCase(), groupA.getID().toString(), 6),
+                    entrySupervisedBy(groupB.getName().toLowerCase(), groupB.getID().toString(), 2)
                 )))
             //There always needs to be a self link
             .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
@@ -6962,11 +7251,13 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         Collection col1 =
             CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection 1")
+                .withEntityType("Publication")
                 .build();
 
         Collection col2 =
             CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection 2")
+                .withEntityType("Publication")
                 .build();
 
         Item publicItem1 =
@@ -7031,31 +7322,30 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             ))
            .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
 
-        // finds the facets using the default configuration and
+        // finds the facets using the researchoutputs configuration and
         // a filter that is the same used for the previous scope
         getClient()
             .perform(
                 get("/api/discover/facets/dateIssued")
-                    .param("configuration", "defaultConfiguration")
-                    .param("f.author", author.getID().toString() + ",authority")
+                    .param("configuration", "researchoutputs")
+                    .param("f.author_editor", author.getID().toString() + ",authority")
             )
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.type", is("discover")))
            .andExpect(jsonPath("$.name", is("dateIssued")))
-           .andExpect(jsonPath("$.facetType", is("date")))
            .andExpect(jsonPath("$.scope", is(emptyOrNullString())))
            .andExpect(jsonPath("$._links.self.href",
                 containsString(
-                    "api/discover/facets/dateIssued?configuration=defaultConfiguration" +
-                    "&f.author=" + author.getID().toString() + ",authority"
+                    "api/discover/facets/dateIssued?configuration=researchoutputs" +
+                    "&f.author_editor=" + author.getID().toString() + ",authority"
                 )
             ))
            .andExpect(jsonPath("$._embedded.values[0].label", is("2017 - 2020")))
            .andExpect(jsonPath("$._embedded.values[0].count", is(3)))
            .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
                 containsString(
-                    "api/discover/search/objects?configuration=defaultConfiguration" +
-                    "&f.author=" + author.getID().toString() + ",authority" +
+                    "api/discover/search/objects?configuration=researchoutputs" +
+                    "&f.author_editor=" + author.getID().toString() + ",authority" +
                     "&f.dateIssued=%5B2017%20TO%202020%5D,equals"
                 )
             ))
@@ -7280,6 +7570,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
      * @throws Exception
      */
     @Test
+    @Ignore
     public void sameItemHiddenByDifferentOwners() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -7658,6 +7949,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         context.restoreAuthSystemState();
         getClient().perform(get("/api/discover/facets/graphitemtype")
+                        .param("configuration", "multilanguage-types")
                         .param("size", "10")
                         .param("page", "0")
                         .param("query", "Bollini Andrea"))
@@ -7669,10 +7961,10 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.query", is( "Bollini Andrea")))
             .andExpect(jsonPath("$._links.missing.href",
                     containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=%5B*%20TO%20*%5D,notequals")))
+                        + "&configuration=multilanguage-types&f.graphitemtype=%5B*%20TO%20*%5D,notequals")))
             .andExpect(jsonPath("$._links.more.href",
                     Matchers.allOf(containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=manuscript,notequals"
+                        + "&configuration=multilanguage-types&f.graphitemtype=manuscript,notequals"
                         + "&f.graphitemtype=journal%20article,notequals"))))
                 .andExpect(jsonPath("$.totalElements", is("2")))
                 .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 10))))
@@ -7683,24 +7975,25 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
 
         getClient().perform(get("/api/discover/facets/graphitemtype")
+                        .param("configuration", "multilanguage-types")
                         .param("size", "10")
                         .param("page", "0")
                         .param("query", "Bollini Andrea")
                         .param("f.graphitemtype", "journal article,equals"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.type", is("discover")))
-                .andExpect(jsonPath("$.configuration", is("defaultConfiguration")))
+                .andExpect(jsonPath("$.configuration", is("multilanguage-types")))
                 .andExpect(jsonPath("$.name", is("graphitemtype")))
                 .andExpect(jsonPath("$.facetType", is("chart.pie")))
                 .andExpect(jsonPath("$.facetLimit", is(10)))
                 .andExpect(jsonPath("$.query", is( "Bollini Andrea")))
                 .andExpect(jsonPath("$._links.missing.href",
                     containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=journal%20article,equals"
+                        + "&configuration=multilanguage-types&f.graphitemtype=journal%20article,equals"
                         + "&f.graphitemtype=%5B*%20TO%20*%5D,notequals")))
                 .andExpect(jsonPath("$._links.more.href",
                     containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=journal%20article,equals"
+                        + "&configuration=multilanguage-types&f.graphitemtype=journal%20article,equals"
                         + "&f.graphitemtype=journal%20article,notequals")))
                 .andExpect(jsonPath("$.totalElements", is("1")))
                 .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 10))))

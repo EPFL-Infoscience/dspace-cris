@@ -93,12 +93,6 @@
       </analyzer>
     </fieldType>
 
-    <fieldType name="long"
-               class="solr.LongPointField"
-               omitNorms="true"
-               positionIncrementGap="0"
-               docValues="true"/>
-
  </types>
 
  <fields>

@@ -811,7 +811,7 @@
         <property name="searchSortConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <!--The default sort filter to use for the initial workspace loading-->
-                <property name="defaultSortField" ref="sortLastModified" />
+                <property name="defaultSortField" ref="sortDateModifiedDesc" />
                 <property name="sortFields">
                     <list>
                     	  <ref bean="sortDateModifiedDesc" />
@@ -885,7 +885,7 @@
         <property name="searchSortConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <!--The default sort filter to use for the initial workspace loading-->
-                <property name="defaultSortField" ref="sortLastModified" />
+                <property name="defaultSortField" ref="sortDateModifiedDesc" />
                 <property name="sortFields">
                     <list>
                         <ref bean="sortDateModifiedDesc" />
@@ -5186,12 +5186,6 @@
 
     <bean id="sortEntityType" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="dspace.entity.type"/>
-        <property name="defaultSortOrder" value="desc"/>
-    </bean>
-
-    <bean id="sortLastModified" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="lastModified" />
-        <property name="type" value="date" />
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
