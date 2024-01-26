@@ -108,6 +108,16 @@ public class FacetEntryMatcher {
         );
     }
 
+    public static Matcher<? super Object> dateCreatedFacet(boolean hasNext) {
+        return allOf(
+            hasJsonPath("$.name", is("dateCreated")),
+            hasJsonPath("$.facetType", is("date")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/dateCreated")),
+            hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/dateCreated"))
+        );
+    }
+
     public static Matcher<? super Object> dateIssuedFacetWithMinMax(boolean hasNext, String min, String max) {
         return allOf(
             hasJsonPath("$.name", is("dateIssued")),

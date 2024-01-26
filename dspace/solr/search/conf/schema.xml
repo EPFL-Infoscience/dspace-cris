@@ -72,6 +72,7 @@
                 ignoreCase="true"
                 words="stopwords.txt"
                 />
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="," replacement=" "/>
         <filter class="org.apache.lucene.analysis.icu.ICUFoldingFilterFactory"/>
         <filter class="solr.KeywordRepeatFilterFactory"/>
         <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
@@ -84,6 +85,7 @@
                 ignoreCase="true"
                 words="stopwords.txt"
                 />
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="," replacement=" "/>
         <filter class="org.apache.lucene.analysis.icu.ICUFoldingFilterFactory"/>
         <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
@@ -97,6 +99,7 @@
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="," replacement=" "/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
@@ -110,6 +113,7 @@
         <filter class="solr.StopFilterFactory"
                 ignoreCase="true"
                 words="stopwords.txt" />
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="," replacement=" "/>
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
       <analyzer type="query">
@@ -119,6 +123,7 @@
                 ignoreCase="true"
                 words="stopwords.txt"
                 />
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="," replacement=" "/>
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
     </fieldType>
@@ -161,6 +166,7 @@
         <analyzer>
             <tokenizer class="solr.KeywordTokenizerFactory"/>
 
+            <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="," replacement=" "/>
             <!--Lower cases our values-->
             <filter class="solr.LowerCaseFilterFactory" />
             <!--Deal with special char like ò à ù ... -->
