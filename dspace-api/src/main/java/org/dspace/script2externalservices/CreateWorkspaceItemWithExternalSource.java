@@ -318,11 +318,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException | InterruptedException e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
         context.commit();
         handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
