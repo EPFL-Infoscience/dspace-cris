@@ -378,7 +378,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 }
                 break;
             case EPO:
-                id.append("is all ");
+                id.append("in=");
                 String epoTitle = itemService.getMetadataFirstValue(item, "dc", "title", null, Item.ANY);
                 if (StringUtils.isNotBlank(epoTitle)) {
                     id.append("\"").append(epoTitle).append("\"");
