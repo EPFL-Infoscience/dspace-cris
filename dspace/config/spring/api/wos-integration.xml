@@ -80,7 +80,7 @@
 
     <bean id="wosTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="wos.type"/>
-        <property name="query" value="static_data/fullrecord_metadata/normalized_doctypes/@doctype"/>
+        <property name="query" value="static_data/summary/doctypes"/>
         <property name="prefixToNamespaceMapping" ref="wosNs"/>
     </bean>
     <bean id="wos.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -131,7 +131,7 @@
 
     <bean id="wosLanguageIsoContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="wos.languageIso"/>
-        <property name="query" value="static_data/fullrecord_metadata/normalized_languages/language/@content"/>
+        <property name="query" value="static_data/fullrecord_metadata/languages/language"/>
         <property name="prefixToNamespaceMapping" ref="wosNs"/>
     </bean>
     <bean id="wos.languageIso" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">

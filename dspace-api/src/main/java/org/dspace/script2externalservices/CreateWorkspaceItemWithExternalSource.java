@@ -271,6 +271,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         int searchCount = 0;
         int totalRecordWorked = 0;
         int totalItemsProcessed = 0;
+        int recordsFound = 0;
+        int arxivCallCount = 4;
+
 
         try {
             Iterator<Item> itemIterator = findItems();
@@ -280,7 +283,14 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 String id = buildID(item);
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
-                    int recordsFound = dataProvider.getNumberOfResults(id);
+                    if (dataProvider.getSourceIdentifier().equals(ARXIV)){
+                        if (arxivCallCount == 0){
+                            Thread.sleep(1000);
+                            arxivCallCount = 4;
+                        }
+                        arxivCallCount--;
+                    }
+                    recordsFound = dataProvider.getNumberOfResults(id);
                     handler.logInfo("Found " + recordsFound + " records for researcher " + id +
                                         " that could be imported");
                     if (recordsFound > perResearcherSearchLimit) {
@@ -308,7 +318,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException | InterruptedException e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -378,7 +388,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 }
                 break;
             case EPO:
-                id.append("is all ");
+                id.append("in=");
                 String epoTitle = itemService.getMetadataFirstValue(item, "dc", "title", null, Item.ANY);
                 if (StringUtils.isNotBlank(epoTitle)) {
                     id.append("\"").append(epoTitle).append("\"");
