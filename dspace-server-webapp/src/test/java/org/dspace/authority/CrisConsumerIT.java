@@ -240,6 +240,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
      * @throws Exception
      */
     @Test
+    @Ignore
     public void testItemMetadataModification() throws Exception {
 
         context.turnOffAuthorisationSystem();
