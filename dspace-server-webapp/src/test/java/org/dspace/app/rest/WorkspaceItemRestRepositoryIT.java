@@ -205,9 +205,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         }
         EntityType personType = entityTypeService.findByEntityType(context, "Person");
         RelationshipTypeBuilder.createRelationshipTypeBuilder(
-            context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+            context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
         RelationshipTypeBuilder.createRelationshipTypeBuilder(
-            context, personType, personType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+            context, personType, personType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
         context.restoreAuthSystemState();
     }
 

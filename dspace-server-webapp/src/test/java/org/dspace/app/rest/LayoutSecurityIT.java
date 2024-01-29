@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +34,7 @@ import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.RelationshipTypeBuilder;
 import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
@@ -85,7 +85,8 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     private EntityType personType;
 
     @Before
-    public void setUp() throws SQLException {
+    public void setUp() throws Exception {
+        super.setUp();
         context.turnOffAuthorisationSystem();
 
         publicationType = entityTypeService.findByEntityType(context, "Publication");
@@ -97,6 +98,13 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         if (personType == null) {
             personType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
         }
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, personType, personType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
 
         context.restoreAuthSystemState();
     }
