@@ -787,9 +787,13 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(get("/api/submission/vocabularies/AuthorStrictMatchAuthority/entries")
             .param("filter", "Riccardo Andrea Bollini")
             .param("exact", "true"))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
-            .andExpect(jsonPath("$._embedded.entries", contains(matchItemAuthorityProperties(
-                person2Id, "Bollini, Riccardo Andrea", "Bollini, Riccardo Andrea", "vocabularyEntry"))));
+            .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(2)))
+            .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
+                matchItemAuthorityProperties(
+                    person2Id, "Bollini, Riccardo Andrea", "Bollini, Riccardo Andrea", "vocabularyEntry"),
+                matchItemAuthorityProperties(
+                    person2Id, "Riccardo Andrea Bollini", "Riccardo Andrea Bollini", "vocabularyEntry")
+            )));
 
         getClient(token).perform(get("/api/submission/vocabularies/AuthorStrictMatchAuthority/entries")
             .param("filter", "Andrea Bollini Test")
