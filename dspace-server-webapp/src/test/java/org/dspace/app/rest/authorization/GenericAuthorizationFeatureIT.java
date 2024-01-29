@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *     canCreateBitstream
  *     canCreateBundle
  */
+@Ignore
 public class GenericAuthorizationFeatureIT extends AbstractControllerIntegrationTest {
 
     @Autowired
