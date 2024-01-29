@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.edit.EditItem;
+import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Constants;
@@ -56,6 +58,7 @@ import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.LayoutSecurity;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,11 +78,32 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     protected RegistrationDataService registrationDataService;
     @Autowired
     private MetadataFieldService mfss;
+    @Autowired
+    private EntityTypeService entityTypeService;
+
+    private EntityType publicationType;
+    private EntityType personType;
+
+    @Before
+    public void setUp() throws SQLException {
+        context.turnOffAuthorisationSystem();
+
+        publicationType = entityTypeService.findByEntityType(context, "Publication");
+        if (publicationType == null) {
+            publicationType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+        }
+
+        personType = entityTypeService.findByEntityType(context, "Person");
+        if (personType == null) {
+            personType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
+        }
+
+        context.restoreAuthSystemState();
+    }
 
     @Test
     public void configurationContainLayoutSecurityAdministratorTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -101,7 +125,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.ADMINISTRATOR)
                                                  .build();
@@ -113,7 +137,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.PUBLIC)
                                                  .build();
@@ -156,7 +180,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainLayoutSecurityOwnerOnlyTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -184,7 +207,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.OWNER_ONLY)
                                                  .build();
@@ -196,7 +219,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.PUBLIC)
                                                  .build();
@@ -247,7 +270,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainLayoutSecurityOwnerAndAdministratorTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -275,7 +297,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.OWNER_AND_ADMINISTRATOR)
                                                  .build();
@@ -287,7 +309,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.PUBLIC)
                                                  .build();
@@ -339,7 +361,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainLayoutSecurityCustomDataTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -389,7 +410,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -403,7 +424,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.PUBLIC)
                                                  .build();
@@ -453,7 +474,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void customDataTestWithOneGroup() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
             .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -485,7 +505,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
 
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
             .withShortname("box-shortname-one")
             .withSecurity(LayoutSecurity.CUSTOM_DATA)
             .build();
@@ -533,7 +553,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void customDataTestWithMultipleGroup() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
             .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -571,7 +590,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
 
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
             .withShortname("box-shortname-one")
             .withSecurity(LayoutSecurity.CUSTOM_DATA)
             .build();
@@ -634,7 +653,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainAllLayoutSecurityAspectTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -684,7 +702,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField issueDate = mfss.findByElement(context, "dc", "date", "issued");
         MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -705,7 +723,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.PUBLIC)
                                                  .build();
@@ -717,7 +735,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box2)
                               .build();
 
-        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-three")
                                                  .withSecurity(LayoutSecurity.ADMINISTRATOR)
                                                  .build();
@@ -729,7 +747,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box3)
                               .build();
 
-        CrisLayoutBox box4 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box4 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-four")
                                                  .withSecurity(LayoutSecurity.OWNER_ONLY)
                                                  .build();
@@ -790,7 +808,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchAddMetadataContainedInAdministratorBoxTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -816,7 +833,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -828,7 +845,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.ADMINISTRATOR)
                                                  .build();
@@ -882,7 +899,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void adminTryToPatchAddMetadataToBoxesWithDifferentLayoutSecurityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -907,7 +923,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.OWNER_AND_ADMINISTRATOR)
                                                 .build();
@@ -919,7 +935,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.OWNER_ONLY)
                                                  .build();
@@ -931,7 +947,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box2)
                               .build();
 
-        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-three")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .build();
@@ -994,7 +1010,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchRemoveMetadataContainedInAdministratorAndPublicBoxesTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -1022,7 +1037,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1034,7 +1049,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.ADMINISTRATOR)
                                                  .build();
@@ -1092,7 +1107,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchRemoveMetadataContainedInBoxesWithOnlyOwnerLayoutSecurityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -1120,7 +1134,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1132,7 +1146,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.OWNER_ONLY)
                                                  .build();
@@ -1178,7 +1192,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchRemoveMetadataContainedInBoxesWithCustomDataLayoutSecurityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -1228,7 +1241,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
         MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1240,7 +1253,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -1299,7 +1312,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchReplaceMetadataContainedInAdministratorAndPublicBoxesTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -1327,7 +1339,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1338,7 +1350,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withRowStyle("STYLE")
                               .withBox(box1).build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.ADMINISTRATOR)
                                                  .build();
@@ -1399,7 +1411,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchReplaceMetadataContainedInBoxesWithCustomDataLayoutSecurityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -1455,7 +1466,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
         MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1467,7 +1478,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -1553,7 +1564,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchReplaceMetadataContainedInBoxesWithOnlyOwnerLayoutSecurityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -1590,7 +1600,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.PUBLIC)
                                                  .build();
@@ -1601,7 +1611,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withRowStyle("STYLE")
                               .withBox(box1).build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.OWNER_ONLY)
                                                  .build();
@@ -1668,7 +1678,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchMoveMetadataContainedInAdministratorAndPublicBoxesTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -1699,7 +1708,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1711,7 +1720,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.ADMINISTRATOR)
                                                  .build();
@@ -1781,7 +1790,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchMoveMetadataContainedInBoxesWithOnlyOwnerLayoutSecurityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -1811,7 +1819,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1823,7 +1831,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.OWNER_ONLY)
                                                  .build();
@@ -1895,7 +1903,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void patchMoveMetadataContainedInBoxesWithCustomDataLayoutSecurityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
                                       .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -1950,7 +1957,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                 .withShortname("box-shortname-one")
                                                 .withSecurity(LayoutSecurity.PUBLIC)
                                                 .build();
@@ -1962,7 +1969,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withBox(box1)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -2060,8 +2067,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     public void findOneWorkspaceItemUsingLayoutSecurityCustomDataTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
@@ -2083,7 +2088,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
 
         MetadataField dateIssued = mfss.findByElement(context, "dc", "date", "issued");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -2131,8 +2136,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     public void findOneWorkflowItemUsingLayoutSecurityCustomDataTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
@@ -2155,7 +2158,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
 
         MetadataField dateIssued = mfss.findByElement(context, "dc", "date", "issued");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -2202,7 +2205,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void findOneEditItemUsingLayoutSecurityCustomDataTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -2228,7 +2230,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
 
         MetadataField dateIssued = mfss.findByElement(context, "dc", "date", "issued");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.CUSTOM_DATA)
                                                  .addMetadataSecurityField(policyEperson)
@@ -2263,7 +2265,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainLayoutSecurityWithNestedFieldAdministratorTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -2296,7 +2297,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         crisMetadataGroup.add(educationStart);
         crisMetadataGroup.add(educationEnd);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-one")
                                                  .withSecurity(LayoutSecurity.ADMINISTRATOR)
                                                  .build();
@@ -2316,7 +2317,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withNestedField(crisMetadataGroup)
                               .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                                                  .withShortname("box-shortname-two")
                                                  .withSecurity(LayoutSecurity.PUBLIC)
                                                  .build();
@@ -2364,7 +2365,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainMetadataSecurityThirdLevel() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
@@ -2379,7 +2379,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
             admin.getID().toString(), 0, 1);
         MetadataField description = mfss.findByElement(context, "dc", "description", "abstract");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
                 .withShortname("box-shortname-one")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .build();
@@ -2417,7 +2417,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainMetadataSecurityFirstLevel() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
@@ -2432,7 +2431,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
             admin.getID().toString(), 0, 1);
         MetadataField description = mfss.findByElement(context, "dc", "description", "provenance");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, personType, true, true)
                 .withShortname("box-shortname-one")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .build();
@@ -2481,7 +2480,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
             .addMember(eperson)
             .build();
 
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
@@ -2496,7 +2494,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
             admin.getID().toString(), 0, 1);
         MetadataField description = mfss.findByElement(context, "dc", "description", "provenance");
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, personType, true, true)
                 .withShortname("box-shortname-one")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .build();
@@ -2541,7 +2539,6 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
     @Test
     public void configurationContainLayoutSecurityCustomDataAndAdminTest() throws Exception {
         context.turnOffAuthorisationSystem();
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         EPerson userA = EPersonBuilder.createEPerson(context)
             .withNameInMetadata("Mykhaylo", "Boychuk")
@@ -2591,7 +2588,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
 
-        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
             .withShortname("box-shortname-one")
             .withSecurity(LayoutSecurity.CUSTOM_DATA_AND_ADMINISTRATOR)
             .addMetadataSecurityField(policyEperson)
@@ -2605,7 +2602,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
             .withBox(box1)
             .build();
 
-        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, publicationType, true, true)
             .withShortname("box-shortname-two")
             .withSecurity(LayoutSecurity.PUBLIC)
             .build();
