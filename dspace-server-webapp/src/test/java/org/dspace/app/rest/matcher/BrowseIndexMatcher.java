@@ -184,4 +184,24 @@ public class BrowseIndexMatcher {
                         is(REST_SERVER_URL + String.format("discover/browses/%s", vocabulary)))
         );
     }
+
+    public static Matcher<? super Object> journalBrowseIndex(final String order) {
+        return allOf(
+            hasJsonPath("$.metadata", contains("dc.relation.journal", "dc.relation.ispartof")),
+            hasJsonPath("$.order", equalToIgnoringCase(order)),
+            hasJsonPath("$.sortOptions[*].name", containsInAnyOrder("title", "dateissued", "dateaccessioned")),
+            hasJsonPath("$._links.self.href", is(REST_SERVER_URL + "discover/browses/journal")),
+            hasJsonPath("$._links.items.href", is(REST_SERVER_URL + "discover/browses/journal/items"))
+        );
+    }
+
+    public static Matcher<? super Object> conferenceBrowseIndex(final String order) {
+        return allOf(
+            hasJsonPath("$.metadata", contains("dc.relation.conference")),
+            hasJsonPath("$.order", equalToIgnoringCase(order)),
+            hasJsonPath("$.sortOptions[*].name", containsInAnyOrder("title", "dateissued", "dateaccessioned")),
+            hasJsonPath("$._links.self.href", is(REST_SERVER_URL + "discover/browses/conference")),
+            hasJsonPath("$._links.items.href", is(REST_SERVER_URL + "discover/browses/conference/items"))
+        );
+    }
 }

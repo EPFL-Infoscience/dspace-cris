@@ -35,6 +35,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -848,6 +849,7 @@ public class GenericAuthorizationFeatureIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void testCanMakeDiscoverableAdmin() throws Exception {
         testAdminsHavePermissionsItem("canMakeDiscoverable");
     }

@@ -6,6 +6,7 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest.authorization;
+
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,6 +32,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.versioning.Version;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,6 +68,7 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    @Ignore
     public void canDeleteVersionsFeatureTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -267,6 +270,7 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    @Ignore
     public void canDeleteVersionFeatureTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

@@ -36,6 +36,7 @@ import org.dspace.builder.CrisLayoutTabBuilder;
 import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.content.EntityType;
+import org.dspace.content.Item;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutField;
@@ -379,7 +380,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(profileResearchoutputsBox.getGroupSecurityFields(),
                    contains(matches(groupField -> groupField.getName().equals("Researchers"))));
 
-        List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication", null);
+        List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication", Item.ANY);
         assertThat(publicationTabs, hasSize(4));
         List<CrisLayoutTab> publicationBookAuthority = tabService.findByEntityType(context, "Publication",
                 "publication-coar-types:c_2f33");

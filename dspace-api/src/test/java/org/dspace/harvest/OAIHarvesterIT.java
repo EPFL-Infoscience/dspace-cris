@@ -633,9 +633,9 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         assertThat(updatedItem.getID(), equalTo(item.getID()));
 
         List<MetadataValue> values = updatedItem.getMetadata();
-        assertThat(values, hasSize(16));
+        assertThat(values, hasSize(17));
         assertThat(values, hasItems(with("dc.title", "Test Publication Updated")));
-        assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
+        assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
         assertThat(values, hasItems(with("dc.date.issued", "2012-11-30")));
         assertThat(values, hasItems(with("oaire.citation.volume", "500")));
         assertThat(values, hasItems(with("oaire.citation.issue", "200")));
@@ -808,7 +808,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             assertThat(updatedAuthor.getID(), equalTo(authorPerson.getID()));
 
             values = updatedAuthor.getMetadata();
-            assertThat(values, hasSize(11));
+            assertThat(values, hasSize(12));
             assertThat(values, hasItems(with("dc.title", "Manghi, Paolo")));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::123")));
             assertThat(values, hasItems(with("dspace.entity.type", "Person")));
@@ -878,7 +878,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             Item publication = findItemByOaiID("oai:test-harvest:Publications/3", collection);
             values = publication.getMetadata();
 
-            assertThat(values, hasSize(19 + 1));
+            assertThat(values, hasSize(21 + 1));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
             assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
