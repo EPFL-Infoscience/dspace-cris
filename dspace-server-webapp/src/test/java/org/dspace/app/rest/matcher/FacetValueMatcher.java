@@ -32,6 +32,17 @@ public class FacetValueMatcher {
         );
     }
 
+    public static Matcher<? super Object> entryAuthorEditor(String label) {
+        return allOf(
+            hasJsonPath("$.label", is(label)),
+            hasJsonPath("$.type", is("discover")),
+            hasJsonPath("$._links.search.href", containsString("api/discover/search/objects")),
+            hasJsonPath("$._links.search.href", containsString(
+                "f.author_editor=" + urlPathSegmentEscaper().escape(label) + ",equals"
+            ))
+        );
+    }
+
     public static Matcher<? super Object> entryFacetWithoutSelfLink(String label) {
         return allOf(
             hasJsonPath("$.label", is(label)),
@@ -58,6 +69,16 @@ public class FacetValueMatcher {
             hasJsonPath("$._links.search.href", containsString("api/discover/search/objects")),
             hasJsonPath("$._links.search.href", containsString(
                 "f.subject=" + urlPathSegmentEscaper().escape(label) + ",equals"))
+        );
+    }
+
+    public static Matcher<? super Object> matchEntry(String facet, String label, int count) {
+        return allOf(
+                hasJsonPath("$.label", is(label)),
+                hasJsonPath("$.type", is("discover")),
+                hasJsonPath("$.count", is(count)),
+                hasJsonPath("$._links.search.href", containsString("api/discover/search/objects")),
+                hasJsonPath("$._links.search.href", containsString("f." + facet + "=" + label + ",equals"))
         );
     }
 

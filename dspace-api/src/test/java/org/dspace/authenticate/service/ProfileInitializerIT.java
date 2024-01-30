@@ -618,23 +618,18 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
     public void testRemoveFromSubmitters() throws SQLException {
         context.turnOffAuthorisationSystem();
 
-        ItemBuilder.createItem(context, orgUnits)
-                .withTitle("Laboratory of Sensing and Networking Systems")
-                .withAcronym("SENS").build();
-
-        ItemBuilder.createItem(context, orgUnits)
-                .withTitle("SSC - Teaching")
-                .withAcronym("SSC-ENS").build();
-
-        ItemBuilder.createItem(context, orgUnits)
-                .withTitle("SIN - Teaching")
-                .withAcronym("SIN-ENS").build();
-
         EPerson eperson = EPersonBuilder.createEPerson(context)
                 .withNameInMetadata("Test", "User")
                 .withEmail("test@user.it")
                 .withNetId("352234@epfl.ch")
                 .build();
+
+        ItemBuilder.createItem(context, profiles)
+                .withTitle("My User")
+                .withBirthDate("1992-06-26")
+                .withMetadata("epfl", "sciperId", null, "352234")
+                .build();
+
         groupService.addMember(context, submitters, eperson);
         context.restoreAuthSystemState();
 
@@ -644,15 +639,12 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
                 .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(false));
     }
 
-
-
     private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {
         List<ResourcePolicy> resourcePolicies = resourcePolicyService.find(context, researcherProfile.getItem());
         boolean visible = resourcePolicies
             .stream()
             .filter(policy -> policy.getGroup() != null)
-            .anyMatch(policy -> READ == policy.getAction() &&
-                ANONYMOUS.equals(policy.getGroup().getName()));
+            .anyMatch(policy -> READ == policy.getAction() && ANONYMOUS.equals(policy.getGroup().getName()));
 
         assertThat(visible, is(true));
     }

@@ -73,7 +73,8 @@ public class FunctionalUtils {
 
     public static <T, R> Function<T, R> throwingMapperWrapper(
         ThrowingMapper<T, R, Exception> throwingConsumer,
-        R defaultValue) {
+        R defaultValue
+    ) {
         return i -> {
             R value = defaultValue;
             try {
