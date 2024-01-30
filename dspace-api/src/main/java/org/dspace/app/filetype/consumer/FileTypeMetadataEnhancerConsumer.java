@@ -81,6 +81,11 @@ public class FileTypeMetadataEnhancerConsumer implements Consumer {
                     Optional.ofNullable((Item) event.getObject(ctx))
                             .orElse(this.loadItem(ctx, event))
             );
+        } else {
+            logger.warn(
+                "Can't consume the DSPaceObject with id {}, only BITSTREAM and ITEMS'CREATION events are consumable!",
+                event.getSubjectID()
+            );
         }
     }
 

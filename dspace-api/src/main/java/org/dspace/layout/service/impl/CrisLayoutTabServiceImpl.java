@@ -9,6 +9,7 @@ package org.dspace.layout.service.impl;
 
 import static org.dspace.util.FunctionalUtils.throwingMapperWrapper;
 
+import javax.annotation.PostConstruct;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +18,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.dspace.app.util.SubmissionConfigReader;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.EntityType;
@@ -48,6 +51,13 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    private SubmissionConfigReader submissionConfigReader;
+
+    @PostConstruct
+    private void setup() throws SubmissionConfigReaderException {
+        submissionConfigReader = new SubmissionConfigReader();
+    }
 
     @Override
     public CrisLayoutTab create(Context c, CrisLayoutTab tab) throws SQLException, AuthorizeException {
@@ -179,32 +189,45 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
     @Override
     public List<CrisLayoutTab> findByItem(Context context, String itemUuid) throws SQLException {
         Item item = Objects.requireNonNull(itemService.find(context, UUID.fromString(itemUuid)),
-                                           "The itemUuid entered does not match with any item");
+            "The itemUuid entered does not match with any item");
+
         String entityTypeValue = itemService.getMetadata(item, "dspace.entity.type");
+        String submissionName = getSubmissionDefinitionName(item);
+
         List<CrisLayoutTab> layoutTabs =
             Optional.ofNullable(this.configurationService.getProperty("dspace.metadata.layout.tab"))
-                .map(metadataField -> this.itemService.getMetadataByMetadataString(item, metadataField))
-                .filter(metadatas -> !metadatas.isEmpty())
-                .map(metadatas -> metadatas.get(0))
-                .map(metadata ->
-                    findValidEntityType(context, entityTypeValue, metadata.getAuthority())
-                        .orElse(
-                            findValidEntityType(context, entityTypeValue, metadata.getValue())
-                                .orElse(null)
-                        )
-                )
-                .orElse(findByEntityType(context, entityTypeValue, null));
+                    .map(metadataField -> this.itemService.getMetadataByMetadataString(item, metadataField))
+                    .filter(metadatas -> !metadatas.isEmpty())
+                    .map(metadatas -> metadatas.get(0))
+                    .map(metadata ->
+                            findValidEntityType(context, entityTypeValue, submissionName + "." +
+                                metadata.getAuthority())
+                                .orElse(
+                                    findValidEntityType(context, entityTypeValue, submissionName + "." +
+                                        metadata.getValue())
+                                        .orElse(findValidEntityType(context, entityTypeValue, metadata.getAuthority())
+                                            .orElse(findValidEntityType(context, entityTypeValue, metadata.getValue())
+                                                .orElse(null))))
+                    )
+                    .orElse(findValidEntityType(context, entityTypeValue, submissionName)
+                    .orElse(findByEntityType(context, entityTypeValue, null)));
         if (layoutTabs == null) {
             return Collections.emptyList();
         }
         return layoutTabs;
     }
 
+    private String getSubmissionDefinitionName(Item item) {
+        return submissionConfigReader == null || item.getOwningCollection() == null
+            ? ""
+            : submissionConfigReader.getSubmissionConfigByCollection(item.getOwningCollection()).getSubmissionName();
+    }
+
     private Optional<List<CrisLayoutTab>> findValidEntityType(Context context, String entityTypeValue,
-            String customFilter) {
+                                                              String customFilter) {
         return Optional.ofNullable(customFilter)
-                .map(throwingMapperWrapper(value -> findByEntityType(context, entityTypeValue, value)))
-                .filter(tabs -> !tabs.isEmpty());
+            .map(throwingMapperWrapper(value -> findByEntityType(context, entityTypeValue, value)))
+            .filter(tabs -> !tabs.isEmpty());
     }
 
 }

@@ -481,19 +481,33 @@ public class ItemsImportFromS3Script
     private void addMetadataValues(ItemImportDTO itemImport, Item item) throws SQLException {
 
         for (MetadataValueDTO metadataValue : itemImport.getItem().getMetadataValues()) {
+
             String authority = metadataValue.getAuthority();
+            String value = metadataValue.getValue();
             int confidence = metadataValue.getConfidence();
+
             if (StringUtils.isNotBlank(authority) && authority.length() >= 100) {
                 handler.logWarning("Metadata value " + metadataValue.getValue() + " has an authority too longer: "
                     + authority + ". The authority will be ignored because can't be stored.");
                 authority = null;
                 confidence = -1;
             }
+
+            if (value != null && "dc.identifier.doi".equals(metadataValue.getMetadataField())) {
+                value = replaceOldDoiPrefix(value);
+            }
+
             itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
                 metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
                 authority, confidence);
         }
 
+    }
+
+    private String replaceOldDoiPrefix(String value) {
+        String oldPrefix = configurationService.getProperty("epfl.bulk-import.old-doi-prefix", "");
+        String newPrefix = configurationService.getProperty("identifier.doi.prefix", "");
+        return value.replace(oldPrefix, newPrefix);
     }
 
     private Item searchItemById(String id) {

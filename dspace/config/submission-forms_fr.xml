@@ -4816,7 +4816,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>issn</dc-qualifier>
+          <dc-qualifier>serieissn</dc-qualifier>
           <label>ISSN</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -5969,6 +5969,18 @@
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>serieissn</dc-qualifier>
+          <label>ISSN</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>doi</dc-qualifier>
           <label>DOI</label>
@@ -6596,6 +6608,18 @@
           <dc-element>relation</dc-element>
           <dc-qualifier>orgunit</dc-qualifier>
           <label>Unité</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dspace</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>Oai-identifier</dc-qualifier>
+          <label>Identifiant OAI</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
