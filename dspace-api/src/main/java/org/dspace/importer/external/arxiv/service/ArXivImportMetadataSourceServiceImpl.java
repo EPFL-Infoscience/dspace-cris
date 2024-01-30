@@ -49,7 +49,7 @@ import org.jdom2.xpath.XPathFactory;
 public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadataSourceService<Element>
     implements QuerySource {
 
-	private static final Logger log = LogManager.getLogger(ArXivImportMetadataSourceServiceImpl.class);
+    private static final Logger log = LogManager.getLogger(ArXivImportMetadataSourceServiceImpl.class);
 
     private WebTarget webTarget;
     private String baseAddress;
@@ -239,9 +239,9 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                     return null;
                 }
             } else {
-            	log.error("ArXiv request with query: " + queryString +
-            			  " to obtain in total entities failed with the code:" + response.getStatus() +
-            			  " and status info: " + response.getStatusInfo());
+                log.error("ArXiv request with query: " + queryString +
+                        " to obtain in total entities failed with the code:" + response.getStatus() +
+                        " and status info: " + response.getStatusInfo());
                 return null;
             }
         }
@@ -297,8 +297,8 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                 }
                 return results;
             } else {
-            	log.error("ArXiv request with query: " + queryString + " failed with the code:" + response.getStatus() +
-          			      " and status info: " + response.getStatusInfo());
+                log.error("ArXiv request with query: " + queryString + " failed with the code:" + response.getStatus() +
+                        " and status info: " + response.getStatusInfo());
                 return null;
             }
         }
@@ -346,8 +346,8 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                 }
                 return results;
             } else {
-            	log.error("ArXiv request with query: " + arxivid + " failed with the code:" + response.getStatus() +
-        			      " and status info: " + response.getStatusInfo());
+                log.error("ArXiv request with query: " + arxivid + " failed with the code:" + response.getStatus() +
+                        " and status info: " + response.getStatusInfo());
                 return null;
             }
         }
@@ -386,8 +386,8 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                 }
                 return results;
             } else {
-            	log.error("ArXiv request with query: " + queryString + " failed with the code:" + response.getStatus() +
-      			      " and status info: " + response.getStatusInfo());
+                log.error("ArXiv request with query: " + queryString + " failed with the code:" + response.getStatus() +
+                        " and status info: " + response.getStatusInfo());
                 return null;
             }
         }
