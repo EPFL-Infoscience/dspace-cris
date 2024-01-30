@@ -77,7 +77,7 @@ public class OrgUnitHiddenItemsScript
             orgUnits.stream()
                 .map(UUIDUtils::fromString)
                 .filter(Objects::nonNull)
-                .map(FunctionalUtils.throwingMapperWrapper(id -> itemService.find(context, id), null))
+                .map(FunctionalUtils.throwingMapperWrapper(id -> itemService.find(context, id)))
                 .filter(Objects::nonNull)
                 .forEach(ou -> {
                     try {
