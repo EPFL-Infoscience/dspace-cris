@@ -23,6 +23,7 @@ import org.dspace.app.sherpa.v2.SHERPAJournal;
 import org.dspace.app.sherpa.v2.SHERPAResponse;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 
 /**
@@ -84,6 +85,10 @@ public class SherpaAuthority extends ItemAuthority {
     }
 
     private Choices getSherpaChoices(String text, int start, int limit) {
+
+        if (UUIDUtils.fromString(text) != null) {
+            return new Choices(-1);
+        }
 
         boolean isIssn = ISSNValidator.getInstance().isValid(text);
         String field = isIssn ? ISSN_FIELD : TITLE_FILED;
@@ -171,11 +176,6 @@ public class SherpaAuthority extends ItemAuthority {
 
     private boolean isLocalItemChoicesEnabled() {
         return configurationService.getBooleanProperty("cris." + this.authorityName + ".local-item-choices-enabled");
-    }
-
-    @Override
-    public Map<String, String> getExternalSource() {
-        return Map.of();
     }
 
 }

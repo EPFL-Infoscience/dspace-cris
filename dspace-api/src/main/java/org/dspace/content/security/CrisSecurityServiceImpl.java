@@ -68,19 +68,17 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         return matchingSecurity.isPresent();
     }
 
-    private boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode,
-        CrisSecurity crisSecurity) {
-
+    private boolean hasAccess(
+        Context context, Item item, EPerson user, AccessItemMode accessMode, CrisSecurity crisSecurity
+    ) {
         try {
+            final boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
 
-            boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
-            LogicalStatement additionalFilter = accessMode.getAdditionalFilter();
-
-            return additionalFilter == null ? checkSecurity
-                : checkSecurity && additionalFilter.getResult(context, item);
-
+            return Optional.ofNullable(accessMode.getAdditionalFilter())
+                .map(filter -> checkSecurity && filter.getResult(context, item))
+                .orElse(checkSecurity);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLRuntimeException(e);
         }
 
     }

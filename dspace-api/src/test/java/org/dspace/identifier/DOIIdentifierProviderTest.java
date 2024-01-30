@@ -329,24 +329,21 @@ public class DOIIdentifierProviderTest
     }
 
     @Test
-    public void testGet_DOI_out_of_item_metadata()
-        throws SQLException, AuthorizeException, IOException, IdentifierException, IllegalAccessException,
-        WorkflowException {
+    public void testGet_DOI_out_of_item_metadata() throws SQLException, AuthorizeException, IOException,
+        IdentifierException, IllegalAccessException, WorkflowException {
+
         Item item = newItem();
-        String doi = DOI.SCHEME + PREFIX + "/" + NAMESPACE_SEPARATOR
+        String doi = DOI.SCHEME + PREFIX + "/" + NAMESPACE_SEPARATOR + Long.toHexString(new Date().getTime());
+        String expectedDoi = DOI.SCHEME + "https://doi.org/" + PREFIX + "/" + NAMESPACE_SEPARATOR
             + Long.toHexString(new Date().getTime());
 
         context.turnOffAuthorisationSystem();
-        itemService.addMetadata(context, item, provider.MD_SCHEMA,
-                provider.DOI_ELEMENT,
-                provider.DOI_QUALIFIER,
-                                null,
-                                doiService.DOIToExternalForm(doi));
+        itemService.addMetadata(context, item, provider.MD_SCHEMA, provider.DOI_ELEMENT, provider.DOI_QUALIFIER,
+                                null, doiService.DOIToExternalForm(doi));
         itemService.update(context, item);
         context.restoreAuthSystemState();
 
-        assertEquals("Failed to recognize DOI in item metadata.",
-                doi, provider.getDOIOutOfObject(item));
+        assertEquals("Failed to recognize DOI in item metadata.", expectedDoi, provider.getDOIOutOfObject(item));
     }
 
     @Test

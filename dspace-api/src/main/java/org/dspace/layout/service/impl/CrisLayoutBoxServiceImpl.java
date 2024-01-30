@@ -167,6 +167,8 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
                 return hasRelationBoxContent(context, box, item);
             case "METRICS":
                 return hasMetricsBoxContent(context, box, item);
+            case "COLLECTIONS":
+                return isOwningCollectionPresent(item);
             case "IIIFVIEWER":
             case "IIIFTOOLBAR":
                 return isIiifEnabled(item);
@@ -219,7 +221,13 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     }
 
     private boolean isBitstreamPresent(Context context, Item item, CrisLayoutFieldBitstream field) {
-        Map<String, String> filters = Map.of(field.getMetadataField().toString('.'), field.getMetadataValue());
+
+        Map<String, String> filters = Map.of();
+
+        if (field.getMetadataField() != null) {
+            filters = Map.of(field.getMetadataField().toString('.'), field.getMetadataValue());
+        }
+
         try {
             return bitstreamService.findShowableByItem(context, item.getID(), field.getBundle(),
                 filters, false).size() > 0;
@@ -283,6 +291,10 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     private boolean isIiifEnabled(Item item) {
         return BooleanUtils.toBoolean(itemService.getMetadataFirstValue(item,
             new MetadataFieldName("dspace.iiif.enabled"), Item.ANY));
+    }
+
+    private boolean isOwningCollectionPresent(Item item) {
+        return Objects.nonNull(item.getOwningCollection());
     }
 
     private boolean currentUserIsNotAllowedToReadItem(Context context, Item item) {

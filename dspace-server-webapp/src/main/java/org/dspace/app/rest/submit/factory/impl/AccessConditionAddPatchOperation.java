@@ -10,6 +10,7 @@ package org.dspace.app.rest.submit.factory.impl;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -28,11 +29,12 @@ import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.submit.model.AccessConditionConfiguration;
 import org.dspace.submit.model.AccessConditionConfigurationService;
+import org.dspace.util.TimeHelpers;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Submission "add" operation to add custom resource policies.
- * 
+ *
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.com)
  */
 public class AccessConditionAddPatchOperation extends AddPatchOperation<AccessConditionDTO> {
@@ -59,6 +61,18 @@ public class AccessConditionAddPatchOperation extends AddPatchOperation<AccessCo
         // "abspath" : "accessConditions" or "accessConditions/-"
         String[] absolutePath = getAbsolutePath(path).split("/");
         List<AccessConditionDTO> accessConditions = parseAccessConditions(path, value, absolutePath);
+
+        // Clamp access condition dates to midnight UTC
+        for (AccessConditionDTO condition : accessConditions) {
+            Date date = condition.getStartDate();
+            if (null != date) {
+                condition.setStartDate(TimeHelpers.toMidnightUTC(date));
+            }
+            date = condition.getEndDate();
+            if (null != date) {
+                condition.setEndDate(TimeHelpers.toMidnightUTC(date));
+            }
+        }
 
         verifyAccessConditions(context, configuration, accessConditions);
 
@@ -93,7 +107,7 @@ public class AccessConditionAddPatchOperation extends AddPatchOperation<AccessCo
     }
 
     private List<AccessConditionDTO> parseAccessConditions(String path, Object value, String[] split) {
-        List<AccessConditionDTO> accessConditions = new ArrayList<AccessConditionDTO>();
+        List<AccessConditionDTO> accessConditions = new ArrayList<>();
         if (split.length == 1) {
             accessConditions = evaluateArrayObject((LateObjectEvaluator) value);
         } else if (split.length == 2) {

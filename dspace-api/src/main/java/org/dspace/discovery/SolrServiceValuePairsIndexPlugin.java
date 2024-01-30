@@ -36,6 +36,7 @@ import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.MultiLanguageDiscoverSearchFilterFacet;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.services.ConfigurationService;
+import org.dspace.web.ContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,8 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
     @Autowired
     private ConfigurationService configurationService;
 
+    private Locale[] supportedLocales;
+
     @Override
     @SuppressWarnings("rawtypes")
     public void additionalIndex(Context context, IndexableObject object, SolrInputDocument document) {
@@ -72,7 +75,7 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
             Collection collection = (Collection) itemService.getParentObject(context, item);
             for (MetadataValue metadata : item.getItemService().getMetadata(item, Item.ANY, Item.ANY, Item.ANY,
                     Item.ANY)) {
-                for (Locale locale : I18nUtil.getSupportedLocales()) {
+                for (Locale locale : getSupportedLocales()) {
                     String language = locale.getLanguage();
                     if (cas.isChoicesConfigured(metadata.getMetadataField().toString(), item.getType(), collection)) {
                         additionalIndex(collection, item, metadata, language, document);
@@ -160,10 +163,17 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
 
     private List<DiscoveryConfiguration> getAllDiscoveryConfiguration(Item item) {
         try {
-            return SearchUtils.getAllDiscoveryConfigurations(item);
+            return SearchUtils.getAllDiscoveryConfigurations(ContextUtil.obtainCurrentRequestContext(), item);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
+    }
+
+    private Locale[] getSupportedLocales() {
+        if (supportedLocales == null) {
+            supportedLocales = I18nUtil.getSupportedLocales();
+        }
+        return supportedLocales;
     }
 
     @SuppressWarnings("rawtypes")

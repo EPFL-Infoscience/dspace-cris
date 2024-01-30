@@ -49,6 +49,435 @@
                         </bean>
                     </list>
                 </entry>
+                <entry key="publication.article">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="article-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.media">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="media-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.dataset">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="dataset-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.thesis">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="thesis-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.student">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="student-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.conference">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="conference-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.report">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="report-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.design">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="design-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.preprint">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="preprint-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.teaching">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="teaching-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="publication.book">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="book-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
                 <entry key="person">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
