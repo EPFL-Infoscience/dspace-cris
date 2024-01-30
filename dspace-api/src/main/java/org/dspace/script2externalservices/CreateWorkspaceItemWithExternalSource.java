@@ -283,8 +283,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 String id = buildID(item);
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
-                    if (dataProvider.getSourceIdentifier().equals(ARXIV)){
-                        if (arxivCallCount == 0){
+                    if (dataProvider.getSourceIdentifier().equals(ARXIV)) {
+                        if (arxivCallCount == 0) {
                             Thread.sleep(1000);
                             arxivCallCount = 4;
                         }
