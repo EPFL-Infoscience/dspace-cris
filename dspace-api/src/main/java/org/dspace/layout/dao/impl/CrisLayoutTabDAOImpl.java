@@ -69,8 +69,8 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
      * @see org.dspace.layout.dao.CrisLayoutTabDAO#findByEntityType(java.lang.String)
      */
     @Override
-    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context,
-            String entityType, String customFilter) throws SQLException {
+    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context, String entityType,
+                                                                    String customFilter) throws SQLException {
         return findByEntityTypeAndEagerlyFetchBoxes(context, entityType, customFilter, null, null);
     }
 
@@ -78,8 +78,8 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
      * @see org.dspace.layout.dao.CrisLayoutTabDAO#findByEntityType(java.lang.String)
      */
     @Override
-    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context,
-        String entityType) throws SQLException {
+    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context, String entityType)
+        throws SQLException {
         return findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null, null, null);
     }
 

@@ -52,7 +52,7 @@
         <property name="query" value="//ns:publication-reference/ns:document-id[@document-id-type=&quot;docdb&quot;]/ns:date"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
         <property name="dateFormatFrom" value="yyyymmdd"/>
-        <property name="dateFormatTo" value="yyyy-mm-dd"></property>
+        <property name="dateFormatTo" value="yyyy-mm-dd"/>
     </bean>
     <bean id="epo.crispatent.document.issueDate" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="crispatent.document.issueDate"/>
@@ -111,7 +111,7 @@
         <property name="field" ref="epo.identifier.other"/>
         <property name="query" value="(//ns:publication-reference)[last()]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
-        <property name="needType" value="true"></property>
+        <property name="needType" value="true"/>
     </bean>
     <bean id="epo.identifier.other" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.other"/>
@@ -174,7 +174,7 @@
         <property name="query" value="(//ns:publication-reference/ns:document-id[@document-id-type=&quot;epodoc&quot;]/ns:date)[last()]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
         <property name="dateFormatFrom" value="yyyymmdd"/>
-        <property name="dateFormatTo" value="yyyy-mm-dd"></property>
+        <property name="dateFormatTo" value="yyyy-mm-dd"/>
     </bean>
     <bean id="epo.dc.date.issued" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.date.issued"/>
@@ -185,7 +185,7 @@
         <property name="query" value="(//ns:application-reference/ns:document-id/ns:date)[last()]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
         <property name="dateFormatFrom" value="yyyymmdd"/>
-        <property name="dateFormatTo" value="yyyy-mm-dd"></property>
+        <property name="dateFormatTo" value="yyyy-mm-dd"/>
     </bean>
     <bean id="epo.dcterms.dateSubmitted" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dcterms.dateSubmitted"/>

@@ -7,94 +7,41 @@
  */
 package org.dspace.app.rest;
 
-import static org.dspace.app.rest.matcher.ItemAuthorityMatcher.matchItemAuthorityProperties;
 import static org.dspace.app.rest.matcher.ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.builder.CollectionBuilder;
-import org.dspace.builder.CommunityBuilder;
-import org.dspace.builder.ItemBuilder;
-import org.dspace.content.Collection;
-import org.dspace.content.Item;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.junit.Before;
 import org.junit.Test;
 
 public class RorOrgUnitAuthorityIT extends AbstractControllerIntegrationTest {
 
-    private Collection collection;
-
-    @Before
-    public void setup() {
-        context.turnOffAuthorisationSystem();
-
-        parentCommunity = CommunityBuilder.createCommunity(context).build();
-        collection = CollectionBuilder.createCollection(context, parentCommunity)
-                                      .withName("Test collection")
-                                      .build();
-
-        context.restoreAuthSystemState();
-    }
-
     @Test
-    public void testWithoutLocalItems() throws Exception {
-        String token = getAuthToken(eperson.getEmail(), password);
-        getClient(token).perform(get("/api/submission/vocabularies/OrgUnitAuthority/entries")
-                                     .param("filter", "windEurope"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                                rorOrgUnitEntry("WindEurope", "ROR-ID:", "https://ror.org/00qkeey15"))))
-                        .andExpect(jsonPath("$.page.size", Matchers.is(20)))
-                        .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-                        .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
-    }
+    public void testAuthority() throws Exception {
 
-    @Test
-    public void testWithLocalItems() throws Exception {
-
-        context.turnOffAuthorisationSystem();
-
-        Item firstOrgUnit = buildOrgUnit("OrgUnit 1");
-        Item secondOrgUnit = buildOrgUnit("OrgUnit 2");
-        Item thirdOrgUnit = buildOrgUnit("OrgUnit 3");
-        Item orgUnit = buildOrgUnit("OrgUnit");
-
-        context.restoreAuthSystemState();
+        Map<String, String> expectedExtras = new HashMap<>();
+        expectedExtras.put("data-ror_orgunit_id", "https://ror.org/02z02cv32");
+        expectedExtras.put("ror_orgunit_id", "https://ror.org/02z02cv32");
+        expectedExtras.put("data-ror_orgunit_type", "Nonprofit");
+        expectedExtras.put("ror_orgunit_type", "Nonprofit");
+        expectedExtras.put("data-ror_orgunit_acronym", "WEICan, IEEC");
+        expectedExtras.put("ror_orgunit_acronym", "WEICan, IEEC");
 
         String token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(get("/api/submission/vocabularies/OrgUnitAuthority/entries")
-                                     .param("filter", "OrgUnit"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                                localEntry("OrgUnit", orgUnit),
-                                localEntry("OrgUnit 1", firstOrgUnit),
-                                localEntry("OrgUnit 2", secondOrgUnit),
-                                localEntry("OrgUnit 3", thirdOrgUnit))))
-                        .andExpect(jsonPath("$.page.size", Matchers.is(20)))
-                        .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-                        .andExpect(jsonPath("$.page.totalElements", Matchers.is(4)));
+            .param("filter", "test"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.entries", hasSize(10)))
+            .andExpect(jsonPath("$._embedded.entries",
+                hasItem(matchItemAuthorityWithOtherInformations("will be referenced::ROR-ID::https://ror.org/02z02cv32",
+                    "Wind Energy Institute of Canada", "Wind Energy Institute of Canada", "vocabularyEntry",
+                    expectedExtras))));
     }
 
-    private Item buildOrgUnit(String title) {
-        return ItemBuilder.createItem(context, collection)
-                          .withTitle(title)
-                          .withEntityType("OrgUnit")
-                          .build();
-    }
-
-    private Matcher<? super Object> localEntry(String title, Item OrgUnit) {
-        return matchItemAuthorityProperties(OrgUnit.getID().toString(), title, title, "vocabularyEntry");
-    }
-
-    private Matcher<? super Object> rorOrgUnitEntry(String title, String authorityPrefix, String rorId) {
-        String authority = authorityPrefix + rorId;
-        return matchItemAuthorityWithOtherInformations(authority, title, title, "vocabularyEntry", Map.of());
-    }
 }

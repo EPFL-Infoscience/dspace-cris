@@ -52,21 +52,22 @@
 
     <bean id="indexObjectFactoryFactory" class="org.dspace.discovery.indexobject.factory.IndexObjectFactoryFactoryImpl"/>
 
-	<!-- Configurable layout service factory -->
-	<bean id="crisLayoutServiceFactory" class="org.dspace.layout.factory.impl.CrisLayoutServiceFactoryImpl"/>
+	  <!-- Configurable layout service factory -->
+	  <bean id="crisLayoutServiceFactory" class="org.dspace.layout.factory.impl.CrisLayoutServiceFactoryImpl"/>
 
-	<!-- Imp factory -->
-	<bean id="impServiceFactory" class="org.dspace.batch.factory.ImpServiceFactoryImpl"/>
+	  <!-- Imp factory -->
+	  <bean id="impServiceFactory" class="org.dspace.batch.factory.ImpServiceFactoryImpl"/>
 
     <bean id="openURLTrackerLoggerServiceFactory" class="org.dspace.statistics.export.factory.OpenURLTrackerLoggerServiceFactoryImpl"/>
-    
+
     <bean id="orcidServiceFactory" class="org.dspace.orcid.factory.OrcidServiceFactoryImpl"/>
 
     <bean id="crisMetricsServiceFactory" class="org.dspace.externalservices.scopus.factory.CrisMetricsServiceFactoryImpl"/>
     
     <bean id="supervisionOrderServiceFactory" class="org.dspace.supervision.factory.SupervisionOrderServiceFactoryImpl"/>
-    
 
     <bean id="deduplicationServiceFactory" class="org.dspace.deduplication.factory.DeduplicationServiceFactoryImpl"/>
+
+    <bean id="submissionServiceFactory" class="org.dspace.submit.factory.SubmissionServiceFactoryImpl"/>
 
 </beans>
