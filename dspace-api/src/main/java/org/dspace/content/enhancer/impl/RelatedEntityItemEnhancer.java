@@ -58,12 +58,12 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     @Override
     public boolean enhance(Context context, Item item, boolean deepMode) {
-        boolean result = false;
+        boolean isItemChanged = false;
         if (!deepMode) {
             try {
-                result = cleanObsoleteVirtualFields(context, item);
-                result = updateVirtualFieldsPlaces(context, item) || result;
-                result = performEnhancement(context, item) || result;
+                isItemChanged = cleanObsoleteVirtualFields(context, item);
+                isItemChanged = updateVirtualFieldsPlaces(context, item) || isItemChanged;
+                isItemChanged = performEnhancement(context, item) || isItemChanged;
             } catch (SQLException e) {
                 LOGGER.error("An error occurs enhancing item with id {}: {}", item.getID(), e.getMessage(), e);
                 throw new SQLRuntimeException(e);
@@ -78,10 +78,10 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                 } catch (SQLException e) {
                     throw new SQLRuntimeException(e);
                 }
-                result = true;
+                isItemChanged = true;
             }
         }
-        return result;
+        return isItemChanged;
     }
 
     private void addMetadata(Context context, Item item, List<MetadataValueDTO> toBeMetadataValues)

@@ -163,18 +163,13 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(virtualSourceField.getValue(),
                 equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department").getValue()));
 
-
         context.turnOffAuthorisationSystem();
-        MetadataValue personAffiliationMetadataValue =
-                itemService.getMetadata(person, "person", "affiliation", "name", null).get(0);
-        personAffiliationMetadataValue.setValue("4Science");
-        metadataValueService.update(context, personAffiliationMetadataValue);
-        itemService.setMetadataModified(person);
-        itemService.addMetadata(context, publication, "dc", "title", "alternative", null, "Other name");
-        itemService.update(context, person);
+        itemService.addMetadata(context, publication, "dc", "subject", null, null, "Test");
         itemService.update(context, publication);
         context.restoreAuthSystemState();
-        personAffiliationMetadataValue =
+        publication = commitAndReload(publication);
+
+        MetadataValue personAffiliationMetadataValue =
                 itemService.getMetadata(person, "person", "affiliation", "name", null).get(0);
 
         assertThat(personAffiliationMetadataValue.getValue(),

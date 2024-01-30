@@ -29,6 +29,7 @@ import org.dspace.utils.DSpace;
 public class ItemEnhancerConsumer implements Consumer {
 
     public static final String ITEMENHANCER_ENABLED = "itemenhancer.enabled";
+    public static final String ITEMENHANCER_DEEPMODE_ENABLED = "itemenhancer.deepmode.enabled";
     private Set<Item> itemsAlreadyProcessed = new HashSet<Item>();
 
     private ItemEnhancerService itemEnhancerService;
@@ -61,7 +62,7 @@ public class ItemEnhancerConsumer implements Consumer {
 
         context.turnOffAuthorisationSystem();
         try {
-            itemEnhancerService.enhance(context, item, false);
+            itemEnhancerService.enhance(context, item, isDeepModeEnabled());
         } finally {
             context.restoreAuthSystemState();
         }
@@ -70,6 +71,10 @@ public class ItemEnhancerConsumer implements Consumer {
 
     protected boolean isConsumerEnabled() {
         return configurationService.getBooleanProperty(ITEMENHANCER_ENABLED, true);
+    }
+
+    private boolean isDeepModeEnabled() {
+        return configurationService.getBooleanProperty(ITEMENHANCER_DEEPMODE_ENABLED, false);
     }
 
     @Override
