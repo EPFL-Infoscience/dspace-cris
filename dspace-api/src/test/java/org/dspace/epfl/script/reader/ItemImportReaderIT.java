@@ -7,6 +7,11 @@
  */
 package org.dspace.epfl.script.reader;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.epfl.script.model.ItemsImportMapping;
@@ -17,10 +22,6 @@ import org.dspace.utils.DSpace;
 import org.junit.Test;
 import org.w3c.dom.Node;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import static org.junit.Assert.assertEquals;
 
 public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
@@ -44,7 +45,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         String citationIssueValue = "citationIssueValue";
         String test = " <record> \n" +
                 "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" +
-                " <subfield code=\"a\">" + issnValue +"</subfield>\n" +
+                " <subfield code=\"a\">" + issnValue + "</subfield>\n" +
                 " </datafield>\n" +
                 "<datafield tag=\"500\" ind1=\" \" ind2=\" \">\n" +
                 " <subfield code=\"a\">" + descriptionNotesValue + "</subfield>\n" +
@@ -53,9 +54,9 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
                 " <subfield code=\"k\">" + citationIssueValue + "</subfield>\n" +
                 " </datafield>\n" +
                 "</record>";
-        InputStream inputStest = new ByteArrayInputStream(test.getBytes());
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
 
-        Node record = marcXmlParser.parse(inputStest, mapping.getItemXPath());
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
         String recordType = "research-article";
 
         ItemDTO item = marcXmlParser.readSingleItem(context, "1234", recordType, record, mapping);
