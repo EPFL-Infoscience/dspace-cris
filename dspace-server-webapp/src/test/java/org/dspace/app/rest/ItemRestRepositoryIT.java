@@ -27,6 +27,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -86,6 +88,7 @@ import org.dspace.content.Community;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchemaEnum;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
@@ -2437,7 +2440,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         context.restoreAuthSystemState();
 
         UUID idRef = null;
-        AtomicReference<UUID> idRefNoEmbeds = new AtomicReference<UUID>();
+        AtomicReference<UUID> idRefNoEmbeds = new AtomicReference<>();
         try {
         ObjectMapper mapper = new ObjectMapper();
         ItemRest itemRest = new ItemRest();
@@ -2483,7 +2486,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         idRef = UUID.fromString(itemUuidString);
         //TODO Refactor this to use the converter to Item instead of checking every property separately
-        getClient(token).perform(get("/api/core/items/" + idRef.toString()))
+        getClient(token).perform(get("/api/core/items/" + idRef))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", Matchers.allOf(
                             hasJsonPath("$.id", is(itemUuidString)),
@@ -2492,18 +2495,13 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                             hasJsonPath("$.handle", is(itemHandleString)),
                             hasJsonPath("$.type", is("item")),
                             hasJsonPath("$.metadata", Matchers.allOf(
-                                matchMetadata("dc.description",
-                                    "<p>Some cool HTML code here</p>"),
-                                matchMetadata("dc.description.abstract",
-                                    "Sample item created via the REST API"),
-                                matchMetadata("dc.description.tableofcontents",
-                                    "<p>HTML News</p>"),
-                                matchMetadata("dc.rights",
-                                    "Custom Copyright Text"),
-                                matchMetadata("dc.title",
-                                    "Title Text"),
-                                matchMetadata("dspace.entity.type",
-                                    "Publication")
+                                matchMetadata("dc.description", "<p>Some cool HTML code here</p>"),
+                                matchMetadata("dc.description.abstract", "Sample item created via the REST API"),
+                                matchMetadata("dc.description.tableofcontents", "<p>HTML News</p>"),
+                                matchMetadata("dc.rights", "Custom Copyright Text"),
+                                matchMetadata("dc.title", "Title Text"),
+                                matchMetadata("dspace.entity.type", "Publication"),
+                                matchMetadataNotEmpty("dc.date.modified")
                             )))));
 
         getClient(token).perform(post("/api/core/items?owningCollection=" +
@@ -2582,17 +2580,24 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
 
         String token = getAuthToken(admin.getEmail(), password);
-        MvcResult mvcResult = getClient(token).perform(post("/api/core/items?owningCollection=" +
-                                                                col1.getID().toString())
-                                                           .content(mapper.writeValueAsBytes(itemRest))
-                                                           .contentType(contentType))
-                                              .andExpect(status().isCreated())
-                                              .andReturn();
+        MvcResult mvcResult = getClient(token)
+            .perform(post("/api/core/items?owningCollection=" + col1.getID().toString())
+                         .content(mapper.writeValueAsBytes(itemRest))
+                         .contentType(contentType))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.metadata", matchMetadataNotEmpty("dc.date.modified")))
+            .andReturn();
 
         String content = mvcResult.getResponse().getContentAsString();
         Map<String,Object> map = mapper.readValue(content, Map.class);
         itemUuidString = String.valueOf(map.get("uuid"));
         String itemHandleString = String.valueOf(map.get("handle"));
+
+        Item item = itemService.find(context, UUID.fromString(itemUuidString));
+        List<MetadataValue> dataModifiedValues =
+            itemService.getMetadata(item, "dc", "date", "modified", Item.ANY);
+        assertEquals(1, dataModifiedValues.size());
+        MetadataValue dateModified = dataModifiedValues.get(0);
 
         itemRest.setMetadata(new MetadataRest()
                 .put("dc.description", new MetadataValueRest("<p>Some cool HTML code here</p>"))
@@ -2619,17 +2624,20 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                             hasJsonPath("$.handle", is(itemHandleString)),
                             hasJsonPath("$.type", is("item")),
                             hasJsonPath("$.metadata", Matchers.allOf(
-                                matchMetadata("dc.description",
-                                    "<p>Some cool HTML code here</p>"),
-                                matchMetadata("dc.description.abstract",
-                                    "Sample item created via the REST API"),
-                                matchMetadata("dc.description.tableofcontents",
-                                    "<p>HTML News</p>"),
-                                matchMetadata("dc.rights",
-                                    "New Custom Copyright Text"),
-                                matchMetadata("dc.title",
-                                    "New title")
+                                matchMetadata("dc.description", "<p>Some cool HTML code here</p>"),
+                                matchMetadata("dc.description.abstract", "Sample item created via the REST API"),
+                                matchMetadata("dc.description.tableofcontents", "<p>HTML News</p>"),
+                                matchMetadata("dc.rights", "New Custom Copyright Text"),
+                                matchMetadata("dc.title", "New title"),
+                                matchMetadataNotEmpty("dc.date.modified")
                             )))));
+
+        item = itemService.find(context, UUID.fromString(itemUuidString));
+        dataModifiedValues = itemService.getMetadata(item, "dc", "date", "modified", Item.ANY);
+        assertEquals(1, dataModifiedValues.size());
+        MetadataValue dateModifiedAfterUpdate = dataModifiedValues.get(0);
+        assertNotEquals(dateModified.getValue(), dateModifiedAfterUpdate.getValue());
+
         } finally {
             ItemBuilder.deleteItem(UUID.fromString(itemUuidString));
         }
@@ -4938,7 +4946,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         // add group with eperson as member
         Group group = GroupBuilder.createGroup(context).addMember(eperson).build();
         groupService.update(context, group);
-        context.commit();
+        context.dispatchEvents();
         //** GIVEN **
         //1. A community-collection structure with one parent community with sub-community and two collections.
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -5261,7 +5269,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         // add admin person as member to the group
         Group group = GroupBuilder.createGroup(context).addMember(eperson).build();
         groupService.update(context, group);
-        context.commit();
+        context.dispatchEvents();
         // ** GIVEN **
         // 1. A community-collection structure with one parent community with
         // sub-community and one collection.
@@ -5336,7 +5344,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         // add admin as member in the group
         Group group = GroupBuilder.createGroup(context).build();
         groupService.update(context, group);
-        context.commit();
+        context.dispatchEvents();
         context.restoreAuthSystemState();
         configurationService.setProperty("edit.metadata.allowed-group", group.getID());
         String token = getAuthToken(eperson.getEmail(), password);
