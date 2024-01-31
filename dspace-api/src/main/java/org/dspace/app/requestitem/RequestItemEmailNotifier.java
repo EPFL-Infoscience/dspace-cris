@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.mail.MessagingException;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.requestitem.factory.RequestItemServiceFactory;
@@ -111,7 +112,11 @@ public class RequestItemEmailNotifier {
             email.addRecipient(author.getEmail());
             email.setReplyTo(ri.getReqEmail()); // Requester's address
 
-            email.addArgument(ri.getReqName()); // {0} Requester's name
+            email.addArgument(
+                email.isHtmlContent()
+                    ? ri.getReqName()
+                    : StringEscapeUtils.unescapeHtml4(ri.getReqName())
+            ); // {0} Requester's name
 
             email.addArgument(ri.getReqEmail()); // {1} Requester's address
 
@@ -123,7 +128,11 @@ public class RequestItemEmailNotifier {
 
             email.addArgument(ri.getItem().getName()); // {4} requested item's title
 
-            email.addArgument(ri.getReqMessage()); // {5} message from requester
+            email.addArgument(
+                email.isHtmlContent()
+                    ? ri.getReqMessage()
+                    : StringEscapeUtils.unescapeHtml4(ri.getReqMessage())
+            ); // {5} message from requester
 
             email.addArgument(responseLink); // {6} Link back to DSpace for action
 
