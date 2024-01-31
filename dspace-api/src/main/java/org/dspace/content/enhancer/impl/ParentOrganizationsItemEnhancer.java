@@ -53,7 +53,7 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
     }
 
     @Override
-    public void enhance(Context context, Item item) {
+    public boolean enhance(Context context, Item item, boolean deepMode) {
         try {
             cleanObsoleteVirtualFields(context, item);
             performEnhancement(context, item);
@@ -61,6 +61,7 @@ public class ParentOrganizationsItemEnhancer extends AbstractItemEnhancer {
             LOGGER.error("An error occurs enhancing item with id {}: {}", item.getID(), e.getMessage(), e);
             throw new SQLRuntimeException(e);
         }
+        return true;
     }
 
     private void cleanObsoleteVirtualFields(Context context, Item item) throws SQLException {

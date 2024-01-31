@@ -7,14 +7,12 @@
  */
 package org.dspace.validation;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.validation.service.ValidationService.OPERATION_PATH_SECTIONS;
 import static org.dspace.validation.util.ValidationUtils.addError;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
