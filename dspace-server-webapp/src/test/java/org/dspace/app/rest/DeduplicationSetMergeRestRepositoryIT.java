@@ -355,8 +355,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         String itemId = "6ba5125f-5e78-4b68-834f-25a1c67150e6";
         String setId = createTitleSetId(item1);
         DeduplicationSetMergeDTO deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId,
-                                                                                          item1.getID().toString(), item2.getID().toString(), itemId, bitstream1.getID().toString(),
-                                                                                          bitstream2.getID().toString());
+                     item1.getID().toString(), item2.getID().toString(), itemId, bitstream1.getID().toString(),
+                     bitstream2.getID().toString());
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
@@ -407,7 +407,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.targetItem", is(itemUri1)))
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
-                             .andExpect(jsonPath("$.mergedBitstreams", containsInAnyOrder(bitstreamUri1, bitstreamUri2)))
+                             .andExpect(jsonPath("$.mergedBitstreams",
+                                        containsInAnyOrder(bitstreamUri1, bitstreamUri2)))
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
