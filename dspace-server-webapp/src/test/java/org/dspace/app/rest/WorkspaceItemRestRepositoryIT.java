@@ -1110,8 +1110,37 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                             is("My Article")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
                                     ".sections.publication['dc.type'][0].value",
-                            is("Controlled Vocabulary for Resource Type Genres::text::periodical"
-                                + "::journal::contribution to journal::journal article")))
+                            is("text::journal::journal article")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['dc.identifier.doi'][0].value",
+                            is("10.1016/doi12345")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['oaire.citation.volume'][0].value",
+                            is("Vol 4")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['oaire.citation.issue'][0].value",
+                            is("Issue 32")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['dc.relation.issn'][0].value",
+                            is("12345678")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['dc.relation.journal'][0].value",
+                            is("Journal Related")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['oaire.citation.startPage'][0].value",
+                            is("25")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['oaire.citation.endPage'][0].value",
+                            is("50")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                    ".sections.publication['dc.description.abstract'][0].value",
+                            is("This is abstract abstract")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                     ".sections.publication['dc.subject'][0].value",
+                            is("Key")))
+                    .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
+                                     ".sections.publication['dc.subject'][1].value",
+                            is("Word")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
                                     is(col1.getID().toString())))
@@ -1144,8 +1173,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                             is("My Article")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
                                     ".sections.publication['dc.type'][0].value",
-                            is("Controlled Vocabulary for Resource Type Genres::text::periodical"
-                                + "::journal::contribution to journal::journal article")))
+                            is("text::journal::journal article")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
                                     is(col2.getID().toString())))

@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.DSpaceObjectIndexFactory;
 
 /**
@@ -27,7 +28,7 @@ public abstract class DSpaceObjectIndexFactoryImpl<T extends IndexableDSpaceObje
     @Override
     public SolrInputDocument buildDocument(Context context, T indexableObject) throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        SolrInputDocument doc = super.buildDocument(context, indexableObject);
+        TruncatedSolrInputDocument doc = (TruncatedSolrInputDocument) super.buildDocument(context, indexableObject);
         final DSpaceObject dso = indexableObject.getIndexedObject();
 
         // want to be able to search for handle, so use keyword

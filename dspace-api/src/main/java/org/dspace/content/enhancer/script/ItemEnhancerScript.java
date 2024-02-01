@@ -31,7 +31,6 @@ import org.dspace.utils.DSpace;
  *
  */
 public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfiguration<ItemEnhancerScript>> {
-    private final int PAGE_SIZE = 20;
 
     private ItemService itemService;
 
@@ -58,7 +57,7 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
 
         context.turnOffAuthorisationSystem();
         try {
-            enhanceItems(context);
+            enhanceItems();
             context.complete();
             handler.logInfo("Enhancement completed with success");
         } catch (Exception e) {
@@ -69,32 +68,29 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
         }
     }
 
-    private void enhanceItems(Context context) {
-        try {
-            int total = itemService.countArchivedItems(context);
-            for (int offset = 0; offset < total; offset += PAGE_SIZE) {
-                findItemsToEnhance(offset).forEachRemaining(this::enhanceItem);
-            }
-            context.commit();
-            context.clear();
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
-        }
+    private void enhanceItems() {
+        findItemsToEnhance().forEachRemaining(this::enhanceItem);
     }
 
-    private Iterator<Item> findItemsToEnhance(int offset) {
+    private Iterator<Item> findItemsToEnhance() {
         try {
-            return itemService.findAll(context, PAGE_SIZE, offset);
+            return itemService.findAll(context);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
     }
 
     private void enhanceItem(Item item) {
-        if (force) {
-            itemEnhancerService.forceEnhancement(context, item);
-        } else {
-            itemEnhancerService.enhance(context, item);
+
+        itemEnhancerService.enhance(context, item, force);
+        uncacheItem(item);
+    }
+
+    private void uncacheItem(Item item) {
+        try {
+            context.uncacheEntity(item);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
         }
     }
 
