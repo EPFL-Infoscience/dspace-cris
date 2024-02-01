@@ -405,9 +405,11 @@ public class ItemsImportFromS3Script
 
             Bitstream bitstream = bitstreamService.create(context, bundle, inputStream);
             bitstream.setChecksum(checksum);
+
+            addBitstreamMetadataValues(bitstream, metadataValues);
             setBitstreamFormat(bitstream);
             setBitstreamPolicies(bitstream, resourcePolicies);
-            addBitstreamMetadataValues(bitstream, metadataValues);
+
 
             bitstreamService.update(context, bitstream);
 
@@ -627,7 +629,8 @@ public class ItemsImportFromS3Script
         return Optional.ofNullable(item);
     }
 
-    private void setBitstreamsContent(ItemImportDTO item, String id, ZipFile zipFile) throws IOException {
+    private void setBitstreamsContent(ItemImportDTO item, String id, ZipFile zipFile) throws IOException,
+            MimeTypeException {
         List<BitstreamDTO> bitstreams = item.getItem().getBitstreams();
 
         if (CollectionUtils.isEmpty(bitstreams)) {
@@ -648,6 +651,12 @@ public class ItemsImportFromS3Script
                     .orElse(null);
 
                 if (bitstreamDto != null) {
+                    String fileExtension = getExtensionFromFile(zipFile.getInputStream(entry));
+
+                    if (!fileName.endsWith(fileExtension)) {
+                        updateExtension(bitstreamDto, fileExtension);
+                    }
+
                     bitstreamDto.setContent(zipFile.getInputStream(entry));
                 } else {
                     handler.logError("No content found for entry " + entry.getName());
