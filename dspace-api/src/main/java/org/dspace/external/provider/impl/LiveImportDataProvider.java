@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.AbstractExternalDataProvider;
@@ -31,6 +33,9 @@ import org.dspace.scripts.handler.DSpaceRunnableHandler;
  *
  */
 public class LiveImportDataProvider extends AbstractExternalDataProvider {
+
+    private static final Logger log = LogManager.getLogger(LiveImportDataProvider.class);
+
     /**
      * The {@link QuerySource} live import provider
      */
@@ -192,7 +197,12 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
         return query;
     }
 
-    private void logInfo(String message) {
-        Optional.ofNullable(handler).ifPresent(h -> h.logInfo(message));
+    private void logInfo(String info) {
+        if (this.handler != null) {
+            this.handler.logInfo(info);
+        } else {
+            log.info(info);
+        }
     }
+
 }

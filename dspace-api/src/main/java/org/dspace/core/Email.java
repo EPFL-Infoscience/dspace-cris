@@ -550,7 +550,7 @@ public class Email {
         }
     }
 
-    private boolean isHtmlContent() {
+    public boolean isHtmlContent() {
         return StringUtils.containsIgnoreCase(content, "<html>")
             && StringUtils.containsIgnoreCase(content, "</html>");
     }

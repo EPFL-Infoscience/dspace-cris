@@ -31,6 +31,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.ReloadableEntity;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,11 +40,12 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
 
     private ItemService itemService;
 
+    private MetadataValueService metadataValueService;
     private Collection collection;
 
     @Before
     public void setup() {
-
+        metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
         itemService = ContentServiceFactory.getInstance().getItemService();
 
         context.turnOffAuthorisationSystem();
@@ -80,10 +82,12 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         publication = commitAndReload(publication);
 
         List<MetadataValue> metadataValues = publication.getMetadata();
-        // add 1 as EPFL has a consumer that generate at least datacite.right at item
-        // level (or 2 more metadata if there are any bitstreams)
+        assertThat(metadataValues, hasSize(22));
         assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
         assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
+
 
         MetadataValue virtualField = getFirstMetadataValue(publication, "cris.virtual.department");
         MetadataValue virtualSourceField = getFirstMetadataValue(publication, "cris.virtualsource.department");
@@ -95,15 +99,83 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         publication = commitAndReload(publication);
 
         metadataValues = publication.getMetadata();
-        // add 1 as EPFL has a consumer that generate at least datacite.right at item
-        // level (or 2 more metadata if there are any bitstreams)
+        assertThat(metadataValues, hasSize(23));
         assertThat(metadataValues, hasItem(with("dc.contributor.author", "Walter White", personId, 600)));
         assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
         assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
 
-        assertThat(virtualField, equalTo(getFirstMetadataValue(publication, "cris.virtual.department")));
-        assertThat(virtualSourceField, equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department")));
+        assertThat(virtualField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtual.department").getValue()));
+        assertThat(virtualSourceField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department").getValue()));
+    }
 
+    @Test
+    public void testSingleMetadataValueUpdateEnhancement() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item person = ItemBuilder.createItem(context, collection)
+                .withTitle("Walter White")
+                .withPersonMainAffiliation("4Science")
+                .build();
+
+        String personId = person.getID().toString();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+                .withTitle("Test publication")
+                .withEntityType("Publication")
+                .withAuthor("Walter White", personId)
+                .build();
+
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        List<MetadataValue> metadataValues = publication.getMetadata();
+        assertThat(metadataValues, hasSize(22));
+        assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
+
+
+        MetadataValue virtualField = getFirstMetadataValue(publication, "cris.virtual.department");
+        MetadataValue virtualSourceField = getFirstMetadataValue(publication, "cris.virtualsource.department");
+
+        context.turnOffAuthorisationSystem();
+        itemService.addMetadata(context, publication, "dc", "subject", null, null, "Test");
+        itemService.update(context, publication);
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        metadataValues = publication.getMetadata();
+        assertThat(metadataValues, hasSize(23));
+        assertThat(metadataValues, hasItem(with("dc.contributor.author", "Walter White", personId, 600)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
+
+        assertThat(virtualField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtual.department").getValue()));
+        assertThat(virtualSourceField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department").getValue()));
+
+        context.turnOffAuthorisationSystem();
+        itemService.addMetadata(context, publication, "dc", "subject", null, null, "Test");
+        itemService.update(context, publication);
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        MetadataValue personAffiliationMetadataValue =
+                itemService.getMetadata(person, "person", "affiliation", "name", null).get(0);
+
+        assertThat(personAffiliationMetadataValue.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtual.department").getValue()));
+        assertThat(virtualSourceField.getValue(),
+                equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department").getValue()));
     }
 
     @Test
@@ -138,6 +210,7 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         publication = commitAndReload(publication);
 
         List<MetadataValue> values = publication.getMetadata();
+        assertThat(values, hasSize(59));
         assertThat(values, hasItem(with("dc.contributor.author", "Red Smith")));
         assertThat(values, hasItem(with("dc.contributor.author", "Walter White", person1.getID().toString(), 1, 600)));
         assertThat(values, hasItem(with("dc.contributor.author", "John Smith", person2.getID().toString(), 2, 600)));
@@ -150,9 +223,18 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(values, hasItem(with("cris.virtualsource.department", person2.getID().toString(), 2)));
         assertThat(values, hasItem(with("cris.virtual.department", "University of Rome", 3)));
         assertThat(values, hasItem(with("cris.virtualsource.department", person3.getID().toString(), 3)));
-
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid", person1.getID().toString(), 1)));
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid", person2.getID().toString(), 2)));
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 3)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid", person3.getID().toString(), 3)));
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(4));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(4));
+        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), hasSize(4));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), hasSize(4));
 
     }
 
@@ -177,8 +259,7 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         publication = commitAndReload(publication);
 
         List<MetadataValue> metadataValues = publication.getMetadata();
-        // add 1 as EPFL has a consumer that generate at least datacite.right at item
-        // level (or 2 more metadata if there are any bitstreams)
+        assertThat(metadataValues, hasSize(9));
 
         assertThat(getMetadataValues(publication, "cris.virtual.department"), empty());
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), empty());
@@ -191,8 +272,7 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         publication = commitAndReload(publication);
 
         metadataValues = publication.getMetadata();
-        // add 1 as EPFL has a consumer that generate at least datacite.right at item
-        // level (or 2 more metadata if there are any bitstreams)
+        assertThat(metadataValues, hasSize(22));
         assertThat(metadataValues, hasItem(with("dc.contributor.author", "Walter White", personId, 600)));
         assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
         assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
@@ -231,8 +311,7 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         publication = commitAndReload(publication);
 
         List<MetadataValue> values = publication.getMetadata();
-        // add 1 as EPFL has a consumer that generate at least datacite.right at item
-        // level (or 2 more metadata if there are any bitstreams)
+        assertThat(values, hasSize(48));
         assertThat(values, hasItem(with("dc.contributor.author", "Walter White", person1.getID().toString(), 0, 600)));
         assertThat(values, hasItem(with("dc.contributor.author", "John Smith", person2.getID().toString(), 1, 600)));
         assertThat(values, hasItem(with("dc.contributor.author", "Jesse Pinkman", person3.getID().toString(), 2, 600)));
@@ -242,6 +321,12 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(values, hasItem(with("cris.virtualsource.department", person2.getID().toString(), 1)));
         assertThat(values, hasItem(with("cris.virtual.department", "University of Rome", 2)));
         assertThat(values, hasItem(with("cris.virtualsource.department", person3.getID().toString(), 2)));
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid",  person1.getID().toString())));
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid", person2.getID().toString(), 1)));
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid", person3.getID().toString(), 2)));
 
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(3));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(3));
@@ -255,17 +340,21 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         publication = commitAndReload(publication);
 
         values = publication.getMetadata();
-        // add 1 as EPFL has a consumer that generate at least datacite.right at item
-        // level (or 2 more metadata if there are any bitstreams)
+        assertThat(values, hasSize(35));
         assertThat(values, hasItem(with("dc.contributor.author", "Walter White", person1.getID().toString(), 0, 600)));
         assertThat(values, hasItem(with("dc.contributor.author", "Jesse Pinkman", person3.getID().toString(), 1, 600)));
         assertThat(values, hasItem(with("cris.virtual.department", "4Science")));
         assertThat(values, hasItem(with("cris.virtualsource.department", person1.getID().toString())));
         assertThat(values, hasItem(with("cris.virtual.department", "University of Rome", 1)));
         assertThat(values, hasItem(with("cris.virtualsource.department", person3.getID().toString(), 1)));
-
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid",  person1.getID().toString(), 0)));
+        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
+        assertThat(values, hasItem(with("cris.virtualsource.author-orcid", person3.getID().toString(), 1)));
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(2));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(2));
+        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), hasSize(2));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), hasSize(2));
 
     }
 
@@ -289,8 +378,8 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         context.restoreAuthSystemState();
         publication = commitAndReload(publication);
 
-        // add 1 as EPFL has a consumer that generate at least datacite.right at item
-        // level (or 2 more metadata if there are any bitstreams)
+        List<MetadataValue> metadataValues = publication.getItem().getMetadata();
+        assertThat(metadataValues, hasSize(6));
         assertThat(getMetadataValues(publication, "cris.virtual.department"), empty());
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), empty());
 
@@ -350,18 +439,6 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
             with("dc.contributor.author", "Saul Goodman", 1),
             with("dc.contributor.author", "Walter White", personId, 2, 600),
             with("dc.contributor.author", "Gus Fring", 3)));
-
-        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), contains(
-            with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE),
-            with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
-            with("cris.virtual.author-orcid", "0000-0000-1111-2222", 2),
-            with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 3)));
-
-        assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), contains(
-            with("cris.virtualsource.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE),
-            with("cris.virtualsource.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
-            with("cris.virtualsource.author-orcid", personId, 2),
-            with("cris.virtualsource.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 3)));
 
     }
 

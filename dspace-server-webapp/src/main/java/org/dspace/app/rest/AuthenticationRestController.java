@@ -20,8 +20,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.ConverterService;
-import org.dspace.app.rest.converter.EPersonConverter;
-import org.dspace.app.rest.link.HalLinkService;
 import org.dspace.app.rest.model.AuthenticationStatusRest;
 import org.dspace.app.rest.model.AuthenticationTokenRest;
 import org.dspace.app.rest.model.AuthnRest;
@@ -40,8 +38,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.service.ClientInfoService;
 import org.dspace.services.ConfigurationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -68,19 +64,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthenticationRestController implements InitializingBean {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthenticationRestController.class);
-
     @Autowired
     DiscoverableEndpointsService discoverableEndpointsService;
 
     @Autowired
     private ConverterService converter;
-
-    @Autowired
-    private EPersonConverter ePersonConverter;
-
-    @Autowired
-    private HalLinkService halLinkService;
 
     @Autowired
     private RestAuthenticationService restAuthenticationService;
@@ -297,7 +285,7 @@ public class AuthenticationRestController implements InitializingBean {
      * @return ResponseEntity
      */
     @RequestMapping(value = "/login", method = { RequestMethod.GET, RequestMethod.PUT, RequestMethod.PATCH,
-            RequestMethod.DELETE })
+                                                 RequestMethod.DELETE })
     public ResponseEntity login() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Only POST is allowed for login requests.");
     }

@@ -422,7 +422,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             .withHarvestStatus(HarvestedCollection.STATUS_READY)
             .withLastHarvested(new Date())
             .build();
-        collection = context.reloadEntity(collection);
+
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Old title")
             .withIssueDate("2020-11-29")
@@ -478,7 +478,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             .withHarvestStatus(HarvestedCollection.STATUS_READY)
             .withLastHarvested(new Date())
             .build();
-        collection = context.reloadEntity(collection);
+
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Publication title")
             .withIssueDate("2020-11-29")
@@ -519,7 +519,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             .withHarvestStatus(HarvestedCollection.STATUS_READY)
             .withLastHarvested(new Date())
             .build();
-        collection = context.reloadEntity(collection);
+
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Publication title")
             .withIssueDate("2020-11-29")
@@ -570,7 +570,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             .withHarvestStatus(HarvestedCollection.STATUS_READY)
             .withLastHarvested(new Date())
             .build();
-        collection = context.reloadEntity(collection);
+
         Item item = ItemBuilder.createItem(context, collection)
             .withTitle("Publication title")
             .withIssueDate("2020-11-29")
@@ -619,7 +619,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             .withHarvestStatus(HarvestedCollection.STATUS_READY)
             .withLastHarvested(new Date())
             .build();
-        collection = context.reloadEntity(collection);
+
         Item item = ItemBuilder.createItem(context, collection).withCrisSourceId("test-harvest::3").build();
 
         context.restoreAuthSystemState();
@@ -678,7 +678,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
         Item createdItem = items.get(0);
 
         List<MetadataValue> values = createdItem.getMetadata();
-        // epfl +1
         assertThat(values, hasSize(19 + 1));
         assertThat(values, hasItems(with("dc.title", "Test Publication")));
         assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
@@ -771,7 +770,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             Item publication = publications.get(0);
 
             List<MetadataValue> values = publication.getMetadata();
-            // epfl + 1
             assertThat(values, hasSize(19 + 1));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
@@ -795,7 +793,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             assertThat(authorPerson.getOwningCollection(), equalTo(personCollection));
 
             values = authorPerson.getMetadata();
-            // epfl + 1
             assertThat(values, hasSize(10 + 1));
             assertThat(values, hasItems(with("dc.title", "Manghi, Paolo")));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::123")));
@@ -863,7 +860,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             Item person = findItemByOaiID("oai:test-harvest:Persons/123", personCollection);
 
             List<MetadataValue> values = person.getMetadata();
-            // epfl + 1
             assertThat(values, hasSize(14 + 1));
             assertThat(values, hasItems(with("dc.title", "Manghi, Paolo")));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::123")));
@@ -932,7 +928,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = findItemByOaiID("oai:cris:equipments/f3e39333-5c82-40c2-aa3d-103def9abd97", equipmentCollection);
         List<MetadataValue> values = item.getMetadata();
-        // epfl + 1
         assertThat(values, hasSize(13 + 1));
         assertThat(values, hasItems(with("dc.title", "Microflown Scan&Paint")));
         assertThat(values, hasItems(with("oairecerif.internalid", "test-id")));
@@ -972,7 +967,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = findItemByOaiID("oai:cris:equipments/f3e39333-5c82-40c2-aa3d-103def9abd97", equipmentCollection);
         List<MetadataValue> values = item.getMetadata();
-        // epfl has one automatic extra metadata
         assertThat(values, hasSize(12 + 1));
         assertThat(values, hasItems(with("dc.title", "MICROFLOWN SCAN&PAINT")));
         assertThat(values, hasItems(with("cris.sourceId", "test-harvest::f3e39333-5c82-40c2-aa3d-103def9abd97")));
@@ -1001,7 +995,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             .withHarvestType(HarvestedCollection.TYPE_DMD)
             .withHarvestStatus(HarvestedCollection.STATUS_READY)
             .build();
-        collection = context.reloadEntity(collection);
         context.restoreAuthSystemState();
 
         harvester.runHarvest(context, harvestRow, getDefaultOptions());
@@ -1013,7 +1006,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = findItemByOaiID("oai:cris:equipments/f3e39333-5c82-40c2-aa3d-103def9abd97", equipmentCollection);
         List<MetadataValue> values = item.getMetadata();
-        // epfl + 1
         assertThat(values, hasSize(13 + 1));
         assertThat(values, hasItems(with("dc.title", "MICROFLOWN SCAN&PAINT")));
         assertThat(values, hasItems(with("oairecerif.internalid", "TEST-ID")));
@@ -1051,7 +1043,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = workspaceItems.get(0).getItem();
         assertThat(item.isArchived(), equalTo(false));
-        // epfl + 1
         assertThat(item.getMetadata(), hasSize(15 + 1));
         assertThat(getFirstMetadataValue(item, "dc.title"), equalTo("Test Publication"));
         assertThat(harvestedItemService.find(context, item), notNullValue());
@@ -1094,7 +1085,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = workflowItems.get(0).getItem();
         assertThat(item.isArchived(), equalTo(false));
-        // epfl + 1
         assertThat(item.getMetadata(), hasSize(10 + 1));
         assertThat(harvestedItemService.find(context, item), notNullValue());
     }
@@ -1142,7 +1132,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             .withHarvestType(HarvestedCollection.TYPE_DMD)
             .withHarvestStatus(HarvestedCollection.STATUS_READY)
             .build();
-        collection = context.reloadEntity(collection);
         context.restoreAuthSystemState();
 
         harvester.runHarvest(context, harvestRow, getOptionsWithRecordValidationEnabled());
@@ -1208,7 +1197,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = workspaceItems.get(0).getItem();
         assertThat(item.isArchived(), equalTo(false));
-        // epfl +1
         assertThat(item.getMetadata(), hasSize(15 + 1));
         assertThat(getFirstMetadataValue(item, "dc.title"), equalTo("Test Publication"));
         assertThat(harvestedItemService.find(context, item), notNullValue());
@@ -1295,7 +1283,6 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
             Item item = workspaceItems.get(0).getItem();
             assertThat(item.isArchived(), equalTo(false));
-            // epfl +1
             assertThat(item.getMetadata(), hasSize(15 + 1));
             assertThat(getFirstMetadataValue(item, "dc.title"), equalTo("Test Publication"));
 
