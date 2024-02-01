@@ -18,6 +18,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.CollectionIndexFactory;
 import org.dspace.discovery.indexobject.factory.InprogressSubmissionIndexFactory;
 import org.dspace.discovery.indexobject.factory.ItemIndexFactory;
@@ -48,7 +49,7 @@ public abstract class InprogressSubmissionIndexFactoryImpl
     @Override
     public SolrInputDocument buildDocument(Context context, T indexableObject) throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        SolrInputDocument doc = super.buildDocument(context, indexableObject);
+        TruncatedSolrInputDocument doc = (TruncatedSolrInputDocument) super.buildDocument(context, indexableObject);
         // Add submitter, locations and modification time
         storeInprogressItemFields(context, doc, indexableObject.getIndexedObject());
         return doc;
@@ -80,11 +81,13 @@ public abstract class InprogressSubmissionIndexFactoryImpl
         // Add item metadata
         List<DiscoveryConfiguration> discoveryConfigurations;
         if (inProgressSubmission instanceof WorkflowItem) {
-            discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations((WorkflowItem) inProgressSubmission);
+            discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(context,
+                                                                                (WorkflowItem) inProgressSubmission);
         } else if (inProgressSubmission instanceof WorkspaceItem) {
-            discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations((WorkspaceItem) inProgressSubmission);
+            discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(context,
+                                                                                (WorkspaceItem) inProgressSubmission);
         } else {
-            discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(item);
+            discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(context, item);
         }
         indexableItemService.addDiscoveryFields(doc, context, item, discoveryConfigurations);
         indexableCollectionService.storeCommunityCollectionLocations(doc, locations);

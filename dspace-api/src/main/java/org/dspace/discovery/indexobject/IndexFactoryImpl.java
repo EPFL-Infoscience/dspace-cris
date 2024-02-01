@@ -30,6 +30,7 @@ import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.SolrSearchCore;
 import org.dspace.discovery.SolrServiceIndexPlugin;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.IndexFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -54,7 +55,7 @@ public abstract class IndexFactoryImpl<T extends IndexableObject, S> implements 
 
     @Override
     public SolrInputDocument buildDocument(Context context, T indexableObject) throws SQLException, IOException {
-        SolrInputDocument doc = new SolrInputDocument();
+        TruncatedSolrInputDocument doc = new TruncatedSolrInputDocument();
         // want to be able to check when last updated
         // (not tokenized, but it is indexed)
         doc.addField(SearchUtils.LAST_INDEXED_FIELD, SolrUtils.getDateFormatter().format(new Date()));

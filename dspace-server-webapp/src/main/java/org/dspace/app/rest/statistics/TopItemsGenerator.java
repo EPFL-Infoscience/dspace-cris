@@ -81,10 +81,8 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
 
                 } else {
                     hasValidRelation = true;
-                    query = statisticsDatasetDisplay
-                                .composeQueryWithInverseRelation(root,
-                                                                 discoveryConfiguration.getDefaultFilterQueries(),
-                                                                 calculateFacetField(root));
+                    query = statisticsDatasetDisplay.composeQueryWithInverseRelation(root,
+                        discoveryConfiguration.getDefaultFilterQueries(), getDsoType());
                 }
             }
             if (!hasValidRelation) {

@@ -61,6 +61,8 @@ public class GoogleMetadataTest extends AbstractUnitTest {
      */
     private Item it;
 
+    private Bundle bundle;
+
     private BundleService bundleService;
 
     private BitstreamFormatService bitstreamFormatService;
@@ -85,22 +87,23 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     public void init() {
         super.init();
         try {
-            context.turnOffAuthorisationSystem();
-            community = ContentServiceFactory.getInstance().getCommunityService().create(null, context);
-            Collection collection = ContentServiceFactory.getInstance().getCollectionService()
-                                                         .create(context, community);
-            WorkspaceItem wi = ContentServiceFactory.getInstance().getWorkspaceItemService()
-                                                    .create(context, collection, true);
-            Item item = wi.getItem();
-            ContentServiceFactory.getInstance().getInstallItemService().installItem(context, wi, null);
-            context.restoreAuthSystemState();
-            context.commit();
-            it = item;
             bundleService = ContentServiceFactory.getInstance().getBundleService();
             bitstreamFormatService = ContentServiceFactory.getInstance().getBitstreamFormatService();
             bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
             resourcePolicyService = AuthorizeServiceFactory.getInstance().getResourcePolicyService();
             groupService = EPersonServiceFactory.getInstance().getGroupService();
+
+            context.turnOffAuthorisationSystem();
+            community = ContentServiceFactory.getInstance().getCommunityService().create(null, context);
+            Collection collection = ContentServiceFactory.getInstance().getCollectionService()
+                    .create(context, community);
+            WorkspaceItem wi = ContentServiceFactory.getInstance().getWorkspaceItemService()
+                                                    .create(context, collection, true);
+            Item item = wi.getItem();
+            ContentServiceFactory.getInstance().getInstallItemService().installItem(context, wi, null);
+            it = item;
+            bundle = bundleService.create(context, it, "ORIGINAL");
+            context.restoreAuthSystemState();
         } catch (AuthorizeException ex) {
             log.error("Authorization Error in init", ex);
             fail("Authorization Error in init: " + ex.getMessage());
@@ -121,7 +124,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     @Test
     public void testGetPDFURLDifferentMimeTypes() throws Exception {
         context.turnOffAuthorisationSystem();
-        Bundle bundle = ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
         Bitstream b = bitstreamService.create(
             context, new ByteArrayInputStream("Bitstream 1".getBytes(StandardCharsets.UTF_8)));
         b.setName(context, "Word");
@@ -155,8 +157,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     @Test
     public void testGetPDFURLSameMimeTypes() throws Exception {
         context.turnOffAuthorisationSystem();
-        Bundle bundle = ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
-
         Bitstream b = bitstreamService.create(
             context, new ByteArrayInputStream("123456789".getBytes(StandardCharsets.UTF_8)));
         b.setName(context, "size9");
@@ -190,7 +190,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     @Test
     public void testGetPDFURLSameMimeTypesSameSize() throws Exception {
         context.turnOffAuthorisationSystem();
-        Bundle bundle = ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
 
         Bitstream b = bitstreamService.create(
             context, new ByteArrayInputStream("1".getBytes(StandardCharsets.UTF_8)));
@@ -225,7 +224,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     @Test
     public void testGetPDFURLWithPrimaryBitstream() throws Exception {
         context.turnOffAuthorisationSystem();
-        Bundle bundle = ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
 
         Bitstream b = bitstreamService.create(
             context, new ByteArrayInputStream("Larger file than primary".getBytes(StandardCharsets.UTF_8)));
@@ -262,7 +260,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     @Test
     public void testGetPDFURLWithUndefinedMimeTypes() throws Exception {
         context.turnOffAuthorisationSystem();
-        Bundle bundle = ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
 
         Bitstream b = bitstreamService.create(
             context, new ByteArrayInputStream("12".getBytes(StandardCharsets.UTF_8)));
@@ -308,10 +305,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
      */
     @Test
     public void testGetPDFURLWithNoBitstreams() throws Exception {
-        context.turnOffAuthorisationSystem();
-        ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
-
-        context.restoreAuthSystemState();
         context.commit();
         GoogleMetadata gm = new GoogleMetadata(this.context, it);
         assertEquals(0, gm.getPDFURL().size());
@@ -323,7 +316,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     @Test
     public void testGetPDFURLWithEmptyBitstreams() throws Exception {
         context.turnOffAuthorisationSystem();
-        Bundle bundle = ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
 
         Bitstream b = bitstreamService.create(context, new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)));
         b.setName(context, "small");
@@ -354,7 +346,6 @@ public class GoogleMetadataTest extends AbstractUnitTest {
     @Test
     public void testGetPdfUrlOfEmbargoed() throws Exception {
         context.turnOffAuthorisationSystem();
-        Bundle bundle = ContentServiceFactory.getInstance().getBundleService().create(context, it, "ORIGINAL");
 
         Bitstream b = bitstreamService.create(
             context, new ByteArrayInputStream("Larger file than primary".getBytes(StandardCharsets.UTF_8)));

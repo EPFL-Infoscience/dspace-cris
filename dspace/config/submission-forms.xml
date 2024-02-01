@@ -650,29 +650,6 @@
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
-          <label>Publication title</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter at least the publication title / citation</required>
-          <style>col-xs-12 col-md-6</style>
-          <hint>Link the item to one or more existent publication in the repository used or described by the publication</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relationpublication</dc-element>
-          <dc-qualifier>identifier</dc-qualifier>
-          <label>DOI or URL</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>Type here your topics. E.g. Tribology</hint>
-        </field>
-      </row>
-      <row>
-        <field>
           <dc-schema>person</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
@@ -700,53 +677,6 @@
           <dc-element>identifier</dc-element>
           <dc-qualifier>rid</dc-qualifier>
           <label>Researcher ID</label>
-          <input-type>onebox</input-type>
-          <required>You must enter at least the product title</required>
-          <style>col-xs-12 col-md-6</style>
-          <hint>Link the item to one or more existent dataset in the repository used or described by the publication</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relationproduct</dc-element>
-          <dc-qualifier>identifier</dc-qualifier>
-          <label>DOI or URL</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <style>col-xs-12 col-md-4</style>
-          <hint>If the dataset is not found in the system please enter a DOI or URL</hint>
-        </field>
-      </row>
-    </form>
-    <form name="related_works-dc-relation-patent">
-      <row>
-        <field>
-          <dc-schema>epfl</dc-schema>
-          <dc-element>relationpatent</dc-element>
-          <dc-qualifier>type</dc-qualifier>
-          <label>Relation</label>
-          <input-type value-pairs-name="epfl_relation_type">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <style>col-xs-12 col-md-2</style>
-          <hint />
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>patent</dc-qualifier>
-          <label>Datasets or products</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>You must enter at least the patent title</required>
-          <style>col-xs-12 col-md-6</style>
-          <hint>Link the item to one or more existent dataset in the repository used or described by the patent</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relationpatent</dc-element>
-          <dc-qualifier>identifier</dc-qualifier>
-          <label>DOI or URL</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -1565,7 +1495,7 @@
           <dc-element>writtenAt</dc-element>
           <label>Written at EPFL</label>
           <input-type value-pairs-name="epfl_written_at">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The written at EPFL section must be completed</required>
           <style>col-xs-12 col-md-3</style>
           <hint>Please specify whether this work was carried out as an affiliated member of EPFL or not</hint>
@@ -1575,7 +1505,7 @@
           <dc-element>peerreviewed</dc-element>
           <label>Peer-reviewed</label>
           <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The peer-reviewed section must be completed</required>
           <style>col-xs-12 col-md-3</style>
           <hint />
@@ -4886,7 +4816,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>issn</dc-qualifier>
+          <dc-qualifier>serieissn</dc-qualifier>
           <label>ISSN</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -5672,7 +5602,7 @@
           <repeatable>true</repeatable>
           <required />
           <hint />
-          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal,article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation</type-bind>
+          <type-bind>publication-coar-types:c_6501,text::journal::journal article,publication-coar-types:c_2df8fbb1,text::journal::journal article::research article,publication-coar-types:c_dcae04bc,text::journal::journal article::review article,publication-coar-types:c_beb9,text::journal::journal article::data paper,publication-coar-types:c_7bab,text::journal::journal article::software paper,publication-coar-types:c_b239,text::journal::editorial,publication-coar-types:c_5794,text::conference output::conference proceedings::conference paper,publication-coar-types:c_3248,text::book/monograph::book part or chapter,publication-coar-types:c_f744,text::conference output::conference proceedings,publication-coar-types:c_6670,text::conference output::conference proceedings::conference poster,publication-coar-types:c_18cp,text::conference output::conference paper not in proceedings,publication-coar-types:c_18co,text::conference output::conference poster not in proceedings,publication-coar-types:R60J-J5BD,text::conference output::conference presentation</type-bind>
         </field>
       </row>
       <row>
@@ -6039,6 +5969,18 @@
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>serieissn</dc-qualifier>
+          <label>ISSN</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>doi</dc-qualifier>
           <label>DOI</label>
@@ -6082,20 +6024,6 @@
           <repeatable>true</repeatable>
           <required />
           <hint />
-        </field>
-      </row>
-      <row>
-      <field>
-          <dc-schema>oaire</dc-schema>
-          <dc-element>citation</dc-element>
-          <dc-qualifier>articlenumber</dc-qualifier>
-          <label>Article Number</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <style>col-xs-12 col-md-4</style>
-          <hint>e.g. 052005</hint>
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f750</type-bind>
         </field>
       </row>
       <row>
@@ -6676,10 +6604,22 @@
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>sponsorship</dc-qualifier>
+          <dc-schema>epfl</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>orgunit</dc-qualifier>
           <label>OrgUnit</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dspace</dc-schema>
+          <dc-element>legacy</dc-element>
+          <dc-qualifier>Oai-identifier</dc-qualifier>
+          <label>OAI identifier</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
