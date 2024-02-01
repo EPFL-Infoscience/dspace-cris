@@ -15,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -79,8 +80,12 @@ public class MetadataPatchSuite {
                 .andExpect(status().is(expectedStatus));
         if (expectedStatus >= 200 && expectedStatus < 300) {
           String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-          JsonNode responseJson =  objectMapper.readTree(responseBody);
-          String responseMetadata = responseJson.get("metadata").toString();
+          JsonNode responseJson = objectMapper.readTree(responseBody);
+          ObjectNode responseMetadataJson = (ObjectNode) responseJson.get("metadata");
+          if (responseMetadataJson.has("dc.date.modified")) {
+              responseMetadataJson.remove("dc.date.modified");
+          }
+          String responseMetadata = responseMetadataJson.toString();
           if (!responseMetadata.equals(expectedMetadata)) {
               Assert.fail("Expected metadata in " + verb + " response: " + expectedMetadata
                       + "\nGot metadata in " + verb + " response: " + responseMetadata);

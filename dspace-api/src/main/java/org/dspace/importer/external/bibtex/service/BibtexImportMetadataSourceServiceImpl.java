@@ -27,6 +27,7 @@ import org.jbibtex.BibTeXEntry;
 import org.jbibtex.BibTeXParser;
 import org.jbibtex.Key;
 import org.jbibtex.ParseException;
+import org.jbibtex.TokenMgrException;
 import org.jbibtex.Value;
 
 /**
@@ -86,7 +87,7 @@ public class BibtexImportMetadataSourceServiceImpl extends AbstractPlainMetadata
                             org.jbibtex.LaTeXPrinter laTeXPrinter = new org.jbibtex.LaTeXPrinter();
                             String plainTextString = laTeXPrinter.print(latexObjects);
                             innerItem.setValue(plainTextString.replaceAll("\n", " "));
-                        } catch (ParseException e) {
+                        } catch (ParseException | TokenMgrException e) {
                             innerItem.setValue(latexString);
                         }
                         keyValues.add(innerItem);

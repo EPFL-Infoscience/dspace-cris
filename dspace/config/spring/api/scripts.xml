@@ -106,7 +106,7 @@
     </bean>
 
     <bean id="import-publications" class="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCliScriptConfiguration">
-        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv)"/>
+        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv, EspaceNet)"/>
         <property name="dspaceRunnableClass" value="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCli"/>
     </bean>
 
@@ -124,7 +124,7 @@
         <property name="description" value="Manage the OAI-PMH harvesting of external collections"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.harvest.HarvestCli"/>
     </bean>
-        
+
     <bean id="cris-layout-tool" class="org.dspace.layout.script.CrisLayoutToolScriptConfiguration">
         <property name="description" value="Script to import CRIS layout configuration from excel file"/>
         <property name="dspaceRunnableClass" value="org.dspace.layout.script.CrisLayoutToolScript"/>
@@ -208,7 +208,7 @@
         <property name="description" value="Writes in process' log a status of current access policies set for the items in the repository."/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsReportScript"/>
     </bean>
-        
+
     <bean id="is-academia-xml-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
         <property name="description" value="Import the XML IS-ACADEMIA file into a defined collection, items are directly stored in target collection"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
@@ -218,7 +218,7 @@
         <property name="description" value="Update submitters for items where submitter does not have a sciper, with the first author having a sciper"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SubmitterFixScript"/>
     </bean>
-    
+
      <bean id="orcid-update" class="org.dspace.orcid.script.OrcidUpdateScriptConfiguration">
         <property name="description" value="Perform an orcid value update of Person entities using json"/>
         <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidUpdate"/>
@@ -233,4 +233,24 @@
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
 <!--    </bean>-->
+    <bean id="export-schema" class="org.dspace.app.metadata.export.MetadataSchemaExportCliScriptConfiguration">
+        <property name="description" value="Exports a given schema into target registry file specified"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.metadata.export.MetadataSchemaExportCliScript"/>
+    </bean>
+
+    <bean id="bulk-access-control" class="org.dspace.app.bulkaccesscontrol.BulkAccessControlCliScriptConfiguration" primary="true">
+        <property name="description" value="Bulk access control"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
+    </bean>
+
+    <bean id="epfl-duplication-fix" class="org.dspace.epfl.script.DuplicationFixScriptConfiguration" primary="true">
+        <property name="description" value="Fixes all the duplication by sciper id"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.DuplicationFixScript"/>
+    </bean>
+
+    <bean id="epfl-roles-setup" class="org.dspace.epfl.script.RoleSetupScriptConfiguration" primary="true">
+        <property name="description" value="Setup of roles of collections"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.RoleSetupScript"/>
+    </bean>
+
 </beans>

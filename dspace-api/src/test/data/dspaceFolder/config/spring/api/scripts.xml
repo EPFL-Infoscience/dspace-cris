@@ -130,12 +130,6 @@
         <property name="dspaceRunnableClass" value="org.dspace.layout.script.CrisLayoutToolScript"/>
     </bean>
 
-    <bean id="export-cris-layout-tool" class="org.dspace.layout.script.ExportCrisLayoutToolCliScriptConfiguration">
-        <property name="description" value="Script to export CRIS layout configuration into excel file"/>
-        <property name="dspaceRunnableClass" value="org.dspace.layout.script.ExportCrisLayoutToolScriptCli"/>
-    </bean>
-
-
     <bean id="update-item-references" class="org.dspace.authority.script.UpdateItemReferenceCliScriptConfiguration">
         <property name="description" value="Perform the resolution of authority references"/>
         <property name="dspaceRunnableClass" value="org.dspace.authority.script.UpdateItemReferenceCli"/>
@@ -190,6 +184,21 @@
     <bean id="xml-to-item-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
         <property name="description" value="Import the XML file to items"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
+    </bean>
+
+    <bean id="export-cris-layout-tool" class="org.dspace.layout.script.ExportCrisLayoutToolCliScriptConfiguration">
+        <property name="description" value="Script to export CRIS layout configuration into excel file"/>
+        <property name="dspaceRunnableClass" value="org.dspace.layout.script.ExportCrisLayoutToolScriptCli"/>
+    </bean>
+
+    <bean id="export-schema" class="org.dspace.app.metadata.export.MetadataSchemaExportCliScriptConfiguration">
+        <property name="description" value="Export target metadata schema"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.metadata.export.MetadataSchemaExportCliScript"/>
+    </bean>
+
+    <bean id="bulk-access-control" class="org.dspace.app.bulkaccesscontrol.BulkAccessControlCliScriptConfiguration" primary="true">
+        <property name="description" value="Bulk access control"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
     </bean>
 
 </beans>

@@ -4,11 +4,11 @@
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
        default-autowire-candidates="*Service,*DAO,javax.sql.DataSource">
 
- 
-     <bean id="dcJissn" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+
+    <bean id="dcJissn" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.issn"/>
     </bean>
-     <bean id="dcPisbn" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+    <bean id="dcPisbn" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.isbn"/>
     </bean>
     <bean id="dcIssn" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -20,47 +20,53 @@
     <bean id="dcIssued" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.date.issued"/>
     </bean>
-     <bean id="dcLanguage" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+    <bean id="dcLanguage" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.language.iso"/>
     </bean>
     <bean id="dcSubtype" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.type"/>
     </bean>
-     <bean id="dcJournal" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+    <bean id="dcJournal" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.relation.journal"/>
     </bean>
- 	<bean id="dcTitle" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcTitle" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.title"/>
     </bean>
     <bean id="dcType" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.type"/>
     </bean>
- 	<bean id="dcAuthors" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcAuthors" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.contributor.author"/>
     </bean>
- 	<bean id="dcEditors" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcEditors" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.contributor.editor"/>
     </bean>
- 	<bean id="dcTranslators" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcTranslators" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.contributor.other"/>
     </bean>
- 	<bean id="dcChairs" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcChairs" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.contributor.other"/>
     </bean>
- 	<bean id="dcAbstract" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcAbstract" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.description.abstract"/>
     </bean>
- 	<bean id="dcAllKeyword" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+    <bean id="dcAbstractNote" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.description.abstract"/>
+    </bean>
+ 	  <bean id="dcAllKeyword" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.subject"/>
     </bean>
- 	<bean id="dcArxivCategory" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcArxivCategory" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.subject"/>
     </bean>
- 	<bean id="dcDoi" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcDoi" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier"/>
     </bean>
- 	<bean id="dcPublisher" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+ 	  <bean id="dcPublisher" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.publisher"/>
+    </bean>
+    <bean id="dcPublisherPlace" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.publisher.place"/>
     </bean>
     <bean id="dcJDoi" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.doi"/>
@@ -72,7 +78,7 @@
         <constructor-arg value="oaire.citation.issue"/>
     </bean>
     <bean id="dcBooktitle" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.ispartof"/>
+        <constructor-arg value="dc.relation.ispartof"/>
     </bean>
     <bean id="dcPagesStart" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="oaire.citation.startPage"/>
@@ -81,6 +87,6 @@
         <constructor-arg value="oaire.citation.endPage"/>
     </bean>
     <bean id="dcSeries" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.ispartofseries"/>
+        <constructor-arg value="dc.relation.ispartofseries"/>
     </bean>
 </beans>

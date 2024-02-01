@@ -114,10 +114,15 @@ public class ProfileInitializer {
             throw new NoPersonFoundException("No person for sciper " + sciper + " was not found");
         }
 
+        initialize(context, eperson, sciper, personDTO);
+
+    }
+
+    public void initialize(Context context, EPerson eperson, String sciper, Optional<PersonDTO> personDTO) {
+
         ResearcherProfile researcherProfile = findProfile(context, eperson)
             .or(() -> personApiService.findProfileBySciper(context, eperson, sciper))
             .orElseGet(() -> createPublicProfile(context, eperson, personDTO));
-
 
 
         if (researcherProfile == null) {
@@ -149,6 +154,7 @@ public class ProfileInitializer {
             sendEmailForError(context, personDTO.get());
             throw new RuntimeException(e);
         }
+
     }
 
     private void addToSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile)

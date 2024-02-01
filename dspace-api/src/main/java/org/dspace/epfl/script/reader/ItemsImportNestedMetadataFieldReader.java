@@ -45,7 +45,7 @@ public class ItemsImportNestedMetadataFieldReader implements ItemsImportMetadata
 
         for (int i = 0; i < nodeList.getLength(); i++) {
 
-            Node node = nodeList.item(i);
+            Node node = nodeList.item(i).cloneNode(true);
 
             for (String nestedMetadataField : metadataFieldsPaths.keySet()) {
                 metadataValues.add(readNestedValue(node, nestedMetadataField));

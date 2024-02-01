@@ -19,7 +19,8 @@ public enum MetadataSchemaEnum {
     RELATION("relation"),
     CRIS("cris"),
     OAIRECERIF("oairecerif"),
-    EPFL("epfl");
+    EPFL("epfl"),
+    PERSON("person");
 
     /**
      * The String representation of the MetadataSchemaEnum

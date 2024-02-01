@@ -41,6 +41,8 @@ public abstract class AbstractPlainMetadataSource
 
     /**
      * Set the file extensions supported by this metadata service
+     *
+     * @param supportedExtensions the file extensions (xml,txt,...) supported by this service
      */
     public void setSupportedExtensions(List<String> supportedExtensions) {
         this.supportedExtensions = supportedExtensions;
