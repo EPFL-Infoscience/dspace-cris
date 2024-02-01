@@ -19,6 +19,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.WorkflowItemIndexFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
@@ -70,7 +71,8 @@ public class WorkflowItemIndexFactoryImpl
     public SolrInputDocument buildDocument(Context context, IndexableWorkflowItem indexableObject)
             throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        final SolrInputDocument doc = super.buildDocument(context, indexableObject);
+        final TruncatedSolrInputDocument doc =
+                (TruncatedSolrInputDocument) super.buildDocument(context, indexableObject);
         final XmlWorkflowItem workflowItem = indexableObject.getIndexedObject();
         final Item item = workflowItem.getItem();
 

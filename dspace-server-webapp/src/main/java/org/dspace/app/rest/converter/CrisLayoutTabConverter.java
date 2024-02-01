@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This is the converter from Entity CrisLayoutTab to the REST data model
- * 
+ *
  * @author Danilo Di Nuzzo (danilo.dinuzzo at 4science.it)
  *
  */

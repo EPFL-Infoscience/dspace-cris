@@ -13,13 +13,13 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:oaire="http://namespace.openaire.eu/schema/oaire/" xmlns:datacite="http://datacite.org/schema/kernel-4"
     xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:doc="http://www.lyncode.com/xoai"
-    xmlns:rdf="http://www.w3.org/TR/rdf-concepts/" version="1.0">
+                version="1.0">
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes"/>
 
     <xsl:template match="/">
-        <oaire:resource xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
+        <oaire:resource
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
 
             <!-- datacite:title -->
             <xsl:apply-templates
@@ -92,6 +92,9 @@
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']"
                 mode="datacite"/>
+            <!-- ACCESS RIGHTS from access status mechanism -->
+            <xsl:apply-templates
+                select="doc:metadata/doc:element[@name='others']/doc:element[@name='access-status']" mode="datacite" />
             <!-- datacite:rights -->
             <xsl:apply-templates
                 select="doc:metadata/doc:element[@name='datacite']/doc:element[@name='rights']" mode="datacite"/>
@@ -117,6 +120,14 @@
             <xsl:apply-templates
                     select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
                     mode="datacite" />
+            <!-- primary doi identifier -->
+            <xsl:apply-templates
+                    select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
+                    mode="datacite" />
+<!--            alternative doi identifiers-->
+            <xsl:apply-templates
+                    select="doc:metadata/doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']"
+                    mode="datacite_altid" />
         </oaire:resource>
     </xsl:template>
 
@@ -164,6 +175,8 @@
         <datacite:creators>
             <!-- datacite.creator -->
             <xsl:for-each select="./doc:element/doc:field[@name='value']">
+                <xsl:variable name="index" select="position()"/>
+                <!-- Mapping for oaire:funderName -->
                 <xsl:variable name="isRelatedEntity">
                     <xsl:call-template name="isRelatedEntity">
                         <xsl:with-param name="element" select="."/>
@@ -185,6 +198,70 @@
                             <datacite:creatorName>
                                 <xsl:value-of select="./text()"/>
                             </datacite:creatorName>
+                            <datacite:affiliation>
+                                <xsl:value-of select="concat(../../../../../doc:element[@name='oairecerif']/doc:element[@name='author']/doc:element[@name='affiliation']/doc:element/doc:field[@name='value'][$index],
+                                                        ' | ',
+                                                        ../../../../../doc:element[@name='oairecerif']/doc:element[@name='affiliation']/doc:element[@name='orgunit']/doc:element/doc:field[@name='value'][$index])"/>
+                            </datacite:affiliation>
+
+                            <xsl:variable name="personIdentifier" select="../../../../../doc:element[@name='person']/doc:element[@name='identifier']"/>
+
+                            <xsl:variable name="scopusAffiliationValue" select="$personIdentifier/doc:element[@name='scopus-author-id']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="scopusInternalValue" select="$personIdentifier/doc:field[@name='scopus-author-id'][$index]"/>
+                            <xsl:if test="$scopusAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="Scopus Author ID">
+                                    <xsl:value-of select="$scopusAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$scopusInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="Scopus Author ID">
+                                    <xsl:value-of select="$scopusInternalValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="cienciaAffiliationValue" select="$personIdentifier/doc:element[@name='ciencia-id']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:if test="$cienciaAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="CIENCIA-ID">
+                                    <xsl:value-of select="$cienciaAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="gsidAffiliationValue" select="$personIdentifier/doc:element[@name='gsid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:if test="$gsidAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="GSID">
+                                    <xsl:value-of select="$gsidAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="orcidAffiliationValue" select="$personIdentifier/doc:element[@name='orcid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="orcidInternalValue" select="$personIdentifier/doc:field[@name='orcid'][$index]"/>
+                            <xsl:if test="$orcidAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="ORCID">
+                                    <xsl:value-of select="$orcidAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$orcidInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="ORCID">
+                                    <xsl:value-of select="$orcidInternalValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="isniAffiliationValue" select="$personIdentifier/doc:element[@name='isni']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:if test="$isniAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="ISNI">
+                                    <xsl:value-of select="$isniAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:variable name="ridAffiliationValue" select="$personIdentifier/doc:element[@name='rid']/doc:element/doc:field[@name='value'][$index]"/>
+                            <xsl:variable name="ridInternalValue" select="$personIdentifier/doc:field[@name='rid'][$index]"/>
+                            <xsl:if test="$ridAffiliationValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="RID">
+                                    <xsl:value-of select="$ridAffiliationValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+                            <xsl:if test="$ridInternalValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                                <datacite:nameIdentifier nameIdentifierScheme="RID">
+                                    <xsl:value-of select="$ridInternalValue"/>
+                                </datacite:nameIdentifier>
+                            </xsl:if>
+
+                            <xsl:apply-templates select="../../../../.." mode="entity_author"/>
                         </datacite:creator>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -430,21 +507,37 @@
     <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_projectid.html -->
     <xsl:template match="doc:element[@name='dc']/doc:element[@name='relation']" mode="oaire">
         <oaire:fundingReferences>
-            <xsl:for-each select="./doc:element/doc:field[@name='value']">
-                <xsl:variable name="isRelatedEntity">
-                    <xsl:call-template name="isRelatedEntity">
-                        <xsl:with-param name="element" select="."/>
-                    </xsl:call-template>
-                </xsl:variable>
-                <!-- if next sibling is authority and starts with virtual:: -->
-                <xsl:if test="$isRelatedEntity = 'true'">
-                    <xsl:variable name="entity">
-                        <xsl:call-template name="buildEntityNode">
-                            <xsl:with-param name="element" select="."/>
-                        </xsl:call-template>
-                    </xsl:variable>
-                    <xsl:apply-templates select="$entity" mode="entity_funding"/>
-                </xsl:if>
+            <xsl:for-each select="./doc:element[@name='funding']/doc:element/doc:field[@name='value']">
+                <oaire:fundingReference>
+                    <xsl:variable name="index" select="position()"/>
+                    <!-- Mapping for oaire:funderName -->
+                    <oaire:funderName>
+                        <xsl:value-of select="../../../../../doc:element[@name='oairecerif']/doc:element[@name='funder']/doc:element/doc:field[@name='value'][$index]"/>
+                    </oaire:funderName>
+                    <!-- Mapping for oaire:awardNumber -->
+                    <xsl:variable name="awardURIValue" select="../../../../../doc:element[@name='crisfund']/doc:element[@name='award']/doc:element[@name='uri']/doc:element/doc:field[@name='value'][$index]"/>
+                    <xsl:variable name="awardNumberValue" select="../../../doc:element[@name='grantno']/doc:element/doc:field[@name='value'][$index]"/>
+                    <xsl:choose>
+                        <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber>
+                                <xsl:value-of select="$awardNumberValue"/>
+                            </oaire:awardNumber>
+                        </xsl:when>
+                        <xsl:when test="$awardURIValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber awardURI="{$awardURIValue}" />
+                        </xsl:when>
+                        <xsl:when test="$awardURIValue = '#PLACEHOLDER_PARENT_METADATA_VALUE#' and $awardNumberValue != '#PLACEHOLDER_PARENT_METADATA_VALUE#'">
+                            <oaire:awardNumber awardURI="{$awardURIValue}">
+                                <xsl:value-of select="$awardNumberValue"/>
+                            </oaire:awardNumber>
+                        </xsl:when>
+                    </xsl:choose>
+
+                    <!-- Mapping for oaire:awardTitle -->
+                    <oaire:awardTitle>
+                        <xsl:value-of select="./text()"/>
+                    </oaire:awardTitle>
+                </oaire:fundingReference>
             </xsl:for-each>
         </oaire:fundingReferences>
     </xsl:template>
@@ -734,6 +827,40 @@
                 </xsl:attribute>
                 </xsl:if>
                 <xsl:value-of select="$lc_rightsValue"/>
+            </datacite:rights>
+        </xsl:if>
+    </xsl:template>
+
+    <!--  from Access Status mechanism  -->
+    <!-- datacite:rights -->
+    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_accessrights.html -->
+    <xsl:template match="doc:element[@name='others']/doc:element[@name='access-status']/doc:field[@name='value']" mode="datacite">
+        <xsl:variable name="rightsValue">
+            <xsl:call-template name="resolveRightsName">
+                <xsl:with-param name="field" select="text()"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="rightsURI">
+            <xsl:call-template name="resolveRightsURI">
+                <xsl:with-param name="field" select="text()"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="lc_rightsValue">
+            <xsl:call-template name="lowercase">
+                <xsl:with-param name="value" select="$rightsValue"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <!-- We are checking to ensure that only values ending in "access" can be used as datacite:rights.
+        This is a valid solution as we pre-normalize dc.rights values in openaire4.xsl to end in the term
+        "access" according to COAR Controlled Vocabulary -->
+        <xsl:if test="ends-with($lc_rightsValue,'access')">
+            <datacite:rights>
+                <xsl:if test="$rightsURI">
+                    <xsl:attribute name="rightsURI">
+                        <xsl:value-of select="$rightsURI"/>
+                    </xsl:attribute>
+                </xsl:if>
+                <xsl:value-of select="$rightsValue"/>
             </datacite:rights>
         </xsl:if>
     </xsl:template>
@@ -1295,11 +1422,11 @@
    <!-- Auxiliary templates - get global values -->
    <!--  -->
    
-    <!-- get the coar access rights globally -->
+    <!-- get the coar access rights globally from access status mechanism -->
     <xsl:template name="getRightsURI">
         <xsl:call-template name="resolveRightsURI">
             <xsl:with-param name="field"
-                select="//doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value'and ends-with(translate(text(), $uppercase, $smallcase),'access')]/text()"/>
+                select="/doc:metadata/doc:element[@name='others']/doc:element[@name='access-status']/doc:field[@name='value']/text()"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1377,7 +1504,7 @@
             </xsl:element>
         </xsl:if>
     </xsl:template>
-   
+
    <!-- 
         This template will recursively create the field name based on parent node names
         to be something like this:
@@ -1565,6 +1692,24 @@
             <xsl:when test="$lc_dc_type = 'book review'">
                 <xsl:text>literature</xsl:text>
             </xsl:when>
+            <xsl:when test="$lc_dc_type = 'bachelor thesis'">
+                <xsl:text>literature</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'doctoral thesis'">
+                <xsl:text>literature</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'master thesis'">
+                <xsl:text>literature</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'thesis'">
+                <xsl:text>literature</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'dataset'">
+                <xsl:text>dataset</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_dc_type = 'software'">
+                <xsl:text>software</xsl:text>
+            </xsl:when>
             <xsl:otherwise>
                 <xsl:text>other research product</xsl:text>
             </xsl:otherwise>
@@ -1744,6 +1889,37 @@
     </xsl:template>
 
     <!--
+        This template will return the COAR Access Right Vocabulary Names in English
+        like "open access"
+        based on the values from DSpace Access Status mechanism like String 'open.access'
+        please check class org.dspace.access.status.DefaultAccessStatusHelper for more information
+        https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_accessrights.html#definition-and-usage-instruction
+     -->
+    <xsl:template name="resolveRightsName">
+        <xsl:param name="field"/>
+        <xsl:variable name="lc_value">
+            <xsl:call-template name="lowercase">
+                <xsl:with-param name="value" select="$field"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:choose>
+            <xsl:when test="$lc_value = 'open.access'">
+                <xsl:text>open access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_value = 'embargo'">
+                <xsl:text>embargoed access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_value = 'restricted'">
+                <xsl:text>restricted access</xsl:text>
+            </xsl:when>
+            <xsl:when test="$lc_value = 'metadata.only'">
+                <xsl:text>metadata only access</xsl:text>
+            </xsl:when>
+            <xsl:otherwise/>
+        </xsl:choose>
+    </xsl:template>
+
+    <!--
         This template will return the COAR Access Right Vocabulary URI
         like http://purl.org/coar/access_right/c_abf2
         based on a value text like 'open access'
@@ -1757,19 +1933,19 @@
             </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
-            <xsl:when test="$lc_value = 'openaccess'">
+            <xsl:when test="$lc_value = 'openaccess' or $lc_value = 'open.access'">
                 <xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'embargo'">
+            <xsl:when test="$lc_value = 'embargo' or $lc_value = 'embargo'">
                 <xsl:text>http://purl.org/coar/access_right/c_f1cf</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'restricted'">
+            <xsl:when test="$lc_value = 'restricted' or $lc_value = 'restricted'">
                 <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
             </xsl:when>
             <xsl:when test="$lc_value = 'administrator'">
                 <xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
             </xsl:when>
-            <xsl:when test="$lc_value = 'metadata-only'">
+            <xsl:when test="$lc_value = 'metadata-only' or $lc_value = 'metadata.only'">
                 <xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
             </xsl:when>
             <xsl:otherwise/>
@@ -1841,6 +2017,26 @@
                 <xsl:with-param name="licenseCode" select="./doc:element/doc:field[@name='value']/text()"/>
             </xsl:call-template>
         </oaire:licenseCondition>
+    </xsl:template>
+
+    <xsl:template match="doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='primary']"
+                  mode="datacite">
+        <!-- only process the first element -->
+        <datacite:identifier>
+            <xsl:attribute name="identifierType">doi</xsl:attribute>
+            <xsl:value-of select="./doc:field[@name='doi']/text()"/>
+        </datacite:identifier>
+    </xsl:template>
+
+    <!-- for each alternative doi -->
+    <xsl:template match="doc:element[@name='others']/doc:element[@name='datacite']/doc:element[@name='alternative']" mode="datacite_altid">
+        <xsl:for-each select="./doc:field[@name='doi']">
+
+                <datacite:alternateIdentifier>
+                    <xsl:attribute name="alternateIdentifierType">doi</xsl:attribute>
+                    <xsl:value-of select="./text()"/>
+                </datacite:alternateIdentifier>
+        </xsl:for-each>
     </xsl:template>
 
 

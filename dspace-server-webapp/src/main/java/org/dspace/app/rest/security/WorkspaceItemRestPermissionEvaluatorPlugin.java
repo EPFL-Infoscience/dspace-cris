@@ -95,9 +95,9 @@ public class WorkspaceItemRestPermissionEvaluatorPlugin extends RestObjectPermis
                 }
             }
 
-            if (researcherProfileService.isAuthorOf(context, ePerson, witem.getItem())) {
+            /*if (researcherProfileService.isAuthorOf(context, ePerson, witem.getItem())) {
                 return true;
-            }
+            }*/
 
             if (witem.getItem() != null) {
                 if (supervisionOrderService.isSupervisor(context, ePerson, witem.getItem())) {

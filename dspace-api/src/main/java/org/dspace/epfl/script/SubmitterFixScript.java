@@ -90,7 +90,7 @@ public class SubmitterFixScript
             int count = 0;
 
             while (itemIterator.hasNext()) {
-                Item item = itemIterator.next();
+                Item item = context.reloadEntity(itemIterator.next());
 
                 try {
                     updateSubmitter(item);
@@ -181,8 +181,8 @@ public class SubmitterFixScript
             .getMetadataByMetadataString(item, "dc.contributor.author")
             .stream()
             .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
-            .map(throwingMapperWrapper(mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority())), null))
-            .map(throwingMapperWrapper(this::owner, null))
+            .map(throwingMapperWrapper(mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority()))))
+            .map(throwingMapperWrapper(this::owner))
             .filter(Objects::nonNull)
             .filter(this::hasSciper)
             .findFirst();
