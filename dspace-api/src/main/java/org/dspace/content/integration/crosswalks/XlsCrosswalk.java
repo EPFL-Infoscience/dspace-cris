@@ -26,6 +26,8 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public class XlsCrosswalk extends TabularCrosswalk {
 
+	public static String CELL_CONTAINS_TRUNCATED = "!CELL CONTENT WAS TRUNCATED DURING EXPORT! ";
+	public static String COLUMN_CONTAINS_TRUNCATED = "!COLUMN CONTAINS TRUNCATED CELL(S)! ";
     private String sheetName;
 
     @Override
@@ -87,14 +89,14 @@ public class XlsCrosswalk extends TabularCrosswalk {
     protected String getTruncatedCellPrefix() {
         return configurationService.getProperty(
             "crosswalk.xls.truncated-prefix.cell",
-            "!CELL CONTENT WAS TRUNCATED DURING EXPORT! "
+            CELL_CONTAINS_TRUNCATED
         );
     }
 
     protected String getTruncatedHeaderPrefix() {
         return configurationService.getProperty(
             "crosswalk.xls.truncated-prefix.header",
-            "!COLUMN CONTAINS TRUNCATED CELL(S)! "
+            COLUMN_CONTAINS_TRUNCATED
         );
     }
 
