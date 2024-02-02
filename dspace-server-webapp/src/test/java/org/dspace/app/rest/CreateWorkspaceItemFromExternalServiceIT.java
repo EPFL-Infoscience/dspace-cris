@@ -50,7 +50,6 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -59,7 +58,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
 * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4Science.it)
 */
-@Ignore
 public class CreateWorkspaceItemFromExternalServiceIT extends AbstractControllerIntegrationTest {
 
     @Autowired

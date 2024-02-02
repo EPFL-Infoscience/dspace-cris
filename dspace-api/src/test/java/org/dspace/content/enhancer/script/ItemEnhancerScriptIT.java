@@ -246,7 +246,7 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(1));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(1));
 
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "4Science")));
+        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "University")));
         assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId)));
 
     }

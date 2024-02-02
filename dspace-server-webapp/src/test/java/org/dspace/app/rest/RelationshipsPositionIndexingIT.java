@@ -46,7 +46,6 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -192,7 +191,6 @@ public class RelationshipsPositionIndexingIT extends AbstractEntityIntegrationTe
      * @throws Exception
      */
     @Test
-    @Ignore
     public void relationPlacesIndexed() throws Exception {
         configurationService.setProperty("relationship.places.onlyright",
                                          "null::Person::isResearchoutputsSelectedFor::hasSelectedResearchoutputs");

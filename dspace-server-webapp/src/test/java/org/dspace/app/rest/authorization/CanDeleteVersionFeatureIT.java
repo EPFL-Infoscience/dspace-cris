@@ -32,7 +32,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.versioning.Version;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,7 +67,6 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    @Ignore
     public void canDeleteVersionsFeatureTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -270,7 +268,6 @@ public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    @Ignore
     public void canDeleteVersionFeatureTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

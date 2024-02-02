@@ -70,7 +70,6 @@ import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RestMediaTypes;
@@ -852,7 +851,6 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void createNewVersionItemByCollectionAdminTest() throws Exception {
         context.turnOffAuthorisationSystem();
         Community rootCommunity = CommunityBuilder.createCommunity(context)

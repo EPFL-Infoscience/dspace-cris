@@ -52,11 +52,9 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.SimpleMapConverter;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Ignore
 public class LinksetRestControllerIT extends AbstractControllerIntegrationTest {
 
     private static final String doiPattern = "https://doi.org/{0}";

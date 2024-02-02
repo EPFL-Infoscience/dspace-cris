@@ -88,7 +88,6 @@ import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.LayoutSecurity;
 import org.dspace.layout.service.CrisLayoutTabService;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -2235,7 +2234,6 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
-    @Ignore
     public void findByItemTabsWithHiddenRelationshipsTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

@@ -44,7 +44,6 @@ import org.dspace.services.EventService;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -182,7 +181,6 @@ public class UpdateViewAndDownloadMetricsIT extends AbstractControllerIntegratio
 
     //test with previous metrics
     @Test
-    @Ignore
     public void storeCrisMetricsForItemWithViewAndDownloadsWithExistingValues() throws Exception {
         context.turnOffAuthorisationSystem();
             Community community = CommunityBuilder.createCommunity(context).build();

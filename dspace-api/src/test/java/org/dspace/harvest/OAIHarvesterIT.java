@@ -770,7 +770,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             Item publication = publications.get(0);
 
             List<MetadataValue> values = publication.getMetadata();
-            assertThat(values, hasSize(19 + 1));
+            assertThat(values, hasSize(29 + 1));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
             assertThat(values, hasItems(with("dc.type", "Resource Types::text")));
@@ -874,7 +874,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             Item publication = findItemByOaiID("oai:test-harvest:Publications/3", collection);
             values = publication.getMetadata();
 
-            assertThat(values, hasSize(21 + 1));
+            assertThat(values, hasSize(29 + 1));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
             assertThat(values, hasItems(with("dc.type", "Resource Types::text")));

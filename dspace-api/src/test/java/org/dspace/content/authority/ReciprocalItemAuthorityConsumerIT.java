@@ -38,10 +38,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
 public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWithDatabase {
 
     private static final ConfigurationService configurationService =
@@ -64,8 +62,8 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
     public static void initConsumers() {
         consumers = configurationService.getArrayProperty("event.dispatcher.exclude-discovery.consumers");
         Set<String> consumersSet = new HashSet<>(Arrays.asList(consumers));
-        if (!consumersSet.contains("filetypemetadataenhancer")) {
-            consumersSet.add("filetypemetadataenhancer");
+        if (!consumersSet.contains("reciprocal")) {
+            consumersSet.add("reciprocal");
             configurationService.setProperty("event.dispatcher.exclude-discovery.consumers", consumersSet.toArray());
             eventService.reloadConfiguration();
         }

@@ -31,7 +31,6 @@ import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -123,7 +122,6 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
-    @Ignore
     public void testBibtexDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();

@@ -86,7 +86,6 @@ import org.dspace.orcid.webhook.OrcidWebhookServiceImpl;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -758,7 +757,6 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
      * @throws Exception
      */
     @Test
-    @Ignore
     public void testPatchToChangeVisibleAttribute() throws Exception {
 
         String id = user.getID().toString();
@@ -890,7 +888,6 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
      * @throws Exception
      */
     @Test
-    @Ignore
     public void testPatchToChangeVisibilityOfProfileCreatedByAnAdmin() throws Exception {
 
         String id = user.getID().toString();

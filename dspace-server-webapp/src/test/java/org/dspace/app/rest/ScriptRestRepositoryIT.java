@@ -128,7 +128,6 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void givenMultilanguageItemsWhenSchedulingExportThenUseRequestLanguageWhileSearching() throws Exception {
         context.turnOffAuthorisationSystem();
 

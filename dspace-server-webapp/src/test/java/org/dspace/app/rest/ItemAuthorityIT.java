@@ -44,7 +44,6 @@ import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.orcid.jaxb.model.v3.release.search.expanded.ExpandedSearch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,7 +164,6 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void multiItemAuthorityTest() throws Exception {
        context.turnOffAuthorisationSystem();
 

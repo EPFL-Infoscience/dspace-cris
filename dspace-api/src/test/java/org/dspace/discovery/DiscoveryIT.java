@@ -68,7 +68,6 @@ import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -747,7 +746,6 @@ public class DiscoveryIT extends AbstractIntegrationTestWithDatabase {
      * @throws SearchServiceException
      */
     @Test
-    @Ignore
     public void searchWithDefaultSortServiceTest() throws SearchServiceException {
         DiscoveryConfiguration workspaceConf =
             SearchUtils.getDiscoveryConfiguration(context, DISCOVER_WORKSPACE_CONFIGURATION_NAME, null);

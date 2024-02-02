@@ -47,7 +47,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.com)
  */
-@Ignore
 public class CanSubscribeFeatureIT extends AbstractControllerIntegrationTest {
 
     private static final Logger log = LogManager.getLogger(CanSubscribeFeatureIT.class);
@@ -92,6 +90,7 @@ public class CanSubscribeFeatureIT extends AbstractControllerIntegrationTest {
                                                 .build();
         context.restoreAuthSystemState();
         canSubscribeFeature = authorizationFeatureService.find(CanSubscribeFeature.NAME);
+        context.setDispatcher("exclude-discovery");
     }
 
     @Test
