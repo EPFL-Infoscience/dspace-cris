@@ -123,6 +123,10 @@ public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfigu
     }
 
     private void updateSubmitter(Item item) {
+        if (hasSciper(item.getSubmitter())) {
+            handler.logInfo("Item " + item.getID() + " already has a submitter with sciper, not changed.");
+            return;
+        }
 
         EPerson newSubmitter = getEPersonFromMetadata(item, "epfl.lastmodified.email");
         if (hasSciper(newSubmitter)) {
@@ -157,13 +161,18 @@ public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfigu
     }
 
     private void updateSubmitter(Item item, EPerson submitter) {
-        if (!StringUtils.equalsIgnoreCase(item.getSubmitter().getEmail(), submitter.getEmail())) {
-            handler.logInfo("Item " + item.getID() + " submitter updated from " + item.getSubmitter().getEmail() +
-                            " to " + submitter.getEmail());
+        String newEmail = submitter.getEmail();
+        EPerson currentSubmitter = item.getSubmitter();
+
+        if ((currentSubmitter == null && StringUtils.isNotBlank(newEmail)) ||
+            (currentSubmitter != null && !StringUtils.equalsIgnoreCase(currentSubmitter.getEmail(), newEmail))) {
+
+            var oldEmail = currentSubmitter != null ? currentSubmitter.getEmail() : null;
+            handler.logInfo("Item " + item.getID() + " submitter updated from " + oldEmail + " to " + newEmail);
             item.setSubmitter(submitter);
 
             try {
-                itemService.setMetadataSingleValue(context, item, "dc", "provenance", null, null, submitter.getEmail());
+                itemService.setMetadataSingleValue(context, item, "dc", "provenance", null, null, newEmail);
                 itemService.update(context, item);
             } catch (SQLException | AuthorizeException e) {
                 handler.handleException(e);
