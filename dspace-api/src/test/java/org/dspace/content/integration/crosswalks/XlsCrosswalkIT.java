@@ -320,6 +320,74 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             "Description of publication", "", ""));
 
     }
+    
+    @Test
+    public void testDisseminatePublicationsWithLongAbstract() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        
+        StringBuilder sb = new StringBuilder(34000);
+        for (int i = 0; i < 17000; i++) {
+        	sb.append("A ");
+        }
+        String longAbstract = sb.toString();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Test Publication")
+                .withAlternativeTitle("Alternative publication title")
+                .withRelationPublication("Published in publication")
+                .withRelationDoi("doi:10.3972/test")
+                .withDoiIdentifier("doi:111.111/publication")
+                .withIsbnIdentifier("978-3-16-148410-0")
+                .withIssnIdentifier("2049-3630")
+                .withIsiIdentifier("111-222-333")
+                .withScopusIdentifier("99999999")
+                .withLanguage("en")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withSubject("test")
+                .withSubject("export")
+                .withType("Controlled Vocabulary for Resource Type Genres::text::review")
+                .withIssueDate("2020-01-01")
+                .withAuthor("John Smith")
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor("Walter White")
+                .withAuthorAffiliation("Company")
+                .withEditor("Editor")
+                .withEditorAffiliation("Editor Affiliation")
+                .withRelationConference("The best Conference")
+                .withRelationProduct("DataSet")
+                .withDescriptionAbstract(longAbstract)
+                .build();
+        
+        context.restoreAuthSystemState();
+
+        xlsCrosswalk = (XlsCrosswalk) crosswalkMapper.getByType("publication-xls");
+        assertThat(xlsCrosswalk, notNullValue());
+        xlsCrosswalk.setDCInputsReader(dcInputsReader);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        xlsCrosswalk.disseminate(context, Arrays.asList(item).iterator(), baos);
+
+        Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
+        assertThat(workbook.getNumberOfSheets(), equalTo(1));
+
+        Sheet sheet = workbook.getSheetAt(0);
+        //assertThat(sheet.getPhysicalNumberOfRows(), equalTo(1)); // makes the test fail on purpose
+        assertThat(sheet.getPhysicalNumberOfRows(), equalTo(2));
+        
+        assertThat(getRowValues(sheet.getRow(0)), contains("Title", "Subtitle", "Type", "Language", "Publication date",
+                "Part of", "Journal or Serie", "ISBN (of the container)", "ISSN (of the container)",
+                "DOI (of the container)", "Publisher", "DOI", "ISBN", "ISSN", "ISI-Number", "SCP-Number", "Volume", "Issue",
+                "Start page", "End page", "Authors", "Editors", XlsCrosswalk.COLUMN_CONTAINS_TRUNCATED + "Abstract", "Event", "Product"));
+        
+        assertThat(getRowValues(sheet.getRow(1)), contains("Second Publication", "",
+            "http://purl.org/coar/resource_type/c_e059", "", "2019-12-31", "", "", "", "", "", "",
+            "doi:222.222/publication", "", "", "", "", "V-02", "", "1", "20", "Edward Smith/Company||Walter White", "",
+            XlsCrosswalk.CELL_CONTAINS_TRUNCATED + longAbstract.substring(0, 32726 - 43 - 1) + "…", "", ""));
+    }
 
     @Test
     public void testDisseminateProjects() throws Exception {
