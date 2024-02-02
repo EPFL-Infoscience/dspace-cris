@@ -201,4 +201,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
     </bean>
 
+    <bean id="epfl-update-submitter" class="org.dspace.epfl.script.SubmitterFixScriptConfiguration" primary="true">
+        <property name="description" value="Update submitters for items where submitter does not have a sciper, with the first author having a sciper"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SubmitterFixScript"/>
+    </bean>
+
 </beans>
