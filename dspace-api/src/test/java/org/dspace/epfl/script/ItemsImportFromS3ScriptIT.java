@@ -30,7 +30,6 @@ import org.dspace.content.Community;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDatabase {
@@ -59,7 +58,6 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
     }
 
     @Test
-    @Ignore
     public void testPublicationsImport() throws Exception {
 
         deleteAllFilesOnExit();

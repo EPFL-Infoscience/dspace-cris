@@ -26,8 +26,8 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public class XlsCrosswalk extends TabularCrosswalk {
 
-	public static String CELL_CONTAINS_TRUNCATED = "!CELL CONTENT WAS TRUNCATED DURING EXPORT! ";
-	public static String COLUMN_CONTAINS_TRUNCATED = "!COLUMN CONTAINS TRUNCATED CELL(S)! ";
+    public static String CELL_CONTAINS_TRUNCATED = "!CELL CONTENT WAS TRUNCATED DURING EXPORT! ";
+    public static String COLUMN_CONTAINS_TRUNCATED = "!COLUMN CONTAINS TRUNCATED CELL(S)! ";
     private String sheetName;
 
     @Override

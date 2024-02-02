@@ -74,7 +74,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -393,7 +392,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     }
 
     @Test
-    @Ignore
     public void testDedupSetMergeIfItemsHaveTheSameTitle() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
 
@@ -719,7 +717,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     }
 
     @Test
-    @Ignore
     public void testRemoveItemsFromSetAfterMergeAndExistedIntoAnotherSet() throws Exception {
 
         String titleSetId = createTitleSetId(item1);

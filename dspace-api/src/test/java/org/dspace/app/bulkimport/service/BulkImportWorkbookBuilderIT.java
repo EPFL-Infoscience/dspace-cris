@@ -227,7 +227,7 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
 
         Item secondItem = getItemFromMessage(handler.getInfoMessages().get(10));
         assertThat(secondItem, notNullValue());
-        assertThat(secondItem.getMetadata(), hasSize(18));
+        assertThat(secondItem.getMetadata(), hasSize(38));
         assertThat(secondItem.getMetadata(), hasItems(
             with("dc.title", "Second Publication"),
             with("dc.date.issued", "2022/02/15"),
