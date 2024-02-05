@@ -17,6 +17,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.core.Context;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.ClaimedTaskIndexFactory;
 import org.dspace.discovery.indexobject.factory.WorkflowItemIndexFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -61,7 +62,8 @@ public class ClaimedTaskIndexFactoryImpl extends IndexFactoryImpl<IndexableClaim
     public SolrInputDocument buildDocument(Context context, IndexableClaimedTask indexableObject)
             throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        final SolrInputDocument doc = super.buildDocument(context, indexableObject);
+        final TruncatedSolrInputDocument doc =
+                (TruncatedSolrInputDocument) super.buildDocument(context, indexableObject);
         final ClaimedTask claimedTask = indexableObject.getIndexedObject();
         // Add submitter, locations and modification time
         indexableWorkflowItemService.storeInprogressItemFields(context, doc, claimedTask.getWorkflowItem());

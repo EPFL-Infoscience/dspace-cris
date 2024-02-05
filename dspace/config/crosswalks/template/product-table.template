@@ -1,4 +1,5 @@
 Title = dc.title
+Type = dc.type
 DOI = dc.identifier.doi
 Creators = group.dc-contributor-author
 Publisher = dc.publisher

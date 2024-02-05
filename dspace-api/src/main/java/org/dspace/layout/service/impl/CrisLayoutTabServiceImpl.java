@@ -9,13 +9,13 @@ package org.dspace.layout.service.impl;
 
 import static org.dspace.util.FunctionalUtils.throwingMapperWrapper;
 
+import javax.annotation.PostConstruct;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.dspace.app.util.SubmissionConfigReader;
@@ -226,13 +226,8 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
     private Optional<List<CrisLayoutTab>> findValidEntityType(Context context, String entityTypeValue,
                                                               String customFilter) {
         return Optional.ofNullable(customFilter)
-                       .map(
-                           throwingMapperWrapper(
-                               value -> findByEntityType(context, entityTypeValue, value),
-                               null
-                           )
-                       )
-                       .filter(tabs -> tabs != null && !tabs.isEmpty());
+            .map(throwingMapperWrapper(value -> findByEntityType(context, entityTypeValue, value)))
+            .filter(tabs -> !tabs.isEmpty());
     }
 
 }
