@@ -166,6 +166,8 @@ public class ItemsImportFromS3Script
 
     private BitstreamFormatService bitstreamFormatService;
 
+    private List<UUID> importedItemsUUID = new ArrayList<>();
+
     @Override
     public void setup() throws ParseException {
 
@@ -336,6 +338,7 @@ public class ItemsImportFromS3Script
 
         handler.logInfo(
             "Imported record with ID: " + itemImport.getItem().getId() + ". Updated item with UUID: " + item.getID());
+        importedItemsUUID.add(item.getID());
         return item;
 
     }
@@ -380,7 +383,7 @@ public class ItemsImportFromS3Script
 
         handler.logInfo(
             "Imported record with ID: " + itemImport.getItem().getId() + ". Created item with UUID: " + item.getID());
-
+        importedItemsUUID.add(item.getID());
         return item;
 
     }
@@ -889,4 +892,16 @@ public class ItemsImportFromS3Script
             ItemsImportFromS3ScriptConfiguration.class);
     }
 
+
+    public void setItemsS3Service(ItemsS3Service itemsS3Service) {
+        this.itemsS3Service = itemsS3Service;
+    }
+
+    public void setMarcXmlParser(MarcXmlParser marcXmlParser) {
+        this.marcXmlParser = marcXmlParser;
+    }
+
+    public List<UUID> getImportedItemsUUID() {
+        return importedItemsUUID;
+    }
 }
