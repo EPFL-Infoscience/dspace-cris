@@ -5,7 +5,6 @@
  *
  * http://www.dspace.org/license/
  */
-
 package org.dspace.epfl.script.reader;
 
 import static org.junit.Assert.assertEquals;
@@ -31,13 +30,40 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     private ConfigurationService configurationService;
 
     @Override
-
     public void setUp() throws Exception {
         super.setUp();
         this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.marcXmlParser = new DSpace().getServiceManager().getServicesByType(MarcXmlParser.class).get(0);
         String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
         mapping = marcXmlParser.parseMapping(configuration);
+    }
+
+    @Test
+    public void testSimpleStringValueReader() throws Exception {
+        String issnValue = "issnValue";
+        String descriptionNotesValue = "descriptionNotesValue";
+        String citationIssueValue = "citationIssueValue";
+        String test = " <record> \n" +
+                "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" +
+                " <subfield code=\"a\">" + issnValue + "</subfield>\n" +
+                " </datafield>\n" +
+                "<datafield tag=\"500\" ind1=\" \" ind2=\" \">\n" +
+                " <subfield code=\"a\">" + descriptionNotesValue + "</subfield>\n" +
+                " </datafield>\n" +
+                "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n" +
+                " <subfield code=\"k\">" + citationIssueValue + "</subfield>\n" +
+                " </datafield>\n" +
+                "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+        String recordType = "research-article";
+
+        ItemDTO item = marcXmlParser.readSingleItem(context, "1234", recordType, record, mapping);
+
+        assertEquals(item.getMetadataValues("dc.relation.issn").get(0).getValue(), issnValue);
+        assertEquals(item.getMetadataValues("dc.description.notes").get(0).getValue(), descriptionNotesValue);
+        assertEquals(item.getMetadataValues("oaire.citation.issue").get(0).getValue(), citationIssueValue);
     }
 
     @Test
@@ -65,5 +91,6 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         assertEquals(item.getMetadataValues("dc.title").get(0).getValue(),
                 firstTitle + delimiter + secondTitle + delimiter + subTitle);
     }
+
 
 }

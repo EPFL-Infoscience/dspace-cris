@@ -25,6 +25,8 @@
     <bean class="org.dspace.epfl.script.service.impl.BitstreamUploadS3ServiceImpl" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportSimpleReader" />
+
+    <bean class="org.dspace.epfl.script.reader.ItemImportSimpleStringValueReader" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamTitleReader" />
     
