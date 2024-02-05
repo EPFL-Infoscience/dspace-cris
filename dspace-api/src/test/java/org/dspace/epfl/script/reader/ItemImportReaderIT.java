@@ -11,9 +11,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
-import org.dspace.content.dto.ItemDTO;
+import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.epfl.script.model.ItemsImportMapping;
 import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.services.ConfigurationService;
@@ -57,13 +58,12 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         InputStream inputStream = new ByteArrayInputStream(test.getBytes());
 
         Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
-        String recordType = "research-article";
 
-        ItemDTO item = marcXmlParser.readSingleItem(context, "1234", recordType, record, mapping);
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
-        assertEquals(item.getMetadataValues("dc.relation.issn").get(0).getValue(), issnValue);
-        assertEquals(item.getMetadataValues("dc.description.notes").get(0).getValue(), descriptionNotesValue);
-        assertEquals(item.getMetadataValues("oaire.citation.issue").get(0).getValue(), citationIssueValue);
+        assertEquals(getFirstMetadataValue(itemMetadata, "dc.relation.issn"), issnValue);
+        assertEquals(getFirstMetadataValue(itemMetadata, "dc.description.notes"), descriptionNotesValue);
+        assertEquals(getFirstMetadataValue(itemMetadata, "oaire.citation.issue"), citationIssueValue);
     }
 
     @Test
@@ -82,15 +82,20 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         InputStream inputStream = new ByteArrayInputStream(test.getBytes());
 
         Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
-        String recordType = "research-article";
 
-        ItemDTO item = marcXmlParser.readSingleItem(context, "1234", recordType, record, mapping);
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
         String delimiter = " : ";
 
-        assertEquals(item.getMetadataValues("dc.title").get(0).getValue(),
+        assertEquals(getFirstMetadataValue(itemMetadata, "dc.title"),
                 firstTitle + delimiter + secondTitle + delimiter + subTitle);
     }
 
+
+    private String getFirstMetadataValue(List<MetadataValueDTO> metadata, String field) {
+       return  metadata.stream()
+               .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
+               .map(MetadataValueDTO::getValue).findFirst().orElse("dummy");
+    }
 
 }
