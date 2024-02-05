@@ -46,6 +46,11 @@
         <subfield code="a">@dc.identifier.pmid@</subfield>
     </datafield>
     @group.dc-identifier-pmid.end@
+    @group.dc-identifier-epo.start@
+    <datafield tag="024" ind1="/" ind2=" ">
+        <subfield code="a">@dc.identifier.epo@</subfield>
+    </datafield>
+    @group.dc-identifier-epo.end@
     @if.metadata.epfl-legacy-submissionform.start@
     <datafield tag="037" ind1=" " ind2=" ">
         <subfield code="a">@epfl.legacy.submissionform@</subfield>
@@ -83,6 +88,11 @@
         <subfield code="b">@dc.publisher@</subfield>
         <subfield code="c">@dc.date.issued@</subfield>
     </datafield>
+    @group.dc-date-issued.start@
+    <datafield tag="269" ind1=" " ind2=" ">
+        <subfield code="a">@dc.date.issued@</subfield>
+    </datafield>
+    @group.dc-date-issued.end@
     @group.dc-date-issued.end@
     <datafield tag="300" ind1=" " ind2=" ">
         <subfield code="a">@dc.size@</subfield>
@@ -99,9 +109,11 @@
         <subfield code="a">@dc.description@</subfield>
     </datafield>
     @group.dc-description.end@
+    @if.metadata.dc-relation-ispartofseries.start@
     <datafield tag="490" ind1=" " ind2=" ">
-        <subfield code="a">@dc.relation.ispartof@</subfield>
+        <subfield code="a">@dc.relation.ispartofseries@</subfield>
     </datafield>
+    @if.metadata.dc-relation-ispartofseries.end@
     @group.dc-description.start@
     <datafield tag="500" ind1=" " ind2=" ">
         <subfield code="a">@dc.description@</subfield>
@@ -134,11 +146,6 @@
     </datafield>
     @group.epfl-award.end@
     @group.dc-subject.start@
-    <datafield tag="650" ind1=" " ind2=" ">
-        <subfield code="a">@dc.subject@</subfield>
-    </datafield>
-    @group.dc-subject.end@
-    @group.dc-subject.start@
     <datafield tag="653" ind1="1" ind2=" ">
         <subfield code="a">@dc.subject@</subfield>
     </datafield>
@@ -147,6 +154,7 @@
     <datafield tag="700" ind1=" " ind2=" ">
         <subfield code="0">@epfl.legacy.contributorauthnum@</subfield>
         <subfield code="a">@dc.contributor.author@</subfield>
+        <subfield code="g">@cris.virtual.author-sciperId@</subfield>
     </datafield>
     @group.dc-contributor-author.end@
     @group.dc-contributor.start@
@@ -157,24 +165,22 @@
     @group.dc-relation-conference.start@
     <datafield tag="711" ind1="2" ind2=" ">
         <subfield code="a">@dc.relation.conference@</subfield>
+        <subfield code="c">@oaire.citation.conferencePlace@</subfield>
+        <subfield code="d">@oaire.citation.conferenceDate@</subfield>
     </datafield>
     @group.dc-relation-conference.end@
-    @group.dc-contributor-editor.start@
-    <datafield tag="720" ind1=" " ind2=" ">
-        <subfield code="0">@epfl.legacy.contributorauthno@</subfield>
-        <subfield code="a">@dc.contributor.author@</subfield>
-    </datafield>
-    @group.dc-contributor-editor.end@
     @group.dc-contributor-scientificeditor.start@
     <datafield tag="720" ind1=" " ind2="1">
-        <subfield code="0">@epfl.legacy.contributorauthno@</subfield>
+        <subfield code="0">@epfl.legacy.contributoradvisornum@</subfield>
         <subfield code="a">@dc.contributor.scientificeditor@</subfield>
+        <subfield code="g">@cris.virtual.scientificeditor-sciperId@</subfield>
     </datafield>
     @group.dc-contributor-scientificeditor.end@
     @group.dc-contributor-advisor.start@
     <datafield tag="720" ind1=" " ind2="2">
-        <subfield code="0">@epfl.legacy.contributorauthno@</subfield>
-        <subfield code="a">@dc.contributor.author@</subfield>
+        <subfield code="0">@epfl.legacy.contributorscientificeditornum@</subfield>
+        <subfield code="a">@dc.contributor.advisor@</subfield>
+        <subfield code="g">@cris.virtual.advisor-sciperId@</subfield>
     </datafield>
     @group.dc-contributor-advisor.end@
     @group.dc-identifier-stadardno.start@
@@ -182,30 +188,32 @@
         <subfield code="a">@dc.identifier.stadardno@</subfield>
     </datafield>
     @group.dc-identifier-stadardno.end@
-
     @if.metadata.dc-relation-ispartof.start@
     <datafield tag="773" ind1=" " ind2=" ">
-        <subfield code="e">@epfl.part.name@</subfield>
-        <subfield code="f">@epfl.part.number@</subfield>
+        @if.metadata.epfl-part-name.start@
+            <subfield code="e">@epfl.part.name@</subfield>
+            <subfield code="f">@epfl.part.number@</subfield>
+        @if.metadata.epfl-part-name.end@
         <subfield code="j">@oaire.citation.volume@</subfield>
+        <subfield code="k">@oaire.citation.issue@</subfield>        
         <subfield code="s">@epfl.part.section@</subfield>
         <subfield code="t">@dc.relation.ispartof@</subfield>
-        @if.metadata.oaire-citation-startPage.start@
-        <subfield code="q">@virtual.fullpage@</subfield>
-        @if.metadata.oaire-citation-startPage.end@
-        <subfield code="k">@dc.citation.issue@</subfield>
+        @if.metadata.oaire-citation-endPage.start@
+            <subfield code="q">@virtual.fullpage@</subfield>
+        @if.metadata.oaire-citation-endPage.end@
     </datafield>
     @if.metadata.dc-relation-ispartof.end@
     @if.metadata.dc-relation-journal.start@
     <datafield tag="773" ind1=" " ind2=" ">
+        <subfield code="j">@oaire.citation.volume@</subfield>
+        <subfield code="k">@oaire.citation.issue@</subfield>        
         <subfield code="t">@dc.relation.journal@</subfield>
+        <subfield code="q">@oaire.citation.articlenumber@</subfield>
+        @if.metadata.oaire-citation-startPage.start@
+            <subfield code="q">@virtual.fullpage@</subfield>
+        @if.metadata.oaire-citation-startPage.end@
     </datafield>
     @if.metadata.dc-relation-journal.end@
-    @if.metadata.dc-relation-ispartofseries.start@
-    <datafield tag="773" ind1=" " ind2=" ">
-        <subfield code="t">@dc.relation.ispartofseries@</subfield>
-    </datafield>
-    @if.metadata.dc-relation-ispartofseries.end@
     @if.metadata.dc-relation-publication.start@
     <datafield tag="787" ind1=" " ind2=" ">
         <subfield code="e">@epfl.relationpublication.type@</subfield>
@@ -235,11 +243,11 @@
         <subfield code="z">@virtual.bitstreamData.original.metadata.dc-file-type@</subfield>
     </datafield>
     @group.bundle-original.end@
-    @group.dc-relation.start@
+    @group.epfl-url.start@
     <datafield tag="856" ind1="4" ind2="1">
-        <subfield code="u">@dc.relation@</subfield>
+        <subfield code="u">@epfl.url@</subfield>
     </datafield>
-    @group.dc-relation.end@
+    @group.epfl-url.end@
     @relation.dc-description-sponsorship.start@
     <datafield tag="909" ind1="C" ind2="0">
 		    <subfield code="p">@oairecerif.acronym@</subfield>
@@ -303,14 +311,4 @@
 		    <subfield code="c">approved</subfield>
     </datafield>
 	@group.dc-source.end@
-	@group.dc-date-issued.start@
-    <datafield tag="269" ind1=" " ind2=" ">
-        <subfield code="c">@dc.date.issued@</subfield>
-    </datafield>
-  @group.dc-date-issued.end@
-  @group.oairecerif-author-affiliation.start@
-    <datafield tag="720" ind1="5" ind2="a">
-        <subfield code="0">@oairecerif.author.affiliation@</subfield>
-    </datafield>
-  @group.oairecerif-author-affiliation.end@
 </record>

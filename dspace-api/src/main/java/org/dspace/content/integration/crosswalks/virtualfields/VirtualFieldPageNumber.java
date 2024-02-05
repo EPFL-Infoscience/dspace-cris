@@ -32,13 +32,22 @@ public class VirtualFieldPageNumber implements VirtualField {
     }
 
     public String[] getMetadata(Context context, Item item, String fieldName) {
-        List<MetadataValue> dcvs = itemService.getMetadataByMetadataString(item, "oaire.citation.startPage");
-        List<MetadataValue> dcvs2 = itemService.getMetadataByMetadataString(item, "oaire.citation.endPage");
+        List<MetadataValue> startPageList = itemService.getMetadataByMetadataString(item, "oaire.citation.startPage");
 
-        if (CollectionUtils.isEmpty(dcvs) || CollectionUtils.isEmpty(dcvs2)) {
+        if (CollectionUtils.isEmpty(startPageList)) {
             return new String[] {};
         }
 
-        return new String[] { dcvs.get(0).getValue() + " - " + dcvs2.get(0).getValue() };
+        String startPage = startPageList.get(0).getValue();
+
+        List<MetadataValue> endPageList = itemService.getMetadataByMetadataString(item, "oaire.citation.endPage");
+
+        if (CollectionUtils.isEmpty(endPageList)) {
+            return new String[] { startPage };
+        }
+
+        String endPage = endPageList.get(0).getValue();
+
+        return new String[] { startPage + " - " + endPage };
     }
 }
