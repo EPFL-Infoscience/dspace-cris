@@ -7,10 +7,7 @@
  */
 package org.dspace.content.authority;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.solr.client.solrj.SolrQuery;
@@ -29,54 +26,17 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.MockSolrSearchCore;
-import org.dspace.event.factory.EventServiceFactory;
-import org.dspace.event.service.EventService;
 import org.dspace.kernel.ServiceManager;
-import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWithDatabase {
 
-    private static final ConfigurationService configurationService =
-        DSpaceServicesFactory.getInstance().getConfigurationService();
-
-    private static final EventService eventService = EventServiceFactory.getInstance().getEventService();
-
     private final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     private MockSolrSearchCore searchService;
-
-    private static String[] consumers;
-
-    /**
-     * This method will be run before the first test as per @BeforeClass. It will
-     * configure the event.dispatcher.default.consumers property to add the
-     * ReciprocalItemAuthorityConsumer.
-     */
-    @BeforeClass
-    public static void initConsumers() {
-        consumers = configurationService.getArrayProperty("event.dispatcher.exclude-discovery.consumers");
-        Set<String> consumersSet = new HashSet<>(Arrays.asList(consumers));
-        if (!consumersSet.contains("reciprocal")) {
-            consumersSet.add("reciprocal");
-            configurationService.setProperty("event.dispatcher.exclude-discovery.consumers", consumersSet.toArray());
-            eventService.reloadConfiguration();
-        }
-    }
-
-    /**
-     * Reset the event.dispatcher.default.consumers property value.
-     */
-    @AfterClass
-    public static void resetDefaultConsumers() {
-        configurationService.setProperty("event.dispatcher.exclude-discovery.consumers", consumers);
-        eventService.reloadConfiguration();
-    }
 
     @Override
     @Before

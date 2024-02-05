@@ -90,7 +90,6 @@ public class CanSubscribeFeatureIT extends AbstractControllerIntegrationTest {
                                                 .build();
         context.restoreAuthSystemState();
         canSubscribeFeature = authorizationFeatureService.find(CanSubscribeFeature.NAME);
-        context.setDispatcher("exclude-discovery");
     }
 
     @Test

@@ -185,7 +185,7 @@ public class CanManageRelationshipsFeatureIT extends AbstractControllerIntegrati
                  .andExpect(status().isOk())
                  .andExpect(jsonPath("$", Matchers.is(AuthorizationMatcher.matchAuthorization(userB2ItemB))));
 
-        /*getClient(tokenColAadmin).perform(get("/api/authz/authorizations/" + colAadmin2ItemB.getID()))
+        getClient(tokenColAadmin).perform(get("/api/authz/authorizations/" + colAadmin2ItemB.getID()))
                                  .andExpect(status().isNotFound());
 
         getClient(tokenColBadmin).perform(get("/api/authz/authorizations/" + colBadmin2ItemA.getID()))
@@ -207,7 +207,7 @@ public class CanManageRelationshipsFeatureIT extends AbstractControllerIntegrati
                    .andExpect(status().isNotFound());
 
         getClient().perform(get("/api/authz/authorizations/" + anonymous2ItemB.getID()))
-                   .andExpect(status().isNotFound());*/
+                   .andExpect(status().isNotFound());
     }
 
 }

@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import org.dspace.AbstractIntegrationTest;
 import org.dspace.services.ConfigurationService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -26,8 +25,6 @@ import org.mockito.junit.MockitoJUnitRunner;
  * 
  * @author Luca Giamminonni (luca.giamminonni at 4science.it)
  */
-// For a very mysterious reason this test class causes further tests to fail
-@Ignore
 @RunWith(MockitoJUnitRunner.class)
 public class RegexPasswordValidatorIT extends AbstractIntegrationTest {
 

@@ -96,13 +96,13 @@ public class SherpaAuthorityIT extends AbstractControllerIntegrationTest {
             .param("filter", "test journal"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                /*localEntry("Test Journal 1", firstJournal),
+                localEntry("Test Journal 1", firstJournal),
                 localEntry("Test Journal 2", secondJournal),
-                localEntry("Test Journal 3", thirdJournal),*/
+                localEntry("Test Journal 3", thirdJournal),
                 sherpaEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(20)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-            .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
+            .andExpect(jsonPath("$.page.totalElements", Matchers.is(4)));
 
     }
 

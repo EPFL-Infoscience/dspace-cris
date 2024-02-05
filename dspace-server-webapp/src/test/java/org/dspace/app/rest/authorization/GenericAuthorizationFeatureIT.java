@@ -198,7 +198,6 @@ public class GenericAuthorizationFeatureIT extends AbstractControllerIntegration
 
         configurationService.setProperty(
             "org.dspace.app.rest.authorization.AlwaysThrowExceptionFeature.turnoff", "true");
-        context.setDispatcher("exclude-discovery");
     }
 
     private void testAdminsHavePermissionsAllDso(String feature) throws Exception {
@@ -1607,15 +1606,11 @@ public class GenericAuthorizationFeatureIT extends AbstractControllerIntegration
             .withAction(Constants.WRITE)
             .withUser(bundle1WriterAdder)
             .build();
-        context.flush();
-        context.commit();
         ResourcePolicyBuilder.createResourcePolicy(context)
             .withDspaceObject(item1)
             .withAction(Constants.ADD)
             .withUser(bundle1WriterAdder)
             .build();
-        context.flush();
-        context.commit();
         ResourcePolicyBuilder.createResourcePolicy(context)
             .withDspaceObject(item1)
             .withAction(Constants.WRITE)

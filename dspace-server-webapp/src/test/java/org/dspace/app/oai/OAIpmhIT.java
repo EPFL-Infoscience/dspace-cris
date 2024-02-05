@@ -8,6 +8,7 @@
 
 package org.dspace.app.oai;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -63,7 +64,7 @@ public class OAIpmhIT extends AbstractControllerIntegrationTest {
 
     // All OAI-PMH paths that we test against
     private final String ROOT_PATH = "/oai/";
-    private final String DEFAULT_CONTEXT_PATH = "openaire4";
+    private final String DEFAULT_CONTEXT_PATH = "request";
     private final String DEFAULT_CONTEXT = ROOT_PATH + DEFAULT_CONTEXT_PATH;
 
     // Mock to ensure XOAI caching is disabled for all tests (see @Before method)
@@ -194,15 +195,15 @@ public class OAIpmhIT extends AbstractControllerIntegrationTest {
                    .andExpect(xpath("OAI-PMH/responseDate").exists())
                    .andExpect(xpath("OAI-PMH/request/@verb").string("ListSets"))
                    // Expect two Sets to be returned
-                   .andExpect(xpath("//set").nodeCount(12))
-                   /*// First setSpec should start with "com_" (Community)
+                   .andExpect(xpath("//set").nodeCount(2))
+                   // First setSpec should start with "com_" (Community)
                    .andExpect(xpath("(//set/setSpec)[1]").string(startsWith("com_")))
                    // First set name should be Community name
                    .andExpect(xpath("(//set/setName)[1]").string("Parent Community"))
                    // Second setSpec should start with "col_" (Collection)
                    .andExpect(xpath("(//set/setSpec)[2]").string(startsWith("col_")))
                    // Second set name should be Collection name
-                   .andExpect(xpath("(//set/setName)[2]").string("Child Collection"))*/
+                   .andExpect(xpath("(//set/setName)[2]").string("Child Collection"))
                    // No resumption token should be returned
                    .andExpect(xpath("//resumptionToken").doesNotExist())
         ;

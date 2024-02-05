@@ -235,7 +235,6 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
 
         this.eventService.registerEventListener(this.statisticsEventListener);
 
-        context.setDispatcher("exclude-discovery");
         context.restoreAuthSystemState();
     }
 

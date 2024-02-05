@@ -680,7 +680,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                         .andExpect(jsonPath("$.authenticationMethod").doesNotExist())
                         .andExpect(jsonPath("$.type", is("status")));
 
-        getClient().perform(
+        getClient(token).perform(
                 get("/api/authz/authorizations/search/object")
                         .param("embed", "feature")
                         .param("feature", feature)
