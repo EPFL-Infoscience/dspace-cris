@@ -17,10 +17,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Implementation of {@link ItemsImportMetadataFieldReader} that threats the value 
+ * Implementation of {@link ItemsImportMetadataFieldReader} that threats the value
  * of the metadata field as a simple String object
  * 
- * @author Aliaksei Bykau  
+ * @author Aliaksei Bykau
  *
  */
 public class ItemImportSimpleStringValueReader implements ItemsImportMetadataFieldReader {

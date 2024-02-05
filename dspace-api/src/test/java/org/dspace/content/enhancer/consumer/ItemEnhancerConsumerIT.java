@@ -485,7 +485,8 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(metadataValues, hasItem(with("cris.virtualsource.advisor-sciperId", personId)));
 
         assertThat(virtualField, equalTo(getFirstMetadataValue(publication, "cris.virtual.advisor-sciperId")));
-        assertThat(virtualSourceField, equalTo(getFirstMetadataValue(publication, "cris.virtualsource.advisor-sciperId")));
+        assertThat(virtualSourceField,
+                   equalTo(getFirstMetadataValue(publication, "cris.virtualsource.advisor-sciperId")));
 
     }
 

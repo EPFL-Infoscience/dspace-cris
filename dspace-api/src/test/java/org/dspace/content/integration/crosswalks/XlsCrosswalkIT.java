@@ -320,15 +320,15 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             "Description of publication", "", ""));
 
     }
-    
+
     @Test
     public void testDisseminatePublicationsWithLongAbstract() throws Exception {
 
         context.turnOffAuthorisationSystem();
-        
+
         StringBuilder sb = new StringBuilder(34000);
         for (int i = 0; i < 17000; i++) {
-        	sb.append("A ");
+            sb.append("A ");
         }
         String longAbstract = sb.toString();
 
@@ -361,7 +361,7 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withRelationProduct("DataSet")
                 .withDescriptionAbstract(longAbstract)
                 .build();
-        
+
         context.restoreAuthSystemState();
 
         xlsCrosswalk = (XlsCrosswalk) crosswalkMapper.getByType("publication-xls");
@@ -377,12 +377,13 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         Sheet sheet = workbook.getSheetAt(0);
         //assertThat(sheet.getPhysicalNumberOfRows(), equalTo(1)); // makes the test fail on purpose
         assertThat(sheet.getPhysicalNumberOfRows(), equalTo(2));
-        
+
         assertThat(getRowValues(sheet.getRow(0)), contains("Title", "Subtitle", "Type", "Language", "Publication date",
-                "Part of", "Journal or Serie", "ISBN (of the container)", "ISSN (of the container)",
-                "DOI (of the container)", "Publisher", "DOI", "ISBN", "ISSN", "ISI-Number", "SCP-Number", "Volume", "Issue",
-                "Start page", "End page", "Authors", "Editors", XlsCrosswalk.COLUMN_CONTAINS_TRUNCATED + "Abstract", "Event", "Product"));
-        
+            "Part of", "Journal or Serie", "ISBN (of the container)", "ISSN (of the container)",
+            "DOI (of the container)", "Publisher", "DOI", "ISBN", "ISSN", "ISI-Number", "SCP-Number", "Volume", "Issue",
+            "Start page", "End page", "Authors", "Editors", XlsCrosswalk.COLUMN_CONTAINS_TRUNCATED + "Abstract",
+            "Event", "Product"));
+
         assertThat(getRowValues(sheet.getRow(1)), contains("Second Publication", "",
             "http://purl.org/coar/resource_type/c_e059", "", "2019-12-31", "", "", "", "", "", "",
             "doi:222.222/publication", "", "", "", "", "V-02", "", "1", "20", "Edward Smith/Company||Walter White", "",
