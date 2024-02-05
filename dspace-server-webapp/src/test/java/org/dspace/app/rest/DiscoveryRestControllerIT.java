@@ -410,7 +410,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor?prefix=smith")))
+                .andExpect(jsonPath("$._links.self.href",
+                           containsString("api/discover/facets/author_editor?prefix=smith")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -872,7 +873,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The scope has to be the same as the one that we've given in the parameters
                 .andExpect(jsonPath("$.scope", is("testScope")))
                 //There always needs to be a self link available
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor?scope=testScope")))
+                .andExpect(jsonPath("$._links.self.href",
+                           containsString("api/discover/facets/author_editor?scope=testScope")))
                 //These are all the authors for the items that were created and thus they have to be present in
                 // the embedded values section
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
@@ -900,10 +902,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The scope has to be same as the param that we've entered
                 .andExpect(jsonPath("$.scope", is("testScope")))
                 //There always needs to be a self link available
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author_editor?scope=testScope")))
+                .andExpect(jsonPath("$._links.self.href",
+                           containsString("api/discover/facets/author_editor?scope=testScope")))
                 .andExpect(jsonPath("$._links.next.href",
                     containsString(
-                        "api/discover/facets/author_editor?scope=testScope&configuration=defaultConfiguration&page=1&size=2")))
+                 "api/discover/facets/author_editor?scope=testScope&configuration=defaultConfiguration&page=1&size=2")))
                 //These are the values that need to be present as it's ordered by count and these authors are the
                 // most common ones in the items that we've created
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
@@ -6128,9 +6131,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 FacetValueMatcher.entryDateIssuedWithLabelAndCount("2019", 1),
                 FacetValueMatcher.entryDateIssuedWithLabelAndCount("2018", 0))));
 
-        GraphDiscoverSearchFilterFacet graphpubldateFacet =
-            (GraphDiscoverSearchFilterFacet) discoveryConfigurationService.getDiscoveryConfigurationByName("multilanguage-types")
-            .getSidebarFacet("graphpubldate");
+        GraphDiscoverSearchFilterFacet graphpubldateFacet = (GraphDiscoverSearchFilterFacet)
+             discoveryConfigurationService.getDiscoveryConfigurationByName("multilanguage-types")
+                                          .getSidebarFacet("graphpubldate");
 
         try {
             // change the default configuration to disable the reverse direction
@@ -6673,7 +6676,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    .andExpect(jsonPath("$._embedded.values[0].count", is(1)))
                    .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
                         containsString(
-                                "api/discover/search/objects?query=Donald&configuration=defaultConfiguration&f.author_editor="
+                          "api/discover/search/objects?query=Donald&configuration=defaultConfiguration&f.author_editor="
                                 + urlPathSegmentEscaper().escape("Smith, Donald,equals".toLowerCase())
                         )))
                    .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));

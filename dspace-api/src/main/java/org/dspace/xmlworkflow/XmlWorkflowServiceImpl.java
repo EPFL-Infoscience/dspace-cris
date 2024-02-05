@@ -804,12 +804,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
                 StringUtils.isNotBlank(metadata.getAuthority()) &&
                 null != UUIDUtils.fromString(metadata.getAuthority())
             )
-            .map(
-                FunctionalUtils.throwingMapperWrapper(
-                    metadata -> findPerson(context, metadata),
-                    null
-                )
-            )
+            .map(FunctionalUtils.throwingMapperWrapper(metadata -> findPerson(context, metadata)))
             .filter(Objects::nonNull)
             .filter(person -> StringUtils.isNotBlank(person.getEmail()))
             .collect(Collectors.toList());

@@ -54,14 +54,10 @@ public class FunctionalUtils {
      * @return corresponding instance after check
      */
     public static <T> T getCheckDefaultOrBuild(Predicate<T> defaultValueChecker, T defaultValue, Supplier<T> builder) {
-        if (defaultValueChecker.test(defaultValue)) {
-            return defaultValue;
-        }
-        return builder.get();
+        return defaultValueChecker.test(defaultValue) ? defaultValue : builder.get();
     }
 
-    public static <T> Consumer<T> throwingConsumerWrapper(
-        ThrowingConsumer<T, Exception> throwingConsumer) {
+    public static <T> Consumer<T> throwingConsumerWrapper(ThrowingConsumer<T, Exception> throwingConsumer) {
         return i -> {
             try {
                 throwingConsumer.accept(i);
@@ -71,18 +67,34 @@ public class FunctionalUtils {
         };
     }
 
-    public static <T, R> Function<T, R> throwingMapperWrapper(
-        ThrowingMapper<T, R, Exception> throwingConsumer,
-        R defaultValue
-    ) {
+    public static <T> Consumer<T> throwingConsumerWrapper(ThrowingConsumer<T, Exception> throwingConsumer,
+                                                          String errorMessage) {
         return i -> {
-            R value = defaultValue;
             try {
-                value = throwingConsumer.accept(i);
+                throwingConsumer.accept(i);
+            } catch (Exception e) {
+                throw new RuntimeException(errorMessage, e);
+            }
+        };
+    }
+
+    public static <T, R> Function<T, R> throwingMapperWrapper(ThrowingMapper<T, R, Exception> throwingConsumer) {
+        return i -> {
+            try {
+                return throwingConsumer.accept(i);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            return value;
+        };
+    }
+
+    public static <T> Predicate<T> throwingPredicateWrapper(ThrowingPredicate<T, Exception> throwingPredicate) {
+        return i -> {
+            try {
+                return throwingPredicate.test(i);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         };
     }
 
