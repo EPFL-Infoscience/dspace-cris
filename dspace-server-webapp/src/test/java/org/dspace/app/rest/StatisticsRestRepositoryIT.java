@@ -101,6 +101,7 @@ import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.Site;
+import org.dspace.content.service.EntityTypeService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
@@ -132,6 +133,8 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     protected AuthorizeService authorizeService;
     @Autowired
     protected EventService eventService;
+    @Autowired
+    protected EntityTypeService entityTypeService;
 
     private Community communityNotVisited;
     private Community communityVisited;
@@ -183,9 +186,15 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                 .createBitstream(context, itemNotVisitedWithBitstreams, toInputStream("test", UTF_8))
                 .withName("BitstreamVisitedName").build();
 
-        EntityTypeBuilder.createEntityTypeBuilder(context, "OrgUnit").build();
-        EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-        EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+        if (entityTypeService.findByEntityType(context, "OrgUnit") == null) {
+            EntityTypeBuilder.createEntityTypeBuilder(context, "OrgUnit").build();
+        }
+        if (entityTypeService.findByEntityType(context, "Person") == null) {
+            EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
+        }
+        if (entityTypeService.findByEntityType(context, "Publication") == null) {
+            EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+        }
         //orgUnit
         orgUnit = ItemBuilder.createItem(context, collectionVisited)
                              .withEntityType("OrgUnit").withFullName("4Science")

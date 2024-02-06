@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -169,7 +170,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         }
         try {
             String[] items = StringUtils.isNotBlank(this.selectedItems) ? selectedItems.split(";") : null;
-            this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQuery(items);
+            this.query = Objects.isNull(items) || ArrayUtils.isEmpty(items) ? this.query : buildQuery(items);
             if (maxResults > 0) {
                 handler.logInfo("Export will be limited to " + maxResults + " items.");
             }

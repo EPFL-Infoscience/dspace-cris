@@ -37,6 +37,7 @@ import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -67,27 +68,21 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                    //Our default Discovery config has 5 browse indexes, so we expect this to be reflected in the page
                    // object
                    .andExpect(jsonPath("$.page.size", is(20)))
-                   .andExpect(jsonPath("$.page.totalElements", is(14)))
+                   .andExpect(jsonPath("$.page.totalElements", is(8)))
                    .andExpect(jsonPath("$.page.totalPages", is(1)))
                    .andExpect(jsonPath("$.page.number", is(0)))
 
                    //The array of browse index should have a size 4
-                   .andExpect(jsonPath("$._embedded.browses", hasSize(14)))
+                   .andExpect(jsonPath("$._embedded.browses", hasSize(8)))
 
                    //Check that all (and only) the default browse indexes are present
                    .andExpect(jsonPath("$._embedded.browses", containsInAnyOrder(
-                       BrowseIndexMatcher.dateIssuedBrowseIndex("asc"),
                        BrowseIndexMatcher.contributorBrowseIndex("asc"),
-                       BrowseIndexMatcher.titleBrowseIndex("asc"),
                        BrowseIndexMatcher.subjectBrowseIndex("asc"),
                        BrowseIndexMatcher.rodeptBrowseIndex("asc"),
-                       BrowseIndexMatcher.typeBrowseIndex("asc"),
-                       BrowseIndexMatcher.rpdeptBrowseIndex("asc"),
-                       BrowseIndexMatcher.rpnameBrowseIndex("asc"),
-                       BrowseIndexMatcher.ounameBrowseIndex("asc"),
-                       BrowseIndexMatcher.eqtitleBrowseIndex("asc"),
+                       BrowseIndexMatcher.journalBrowseIndex("asc"),
+                       BrowseIndexMatcher.conferenceBrowseIndex("asc"),
                        BrowseIndexMatcher.typesBrowseIndex(),
-                       BrowseIndexMatcher.pjtitleBrowseIndex("asc"),
                        BrowseIndexMatcher.hierarchicalBrowseIndex(
                            "publication-coar-types", "itemtype", "dc.type"
                        ),
@@ -99,6 +94,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // title index is commented out in dspace.cfg
     public void findBrowseByTitle() throws Exception {
         //When we call the root endpoint
         getClient().perform(get("/api/discover/browses/title"))
@@ -113,6 +109,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // dateissued index is commented out in dspace.cfg
     public void findBrowseByDateIssued() throws Exception {
         //When we call the root endpoint
         getClient().perform(get("/api/discover/browses/dateissued"))
@@ -518,6 +515,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // title index is commented out in dspace.cfg
     public void findBrowseByTitleItems() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -661,6 +659,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
      *
      * @throws Exception
      */
+    @Ignore // title index is commented out in dspace.cfg
     public void browsePaginationWithoutExplicitParams() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -726,6 +725,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // dateissued index is commented out in dspace.cfg
     public void testPaginationBrowseByDateIssuedItems() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1188,6 +1188,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // dateissued index is commented out in dspace.cfg
     public void testBrowseByItemsStartsWith() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1363,6 +1364,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // dateissued index is commented out in dspace.cfg
     public void testBrowseByStartsWithAndPage() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1463,6 +1465,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
 
 
     @Test
+    @Ignore // title index is commented out in dspace.cfg
     public void testBrowseByTitleStartsWithAndDiacritics() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1543,6 +1546,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // title index is commented out in dspace.cfg
     public void findBrowseByTitleItemsFullProjectionTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1677,6 +1681,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    @Ignore // dateissued index is commented out in dspace.cfg
     public void testBrowseByDateIssuedItemsFullProjectionTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

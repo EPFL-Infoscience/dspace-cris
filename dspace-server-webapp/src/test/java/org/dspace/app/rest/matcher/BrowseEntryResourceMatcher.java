@@ -28,7 +28,7 @@ public class BrowseEntryResourceMatcher {
     public static Matcher<? super Object> matchBrowseEntry(String value, int expectedCount) {
         return allOf(
             //Check core metadata (the JSON Path expression evaluates to a collection so we have to use contains)
-            hasJsonPath("$.value", is(value)),
+            hasJsonPath("$.value", is(value.toLowerCase())),
             hasJsonPath("$.count", is(expectedCount)),
             //Check links
             matchItemLinks()
@@ -37,7 +37,7 @@ public class BrowseEntryResourceMatcher {
 
     public static Matcher<? super Object> matchBrowseEntry(String value, String authority, int expectedCount) {
         return allOf(
-            hasJsonPath("$.authority", is(authority)),
+            hasJsonPath("$.authority", is(authority.toLowerCase())),
             matchBrowseEntry(value, expectedCount)
         );
     }

@@ -829,6 +829,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         Item publication = ItemBuilder.createItem(context, collection)
             .withEntityType("Publication")
             .withTitle("Test Publication")
+            .withType("Resource Types::text")
             .withDoiIdentifier("doi:111.111/publication")
             .withHandle("123456789/xxx")
             .withIssueDate("2020-01-01")
@@ -850,7 +851,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
         context.commit();
 
-        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("endnote");
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("RIS (Endnote)");
         assertThat(referCrossWalk, notNullValue());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();

@@ -74,11 +74,12 @@ public class FacetValueMatcher {
 
     public static Matcher<? super Object> matchEntry(String facet, String label, int count) {
         return allOf(
-                hasJsonPath("$.label", is(label)),
+                hasJsonPath("$.label", is(label.toLowerCase())),
                 hasJsonPath("$.type", is("discover")),
                 hasJsonPath("$.count", is(count)),
                 hasJsonPath("$._links.search.href", containsString("api/discover/search/objects")),
-                hasJsonPath("$._links.search.href", containsString("f." + facet + "=" + label + ",equals"))
+                hasJsonPath("$._links.search.href",
+                            containsString("f." + facet + "=" + label.toLowerCase() + ",equals"))
         );
     }
 
@@ -127,7 +128,7 @@ public class FacetValueMatcher {
 
     public static Matcher<? super Object> entryDateIssuedWithLabelAndCount(String label, int count) {
         return allOf(
-            hasJsonPath("$.label", is(label)),
+            hasJsonPath("$.label", is(label.toLowerCase())),
             hasJsonPath("$.count", is(count)),
             hasJsonPath("$.type", is("discover")),
             hasJsonPath("$._links.search.href", containsString(",equals"))
@@ -136,17 +137,18 @@ public class FacetValueMatcher {
 
     public static Matcher<? super Object> entryText(String facetName, String label, int count) {
         return allOf(
-            hasJsonPath("$.label", is(label)),
+            hasJsonPath("$.label", is(label.toLowerCase())),
             hasJsonPath("$.count", is(count)),
             hasJsonPath("$.type", is("discover")),
             hasJsonPath("$._links.search.href", containsString("api/discover/search/objects")),
-            hasJsonPath("$._links.search.href", containsString("f." + facetName + "=" + label + ",equals"))
+            hasJsonPath("$._links.search.href",
+                        containsString("f." + facetName + "=" + label.toLowerCase() + ",equals"))
         );
     }
 
     public static Matcher<? super Object> entryLanguage(String label) {
         return allOf(
-            hasJsonPath("$.label", is(label)),
+            hasJsonPath("$.label", is(label.toLowerCase())),
             hasJsonPath("$.type", is("discover")),
             hasJsonPath("$._links.search.href", containsString("api/discover/search/objects")),
             hasJsonPath("$._links.search.href", containsString("f.language="))
@@ -155,8 +157,8 @@ public class FacetValueMatcher {
 
     public static Matcher<? super Object> entryTypes(String label, String authorityKey) {
         return allOf(
-            hasJsonPath("$.label", is(label)),
-            hasJsonPath("$.authorityKey", is(authorityKey)),
+            hasJsonPath("$.label", is(label.toLowerCase())),
+            hasJsonPath("$.authorityKey", is(authorityKey.toLowerCase())),
             hasJsonPath("$.type", is("discover")),
             hasJsonPath("$._links.search.href", containsString("api/discover/search/objects"))
         );
@@ -164,7 +166,7 @@ public class FacetValueMatcher {
 
     public static Matcher<? super Object> entryTypes(String label) {
         return allOf(
-            hasJsonPath("$.label", is(label)),
+            hasJsonPath("$.label", is(label.toLowerCase())),
             hasJsonPath("$.authorityKey", nullValue()),
             hasJsonPath("$.type", is("discover")),
             hasJsonPath("$._links.search.href", containsString("api/discover/search/objects")));

@@ -44,6 +44,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -165,6 +166,7 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore // because default discovery configuration does not support filtering by title anymore
     public void testBulkItemExportWithManyFilters() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -237,6 +239,7 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
 
         Item orgUnit = ItemBuilder.createItem(context, collection)
             .withTitle("4Science")
+            .withEntityType("OrgUnit")
             .build();
 
         String orgUnitId = orgUnit.getID().toString();

@@ -145,8 +145,9 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
         publicationType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
-        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
-            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
 
         context.setCurrentUser(eperson);
 

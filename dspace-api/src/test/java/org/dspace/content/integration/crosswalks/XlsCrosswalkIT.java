@@ -326,11 +326,7 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         context.turnOffAuthorisationSystem();
 
-        StringBuilder sb = new StringBuilder(34000);
-        for (int i = 0; i < 17000; i++) {
-            sb.append("A ");
-        }
-        String longAbstract = sb.toString();
+        String longAbstract = "A ".repeat(17000);
 
         Item item = ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
@@ -384,8 +380,8 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             "Start page", "End page", "Authors", "Editors", XlsCrosswalk.COLUMN_CONTAINS_TRUNCATED + "Abstract",
             "Event", "Product"));
 
-        assertThat(getRowValues(sheet.getRow(1)), contains("Second Publication", "",
-            "http://purl.org/coar/resource_type/c_e059", "", "2019-12-31", "", "", "", "", "", "",
+        assertThat(getRowValues(sheet.getRow(1)), contains("Test Publication", "Alternate publication title",
+            "http://purl.org/coar/resource_type/c_e059", "en", "2019-12-31", "", "", "", "", "", "",
             "doi:222.222/publication", "", "", "", "", "V-02", "", "1", "20", "Edward Smith/Company||Walter White", "",
             XlsCrosswalk.CELL_CONTAINS_TRUNCATED + longAbstract.substring(0, 32726 - 43 - 1) + "…", "", ""));
     }

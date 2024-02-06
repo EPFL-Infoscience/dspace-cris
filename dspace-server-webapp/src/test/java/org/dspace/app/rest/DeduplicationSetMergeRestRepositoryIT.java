@@ -51,12 +51,14 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.RelationshipTypeBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
@@ -274,6 +276,13 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 //      create the request body DTO
         deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId, itemUri1, itemUri2,
                                                                  itemUri3, bitstreamUri1, bitstreamUri2);
+
+        EntityType publicationEntityType = entityTypeService.findByEntityType(context, "Publication");
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, publicationEntityType, publicationEntityType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
 
         context.restoreAuthSystemState();
     }

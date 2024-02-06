@@ -203,6 +203,13 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         if (orgUnitType == null) {
             orgUnitType = EntityTypeBuilder.createEntityTypeBuilder(context, "OrgUnit").build();
         }
+        EntityType personType = entityTypeService.findByEntityType(context, "Person");
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, personType, personType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
         context.restoreAuthSystemState();
     }
 
@@ -9408,9 +9415,6 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         context.turnOffAuthorisationSystem();
 
-        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
-            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
-
         parentCommunity = CommunityBuilder.createCommunity(context)
             .withName("Parent Community")
             .build();
@@ -9461,9 +9465,6 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     public void testIgnoredMetadataFieldsWithCorrectionSubmissionDefinition() throws Exception {
 
         context.turnOffAuthorisationSystem();
-
-        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
-            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
 
         parentCommunity = CommunityBuilder.createCommunity(context)
             .withName("Parent Community")
