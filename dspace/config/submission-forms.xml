@@ -2038,7 +2038,7 @@
           <required />
           <style>col-xs-12 col-md-9</style>
           <hint />
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f744</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -2050,7 +2050,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint>If the journal or series ISSN wasn't automatically detected, please enter it here</hint>
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f745</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -2064,7 +2064,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f746</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2076,7 +2076,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f747</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -2088,7 +2088,7 @@
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint />
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f748</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -2102,7 +2102,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>e.g. 052005</hint>
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f750</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2114,7 +2114,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f750</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2126,7 +2126,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_beb9, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, preprint-coar-types:c_816b, preprint-coar-types:c_8042, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_b239, publication-coar-types:c_6501, publication-coar-types:c_beb9, publication-coar-types:c_2df8fbb1, publication-coar-types:c_dcae04bc, publication-coar-types:c_7bab, publication-coar-types:c_816b, publication-coar-types:c_8042, publication-coar-types:c_c94f, publication-coar-types:c_5794, publication-coar-types:c_f750</type-bind>
+          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
     </form>
@@ -4695,7 +4695,7 @@
           <repeatable>false</repeatable>
           <required>The book title is mandatory</required>
           <hint>Please, provide the main publication in which this work appears. For example, if it's a book chapter, specify the book; if it's a conference contribution, specify the conference proceedings</hint>
-          <type-bind>book-coar-types:c_3248, conference-coar-types:c_c94f, conference-coar-types:c_5794,conference-coar-types:c_6670, publication-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_5794</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -4708,7 +4708,7 @@
           <required>The publisher is mandatory</required>
           <style>col-xs-12 col-md-8</style>
           <hint />
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3248</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4720,7 +4720,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3249</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -4734,7 +4734,7 @@
           <required />
           <style>col-xs-12 col-md-8</style>
           <hint>e.g. 2nd edition</hint>
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3249</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4745,7 +4745,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3249</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -4759,7 +4759,7 @@
           <required />
           <style>col-xs-12 col-md-8</style>
           <hint>For a book in multiple parts</hint>
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3249</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -4771,7 +4771,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>e.g. Volume 1</hint>
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3249</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -4785,7 +4785,7 @@
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>e.g. the ISBN of the book associated with this item</hint>
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3249</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4797,7 +4797,7 @@
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>e.g. the DOI of the bookassociated with this item</hint>
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3249</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -4811,7 +4811,7 @@
           <required />
           <style>col-xs-12 col-md-9</style>
           <hint>Please, provide the series and volume assigned to this item</hint>
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, publication-coar-types:c_5794, conference-coar-types:c_6670, publication-coar-types:c_2f33, publication-coar-types:c_3254</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4823,7 +4823,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint>e.g. the ISSN of the series associated with this item</hint>
-          <type-bind>conference-coar-types:c_c94f, conference-coar-types:c_f744, conference-coar-types:c_5794, book-coar-types:c_2f33, book-coar-types:c_3248, publication-coar-types:c_c94f, publication-coar-types:c_f744, conference-coar-types:c_6670, publication-coar-types:c_5794, publication-coar-types:c_2f33, publication-coar-types:c_3255</type-bind>
+          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
     </form>
