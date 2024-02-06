@@ -9,13 +9,13 @@ package org.dspace.layout.service.impl;
 
 import static org.dspace.util.FunctionalUtils.throwingMapperWrapper;
 
-import javax.annotation.PostConstruct;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.dspace.app.util.SubmissionConfigReader;
