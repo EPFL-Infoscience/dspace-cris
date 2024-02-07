@@ -210,6 +210,7 @@
         <metadata-field>
             <field>epfl.lastmodified.email</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '0']/subfield[@code = 'f']</xpath>
+            <reader>uniqueMetadata</reader>
         </metadata-field>
         <metadata-field>
             <field>oaire.version</field>
