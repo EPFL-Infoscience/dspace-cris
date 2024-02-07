@@ -8,42 +8,44 @@
 package org.dspace.importer.external.metadatamapping.contributor;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import org.dspace.importer.external.metadatamapping.MetadataFieldConfig;
+import org.apache.commons.lang.StringUtils;
+import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
 
-public class ReplaceStringXPathMetadataContributor extends SimpleXpathMetadatumContributor {
+public class ReplaceStringXPathMetadataContributor<T> implements MetadataContributor<T> {
+
+    private final MetadataContributor<T> innerContributor;
 
     private String stringToBeReplaced;
 
     private String stringToReplaceWith;
 
-    @Override
-    public Collection<MetadatumDTO> contributeMetadata(Element element) {
-        List<MetadatumDTO> values = new LinkedList<>();
-        for (String ns : prefixToNamespaceMapping.keySet()) {
-            for (Element el : element.getChildren(query, Namespace.getNamespace(ns))) {
-                values.add(getMetadata(field, el.getValue()));
-            }
-        }
-        return values;
+    public ReplaceStringXPathMetadataContributor(MetadataContributor<T> innerContributor) {
+        this.innerContributor = innerContributor;
     }
 
-    private MetadatumDTO getMetadata(MetadataFieldConfig field, String value) {
-        if (Objects.isNull(field)) {
-            return null;
-        }
-        MetadatumDTO dcValue = new MetadatumDTO();
-        dcValue.setValue(value == null ? null : value.replace(stringToBeReplaced, stringToReplaceWith));
-        dcValue.setElement(field.getElement());
-        dcValue.setQualifier(field.getQualifier());
-        dcValue.setSchema(field.getSchema());
-        return dcValue;
+    @Override
+    public void setMetadataFieldMapping(MetadataFieldMapping<T, MetadataContributor<T>> rt) {
+
+    }
+
+    @Override
+    public Collection<MetadatumDTO> contributeMetadata(T t) {
+        final Collection<MetadatumDTO> metadata = innerContributor.contributeMetadata(t);
+        return metadata.stream()
+                       .filter(Objects::nonNull)
+                       .filter(metadatum -> StringUtils.isNotBlank(metadatum.getValue()))
+                       .map(this::replaceValue)
+                       .collect(Collectors.toList());
+    }
+
+    private MetadatumDTO replaceValue(MetadatumDTO metadatum) {
+        String replacedValue = metadatum.getValue().replaceAll(stringToBeReplaced, stringToReplaceWith);
+        metadatum.setValue(replacedValue);
+        return metadatum;
     }
 
     public void setStringToBeReplaced(String stringToBeReplaced) {
