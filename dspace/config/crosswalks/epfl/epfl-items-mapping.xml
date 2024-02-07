@@ -109,11 +109,6 @@
             <reader>funders</reader>
         </metadata-field>
         <metadata-field>
-            <field>dc.rights.accessRights</field>
-            <xpath>./datafield[@tag = '542']</xpath>
-            <reader>accessRights</reader>
-        </metadata-field>
-        <metadata-field>
             <field>epfl.award</field>
             <xpath>./datafield[@tag = '586']</xpath>
             <reader>award</reader>

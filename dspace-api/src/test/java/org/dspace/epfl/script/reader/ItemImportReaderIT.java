@@ -26,6 +26,8 @@ import org.w3c.dom.Node;
 
 public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
+    private static final String NOT_FOUNT_VALUE = "NotFound";
+
     private MarcXmlParser marcXmlParser;
     private ItemsImportMapping mapping;
     private ConfigurationService configurationService;
@@ -91,11 +93,31 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
                 firstTitle + delimiter + secondTitle + delimiter + subTitle);
     }
 
+    @Test
+    public void testThatAccessRightWillNotBeImported() throws Exception {
+        String accessRightDefinition = "accessRightDefinition";
+        String accessRightURI = "accessRightURI";
+        String test = " <record> \n" +
+                "<datafield tag=\"542\" ind1=\" \" ind2=\" \">\n" +
+                "<subfield code=\"a\">" + accessRightDefinition + "</subfield>\n" +
+                "<subfield code=\"u\">" + accessRightURI + "</subfield>\n" +
+                "  </datafield>\n" +
+                "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        assertEquals(getFirstMetadataValue(itemMetadata, "dc.rights.accessRights"),
+                NOT_FOUNT_VALUE);
+    }
+
 
     private String getFirstMetadataValue(List<MetadataValueDTO> metadata, String field) {
        return  metadata.stream()
                .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
-               .map(MetadataValueDTO::getValue).findFirst().orElse("dummy");
+               .map(MetadataValueDTO::getValue).findFirst().orElse(NOT_FOUNT_VALUE);
     }
 
 }
