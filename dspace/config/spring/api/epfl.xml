@@ -190,9 +190,9 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportPublicDefenseYearReader" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamRelationReader" >
-        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'u']"/>
+        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']/subfield[@code = 'u']"/>
         <property name="relationValueXPath" value = "." />
-        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]"></property>
+        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]"/>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
@@ -212,7 +212,7 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPageReader">
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
-        <property name="articleNumberMetadataField" value="oaire.citation.articlenumber"></property>
+        <property name="articleNumberMetadataField" value="oaire.citation.articlenumber"/>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportJournalReader">
