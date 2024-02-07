@@ -27,7 +27,15 @@ public class DoiFilter implements Filter {
 
     @Override
     public Boolean getResult(Context context, Item item) throws LogicalStatementException {
-        return isPublication(item) && isThesis(item) && hasNotDoiOrHasCustomerDoi(item);
+        return isPublication(item) && isThesis(item) && hasNotDoiOrHasCustomerDoi(item) && isWrittenEPFL(item);
+    }
+
+    private boolean isWrittenEPFL(Item item) {
+        String type = itemService.getMetadataFirstValue(item, "epfl", "written", null, Item.ANY);
+        if (isEmpty(type)) {
+            return false;
+        }
+        return type.contains("EPFL") || type.contains("epfl");
     }
 
     private boolean isPublication(Item item) {
