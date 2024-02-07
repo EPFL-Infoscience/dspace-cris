@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -163,6 +165,8 @@ public class ItemsImportFromS3Script
     private UploadConfigurationService uploadConfigurationService;
 
     private BitstreamFormatService bitstreamFormatService;
+
+    private List<UUID> importedItemsUUID = new ArrayList<>();
 
     @Override
     public void setup() throws ParseException {
@@ -334,6 +338,7 @@ public class ItemsImportFromS3Script
 
         handler.logInfo(
             "Imported record with ID: " + itemImport.getItem().getId() + ". Updated item with UUID: " + item.getID());
+        importedItemsUUID.add(item.getID());
         return item;
 
     }
@@ -378,7 +383,7 @@ public class ItemsImportFromS3Script
 
         handler.logInfo(
             "Imported record with ID: " + itemImport.getItem().getId() + ". Created item with UUID: " + item.getID());
-
+        importedItemsUUID.add(item.getID());
         return item;
 
     }
@@ -405,9 +410,11 @@ public class ItemsImportFromS3Script
 
             Bitstream bitstream = bitstreamService.create(context, bundle, inputStream);
             bitstream.setChecksum(checksum);
+
+            addBitstreamMetadataValues(bitstream, metadataValues);
             setBitstreamFormat(bitstream);
             setBitstreamPolicies(bitstream, resourcePolicies);
-            addBitstreamMetadataValues(bitstream, metadataValues);
+
 
             bitstreamService.update(context, bitstream);
 
@@ -627,7 +634,8 @@ public class ItemsImportFromS3Script
         return Optional.ofNullable(item);
     }
 
-    private void setBitstreamsContent(ItemImportDTO item, String id, ZipFile zipFile) throws IOException {
+    private void setBitstreamsContent(ItemImportDTO item, String id, ZipFile zipFile) throws IOException,
+            MimeTypeException {
         List<BitstreamDTO> bitstreams = item.getItem().getBitstreams();
 
         if (CollectionUtils.isEmpty(bitstreams)) {
@@ -648,6 +656,11 @@ public class ItemsImportFromS3Script
                     .orElse(null);
 
                 if (bitstreamDto != null) {
+                    if (!isFileHaveExistingExtension(fileName)) {
+                        String fileExtension = getExtensionFromFile(zipFile.getInputStream(entry));
+                        updateExtension(bitstreamDto, fileExtension);
+                    }
+
                     bitstreamDto.setContent(zipFile.getInputStream(entry));
                 } else {
                     handler.logError("No content found for entry " + entry.getName());
@@ -737,6 +750,10 @@ public class ItemsImportFromS3Script
     private String getExtensionFromFile(InputStream file) throws IOException, MimeTypeException {
         String detect = tika.detect(file);
         return mimeRepository.forName(detect).getExtension();
+    }
+
+    private boolean isFileHaveExistingExtension(String fileName) throws IOException {
+        return Files.probeContentType(Paths.get(fileName)) != null;
     }
 
     private String escapeBitstreamName(String name) {
@@ -875,4 +892,16 @@ public class ItemsImportFromS3Script
             ItemsImportFromS3ScriptConfiguration.class);
     }
 
+
+    public void setItemsS3Service(ItemsS3Service itemsS3Service) {
+        this.itemsS3Service = itemsS3Service;
+    }
+
+    public void setMarcXmlParser(MarcXmlParser marcXmlParser) {
+        this.marcXmlParser = marcXmlParser;
+    }
+
+    public List<UUID> getImportedItemsUUID() {
+        return importedItemsUUID;
+    }
 }

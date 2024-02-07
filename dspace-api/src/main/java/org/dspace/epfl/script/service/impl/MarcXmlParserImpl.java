@@ -489,4 +489,20 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     }
 
+
+    public void setItemsS3Service(ItemsS3Service itemsS3Service) {
+        this.itemsS3Service = itemsS3Service;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
+    public void setChoiceAuthorityService(ChoiceAuthorityService choiceAuthorityService) {
+        this.choiceAuthorityService = choiceAuthorityService;
+    }
+
+    public void runSetup() {
+        setup();
+    }
 }
