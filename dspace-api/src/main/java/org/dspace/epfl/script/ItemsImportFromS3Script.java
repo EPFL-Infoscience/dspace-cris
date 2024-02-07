@@ -98,7 +98,7 @@ import org.dspace.utils.DSpace;
 import org.w3c.dom.Node;
 
 public class ItemsImportFromS3Script
-    extends DSpaceRunnable<ItemsImportFromS3ScriptConfiguration<ItemsImportFromS3Script>> {
+        extends DSpaceRunnable<ItemsImportFromS3ScriptConfiguration<ItemsImportFromS3Script>> {
 
     public static final String COLLECTION_PROPERTY_PREFIX = "epfl.items-import.collections";
 
@@ -165,8 +165,6 @@ public class ItemsImportFromS3Script
     private UploadConfigurationService uploadConfigurationService;
 
     private BitstreamFormatService bitstreamFormatService;
-
-    private List<UUID> importedItemsUUID = new ArrayList<>();
 
     @Override
     public void setup() throws ParseException {
@@ -338,7 +336,6 @@ public class ItemsImportFromS3Script
 
         handler.logInfo(
             "Imported record with ID: " + itemImport.getItem().getId() + ". Updated item with UUID: " + item.getID());
-        importedItemsUUID.add(item.getID());
         return item;
 
     }
@@ -383,9 +380,7 @@ public class ItemsImportFromS3Script
 
         handler.logInfo(
             "Imported record with ID: " + itemImport.getItem().getId() + ". Created item with UUID: " + item.getID());
-        importedItemsUUID.add(item.getID());
         return item;
-
     }
 
     private void addBitstreams(ItemImportDTO itemImport, Item item) throws Exception {
@@ -892,16 +887,8 @@ public class ItemsImportFromS3Script
             ItemsImportFromS3ScriptConfiguration.class);
     }
 
-
     public void setItemsS3Service(ItemsS3Service itemsS3Service) {
         this.itemsS3Service = itemsS3Service;
     }
 
-    public void setMarcXmlParser(MarcXmlParser marcXmlParser) {
-        this.marcXmlParser = marcXmlParser;
-    }
-
-    public List<UUID> getImportedItemsUUID() {
-        return importedItemsUUID;
-    }
 }
