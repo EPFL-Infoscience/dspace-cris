@@ -283,10 +283,12 @@
         <property name="attributeValue2metadata" ref="contributorEditor2fields"/>
     </bean>
 
-    <bean id="wosIdContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+    <bean id="wosIdContrib" class="org.dspace.importer.external.metadatamapping.contributor.ReplaceStringXPathMetadataContributor">
         <property name="field" ref="wos.wosId"/>
         <property name="query" value="UID"/>
         <property name="prefixToNamespaceMapping" ref="wosNs"/>
+        <property name="stringToBeReplaced" value="WOS:"/>
+        <property name="stringToReplaceWith" value=""/>
     </bean>
     <bean id="wos.wosId" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.identifier.isi"/>
