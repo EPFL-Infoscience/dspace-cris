@@ -61,7 +61,7 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="oairecerif.funder" value="./subfield[@code = 'a']"/>
-                <entry key="oairecerif.funding.identifier" value="./subfield[@code = 'c']"/>
+                <entry key="dc.relation.grantno" value="./subfield[@code = 'c']"/>
             </util:map>
         </property>
     </bean>
