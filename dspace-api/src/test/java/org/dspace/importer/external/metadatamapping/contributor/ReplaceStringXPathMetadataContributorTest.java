@@ -7,8 +7,7 @@
  */
 package org.dspace.importer.external.metadatamapping.contributor;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,9 +46,10 @@ public class ReplaceStringXPathMetadataContributorTest {
                 dto -> dto.getSchema() + "." + dto.getElement() + "." + dto.getQualifier(), MetadatumDTO::getValue)
             );
 
-        assertThat(metadata.get("dc.identifier.isi1"), is("123456789"));
-        assertThat(metadata.get("dc.identifier.isi2"), is("123456789"));
-        assertThat(metadata.get("dc.identifier.isi3"), is("123456789"));
+        assertEquals(3, metadata.size());
+        assertEquals("123456789", metadata.get("dc.identifier.isi1"));
+        assertEquals("123456789", metadata.get("dc.identifier.isi2"));
+        assertEquals("123456789", metadata.get("dc.identifier.isi3"));
     }
 
     private MetadatumDTO metadatum(final String schema, final String element, final String qualifier,
