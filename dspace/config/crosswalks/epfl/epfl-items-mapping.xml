@@ -264,6 +264,7 @@
         <metadata-field>
             <field>epfl.thesis.originalUnit</field>
             <xpath>./datafield[@tag = '919']/subfield[@code = 'a']</xpath>
+            <reader>thesis</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.publicDefenseYear</field>
