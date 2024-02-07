@@ -10,8 +10,9 @@ package org.dspace.epfl.script.reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,11 +36,15 @@ public class ItemsImportTitleReader implements ItemsImportMetadataFieldReader {
 
             Node node = nodeList.item(i);
 
-            String title = getSingleValue(node, xPath, titleXPath);
-            String subTitle = getSingleValue(node, xPath, subTitleXPath);
+            List<String> titles = getMultipleValue(node, xPath, titleXPath);
+            List<String> subTitles = getMultipleValue(node, xPath, subTitleXPath);
+            titles.addAll(subTitles);
 
-            String metadataValue = Stream.of(title, subTitle)
-                .filter(value -> StringUtils.isNotBlank(value))
+            List<String> titlesWithoutDuplicates = titles.stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+            String metadataValue = titlesWithoutDuplicates.stream()
+                .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining(" : "));
 
             if (StringUtils.isNotBlank(metadataValue)) {
@@ -48,6 +53,20 @@ public class ItemsImportTitleReader implements ItemsImportMetadataFieldReader {
 
         }
         return metadataValues;
+    }
+
+    private List<String> getMultipleValue(Node node, XPath xPath, String path) {
+        List<String> values = new ArrayList<>();
+        try {
+            NodeList nodeList = (NodeList) xPath.compile(path).evaluate(node, XPathConstants.NODESET);
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node item = nodeList.item(i);
+                values.add(item.getTextContent().trim());
+            }
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + path, e);
+        }
+        return values;
     }
 
     @Override

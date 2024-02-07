@@ -62,6 +62,7 @@ import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.GraphDiscoverSearchFilterFacet;
 import org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.ItemIndexFactory;
 import org.dspace.discovery.indexobject.factory.WorkflowItemIndexFactory;
 import org.dspace.discovery.indexobject.factory.WorkspaceItemIndexFactory;
@@ -141,7 +142,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     public SolrInputDocument buildDocument(Context context, IndexableItem indexableItem)
             throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        SolrInputDocument doc = super.buildDocument(context, indexableItem);
+        TruncatedSolrInputDocument doc = (TruncatedSolrInputDocument) super.buildDocument(context, indexableItem);
 
         final Item item = indexableItem.getIndexedObject();
 

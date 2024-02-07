@@ -77,6 +77,9 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
         assertThat(handler.getWarningMessages(), empty());
     }
 
+    // TODO rewrite this test without deleting important dc.title metadata field
+    //      because without creating it again it causes further tests to fail,
+    //      or just create dc.title again after test is performed
     @Test
     public void testAddingItemWithNonexistentFields() throws Exception {
         String fileLocation = getFilePath("item.xml");

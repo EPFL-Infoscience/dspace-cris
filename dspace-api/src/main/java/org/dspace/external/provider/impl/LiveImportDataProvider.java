@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.AbstractExternalDataProvider;
@@ -31,6 +33,9 @@ import org.dspace.scripts.handler.DSpaceRunnableHandler;
  *
  */
 public class LiveImportDataProvider extends AbstractExternalDataProvider {
+
+    private static final Logger log = LogManager.getLogger(LiveImportDataProvider.class);
+
     /**
      * The {@link QuerySource} live import provider
      */
@@ -103,8 +108,8 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
     @Override
     public Optional<ExternalDataObject> getExternalDataObject(String id) {
         try {
-            handler.logInfo("Getting record by id: " + getActualQuery(id));
-            return Optional.of(getExternalDataObject(querySource.getRecord(id)));
+            logInfo("Getting record by id: " + getActualQuery(id));
+            return Optional.ofNullable(getExternalDataObject(querySource.getRecord(id)));
         } catch (MetadataSourceException e) {
             throw new RuntimeException(
                     "The live import provider " + querySource.getImportSource() + " throws an exception", e);
@@ -114,8 +119,7 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
     @Override
     public List<ExternalDataObject> searchExternalDataObjects(String query, int start, int limit) {
         try {
-            handler.logInfo("Getting records from " + start + " to " + (start + limit)
-                                + " by query: " + getActualQuery(query));
+            logInfo("Getting records from " + start + " to " + (start + limit) + " by query: " + getActualQuery(query));
             return querySource.getRecords(query, start, limit).stream()
                               .map(this::getExternalDataObject)
                               .collect(Collectors.toList());
@@ -133,7 +137,7 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
     @Override
     public int getNumberOfResults(String query) {
         try {
-            handler.logInfo("Getting number of records by query: " + getActualQuery(query));
+            logInfo("Getting number of records by query: " + getActualQuery(query));
             return querySource.getRecordsCount(query);
         } catch (MetadataSourceException e) {
             throw new RuntimeException(
@@ -192,4 +196,13 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
         }
         return query;
     }
+
+    private void logInfo(String info) {
+        if (this.handler != null) {
+            this.handler.logInfo(info);
+        } else {
+            log.info(info);
+        }
+    }
+
 }

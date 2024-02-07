@@ -433,7 +433,7 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
                 .evaluate(root);
 
             return docIs.stream()
-                        .map(throwingMapperWrapper(docId -> new EpoDocumentId(docId, namespaces), null))
+                        .map(throwingMapperWrapper(docId -> new EpoDocumentId(docId, namespaces)))
                         .collect(Collectors.toList());
         } catch (Exception e) {
             log.error(e.getMessage(), e);

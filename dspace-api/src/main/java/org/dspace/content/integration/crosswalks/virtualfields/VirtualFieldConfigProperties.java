@@ -8,6 +8,7 @@
 
 package org.dspace.content.integration.crosswalks.virtualfields;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
@@ -18,7 +19,8 @@ public class VirtualFieldConfigProperties implements VirtualField {
 
     @Override
     public String[] getMetadata(Context context, Item item, String fieldName) {
-        return new String[] { configurationService.getProperty(fieldName.split("\\.")[2].replaceAll("-", ".")) };
+        String value = configurationService.getProperty(fieldName.split("\\.")[2].replaceAll("-", "."));
+        return StringUtils.isNotBlank(value) ? new String[] { value } : new String[0];
     }
 
     public void setConfigurationService(ConfigurationService configurationService) {

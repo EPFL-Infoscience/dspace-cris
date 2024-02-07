@@ -27,6 +27,7 @@
         <metadata-field>
             <field>dc.relation.issn</field>
             <xpath>./datafield[@tag = '022']/subfield[@code = 'a']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.identifier</field>
@@ -92,6 +93,7 @@
         <metadata-field>
             <field>dc.description.notes</field>
             <xpath>./datafield[@tag = '500']/subfield[@code = 'a']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.jury</field>
@@ -179,6 +181,7 @@
         <metadata-field>
             <field>oaire.citation.issue</field>
             <xpath>./datafield[@tag = '773']/subfield[@code = 'k']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>oaire.citation.startPage</field>
