@@ -461,6 +461,40 @@ public class ItemMetadataImportFillerTest {
         verifyNoMoreInteractions(context, itemService);
     }
 
+
+    @Test
+    public void testFillItemWithUseAllConfigurationSetToTrueForIspartof() throws SQLException {
+        MetadataValue metadataValue = buildMetadataValue(randomUUID(), "dc", "relation", "ispartof", "test", 0);
+        Item sourceItem = (Item) metadataValue.getDSpaceObject();
+        Item itemToFill = buildItem(randomUUID());
+
+        Map<String, MappingDetails> mappingDetails = new HashMap<>();
+        mappingDetails.put("dc.relation.issn",
+            buildMappingDetails(true, "dc.relation.issn"));
+
+        Map<String, MetadataConfiguration> configurations = new HashMap<>();
+        configurations.put("dc.relation.ispartof", buildMetadataConfig(true, mappingDetails));
+        cut.setConfigurations(configurations);
+
+        MetadataValue firstMetadata = buildMetadataValue("dc", "relation", "issn", "testIssn");
+        List<MetadataValue> expectedMetadata = asList(firstMetadata);
+        when(itemService.getMetadataByMetadataString(sourceItem, "dc.relation.issn"))
+            .thenReturn(expectedMetadata);
+
+        when(itemService.getMetadataByMetadataString(itemToFill, "dc.relation.issn"))
+            .thenReturn(emptyList());
+
+        cut.fillItem(context, metadataValue, itemToFill);
+
+        verify(itemService).getMetadataByMetadataString(sourceItem, "dc.relation.issn");
+
+        verify(itemService).clearMetadata(context, itemToFill, "dc", "relation", "issn", ANY);
+
+        verify(itemService).addMetadata(context, itemToFill, "dc", "relation", "issn",
+            null, "testIssn", null, -1);
+        verifyNoMoreInteractions(context, itemService);
+    }
+
     private MappingDetails buildMappingDetails(boolean useAll, String targetMetadata) {
         MappingDetails mappingDetails = new MappingDetails();
         mappingDetails.setUseAll(useAll);
