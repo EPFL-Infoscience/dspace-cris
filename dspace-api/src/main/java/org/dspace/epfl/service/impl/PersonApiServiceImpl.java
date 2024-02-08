@@ -180,6 +180,7 @@ public class PersonApiServiceImpl implements PersonApiService {
 
         String name = accred.getName();
         String position = accred.getPosition();
+        String acronym = accred.getAcronym();
 
         if (StringUtils.isAllBlank(name, position) ||
             !inDspace(context, accred.getAcronym())) {
@@ -193,7 +194,7 @@ public class PersonApiServiceImpl implements PersonApiService {
         if (StringUtils.isNotBlank(name)) {
             String authority = getOrgUnitAuthority(accred.getAcronym());
             int confidence = StringUtils.isBlank(authority) ? Choices.CF_UNSET : Choices.CF_AMBIGUOUS;
-            metadataValues.add(new MetadataValueDTO(affiliationField, name, authority, confidence, place));
+            metadataValues.add(new MetadataValueDTO(affiliationField, acronym, authority, confidence, place));
         }
 
         String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
@@ -227,8 +228,8 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     private Optional<MetadataValueDTO> getMainAffiliationMetadataValue(Context context, Accred mainAffiliation) {
 
-        String name = mainAffiliation.getName();
-        if (StringUtils.isBlank(name)
+        String acronym = mainAffiliation.getAcronym();
+        if (StringUtils.isBlank(mainAffiliation.getName())
             || StringUtils.isBlank(mainAffiliation.getAcronym())
             || !inDspace(context, mainAffiliation.getAcronym())
         ) {
@@ -239,8 +240,7 @@ public class PersonApiServiceImpl implements PersonApiService {
         int confidence = StringUtils.isBlank(authority) ? Choices.CF_UNSET : Choices.CF_AMBIGUOUS;
 
         return getPersonMetadataField("affiliation.main")
-            .map(field -> new MetadataValueDTO(field, name, authority, confidence));
-
+            .map(field -> new MetadataValueDTO(field, acronym, authority, confidence));
     }
 
     private Optional<MetadataValueDTO> getUrlMetadataValue(String profile, String field) {
