@@ -304,21 +304,21 @@
     <bean class="org.dspace.content.enhancer.impl.ParentOrganizationsItemEnhancer" >
         <property name="sourceEntityType" value="Publication" />
         <property name="sourceItemMetadataField" ref="parentOrganizationsSourceMetadata" />
-        <property name="relatedItemMetadataField" value="dc.title" />
+        <property name="relatedItemMetadataField" value="oairecerif.acronym" />
         <property name="virtualQualifier" value="parent-organization" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.ParentOrganizationsItemEnhancer" >
         <property name="sourceEntityType" value="Product" />
         <property name="sourceItemMetadataField" ref="parentOrganizationsSourceMetadata" />
-        <property name="relatedItemMetadataField" value="dc.title" />
+        <property name="relatedItemMetadataField" value="oairecerif.acronym" />
         <property name="virtualQualifier" value="parent-organization" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.ParentOrganizationsItemEnhancer" >
         <property name="sourceEntityType" value="Patent" />
         <property name="sourceItemMetadataField" ref="parentOrganizationsSourceMetadata" />
-        <property name="relatedItemMetadataField" value="dc.title" />
+        <property name="relatedItemMetadataField" value="oairecerif.acronym" />
         <property name="virtualQualifier" value="parent-organization" />
     </bean>
 
