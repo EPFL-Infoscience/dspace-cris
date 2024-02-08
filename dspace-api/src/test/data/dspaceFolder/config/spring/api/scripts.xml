@@ -201,4 +201,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
     </bean>
 
+    <bean id="mock-synchronization-of-orgunits" class="org.dspace.epfl.script.SynchronizationOfOrgUnitsConfiguration" primary="true">
+        <property name="description" value="Synchronization of the OrgUnits"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.MockSynchronizationOfOrgUnitsScript"/>
+    </bean>
+
 </beans>
