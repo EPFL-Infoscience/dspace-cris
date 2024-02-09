@@ -178,12 +178,11 @@ public class PersonApiServiceImpl implements PersonApiService {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
-        String name = accred.getName();
         String position = accred.getPosition();
         String acronym = accred.getAcronym();
 
-        if (StringUtils.isAllBlank(name, position) ||
-            !inDspace(context, accred.getAcronym())) {
+        if (StringUtils.isAllBlank(acronym, position) ||
+            !inDspace(context, acronym)) {
             return List.of();
         }
 
@@ -191,8 +190,8 @@ public class PersonApiServiceImpl implements PersonApiService {
             metadataValues.add(new MetadataValueDTO(positionField, position, place));
         }
 
-        if (StringUtils.isNotBlank(name)) {
-            String authority = getOrgUnitAuthority(accred.getAcronym());
+        if (StringUtils.isNotBlank(acronym)) {
+            String authority = getOrgUnitAuthority(acronym);
             int confidence = StringUtils.isBlank(authority) ? Choices.CF_UNSET : Choices.CF_AMBIGUOUS;
             metadataValues.add(new MetadataValueDTO(affiliationField, acronym, authority, confidence, place));
         }
