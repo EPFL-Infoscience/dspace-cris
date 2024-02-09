@@ -264,6 +264,8 @@ public class OrgUnitTSVImportScript
                 handler.logInfo("Head name is missing in tsv, taking head name from api: " + headNameFromApi.get());
                 name = headNameFromApi.get();
             } else {
+                handler.logInfo("Head name is missing in tsv, and it was not possible to get it from the api: " +
+                        "head name metadata is not added");
                 return Optional.empty();
             }
         }
