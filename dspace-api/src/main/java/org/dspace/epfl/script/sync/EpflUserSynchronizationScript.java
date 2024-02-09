@@ -294,6 +294,10 @@ public class EpflUserSynchronizationScript
             }
         }
 
+        if (isNeedToSyncOwner(ePerson, epflPerson)) {
+                needsToBEUpdated = true;
+        }
+
         if (needsToBEUpdated) {
             profileInitializer.initialize(context, ePerson, epflPerson.getSciper(), Optional.of(epflPerson));
             setSynchronizationMetadata(ePerson);
@@ -507,4 +511,32 @@ public class EpflUserSynchronizationScript
         }
     }
 
+    private boolean isNeedToSyncOwner(EPerson ePerson, PersonDTO epflPerson){
+        Optional<ResearcherProfile> researcherProfileOptional;
+        try {
+            researcherProfileOptional = profileInitializer
+                .findProfile(context, ePerson)
+                .or(() -> personApiService.findProfileBySciper(
+                    context, ePerson,
+                    epflPerson.getSciper()));
+        } catch (Exception e) {
+            logInfo("Error during sync of user " + ePerson.getID() + ": " + e.getMessage());
+            return false;
+        }
+
+        ResearcherProfile researcherProfile = null;
+
+        if (researcherProfileOptional.isPresent()) {
+            researcherProfile = researcherProfileOptional.get();
+        }
+
+        List<MetadataValue> ownerMetadata = researcherProfile.getItem().getMetadata().stream()
+            .filter(metadataValue -> metadataValue
+                .getMetadataField()
+                .toString('.')
+                .equals("dspace.object.owner"))
+            .collect(Collectors.toList());
+
+        return ownerMetadata.isEmpty();
+    }
 }
