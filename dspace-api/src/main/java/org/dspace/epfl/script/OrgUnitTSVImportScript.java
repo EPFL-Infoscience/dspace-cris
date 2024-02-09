@@ -44,6 +44,9 @@ import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.EpflApiClientImpl;
+import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.script.model.OrgUnitTSV;
 import org.dspace.epfl.script.model.OrgUnitTSV.OrgUnitRow;
 import org.dspace.epfl.script.service.OrgUnitTSVParser;
@@ -77,6 +80,8 @@ public class OrgUnitTSVImportScript
 
     private OrgUnitApiService orgUnitApiService;
 
+    private EpflApiClient epflApiClient;
+
     private String collectionId;
 
     private String filename;
@@ -104,6 +109,9 @@ public class OrgUnitTSVImportScript
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.orgUnitTSVParser = new DSpace().getServiceManager().getServicesByType(OrgUnitTSVParser.class).get(0);
+        this.epflApiClient = new DSpace().getServiceManager()
+                .getServiceByName("org.dspace.epfl.client.EpflApiClientImpl",
+                        EpflApiClientImpl.class);
 
         collectionId = commandLine.getOptionValue('c');
         filename = commandLine.getOptionValue('f');
@@ -251,7 +259,13 @@ public class OrgUnitTSVImportScript
 
         String name = getHeadName(orgUnitRow);
         if (StringUtils.isBlank(name)) {
-            return Optional.empty();
+            Optional<String> headNameFromApi = getHeadNameFromApi(orgUnitRow);
+            if (headNameFromApi.isPresent()) {
+                handler.logInfo("Head name is missing in tsv, taking head name from api: " + headNameFromApi.get());
+                name = headNameFromApi.get();
+            } else {
+                return Optional.empty();
+            }
         }
 
         String authority = getHeadAuthority(orgUnitRow);
@@ -259,6 +273,17 @@ public class OrgUnitTSVImportScript
 
         return Optional.of(new MetadataValueDTO(metadataField, name, authority, confidence));
 
+    }
+
+    private Optional<String> getHeadNameFromApi(OrgUnitRow orgUnitRow) {
+        String headSciperIdHeader = getHeadSciperIdHeader();
+        Optional<String> headSciperId = orgUnitRow.getValue(headSciperIdHeader);
+
+        if (headSciperId.isPresent()) {
+            Optional<PersonDTO> epflPerson = epflApiClient.getPerson(headSciperId.get(), EpflApiClient.Language.EN);
+            return epflPerson.map(PersonDTO::getFullName);
+        }
+        return Optional.empty();
     }
 
     private String getHeadName(OrgUnitRow orgUnitRow) {
