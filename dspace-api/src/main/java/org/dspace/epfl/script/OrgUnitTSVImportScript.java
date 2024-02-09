@@ -313,7 +313,8 @@ public class OrgUnitTSVImportScript
         return metadataValues;
     }
 
-    private Optional<MetadataValueDTO> getMetadataValue(String configuredHeader, OrgUnitRow orgUnitRow) {
+    private List<MetadataValueDTO> getMetadataValue(String configuredHeader, OrgUnitRow orgUnitRow) {
+        List<MetadataValueDTO> metadataValues = new ArrayList<>();
 
         for (String header : orgUnitRow.getHeaders()) {
 
@@ -324,14 +325,15 @@ public class OrgUnitTSVImportScript
                     continue;
                 }
 
-                return orgUnitRow.getValue(header)
+                Optional<MetadataValueDTO> metadataValueDTO = orgUnitRow.getValue(header)
                     .map(value -> new MetadataValueDTO(metadataField, getLanguageFromHeader(header), value));
 
+                metadataValueDTO.ifPresent(metadataValues::add);
             }
 
         }
 
-        return Optional.empty();
+        return metadataValues;
     }
 
     private String getMetadataFieldForHeader(String header) {
