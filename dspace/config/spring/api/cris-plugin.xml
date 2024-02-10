@@ -66,6 +66,13 @@
 								<entry key="dc.relation.issn">
 									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
 										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="dc.identifier.issn" />
+									</bean>
+								</entry>
+								<entry key="dc.publisher">
+									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="dc.publisher" />
 									</bean>
 								</entry>
 							</map>
@@ -115,7 +122,7 @@
 								<entry key="oaire.citation.conferenceDate">
 									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
 										<property name="visibility" value="1" />
-										<property name="targetMetadata" value="oairecerif.event.startDate" />
+										<property name="targetMetadata" value="oaire.citation.conferenceDate" />
 									</bean>
 								</entry>
 							</map>
