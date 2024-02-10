@@ -224,6 +224,16 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]/subfield[@code = 'u']</xpath>
         </metadata-field>
         <metadata-field>
+            <field>epfl.url</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'u']</xpath>
+            <reader>simpleStringValue</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.url.description</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'y']</xpath>
+            <reader>simpleStringValue</reader>
+        </metadata-field>
+        <metadata-field>
             <field>dc.description.sponsorship</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = '0']</xpath>
             <reader>orgUnit</reader>
