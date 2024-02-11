@@ -404,9 +404,15 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
-        System.out.println(handler.getErrorMessages());
-        System.out.println(handler.getWarningMessages());
-        System.out.println(handler.getInfoMessages());
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+        assertThat(handler.getInfoMessages(), contains(
+                is("EPerson with uuid: " + eperson.getID().toString() + ", sciperId: 352234 was updated"),
+                is("Changes:"),
+                is("Number of created epersons: 0"),
+                is("Number of updated epersons: 1")
+                )
+            );
 
         eperson = context.reloadEntity(eperson);
         assertThat(eperson.getFirstName(), equalTo("Haitham"));
