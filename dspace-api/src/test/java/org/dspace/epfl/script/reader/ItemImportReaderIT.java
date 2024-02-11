@@ -120,6 +120,30 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadata, "dc.rights.accessRights"));
     }
 
+    @Test
+    public void testUniqueMetadataReader() throws Exception {
+        String emailValue = "emailValue";
+        String test = " <record> \n" +
+                "<datafield tag=\"856\" ind1=\"0\" ind2=\" \">\n" +
+                "<subfield code=\"f\">" + emailValue + "</subfield>\n" +
+                "  </datafield>\n" +
+                "<datafield tag=\"856\" ind1=\"0\" ind2=\" \">\n" +
+                "<subfield code=\"f\">" + emailValue + "</subfield>\n" +
+                "  </datafield>\n" +
+                "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        int itemMetadataCount = (int) itemMetadata.stream()
+                .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals("epfl.lastmodified.email"))
+                .count();
+
+        assertEquals(itemMetadataCount, 1);
+    }
+
 
     private String getFirstMetadataValue(List<MetadataValueDTO> metadata, String field) {
         return metadata.stream()

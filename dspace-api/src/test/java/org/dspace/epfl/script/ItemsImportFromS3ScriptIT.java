@@ -14,6 +14,8 @@ import static org.dspace.epfl.script.service.impl.MarcXmlParserImpl.TYPE_FILTER_
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -21,8 +23,14 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,8 +41,9 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
-import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -43,88 +52,271 @@ import org.dspace.epfl.script.service.impl.MarcXmlParserImpl;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
+/**
+ * Test class for ItemsImportFromS3Script
+ *
+ * @author Mykhaylo Boychuk (mykhaylo.boychuk@4science.com )
+ */
 public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDatabase {
 
+    private ItemService itemService;
+    private BitstreamService bitstreamService;
     private ConfigurationService configurationService;
 
     private Community community;
-
     private Collection collection;
-
-    private ItemsImportFromS3Script itemsImportFromS3Script;
-
-    private ItemsS3Service itemsS3Service;
-
-    private ItemService itemService;
-
-    private BitstreamService bitstreamService;
-
-    private MarcXmlParserImpl marcXmlParser;
-
-    private ChoiceAuthorityService choiceAuthorityService;
 
     @Before
     public void beforeTests() throws SQLException, AuthorizeException {
-
-        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-
         itemService = ContentServiceFactory.getInstance().getItemService();
-
         bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
         context.turnOffAuthorisationSystem();
         community = createCommunity(context).build();
-        collection = createCollection(context, community)
-            .withEntityType("Publication")
-            .build();
+        collection = createCollection(context, community).withEntityType("Publication")
+                                                         .build();
         context.restoreAuthSystemState();
         context.commit();
-
         readAllTypes().forEach(type -> setCollectionProperty(type));
-
-        choiceAuthorityService = ContentAuthorityServiceFactory
-                .getInstance().getChoiceAuthorityService();
-        itemsImportFromS3Script = new ItemsImportFromS3Script();
-        itemsS3Service = mock(ItemsS3Service.class);
-        marcXmlParser = new MarcXmlParserImpl();
-        marcXmlParser.setItemsS3Service(itemsS3Service);
-        marcXmlParser.setChoiceAuthorityService(choiceAuthorityService);
-        marcXmlParser.setConfigurationService(configurationService);
-        marcXmlParser.runSetup();
     }
 
-    @Ignore
     @Test
     public void testPublicationImportMIMEType() throws Exception {
-
         String key = "167656.zip";
 
         deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsS3Service itemsS3ServiceMock = mock(ItemsS3Service.class);
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
 
-        String[] args = new String[] { "items-import-from-s3", "-k", key };
+        try {
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            when(itemsS3ServiceMock.getObject(ArgumentMatchers.any())).thenReturn(getZipResource(key));
+            when(itemsS3ServiceMock.getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(null);
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            Bitstream importedBitstream = itemService.find(context, importedItem.getID())
+                                                     .getBundles("ORIGINAL")
+                                                     .get(0).getBitstreams().get(0);
+
+            BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, importedBitstream);
+
+            assertEquals(bitstreamFormat.getMIMEType(), "application/pdf");
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+               marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+            }
+        }
+    }
+
+    @Test
+    public void importAnItemFromS3ScriptTest() throws Exception {
+        String key = "79707.zip";
+
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsS3Service itemsS3ServiceMock = mock(ItemsS3Service.class);
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-        when(itemsS3Service.getObject(ArgumentMatchers.any())).thenReturn(getZipResource(key));
-        when(itemsS3Service.getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(null);
+        ItemsImportFromS3Script importFromS3Script = new ItemsImportFromS3Script();
 
-        itemsImportFromS3Script.initialize(args, handler, admin);
-        itemsImportFromS3Script.setItemsS3Service(itemsS3Service);
-        itemsImportFromS3Script.run();
+        try {
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            importFromS3Script.initialize(args, handler, admin);
 
-        // TODO we can use itemService to retrieve all items, it only needs to be one
-        UUID importedItemUUID = UUID.randomUUID();
-        Bitstream importedBitstream = itemService.find(context, importedItemUUID)
-                                                 .getBundles("ORIGINAL")
-                                                 .get(0).getBitstreams().get(0);
+            importFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl = (MarcXmlParserImpl) importFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
 
-        BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, importedBitstream);
+            when(itemsS3ServiceMock.getObject(ArgumentMatchers.any())).thenReturn(getZipResource(key));
+            when(itemsS3ServiceMock.getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any()))
+                                   .thenReturn("2006-02-21T14:39:08");
 
-        assertEquals(bitstreamFormat.getMIMEType(), "application/pdf");
-        assertThat(handler.getErrorMessages(), empty());
-        assertThat(handler.getWarningMessages(), empty());
+            importFromS3Script.run();
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue("We must have at least 1 item", items.hasNext());
+
+            Item importedItem = items.next();
+            List<MetadataValue> actualMetadata = importedItem.getMetadata();
+            List<MetadataValueDTO> expectedMetadata = getMetadataThatShouldBePresentIntoImportedItem();
+            checkMetadata(expectedMetadata, actualMetadata);
+
+            assertEquals(62, actualMetadata.size());
+            assertFalse("check that there are no other items", items.hasNext());
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+               marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+            }
+        }
+        //TODO this test could be improved by checking virtual metadata
+        // for this you have to create items of type Person
+    }
+
+    private void checkMetadata(List<MetadataValueDTO> listOfexpectedMetadata,List<MetadataValue> listOfActualMetadata) {
+        for (MetadataValue actualMetadata : listOfActualMetadata) {
+            String actualMetadataField = actualMetadata.getMetadataField().toString().replaceAll("_", ".");
+            if (itMustBeSkipped(actualMetadataField)) {
+                continue;
+            }
+            String actualMetadataValue = actualMetadata.getValue();
+            boolean isPresent = listOfexpectedMetadata.stream()
+                                                      .filter(mv ->
+                                                              mv.getMetadataField().equals(actualMetadataField) &&
+                                                              mv.getValue().equals(actualMetadataValue))
+                                                      .findFirst()
+                                                      .isPresent();
+            assertTrue("The metadata field: " + actualMetadataField + " with value: " + actualMetadataValue +
+                       " must be present in the imported item!", isPresent);
+        }
+    }
+
+    private boolean itMustBeSkipped(String actualMetadataField) {
+        Set<String> metadataToSkip = metadataToSkip();
+        return metadataToSkip.contains(actualMetadataField);
+    }
+
+    private Set<String> metadataToSkip() {
+        Set<String> metadataToSkip = new HashSet<>();
+        metadataToSkip.add("dc.date.modified");
+        metadataToSkip.add("dc.identifier.uri");
+        metadataToSkip.add("dc.description.provenance");
+        return metadataToSkip;
+    }
+
+    private List<MetadataValueDTO> getMetadataThatShouldBePresentIntoImportedItem() {
+        List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
+        // 14 authors
+        MetadataValueDTO author1 = new MetadataValueDTO("dc", "contributor", "author",null, "Nazeeruddin Mohammad, K.");
+        MetadataValueDTO author2 = new MetadataValueDTO("dc", "contributor", "author", null, "Wang, Qing");
+        MetadataValueDTO author3 = new MetadataValueDTO("dc", "contributor", "author", null, "Cevey, Le");
+        MetadataValueDTO author4 = new MetadataValueDTO("dc", "contributor", "author", null, "Aranyos, Viviane");
+        MetadataValueDTO author5 = new MetadataValueDTO("dc", "contributor", "author", null, "Liska, Paul");
+        MetadataValueDTO author6 = new MetadataValueDTO("dc", "contributor", "author", null, "Figgemeier, Egbert");
+        MetadataValueDTO author7 = new MetadataValueDTO("dc", "contributor", "author", null, "Klein, Cedric");
+        MetadataValueDTO author8 = new MetadataValueDTO("dc", "contributor", "author", null, "Hirata, Narukuni");
+        MetadataValueDTO author9 = new MetadataValueDTO("dc", "contributor", "author", null, "Koops, Sara");
+        MetadataValueDTO author10 = new MetadataValueDTO("dc", "contributor", "author", null, "Haque Saif, A.");
+        MetadataValueDTO author11 = new MetadataValueDTO("dc", "contributor", "author", null, "Durrant James, R.");
+        MetadataValueDTO author12 = new MetadataValueDTO("dc", "contributor", "author", null, "Hagfeldt, Anders");
+        MetadataValueDTO author13 = new MetadataValueDTO("dc", "contributor", "author", null, "Lever, A. B. P.");
+        MetadataValueDTO author14 = new MetadataValueDTO("dc", "contributor", "author", null, "Gratzel, Michael");
+        metadataValues.addAll(Arrays.asList(author1, author2, author3, author4, author5, author6, author7, author8,
+                                            author9, author10, author11, author12, author13, author14));
+        // date
+        MetadataValueDTO dateAccessioned = new MetadataValueDTO("dc","date","accessioned", null, "2006-02-21T14:39:08");
+        MetadataValueDTO dateAvailable = new MetadataValueDTO("dc", "date", "available", null, "2006-02-21T14:39:08");
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        MetadataValueDTO dateCreated1 = new MetadataValueDTO("dc", "date", "created", null,
+                                                             currentDate.format(formatter));
+        MetadataValueDTO dateCreated2 = new MetadataValueDTO("dc", "date", "created", null, "2006-02-21");
+        MetadataValueDTO dateIssued = new MetadataValueDTO("dc", "date", "issued", null, "2006");
+        metadataValues.addAll(Arrays.asList(dateAccessioned, dateAvailable, dateCreated1, dateCreated2, dateIssued));
+
+        // identifiers
+        MetadataValueDTO identifierDoi = new MetadataValueDTO("dc", "identifier", "doi", null, "10.1021/ic051727x");
+        MetadataValueDTO identifierIsi = new MetadataValueDTO("dc", "identifier", "isi", null, "000234905200045");
+        MetadataValueDTO identifierDar = new MetadataValueDTO("dc", "identifier", "dar", null, "8067");
+        metadataValues.addAll(Arrays.asList(identifierDoi, identifierIsi, identifierDar));
+
+        // description
+        var descriptionAbstractValue = "A new Ru(II) complex, Bu4N"
+            + " [ruthenium (4-carboxylic acid-4'-carboxylate-2,2'-bipyridine)(4,4'-di(2-(3,6-dimethoxyphenyl)"
+            + "ethenyl)-2,2'-bipyridine)(NCS)2] (N945H), was synthesized and characterized by anal., spectroscopic,"
+            + " and electrochem. techniques. The absorption spectrum of the N945H sensitizer is dominated by"
+            + " metal-to-ligand charge-transfer (MLCT) transitions in the visible region, with the lowest allowed"
+            + " MLCT bands appearing at 25,380 and 18,180 cm-1. The molar absorptivities of these bands are"
+            + " 34,500 and 18,900 M-1 cm-1, resp., and are significantly higher when compared to than those of"
+            + " the std. sensitizer cis-dithiocyanatobis(4,4'-dicarboxylic acid-2,2'-bipyridine)ruthenium(II)."
+            + " An INDO/S and DFT study of the electronic and optical properties of N945H and of N945 adsorbed"
+            + " on TiO2 was performed. The calcns. point out that the top 3 frontier-filled orbitals have a Ru 4d"
+            + " (t2g in the octahedral group) character with a contribution coming from the NCS ligand orbitals."
+            + " The calcns. also reveal that in the TiO2-bound N945 sensitizer, excitation directs charge into the"
+            + " carboxylbipyridine ligand bound to the TiO2 surface. The photovoltaic data of the N945 sensitizer"
+            + " using an electrolyte contg. 0.60M butylmethylimidazolium iodide, 0.03M I2, 0.10M guanidinium"
+            + " thiocyanate, and 0.50M tert-butylpyridine in a mixt. of MeCN and valeronitrile (vol. ratio = 85:15)"
+            + " had a short-circuit photocurrent d. of 16.50 ± 0.2 mA/cm2, an open-circuit voltage of 790 ± 30 mV,"
+            + " and a fill factor of 0.72 ± 0.03. This corresponds to an overall conversion efficiency of 9.6% under"
+            + " std. AM 1.5 sunlight and stable performance under light and heat soaking at 80° was confirmed.";
+        MetadataValueDTO descriptionAbstract = new MetadataValueDTO("dc", "description", "abstract", null,
+                                                                    descriptionAbstractValue);
+        MetadataValueDTO sponsorship1 = new MetadataValueDTO("dc", "description", "sponsorship", null, "LPI");
+        MetadataValueDTO sponsorship2 = new MetadataValueDTO("dc", "description", "sponsorship", null, "LSPM");
+        metadataValues.addAll(Arrays.asList(descriptionAbstract, sponsorship1, sponsorship2));
+
+        // other
+        MetadataValueDTO relationJournal = new MetadataValueDTO("dc", "relation", "journal", null,
+                                               "Inorganic chemistry");
+        MetadataValueDTO subject = new MetadataValueDTO("dc", "subject", null, null,
+                                       "ruthenium charge transfer complex solar cell sensitizer DFT model");
+        MetadataValueDTO title = new MetadataValueDTO("dc", "title", null, null,
+                                     "DFT-INDO/S modeling of new high molar extinction coefficient" +
+                                     " charge-transfer sensitizers for solar cell applications");
+        MetadataValueDTO type = new MetadataValueDTO("dc", "type", null, null,
+                                    "text::journal::journal article::research article");
+        MetadataValueDTO legacyId = new MetadataValueDTO("cris", "legacyId", null, null, "79707");
+        metadataValues.addAll(Arrays.asList(relationJournal, subject, title, type, legacyId));
+
+        // oaire citation
+        MetadataValueDTO volume = new MetadataValueDTO("oaire", "citation", "volume", null, "45");
+        MetadataValueDTO issue = new MetadataValueDTO("oaire", "citation", "issue", null, "2");
+        MetadataValueDTO startPage = new MetadataValueDTO("oaire", "citation", "startPage", null, "787");
+        MetadataValueDTO endPage = new MetadataValueDTO("oaire", "citation", "endPage", null, "797");
+        metadataValues.addAll(Arrays.asList(volume, issue, startPage, endPage));
+
+        //dspace metadata
+        MetadataValueDTO dataciteRights = new MetadataValueDTO("datacite", "rights", null, null, "metadata-only");
+        MetadataValueDTO entityType = new MetadataValueDTO("dspace", "entity", "type", null, "Publication");
+        MetadataValueDTO oaiIdentifier = new MetadataValueDTO("dspace", "legacy", "oai-identifier", null,
+                                                              "oai:infoscience.tind.io:79707");
+        metadataValues.addAll(Arrays.asList(dataciteRights, entityType, oaiIdentifier));
+
+        // epfl
+        MetadataValueDTO currentset1 = new MetadataValueDTO("epfl", "oai", "currentset", null, "SB");
+        MetadataValueDTO currentset2 = new MetadataValueDTO("epfl", "oai", "currentset", null, "OpenAIREv4");
+        MetadataValueDTO currentset3 = new MetadataValueDTO("epfl", "oai", "currentset", null, "article");
+        MetadataValueDTO writtenat = new MetadataValueDTO("epfl", "writtenat", null, null, "EPFL");
+        MetadataValueDTO peerreviewed = new MetadataValueDTO("epfl", "peerreviewed", null, null, "REVIEWED");
+        MetadataValueDTO version = new MetadataValueDTO("epfl", "publication", "version", null,
+                                                        "http://purl.org/coar/version/c_970fb48d4fbd8a85");
+        MetadataValueDTO submissionform = new MetadataValueDTO("epfl", "legacy", "submissionform", null, "ARTICLE");
+        MetadataValueDTO itemtype = new MetadataValueDTO("epfl", "legacy", "itemtype", null, "Journal Articles");
+        metadataValues.addAll(Arrays.asList(currentset1, currentset2, currentset3, writtenat, peerreviewed,
+                                            version, submissionform, itemtype));
+        // epfl legacy
+        MetadataValueDTO contributorauthnum1 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,"240422");
+        MetadataValueDTO contributorauthnum2 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,"240191");
+        MetadataValueDTO contributorauthnum3 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,"240949");
+        MetadataValueDTO contributorauthnum4 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,"240733");
+        MetadataValueDTO contributorauthnum5 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,"240597");
+        MetadataValueDTO contributorauthnum6 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,"248439");
+        MetadataValueDTO contributorauthnum7 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,"240191");
+        MetadataValueDTO contributorauthnum8 = new MetadataValueDTO("epfl","legacy","contributorauthnum",null,
+                                                                    "#PLACEHOLDER_PARENT_METADATA_VALUE#");
+        metadataValues.addAll(Arrays.asList(contributorauthnum1, contributorauthnum2, contributorauthnum3,
+                                            contributorauthnum4, contributorauthnum5, contributorauthnum6,
+                                            contributorauthnum7, contributorauthnum8));
+        return metadataValues;
     }
 
     private void deleteAllFilesOnExit() {
