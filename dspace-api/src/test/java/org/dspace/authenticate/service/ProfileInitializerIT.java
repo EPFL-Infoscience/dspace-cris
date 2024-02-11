@@ -153,7 +153,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -207,7 +207,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, nullValue());
@@ -233,7 +233,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -305,7 +305,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -389,7 +389,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -454,7 +454,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -492,7 +492,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> profileInitializer.initialize(context, eperson));
+            () -> profileInitializer.createOrUpdateProfile(context, eperson));
 
         assertThat(exception.getMessage(), is("The item " + personItem.getID().toString() + " is already linked "
             + "to another eperson: " + admin.getID() + " cannot be linked to " + eperson.getID().toString()));
@@ -525,7 +525,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -538,7 +538,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -595,7 +595,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -634,7 +634,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         groupService.addMember(context, submitters, eperson);
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         assertThat(groupService.allMemberGroupsSet(context, eperson)
                 .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(false));
