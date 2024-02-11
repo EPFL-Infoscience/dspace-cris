@@ -103,7 +103,7 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
         context.turnOffAuthorisationSystem();
         EPerson eperson = EPersonBuilder.createEPerson(context)
                 .withNameInMetadata("Test", "User")
-                .withEmail("test@user.it")
+                .withEmail("haitham.alhassanieh@epfl.ch")
                 .withNetId("352234@epfl.ch")
                 .withPassword(password)
                 .build();
@@ -122,7 +122,8 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
-        String token = getAuthToken(eperson.getEmail(), password);
+        // perform the login
+        getAuthToken(eperson.getEmail(), password);
         eperson = context.reloadEntity(eperson);
         assertThat(eperson.getFirstName(), equalTo("Haitham"));
         assertThat(eperson.getLastName(), equalTo("Al Hassanieh"));
@@ -183,8 +184,9 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
 
         EPerson eperson = EPersonBuilder.createEPerson(context)
             .withNameInMetadata("Test", "User")
-            .withEmail("test@user.it")
+            .withEmail("haitham.alhassanieh@epfl.ch")
             .withNetId("352234@epfl.ch")
+            .withPassword(password)
             .build();
 
         Item person = ItemBuilder.createItem(context, profiles)

@@ -351,11 +351,7 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                 is("Unable to sync profile 352235: The item " + profile.getID().toString()
                         + " is already linked to another eperson: " + admin.getID().toString()
                         + " cannot be linked to " + eperson2.getID().toString())));
-        assertThat(handler.getWarningMessages(), contains(
-                is("Researcher profile for ePerson "
-                        + eperson.getID().toString()
-                        + ", sciper 352234 has not been created, "
-                        + "the ePerson is not affiliated to OrgUnits present in the repository.")));
+        assertThat(handler.getWarningMessages(), empty());
         assertThat(handler.getInfoMessages(), contains(
                 is("EPerson with uuid: " + eperson.getID().toString() + ", sciperId: 352234 was updated"),
                 is("Changes:"),
