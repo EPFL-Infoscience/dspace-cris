@@ -8,7 +8,7 @@
 package org.dspace.authenticate.service;
 
 import static java.util.Optional.ofNullable;
-import static org.dspace.content.authority.Choices.CF_ACCEPTED;
+import static org.dspace.content.authority.Choices.CF_UNSET;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.core.I18nUtil.getEmailFilename;
 
@@ -49,6 +49,7 @@ import org.dspace.core.Email;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.service.OrgUnitApiService;
@@ -88,6 +89,9 @@ public class ProfileInitializer {
     private ConfigurationService configurationService;
 
     @Autowired
+    private EPersonService epersonService;
+
+    @Autowired
     private GroupService groupService;
 
     private DCInputsReader dcInputsReader;
@@ -121,9 +125,8 @@ public class ProfileInitializer {
     public void initialize(Context context, EPerson eperson, String sciper, Optional<PersonDTO> personDTO) {
 
         ResearcherProfile researcherProfile = findProfile(context, eperson)
-            .or(() -> personApiService.findProfileBySciper(context, eperson, sciper))
+            .or(() -> personApiService.findProfileBySciperAndFixOwnerIfNeeded(context, eperson, sciper))
             .orElseGet(() -> createPublicProfile(context, eperson, personDTO));
-
 
         if (researcherProfile == null) {
             PersonDTO personDTOForEmail = new PersonDTO();
@@ -155,6 +158,12 @@ public class ProfileInitializer {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public Optional<String> getSciperId(EPerson eperson) {
+        return ofNullable(eperson)
+                .flatMap(ePerson -> ofNullable(ePerson.getNetid()))
+                .map(netId -> org.apache.commons.lang.StringUtils.substringBefore(netId, "@"));
     }
 
     private void addToSubmittersGroup(Context context, EPerson eperson, ResearcherProfile researcherProfile)
@@ -514,7 +523,7 @@ public class ProfileInitializer {
             itemService.addMetadata(context, item,
                                     "oairecerif", "affiliation", "endDate",
                                     null, getYesterday(),
-                                    ePerson.getID().toString(), CF_ACCEPTED, place);
+                                    null, CF_UNSET, place);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -586,12 +595,6 @@ public class ProfileInitializer {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private Optional<String> getSciperId(EPerson eperson) {
-        return ofNullable(eperson)
-            .flatMap(ePerson -> ofNullable(ePerson.getNetid()))
-            .map(netId -> StringUtils.substringBefore(netId, "@"));
     }
 
     private static class PersonAffiliation {

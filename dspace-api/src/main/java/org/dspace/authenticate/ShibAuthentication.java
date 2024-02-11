@@ -7,7 +7,6 @@
  */
 package org.dspace.authenticate;
 
-import static java.util.Optional.ofNullable;
 import static org.dspace.core.I18nUtil.getEmailFilename;
 
 import java.io.IOException;
@@ -1323,17 +1322,11 @@ public class ShibAuthentication implements AuthenticationMethod {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(),
                     "no_person_found_by_sciper"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
-            email.addArgument(getSciperId(person));
+            email.addArgument(profileInitializer.getSciperId(person));
             email.send();
         } catch (IOException | MessagingException e) {
             log.error("An error occurs sending the email related to the user synchronization", e);
         }
-    }
-
-    private Optional<String> getSciperId(EPerson eperson) {
-        return ofNullable(eperson)
-                .flatMap(ePerson -> ofNullable(ePerson.getNetid()))
-                .map(netId -> org.apache.commons.lang.StringUtils.substringBefore(netId, "@"));
     }
 
     private void deleteEperson(Context context, EPerson ePerson) {

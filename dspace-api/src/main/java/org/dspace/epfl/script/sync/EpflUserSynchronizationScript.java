@@ -161,24 +161,18 @@ public class EpflUserSynchronizationScript
     private void executeScriptWithOutQuery() throws SQLException, AuthorizeException {
         List<EPerson> ePersonList = ePersonService.findAll(context, 0);
         for (EPerson ePerson : ePersonList) {
-            String ePersonNetid = ePerson.getNetid();
-            if (ePersonNetid != null) {
-                int endIndex = ePersonNetid.indexOf("@");
-                if (endIndex < 1) {
-                    logInfo("User  " + ePerson.getID() + " has sciper in the wrong form");
-                    continue;
-                }
-                String sciper = ePersonNetid.substring(0, endIndex);
-                Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper, EpflApiClient.Language.EN);
-                if (epflPerson.isPresent()) {
-                    try {
+            Optional<String> sciper = profileInitializer.getSciperId(ePerson);
+            if (sciper.isPresent()) {
+                try {
+                    Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper.get(), EpflApiClient.Language.EN);
+                    if (epflPerson.isPresent()) {
                         syncEPerson(epflPerson.get(), ePerson);
-                    }  catch (IllegalStateException e) {
-                        logInfo("Unable to sync profile " + epflPerson.get().getSciper() + ": " + e.getMessage());
+                    } else {
+                        closeAffiliations(ePerson, sciper.get());
+                        setSynchronizationMetadata(ePerson);
                     }
-                } else {
-                    closeAffiliations(ePerson, sciper);
-                    setSynchronizationMetadata(ePerson);
+                } catch (Exception e) {
+                    logError("Unable to sync profile " + sciper.get() + ": " + e.getMessage());
                 }
             }
         }
@@ -255,7 +249,7 @@ public class EpflUserSynchronizationScript
                 syncEPerson(epflPerson, ePerson);
             }
         } catch (Exception e) {
-            logInfo("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
+            logError("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
         }
     }
 
@@ -288,14 +282,11 @@ public class EpflUserSynchronizationScript
             needsToBEUpdated = true;
         }
 
+        // this check would eventually fix also the owner of an existing unlink person item
         if (isNeedToSyncAffiliations(ePerson, epflPerson)) {
             if (epflPerson.getAccreds() != null && epflPerson.getAccreds().length != 0) {
                 needsToBEUpdated = true;
             }
-        }
-
-        if (isNeedToSyncOwner(ePerson, epflPerson)) {
-                needsToBEUpdated = true;
         }
 
         if (needsToBEUpdated) {
@@ -304,10 +295,10 @@ public class EpflUserSynchronizationScript
             ePersonService.update(context, ePerson);
             updatedPersonCount++;
             logInfo(
-                "Person with uuid: " + ePerson.getID() + ", sciperId: " + epflPerson.getSciper() + " was updated");
+                "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + epflPerson.getSciper() + " was updated");
         } else {
             logInfo(
-                "Person with uuid: " + ePerson.getID() + ", sciperId: " + epflPerson.getSciper() +
+                "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + epflPerson.getSciper() +
                     " does not need to be updated");
         }
     }
@@ -321,7 +312,7 @@ public class EpflUserSynchronizationScript
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, ePerson.getID());
         if (researcherProfile == null) {
             String sciper = StringUtils.substringBefore(ePerson.getNetid(), "@epfl.ch");
-            logInfo("Researcher profile for ePerson " + ePerson.getID() + ", sciper "
+            logWarn("Researcher profile for ePerson " + ePerson.getID() + ", sciper "
                         + sciper + " has not been created, " +
                                 "the ePerson is not affiliated to OrgUnits present in the repository.");
             return;
@@ -342,7 +333,7 @@ public class EpflUserSynchronizationScript
     private void createAndSyncEPerson(PersonDTO epflPerson) throws SQLException, AuthorizeException {
         if (epflPerson.getAccreds() == null || epflPerson.getAccreds().length == 0) {
             logInfo(
-                "Person with sciperId " + epflPerson.getSciper() + " was not created: 0 accreds");
+                "EPerson with sciperId " + epflPerson.getSciper() + " was not created: 0 accreds");
             return;
         }
         EPerson newEPerson = ePersonService.create(context);
@@ -359,7 +350,7 @@ public class EpflUserSynchronizationScript
         ePersonService.update(context, newEPerson);
         createdPersonCount++;
         logInfo(
-            "Person with uuid: " + newEPerson.getID() + ", sciperId: " + newEPerson.getNetid() + " was created");
+            "EPerson with uuid: " + newEPerson.getID() + ", sciperId: " + newEPerson.getNetid() + " was created");
 
     }
 
@@ -368,14 +359,24 @@ public class EpflUserSynchronizationScript
             logInfo("No changes were made by the script");
         } else {
             logInfo("Changes:");
-            logInfo("Number of created persons: " + createdPersonCount);
-            logInfo("Number of updated persons: " + updatedPersonCount);
+            logInfo("Number of created epersons: " + createdPersonCount);
+            logInfo("Number of updated epersons: " + updatedPersonCount);
         }
         sendEmail();
     }
 
     private void logInfo(String message) {
         handler.logInfo(message);
+        log = log.concat(message + "\n");
+    }
+
+    private void logWarn(String message) {
+        handler.logWarning(message);
+        log = log.concat(message + "\n");
+    }
+
+    private void logError(String message) {
+        handler.logError(message);
         log = log.concat(message + "\n");
     }
 
@@ -452,12 +453,11 @@ public class EpflUserSynchronizationScript
         try {
             researcherProfileOptional = profileInitializer
                     .findProfile(context, ePerson)
-                    .or(() -> personApiService.findProfileBySciper(
+                    .or(() -> personApiService.findProfileBySciperAndFixOwnerIfNeeded(
                             context, ePerson,
                             epflPerson.getSciper()));
         } catch (Exception e) {
-            logInfo("Error during sync of user " + ePerson.getID() + ": " + e.getMessage());
-            return false;
+            throw new RuntimeException(e.getMessage());
         }
         ResearcherProfile researcherProfile = null;
 
@@ -467,6 +467,8 @@ public class EpflUserSynchronizationScript
         if (researcherProfileOptional.isEmpty() ^ epflPerson.getMainAffiliation().isEmpty()) {
             return true;
         }
+        // researcherProfileOption must be present at this time otherwise one of the two previous if statements should
+        // be executed
         if (researcherProfileOptional.isPresent()) {
             researcherProfile = researcherProfileOptional.get();
         }
@@ -511,32 +513,4 @@ public class EpflUserSynchronizationScript
         }
     }
 
-    private boolean isNeedToSyncOwner(EPerson ePerson, PersonDTO epflPerson){
-        Optional<ResearcherProfile> researcherProfileOptional;
-        try {
-            researcherProfileOptional = profileInitializer
-                .findProfile(context, ePerson)
-                .or(() -> personApiService.findProfileBySciper(
-                    context, ePerson,
-                    epflPerson.getSciper()));
-        } catch (Exception e) {
-            logInfo("Error during sync of user " + ePerson.getID() + ": " + e.getMessage());
-            return false;
-        }
-
-        ResearcherProfile researcherProfile = null;
-
-        if (researcherProfileOptional.isPresent()) {
-            researcherProfile = researcherProfileOptional.get();
-        }
-
-        List<MetadataValue> ownerMetadata = researcherProfile.getItem().getMetadata().stream()
-            .filter(metadataValue -> metadataValue
-                .getMetadataField()
-                .toString('.')
-                .equals("dspace.object.owner"))
-            .collect(Collectors.toList());
-
-        return ownerMetadata.isEmpty();
-    }
 }

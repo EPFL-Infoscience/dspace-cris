@@ -58,7 +58,7 @@ public class PersonApiServiceImpl implements PersonApiService {
     private ConfigurationService configurationService;
 
     @Autowired
-    private EPersonService ePersonService;
+    private EPersonService epersonService;
 
     @Autowired
     private ItemService itemService;
@@ -287,7 +287,8 @@ public class PersonApiServiceImpl implements PersonApiService {
             .orElseThrow(() -> new IllegalStateException("No Sciper metadata field configured"));
     }
 
-    public Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper) {
+    public Optional<ResearcherProfile> findProfileBySciperAndFixOwnerIfNeeded(Context context, EPerson eperson,
+            String sciper) {
 
         String sciperMetadataField = getSciperMetadataField();
 
@@ -301,19 +302,21 @@ public class PersonApiServiceImpl implements PersonApiService {
         }
 
         Item item = items.get(0);
-
-        EPerson owner = getOwner(context, item);
-
-        if (owner != null && !owner.equals(eperson)) {
-            throw new IllegalStateException("An item with the sciper " + sciper + " is already linked "
-                                                + "to another eperson: " + owner.getID());
-        }
-
-        setOwner(context, item, eperson);
-
+        fixOwnerIfNeeded(context, eperson, item);
         return Optional.of(new ResearcherProfile(item));
-
     }
+
+    private void fixOwnerIfNeeded(Context context, EPerson eperson, Item item) {
+        EPerson owner = getOwner(context, item);
+        if (owner != null && !owner.equals(eperson)) {
+            throw new IllegalStateException("The item " + item.getID().toString() + " is already linked "
+                    + "to another eperson: " + owner.getID() + " cannot be linked to " + eperson.getID().toString());
+        }
+        if (owner == null) {
+            setOwner(context, item, eperson);
+        }
+    }
+
     private void setOwner(Context context, Item item, EPerson ePerson) {
         try {
             itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
@@ -327,7 +330,7 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     private EPerson getOwner(Context context, Item item) {
         try {
-            return ePersonService.findByProfileItem(context, item);
+            return epersonService.findByProfileItem(context, item);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
