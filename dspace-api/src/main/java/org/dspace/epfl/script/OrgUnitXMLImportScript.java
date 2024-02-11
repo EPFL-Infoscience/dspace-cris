@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -240,10 +239,11 @@ public class OrgUnitXMLImportScript
     }
 
     private String getXPathDataField(String tag, String subfieldCode) {
-        if (StringUtils.isBlank(subfieldCode))
+        if (StringUtils.isBlank(subfieldCode)) {
             return ".//datafield[@tag = '" + tag + "']";
-        else
+        } else {
             return ".//datafield[@tag = '" + tag + "']/subfield[@code = '" + subfieldCode + "']";
+        }
     }
 
     /**
@@ -258,10 +258,12 @@ public class OrgUnitXMLImportScript
         String unitCode = "";
         String iuc = element.getInfoscienceUnitCode();
         if (StringUtils.isNotBlank(iuc)) {
-            if (iuc.startsWith("U") || iuc.startsWith("S"))
+            if (iuc.startsWith("U") || iuc.startsWith("S")) {
                 unitCode = iuc.substring(1);
-            while (StringUtils.isNotBlank(unitCode) && unitCode.startsWith("0"))
+            }
+            while (StringUtils.isNotBlank(unitCode) && unitCode.startsWith("0")) {
                 unitCode = unitCode.substring(1);
+            }
         }
         return unitCode;
     }
@@ -295,8 +297,8 @@ public class OrgUnitXMLImportScript
     }
 
     private void finalLogging() {
-        handler.logInfo(
-                "Total records: " + totalRecords + ". Elaborated: " + elaboratedRecords + ". Skipped: " + skippedRecords);
+        handler.logInfo("Total records: " + totalRecords + ". Elaborated: " + elaboratedRecords + ". Skipped: "
+                + skippedRecords);
     }
 
     @Override
