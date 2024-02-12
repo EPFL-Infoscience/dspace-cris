@@ -66,6 +66,13 @@
 								<entry key="dc.relation.issn">
 									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
 										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="dc.identifier.issn" />
+									</bean>
+								</entry>
+								<entry key="dc.publisher">
+									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="dc.publisher" />
 									</bean>
 								</entry>
 							</map>

@@ -120,6 +120,88 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadata, "dc.rights.accessRights"));
     }
 
+    @Test
+    public void testThesisReader() {
+        String authorityPrefix = "will be referenced::ACRONYM::";
+        String faculty = "faculty";
+        String section = "section";
+        String institute = "institute";
+        String doctoralSchool = "doctoralSchool";
+        String originalUnit = "originalUnit";
+        String test = "<record> \n" +
+            "<datafield tag=\"918\" ind1=\" \" ind2=\" \">\n" +
+            "   <subfield code=\"a\">" + faculty + "</subfield>\n" +
+            "   <subfield code=\"b\">" + section + "</subfield>\n" +
+            "   <subfield code=\"c\">" + institute + "</subfield>\n" +
+            "   <subfield code=\"d\">" + doctoralSchool + "</subfield>\n" +
+            "</datafield>\n" +
+            "<datafield tag=\"919\" ind1=\" \" ind2=\" \">\n" +
+            "   <subfield code=\"a\">" + originalUnit + "</subfield>\n" +
+            "</datafield>\n" +
+            "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        checkValueAndAuthority(itemMetadata, "epfl.thesis.faculty", faculty, authorityPrefix);
+        checkValueAndAuthority(itemMetadata, "epfl.thesis.section", section, authorityPrefix);
+        checkValueAndAuthority(itemMetadata, "epfl.thesis.institute", institute, authorityPrefix);
+        checkValueAndAuthority(itemMetadata, "epfl.thesis.doctoralSchool", doctoralSchool, authorityPrefix);
+        checkValueAndAuthority(itemMetadata, "epfl.thesis.originalUnit", originalUnit, authorityPrefix);
+    }
+
+    @Test
+    public void testUniqueMetadataReader() {
+        String emailValue = "emailValue";
+        String test = " <record> \n" +
+                "<datafield tag=\"856\" ind1=\"0\" ind2=\" \">\n" +
+                "<subfield code=\"f\">" + emailValue + "</subfield>\n" +
+                "  </datafield>\n" +
+                "<datafield tag=\"856\" ind1=\"0\" ind2=\" \">\n" +
+                "<subfield code=\"f\">" + emailValue + "</subfield>\n" +
+                "  </datafield>\n" +
+                "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        int itemMetadataCount = (int) itemMetadata.stream()
+                .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals("epfl.lastmodified.email"))
+                .count();
+
+        assertEquals(itemMetadataCount, 1);
+    }
+
+    private void checkValueAndAuthority(List<MetadataValueDTO> metadataValues, String field, String expectedValue,
+                                        String authorityPrefix) {
+        assertEquals(expectedValue, getFirstMetadataValue(metadataValues, field));
+        assertEquals(authorityPrefix + expectedValue, getMetadataAuthority(metadataValues, field));
+    }
+
+    @Test
+    public void testNestedMetadataFieldReader() throws Exception {
+        String type = "testType";
+        String identifier = "testIdentifier";
+        String test = " <record> \n" +
+            "<datafield tag=\"787\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"e\">" + type + "</subfield>\n" +
+            "<subfield code=\"w\">" + identifier + "</subfield>\n" +
+            "  </datafield>\n" +
+            "</record>";
+
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.type"),type);
+        assertEquals(getFirstMetadataValue(itemMetadata, "dc.relationpublication.identifier"),identifier);
+    }
 
     private String getFirstMetadataValue(List<MetadataValueDTO> metadata, String field) {
         return metadata.stream()
@@ -127,4 +209,9 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
                        .map(MetadataValueDTO::getValue).findFirst().orElse(NOT_FOUND_VALUE);
     }
 
+    private String getMetadataAuthority(List<MetadataValueDTO> metadata, String field) {
+        return metadata.stream()
+                       .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
+                       .map(MetadataValueDTO::getAuthority).findFirst().orElse(NOT_FOUND_VALUE);
+    }
 }
