@@ -42,20 +42,26 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testSimpleStringValueReader() throws Exception {
+    public void testSimpleStringValueReader() {
         String issnValue = "issnValue";
         String descriptionNotesValue = "descriptionNotesValue";
         String citationIssueValue = "citationIssueValue";
-        String test = " <record> \n" +
+        String url = "https://url.com";
+        String urlDescription = "urlDescription";
+        String test = "<record> \n" +
                 "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" +
                 " <subfield code=\"a\">" + issnValue + "</subfield>\n" +
-                " </datafield>\n" +
+                "</datafield>\n" +
                 "<datafield tag=\"500\" ind1=\" \" ind2=\" \">\n" +
                 " <subfield code=\"a\">" + descriptionNotesValue + "</subfield>\n" +
-                " </datafield>\n" +
+                "</datafield>\n" +
                 "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n" +
                 " <subfield code=\"k\">" + citationIssueValue + "</subfield>\n" +
-                " </datafield>\n" +
+                "</datafield>\n" +
+                "<datafield tag=\"856\" ind1=\"4\" ind2=\"1\">\n" +
+                " <subfield code=\"u\">" + url + "</subfield>\n" +
+                " <subfield code=\"y\">" + urlDescription + "</subfield>\n" +
+                "</datafield>\n" +
                 "</record>";
         InputStream inputStream = new ByteArrayInputStream(test.getBytes());
 
@@ -63,13 +69,15 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
-        assertEquals(getFirstMetadataValue(itemMetadata, "dc.relation.issn"), issnValue);
-        assertEquals(getFirstMetadataValue(itemMetadata, "dc.description.notes"), descriptionNotesValue);
-        assertEquals(getFirstMetadataValue(itemMetadata, "oaire.citation.issue"), citationIssueValue);
+        assertEquals(issnValue, getFirstMetadataValue(itemMetadata, "dc.relation.issn"));
+        assertEquals(descriptionNotesValue, getFirstMetadataValue(itemMetadata, "dc.description.notes"));
+        assertEquals(citationIssueValue, getFirstMetadataValue(itemMetadata, "oaire.citation.issue"));
+        assertEquals(url, getFirstMetadataValue(itemMetadata, "epfl.url"));
+        assertEquals(urlDescription, getFirstMetadataValue(itemMetadata, "epfl.url.description"));
     }
 
     @Test
-    public void testTitleReader() throws Exception {
+    public void testTitleReader() {
         String firstTitle = "firstTitle";
         String secondTitle = "secondTitle";
         String subTitle = "subTitle";
@@ -89,12 +97,12 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         String delimiter = " : ";
 
-        assertEquals(getFirstMetadataValue(itemMetadata, "dc.title"),
-                firstTitle + delimiter + secondTitle + delimiter + subTitle);
+        assertEquals(firstTitle + delimiter + secondTitle + delimiter + subTitle,
+                     getFirstMetadataValue(itemMetadata, "dc.title"));
     }
 
     @Test
-    public void testThatAccessRightWillNotBeImported() throws Exception {
+    public void testThatAccessRightWillNotBeImported() {
         String accessRightDefinition = "accessRightDefinition";
         String accessRightURI = "accessRightURI";
         String test = " <record> \n" +
@@ -145,6 +153,30 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         checkValueAndAuthority(itemMetadata, "epfl.thesis.originalUnit", originalUnit, authorityPrefix);
     }
 
+    @Test
+    public void testUniqueMetadataReader() {
+        String emailValue = "emailValue";
+        String test = " <record> \n" +
+            "<datafield tag=\"856\" ind1=\"0\" ind2=\" \">\n" +
+            "<subfield code=\"f\">" + emailValue + "</subfield>\n" +
+            "  </datafield>\n" +
+            "<datafield tag=\"856\" ind1=\"0\" ind2=\" \">\n" +
+            "<subfield code=\"f\">" + emailValue + "</subfield>\n" +
+            "  </datafield>\n" +
+            "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        int itemMetadataCount = (int) itemMetadata.stream()
+                                                  .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals("epfl.lastmodified.email"))
+                                                  .count();
+
+        assertEquals(itemMetadataCount, 1);
+    }
+
     private void checkValueAndAuthority(List<MetadataValueDTO> metadataValues, String field, String expectedValue,
                                         String authorityPrefix) {
         assertEquals(expectedValue, getFirstMetadataValue(metadataValues, field));
@@ -152,9 +184,9 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
     private String getFirstMetadataValue(List<MetadataValueDTO> metadata, String field) {
-       return  metadata.stream()
-               .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
-               .map(MetadataValueDTO::getValue).findFirst().orElse(NOT_FOUND_VALUE);
+        return metadata.stream()
+                       .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
+                       .map(MetadataValueDTO::getValue).findFirst().orElse(NOT_FOUND_VALUE);
     }
 
     private String getMetadataAuthority(List<MetadataValueDTO> metadata, String field) {
