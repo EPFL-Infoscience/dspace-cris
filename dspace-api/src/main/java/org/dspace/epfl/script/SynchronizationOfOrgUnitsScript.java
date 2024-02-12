@@ -86,7 +86,7 @@ public class SynchronizationOfOrgUnitsScript
 
     private ConfigurationService configurationService;
 
-    private StringBuilder logInfo = new StringBuilder();
+    private StringBuilder fullLog = new StringBuilder();
 
     private List<String> acronyms = List.of();
 
@@ -148,22 +148,31 @@ public class SynchronizationOfOrgUnitsScript
         for (Item orgUnit : orgUnits) {
             String name = getMetadataValue(orgUnit, "oairecerif", "acronym", null).getValue();
             logInfo("Synchronizing orgunit " + name);
-            if (isOrgUnitFoundInEpfl(orgUnit)) {
-                syncOrgUnit(orgUnit);
-            } else {
-                if (tryToGetAcronymFromHead(orgUnit)) {
+            try {
+                if (isOrgUnitFoundInEpfl(orgUnit)) {
                     syncOrgUnit(orgUnit);
                 } else {
-                    closeOrgUnit(orgUnit);
-                    logInfo(name + " not available anymore, has been closed");
+                    if (tryToGetAcronymFromHead(orgUnit)) {
+                        syncOrgUnit(orgUnit);
+                    } else {
+                        closeOrgUnit(orgUnit);
+                        logInfo(name + " not available anymore, has been closed");
+                    }
                 }
+            } catch (Exception e) {
+                logError("Error looking for the orgunit via the epfl ws " + name + ": " + e.getMessage());
             }
         }
     }
 
     private void logInfo(String message) {
         handler.logInfo(message);
-        logInfo.append(message).append("\n");
+        fullLog.append(message).append("\n");
+    }
+
+    private void logError(String message) {
+        handler.logError(message);
+        fullLog.append(message).append("\n");
     }
 
     private void syncOrgUnit(Item orgUnit) {
@@ -607,12 +616,7 @@ public class SynchronizationOfOrgUnitsScript
         if (metadataValue == null) {
             return false;
         }
-        try {
-            return epflApiClient.getOrgUnit(metadataValue.getValue(), EpflApiClient.Language.EN).isPresent();
-        } catch (RuntimeException e) {
-            logInfo("Unable to find orgunit from epfl " + metadataValue.getValue() + ": " + e.getMessage());
-            return false;
-        }
+        return epflApiClient.getOrgUnit(metadataValue.getValue(), EpflApiClient.Language.EN).isPresent();
     }
 
     private MetadataValue getMetadataValue(Item orgUnit, String schema, String element, String qualifier) {
@@ -686,7 +690,7 @@ public class SynchronizationOfOrgUnitsScript
     }
 
     private void sendEmail() {
-        String log = logInfo.toString();
+        String log = fullLog.toString();
         try {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(), "epfl-user-synchronization_log"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
