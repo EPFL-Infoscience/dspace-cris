@@ -30,7 +30,7 @@
         </collection>
         <collection>
             <name>Datasets and Code</name>
-            <entity-type>Publication</entity-type>
+            <entity-type>Product</entity-type>
             <submission-type>dataset</submission-type>
             <description />
             <intro />

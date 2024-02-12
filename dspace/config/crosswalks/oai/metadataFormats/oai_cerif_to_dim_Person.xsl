@@ -90,7 +90,7 @@
 						</dim:field>
 						<dim:field mdschema="oairecerif" element="person" qualifier="affiliation" >
 							<xsl:call-template name="nestedMetadataValue">
-						    	<xsl:with-param name="value" select="cerif:OrgUnit/cerif:Name" />
+						    	<xsl:with-param name="value" select="cerif:OrgUnit/cerif:Acronym" />
 					    	</xsl:call-template>
 						</dim:field>
 					</xsl:otherwise>
