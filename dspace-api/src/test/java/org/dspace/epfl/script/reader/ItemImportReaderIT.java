@@ -117,8 +117,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
-        assertEquals(getFirstMetadataValue(itemMetadata, "dc.rights.accessRights"),
-                NOT_FOUND_VALUE);
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadata, "dc.rights.accessRights"));
     }
 
     @Test
