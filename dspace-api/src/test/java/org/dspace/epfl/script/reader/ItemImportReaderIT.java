@@ -121,10 +121,55 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
 
+    @Test
+    public void testThatRelationJournalMetadataWithRelationIssnIsPresent() {
+        String firstRelationJournal = "first relation";
+        String secondRelationJournal = "second relation";
+        String testIssn = "testIssn";
+        String test1 = " <record> \n" +
+            "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"t\">" + firstRelationJournal + "</subfield>\n" +
+            "  </datafield>\n" +
+            "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"a\">" + testIssn + "</subfield>\n" +
+            "  </datafield>\n" +
+            "</record>";
+
+        String test2 = " <record> \n" +
+            "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"t\">" + secondRelationJournal + "</subfield>\n" +
+            "  </datafield>\n" +
+            "</record>";
+
+        InputStream inputStream1 = new ByteArrayInputStream(test1.getBytes());
+        InputStream inputStream2 = new ByteArrayInputStream(test2.getBytes());
+
+        Node record1 = marcXmlParser.parse(inputStream1, mapping.getItemXPath());
+        Node record2 = marcXmlParser.parse(inputStream2, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadataWithIssn = marcXmlParser.readItemMetadataValues(context, record1, mapping);
+        List<MetadataValueDTO> itemMetadataWitoutIssn = marcXmlParser.readItemMetadataValues(context, record2, mapping);
+
+        assertEquals(firstRelationJournal, getFirstMetadataValue(itemMetadataWithIssn, "dc.relation.journal"));
+
+        assertEquals("will be generated::ISSN::" + testIssn, getMetadataAuthority(itemMetadataWithIssn, "dc.relation.journal"));
+
+        assertEquals(secondRelationJournal, getFirstMetadataValue(itemMetadataWitoutIssn, "dc.relation.journal"));
+
+        assertEquals(NOT_FOUND_VALUE, getMetadataAuthority(itemMetadataWitoutIssn, "dc.relation.journal"));
+    }
+
+
     private String getFirstMetadataValue(List<MetadataValueDTO> metadata, String field) {
         return metadata.stream()
                        .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
                        .map(MetadataValueDTO::getValue).findFirst().orElse(NOT_FOUND_VALUE);
+    }
+
+    private String getMetadataAuthority(List<MetadataValueDTO> metadata, String field) {
+        return metadata.stream()
+            .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
+            .map(MetadataValueDTO::getAuthority).findFirst().orElse(NOT_FOUND_VALUE);
     }
 
 }
