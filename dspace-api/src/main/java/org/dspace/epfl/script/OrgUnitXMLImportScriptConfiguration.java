@@ -16,7 +16,7 @@ import org.dspace.core.Context;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class OrgUnitTSVImportScriptConfiguration<T extends OrgUnitTSVImportScript> extends ScriptConfiguration<T> {
+public class OrgUnitXMLImportScriptConfiguration<T extends OrgUnitXMLImportScript> extends ScriptConfiguration<T> {
 
     @Autowired
     private AuthorizeService authorizeService;
@@ -37,17 +37,9 @@ public class OrgUnitTSVImportScriptConfiguration<T extends OrgUnitTSVImportScrip
         if (options == null) {
             Options options = new Options();
 
-            options.addOption("c", "collection", true, "the own collection of the imported items");
-            options.getOption("c").setType(String.class);
-            options.getOption("c").setRequired(true);
-
             options.addOption("f", "file", true, "source file");
             options.getOption("f").setType(InputStream.class);
             options.getOption("f").setRequired(true);
-
-            options.addOption("i", "integrated-mode", false,
-                    "if used, there will be no distinction between active and inactive units");
-            options.getOption("i").setType(Boolean.class);
 
             super.options = options;
         }

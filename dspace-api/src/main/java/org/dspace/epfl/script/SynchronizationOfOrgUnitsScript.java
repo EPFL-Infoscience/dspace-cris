@@ -88,7 +88,7 @@ public class SynchronizationOfOrgUnitsScript
 
     private ConfigurationService configurationService;
 
-    private StringBuilder logInfo = new StringBuilder();
+    private StringBuilder fullLog = new StringBuilder();
 
     private List<String> acronyms = List.of();
 
@@ -149,22 +149,35 @@ public class SynchronizationOfOrgUnitsScript
         for (Item orgUnit : orgUnits) {
             String name = getAcronym(orgUnit);
             logInfo("Synchronizing orgunit " + name);
-            if (isOrgUnitFoundInEpfl(orgUnit)) {
-                syncOrgUnit(orgUnit);
-            } else {
-                if (tryToGetAcronymFromHead(orgUnit)) {
+            try {
+                if (isOrgUnitFoundInEpfl(orgUnit)) {
                     syncOrgUnit(orgUnit);
                 } else {
-                    closeOrgUnit(orgUnit);
-                    logInfo(name + " not available anymore, has been closed");
+                    try {
+                        if (tryToGetAcronymFromHead(orgUnit)) {
+                            syncOrgUnit(orgUnit);
+                        } else {
+                            closeOrgUnit(orgUnit);
+                            logInfo(name + " not available anymore, has been closed");
+                        }
+                    } catch (RuntimeException e) {
+                        logInfo("Error while getting acronym from head of unit: " + e.getMessage());
+                    }
                 }
+            } catch (Exception e) {
+                logError("Error looking for the orgunit via the epfl ws " + name + ": " + e.getMessage());
             }
         }
     }
 
     private void logInfo(String message) {
         handler.logInfo(message);
-        logInfo.append(message).append("\n");
+        fullLog.append(message).append("\n");
+    }
+
+    private void logError(String message) {
+        handler.logError(message);
+        fullLog.append(message).append("\n");
     }
 
     private void syncOrgUnit(Item orgUnit) {
@@ -445,12 +458,9 @@ public class SynchronizationOfOrgUnitsScript
         String headSciper = directorSciper(orgUnit);
 
         Optional<PersonDTO> epflPersonOption;
-        try {
-            epflPersonOption = epflApiClient.getPerson(headSciper, EpflApiClient.Language.EN);
-        } catch (RuntimeException e) {
-            logInfo("Error while getting acronym from head of unit: " + e.getMessage());
-            return false;
-        }
+        // No RuntimeException is catched here to avoid handling a missing response like
+        // it was a negative response
+        epflPersonOption = epflApiClient.getPerson(headSciper, EpflApiClient.Language.EN);
         if (epflPersonOption.isPresent()) {
             PersonDTO epflPerson = epflPersonOption.get();
             PersonDTO.Accred epflPersonAccred = Arrays.stream(epflPerson.getAccreds())
@@ -558,12 +568,7 @@ public class SynchronizationOfOrgUnitsScript
         if (metadataValue == null) {
             return false;
         }
-        try {
-            return epflApiClient.getOrgUnit(metadataValue.getValue(), EpflApiClient.Language.EN).isPresent();
-        } catch (RuntimeException e) {
-            logInfo("Unable to find orgunit from epfl " + metadataValue.getValue() + ": " + e.getMessage());
-            return false;
-        }
+        return epflApiClient.getOrgUnit(metadataValue.getValue(), EpflApiClient.Language.EN).isPresent();
     }
 
     private MetadataValue getMetadataValue(Item orgUnit, String schema, String element, String qualifier) {
@@ -624,15 +629,16 @@ public class SynchronizationOfOrgUnitsScript
     }
 
     protected void sendEmail() {
+        String log = fullLog.toString();
         try {
             Email email = Email.getEmail(getEmailFilename(context.getCurrentLocale(), "epfl-user-synchronization_log"));
             email.addRecipient(configurationService.getProperty("mail.admin"));
             email.setSubject("INFOSCIENCE - Organizations synchronization process report");
-            email.addArgument(logInfo.toString());
+            email.addArgument(log);
             email.send();
         } catch (IOException | MessagingException e) {
             handler.logInfo("An error occurs sending the email related to the user synchronization " + e);
-            handler.logInfo("Mail Message content: " + logInfo.toString());
+            handler.logInfo("Mail Message content: " + log);
         }
     }
 
