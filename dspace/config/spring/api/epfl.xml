@@ -151,8 +151,8 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="epfl.relationpublication.type" value="./subfield[@code = 'e']"/>
-                <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
-                <entry key="dc.relationpublication.identifier" value=""/>
+                <entry key="dc.relation.publication" value=""/>
+                <entry key="dc.relationpublication.identifier" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
     </bean>
@@ -163,8 +163,8 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="epfl.relationproduct.type" value="static:IsSupplementedBy"/>
-                <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
-                <entry key="dc.relationproduct.identifier" value=""/>
+                <entry key="dc.relation.product" value=""/>
+                <entry key="dc.relationproduct.identifier" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
     </bean>
