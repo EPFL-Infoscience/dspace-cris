@@ -332,7 +332,12 @@ public class OrgUnitTSVImportScript
             }
 
         }
-
+        if (!metadataValues.isEmpty()) {
+            handler.logInfo("In row " + orgUnitRow.getIndex() + " for head " + configuredHeader + " "
+                    + metadataValues.size() + " metadatas was imported with "
+                    + metadataValues.stream().map(MetadataValueDTO::getLanguage).collect(Collectors.joining(", "))
+                    + " language values");
+        }
         return metadataValues;
     }
 
