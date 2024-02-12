@@ -38,7 +38,11 @@
         <property name="qualifierXPath" value="./subfield[@code = '2']"/>
         <property name="valueXPath" value="./subfield[@code = 'a']"/>
     </bean>
-    
+
+    <bean class="org.dspace.epfl.script.reader.IsiValueProcessor" >
+        <property name="metadataField" value="dc.identifier.isi"/>
+    </bean>
+
     <bean class="org.dspace.epfl.script.reader.ItemsImportSeriesReader">
         <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
         <property name="titleXPath" value="./subfield[@code = 'a']"/>

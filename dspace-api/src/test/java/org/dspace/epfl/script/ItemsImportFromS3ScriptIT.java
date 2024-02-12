@@ -235,7 +235,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
 
         // identifiers
         MetadataValueDTO identifierDoi = new MetadataValueDTO("dc", "identifier", "doi", null, "10.1021/ic051727x");
-        MetadataValueDTO identifierIsi = new MetadataValueDTO("dc", "identifier", "isi", null, "000234905200045");
+        MetadataValueDTO identifierIsi = new MetadataValueDTO("dc", "identifier", "isi", null, "WOS:000234905200045");
         MetadataValueDTO identifierDar = new MetadataValueDTO("dc", "identifier", "dar", null, "8067");
         metadataValues.addAll(Arrays.asList(identifierDoi, identifierIsi, identifierDar));
 
