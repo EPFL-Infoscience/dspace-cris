@@ -20,12 +20,14 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
@@ -41,6 +43,7 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -466,6 +469,115 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
 
+    }
+
+    @Test
+    public void testUpdateAffiliationsWithProfileHavingWrongAffiliationName()
+        throws SQLException, AuthorizeException, InstantiationException, IllegalAccessException {
+
+        context.turnOffAuthorisationSystem();
+
+
+        Item sensAff = ItemBuilder.createItem(context, orgUnits)
+                                  .withTitle("Laboratory of Sensing and Networking Systems")
+                                  .withAcronym("SENS").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("SSC - Teaching")
+                   .withAcronym("SSC-ENS").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("SIN - Teaching")
+                   .withAcronym("SIN-ENS").build();
+
+        Item closedAff = ItemBuilder.createItem(context, orgUnits)
+                                    .withTitle("SIN - closed")
+                                    .withAcronym("SIN-CLS").build();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                                        .withNameInMetadata("Test", "User")
+                                        .withEmail("test@user.it")
+                                        .withNetId("352234@epfl.ch")
+                                        .build();
+
+        Item existingProfile = ItemBuilder
+            .createItem(context, profiles)
+            .withDspaceObjectOwner(eperson)
+            .withTitle("User, Test")
+            .withPersonAffiliation("Laboratory of Sensing and Networking Systems", sensAff.getID().toString())
+            .withPersonAffiliationStartDate("2022-01-01")
+            .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE).build();
+
+        context.restoreAuthSystemState();
+
+        // run script
+        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail()};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+        assertThat(handler.getInfoMessages(), contains(
+                       is("EPerson with uuid: " + eperson.getID().toString() + ", sciperId: 352234 was updated"),
+                       is("Changes:"),
+                       is("Number of created epersons: 0"),
+                       is("Number of updated epersons: 1")
+                   )
+        );
+
+        eperson = context.reloadEntity(eperson);
+        assertThat(eperson.getFirstName(), equalTo("Haitham"));
+        assertThat(eperson.getLastName(), equalTo("Al Hassanieh"));
+        assertThat(eperson.getEmail(), equalTo("haitham.alhassanieh@epfl.ch"));
+        assertThat(eperson.getNetid(), equalTo("352234@epfl.ch"));
+
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
+        assertThat(researcherProfile.getItem().getID(), is(existingProfile.getID()));
+
+        Item profile = researcherProfile.getItem();
+        String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
+        assertThat(profile.getMetadata(), hasItems(
+            with("dc.title", "Al Hassanieh, Haitham"),
+            with("person.givenName", "Haitham"),
+            with("person.familyName", "Al Hassanieh"),
+            with("person.email", "haitham.alhassanieh@epfl.ch"),
+            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
+            // the item is retrieved from the db it turns to -1
+            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", -1),
+            with("epfl.sciper.active", "true"),
+            with("epfl.sciperId", "352234"),
+            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
+            with("oairecerif.affiliation.role", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
+//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
+//            // the item is retrieved from the db it turns to -1
+            with("oairecerif.person.affiliation", "SENS", sensAff.getID().toString(), 0, 600),
+            with("oairecerif.affiliation.startDate", "2022-01-01", 0),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
+            with("oairecerif.affiliation.role", "Associate Professor", 1),
+//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
+//            // the item is retrieved from the db it turns to -1
+            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, -1),
+            with("oairecerif.affiliation.startDate", yesterday, 1),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
+            with("oairecerif.affiliation.role", "Associate Professor", 2),
+//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
+//            // the item is retrieved from the db it turns to -1
+            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, -1),
+            with("oairecerif.affiliation.startDate", yesterday, 2),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
+
+        List<MetadataValue> affiliations = profile
+            .getMetadata().stream()
+            .filter(mv -> "oairecerif_person_affiliation".equals(mv.getMetadataField().toString()))
+            .collect(Collectors.toList());
+
+        assertEquals(3, affiliations.size());
+
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
     }
 
     private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {
