@@ -69,15 +69,12 @@ import org.xml.sax.SAXException;
 public class MarcXmlParserImpl implements MarcXmlParser {
 
     public static final String TYPE_FILTER_PROPERTY_PREFIX = "epfl.items-import.types";
-
     public static final String TYPE_VOCABULARY_PROPERTY_PREFIX = "epfl.items-import.vocabulary";
 
     @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
     private ItemsS3Service itemsS3Service;
-
+    @Autowired
+    private ConfigurationService configurationService;
     @Autowired
     private ChoiceAuthorityService choiceAuthorityService;
 
@@ -436,6 +433,14 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         }
     }
 
+    public ItemsS3Service getItemsS3Service() {
+        return itemsS3Service;
+    }
+
+    public void setItemsS3Service(ItemsS3Service itemsS3Service) {
+        this.itemsS3Service = itemsS3Service;
+    }
+
     private ItemsImportMapping readMappingConfiguration(String config) {
         try (FileReader mappingReader = new FileReader(config)) {
             JAXBContext jaxbContext = JAXBContext.newInstance(ItemsImportMapping.class);
@@ -489,20 +494,4 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     }
 
-
-    public void setItemsS3Service(ItemsS3Service itemsS3Service) {
-        this.itemsS3Service = itemsS3Service;
-    }
-
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
-
-    public void setChoiceAuthorityService(ChoiceAuthorityService choiceAuthorityService) {
-        this.choiceAuthorityService = choiceAuthorityService;
-    }
-
-    public void runSetup() {
-        setup();
-    }
 }

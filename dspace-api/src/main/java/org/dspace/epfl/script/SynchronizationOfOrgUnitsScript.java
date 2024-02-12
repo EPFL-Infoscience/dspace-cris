@@ -361,7 +361,7 @@ public class SynchronizationOfOrgUnitsScript
     private ResearcherProfile findRelatedResearcherProfile(EPerson ePerson) throws SQLException, AuthorizeException {
         return profileInitializer.findProfile(context, ePerson)
                                  .orElseGet(() -> {
-                                     profileInitializer.initialize(context, ePerson);
+                                     profileInitializer.createOrUpdateProfile(context, ePerson);
                                      return profileInitializer.findProfile(context, ePerson).orElse(null);
                                  });
     }
@@ -410,35 +410,33 @@ public class SynchronizationOfOrgUnitsScript
 
     private EPerson createUser(OrgUnitDTO epflOrgUnit) {
         EPerson newEPerson;
+        String sciper = epflOrgUnit.getHead().getSciper();
         try {
-            logInfo("Creation of person with sciper " + epflOrgUnit.getHead().getSciper() + " started");
-            PersonDTO epflPerson;
+            logInfo("Creation of person with sciper " + sciper + " started");
+            Optional<PersonDTO> epflPerson;
             try {
-                epflPerson = epflApiClient.getPerson(epflOrgUnit.getHead().getSciper(), EpflApiClient.Language.EN)
-                                          .orElse(null);
+                epflPerson = epflApiClient.getPerson(sciper, EpflApiClient.Language.EN);
             } catch (RuntimeException e) {
-                logInfo("unable to gather data for person with sciper: " + epflOrgUnit.getHead().getSciper() + ":"
+                logInfo("unable to gather data for person with sciper: " + sciper + ":"
                             + e.getMessage());
                 return null;
             }
 
             newEPerson = ePersonService.create(context);
 
-            newEPerson.setNetid(epflOrgUnit.getHead().getSciper() + "@epfl.ch");
+            newEPerson.setNetid(sciper + "@epfl.ch");
             newEPerson.setFirstName(context, epflOrgUnit.getHead().getFirstname());
             newEPerson.setLastName(context, epflOrgUnit.getHead().getName());
-            newEPerson.setEmail(Optional.ofNullable(epflPerson)
-                                        .map(PersonDTO::getEmail)
-                                        .orElse("placeholder@email.com"));
+            newEPerson.setEmail(epflPerson.map(PersonDTO::getEmail).orElse(sciper + "@epfl.ch"));
 
-            profileInitializer.initialize(context, newEPerson);
+            profileInitializer.initialize(context, newEPerson, sciper, epflPerson);
 
             ePersonService.setMetadataSingleValue(context, newEPerson, "epfl", "synchronization", "date", null,
                                                   new Timestamp(new Date().getTime()).toString());
             ePersonService.update(context, newEPerson);
             return context.reloadEntity(newEPerson);
         } catch (SQLException | AuthorizeException e) {
-            handler.logError("Error during creation of person with sciper " + epflOrgUnit.getHead().getSciper());
+            handler.logError("Error during creation of person with sciper " + sciper);
             throw new RuntimeException(e);
         }
     }

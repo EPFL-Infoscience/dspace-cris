@@ -461,6 +461,48 @@ public class ItemMetadataImportFillerTest {
         verifyNoMoreInteractions(context, itemService);
     }
 
+    /**
+     * Verify that the fillItem method add the oaire.citation.conferenceDate
+     * an useAll configuration set to true.
+     *
+     * @throws SQLException not expected
+     */
+    @Test
+    public void testFillItemWithConferenceDate() throws SQLException {
+        String conferenceValue = "conferenceValue";
+        String conferenceDate = "2020-12-11";
+        MetadataValue metadataValue =
+                buildMetadataValue(randomUUID(), "dc", "relation", "conference", conferenceValue, 0);
+        Item sourceItem = (Item) metadataValue.getDSpaceObject();
+        Item itemToFill = buildItem(randomUUID());
+
+        Map<String, MappingDetails> mappingDetails = new HashMap<>();
+        mappingDetails.put("oaire.citation.conferenceDate",
+                buildMappingDetails(true, "oaire.citation.conferenceDate"));
+
+        Map<String, MetadataConfiguration> configurations = new HashMap<>();
+        configurations.put("dc.relation.conference", buildMetadataConfig(true, mappingDetails));
+        cut.setConfigurations(configurations);
+
+        MetadataValue firstMetadata = buildMetadataValue("oaire", "citation", "conferenceDate", conferenceDate);
+        List<MetadataValue> expectedMetadata = List.of(firstMetadata);
+        when(itemService.getMetadataByMetadataString(sourceItem, "oaire.citation.conferenceDate"))
+                .thenReturn(expectedMetadata);
+
+        when(itemService.getMetadataByMetadataString(itemToFill, "oaire.citation.conferenceDate"))
+                .thenReturn(emptyList());
+
+        cut.fillItem(context, metadataValue, itemToFill);
+
+        verify(itemService).getMetadataByMetadataString(sourceItem, "oaire.citation.conferenceDate");
+        verify(itemService).addMetadata(context, itemToFill, "dc", "title", null, null, conferenceValue, null, -1);
+        verify(itemService).clearMetadata(context, itemToFill, "oaire", "citation", "conferenceDate", ANY);
+
+        verify(itemService).addMetadata(context, itemToFill, "oaire", "citation", "conferenceDate",
+                null, conferenceDate, null, -1);
+        verifyNoMoreInteractions(context, itemService);
+    }
+
     private MappingDetails buildMappingDetails(boolean useAll, String targetMetadata) {
         MappingDetails mappingDetails = new MappingDetails();
         mappingDetails.setUseAll(useAll);

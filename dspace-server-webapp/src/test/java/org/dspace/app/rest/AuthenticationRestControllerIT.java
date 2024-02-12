@@ -75,6 +75,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -1269,6 +1271,57 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                         .andExpect(jsonPath("$.authenticationMethod").doesNotExist())
                         .andExpect(jsonPath("$.type", is("status")));
 
+    }
+
+    @Test
+    public void testPasswordAuthenticationWithShibbolethApiDown() throws Exception {
+        //Enable Shibboleth and password login
+        configurationService.setProperty("plugin.sequence.org.dspace.authenticate.AuthenticationMethod", SHIB_AND_PASS);
+        //Set Shibboleth url to wrong one
+        configurationService.setProperty("epfl.person-import.api-url", "https://wrong-api.epfl.ch/api/ldap");
+        configurationService.setProperty("epfl.orgunit-import.api-url", "https://search-api.epfl.ch/api/unit");
+
+        //Check if WWW-Authenticate header contains shibboleth and password
+        getClient().perform(get("/api/authn/status").header("Referer", "http://my.uni.edu"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("WWW-Authenticate",
+                        "shibboleth realm=\"DSpace REST API\", " +
+                                "location=\"https://localhost/Shibboleth.sso/Login?" +
+                                "target=http%3A%2F%2Flocalhost%2Fapi%2Fauthn%2Fshibboleth%3F" +
+                                "redirectUrl%3Dhttp%3A%2F%2Fmy.uni.edu\"" +
+                                ", password realm=\"DSpace REST API\""));
+
+        //Simulate a password authentication
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        //Check if eperson exists
+        EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        EPerson epersonForCheck = ePersonService.findByEmail(context, eperson.getEmail());
+        assertNotNull(epersonForCheck);
+
+        //Check if we have a valid token
+        getClient(token).perform(get("/api/authn/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.okay", is(true)))
+                .andExpect(jsonPath("$.authenticated", is(true)))
+                .andExpect(jsonPath("$.authenticationMethod", is("password")))
+                .andExpect(jsonPath("$.type", is("status")));
+
+        getClient(token).perform(get("/api/authz/authorizations/" + authorization.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.is(
+                        AuthorizationMatcher.matchAuthorization(authorization))));
+        //Logout
+        getClient(token).perform(post("/api/authn/logout"))
+                .andExpect(status().isNoContent());
+
+        //Check if we are actually logged out
+        getClient(token).perform(get("/api/authn/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.okay", is(true)))
+                .andExpect(jsonPath("$.authenticated", is(false)))
+                .andExpect(jsonPath("$.authenticationMethod").doesNotExist())
+                .andExpect(jsonPath("$.type", is("status")));
     }
 
     @Test
