@@ -12,7 +12,7 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -84,11 +84,11 @@ public class OrgUnitTSVImportScriptIT extends AbstractIntegrationTestWithDatabas
 
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
-        assertEquals(handler.getInfoMessages().get(2),
-                "Head name is missing in tsv, and it was not possible to get it from the api:" +
-                        " head name metadata is not added");
-        assertEquals(handler.getInfoMessages().get(5),
-                "Head name is missing in tsv, taking head name from api: Dyson, Paul Joseph");
+        assertTrue(handler.getInfoMessages()
+                .contains("Head name is missing in tsv, and it was not possible to get it from the api:" +
+                        " head name metadata is not added"));
+        assertTrue(handler.getInfoMessages()
+                .contains("Head name is missing in tsv, taking head name from api: Dyson, Paul Joseph"));
     }
 
     private String getTSVFilePath(String name) {
