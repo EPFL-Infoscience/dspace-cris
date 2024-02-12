@@ -81,6 +81,8 @@ public class OrgUnitTSVImportScript
 
     private String filename;
 
+    private Boolean isIntegratedMode;
+
     private Context context;
 
 
@@ -107,6 +109,7 @@ public class OrgUnitTSVImportScript
 
         collectionId = commandLine.getOptionValue('c');
         filename = commandLine.getOptionValue('f');
+        isIntegratedMode = commandLine.hasOption('i');
 
         activeOrgUnitAcronymHeader = getActiveOrgUnitAcronymHeader();
         inactiveOrgUnitAcronymHeader = getInactiveOrgUnitAcronymHeader();
@@ -205,7 +208,9 @@ public class OrgUnitTSVImportScript
     }
 
     private List<MetadataValueDTO> getMetadataValues(OrgUnitRow orgUnitRow, String orgUnitAcronym) {
-        if (orgUnitApiService.isOrgUnitActive(orgUnitAcronym)) {
+        if (isIntegratedMode) {
+            return getMetadataValuesFromOrgUnitRow(orgUnitRow);
+        } else if (orgUnitApiService.isOrgUnitActive(orgUnitAcronym)) {
             return getMetadataValuesFromAPI(orgUnitRow);
         } else {
             return getMetadataValuesFromOrgUnitRow(orgUnitRow);
@@ -295,7 +300,13 @@ public class OrgUnitTSVImportScript
             return acronym;
         }
 
-        String willBePrefix = orgUnitApiService.isOrgUnitActive(acronym) ? GENERATE : REFERENCE;
+        String willBePrefix;
+        try {
+            willBePrefix = orgUnitApiService.isOrgUnitActive(acronym) ? GENERATE : REFERENCE;
+        } catch (Exception e) {
+            handler.logError("Error retrieving org unit status for acronym " + acronym);
+            willBePrefix = REFERENCE;
+        }
         return willBePrefix + authorityPrefix + acronym;
     }
 
