@@ -7,7 +7,6 @@
  */
 package org.dspace.epfl.script;
 
-import static com.google.common.collect.Streams.concat;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.authority.service.AuthorityValueService.GENERATE;
@@ -23,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
@@ -264,8 +265,12 @@ public class OrgUnitTSVImportScript
     private String getHeadName(OrgUnitRow orgUnitRow) {
         String firstName = getHeadFirstNameHeader();
         String lastName = getHeadLastNameHeader();
-        return concat(orgUnitRow.getValue(lastName).stream(), orgUnitRow.getValue(firstName).stream())
-            .collect(Collectors.joining(", "));
+        return Stream.of(
+                        orgUnitRow.getValue(lastName).stream(),
+                        orgUnitRow.getValue(firstName).stream()
+                )
+                .flatMap(Function.identity())
+                .collect(Collectors.joining(", "));
     }
 
     private String getHeadAuthority(OrgUnitRow orgUnitRow) {
