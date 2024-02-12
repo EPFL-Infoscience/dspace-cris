@@ -74,6 +74,24 @@ public class OrgUnitTSVImportScriptIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    public void testOUnitsImportWithIncompleteNames() throws Exception {
+
+        String fileLocation = getTSVFilePath("units_with_incomplete_names.tsv");
+        String[] args = new String[] { "orgunit-tsv-import", "-c", collection.getID().toString(), "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+        assertTrue(handler.getInfoMessages()
+                .contains("Head name is missing in tsv, and it was not possible to get it from the api:"
+                        + " head name metadata is not added"));
+        assertTrue(handler.getInfoMessages()
+                .contains("Head name is missing in tsv, taking head name from api: Dyson, Paul Joseph"));
+    }
+
+    @Test
     public void testOrgUnitsImportWithMultilingualValues() throws Exception {
 
         String fileLocation = getTSVFilePath("units_with_multilingual_values.tsv");
