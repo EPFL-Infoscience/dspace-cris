@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +56,7 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.model.PersonDTO;
+import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.profile.ResearcherProfile;
@@ -413,7 +413,7 @@ public class ProfileInitializer {
     private ResearcherProfile createPublicProfile(Context context, EPerson eperson, Optional<PersonDTO> personDTO) {
 
 
-        if (!personDTO.isPresent()
+        if (personDTO.isEmpty()
             || noAccredsInDspace(context,
                                  personDTO
                                      .map(p -> sendEmailIfSomethingIsWrong(context, p))
@@ -435,7 +435,7 @@ public class ProfileInitializer {
 
     private boolean noAccredsInDspace(Context context, PersonDTO.Accred[] accreds) {
         return Arrays.stream(accreds)
-                     .map(a -> a.getAcronym())
+                     .map(Accred::getAcronym)
                      .noneMatch(acro -> inDspace(context, acro));
     }
 
@@ -465,10 +465,7 @@ public class ProfileInitializer {
         if (!profile.isVisible()) {
             researcherProfileService.changeVisibility(context, profile, true);
         }
-        itemService.setMetadataSingleValue(context, profile.getItem(),
-                                           "epfl", "sciper",
-                                           "active", null,
-                                           "true");
+        itemService.setMetadataSingleValue(context, profile.getItem(), "epfl", "sciper", "active", null, "true");
     }
 
     private boolean isMainAffiliationActive(PersonDTO person) {
@@ -545,16 +542,18 @@ public class ProfileInitializer {
         List<PersonAffiliation> apiAffiliations = apiAffiliations(metadataValues);
         List<PersonAffiliation> alreadySetAffiliations =
             alreadyPresentAffiliations(personAffiliations, apiAffiliations);
-        metadataValues.stream().filter(mv -> notAnAlreadySetAffiliation(mv, alreadySetAffiliations))
+        // update oairecerif.person.affiliation value in case it is unit's name instead of acronym
+        metadataValues.stream().filter(mv -> isAlreadySetAffiliation(mv, alreadySetAffiliations))
+                      .filter(mv -> "oairecerif.person.affiliation".equals(mv.getMetadataField()))
+                      .forEach(metadataValue -> updateMetadataValue(context, item, metadataValue));
+        metadataValues.stream().filter(mv -> !isAlreadySetAffiliation(mv, alreadySetAffiliations))
                       .forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
     }
 
-    private boolean notAnAlreadySetAffiliation(MetadataValueDTO metadataValue,
-                                               List<PersonAffiliation> alreadySetAffiliations) {
-        if (!AFFILIATIONS_METADATA.contains(metadataValue.getMetadataField())) {
-            return true;
-        }
-        return alreadySetAffiliations.stream().noneMatch(pa -> Objects.equals(pa.position, metadataValue.getPlace()));
+    private boolean isAlreadySetAffiliation(MetadataValueDTO metadataValue,
+                                            List<PersonAffiliation> alreadySetAffiliations) {
+        return AFFILIATIONS_METADATA.contains(metadataValue.getMetadataField())
+            && alreadySetAffiliations.stream().anyMatch(pa -> Objects.equals(pa.position, metadataValue.getPlace()));
     }
 
     private List<PersonAffiliation> alreadyPresentAffiliations(List<PersonAffiliation> personAffiliations,
@@ -578,48 +577,34 @@ public class ProfileInitializer {
             .filter(mv -> "oairecerif.person.affiliation".equals(mv.getMetadataField()))
             .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
             .map(mv -> new PersonAffiliation(mv.getPlace(),
-                                             getAcronym(mv),
+                                             mv.getValue(),
                                              PLACEHOLDER_PARENT_METADATA_VALUE,
                                              PLACEHOLDER_PARENT_METADATA_VALUE))
             .collect(Collectors.toList());
 
     }
 
-    private static String getAcronym(MetadataValueDTO mv) {
-        if (mv.getAuthority().startsWith(AuthorityValueService.GENERATE)) {
-            return StringUtils.substringAfter(mv.getAuthority(), AuthorityValueService.GENERATE + "ACRONYM::");
-        }
-        if (mv.getAuthority().startsWith(AuthorityValueService.REFERENCE)) {
-            return StringUtils.substringAfter(mv.getAuthority(), AuthorityValueService.REFERENCE + "ACRONYM::");
-        }
-        return mv.getAuthority();
-    }
-
-
     private List<PersonAffiliation> affiliations(Context context, Item item) {
         Map<Integer, List<MetadataValue>> metadataMap = item.getMetadata().stream()
                                                         .filter(mv -> AFFILIATIONS_METADATA.contains(
                                                             mv.getMetadataField().toString('.')))
-                                                        .collect(Collectors.groupingBy(mv -> mv.getPlace()));
-        List<PersonAffiliation> result = new LinkedList<>();
+                                                        .collect(Collectors.groupingBy(MetadataValue::getPlace));
         return metadataMap.entrySet().stream()
             .map(e -> toAffiliation(context, e))
             .collect(Collectors.toList());
     }
 
     private PersonAffiliation toAffiliation(Context context, Map.Entry<Integer, List<MetadataValue>> metadataMap) {
-
         List<MetadataValue> metadataValues = metadataMap.getValue();
         String acronym = acronym(context, extractMetadata(metadataValues, "oairecerif.person.affiliation"));
         String startDate = metadataValue(metadataValues, "oairecerif.affiliation.startDate");
         String endDate = metadataValue(metadataValues, "oairecerif.affiliation.endDate");
-        return new ProfileInitializer.PersonAffiliation(metadataMap.getKey(),
-                                     acronym, startDate, endDate);
+        return new ProfileInitializer.PersonAffiliation(metadataMap.getKey(), acronym, startDate, endDate);
     }
 
     private String metadataValue(List<MetadataValue> metadataValues, String metadata) {
-        return Optional.ofNullable(
-                           extractMetadata(metadataValues, metadata)).map(mv -> mv.getValue())
+        return Optional.ofNullable(extractMetadata(metadataValues, metadata))
+                       .map(MetadataValue::getValue)
                        .orElse(null);
     }
 
@@ -741,6 +726,20 @@ public class ProfileInitializer {
             itemService.addSecuredMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
                 metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
                 metadataValue.getAuthority(), metadataValue.getConfidence(), metadataValue.getSecurityLevel());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void updateMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
+        try {
+            MetadataValue mv = itemService.getMetadata(item, metadataValue.getSchema(), metadataValue.getElement(),
+                                                       metadataValue.getQualifier(), metadataValue.getLanguage())
+                                          .stream()
+                                          .filter(value -> Objects.equals(value.getPlace(), metadataValue.getPlace()))
+                                          .findFirst().get();
+            mv.setValue(metadataValue.getValue());
+            context.reloadEntity(mv);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
