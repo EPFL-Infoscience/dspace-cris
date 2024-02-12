@@ -170,8 +170,8 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
         int itemMetadataCount = (int) itemMetadata.stream()
-            .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals("epfl.lastmodified.email"))
-            .count();
+                .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals("epfl.lastmodified.email"))
+                .count();
 
         assertEquals(itemMetadataCount, 1);
     }
