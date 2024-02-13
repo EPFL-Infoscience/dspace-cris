@@ -331,8 +331,6 @@ public class ProfileInitializer {
         }
 
         personDTO
-//            .map(person -> sendEmailIfSomethingIsWrong(context, person))
-            .filter(person -> isMainAffiliationActive(person) || hasActiveAffiliation(person))
             .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(),
                                                 eperson, researcherProfile));
 
@@ -466,17 +464,6 @@ public class ProfileInitializer {
             researcherProfileService.changeVisibility(context, profile, true);
         }
         itemService.setMetadataSingleValue(context, profile.getItem(), "epfl", "sciper", "active", null, "true");
-    }
-
-    private boolean isMainAffiliationActive(PersonDTO person) {
-        return person.getMainAffiliation()
-            .map(accred -> orgUnitApiService.isOrgUnitActive(accred.getAcronym()))
-            .orElse(false);
-    }
-
-    private boolean hasActiveAffiliation(PersonDTO person) {
-        return Arrays.stream(person.getAccreds())
-                     .anyMatch(accred -> orgUnitApiService.isOrgUnitActive(accred.getAcronym()));
     }
 
     private void enrichProfile(Context context, PersonDTO person, Item item,
