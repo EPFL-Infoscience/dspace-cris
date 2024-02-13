@@ -207,6 +207,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     public void testThatRelationJournalMetadataWithRelationIssnIsPresent() {
         String firstRelationJournal = "first relation";
         String secondRelationJournal = "second relation";
+        String type = "Journal Articles";
         String testIssn = "testIssn";
         String test1 = " <record> \n" +
             "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n" +
@@ -214,6 +215,9 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
             "  </datafield>\n" +
             "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" +
             "<subfield code=\"a\">" + testIssn + "</subfield>\n" +
+            "  </datafield>\n" +
+            "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"a\">" + type + "</subfield>\n" +
             "  </datafield>\n" +
             "</record>";
 

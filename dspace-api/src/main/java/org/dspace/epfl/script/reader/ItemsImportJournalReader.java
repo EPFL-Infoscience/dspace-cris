@@ -50,7 +50,7 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
             }
         }
 
-        Optional<String> issnValue = getIssnValue(issnNode);
+        Optional<String> issnValue = issnNode != null ? getIssnValue(issnNode) : Optional.of(null);
 
 
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -71,9 +71,7 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
             } else {
                 metadataValues.add(new MetadataValueDTO(isPartOfSeriesMetadataField, value));
             }
-
         }
-
         return metadataValues;
     }
 
@@ -123,6 +121,4 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
     public void setIssnNodeXpath(String issnNodeXpath) {
         this.issnNodeXpath = issnNodeXpath;
     }
-
-
 }
