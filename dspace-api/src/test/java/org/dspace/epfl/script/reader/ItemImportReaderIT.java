@@ -234,7 +234,8 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         assertEquals(firstRelationJournal, getFirstMetadataValue(itemMetadataWithIssn, "dc.relation.journal"));
 
-        assertEquals("will be generated::ISSN::" + testIssn, getMetadataAuthority(itemMetadataWithIssn, "dc.relation.journal"));
+        assertEquals("will be generated::ISSN::" + testIssn,
+                getMetadataAuthority(itemMetadataWithIssn, "dc.relation.journal"));
 
         assertEquals(secondRelationJournal, getFirstMetadataValue(itemMetadataWitoutIssn, "dc.relation.journal"));
 
@@ -249,8 +250,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
     private String getMetadataAuthority(List<MetadataValueDTO> metadata, String field) {
-        return metadata.stream()
-                       .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
-                       .map(MetadataValueDTO::getAuthority).findFirst().orElse(NOT_FOUND_VALUE);
+        return metadata.stream().filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
+                .map(MetadataValueDTO::getAuthority).findFirst().orElse(NOT_FOUND_VALUE);
     }
 }
