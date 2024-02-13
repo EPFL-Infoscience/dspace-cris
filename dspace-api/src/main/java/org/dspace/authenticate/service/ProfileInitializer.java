@@ -332,7 +332,7 @@ public class ProfileInitializer {
 
         personDTO
 //            .map(person -> sendEmailIfSomethingIsWrong(context, person))
-            .filter(this::isMainAffiliationActive)
+            .filter(person -> isMainAffiliationActive(person) || hasActiveAffiliation(person))
             .ifPresent(person -> enrichProfile(context, person, researcherProfile.getItem(),
                                                 eperson, researcherProfile));
 
@@ -472,6 +472,11 @@ public class ProfileInitializer {
         return person.getMainAffiliation()
             .map(accred -> orgUnitApiService.isOrgUnitActive(accred.getAcronym()))
             .orElse(false);
+    }
+
+    private boolean hasActiveAffiliation(PersonDTO person) {
+        return Arrays.stream(person.getAccreds())
+                     .anyMatch(accred -> orgUnitApiService.isOrgUnitActive(accred.getAcronym()));
     }
 
     private void enrichProfile(Context context, PersonDTO person, Item item,
