@@ -163,11 +163,20 @@ public class EpflUserSynchronizationScript
         int count = 0;
 
         for (String sciperId : sciperIds) {
-
-            epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN)
-                .ifPresent(this::createOrSynch);
-
-            count++;
+            try {
+                Optional<PersonDTO> personDTO = epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN);
+                if (personDTO.isPresent()) {
+                    createOrSynch(personDTO.get());
+                } else {
+                    logInfo("Skipped profile #" + (count + 1) + " with sciper " + sciperId
+                            + " not found in the search api");
+                }
+            } catch (Exception e) {
+                logError("Unable to sync profile #" + (count + 1) + " with sciper " + sciperId +
+                        ": " + e.getMessage());
+            } finally {
+                count++;
+            }
 
             if (count % 20 == 0) {
                 handler.logInfo("Processed " + count + " sciper ids");
