@@ -95,8 +95,8 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
         try {
             adminsGroup = findByName(ADMINS_GROUP);
-            curatorsGroup = findByName(CURATORS_GROUP);
-            submittersGroup = findByName(SUBMITTERS_GROUP);
+            curatorsGroup = findByNameOrCreate(CURATORS_GROUP);
+            submittersGroup = findByNameOrCreate(SUBMITTERS_GROUP);
             epflReviewersGroup = findByNameOrCreate(EPFL_PUBLICATION_REVIEWERS);
             reviewersGroup = findByNameOrCreate(PUBLICATION_REVIEWERS);
 

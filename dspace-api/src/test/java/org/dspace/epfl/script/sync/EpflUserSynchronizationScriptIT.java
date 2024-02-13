@@ -568,14 +568,86 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
-        List<MetadataValue> affiliations = profile
-            .getMetadata().stream()
-            .filter(mv -> "oairecerif_person_affiliation".equals(mv.getMetadataField().toString()))
-            .collect(Collectors.toList());
-
+        List<MetadataValue> affiliations = getMetadataValuesByMetadataString(profile, "oairecerif_person_affiliation");
         assertEquals(3, affiliations.size());
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+    }
+
+    @Test
+    public void testProfileCreationWithActiveAffiliationsButNoMainAffiliation()
+        throws SQLException, AuthorizeException, InstantiationException, IllegalAccessException {
+
+        context.turnOffAuthorisationSystem();
+
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("Prof. Ablasser Group")
+                   .withAcronym("UPABLASSER").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("Laboratory of Virology and Genetics")
+                   .withAcronym("LVG").build();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                                        .withNameInMetadata("Test", "User")
+                                        .withEmail("test@user.it")
+                                        .withNetId("375968@epfl.ch")
+                                        .build();
+
+        context.restoreAuthSystemState();
+
+        // run script
+        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail()};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+        assertThat(handler.getInfoMessages(), contains(
+            is("EPerson with uuid: " + eperson.getID().toString() + ", sciperId: 375968 was updated"),
+            is("Changes:"),
+            is("Number of created epersons: 0"),
+            is("Number of updated epersons: 1")
+        ));
+
+        eperson = context.reloadEntity(eperson);
+        assertThat(eperson.getFirstName(), equalTo("Iris Arianna"));
+        assertThat(eperson.getLastName(), equalTo("Dorschel"));
+        assertThat(eperson.getEmail(), equalTo("arianna.dorschel@epfl.ch"));
+        assertThat(eperson.getNetid(), equalTo("375968@epfl.ch"));
+
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
+
+        Item profile = researcherProfile.getItem();
+        String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
+        assertThat(profile.getMetadata(), hasItems(
+            with("dc.title", "Dorschel, Iris Arianna"),
+            with("person.givenName", "Iris Arianna"),
+            with("person.familyName", "Dorschel"),
+            with("person.email", "arianna.dorschel@epfl.ch"),
+            with("epfl.sciper.active", "true"),
+            with("epfl.sciperId", "375968"),
+            with("oairecerif.identifier.url", "https://people.epfl.ch/arianna.dorschel"),
+            with("oairecerif.affiliation.role", "Doctoral Assistant", 0),
+            with("oairecerif.person.affiliation", "UPABLASSER", "will be referenced::ACRONYM::UPABLASSER", 0, -1),
+            with("oairecerif.affiliation.startDate", yesterday, 0),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
+            with("oairecerif.affiliation.role", "Doctoral Assistant", 1),
+            with("oairecerif.person.affiliation", "LVG", "will be referenced::ACRONYM::LVG", 1, -1),
+            with("oairecerif.affiliation.startDate", yesterday, 1),
+            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
+
+        List<MetadataValue> affiliations = getMetadataValuesByMetadataString(profile, "oairecerif_person_affiliation");
+        assertEquals(2, affiliations.size());
+
+        List<MetadataValue> mainAffiliations = getMetadataValuesByMetadataString(profile, "person_affiliation_name");
+        assertEquals(0, mainAffiliations.size());
+
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "375968.jpg");
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
     }
@@ -588,5 +660,11 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             .anyMatch(policy -> READ == policy.getAction() && ANONYMOUS.equals(policy.getGroup().getName()));
 
         assertThat(visible, is(true));
+    }
+
+    private List<MetadataValue> getMetadataValuesByMetadataString(Item item, String metadataString) {
+        return item.getMetadata().stream()
+                   .filter(mv -> metadataString.equals(mv.getMetadataField().toString()))
+                   .collect(Collectors.toList());
     }
 }
