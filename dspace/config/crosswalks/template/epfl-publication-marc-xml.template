@@ -246,6 +246,9 @@
     @group.epfl-url.start@
     <datafield tag="856" ind1="4" ind2="1">
         <subfield code="u">@epfl.url@</subfield>
+        @if.metadata.epfl-url-description.start@
+            <subfield code="y">@epfl.url.description@</subfield>
+        @if.metadata.epfl-url-description.end@
     </datafield>
     @group.epfl-url.end@
     @relation.dc-description-sponsorship.start@
