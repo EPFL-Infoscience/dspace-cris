@@ -136,4 +136,23 @@
     	<property name="relatedInputFormMetadata" value="dc_relation_issn"/>
      </bean>
 
+	<bean
+		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+		<property name="authorityName" value="SherpaAuthority" />
+		<property name="keyId" value="dc_relation_issn" />
+		<property name="schema" value="dc" />
+		<property name="element" value="identifier" />
+		<property name="qualifier" value="issn" />
+		<property name="singleResultOnAggregate" value="false" />
+	</bean>
+
+	<bean
+		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+		<property name="authorityName" value="SherpaAuthority" />
+		<property name="keyId" value="dc_publisher" />
+		<property name="schema" value="dc" />
+		<property name="element" value="publisher" />
+		<property name="singleResultOnAggregate" value="false" />
+	</bean>
+
 </beans>
