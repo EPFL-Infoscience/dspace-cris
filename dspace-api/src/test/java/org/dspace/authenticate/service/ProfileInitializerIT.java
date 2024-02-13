@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +42,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -61,6 +63,8 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     private ResearcherProfileService researcherProfileService = new DSpace()
         .getSingletonService(ResearcherProfileService.class);
+
+    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
@@ -125,7 +129,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testProfileCreation() throws SQLException, AuthorizeException {
+    public void testProfileCreation() throws SQLException, AuthorizeException, IOException {
 
         context.turnOffAuthorisationSystem();
 
@@ -149,7 +153,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -184,6 +188,10 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
         assertThat(groupService.allMemberGroupsSet(context, eperson)
                        .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(true));
+        // delete the profile created by the profileInitializer to avoid to mess the test data
+        context.turnOffAuthorisationSystem();
+        itemService.delete(context, profile);
+        context.restoreAuthSystemState();
 
     }
     @Test
@@ -199,7 +207,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, nullValue());
@@ -225,7 +233,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -297,7 +305,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -381,7 +389,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -446,7 +454,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -475,7 +483,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             .withNetId("352234@epfl.ch")
             .build();
 
-        ItemBuilder.createItem(context, profiles)
+        Item personItem = ItemBuilder.createItem(context, profiles)
             .withTitle("My User")
             .withMetadata("epfl", "sciperId", null, "352234")
             .withDspaceObjectOwner(admin)
@@ -484,10 +492,10 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> profileInitializer.initialize(context, eperson));
+            () -> profileInitializer.createOrUpdateProfile(context, eperson));
 
-        assertThat(exception.getMessage(), is("An item with the sciper 352234 is already linked "
-            + "to another eperson: " + admin.getID()));
+        assertThat(exception.getMessage(), is("The item " + personItem.getID().toString() + " is already linked "
+            + "to another eperson: " + admin.getID() + " cannot be linked to " + eperson.getID().toString()));
 
     }
 
@@ -517,7 +525,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -530,7 +538,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -587,7 +595,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -626,7 +634,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         groupService.addMember(context, submitters, eperson);
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         assertThat(groupService.allMemberGroupsSet(context, eperson)
                 .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(false));

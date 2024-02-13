@@ -140,4 +140,9 @@
         <property name="description" value="Exports a given schema into a registry xml-format file"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.metadata.export.MetadataSchemaExportScript"/>
     </bean>
+    
+    <bean id="orgunit-xml-import" class="org.dspace.epfl.script.OrgUnitXMLImportScriptConfiguration" primary="true">
+		<property name="description" value="Import the OrgUnits present in the given XML file" />
+		<property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitXMLImportScript" />
+	</bean>
 </beans>
