@@ -891,4 +891,8 @@ public class ItemsImportFromS3Script
         this.itemsS3Service = itemsS3Service;
     }
 
+    public MarcXmlParser getMarcXmlParser() {
+        return marcXmlParser;
+    }
+
 }
