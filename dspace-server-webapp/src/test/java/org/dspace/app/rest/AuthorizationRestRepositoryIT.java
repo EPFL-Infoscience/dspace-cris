@@ -2787,8 +2787,9 @@ public class AuthorizationRestRepositoryIT extends AbstractControllerIntegration
                                                  .withWorkflowGroup("editor", admin)
                                                  .build();
 
-        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
-                                                              "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
         String title = "Title " + (new Date().getTime());
         Item itemToBeCorrected = ItemBuilder.createItem(context, collection)
                                             .withTitle(title)
@@ -2796,7 +2797,6 @@ public class AuthorizationRestRepositoryIT extends AbstractControllerIntegration
                                                            simpleArticle.getInputStream())
                                             .withIssueDate("2022-07-15")
                                             .withSubject("Entry")
-                                            .withEntityType("Publication")
                                             .grantLicense()
                                             .build();
 

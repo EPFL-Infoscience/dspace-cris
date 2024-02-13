@@ -108,6 +108,16 @@ public class FacetEntryMatcher {
         );
     }
 
+    public static Matcher<? super Object> dateCreatedFacet(boolean hasNext) {
+        return allOf(
+            hasJsonPath("$.name", is("dateCreated")),
+            hasJsonPath("$.facetType", is("date")),
+            hasJsonPath("$.facetLimit", any(Integer.class)),
+            hasJsonPath("$._links.self.href", containsString("api/discover/facets/dateCreated")),
+            hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/dateCreated"))
+        );
+    }
+
     public static Matcher<? super Object> dateIssuedFacetWithMinMax(boolean hasNext, String min, String max) {
         return allOf(
             hasJsonPath("$.name", is("dateIssued")),
@@ -129,6 +139,17 @@ public class FacetEntryMatcher {
             hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/has_content_in_original_bundle"))
         );
     }
+
+    public static Matcher<? super Object> matchFacet(boolean hasNext, String name, String facetType) {
+        return allOf(
+                hasJsonPath("$.name", is(name)),
+                hasJsonPath("$.facetType", is(facetType)),
+                hasJsonPath("$.facetLimit", any(Integer.class)),
+                hasJsonPath("$._links.self.href", containsString("api/discover/facets/" + name)),
+                hasJsonPath("$._links", matchNextLink(hasNext, "api/discover/facets/" + name))
+        );
+    }
+
 
     /**
      * Check that a facet over the dc.type exists and match the default configuration

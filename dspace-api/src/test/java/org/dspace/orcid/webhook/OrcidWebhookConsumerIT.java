@@ -32,6 +32,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.orcid.client.OrcidClient;
+import org.dspace.orcid.client.OrcidResponse;
 import org.dspace.orcid.factory.OrcidServiceFactory;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.orcid.service.OrcidSynchronizationService;
@@ -98,6 +99,8 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
 
         orcidWebhookService.setOrcidClient(orcidClientMock);
 
+        when(orcidClientMock.registerWebhook(CLIENT_CREDENTIALS_TOKEN, ORCID, expectedWebhookUrl()))
+            .thenReturn(new OrcidResponse(200, "", ""));
         when(orcidClientMock.getWebhookAccessToken()).thenReturn(buildTokenResponse(CLIENT_CREDENTIALS_TOKEN));
 
     }

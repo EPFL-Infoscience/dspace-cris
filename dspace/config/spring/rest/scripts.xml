@@ -43,7 +43,7 @@
         <property name="description" value="Perform the bulk import of an excel file with a list of item to add, update or remove"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkedit.BulkImport"/>
     </bean>
-    
+
     <bean id="item-export" class="org.dspace.content.integration.crosswalks.script.ItemExportScriptConfiguration" primary="true">
         <property name="description" value="Perform the item export in the given format"/>
         <property name="dspaceRunnableClass" value="org.dspace.content.integration.crosswalks.script.ItemExport"/>
@@ -53,7 +53,7 @@
         <property name="description" value="Perform the multiple items export in the given format"/>
         <property name="dspaceRunnableClass" value="org.dspace.content.integration.crosswalks.script.BulkItemExport"/>
     </bean>
-    
+
     <bean id="collection-export" class="org.dspace.app.bulkedit.CollectionExportScriptConfiguration" primary="true">
         <property name="description" value="Perform the export of all the archived items of the given collection in xls format"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkedit.CollectionExport"/>
@@ -78,7 +78,6 @@
         <property name="description" value="Import and store items from external source"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnable"/>
     </bean>
-
     <bean id="orcid-bulk-push" class="org.dspace.orcid.script.OrcidBulkPushScriptConfiguration" primary="true">
         <property name="description" value="Perform the bulk synchronization of all the BATCH configured ORCID entities placed in the ORCID queue"/>
         <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidBulkPush"/>
@@ -131,4 +130,19 @@
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
 <!--    </bean>-->
+
+    <bean id="bulk-access-control" class="org.dspace.app.bulkaccesscontrol.BulkAccessControlScriptConfiguration" primary="true">
+        <property name="description" value="Bulk access control"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControl"/>
+    </bean>
+
+    <bean id="export-schema" class="org.dspace.app.metadata.export.MetadataSchemaExportScriptConfiguration" primary="true">
+        <property name="description" value="Exports a given schema into a registry xml-format file"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.metadata.export.MetadataSchemaExportScript"/>
+    </bean>
+    
+    <bean id="orgunit-xml-import" class="org.dspace.epfl.script.OrgUnitXMLImportScriptConfiguration" primary="true">
+		<property name="description" value="Import the OrgUnits present in the given XML file" />
+		<property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitXMLImportScript" />
+	</bean>
 </beans>

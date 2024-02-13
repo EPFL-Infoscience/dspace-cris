@@ -9,10 +9,8 @@ package org.dspace.content.enhancer.impl;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
-import java.util.Optional;
 
 import org.dspace.content.MetadataValue;
-import org.dspace.content.vo.MetadataValueVO;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.Group;
@@ -27,13 +25,6 @@ public class RelatedEntityGroupItemEnhancer extends RelatedEntityItemEnhancer {
 
     @Autowired
     private GroupService groupService;
-
-    @Override
-    protected MetadataValueVO getRelatedItemValue(Context context, MetadataValue relatedItemMetadataValue) {
-        return Optional.ofNullable(findGroupByName(context, relatedItemMetadataValue))
-            .map(group -> new MetadataValueVO(group.getName(), group.getID().toString()))
-            .orElse(null);
-    }
 
     protected Group findGroupByName(Context context, MetadataValue relatedItemMetadataValue) {
         Group group = null;

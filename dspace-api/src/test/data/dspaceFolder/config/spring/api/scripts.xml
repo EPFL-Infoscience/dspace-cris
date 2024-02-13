@@ -27,6 +27,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkedit.MetadataExportSearchCli" />
     </bean>
 
+    <bean id="retry-tracker" class="org.dspace.statistics.export.RetryFailedOpenUrlTrackerScriptConfiguration" scope="prototype">
+        <property name="description" value="Retry all failed commits to the OpenURLTracker"/>
+        <property name="dspaceRunnableClass" value="org.dspace.statistics.export.RetryFailedOpenUrlTracker"/>
+    </bean>
+
     <bean id="curate"
           class="org.dspace.curate.CurationCliScriptConfiguration">
         <property name="description"
@@ -35,24 +40,19 @@
                   value="org.dspace.curate.CurationCli"/>
     </bean>
 
-    <bean id="retry-tracker" class="org.dspace.statistics.export.RetryFailedOpenUrlTrackerScriptConfiguration" scope="prototype">
-        <property name="description" value="Retry all failed commits to the OpenURLTracker"/>
-        <property name="dspaceRunnableClass" value="org.dspace.statistics.export.RetryFailedOpenUrlTracker"/>
+    <bean id="submission-forms-migrate" class="org.dspace.submit.migration.SubmissionFormsMigrationCliScriptConfiguration">
+        <property name="description" value="Script for migrating submission forms to DSpace 7"/>
+        <property name="dspaceRunnableClass" value="org.dspace.submit.migration.SubmissionFormsMigration"/>
     </bean>
-    
+
     <bean id="metadata-deletion" class="org.dspace.app.bulkedit.MetadataDeletionCliScriptConfiguration">
         <property name="description" value="Delete all the values of the specified metadata field"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkedit.MetadataDeletionCli"/>
     </bean>
 
-    <bean id="filter-media" class="org.dspace.app.mediafilter.MediaFilterScriptConfiguration">
-        <property name="description" value="Perform the media filtering to extract full text from documents and to create thumbnails"/>
-        <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
-    </bean>
-
-    <bean id="solr-database-resync" class="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCliScriptConfiguration">
-        <property name="description" value="Update the database status of Items in solr"/>
-        <property name="dspaceRunnableClass" value="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCli"/>
+    <bean id="process-cleaner" class="org.dspace.administer.ProcessCleanerCliConfiguration">
+        <property name="description" value="Cleanup all the old processes in the specified state"/>
+        <property name="dspaceRunnableClass" value="org.dspace.administer.ProcessCleanerCli"/>
     </bean>
 
     <bean id="another-mock-script" class="org.dspace.scripts.MockDSpaceRunnableScriptConfiguration" scope="prototype">
@@ -81,7 +81,7 @@
     </bean>
 
     <bean id="update-metrics" class="org.dspace.metrics.UpdateCrisMetricsWithExternalSourceCliScriptConfiguration">
-        <property name="description" value="Perform the metrics update using external source"/>
+        <property name="description" value="Perform the metrics update using external source, taking first items that have been updated less recently"/>
         <property name="dspaceRunnableClass" value="org.dspace.metrics.UpdateCrisMetricsWithExternalSourceCli"/>
     </bean>
 
@@ -89,14 +89,33 @@
         <property name="description" value="Perform the metrics storage"/>
         <property name="dspaceRunnableClass" value="org.dspace.metrics.StoreViewDownloadsCrisMetricsCli"/>
     </bean>
-
     <bean id="update-metrics-in-solr" class="org.dspace.metrics.UpdateCrisMetricsInSolrDocCliScriptConfiguration">
         <property name="description" value="Perform the metrics update in SOLR documents"/>
         <property name="dspaceRunnableClass" value="org.dspace.metrics.UpdateCrisMetricsInSolrDocCli"/>
     </bean>
 
+    <bean id="import-oaire-suggestions" class="org.dspace.app.suggestion.OAIREPublicationLoaderCliScriptConfiguration" primary="true">
+       <property name="description" value="Import and store locally metadata from OpenAIRE"/>
+       <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.OAIREPublicationLoaderRunnableCli"/>
+    </bean>
+
+    <bean id="import-loader-suggestions" class="org.dspace.app.suggestion.PublicationLoaderCliScriptConfiguration" primary="true">
+        <property name="description" value="Import and store locally metadata from loader"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.PublicationLoaderRunnableCli"/>
+    </bean>
+
+    <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportCliScriptConfiguration" primary="true">
+        <property name="description" value="Import and store items from external source"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnableCli"/>
+    </bean>
+
+    <bean id="import-nbevents" class="org.dspace.app.nbevent.NBEventsCliScriptConfiguration" primary="true">
+        <property name="description" value="Import new openAIRE notification broker events"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.nbevent.NBEventsRunnableCli"/>
+    </bean>
+
     <bean id="import-publications" class="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCliScriptConfiguration">
-        <property name="description" value="Perform the creating of workspace item using external source"/>
+        <property name="description" value="Perform the creating of workspace item using external sources (i.e. Scopus, WebOfScience, CrossRef, Arxiv, EspaceNet)"/>
         <property name="dspaceRunnableClass" value="org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSourceCli"/>
     </bean>
 
@@ -110,19 +129,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidBulkPull"/>
     </bean>
 
-    <bean id="orcid-update" class="org.dspace.orcid.script.OrcidUpdateScriptConfiguration">
-        <property name="description" value="Perform an orcid value update of Person entities using json"/>
-        <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidUpdate"/>
-    </bean>
-
-    <bean id="subscription-send" class="org.dspace.subscriptions.SubscriptionEmailNotificationCliScriptConfiguration">
-        <property name="description" value="Perform subscriptions send"/>
-        <property name="dspaceRunnableClass" value="org.dspace.subscriptions.SubscriptionEmailNotificationCli"/>
-    </bean>
-
-    <bean id="process-cleaner" class="org.dspace.administer.ProcessCleanerCliConfiguration">
-        <property name="description" value="Cleanup all the old processes in the specified state"/>
-        <property name="dspaceRunnableClass" value="org.dspace.administer.ProcessCleanerCli"/>
+    <bean id="harvest" class="org.dspace.app.harvest.HarvestCliScriptConfiguration">
+        <property name="description" value="Manage the OAI-PMH harvesting of external collections"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.harvest.HarvestCli"/>
     </bean>
 
     <bean id="cris-layout-tool" class="org.dspace.layout.script.CrisLayoutToolScriptConfiguration">
@@ -135,7 +144,6 @@
         <property name="dspaceRunnableClass" value="org.dspace.layout.script.ExportCrisLayoutToolScriptCli"/>
     </bean>
 
-
     <bean id="update-item-references" class="org.dspace.authority.script.UpdateItemReferenceCliScriptConfiguration">
         <property name="description" value="Perform the resolution of authority references"/>
         <property name="dspaceRunnableClass" value="org.dspace.authority.script.UpdateItemReferenceCli"/>
@@ -146,21 +154,15 @@
         <property name="dspaceRunnableClass" value="org.dspace.content.enhancer.script.ItemEnhancerScript"/>
     </bean>
 
-    <!-- Keep as last script; for test ScriptRestRepository#findOneScriptByNameTest -->
-    <bean id="mock-script" class="org.dspace.scripts.MockDSpaceRunnableScriptConfiguration" scope="prototype">
-        <property name="description" value="Mocking a script for testing purposes" />
-        <property name="dspaceRunnableClass" value="org.dspace.scripts.impl.MockDSpaceRunnableScript"/>
+    <bean id="filter-media" class="org.dspace.app.mediafilter.MediaFilterScriptConfiguration">
+        <property name="description" value="Perform the media filtering to extract full text from documents and to create thumbnails"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
     </bean>
 
-    <bean id="import-loader-suggestions" class="org.dspace.app.suggestion.PublicationLoaderScriptConfiguration" primary="true">
-        <property name="description" value="Import and store locally metadata from loader"/>
-        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.PublicationLoaderRunnable"/>
+    <bean id="solr-database-resync" class="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCliScriptConfiguration">
+        <property name="description" value="Update the database status of Items in solr"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCli"/>
     </bean>
-
-    <bean id="import-external-source-item" class="org.dspace.app.suggestion.ExternalSourceItemImportScriptConfiguration" primary="true">
-        <property name="description" value="Import and store items from external source"/>
-        <property name="dspaceRunnableClass" value="org.dspace.app.suggestion.ExternalSourceItemImportRunnable"/>
-	</bean>
 
     <bean id="import" class="org.dspace.app.itemimport.ItemImportCLIScriptConfiguration" primary="true">
         <property name="description" value="Batch Import from Simple Archive Format (SAF)" />
@@ -170,6 +172,11 @@
     <bean id="export" class="org.dspace.app.itemexport.ItemExportCLIScriptConfiguration" primary="true">
         <property name="description" value="Batch Export to Simple Archive Format (SAF)"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.itemexport.ItemExportCLI"/>
+    </bean>
+
+    <bean id="subscription-send" class="org.dspace.subscriptions.SubscriptionEmailNotificationCliScriptConfiguration">
+        <property name="description" value="Send emails related to Community/Collection/Item subscriptions"/>
+        <property name="dspaceRunnableClass" value="org.dspace.subscriptions.SubscriptionEmailNotificationCli"/>
     </bean>
 
     <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeCliScriptConfiguration">
@@ -187,9 +194,81 @@
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsImportFromS3Script"/>
     </bean>
 
-    <bean id="xml-to-item-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
-        <property name="description" value="Import the XML file to items"/>
+    <bean id="epfl-user-synchronization" class="org.dspace.epfl.script.sync.EpflUserSynchronizationScriptConfiguration" primary="true">
+        <property name="description" value="Synchronize users between DSpace-CRIS and epfl, if no parameters are set, all existing researcher profiles having a sciper id will
+        be updated. Optional query: a query to be executed on epfl's ldap in order to gather information and create or update an ePerson and a researcher profile, CSV file in format: sciper,...,sciper listing all sciper identifiers of Researchers to be created or updated in DSpace-CRIS.
+        NB: both parameters are optional, they cannot be set both when running update"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.sync.EpflUserSynchronizationScript"/>
+    </bean>
+
+    <bean id="synchronization-of-orgunits" class="org.dspace.epfl.script.SynchronizationOfOrgUnitsConfiguration" primary="true">
+        <property name="description" value="Synchronization of the OrgUnits"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SynchronizationOfOrgUnitsScript"/>
+    </bean>
+
+    <bean id="orgunit-hidden-relationships" class="org.dspace.epfl.script.OrgUnitHiddenItemsScriptConfiguration" primary="true">
+        <property name="description" value="Create hidden relationships for Patents, Products and Publications that have epfl.relation.rejectedOrgUnit metadata set"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitHiddenItemsScript"/>
+    </bean>
+
+    <bean id="items-report" class="org.dspace.epfl.script.ItemsReportScriptConfiguration" primary="true">
+        <property name="description" value="Writes in process' log a status of current access policies set for the items in the repository."/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsReportScript"/>
+    </bean>
+
+    <bean id="is-academia-xml-import" class="org.dspace.epfl.script.XmlToItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Import the XML IS-ACADEMIA file into a defined collection, items are directly stored in target collection"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.XmlToItemImportScript"/>
+    </bean>
+
+    <bean id="epfl-update-submitter" class="org.dspace.epfl.script.SubmitterFixScriptConfiguration" primary="true">
+        <property name="description" value="Update submitters for items where submitter does not have a sciper, with the first author having a sciper"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.SubmitterFixScript"/>
+    </bean>
+
+     <bean id="orcid-update" class="org.dspace.orcid.script.OrcidUpdateScriptConfiguration">
+        <property name="description" value="Perform an orcid value update of Person entities using json"/>
+        <property name="dspaceRunnableClass" value="org.dspace.orcid.script.OrcidUpdate"/>
+    </bean>
+
+    <bean id="add-missing-handle-for-all-bitstreams" class="org.dspace.epfl.script.AddHandlerForAllBitstreamsScriptConfiguration" primary="true">
+        <property name="description" value="Add handler for all bitstreams in items that have dc.identifier.uri metadata"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.AddHandlerForAllBitstreamsScript"/>
+    </bean>
+
+<!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
+<!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
+<!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
+<!--    </bean>-->
+    <bean id="export-schema" class="org.dspace.app.metadata.export.MetadataSchemaExportCliScriptConfiguration">
+        <property name="description" value="Exports a given schema into target registry file specified"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.metadata.export.MetadataSchemaExportCliScript"/>
+    </bean>
+
+    <bean id="bulk-access-control" class="org.dspace.app.bulkaccesscontrol.BulkAccessControlCliScriptConfiguration" primary="true">
+        <property name="description" value="Bulk access control"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.bulkaccesscontrol.BulkAccessControlCli"/>
+    </bean>
+
+    <bean id="epfl-duplication-fix" class="org.dspace.epfl.script.DuplicationFixScriptConfiguration" primary="true">
+        <property name="description" value="Fixes all the duplication by sciper id"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.DuplicationFixScript"/>
+    </bean>
+
+    <bean id="epfl-roles-setup" class="org.dspace.epfl.script.RoleSetupScriptConfiguration" primary="true">
+        <property name="description" value="Setup of roles of collections"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.RoleSetupScript"/>
+    </bean>
+
+    <!-- Keep as last script; for test ScriptRestRepository#findOneScriptByNameTest -->
+    <bean id="mock-script" class="org.dspace.scripts.MockDSpaceRunnableScriptConfiguration" scope="prototype">
+        <property name="description" value="Mocking a script for testing purposes" />
+        <property name="dspaceRunnableClass" value="org.dspace.scripts.impl.MockDSpaceRunnableScript"/>
+    </bean>
+
+    <bean id="mock-synchronization-of-orgunits" class="org.dspace.epfl.script.SynchronizationOfOrgUnitsConfiguration" primary="true">
+        <property name="description" value="Synchronization of the OrgUnits"/>
+        <property name="dspaceRunnableClass" value="org.dspace.epfl.script.MockSynchronizationOfOrgUnitsScript"/>
     </bean>
 
 </beans>

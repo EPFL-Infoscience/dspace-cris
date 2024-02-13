@@ -15,6 +15,8 @@ import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 /**
@@ -26,9 +28,13 @@ import org.dspace.utils.DSpace;
  */
 public class ItemEnhancerConsumer implements Consumer {
 
+    public static final String ITEMENHANCER_ENABLED = "itemenhancer.enabled";
+    public static final String ITEMENHANCER_DEEPMODE_ENABLED = "itemenhancer.deepmode.enabled";
     private Set<Item> itemsAlreadyProcessed = new HashSet<Item>();
 
     private ItemEnhancerService itemEnhancerService;
+
+    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     @Override
     public void finish(Context ctx) throws Exception {
@@ -43,6 +49,10 @@ public class ItemEnhancerConsumer implements Consumer {
     @Override
     public void consume(Context context, Event event) throws Exception {
 
+        if (!isConsumerEnabled()) {
+            return;
+        }
+
         Item item = (Item) event.getSubject(context);
         if (item == null || itemsAlreadyProcessed.contains(item) || !item.isArchived()) {
             return;
@@ -52,11 +62,19 @@ public class ItemEnhancerConsumer implements Consumer {
 
         context.turnOffAuthorisationSystem();
         try {
-            itemEnhancerService.enhance(context, item);
+            itemEnhancerService.enhance(context, item, isDeepModeEnabled());
         } finally {
             context.restoreAuthSystemState();
         }
 
+    }
+
+    protected boolean isConsumerEnabled() {
+        return configurationService.getBooleanProperty(ITEMENHANCER_ENABLED, true);
+    }
+
+    private boolean isDeepModeEnabled() {
+        return configurationService.getBooleanProperty(ITEMENHANCER_DEEPMODE_ENABLED, false);
     }
 
     @Override

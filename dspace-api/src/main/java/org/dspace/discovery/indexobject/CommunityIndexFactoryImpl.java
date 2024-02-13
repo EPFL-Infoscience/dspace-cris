@@ -25,6 +25,7 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightingConfiguration;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.CommunityIndexFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,11 +66,11 @@ public class CommunityIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Inde
     public SolrInputDocument buildDocument(Context context, IndexableCommunity indexableObject)
             throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        SolrInputDocument doc = super.buildDocument(context, indexableObject);
+        TruncatedSolrInputDocument doc = (TruncatedSolrInputDocument) super.buildDocument(context, indexableObject);
         final Community community = indexableObject.getIndexedObject();
 
         // Retrieve configuration
-        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(community);
+        DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(context, community);
         DiscoveryHitHighlightingConfiguration highlightingConfiguration = discoveryConfiguration
             .getHitHighlightingConfiguration();
         List<String> highlightedMetadataFields = new ArrayList<>();

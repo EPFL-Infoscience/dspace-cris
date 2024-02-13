@@ -11,13 +11,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.deduplication.utils.MD5ValueSignature;
+import org.dspace.app.deduplication.utils.TitleWithDigitAndYearSignature;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -33,11 +33,13 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
     @Autowired
     private DedupUtils dedupUtils;
+    @Autowired
+    private TitleWithDigitAndYearSignature titleWithDigitAndYearSignature;
     private MD5ValueSignature md5Signature = new MD5ValueSignature();
 
     @Test
     public void deleteItemUnauthorizedTest() throws Exception {
-        String id = "title:123456789";
+        String id = "titleAndYear:123456789";
         UUID itemUUID = UUID.randomUUID();
         // Access endpoint without being authenticated
         getClient().perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
@@ -47,7 +49,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
     @Test
     public void deleteItemForbiddenTest() throws Exception {
         String authToken = getAuthToken(eperson.getEmail(), password);
-        String id = "title:123456789";
+        String id = "titleAndYear:123456789";
         UUID itemUUID = UUID.randomUUID();
         // Access endpoint logged in as an unprivileged user
         getClient(authToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
@@ -96,9 +98,6 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -116,7 +115,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = "title:098f6bcd4621d373cade4e832627b4f6";
+        String id = "titleAndYear:098f6bcd4621d373cade4e832627b4f6";
         UUID itemUUID = UUID.randomUUID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
             .andExpect(status().isNotFound());
@@ -124,10 +123,10 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
     /**
      * Test with two items:
-     * - item1 and item2 have the same title
+     * - item1 and item2 have the same title and year
      */
     @Test
-    public void deleteItemWithTwoItemsSameTitleTest() throws Exception {
+    public void deleteItemWithTwoItemsSameTitleAndYearTest() throws Exception {
         // Turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();
 
@@ -150,19 +149,18 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withEntityType("Publication")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
+            .withEntityType("Publication")
             .withIssueDate("2015-12-18")
             .build();
 
@@ -171,7 +169,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String id = createTitleSetId(publicItem1);
+        String id = createTitleAndYearSetId(publicItem1);
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
             .andExpect(status().isNoContent());
@@ -185,10 +183,10 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
     /**
      * Test with three items:
-     * - item1, item2 and item3 have the same title
+     * - item1, item2 and item3 have the same title and year
      */
     @Test
-    public void deleteItemWithThreeItemsSameTitleTest() throws Exception {
+    public void deleteItemWithThreeItemsSameTitleAndYearTest() throws Exception {
         // Turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();
 
@@ -211,15 +209,12 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withIssueDate("2015-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
@@ -235,7 +230,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String id = createTitleSetId(publicItem1);
+        String id = createTitleAndYearSetId(publicItem1);
 
         UUID itemUUID = publicItem1.getID();
         getClient(adminToken).perform(delete("/api/deduplications/sets/" + id + "/items/" + itemUUID))
@@ -286,20 +281,19 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("First Test")
+            .withEntityType("Publication")
             .withIssueDate("2010-10-17")
             .withAuthor("Smith, Donald")
             .withIdentifierDoi("10.1234/123456789")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
             .withTitle("Second Test")
+            .withEntityType("Publication")
             .withIssueDate("2015-12-18")
             .withIdentifierDoi("10.1234/123456789")
             .build();
@@ -349,25 +343,25 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("First Test")
+            .withEntityType("Publication")
             .withIssueDate("2010-10-17")
             .withAuthor("Smith, Donald")
             .withIdentifierDoi("10.1234/123456789")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
             .withTitle("Second Test")
+            .withEntityType("Publication")
             .withIssueDate("2015-12-18")
             .withIdentifierDoi("10.1234/123456789")
             .build();
         Item publicItem3 = ItemBuilder.createItem(context, collection)
             .withTitle("Third Test")
+            .withEntityType("Publication")
             .withIssueDate("2015-12-18")
             .withIdentifierDoi("10.1234/123456789")
             .build();
@@ -401,10 +395,10 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
     /**
      * Test with two items:
-     * - item1 and item2 have the same title and doi
+     * - item1 and item2 have the same title and year and doi
      */
     @Test
-    public void deleteItemWithTwoItemsSameTitleAndDoiTest() throws Exception {
+    public void deleteItemWithTwoItemsSameTitleYearAndDoiTest() throws Exception {
         // Turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();
 
@@ -427,20 +421,19 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2010-10-17")
+            .withEntityType("Publication")
+            .withIssueDate("2015-12-17")
             .withAuthor("Smith, Donald")
             .withIdentifierDoi("10.1234/123456789")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
+            .withEntityType("Publication")
             .withIssueDate("2015-12-18")
             .withIdentifierDoi("10.1234/123456789")
             .build();
@@ -449,7 +442,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String idTitle = createTitleSetId(publicItem1);
+        String idTitle = createTitleAndYearSetId(publicItem1);
         String idIdentifier = createIdentifierSetId(publicItem1);
 
         UUID itemUUID = publicItem1.getID();
@@ -468,7 +461,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
 
     /**
      * Test with three items:
-     * - item1 and item2 have the same title
+     * - item1 and item2 have the same title and year
      * - item2 and item3 have the same doi
      */
     @Test
@@ -495,24 +488,24 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
         Item publicItem1 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
+            .withEntityType("Publication")
             .withIssueDate("2010-10-17")
             .withAuthor("Smith, Donald")
             .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
             .withTitle("Test")
-            .withIssueDate("2015-12-18")
+            .withEntityType("Publication")
+            .withIssueDate("2010-10-18")
             .withIdentifierDoi("10.1234/123456789")
             .build();
         Item publicItem3 = ItemBuilder.createItem(context, collection)
             .withTitle("Another Test")
+            .withEntityType("Publication")
             .withIssueDate("2015-12-18")
             .withIdentifierDoi("10.1234/123456789")
             .build();
@@ -521,7 +514,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
-        String idTitle = createTitleSetId(publicItem1);
+        String idTitle = createTitleAndYearSetId(publicItem1);
         String idIdentifier = createIdentifierSetId(publicItem2);
 
         UUID itemUUID = publicItem1.getID();
@@ -548,11 +541,8 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
             .andExpect(status().isNotFound());
     }
 
-    private String createTitleSetId(Item item) {
-        // Set up MD5ValueSignature state to produce the same signature
-        setMD5ValueSignatureInstance("dc.title", null, "title",
-            new ArrayList<>(), "[^\\p{L}]");
-        return "title:" + md5Signature.getSignature(item, context).get(0);
+    private String createTitleAndYearSetId(Item item) {
+        return "titleAndYear:" + titleWithDigitAndYearSignature.getSignature(item, context).get(0);
     }
 
     private String createIdentifierSetId(Item item) {
@@ -571,6 +561,7 @@ public class DeduplicationSetRestControllerIT extends AbstractControllerIntegrat
         md5Signature.setSignatureType(signatureType);
         md5Signature.setIgnorePrefix(ignorePrefixes);
         md5Signature.setNormalizationRegexp(normalizeRegex);
+        md5Signature.setUseEntityType(false);
     }
 
 }

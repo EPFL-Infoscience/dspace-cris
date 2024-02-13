@@ -166,6 +166,10 @@ public class AbstractEntityIntegrationTest extends AbstractControllerIntegration
             "isMergedInItem", 0, null, 0,
             null).withCopyToLeft(false).withCopyToRight(true).build();
 
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publication, publication, "isCorrectionOfItem",
+            "isCorrectedByItem", 0, null, 0,
+            null).withCopyToLeft(false).withCopyToRight(true).build();
+
 
         context.restoreAuthSystemState();
     }

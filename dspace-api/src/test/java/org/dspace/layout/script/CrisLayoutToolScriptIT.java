@@ -36,6 +36,7 @@ import org.dspace.builder.CrisLayoutTabBuilder;
 import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.content.EntityType;
+import org.dspace.content.Item;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutField;
@@ -77,8 +78,10 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
     public void testConfigurationToolFile() throws Exception {
 
         context.turnOffAuthorisationSystem();
-        List.of("Publication", "Person", "OrgUnit", "Patent", "Journal", "Event",
-            "Equipment", "Funding", "Product", "Project").forEach(this::createEntityType);
+        List.of(
+            "Publication", "Person", "OrgUnit", "Patent", "Journal", "Event",
+            "Equipment", "Funding", "Product", "Project", "Content", "VirtualCollection"
+        ).forEach(this::createEntityType);
         context.restoreAuthSystemState();
 
         assertThat(tabService.findAll(context), empty());
@@ -377,7 +380,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(profileResearchoutputsBox.getGroupSecurityFields(),
                    contains(matches(groupField -> groupField.getName().equals("Researchers"))));
 
-        List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication", null);
+        List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication", Item.ANY);
         assertThat(publicationTabs, hasSize(4));
         List<CrisLayoutTab> publicationBookAuthority = tabService.findByEntityType(context, "Publication",
                 "publication-coar-types:c_2f33");
@@ -759,34 +762,26 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
                 + "Rendering named attachment don't supports sub types",
             "The sheet box2metadata contains an unknown RENDERING type more.fake at row 15",
             "The sheet box2metadata contains an unknown RENDERING type less.fake at row 16",
-            "The sheet box2metadata contains an unknown RENDERING type browse.fake at row 17",
-            "The sheet box2metadata contains an unknown RENDERING type search.fake at row 18",
-            "The sheet box2metadata contains an unknown RENDERING type tag-browse.fake at row 19",
-            "The sheet box2metadata contains an unknown RENDERING type tag-search.fake at row 20",
+            "The sheet box2metadata contains an invalid RENDERING type at row 17: "
+                + "Rendering named browse don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 18: "
+                + "Rendering named search don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 19: "
+                + "Rendering named tag-browse don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 20: "
+                + "Rendering named tag-search don't supports the configured sub type",
             "The sheet box2metadata contains an unknown RENDERING type more.5 at row 21",
             "The sheet box2metadata contains an unknown RENDERING type less.5less at row 22",
-            "The sheet box2metadata contains an unknown RENDERING type browse.title at row 23",
-            "The sheet box2metadata contains an unknown RENDERING type search.publication.title at row 24",
-            "The sheet box2metadata contains an unknown RENDERING type tag-browse.title at row 25",
-            "The sheet box2metadata contains an unknown RENDERING type tag-search.publication.title at row 26",
+            "The sheet box2metadata contains an invalid RENDERING type at row 23: "
+                + "Rendering named browse don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 25: "
+                + "Rendering named tag-browse don't supports the configured sub type",
             "The sheet metadatagroups contains an invalid RENDERING type at row 5: "
                 + "Rendering named identifier requires a sub type",
             "The sheet metadatagroups contains an invalid RENDERING type at row 6: "
                 + "Rendering named identifier don't supports the configured sub type",
             "IllegalArgumentException: The given workbook is not valid. Import canceled",
-            "The box2hierarchicalvocabulary sheet is missing",
-            "The sheet box2metadata contains an unknown RENDERING type more.fake at row 15",
-            "The sheet box2metadata contains an unknown RENDERING type less.fake at row 16",
-            "The sheet box2metadata contains an invalid RENDERING type at row 17: " +
-                "Rendering named browse don't supports the configured sub type",
-            "The sheet box2metadata contains an invalid RENDERING type at row 18: " +
-                "Rendering named search don't supports the configured sub type",
-            "The sheet box2metadata contains an invalid RENDERING type at row 19: " +
-                "Rendering named tag-browse don't supports the configured sub type",
-            "The sheet box2metadata contains an invalid RENDERING type at row 20: " +
-                "Rendering named tag-search don't supports the configured sub type",
-            "The sheet box2metadata contains an unknown RENDERING type more.5 at row 21",
-            "The sheet box2metadata contains an unknown RENDERING type less.5less at row 22"));
+            "The box2hierarchicalvocabulary sheet is missing"));
     }
 
     private void assertThatMetadataFieldHas(CrisLayoutField field, String label, String rowStyle, String cellStyle,

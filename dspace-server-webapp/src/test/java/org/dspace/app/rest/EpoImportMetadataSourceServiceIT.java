@@ -155,9 +155,8 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO applicant = createMetadatumDTO("dc", "contributor", null, "Panka Blood Test GmbH");
         MetadatumDTO author = createMetadatumDTO("dc", "contributor", "author", "PANTEL, Klaus, ");
         MetadatumDTO author2 = createMetadatumDTO("dc", "contributor", "author", "BARTKOWIAK, Kai");
-        MetadatumDTO title = createMetadatumDTO("dc", "title", null, "Método para el diagnóstico del cáncer de mama");
-        MetadatumDTO subject = createMetadatumDTO("dc", "subject", null,
-                                              "G01N  33/   574            A I                    ");
+        MetadatumDTO title = createMetadatumDTO("local", "epo", "sourceType", "T3");
+        MetadatumDTO subject = createMetadatumDTO("dc", "type", null, "patent");
         MetadatumDTO kindCodeInline = createMetadatumDTO("crispatent", "document", "kind", "T3");
         MetadatumDTO issueDateInline = createMetadatumDTO("crispatent", "document", "issueDate", "2022-03-29");
         MetadatumDTO titleInline = createMetadatumDTO("crispatent", "document", "title",
@@ -195,10 +194,8 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO title2 = createMetadatumDTO("dc", "title", null,
                 "Automated test equipment for testing one or more devices under test, method for automated"
               + " testing of one or more devices under test, and computer program using a buffer memory");
-        MetadatumDTO subject2 = createMetadatumDTO("dc", "subject", null,
-                "G01R  31/   319            A I                    ");
-        MetadatumDTO subject3 = createMetadatumDTO("dc", "subject", null,
-                "G01R  31/  3193            A I                    ");
+        MetadatumDTO subject2 = createMetadatumDTO("local", "epo", "sourceType", "A");
+        MetadatumDTO subject3 = createMetadatumDTO("dc", "type", null, "patent::utility model");
         MetadatumDTO kindCodeInline2 = createMetadatumDTO("crispatent", "document", "kind", "A");
         MetadatumDTO issueDateInline2 = createMetadatumDTO("crispatent", "document", "issueDate", "2022-01-16");
         MetadatumDTO titleInline2 = createMetadatumDTO("crispatent", "document", "title",

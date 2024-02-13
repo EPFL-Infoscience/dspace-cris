@@ -291,8 +291,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                                 MetadataField field = this.metadataFieldService.findByElement(ctx, fieldName.schema,
                                         fieldName.element, fieldName.qualifier);
                                 return new AbstractMap.SimpleEntry<>(field, entry.getValue());
-                            },
-                            null
+                            }
                         )
                     )
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
@@ -301,12 +300,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private Stream<MetadataValue> getMetadatasForItem(Context ctx, List<Bitstream> bitstreams) {
         return bitstreams
             .stream()
-            .map(
-                throwingMapperWrapper(bitstream ->
-                    this.bitstreamService.find(ctx, bitstream.getID()),
-                    null
-                )
-            )
+            .map(throwingMapperWrapper(bitstream -> this.bitstreamService.find(ctx, bitstream.getID())))
             .filter(Objects::nonNull)
             .flatMap(bitstream -> filterMetadatasForItem(bitstream));
     }

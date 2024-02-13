@@ -458,9 +458,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -523,9 +520,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -591,9 +585,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -662,9 +653,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -733,9 +721,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -801,9 +786,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -866,9 +848,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -934,9 +913,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1005,9 +981,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1076,9 +1049,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1144,9 +1114,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1209,9 +1176,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1277,9 +1241,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1342,9 +1303,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1410,9 +1368,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1475,9 +1430,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -1542,9 +1494,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1612,9 +1561,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1685,9 +1631,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1758,9 +1701,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1828,9 +1768,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -1895,9 +1832,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -1965,9 +1899,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2039,9 +1970,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2112,9 +2040,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2182,9 +2107,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2249,9 +2171,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2319,9 +2238,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2386,9 +2302,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2456,9 +2369,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workflow items submitted by submitter
@@ -2523,9 +2433,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -2591,9 +2498,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -2663,9 +2567,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -2737,9 +2638,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -2816,9 +2714,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -2899,9 +2794,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -2985,9 +2877,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -3072,9 +2961,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -3165,9 +3051,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two workspace items submitted by submitter
@@ -3320,9 +3203,6 @@ public class DeduplicationSignatureRestRepositoryIT extends AbstractControllerIn
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // Restore the authorization system

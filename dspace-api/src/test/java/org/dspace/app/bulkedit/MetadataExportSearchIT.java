@@ -39,6 +39,7 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MetadataExportSearchIT extends AbstractIntegrationTestWithDatabase {
@@ -180,6 +181,7 @@ public class MetadataExportSearchIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    @Ignore // because default discovery configuration does not support filtering by title anymore
     public void exportMetadataSearchMultipleFilters() throws Exception {
         int result = runDSpaceScript(
             "metadata-export-search", "-f", "subject,equals=" + subject1, "-f",

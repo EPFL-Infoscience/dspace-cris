@@ -372,6 +372,8 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
             }
 
             SAXBuilder saxBuilder = new SAXBuilder();
+            // disallow DTD parsing to ensure no XXE attacks can occur
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
             Document document = saxBuilder.build(new StringReader(response));
             Element root = document.getRootElement();
 
@@ -415,6 +417,8 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
             }
 
             SAXBuilder saxBuilder = new SAXBuilder();
+            // disallow DTD parsing to ensure no XXE attacks can occur
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
             Document document = saxBuilder.build(new StringReader(response));
             Element root = document.getRootElement();
 
@@ -429,7 +433,7 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
                 .evaluate(root);
 
             return docIs.stream()
-                        .map(throwingMapperWrapper(docId -> new EpoDocumentId(docId, namespaces), null))
+                        .map(throwingMapperWrapper(docId -> new EpoDocumentId(docId, namespaces)))
                         .collect(Collectors.toList());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -469,6 +473,8 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
     private List<Element> splitToRecords(String recordsSrc) {
         try {
             SAXBuilder saxBuilder = new SAXBuilder();
+            // disallow DTD parsing to ensure no XXE attacks can occur
+            saxBuilder.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
             Document document = saxBuilder.build(new StringReader(recordsSrc));
             Element root = document.getRootElement();
             List<Namespace> namespaces = Collections.singletonList(

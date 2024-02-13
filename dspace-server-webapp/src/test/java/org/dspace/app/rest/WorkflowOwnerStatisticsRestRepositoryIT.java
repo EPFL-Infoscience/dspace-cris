@@ -101,7 +101,8 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
         EntityType publicationType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
-            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
 
         context.setCurrentUser(eperson);
 

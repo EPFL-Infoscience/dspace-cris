@@ -18,10 +18,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.dspace.app.rest.model.patch.AddOperation;
@@ -33,6 +37,8 @@ import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.unpaywall.model.Unpaywall;
 import org.dspace.unpaywall.model.UnpaywallStatus;
 import org.dspace.unpaywall.service.UnpaywallService;
@@ -46,7 +52,12 @@ import org.mockito.Mockito;
  */
 public class UnpaywallStepIT extends AbstractLiveImportIntegrationTest {
 
+    private static final String BASE_UNPAYWALL_DIR_PATH = "org/dspace/app/unpaywall/";
+
     private final UnpaywallService unpaywallService = ContentServiceFactory.getInstance().getUnpaywallService();
+
+    private final ConfigurationService configurationService =
+            DSpaceServicesFactory.getInstance().getConfigurationService();
 
     private Collection collection;
 
@@ -70,9 +81,10 @@ public class UnpaywallStepIT extends AbstractLiveImportIntegrationTest {
     @Test
     public void testCallingUnpaywallApi() throws Exception {
 
+        configurationService.setProperty("unpaywall.email", "test@mail.com");
         context.turnOffAuthorisationSystem();
 
-        String testApiResponse = "test-unpaywall-api-response";
+        String testApiResponse = getUnpaywallResponse();
         String doi = "10.1504/ijmso.2012.048507";
         WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                 .withTitle("Test WorkspaceItem")
@@ -102,14 +114,16 @@ public class UnpaywallStepIT extends AbstractLiveImportIntegrationTest {
                 .andExpect(jsonPath("$.sections.unpaywall.status", is(UnpaywallStatus.SUCCESSFUL.name())))
                 .andExpect(jsonPath("$.sections.unpaywall.jsonRecord", is(testApiResponse)));
         verify(httpClient, times(1)).execute(any());
+        configurationService.setProperty("unpaywall.email", null);
     }
 
     @Test
     public void testCallingUnpaywallApiWithRefresh() throws Exception {
 
+        configurationService.setProperty("unpaywall.email", "test@mail.com");
         context.turnOffAuthorisationSystem();
 
-        String testApiResponse = "test-unpaywall-api-response";
+        String testApiResponse = getUnpaywallResponse();
         String doi = "10.1504/ijmso.2012.048507";
         WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                 .withTitle("Test WorkspaceItem")
@@ -146,11 +160,13 @@ public class UnpaywallStepIT extends AbstractLiveImportIntegrationTest {
                 .andExpect(jsonPath("$.sections.unpaywall.status", is(UnpaywallStatus.SUCCESSFUL.name())))
                 .andExpect(jsonPath("$.sections.unpaywall.jsonRecord", is(testApiResponse)));
         verify(httpClient, times(1)).execute(any());
+        configurationService.setProperty("unpaywall.email", null);
     }
 
     @Test
     public void testCallingUnpaywallApiWithoutRefresh() throws Exception {
 
+        configurationService.setProperty("unpaywall.email", "test@mail.com");
         context.turnOffAuthorisationSystem();
 
         String doi = "10.1504/ijmso.2012.048507";
@@ -187,6 +203,7 @@ public class UnpaywallStepIT extends AbstractLiveImportIntegrationTest {
                 .andExpect(jsonPath("$.sections.unpaywall.status", is(unpaywall.getStatus().name())))
                 .andExpect(jsonPath("$.sections.unpaywall.jsonRecord", is(unpaywall.getJsonRecord())));
         verify(httpClient, times(0)).execute(any());
+        configurationService.setProperty("unpaywall.email", null);
     }
 
     private static void mockHttpClient(UnpaywallService unpaywallService, CloseableHttpClient mock)
@@ -196,5 +213,12 @@ public class UnpaywallStepIT extends AbstractLiveImportIntegrationTest {
         propertyField.setAccessible(true);
         propertyField.set(unpaywallService, mock);
         propertyField.setAccessible(false);
+    }
+
+    private String getUnpaywallResponse() throws IOException {
+        String responseFileName = BASE_UNPAYWALL_DIR_PATH.concat("unpaywall-api-response.json");
+        try (InputStream unpaywallResponseStream = getClass().getClassLoader().getResourceAsStream(responseFileName)) {
+            return IOUtils.toString(unpaywallResponseStream, Charset.defaultCharset());
+        }
     }
 }

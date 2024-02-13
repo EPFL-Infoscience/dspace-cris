@@ -19,7 +19,6 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.logic.LogicalStatement;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -68,19 +67,17 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         return matchingSecurity.isPresent();
     }
 
-    private boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode,
-        CrisSecurity crisSecurity) {
-
+    private boolean hasAccess(
+        Context context, Item item, EPerson user, AccessItemMode accessMode, CrisSecurity crisSecurity
+    ) {
         try {
+            final boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
 
-            boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
-            LogicalStatement additionalFilter = accessMode.getAdditionalFilter();
-
-            return additionalFilter == null ? checkSecurity
-                : checkSecurity && additionalFilter.getResult(context, item);
-
+            return Optional.ofNullable(accessMode.getAdditionalFilter())
+                .map(filter -> checkSecurity && filter.getResult(context, item))
+                .orElse(checkSecurity);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLRuntimeException(e);
         }
 
     }

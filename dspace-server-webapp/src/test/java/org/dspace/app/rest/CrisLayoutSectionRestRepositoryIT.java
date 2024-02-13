@@ -55,56 +55,46 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
     @Test
     public void testFindAll() throws Exception {
 
-        String[] expectedBrowseNames = new String[] { "rodept", "author", "title", "type", "dateissued", "subject" };
+        String[] expectedBrowseNames = new String[] { "rodept", "author", "type", "subject" };
 
         getClient().perform(get("/api/layout/sections"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.sections", hasSize(4)))
+            .andExpect(jsonPath("$._embedded.sections", hasSize(2)))
 
-            .andExpect(jsonPath("$._embedded.sections",
+            .andExpect(jsonPath("$._embedded.sections[0].nestedSections",
                 hasItem(withIdAndBrowseComponent("researchoutputs", 0, 0, "col-md-4", expectedBrowseNames))))
-            .andExpect(jsonPath("$._embedded.sections",
+            .andExpect(jsonPath("$._embedded.sections[0].nestedSections",
                 hasItem(withIdAndSearchComponent("researchoutputs", 0, 1, "col-md-8", "researchoutputs"))))
-            .andExpect(jsonPath("$._embedded.sections",
+            .andExpect(jsonPath("$._embedded.sections[0].nestedSections",
                 hasItem(withIdAndTopComponent("researchoutputs", 1, 0, "col-md-6",
                     "researchoutputs", "dc.date.accessioned", "desc", 5, false, false, "list",
                     "", "col-12 col-lg-6", "", true, "top"))))
-            .andExpect(jsonPath("$._embedded.sections",
+            .andExpect(jsonPath("$._embedded.sections[0].nestedSections",
                 hasItem(withIdAndTopComponent("researchoutputs", 1, 1, "col-md-6",
                                     "researchoutputs", "metric.view", "desc", 5, false, false, "list",
                                     "", "col-12 col-lg-6", "", true, "top"))))
-            .andExpect(jsonPath("$._embedded.sections",
+            .andExpect(jsonPath("$._embedded.sections[0].nestedSections",
                 hasItem(withIdAndFacetComponent("researchoutputs", 2, 0, "col-md-12", "researchoutputs"))))
 
-            .andExpect(jsonPath("$._embedded.sections",
-                hasItem(withIdAndBrowseComponent("researcherprofiles", 0, 0, "col-md-4", "rpname", "rpdept"))))
-            .andExpect(jsonPath("$._embedded.sections",
+            .andExpect(jsonPath("$._embedded.sections[0].nestedSections",
+                hasItem(withIdAndBrowseComponent("researcherprofiles", 0, 0, "col-md-4", "rpdept"))))
+            .andExpect(jsonPath("$._embedded.sections[0].nestedSections",
                 hasItem(withIdAndSearchComponent("researcherprofiles", 0, 1, "col-md-8", "person"))))
 
-            .andExpect(jsonPath("$._embedded.sections",
-                hasItem(withIdAndBrowseComponent("fundings_and_projects", 0, 0, "col-md-4", "pjtitle"))))
-            .andExpect(jsonPath("$._embedded.sections",
-                hasItem(withIdAndSearchComponent("fundings_and_projects", 0, 1, "col-md-8", "project_funding"))))
-
 
             .andExpect(jsonPath("$._embedded.sections",
-                hasItem(withIdAndSearchComponent("site", 0, 0, "col-md-12", "site"))))
+                hasItem(withIdAndSearchComponent("site", 0, 0, "col-md-12", "researchoutputs"))))
 
             .andExpect(jsonPath("$._embedded.sections",
-                hasItem(withIdAndCountersComponent("site", 1, 0, "col-md-12 py-4", Arrays.asList("researchoutputs",
-                                                                                                 "project_funding",
-                                                                                                 "person")))))
+                hasItem(withIdAndCountersComponent("site", 3, 0, "col-md-12 py-4",
+                                                   Arrays.asList("researchoutputs", "researchoutputsoa")))))
 
             .andExpect(jsonPath("$._embedded.sections",
-              hasItem(withIdAndTopComponent("site", 3, 0, "col-md-6", "homePageTopItems", "dc.date.accessioned",
-                                            "desc", 5, true, false, "list",
+              hasItem(withIdAndTopComponent("site", 4, 0, "col-12 col-lg-6", "homePageTopItems",
+                                            "dc.date.accessioned", "desc", 5, true, false, "list",
                                             "", "col-12 col-lg-6", "", false, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
-              hasItem(withIdAndTopComponent("site", 2, 1, "col-md-6", "homePageTopItems", "metric.view",
-                                            "desc", 5, false, false, "list",
-                                            "", "col-12 col-lg-6", "", true, "top"))))
-            .andExpect(jsonPath("$._embedded.sections",
-                hasItem(withIdAndCarouselComponent("site", 3, 0, "col-md-12", "person"))))
+                hasItem(withIdAndCarouselComponent("site", 7, 0, "col-md-12", "person"))))
             ;
     }
 
@@ -153,7 +143,7 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
     @Test
     public void testFindOne() throws Exception {
 
-        String[] expectedBrowseNames = new String[] { "rodept", "author", "title", "type", "dateissued", "subject" };
+        String[] expectedBrowseNames = new String[] { "rodept", "author", "type", "subject" };
 
         getClient().perform(get("/api/layout/sections/{id}", "researchoutputs"))
             .andExpect(status().isOk())
