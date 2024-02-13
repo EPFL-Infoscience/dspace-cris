@@ -2019,7 +2019,7 @@
           <required />
           <style>col-xs-12 col-md-9</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -2031,7 +2031,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint>If the journal or series ISSN wasn't automatically detected, please enter it here</hint>
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -2045,7 +2045,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2057,7 +2057,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -2069,7 +2069,7 @@
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
       <row>
@@ -2083,7 +2083,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>e.g. 052005</hint>
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2095,7 +2095,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2107,7 +2107,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, text::preprint, article-coar-types:c_8042, text::working paper, article-coar-types:c_b239, text::journal::editorial, article-coar-types:c_6501, text::journal::journal article, article-coar-types:c_2df8fbb1, text::journal::journal article::research article, article-coar-types:c_dcae04bc, text::journal::journal article::review article, article-coar-types:c_7bab, text::journal::journal article::software paper, article-coar-types:c_c94f, text::conference output, article-coar-types:c_5794, text::conference output::conference proceedings::conference paper, article-coar-types:c_6670, text::conference output::conference proceedings::conference poster, article-coar-types:c_f744, text::conference output::conference proceedings</type-bind>
         </field>
       </row>
     </form>
