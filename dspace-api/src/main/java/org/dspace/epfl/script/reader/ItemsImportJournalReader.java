@@ -39,19 +39,11 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
 
-        List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
+        List<MetadataValueDTO> metadataValues = new ArrayList<>();
 
-        Node issnNode = nodeList.item(0);
+        Node issnNode = findHightParentNode(nodeList.item(0));
 
-        if (issnNode != null) {
-            issnNode = issnNode.getParentNode();
-            if (issnNode != null) {
-                issnNode = issnNode.getParentNode();
-            }
-        }
-
-        Optional<String> issnValue = issnNode != null ? getIssnValue(issnNode) : Optional.of(null);
-
+        Optional<String> issnValue = issnNode != null ? getIssnValue(issnNode) : Optional.empty();
 
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
@@ -95,6 +87,14 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
         } catch (XPathExpressionException e) {
             throw new RuntimeException("An error occurs evaluating path " + expression, e);
         }
+    }
+
+    private Node findHightParentNode(Node node) {
+        if (node != null) {
+            Node parentNode = node.getParentNode();
+            return parentNode != null ? parentNode.getParentNode() : null;
+        }
+        return null;
     }
 
     private List<String> getJournalOrIsPartOfTypes() {

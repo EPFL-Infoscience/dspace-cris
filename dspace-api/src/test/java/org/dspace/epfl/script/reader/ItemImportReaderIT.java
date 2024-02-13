@@ -12,6 +12,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.content.dto.MetadataValueDTO;
@@ -183,7 +184,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testNestedMetadataFieldReader() throws Exception {
+    public void testNestedMetadataFieldReader()  {
         String type = "testType";
         String identifier = "testIdentifier";
         String test = " <record> \n" +
@@ -219,11 +220,20 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
             "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n" +
             "<subfield code=\"a\">" + type + "</subfield>\n" +
             "  </datafield>\n" +
+            "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"r\">" + "NON-REVIEWED" + "</subfield>\n" +
+            "  </datafield>\n" +
             "</record>";
 
         String test2 = " <record> \n" +
             "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n" +
             "<subfield code=\"t\">" + secondRelationJournal + "</subfield>\n" +
+            "  </datafield>\n" +
+            "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"a\">" + type + "</subfield>\n" +
+            "  </datafield>\n" +
+            "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"r\">" + "NON-REVIEWED" + "</subfield>\n" +
             "  </datafield>\n" +
             "</record>";
 
@@ -234,16 +244,16 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         Node record2 = marcXmlParser.parse(inputStream2, mapping.getItemXPath());
 
         List<MetadataValueDTO> itemMetadataWithIssn = marcXmlParser.readItemMetadataValues(context, record1, mapping);
-        List<MetadataValueDTO> itemMetadataWitoutIssn = marcXmlParser.readItemMetadataValues(context, record2, mapping);
+        List<MetadataValueDTO> itemMetadataWithoutIssn = marcXmlParser.readItemMetadataValues(context, record2, mapping);
 
         assertEquals(firstRelationJournal, getFirstMetadataValue(itemMetadataWithIssn, "dc.relation.journal"));
 
         assertEquals("will be generated::ISSN::" + testIssn,
                 getMetadataAuthority(itemMetadataWithIssn, "dc.relation.journal"));
 
-        assertEquals(secondRelationJournal, getFirstMetadataValue(itemMetadataWitoutIssn, "dc.relation.journal"));
+        assertEquals(secondRelationJournal, getFirstMetadataValue(itemMetadataWithoutIssn, "dc.relation.journal"));
 
-        assertEquals(NOT_FOUND_VALUE, getMetadataAuthority(itemMetadataWitoutIssn, "dc.relation.journal"));
+        assertEquals(NOT_FOUND_VALUE, getMetadataAuthority(itemMetadataWithoutIssn, "dc.relation.journal"));
     }
 
 
@@ -254,7 +264,10 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
     private String getMetadataAuthority(List<MetadataValueDTO> metadata, String field) {
-        return metadata.stream().filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
-                .map(MetadataValueDTO::getAuthority).findFirst().orElse(NOT_FOUND_VALUE);
+        return metadata.stream()
+            .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
+            .map(MetadataValueDTO::getAuthority)
+            .filter(Objects::nonNull).findFirst()
+            .orElse(NOT_FOUND_VALUE);
     }
 }
