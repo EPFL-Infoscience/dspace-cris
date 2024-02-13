@@ -1,0 +1,19 @@
+<record>
+    <controlfield tag="001">mock-id</controlfield>
+    <datafield tag="024" ind1="7" ind2=" ">
+        <subfield code="2">doi</subfield>
+        <subfield code="a">test doi</subfield>
+        <subfield code="a">test doi2</subfield>
+    </datafield>
+    <datafield tag="039" ind1=" " ind2="9">
+        <subfield code="y">2024-02-13</subfield>
+        <subfield code="a">exportTime</subfield>
+    </datafield>
+    <datafield tag="245" ind1=" " ind2=" ">
+        <subfield code="a">publication title|secondValueAfterSplit</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+    </datafield>
+    <datafield tag="542" ind1=" " ind2=" ">
+    </datafield>
+</record>

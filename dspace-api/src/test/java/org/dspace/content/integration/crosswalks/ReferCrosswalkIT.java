@@ -1982,7 +1982,6 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void placeholderFieldMustBeReplacedWithEmptyStringTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -3080,6 +3079,44 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+    @Test
+    public void testEpflPublicationsMarcXmlMultiValueDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        String[] defaultPropertyValues = configurationService.getArrayProperty("epfl.marc-export.separate-metadata");
+        this.configurationService.setProperty(
+                "epfl.marc-export.separate-metadata",
+                new String[] {"dc.identifier.doi"}
+        );
+        Item publication = createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("publication title|secondValueAfterSplit")
+                .withDoiIdentifier("test doi|test doi2")
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publication-marc-xml");
+        assertThat(referCrossWalk, notNullValue());
+        referCrossWalk.updateMetadataToSeparate();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, publication, out);
+
+        try (FileInputStream fis = getFileInputStream("epfl-publication-marc.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            if (!expectedXml.contains("<subfield code=\"a\">exportTime</subfield>")) {
+                compareEachLine(out.toString(), expectedXml);
+            }
+        } finally {
+            this.configurationService.setProperty(
+                    "epfl.marc-export.separate-metadata",
+                    defaultPropertyValues
+            );
+        }
+
+    }
 
     private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType) {
         createRelationshipBuilder(context, publication, author, selectedRelationshipType, -1, -1).build();
