@@ -3048,7 +3048,6 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
-<<<<<<< HEAD
     @Test
     public void testResearchOutputsJsonDisseminate() throws Exception {
 
@@ -3082,17 +3081,26 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     public void testEpflPublicationsMarcXmlMultiValueDisseminate() throws Exception {
-
         context.turnOffAuthorisationSystem();
-        String[] defaultPropertyValues = configurationService.getArrayProperty("epfl.marc-export.separate-metadata");
-        this.configurationService.setProperty(
-                "epfl.marc-export.separate-metadata",
-                new String[] {"dc.identifier.doi"}
-        );
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withAcronym("TOU|TOU2")
+                .withTitle("Test OrgUnit")
+                .withOrgUnitLegalName("Test OrgUnit LegalName")
+                .withType("Strategic Research Insitute")
+                .withParentOrganization("Parent OrgUnit")
+                .withOrgUnitIdentifier("ID-01")
+                .withOrgUnitIdentifier("ID-02")
+                .withUrlIdentifier("www.orgUnit.com")
+                .withUrlIdentifier("www.orgUnit.it")
+                .withMetadata("epfl", "unit", "code", "unitCode1|unitCode2")
+                .build();
+
         Item publication = createItem(context, collection)
                 .withEntityType("Publication")
                 .withTitle("publication title|secondValueAfterSplit")
-                .withDoiIdentifier("test doi|test doi2")
+                .withMetadata("dc", "description", "sponsorship", null,  "TOU|TOU2",
+                        orgUnit.getID().toString(), -1)
                 .build();
 
         context.restoreAuthSystemState();
@@ -3100,26 +3108,16 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publication-marc-xml");
         assertThat(referCrossWalk, notNullValue());
-        referCrossWalk.updateMetadataToSeparate();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("epfl-publication-marc.xml")) {
             String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
-            if (!expectedXml.contains("<subfield code=\"a\">exportTime</subfield>")) {
-                compareEachLine(out.toString(), expectedXml);
-            }
-        } finally {
-            this.configurationService.setProperty(
-                    "epfl.marc-export.separate-metadata",
-                    defaultPropertyValues
-            );
+            compareEachLineWithIgnore(out.toString(), expectedXml,
+                    List.of("<subfield code=\"a\">exportTime</subfield>"));
         }
-
     }
-=======
->>>>>>> 8bf668e21a (Revert "[CST-13649] Updated logic that handle what item export configs can be used for item. Now for all types configs mapped to 'all' is also adding. Also updated logic of ReferCrosswalk, now it can split multivalue metadatas with use of config setting.")
 
     private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType) {
         createRelationshipBuilder(context, publication, author, selectedRelationshipType, -1, -1).build();

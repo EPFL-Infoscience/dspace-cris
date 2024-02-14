@@ -253,7 +253,7 @@
     @relation.dc-description-sponsorship.start@
     <datafield tag="909" ind1="C" ind2="0">
 		    <subfield code="p">@oairecerif.acronym@</subfield>
-		    <subfield code="x">U@epfl.unit.code@</subfield>
+		    <subfield code="x">U@virtual.epfl-unit-code@</subfield>
 		    <subfield code="0">@virtual.id@</subfield>
     </datafield>
     @relation.dc-description-sponsorship.end@

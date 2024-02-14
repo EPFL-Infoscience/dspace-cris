@@ -739,6 +739,7 @@
 				<entry key="publisher-with-place" value-ref="publisherWithPlace"></entry>
 				<entry key="sciperId" value-ref="virtualFieldToEnhancedMetadata"></entry>
 				<entry key="orcid" value-ref="virtualFieldToEnhancedMetadata"></entry>
+				<entry key="epfl-unit-code" value-ref="virtualFieldEpflUnitCodeSplitter"/>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -800,7 +801,9 @@
 
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.FirstSelectedCitationsPostProcessor" />
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.GroupByTypeCitationsPostProcessor" />
-	
+  <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMultiValueSplitter" id="virtualFieldEpflUnitCodeSplitter">
+    	<property name="metadataToSplit" value="epfl.unit.code" />
+  </bean>
 	<!-- MapConverter configuration -->
 
 	<bean id="org.dspace.util.MapConverters"  class="org.dspace.util.MapConverters"> 
