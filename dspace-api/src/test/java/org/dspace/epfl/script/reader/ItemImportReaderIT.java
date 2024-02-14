@@ -8,14 +8,17 @@
 package org.dspace.epfl.script.reader;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.content.dto.MetadataValueDTO;
+import org.dspace.core.CrisConstants;
 import org.dspace.epfl.script.model.ItemsImportMapping;
 import org.dspace.epfl.script.service.MarcXmlParser;
 import org.dspace.services.ConfigurationService;
@@ -154,6 +157,52 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testFunderReader() {
+        String test =
+                "<record> \n" +
+                  "<datafield tag=\"536\" ind1=\" \" ind2=\" \">" +
+                  "     <subfield code=\"a\">US foundations</subfield>" +
+                  "  <subfield code=\"c\">Applied Technology Council</subfield>" +
+                  "</datafield>" +
+                  "<datafield tag=\"536\" ind1=\" \" ind2=\" \">" +
+                  "  <subfield code=\"a\">US foundations</subfield>" +
+                  "  <subfield code=\"c\">National Institute of standards and Technology</subfield>" +
+                  "</datafield>" +
+                  "<datafield tag=\"536\" ind1=\" \" ind2=\" \">" +
+                  "  <subfield code=\"a\">US foundations</subfield>" +
+                  "</datafield>" +
+                  "<datafield tag=\"536\" ind1=\" \" ind2=\" \">" +
+                  "  <subfield code=\"a\">FNS</subfield>" +
+                  "  <subfield code=\"c\">200021_169248</subfield>" +
+                  "</datafield>" +
+                "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        checkMetadataValue("US foundations", itemMetadata, "oairecerif.funder", 0);
+        // the value below looks odd but the issue is in the epfl mess data where many
+        // records have the funder name in the 'c' subfield instead than the 'a' field
+        // where in such case a sort of "funder category" is present
+        checkMetadataValue("Applied Technology Council", itemMetadata, "dc.relation.grantno", 0);
+
+        checkMetadataValue("US foundations", itemMetadata, "oairecerif.funder", 1);
+        // the value below looks odd but the issue is in the epfl mess data where many
+        // records have the funder name in the 'c' subfield instead than the 'a' field
+        // where in such case a sort of "funder category" is present
+        checkMetadataValue("National Institute of standards and Technology", itemMetadata, "dc.relation.grantno", 1);
+
+        checkMetadataValue("US foundations", itemMetadata, "oairecerif.funder", 2);
+        // we want to test that the grant no stay in sync with the funder name
+        checkMetadataValue(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE, itemMetadata, "dc.relation.grantno", 2);
+
+        checkMetadataValue("FNS", itemMetadata, "oairecerif.funder", 3);
+        checkMetadataValue("200021_169248", itemMetadata, "dc.relation.grantno", 3);
+    }
+
+    @Test
     public void testUniqueMetadataReader() {
         String emailValue = "emailValue";
         String test = " <record> \n" +
@@ -257,6 +306,17 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         assertEquals(NOT_FOUND_VALUE, getMetadataAuthority(itemMetadataWithoutIssn, "dc.relation.journal"));
     }
 
+    private void checkMetadataValue(String expectedValue, List<MetadataValueDTO> itemMetadata, String field, int pos) {
+        Optional<MetadataValueDTO> metadata = getMetadataValue(itemMetadata, field, pos);
+        assertTrue(metadata.isPresent());
+        assertEquals(expectedValue, metadata.get().getValue());
+    }
+
+    private Optional<MetadataValueDTO> getMetadataValue(List<MetadataValueDTO> itemMetadata, String field, int i) {
+        return itemMetadata.stream()
+                .filter(metadataValueDTO -> metadataValueDTO.getMetadataField().equals(field))
+                .skip(i).findFirst();
+    }
 
     private String getFirstMetadataValue(List<MetadataValueDTO> metadata, String field) {
         return metadata.stream()
