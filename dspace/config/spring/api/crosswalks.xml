@@ -76,7 +76,6 @@
 				<entry key="event-cerif-xml" value-ref="referCrosswalkEventCerifXml"></entry>
 				
 				<entry key="collection-xls" value-ref="xlsCrosswalkCollection"></entry>
-				<entry key="epfl-publication-marc-xml" value-ref="epflPublicationsMarcXml"></entry>
         		<entry key="item-zip" value-ref="zipCrosswalk"></entry>
         		<entry key="METS-zip" value-ref="zipCrosswalk"></entry>
 
@@ -216,7 +215,6 @@
 		<property name="publiclyReadable" value="true"/>
 		<property name="findRelatedItems" value="true"/>
 		<property name="entityType" value="all"/>
-		<property name="splitMultiValues" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnote">

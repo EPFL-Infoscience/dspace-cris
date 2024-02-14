@@ -3048,6 +3048,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+<<<<<<< HEAD
     @Test
     public void testResearchOutputsJsonDisseminate() throws Exception {
 
@@ -3117,6 +3118,8 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
 
     }
+=======
+>>>>>>> 8bf668e21a (Revert "[CST-13649] Updated logic that handle what item export configs can be used for item. Now for all types configs mapped to 'all' is also adding. Also updated logic of ReferCrosswalk, now it can split multivalue metadatas with use of config setting.")
 
     private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType) {
         createRelationshipBuilder(context, publication, author, selectedRelationshipType, -1, -1).build();

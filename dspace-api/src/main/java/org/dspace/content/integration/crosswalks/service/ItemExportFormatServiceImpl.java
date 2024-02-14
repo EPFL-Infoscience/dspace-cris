@@ -82,7 +82,7 @@ public class ItemExportFormatServiceImpl implements ItemExportFormatService {
         if (!crosswalkEntityType.isPresent() || StringUtils.isBlank(entityType)) {
             return true;
         }
-        return "all".equals(crosswalkEntityType.get()) || crosswalkEntityType.get().equals(entityType);
+        return crosswalkEntityType.get().equals(entityType);
     }
 
     private ItemExportFormat buildItemExportFormat(String id, ItemExportCrosswalk sdc) {

@@ -78,7 +78,6 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     private static Logger log = LogManager.getLogger(ReferCrosswalk.class);
 
     private static final Pattern FIELD_PATTERN = Pattern.compile("@(.*)@");
-    private static final String SEPARATE_METADATA_PREFIX = "epfl.marc-export.separate-metadata";
 
     @Autowired
     private ConfigurationService configurationService;
@@ -127,10 +126,6 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private boolean findRelatedItems = false;
 
-    private boolean splitMultiValues = false;
-
-    private List<String> metadataToSeparate;
-
     @PostConstruct
     private void postConstruct() throws IOException {
         String parent = configurationService.getProperty("dspace.dir") + File.separator + "config" + File.separator;
@@ -141,7 +136,6 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             File multipleItemsTemplateFile = new File(parent, multipleItemsTemplateFileName);
             this.multipleItemsTemplateLines = readTemplateLines(multipleItemsTemplateFile);
         }
-        metadataToSeparate = Arrays.asList(configurationService.getArrayProperty(SEPARATE_METADATA_PREFIX));
     }
 
     @Override
@@ -345,9 +339,10 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
                 }
             }
             for (String metadataValue : metadataValues) {
-                if (isNotBlank(metadataValue)
-                        && !StringUtils.equals(metadataValue, PLACEHOLDER_PARENT_METADATA_VALUE)) {
-                    appendLineWithMultiValueCheck(lines, templateLine, metadataValue, templateLine.getField());
+                if (PLACEHOLDER_PARENT_METADATA_VALUE.equals(metadataValue)) {
+                    appendLine(lines, templateLine, StringUtils.EMPTY);
+                } else if (isNotBlank(metadataValue)) {
+                    appendLine(lines, templateLine, metadataValue);
                 }
             }
         }
@@ -437,8 +432,9 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
                 String metadataValue = metadata.get(i);
                 if (isNotBlank(metadataValue) && !PLACEHOLDER_PARENT_METADATA_VALUE.equals(metadataValue)) {
-                    appendLineWithMultiValueCheck(lines, line, metadataValue, field);
+                    appendLine(lines, line, metadataValue);
                 }
+
             }
         }
 
@@ -528,16 +524,6 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     private void appendLine(List<String> lines, TemplateLine line, String value) {
         String valueToAdd = converter != null ? converter.convert(value) : value;
         lines.add(line.getBeforeField() + valueToAdd + line.getAfterField());
-    }
-
-    private void appendLineWithMultiValueCheck(List<String> lines, TemplateLine line, String value, String field) {
-        if (splitMultiValues && metadataToSeparate.contains(field)) {
-            for (String splitValue : value.split("\\|")) {
-                appendLine(lines, line, splitValue);
-            }
-        } else {
-            appendLine(lines, line, value);
-        }
     }
 
     private void writeLines(OutputStream out, List<String> lines) throws IOException {
@@ -645,11 +631,4 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         this.findRelatedItems = findRelatedItems;
     }
 
-    public void setSplitMultiValues(boolean splitMultiValues) {
-        this.splitMultiValues = splitMultiValues;
-    }
-
-    public void updateMetadataToSeparate() {
-        metadataToSeparate = Arrays.asList(configurationService.getArrayProperty(SEPARATE_METADATA_PREFIX));
-    }
 }
