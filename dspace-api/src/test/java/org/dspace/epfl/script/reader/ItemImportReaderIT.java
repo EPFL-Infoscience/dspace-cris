@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.CrisConstants;
 import org.dspace.epfl.script.model.ItemsImportMapping;
@@ -200,6 +201,35 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         checkMetadataValue("FNS", itemMetadata, "oairecerif.funder", 3);
         checkMetadataValue("200021_169248", itemMetadata, "dc.relation.grantno", 3);
+    }
+
+    @Test
+    public void testBitstreamOaireVersion() {
+        String expectedStoreData = "http://purl.org/coar/version/c_970fb48d4fbd8a85";
+        String test = " <record> \n" +
+                " <datafield tag=\"856\" ind1=\"4\" ind2=\" \">\n" +
+                "    <subfield code=\"9\">1fbdd269-53f8-4f43-b6d0-ce5a4ef11a7c</subfield>\n" +
+                "    <subfield code=\"e\">Public</subfield>\n" +
+                "    <subfield code=\"s\">6540918</subfield>\n" +
+                "    <subfield code=\"u\">https://infoscience.epfl.ch/record/262694/files/Peirera%20et%20all</subfield>\n" +
+                "    <subfield code=\"2\">cf740d1afe73b6f79135973139a53778</subfield>\n" +
+                "</datafield>\n" +
+                "    <datafield tag=\"856\" ind1=\"4\" ind2=\" \">\n" +
+                "    <subfield code=\"9\">9b9b8e83-a2f8-48ab-a660-cad9fbe95d35</subfield>\n" +
+                "    <subfield code=\"0\">Publisher's version</subfield>\n" +
+                "    <subfield code=\"s\">6544064</subfield>\n" +
+                "    <subfield code=\"u\">https://infoscience.epfl.ch/record/262694/files/Pereira%20et%20all.pdf</subfield>\n" +
+                "    <subfield code=\"e\">Public</subfield>\n" +
+                "    <subfield code=\"2\">db9bdf79b5f3d34a89463aaf05b8b707</subfield>\n" +
+                "</datafield>\n" +
+                "</record>";
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+        List<BitstreamDTO> bitstreams = marcXmlParser.readBitstreams(context, "12345", record, mapping);
+        assertEquals(expectedStoreData, getFirstMetadataValue(itemMetadata, "oaire.version"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(bitstreams.get(0).getMetadataValues(), "oaire.version"));
+        assertEquals(expectedStoreData, getFirstMetadataValue(bitstreams.get(1).getMetadataValues(), "oaire.version"));
     }
 
     @Test
