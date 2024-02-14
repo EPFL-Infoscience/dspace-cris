@@ -478,7 +478,7 @@ public class Email {
             if (charset != null) {
                 message.setText(fullMessage, charset, subtype);
             } else {
-                message.setText(fullMessage, null, "html");
+                message.setText(fullMessage, null, subtype);
             }
         } else {
             Multipart multipart = new MimeMultipart();
