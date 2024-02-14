@@ -224,7 +224,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(ISSN, item, value -> itemBuilder.ISSN(value));
         consumeMetadataIfNotBlank(issue, item, value -> itemBuilder.issue(value));
         consumeMetadataIfNotBlank(jurisdiction, item, value -> itemBuilder.jurisdiction(value));
-        consumeMetadataIfNotBlank(keyword, item, value -> itemBuilder.keyword(value));
+        consumeIfNotBlank(keyword, value ->
+            itemBuilder.keyword(String.join(" | ", getMetadataValues(item, value))));
         consumeMetadataIfNotBlank(locator, item, value -> itemBuilder.locator(value));
         consumeMetadataIfNotBlank(medium, item, value -> itemBuilder.medium(value));
         consumeMetadataIfNotBlank(note, item, value -> itemBuilder.note(value));
