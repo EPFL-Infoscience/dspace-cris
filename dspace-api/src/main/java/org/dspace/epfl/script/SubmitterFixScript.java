@@ -38,23 +38,22 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 
-public class SubmitterFixScript
-    extends DSpaceRunnable<SubmitterFixScriptConfiguration<SubmitterFixScript>> {
-    private String collectionId;
+public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfiguration<SubmitterFixScript>> {
 
+    // options
     private String email;
-
+    private String collectionId;
     private String defaultEmail;
 
-    private CollectionService collectionService;
-
+    // services
     private ItemService itemService;
-
     private EPersonService ePersonService;
+    private CollectionService collectionService;
 
     private Context context;
 
     @Override
+    @SuppressWarnings("unchecked")
     public SubmitterFixScriptConfiguration<SubmitterFixScript> getScriptConfiguration() {
         return new DSpace().getServiceManager()
                            .getServiceByName("epfl-update-submitter", SubmitterFixScriptConfiguration.class);
@@ -162,13 +161,18 @@ public class SubmitterFixScript
     }
 
     private void updateSubmitter(Item item, EPerson submitter) {
-        if (!StringUtils.equalsIgnoreCase(item.getSubmitter().getEmail(), submitter.getEmail())) {
-            handler.logInfo("Item " + item.getID() + " submitter updated from " + item.getSubmitter().getEmail() +
-                            " to " + submitter.getEmail());
+        String newEmail = submitter.getEmail();
+        EPerson currentSubmitter = item.getSubmitter();
+
+        if ((currentSubmitter == null && StringUtils.isNotBlank(newEmail)) ||
+            (currentSubmitter != null && !StringUtils.equalsIgnoreCase(currentSubmitter.getEmail(), newEmail))) {
+
+            var oldEmail = currentSubmitter != null ? currentSubmitter.getEmail() : null;
+            handler.logInfo("Item " + item.getID() + " submitter updated from " + oldEmail + " to " + newEmail);
             item.setSubmitter(submitter);
 
             try {
-                itemService.setMetadataSingleValue(context, item, "dc", "provenance", null, null, submitter.getEmail());
+                itemService.setMetadataSingleValue(context, item, "dc", "provenance", null, null, newEmail);
                 itemService.update(context, item);
             } catch (SQLException | AuthorizeException e) {
                 handler.handleException(e);

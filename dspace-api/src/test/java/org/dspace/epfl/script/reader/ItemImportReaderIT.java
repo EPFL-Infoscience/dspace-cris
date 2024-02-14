@@ -294,7 +294,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValueDTO> itemMetadataWithIssn = marcXmlParser.readItemMetadataValues(context, record1, mapping);
         List<MetadataValueDTO> itemMetadataWithoutIssn = marcXmlParser.readItemMetadataValues(context, record2,
-             mapping);
+                mapping);
 
         assertEquals(firstRelationJournal, getFirstMetadataValue(itemMetadataWithIssn, "dc.relation.journal"));
 

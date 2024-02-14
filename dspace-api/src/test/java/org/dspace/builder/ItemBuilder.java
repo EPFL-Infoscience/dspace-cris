@@ -569,6 +569,14 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "person", "identifier", "orcid", orcid);
     }
 
+    public ItemBuilder withEpflLastmodifiedEmail(String email) {
+        return addMetadataValue(item, "epfl", "lastmodified", "email", email);
+    }
+
+    public ItemBuilder withEpflCuratorEmail(String email) {
+        return addMetadataValue(item, "epfl", "curator", "email", email);
+    }
+
     public ItemBuilder withOrcidAccessToken(String accessToken, EPerson owner) {
 
         try {
