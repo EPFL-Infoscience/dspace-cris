@@ -27,6 +27,7 @@
         <metadata-field>
             <field>dc.relation.issn</field>
             <xpath>./datafield[@tag = '022']/subfield[@code = 'a']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.identifier</field>
@@ -92,6 +93,7 @@
         <metadata-field>
             <field>dc.description.notes</field>
             <xpath>./datafield[@tag = '500']/subfield[@code = 'a']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.jury</field>
@@ -105,11 +107,6 @@
             <field>oairecerif.funder</field>
             <xpath>./datafield[@tag = '536']</xpath>
             <reader>funders</reader>
-        </metadata-field>
-        <metadata-field>
-            <field>dc.rights.accessRights</field>
-            <xpath>./datafield[@tag = '542']</xpath>
-            <reader>accessRights</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.award</field>
@@ -179,6 +176,7 @@
         <metadata-field>
             <field>oaire.citation.issue</field>
             <xpath>./datafield[@tag = '773']/subfield[@code = 'k']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>oaire.citation.startPage</field>
@@ -207,6 +205,7 @@
         <metadata-field>
             <field>epfl.lastmodified.email</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '0']/subfield[@code = 'f']</xpath>
+            <reader>uniqueMetadata</reader>
         </metadata-field>
         <metadata-field>
             <field>oaire.version</field>
@@ -224,6 +223,16 @@
         <metadata-field>
             <field>dc.relation</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]/subfield[@code = 'u']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.url</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'u']</xpath>
+            <reader>simpleStringValue</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.url.description</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'y']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.description.sponsorship</field>
@@ -266,6 +275,7 @@
         <metadata-field>
             <field>epfl.thesis.originalUnit</field>
             <xpath>./datafield[@tag = '919']/subfield[@code = 'a']</xpath>
+            <reader>thesis</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.publicDefenseYear</field>

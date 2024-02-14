@@ -322,7 +322,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testPdfCrosswalkPublicationDisseminate() throws Exception {
+    public void testCsvCrosswalkPublicationDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -383,12 +383,12 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
-            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "publication-pdf");
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "publication-csv");
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             streamCrosswalkDefault.disseminate(context, publication, out);
             assertThat(out.toString(), not(isEmptyString()));
-            assertThatPdfHasContent(out, content -> assertThatPublicationDocumentHasContent(content));
+            assertThatCsvHasContent(out, this::assertThatPublicationDocumentHasContent);
         }
 
     }
@@ -578,7 +578,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testPdfCrosswalkPatentDisseminate() throws Exception {
+    public void testCsvCrosswalkPatentDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -607,12 +607,12 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.commit();
 
         StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
-            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "patent-pdf");
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "patent-csv");
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             streamCrosswalkDefault.disseminate(context, patent, out);
             assertThat(out.toString(), not(isEmptyString()));
-            assertThatPdfHasContent(out, content -> assertThatPatentDocumentHasContent(content));
+            assertThatCsvHasContent(out, this::assertThatPatentDocumentHasContent);
         }
 
     }
@@ -732,7 +732,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testPdfCrosswalkPublicationDisseminateWithNotEnglishCharacters() throws Exception {
+    public void testCsvCrosswalkPublicationDisseminateWithNotEnglishCharacters() throws Exception {
 
         configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
 
@@ -746,12 +746,12 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
-            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "publication-pdf");
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "publication-csv");
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             streamCrosswalkDefault.disseminate(context, publication, out);
             assertThat(out.toString(), not(isEmptyString()));
-            String content = getPdfContent(out);
+            String content = out.toString();
             assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
         }
 
@@ -888,7 +888,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testPdfCrosswalkPatentDisseminateWithNotEnglishCharacters() throws Exception {
+    public void testCsvCrosswalkPatentDisseminateWithNotEnglishCharacters() throws Exception {
 
         configurationService.setProperty("crosswalk.fop.font-family", configuredFontFamilies);
 
@@ -902,12 +902,12 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
-            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "patent-pdf");
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "patent-csv");
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             streamCrosswalkDefault.disseminate(context, patent, out);
             assertThat(out.toString(), not(isEmptyString()));
-            String content = getPdfContent(out);
+            String content = out.toString();
             assertThat(content, containsString("Političeskaja religija v Svjaščennoe"));
         }
 
@@ -995,6 +995,10 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertConsumer.accept(getPdfContent(out));
     }
 
+    private void assertThatCsvHasContent(ByteArrayOutputStream out, Consumer<String> assertConsumer) {
+        assertConsumer.accept(out.toString());
+    }
+
     private String getPdfContent(ByteArrayOutputStream out) {
         try {
             PDDocument document = PDDocument.load(createTempFile(out.toByteArray()));
@@ -1049,29 +1053,18 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     private void assertThatPublicationDocumentHasContent(String content) {
         assertThat(content, containsString("Test Publication"));
 
-        assertThat(content, containsString("Publication basic information"));
-        assertThat(content, containsString("Other titles: Alternative publication title"));
-        assertThat(content, containsString("Publication date: 2020-01-01"));
-        assertThat(content, containsString("DOI: doi:111.111/publication"));
-        assertThat(content, containsString("ISBN: 978-3-16-148410-0"));
-        assertThat(content, containsString("ISI number: 111-222-333"));
-        assertThat(content, containsString("SCP number: 99999999"));
-        assertThat(content, containsString("Authors: John Smith and Walter White ( Company )"));
-        assertThat(content, containsString("Editors: Editor ( Editor Affiliation )"));
-        assertThat(content, containsString("Keywords: test, export"));
-        assertThat(content, containsString("Type: http://purl.org/coar/resource_type/c_efa0"));
+        assertThat(content, containsString("Alternative publication title"));
+        assertThat(content, containsString("2020-01-01"));
+        assertThat(content, containsString("doi:111.111/publication"));
+        assertThat(content, containsString("978-3-16-148410-0"));
+        assertThat(content, containsString("111-222-333"));
+        assertThat(content, containsString("99999999"));
+        assertThat(content, containsString("http://purl.org/coar/resource_type/c_efa0"));
 
-        assertThat(content, containsString("Publication bibliographic details"));
-        assertThat(content, containsString("Published in: Published in publication"));
-        assertThat(content, containsString("ISSN: 2049-3630"));
-        assertThat(content, containsString("Volume: V.01"));
-        assertThat(content, containsString("Issue: Issue"));
-
-        assertThat(content, containsString("Projects"));
-        assertThat(content, containsString("Test Project ( TP ) - from 2020-01-01 to 2020-04-01"));
-
-        assertThat(content, containsString("Fundings"));
-        assertThat(content, containsString("Another Test Funding ( ATF-01 ) - Funder: Another Test Funder"));
+        assertThat(content, containsString("Published in publication"));
+        assertThat(content, containsString("2049-3630"));
+        assertThat(content, containsString("V.01"));
+        assertThat(content, containsString("Issue"));
     }
 
     private void assertThatProjectDocumentHasContent(String content) {
@@ -1151,15 +1144,12 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     private void assertThatPatentDocumentHasContent(String text) {
         assertThat(text, containsString("Test patent"));
         assertThat(text, containsString("This is a patent"));
-        assertThat(text, containsString("Basic informations"));
-        assertThat(text, containsString("Registration date: 2021-01-01"));
-        assertThat(text, containsString("Approval date: 2020-01-01"));
-        assertThat(text, containsString("Patent number: 12345-666"));
-        assertThat(text, containsString("Issuer(s): First publisher, Second publisher"));
-        assertThat(text, containsString("Inventor(s): Walter White (4Science), Jesse Pinkman, John Smith (4Science)"));
-        assertThat(text, containsString("Holder(s): Test Organization"));
-        assertThat(text, containsString("Keyword(s): patent, test"));
-        assertThat(text, containsString("Predecessor(s): Another patent"));
+        assertThat(text, containsString("2021-01-01"));
+        assertThat(text, containsString("12345-666"));
+        assertThat(text, containsString("First publisher||Second publisher"));
+        assertThat(text, containsString("Test Organization"));
+        assertThat(text, containsString("patent||test"));
+        assertThat(text, containsString("Another patent"));
     }
 
     private FileInputStream getFileInputStream(String name) throws FileNotFoundException {

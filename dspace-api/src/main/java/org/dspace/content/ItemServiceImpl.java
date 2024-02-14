@@ -1974,7 +1974,8 @@ prevent the generation of resource policy entry values with null dspace_object a
     public List<MetadataValue> getMetadata(Item item, String schema, String element, String qualifier, String lang,
                                            boolean enableVirtualMetadata) {
 
-        enableVirtualMetadata = false;
+        enableVirtualMetadata = enableVirtualMetadata
+            && configurationService.getBooleanProperty("item.enable-virtual-metadata", false);
 
         if (!enableVirtualMetadata) {
             log.debug("Called getMetadata for " + item.getID() + " without enableVirtualMetadata");

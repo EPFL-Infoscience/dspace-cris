@@ -34,16 +34,14 @@ public class ItemEpflAuthorityMetadataGenerator extends ItemSimpleAuthorityMetad
         List<MetadataValueDTO> parentOrgUnitMetadata =
                 getMetadataValueDTOsFromSolr(getSchema(), getElement(), getQualifier(), solrDocument);
         String epflOrgUnitUuid = configurationService.getProperty("epfl.head-orgunit.uuid", "dummy");
-        Item epflOrgUnit;
-        String epflOrgUnitName;
+        String epflOrgUnitAcronym;
         try {
-            Iterator<Item> items = itemService.findByIds(context,
-                    List.of(epflOrgUnitUuid));
+            Iterator<Item> items = itemService.findByIds(context, List.of(epflOrgUnitUuid));
             if (items.hasNext()) {
-                epflOrgUnit = items.next();
-                epflOrgUnitName = epflOrgUnit.getMetadata().stream()
-                        .filter(metadataValue -> metadataValue.getMetadataField().toString().equals("dc_title"))
-                        .findFirst().get().getValue();
+                epflOrgUnitAcronym = items.next()
+                    .getMetadata().stream()
+                    .filter(metadataValue -> "oairecerif_acronym".equals(metadataValue.getMetadataField().toString()))
+                    .findFirst().get().getValue();
             } else {
                 return;
             }
@@ -53,7 +51,7 @@ public class ItemEpflAuthorityMetadataGenerator extends ItemSimpleAuthorityMetad
         if (!parentOrgUnitMetadata.isEmpty()) {
             if (isPersonInternal(context, parentOrgUnitMetadata.get(0).getAuthority(), epflOrgUnitUuid)) {
                 buildSingleExtraByMetadata(new MetadataValueDTO("organization.parentOrganization",
-                        epflOrgUnitName, epflOrgUnitUuid, 0, 0), extras);
+                        epflOrgUnitAcronym, epflOrgUnitUuid, 0, 0), extras);
             }
         }
     }
@@ -71,16 +69,14 @@ public class ItemEpflAuthorityMetadataGenerator extends ItemSimpleAuthorityMetad
         try {
             Iterator<Item> items = itemService.findByIds(context, List.of(parentOrgUnitUuid));
             if (items.hasNext()) {
-                Item parentOrgUnit = items.next();
-
-                Optional<MetadataValue> parentOrgUnitMetadata = parentOrgUnit.getMetadata().stream()
-                        .filter(metadataValue -> metadataValue.getMetadataField().toString()
-                                                                .equals("organization_parentOrganization")).findFirst();
-                if (parentOrgUnitMetadata.isPresent()) {
-                    return isPersonInternal(context, parentOrgUnitMetadata.get().getAuthority(), epflOrgUnitUuid);
-                } else {
-                    return false;
-                }
+                Optional<MetadataValue> parentOrgUnitMetadata =
+                    items.next().getMetadata().stream()
+                         .filter(metadataValue -> "organization_parentOrganization".equals(
+                             metadataValue.getMetadataField().toString()))
+                         .findFirst();
+                return parentOrgUnitMetadata
+                    .filter(metadataValue -> isPersonInternal(context, metadataValue.getAuthority(), epflOrgUnitUuid))
+                    .isPresent();
             }
         } catch (SQLException e) {
             return false;

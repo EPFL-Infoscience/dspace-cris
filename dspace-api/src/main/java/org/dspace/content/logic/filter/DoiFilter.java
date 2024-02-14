@@ -7,7 +7,8 @@
  */
 package org.dspace.content.logic.filter;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import org.dspace.content.Item;
 import org.dspace.content.logic.Filter;
@@ -21,13 +22,26 @@ public class DoiFilter implements Filter {
 
     @Autowired
     private ItemService itemService;
-
     @Autowired
     private ConfigurationService configurationService;
 
     @Override
     public Boolean getResult(Context context, Item item) throws LogicalStatementException {
-        return isPublication(item) && isThesis(item) && hasNotDoiOrHasCustomerDoi(item);
+        return isPublication(item) && isThesis(item) && isWrittenEPFL(item) &&
+               hasPublisher(item) && hasNotDoiOrHasCustomerDoi(item);
+    }
+
+    private boolean hasPublisher(Item item) {
+        String dcPublisher = itemService.getMetadataFirstValue(item, "dc", "publisher", null, Item.ANY);
+        return isNotBlank(dcPublisher);
+    }
+
+    private boolean isWrittenEPFL(Item item) {
+        String type = itemService.getMetadataFirstValue(item, "epfl", "writtenat", null, Item.ANY);
+        if (isBlank(type)) {
+            return false;
+        }
+        return type.equalsIgnoreCase("EPFL");
     }
 
     private boolean isPublication(Item item) {
@@ -36,26 +50,23 @@ public class DoiFilter implements Filter {
 
     private boolean isThesis(Item item) {
         String type = itemService.getMetadataFirstValue(item, "dc", "type", null, Item.ANY);
-        if (isEmpty(type)) {
+        if (isBlank(type)) {
             return false;
         }
-        return type.contains("thesis") || type.contains("::thèse");
+        return type.equals("text::thesis::doctoral thesis") || type.equals("thèses::thèse de doctorat");
     }
 
     private boolean hasNotDoiOrHasCustomerDoi(Item item) {
         String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
-        if (isEmpty(doi)) {
+        if (isBlank(doi)) {
             return true;
         }
-
         String doiPrefix = configurationService.getProperty("identifier.doi.prefix");
         return doi.contains(doiPrefix);
     }
 
     @Override
-    public void setBeanName(String name) {
-
-    }
+    public void setBeanName(String name) { }
 
     @Override
     public String getName() {

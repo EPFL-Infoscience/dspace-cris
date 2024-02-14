@@ -67,8 +67,8 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         throws SQLException, AuthorizeException {
 
         return findByUuid(context, searchParam, entityType)
-            .or(() -> findByCrisSourceIdAndEntityType(context, searchParam, entityType))
             .or(() -> findByItemSearcher(context, searchParam, entityType, source))
+            .or(() -> findByCrisSourceIdAndEntityType(context, searchParam, entityType))
             .orElse(null);
     }
 
@@ -83,13 +83,10 @@ public class ItemSearchServiceImpl implements ItemSearchService {
             .filter(i -> hasEntityTypeEqualsTo(i, entityType));
     }
 
-    private Optional<Item> findByCrisSourceIdAndEntityType(Context context, String crisSourceId,
-        String entityType) {
-
-        if (crisSourceId.contains((AuthorityValueService.SPLIT))) {
+    private Optional<Item> findByCrisSourceIdAndEntityType(Context context, String crisSourceId, String entityType) {
+        if (StringUtils.isBlank(crisSourceId)) {
             return Optional.empty();
         }
-
         Iterator<Item> items = findByCrisSourceId(context, crisSourceId);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(items, Spliterator.ORDERED), false)
             .filter(item -> hasEntityTypeEqualsTo(item, entityType))
@@ -98,7 +95,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
     private Optional<Item> findByItemSearcher(Context context, String searchParam, String entityType, Item source) {
         String[] searchParamSections = searchParam.split(AuthorityValueService.SPLIT);
-        if (searchParamSections.length != 2) {
+        if (searchParamSections.length != 2 || searchParam.contains("cris.sourceId")) {
             return Optional.empty();
         }
         return Optional.ofNullable(mapper.search(context, searchParamSections[0], searchParamSections[1], source))
@@ -110,7 +107,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
-        discoverQuery.addFilterQueries("cris.sourceId:" + crisSourceId);
+        discoverQuery.addFilterQueries("cris.sourceId:" + crisSourceId.replace("::", "\\:\\:"));
         return new DiscoverResultItemIterator(context, discoverQuery);
     }
 

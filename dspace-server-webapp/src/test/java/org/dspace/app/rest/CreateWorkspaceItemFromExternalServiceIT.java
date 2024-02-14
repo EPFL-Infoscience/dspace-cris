@@ -97,11 +97,13 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                                      .withName("Collection 1").build();
 
         this.col2Scopus = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withEntityType("Publication")
                                            .withName("Collection for new WorkspaceItems imported from Scopus")
                                            .withWorkflowGroup(1, admin)
                                            .build();
 
         this.col2WOS = CollectionBuilder.createCollection(context, parentCommunity)
+                                        .withEntityType("Publication")
                                         .withName("Collection for new WorkspaceItems imported from WOS")
                                         .withWorkflowGroup(1, admin)
                                         .build();
@@ -188,18 +190,18 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
         getClient(tokenAdmin).perform(get("/api/workflow/workflowitems"))
                  .andExpect(status().isOk())
-                 .andExpect(jsonPath("$._embedded.workflowitems[0].sections.traditionalpageone.['dc.title'][0].value",
+                 .andExpect(jsonPath("$._embedded.workflowitems[0].sections.publication['dc.title'][0].value",
                                   is(title.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
-                                   + ".traditionalpageone['dc.identifier.scopus'][0].value", is(scopus.getValue())))
+                                   + ".publication['dc.identifier.scopus'][0].value", is(scopus.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
-                                   + ".traditionalpageone['dc.identifier.doi'][0].value", is(doi.getValue())))
-                 .andExpect(jsonPath("$._embedded.workflowitems[1].sections.traditionalpageone['dc.title'][0].value",
+                                   + ".publication['dc.identifier.doi'][0].value", is(doi.getValue())))
+                 .andExpect(jsonPath("$._embedded.workflowitems[1].sections.publication['dc.title'][0].value",
                                      is(title2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
-                                   + ".traditionalpageone['dc.identifier.scopus'][0].value", is(scopus2R.getValue())))
+                                   + ".publication['dc.identifier.scopus'][0].value", is(scopus2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
-                                   + ".traditionalpageone['dc.identifier.doi'][0].value", is(doi2R.getValue())))
+                                   + ".publication['dc.identifier.doi'][0].value", is(doi2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections.license.url",
                                      containsString("/api/core/bitstreams/")))
                  .andExpect(jsonPath("$.page.totalElements", is(2)));
@@ -283,12 +285,12 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(tokenAdmin).perform(get("/api/workflow/workflowitems"))
                  .andExpect(status().isOk())
-                 .andExpect(jsonPath("$._embedded.workflowitems[0].sections.traditionalpageone['dc.title'][0].value",
+                 .andExpect(jsonPath("$._embedded.workflowitems[0].sections.publication['dc.title'][0].value",
                                      is(title2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
-                                   + ".traditionalpageone['dc.identifier.scopus'][0].value", is(scopus2R.getValue())))
+                                   + ".publication['dc.identifier.scopus'][0].value", is(scopus2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
-                                   + ".traditionalpageone['dc.identifier.doi'][0].value", is(doi2R.getValue())))
+                                   + ".publication['dc.identifier.doi'][0].value", is(doi2R.getValue())))
                  .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
@@ -393,22 +395,22 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
         getClient(tokenAdmin).perform(get("/api/workflow/workflowitems"))
                  .andExpect(status().isOk())
-                 .andExpect(jsonPath("$._embedded.workflowitems[0].sections.traditionalpageone.['dc.title'][0].value",
+                 .andExpect(jsonPath("$._embedded.workflowitems[0].sections.publication['dc.title'][0].value",
                                   is(title.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
-                                   + ".traditionalpageone['dc.identifier.other'][0].value", is(identifier.getValue())))
+                                   + ".publication['dc.identifier.other'][0].value", is(identifier.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
-                                   + ".traditionalpageone['dc.date.issued'][0].value", is(date.getValue())))
+                                   + ".publication['dc.date.issued'][0].value", is(date.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
-                                   + ".traditionalpageone['dc.type'][0].value", is(type.getValue())))
-                 .andExpect(jsonPath("$._embedded.workflowitems[1].sections.traditionalpageone['dc.title'][0].value",
+                                   + ".publication['dc.type'][0].value", is(type.getValue())))
+                 .andExpect(jsonPath("$._embedded.workflowitems[1].sections.publication['dc.title'][0].value",
                                   is(title2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
-                                   + ".traditionalpageone['dc.identifier.other'][0].value",is(identifier2R.getValue())))
+                                   + ".publication['dc.identifier.other'][0].value",is(identifier2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
-                                   + ".traditionalpageone['dc.date.issued'][0].value", is(date2R.getValue())))
+                                   + ".publication['dc.date.issued'][0].value", is(date2R.getValue())))
                  .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
-                                   + ".traditionalpageone['dc.type'][0].value", is(type2R.getValue())))
+                                   + ".publication['dc.type'][0].value", is(type2R.getValue())))
                  .andExpect(jsonPath("$.page.totalElements", is(2)));
 
     }
@@ -721,6 +723,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 0, 10);
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 10, 10);
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(444)", 0, 10);
+        verify(mockScopusProvider).setHandler(handler);
         verifyNoMoreInteractions(mockScopusProvider);
 
         assertThat(getLastImport(firstPerson), notNullValue());
@@ -781,6 +784,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(111)", 0, 10);
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 0, 10);
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 10, 10);
+        verify(mockScopusProvider).setHandler(handler);
         verifyNoMoreInteractions(mockScopusProvider);
 
         assertThat(getLastImport(firstPerson), notNullValue());

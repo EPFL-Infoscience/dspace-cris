@@ -42,9 +42,11 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.RelationshipTypeBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.Relationship;
@@ -128,6 +130,16 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
                 .withEntityType("Publication")
                 .withSubmissionDefinition("traditional")
                 .build();
+
+        EntityType publicationType = entityTypeService.findByEntityType(context, "Publication");
+        EntityType personType = entityTypeService.findByEntityType(context, "Person");
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, personType, personType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
 
         context.restoreAuthSystemState();
     }

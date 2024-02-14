@@ -442,6 +442,54 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
 
     }
 
+    @Test
+    public void testEnhancementOfAdvisorMetadata() throws Exception {
+        String sciperIdForTest = "sciperIdForTest";
+
+        context.turnOffAuthorisationSystem();
+
+        Item person = ItemBuilder.createItem(context, collection)
+                .withTitle("Walter White")
+                .withPersonMainAffiliation("4Science")
+                .withMetadata("epfl", "sciperId", null, null ,sciperIdForTest, null, 600)
+                .build();
+
+        String personId = person.getID().toString();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+                .withTitle("Test publication")
+                .withEntityType("Publication")
+                .withMetadata("dc", "contributor", "advisor", null ,"Walter White", personId, 600)
+                .build();
+
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        List<MetadataValue> metadataValues = publication.getMetadata();
+        // add 1 as EPFL has a consumer that generate at least datacite.right at item
+        // level (or 2 more metadata if there are any bitstreams)
+        assertThat(metadataValues, hasItem(with("cris.virtual.advisor-sciperId", sciperIdForTest)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.advisor-sciperId", personId)));
+
+        MetadataValue virtualField = getFirstMetadataValue(publication, "cris.virtual.advisor-sciperId");
+        MetadataValue virtualSourceField = getFirstMetadataValue(publication, "cris.virtualsource.advisor-sciperId");
+
+        context.turnOffAuthorisationSystem();
+        itemService.addMetadata(context, publication, "dc", "subject", null, null, "Test");
+        itemService.update(context, publication);
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        metadataValues = publication.getMetadata();
+        assertThat(metadataValues, hasItem(with("cris.virtual.advisor-sciperId", sciperIdForTest)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.advisor-sciperId", personId)));
+
+        assertThat(virtualField, equalTo(getFirstMetadataValue(publication, "cris.virtual.advisor-sciperId")));
+        assertThat(virtualSourceField,
+                   equalTo(getFirstMetadataValue(publication, "cris.virtualsource.advisor-sciperId")));
+
+    }
+
     private MetadataValue getFirstMetadataValue(Item item, String metadataField) {
         return getMetadataValues(item, metadataField).get(0);
     }

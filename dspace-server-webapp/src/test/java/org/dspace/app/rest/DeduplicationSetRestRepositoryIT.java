@@ -30,7 +30,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,15 +42,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
 
     @Autowired
     private TitleWithDigitAndYearSignature titleWithDigitAndYearSignature;
-
-
-    @Before
-    public void initSignature() throws Exception {
-//        titleWithDigitAndYearSignature.setMetadataYear("dc.date.issued");
-//        titleWithDigitAndYearSignature.setMetadata("dc.title");
-//        titleWithDigitAndYearSignature.setResourceTypeID(2);
-//        titleWithDigitAndYearSignature.setSignatureType("titleAndYear");
-    }
 
     @Test
     public void findAllUnauthorizedTest() throws Exception {
@@ -110,9 +100,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Five public items
@@ -185,9 +172,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Three public items
@@ -283,9 +267,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -349,9 +330,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Four public items
@@ -434,9 +412,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -503,9 +478,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Four public items
@@ -594,9 +566,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -675,9 +644,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -836,9 +802,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -894,9 +857,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -1119,9 +1079,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -1208,9 +1165,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -1332,9 +1286,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -1392,9 +1343,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -1488,9 +1436,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -1547,9 +1492,6 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withSubmitterGroup(submitter)
-            .withWorkflowGroup(1, reviewer)
-            .withWorkflowGroup(2, reviewer)
-            .withWorkflowGroup(3, reviewer)
             .build();
 
         // 3. Two public items
@@ -1592,6 +1534,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         md5Signature.setSignatureType(signatureType);
         md5Signature.setIgnorePrefix(ignorePrefixes);
         md5Signature.setNormalizationRegexp(normalizeRegex);
+        md5Signature.setUseEntityType(false);
     }
 
 }
