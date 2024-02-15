@@ -7,6 +7,8 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import static org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined.LIGHT_ORANGE;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -40,6 +44,10 @@ public class XlsCrosswalk extends TabularCrosswalk {
         try (Workbook workbook = new HSSFWorkbook()) {
             Sheet sheet = workbook.createSheet(sheetName);
 
+            CellStyle cellStyleOrange = workbook.createCellStyle();
+            cellStyleOrange.setFillForegroundColor(LIGHT_ORANGE.getIndex());
+            cellStyleOrange.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
             for (int i = 0; i < rows.size(); i++) {
                 List<String> row = rows.get(i);
                 Row sheetRow = sheet.createRow(i);
@@ -50,10 +58,13 @@ public class XlsCrosswalk extends TabularCrosswalk {
 
                     if (StringUtils.length(field) > 32726) {
                         cell.setCellValue(getTruncatedCellPrefix() + field.substring(0, 32726 - 43 - 1) + "…");
+                        cell.setCellStyle(cellStyleOrange);
+
                         Cell headerCell = sheet.getRow(0).getCell(j);
 
                         if (!headerCell.getStringCellValue().startsWith(getTruncatedHeaderPrefix())) {
                             headerCell.setCellValue(getTruncatedHeaderPrefix() + headerCell.getStringCellValue());
+                            headerCell.setCellStyle(cellStyleOrange);
                         }
                     } else {
                         cell.setCellValue(field);
