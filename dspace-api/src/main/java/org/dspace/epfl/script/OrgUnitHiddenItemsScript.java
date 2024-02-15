@@ -8,11 +8,13 @@
 package org.dspace.epfl.script;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.ParseException;
@@ -67,32 +69,35 @@ public class OrgUnitHiddenItemsScript
     private void createHiddenRelationships() throws SQLException, AuthorizeException {
         Iterator<Item> items = itemService
             .findUnfilteredByMetadataField(context, "epfl", "relation", "rejectedOrgUnit", Item.ANY);
+        List<UUID> processedItems = new ArrayList<UUID>();
         int count = 0;
         while (items.hasNext()) {
             Item item = items.next();
+            if (!processedItems.contains(item.getID())) {
+                processedItems.add(item.getID());
+                Set<String> orgUnits =
+                    itemService.getMetadata(item, "epfl", "relation", "rejectedOrgUnit", Item.ANY).stream()
+                               .map(mv -> mv.getAuthority())
+                               .collect(Collectors.toSet());
 
-            Set<String> orgUnits =
-                itemService.getMetadata(item, "epfl", "relation", "rejectedOrgUnit", Item.ANY).stream()
-                           .map(mv -> mv.getAuthority())
-                           .collect(Collectors.toSet());
-
-            orgUnits.stream()
-                .map(UUIDUtils::fromString)
-                .filter(Objects::nonNull)
-                .map(FunctionalUtils.throwingMapperWrapper(id -> itemService.find(context, id)))
-                .filter(Objects::nonNull)
-                .forEach(ou -> {
-                    try {
-                        createRelationship(ou, item, checkIfAlreadyInPlace);
-                    } catch (SQLException | AuthorizeException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            context.uncacheEntity(item);
-            count++;
-            if (count % 10 == 0) {
-                context.commit();
-                handler.logInfo("Processed " + count + " items");
+                orgUnits.stream()
+                    .map(UUIDUtils::fromString)
+                    .filter(Objects::nonNull)
+                    .map(FunctionalUtils.throwingMapperWrapper(id -> itemService.find(context, id)))
+                    .filter(Objects::nonNull)
+                    .forEach(ou -> {
+                        try {
+                            createRelationship(ou, item, checkIfAlreadyInPlace);
+                        } catch (SQLException | AuthorizeException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                context.uncacheEntity(item);
+                count++;
+                if (count % 10 == 0) {
+                    context.commit();
+                    handler.logInfo("Processed " + count + " items");
+                }
             }
         }
     }
