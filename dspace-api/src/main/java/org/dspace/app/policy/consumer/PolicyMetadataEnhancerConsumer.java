@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.codec.binary.StringUtils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
@@ -94,6 +95,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private AuthorizeService authorizeService;
     private Set<Bitstream> bitstreamAlreadyProcessed = new HashSet<>();
     private Set<Item> itemsToProcess = new HashSet<>();
+    private Set<Item> itemsToUpdate = new HashSet<>();
     private MetadataFieldService metadataFieldService;
 
     @Override
@@ -114,7 +116,8 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                             .orElse(this.loadBitstream(ctx, event)),
                     event
             );
-        } else if (Constants.ITEM == event.getSubjectType() && Event.CREATE == event.getEventType()) {
+        } else if (Constants.ITEM == event.getSubjectType() && (Event.CREATE == event.getEventType() ||
+                Event.MODIFY == event.getEventType())) {
             this.handleItemConsumer(
                     ctx,
                     Optional.ofNullable((Item) event.getObject(ctx))
@@ -141,9 +144,11 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     public void end(Context ctx) throws Exception {
         bitstreamAlreadyProcessed.clear();
         this.itemsToProcess
-            .stream()
             .forEach(item -> this.handleItemConsumer(ctx, item));
         itemsToProcess.clear();
+
+        itemsToUpdate.forEach(item -> updateItem(ctx, item));
+        itemsToUpdate.clear();
     }
 
     @Override
@@ -213,7 +218,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
             handleDateAvailableMetadata(ctx, item);
 
-
+            itemsToUpdate.add(loadedItem);
         } catch (SQLException e) {
             logger.error(MessageFormat.format("Error while processing item {}!", item.getID().toString()), e);
             throw new SQLRuntimeException(e);
@@ -503,6 +508,14 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 )
                 .findFirst()
                 .isPresent();
+    }
+
+    private void updateItem(Context context, Item item) {
+        try {
+            itemService.update(context, item);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
