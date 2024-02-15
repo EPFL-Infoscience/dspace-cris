@@ -77,13 +77,11 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private static final MetadataFieldName viewerMetadata = new MetadataFieldName("bitstream", "viewer", "provider");
     private static final MetadataFieldName oaireLicenseMetadata = new MetadataFieldName("oaire", "licenseCondition");
     private static final MetadataFieldName epflLicenseMetadata = new MetadataFieldName("epfl", "licenseName");
-    private static final MetadataFieldName oaireVersionMetadata = new MetadataFieldName("oaire", "version");
     private static final List<MetadataFieldName> bitstreamToItemMetadatas = List.of(
         oaireLicenseMetadata,
         dataciteAvailableMetadata,
         dataciteRightsMetadata,
-        epflLicenseMetadata,
-        oaireVersionMetadata
+        epflLicenseMetadata
     );
     private static final Map<MetadataFieldName, List<String>> defaultItemMetadatas = Map.of(dataciteRightsMetadata,
             List.of(METADATA_ONLY));
