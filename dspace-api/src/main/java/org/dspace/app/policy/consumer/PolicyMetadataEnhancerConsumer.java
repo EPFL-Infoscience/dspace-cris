@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
@@ -115,8 +114,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                             .orElse(this.loadBitstream(ctx, event)),
                     event
             );
-        } else if (Constants.ITEM == event.getSubjectType() && (Event.CREATE == event.getEventType() ||
-                Event.MODIFY == event.getEventType())) {
+        } else if (Constants.ITEM == event.getSubjectType() && Event.CREATE == event.getEventType()) {
             this.handleItemConsumer(
                     ctx,
                     Optional.ofNullable((Item) event.getObject(ctx))
@@ -201,37 +199,26 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                         .map(metadatas -> groupByMetadataField(metadatas))
                         .filter(metadatas -> !metadatas.isEmpty())
                         .orElse(this.mapWithMetadataField(ctx, defaultItemMetadatas));
-            if (isUpdateOfItemNeeded(item, grouped)) {
-                this.itemService.removeMetadataValues(ctx, loadedItem, getRemovableMetadatas(loadedItem));
 
-                grouped.entrySet().stream().forEach(throwingConsumerWrapper(entry ->
-                            this.itemService.addMetadata(ctx, loadedItem, entry.getKey(), null, entry.getValue())
-                            ));
+            this.itemService.removeMetadataValues(ctx, loadedItem, getRemovableMetadatas(loadedItem));
 
-                handleDateAvailableMetadata(ctx, item);
+            grouped
+                .entrySet()
+                .stream()
+                .forEach(
+                    throwingConsumerWrapper(entry ->
+                        this.itemService.addMetadata(ctx, loadedItem, entry.getKey(), null, entry.getValue())
+                    )
+                );
 
-                updateItem(ctx, loadedItem);
-            }
+            handleDateAvailableMetadata(ctx, item);
+
+
         } catch (SQLException e) {
             logger.error(MessageFormat.format("Error while processing item {}!", item.getID().toString()), e);
             throw new SQLRuntimeException(e);
         }
 
-    }
-
-    private boolean isUpdateOfItemNeeded(Item item,
-                                         Map<MetadataField, List<String>> groupedValuesToAdd) {
-        for (Entry<MetadataField, List<String>> entry : groupedValuesToAdd.entrySet()) {
-            for (String value : entry.getValue()) {
-                List<String> metadataValues =
-                        itemService.getMetadataByMetadataString(item, entry.getKey().toString('.'))
-                                .stream().map(MetadataValue::getValue).collect(Collectors.toList());
-                if (!metadataValues.contains(value)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private Bitstream getRightBitstream(List<Bitstream> bitstreams, Context ctx) {
@@ -516,15 +503,6 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 )
                 .findFirst()
                 .isPresent();
-    }
-
-    private void updateItem(Context context, Item item) {
-        try {
-            itemService.update(context, item);
-            List<Event> events = context.getEvents();
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }
