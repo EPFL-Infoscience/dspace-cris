@@ -93,11 +93,11 @@ public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfigu
 
                 try {
                     updateSubmitter(item);
+                    context.uncacheEntity(item);
                     count++;
                 } catch (Exception ex) {
                     handler.logError("An error occurs updating item " + item.getID(), ex);
                 }
-
                 if (count % 10 == 0) {
                     context.commit();
                     handler.logInfo("Processed " + count + " items");

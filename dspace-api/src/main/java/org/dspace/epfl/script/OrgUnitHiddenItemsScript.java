@@ -38,12 +38,14 @@ public class OrgUnitHiddenItemsScript
     private RelationshipService relationshipService;
     private RelationshipTypeService relationshipTypeService;
     private Context context;
+    private boolean checkIfAlreadyInPlace;
 
     @Override
     public void setup() throws ParseException {
         itemService = ContentServiceFactory.getInstance().getItemService();
         relationshipService = ContentServiceFactory.getInstance().getRelationshipService();
         relationshipTypeService = ContentServiceFactory.getInstance().getRelationshipTypeService();
+        checkIfAlreadyInPlace = commandLine.hasOption('c');
     }
 
     @Override
@@ -65,7 +67,7 @@ public class OrgUnitHiddenItemsScript
     private void createHiddenRelationships() throws SQLException, AuthorizeException {
         Iterator<Item> items = itemService
             .findUnfilteredByMetadataField(context, "epfl", "relation", "rejectedOrgUnit", Item.ANY);
-
+        int count = 0;
         while (items.hasNext()) {
             Item item = items.next();
 
@@ -81,25 +83,34 @@ public class OrgUnitHiddenItemsScript
                 .filter(Objects::nonNull)
                 .forEach(ou -> {
                     try {
-                        createRelationship(ou, item);
+                        createRelationship(ou, item, checkIfAlreadyInPlace);
                     } catch (SQLException | AuthorizeException e) {
                         throw new RuntimeException(e);
                     }
                 });
+            context.uncacheEntity(item);
+            count++;
+            if (count % 10 == 0) {
+                context.commit();
+                handler.logInfo("Processed " + count + " items");
+            }
         }
     }
 
-    private void createRelationship(Item orgUnit, Item item) throws SQLException, AuthorizeException {
+    private void createRelationship(Item orgUnit, Item item, boolean checkIfAlreadyInPlace)
+            throws SQLException, AuthorizeException {
         if (orgUnit != null) {
             List<RelationshipType> relationshipType = getRelationshipType(item);
             for (RelationshipType type : relationshipType) {
-                Optional<Relationship> alreadyStored = relationshipService
-                    .findByItemAndRelationshipType(context, item, type, true)
-                    .stream().filter(
-                        r -> r.getRightItem().getID().equals(orgUnit.getID()))
-                    .findFirst();
-                if (alreadyStored.isPresent()) {
-                    continue;
+                if (checkIfAlreadyInPlace) {
+                    Optional<Relationship> alreadyStored = relationshipService
+                        .findByItemAndRelationshipType(context, item, type, true)
+                        .stream().filter(
+                            r -> r.getRightItem().getID().equals(orgUnit.getID()))
+                        .findFirst();
+                    if (alreadyStored.isPresent()) {
+                        continue;
+                    }
                 }
                 relationshipService.create(context, item, orgUnit, type,
                                            0, 0, type.getLeftwardType(), type.getRightwardType());
