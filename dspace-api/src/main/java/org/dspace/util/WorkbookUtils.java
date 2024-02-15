@@ -21,11 +21,17 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 public final class WorkbookUtils {
+
+    public static String CELL_CONTAINS_TRUNCATED = "!CELL CONTENT WAS TRUNCATED DURING EXPORT! ";
+    public static String COLUMN_CONTAINS_TRUNCATED = "!COLUMN CONTAINS TRUNCATED CELL(S)! ";
+    public static Integer MAX_CELL_LENGTH = 32726;
 
     private WorkbookUtils() {
 
@@ -126,6 +132,12 @@ public final class WorkbookUtils {
         return cell;
     }
 
+    public static Cell createCell(Row row, int column, String value, CellStyle cellStyle) {
+        Cell cell = createCell(row, column, value);
+        cell.setCellStyle(cellStyle);
+        return cell;
+    }
+
     public static List<String> getAllHeaders(Sheet sheet) {
         return getCells(sheet.getRow(0))
             .map(cell -> getCellValue(cell))
@@ -150,5 +162,19 @@ public final class WorkbookUtils {
             .filter(cell -> headerName.equals(WorkbookUtils.getCellValue(cell)))
             .map(cell -> cell.getColumnIndex())
             .findFirst().orElse(-1);
+    }
+
+    public static String getTruncatedCellPrefix() {
+        return DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(
+            "crosswalk.xls.truncated-prefix.cell",
+            CELL_CONTAINS_TRUNCATED
+        );
+    }
+
+    public static String getTruncatedHeaderPrefix() {
+        return DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(
+            "crosswalk.xls.truncated-prefix.header",
+            COLUMN_CONTAINS_TRUNCATED
+        );
     }
 }
