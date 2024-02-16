@@ -501,7 +501,7 @@ public class ItemsImportFromS3Script
             }
 
             itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
-                metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
+                metadataValue.getQualifier(), metadataValue.getLanguage(), value,
                 authority, confidence);
         }
 

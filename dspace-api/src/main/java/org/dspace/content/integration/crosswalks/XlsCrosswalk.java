@@ -7,6 +7,12 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import static org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined.LIGHT_ORANGE;
+import static org.dspace.util.WorkbookUtils.MAX_CELL_LENGTH;
+import static org.dspace.util.WorkbookUtils.createCell;
+import static org.dspace.util.WorkbookUtils.getTruncatedCellPrefix;
+import static org.dspace.util.WorkbookUtils.getTruncatedHeaderPrefix;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -14,6 +20,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -26,8 +34,6 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public class XlsCrosswalk extends TabularCrosswalk {
 
-    public static String CELL_CONTAINS_TRUNCATED = "!CELL CONTENT WAS TRUNCATED DURING EXPORT! ";
-    public static String COLUMN_CONTAINS_TRUNCATED = "!COLUMN CONTAINS TRUNCATED CELL(S)! ";
     private String sheetName;
 
     @Override
@@ -40,23 +46,32 @@ public class XlsCrosswalk extends TabularCrosswalk {
         try (Workbook workbook = new HSSFWorkbook()) {
             Sheet sheet = workbook.createSheet(sheetName);
 
+            CellStyle cellStyleHighlighted = workbook.createCellStyle();
+            cellStyleHighlighted.setFillForegroundColor(LIGHT_ORANGE.getIndex());
+            cellStyleHighlighted.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
             for (int i = 0; i < rows.size(); i++) {
                 List<String> row = rows.get(i);
                 Row sheetRow = sheet.createRow(i);
 
                 for (int j = 0; j < row.size(); j++) {
                     String field = row.get(j);
-                    Cell cell = sheetRow.createCell(j);
 
-                    if (StringUtils.length(field) > 32726) {
-                        cell.setCellValue(getTruncatedCellPrefix() + field.substring(0, 32726 - 43 - 1) + "…");
+                    if (StringUtils.length(field) > MAX_CELL_LENGTH) {
+                        createCell(
+                            sheetRow, j, getTruncatedCellPrefix()
+                                + field.substring(0, MAX_CELL_LENGTH - getTruncatedCellPrefix().length() - 1) + "…",
+                            cellStyleHighlighted
+                        );
+
                         Cell headerCell = sheet.getRow(0).getCell(j);
 
                         if (!headerCell.getStringCellValue().startsWith(getTruncatedHeaderPrefix())) {
                             headerCell.setCellValue(getTruncatedHeaderPrefix() + headerCell.getStringCellValue());
+                            headerCell.setCellStyle(cellStyleHighlighted);
                         }
                     } else {
-                        cell.setCellValue(field);
+                        createCell(sheetRow, j, field);
                     }
                 }
             }
@@ -84,20 +99,6 @@ public class XlsCrosswalk extends TabularCrosswalk {
 
     protected String getInsideNestedSeparator() {
         return configurationService.getProperty("crosswalk.xls.separator.inside-nested", "/");
-    }
-
-    protected String getTruncatedCellPrefix() {
-        return configurationService.getProperty(
-            "crosswalk.xls.truncated-prefix.cell",
-            CELL_CONTAINS_TRUNCATED
-        );
-    }
-
-    protected String getTruncatedHeaderPrefix() {
-        return configurationService.getProperty(
-            "crosswalk.xls.truncated-prefix.header",
-            COLUMN_CONTAINS_TRUNCATED
-        );
     }
 
     protected String escapeValue(String value) {
