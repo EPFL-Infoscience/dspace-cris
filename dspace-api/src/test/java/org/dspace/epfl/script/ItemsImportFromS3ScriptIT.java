@@ -130,6 +130,48 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
     }
 
     @Test
+    public void testPublicationImportWithDuplicateDoi() throws Exception {
+        String key = "293457.zip";
+
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsS3Service itemsS3ServiceMock = mock(ItemsS3Service.class);
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+
+        try {
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            when(itemsS3ServiceMock.getObject(ArgumentMatchers.any())).thenReturn(getZipResource(key));
+            when(itemsS3ServiceMock.getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(null);
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            assertEquals((int) importedItem.getMetadata().stream()
+                    .filter(metadataValue -> metadataValue.getMetadataField()
+                            .toString('.').equals("dc.identifier.doi")).count(), 1);
+
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+            }
+        }
+    }
+
+    @Test
     public void importAnItemFromS3ScriptTest() throws Exception {
         String key = "79707.zip";
 
