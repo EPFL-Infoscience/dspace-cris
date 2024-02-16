@@ -11,7 +11,6 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
-import static org.dspace.util.WorkbookUtils.COLUMN_CONTAINS_TRUNCATED;
 import static org.dspace.util.WorkbookUtils.MAX_CELL_LENGTH;
 import static org.dspace.util.WorkbookUtils.getTruncatedCellPrefix;
 import static org.dspace.util.WorkbookUtils.getTruncatedHeaderPrefix;
