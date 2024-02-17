@@ -41,6 +41,10 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
     private static final String PUBLICATION_REVIEWERS = "Publications reviewers";
 
+    private static final String RESERVED_GROUP = "ReservedAccess";
+
+    private static final String RESTRICTED_GROUP = "LoggedIn";
+
     private GroupService groupService;
 
     private CommunityService communityService;
@@ -60,6 +64,10 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
     private Group curatorsGroup;
 
     private Group adminsGroup;
+
+    private Group restrictedGroup;
+
+    private Group reservedGroup;
 
     private Group epflReviewersGroup;
 
@@ -99,6 +107,8 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             submittersGroup = findByNameOrCreate(SUBMITTERS_GROUP);
             epflReviewersGroup = findByNameOrCreate(EPFL_PUBLICATION_REVIEWERS);
             reviewersGroup = findByNameOrCreate(PUBLICATION_REVIEWERS);
+            reservedGroup = findByNameOrCreate(RESERVED_GROUP);
+            restrictedGroup = findByNameOrCreate(RESTRICTED_GROUP);
 
             setupRoles();
 
@@ -112,6 +122,8 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
     }
 
     private void setupRoles() throws Exception {
+        addSubgroup(reservedGroup, adminsGroup);
+        addSubgroup(reservedGroup, curatorsGroup);
         setupResearchOutputCommunityRoles();
         setupEntitiesCommunityRoles();
     }
