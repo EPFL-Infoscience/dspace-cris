@@ -154,6 +154,8 @@ public class ItemsImportFromS3Script
 
     private boolean skipBitstreamsUpload;
 
+    private boolean modificationDateMode;
+
     private boolean workbookMode;
 
     private int commitSize = 20;
@@ -214,7 +216,7 @@ public class ItemsImportFromS3Script
 
         String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
         mapping = marcXmlParser.parseMapping(configuration);
-
+        modificationDateMode = commandLine.hasOption('m');
         typeCounts = new HashMap<>();
 
     }
@@ -236,6 +238,16 @@ public class ItemsImportFromS3Script
         }
 
         context.turnOffAuthorisationSystem();
+
+        if (modificationDateMode) {
+            Iterator<ItemImportDTO> items = readItems();
+            Integer count = itemsS3Service.importModificationDates(context, items, handler);
+            handler.logInfo("Imported " + count + " modification dates");
+
+            context.complete();
+            context.restoreAuthSystemState();
+            return;
+        }
 
         if (isNotBlank(creationDatesFileName)) {
 
@@ -321,7 +333,7 @@ public class ItemsImportFromS3Script
         } else {
             item = createItem(itemImport);
         }
-
+        itemsS3Service.createOrUpdateModificationDate(context, itemImport, handler);
         context.uncacheEntity(item);
 
     }
