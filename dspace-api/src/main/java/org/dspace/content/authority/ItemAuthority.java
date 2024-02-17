@@ -217,15 +217,20 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
             .flatMap(doc -> {
 
                 String title;
+                String titleDisplay;
                 if (onlyExactMatches && isForceInternalTitle() || !onlyExactMatches) {
-                    Object fieldValue = doc.getFieldValue("dc.title");
-                    title = fieldValue instanceof String ? (String) fieldValue
-                        : ((ArrayList<String>) fieldValue).get(0);
+                    Object fieldValueStored = doc.getFieldValue(getTitleStoredField());
+                    title = fieldValueStored instanceof String ? (String) fieldValueStored
+                        : ((ArrayList<String>) fieldValueStored).get(0);
+                    Object fieldValueDisplay = doc.getFieldValue(getTitleDisplayField());
+                    titleDisplay = fieldValueDisplay instanceof String ? (String) fieldValueDisplay
+                        : ((ArrayList<String>) fieldValueDisplay).get(0);
                 } else {
                     title = searchTitle;
+                    titleDisplay = searchTitle;
                 }
 
-                return getChoicesFromDocument(doc, title).stream();
+                return getChoicesFromDocument(doc, title, titleDisplay).stream();
 
             })
             .skip(start)
@@ -233,8 +238,18 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
             .collect(Collectors.toList());
     }
 
+    private String getTitleStoredField() {
+        return configurationService.getProperty("cris.ItemAuthority." + authorityName + ".title_field_stored",
+                "dc.title");
+    }
+
+    private String getTitleDisplayField() {
+        return configurationService.getProperty("cris.ItemAuthority." + authorityName + ".title_field_displayed",
+                "dc.title");
+    }
+
     @SuppressWarnings("unchecked")
-    private List<Choice> getChoicesFromDocument(SolrDocument document, String title) {
+    private List<Choice> getChoicesFromDocument(SolrDocument document, String titleStored, String titleDisplay) {
 
         List<Choice> choices = new ArrayList<Choice>();
 
@@ -242,14 +257,14 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
 
         String authority = (String) document.getFieldValue("search.resourceid");
 
-        choices.add(new Choice(authority, title, title, extras));
+        choices.add(new Choice(authority, titleDisplay, titleStored, extras));
 
         Object fieldValue = document.getFieldValue("crisrp.name.variant");
 
         if (fieldValue != null && fieldValue instanceof List) {
 
             Map<String, String> variantsExtra = new LinkedHashMap<String, String>();
-            variantsExtra.put("variant", title);
+            variantsExtra.put("variant", titleDisplay);
             variantsExtra.putAll(extras);
 
             ((List<String>) fieldValue).stream()
