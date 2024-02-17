@@ -142,20 +142,20 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         deleteAllFilesOnExit();
         MarcXmlParserImpl marcXmlParserImpl = null;
         ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
-        ItemsS3Service itemsS3ServiceMock = mock(ItemsS3Service.class);
         ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
 
         try {
             String[] args = new String[] { "items-import-from-s3", "-k", key };
             TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
             itemsImportFromS3Script.initialize(args, handler, admin);
-            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
             marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
             originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
             marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
 
-            when(itemsS3ServiceMock.getObject(ArgumentMatchers.any())).thenReturn(getZipResource(key));
-            when(itemsS3ServiceMock.getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(null);
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
 
             itemsImportFromS3Script.run();
 
@@ -173,6 +173,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         } finally {
             if (originalS3serviceOfMarcXmlParserImpl != null) {
                 marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, "167656");
             }
         }
     }
@@ -417,8 +418,6 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
 
     @Test
     public void testModificationDateMode() throws Exception {
-        String key = "217849.zip";
-
         deleteAllFilesOnExit();
         MarcXmlParserImpl marcXmlParserImpl = null;
         ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
