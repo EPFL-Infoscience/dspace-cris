@@ -575,8 +575,6 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
-
-        context.complete();
     }
 
     @Test
