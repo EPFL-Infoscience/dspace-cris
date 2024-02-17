@@ -123,6 +123,7 @@
         <mapping class="org.dspace.unpaywall.model.Unpaywall" />
         
         <mapping class="org.dspace.epfl.script.model.ItemsImportCreationDate" />
+        <mapping class="org.dspace.epfl.script.model.ItemsImportModificationDate" />
 
     </session-factory>
 </hibernate-configuration>

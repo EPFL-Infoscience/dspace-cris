@@ -232,5 +232,7 @@
     
     <bean class="org.dspace.epfl.script.service.impl.ItemsImportCreationDateDaoImpl">
     </bean>
-    
+
+    <bean class="org.dspace.epfl.script.service.impl.ItemsImportModificationDateDaoImpl">
+    </bean>
 </beans>

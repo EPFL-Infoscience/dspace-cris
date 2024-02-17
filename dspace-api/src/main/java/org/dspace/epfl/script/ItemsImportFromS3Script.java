@@ -154,6 +154,10 @@ public class ItemsImportFromS3Script
 
     private boolean skipBitstreamsUpload;
 
+    private boolean modificationDateMode;
+
+    private boolean forceMode;
+
     private boolean workbookMode;
 
     private int commitSize = 20;
@@ -214,7 +218,8 @@ public class ItemsImportFromS3Script
 
         String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
         mapping = marcXmlParser.parseMapping(configuration);
-
+        modificationDateMode = commandLine.hasOption('m');
+        forceMode = commandLine.hasOption('f');
         typeCounts = new HashMap<>();
 
     }
@@ -236,6 +241,16 @@ public class ItemsImportFromS3Script
         }
 
         context.turnOffAuthorisationSystem();
+
+        if (modificationDateMode) {
+            Iterator<ItemImportDTO> items = readItems();
+            Integer count = itemsS3Service.importModificationDates(context, items, handler);
+            handler.logInfo("Imported " + count + " modification dates");
+
+            context.complete();
+            context.restoreAuthSystemState();
+            return;
+        }
 
         if (isNotBlank(creationDatesFileName)) {
 
@@ -317,11 +332,25 @@ public class ItemsImportFromS3Script
         Item item = searchItemById(itemImport.getItem().getId());
 
         if (item != null) {
-            item = updateItem(itemImport, item);
+            if (forceMode) {
+                WorkspaceItem wi = workspaceItemService.findByItem(context, item);
+                if (wi != null) {
+                    workspaceItemService.deleteAll(context, wi);
+                    handler.logInfo("Deleted existing workspaceitem " + wi.getID() + " for record "
+                            + itemImport.getItem().getId());
+                } else {
+                    handler.logInfo("Deleted existing item " + item.getID().toString() + " for record "
+                            + itemImport.getItem().getId());
+                    itemService.delete(context, item);
+                }
+                item = createItem(itemImport);
+            } else {
+                item = updateItem(itemImport, item);
+            }
         } else {
             item = createItem(itemImport);
         }
-
+        itemsS3Service.createOrUpdateModificationDate(context, itemImport, handler);
         context.uncacheEntity(item);
 
     }
@@ -482,7 +511,7 @@ public class ItemsImportFromS3Script
 
     private void addMetadataValues(ItemImportDTO itemImport, Item item) throws SQLException {
 
-        for (MetadataValueDTO metadataValue : itemImport.getItem().getMetadataValues()) {
+        for (MetadataValueDTO metadataValue : getMetadataValuesWithoutDoiDuplicates(itemImport)) {
 
             String authority = metadataValue.getAuthority();
             String value = metadataValue.getValue();
@@ -504,6 +533,23 @@ public class ItemsImportFromS3Script
                 authority, confidence);
         }
 
+    }
+
+    private List<MetadataValueDTO> getMetadataValuesWithoutDoiDuplicates(ItemImportDTO itemImport) {
+        List<MetadataValueDTO> metadataValueDTOs = itemImport.getItem().getMetadataValues();
+        List<MetadataValueDTO> metadataValuesWithoutDuplicates = new ArrayList<>();
+        List<String> doiValuesForCheck = new ArrayList<>();
+        for (MetadataValueDTO metadataValue : metadataValueDTOs) {
+            if (metadataValue.getMetadataField().equals("dc.identifier.doi")) {
+                if (doiValuesForCheck.contains(metadataValue.getValue())) {
+                    continue;
+                } else {
+                    doiValuesForCheck.add(metadataValue.getValue());
+                }
+            }
+            metadataValuesWithoutDuplicates.add(metadataValue);
+        }
+        return metadataValuesWithoutDuplicates;
     }
 
     private String replaceOldDoiPrefix(String value) {
