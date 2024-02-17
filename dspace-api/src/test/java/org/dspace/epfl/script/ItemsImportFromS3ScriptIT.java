@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,12 +42,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
@@ -448,6 +451,68 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
 
             Iterator<Item> items = itemService.findAll(context);
             assertFalse(items.hasNext());
+            assertEquals("2023-05-05T23:51:05Z", itemsS3ServiceMock.getModificationDate(context, "167656"));
+            assertEquals("2023-05-05T18:59:01Z", itemsS3ServiceMock.getModificationDate(context, "79707"));
+            assertEquals("2023-05-06T03:04:56Z", itemsS3ServiceMock.getModificationDate(context, "217849"));
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+               marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+               originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, "217849");
+            }
+        }
+    }
+
+    @Test
+    public void testForceMode() throws Exception {
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+        try {
+            String[] args = new String[] { "items-import-from-s3", "-f" };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+            List<UUID> uuids = new ArrayList<UUID>();
+            collection = context.reloadEntity(collection);
+            context.turnOffAuthorisationSystem();
+            WorkspaceItem wi = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                    .withTitle("test force update1")
+                    .withCrisSourceId("167656").build();
+            uuids.add(wi.getItem().getID());
+            WorkspaceItem wi2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                    .withTitle("test force update2").withCrisSourceId("79707").build();
+            uuids.add(wi2.getItem().getID());
+            WorkspaceItem wi3 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                    .withTitle("test force update3").withCrisSourceId("217849").build();
+            uuids.add(wi3.getItem().getID());
+            context.restoreAuthSystemState();
+            context.commit();
+            doAnswer(new Answer<File>() {
+                @Override
+                public File answer(InvocationOnMock invocation) throws Throwable {
+                    Object[] args = invocation.getArguments();
+                    String key = (String) args[0];
+                    return getZipResource(key);
+                }
+            }).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(),
+                    ArgumentMatchers.any());
+            doReturn(listImportTestKeys()).when(itemsS3ServiceMock).getAllItemsKeys();
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            int count = 0;
+            while (items.hasNext()) {
+                count++;
+                assertFalse(uuids.contains(items.next().getID()));
+            }
+            assertEquals(count, 3);
             assertEquals("2023-05-05T23:51:05Z", itemsS3ServiceMock.getModificationDate(context, "167656"));
             assertEquals("2023-05-05T18:59:01Z", itemsS3ServiceMock.getModificationDate(context, "79707"));
             assertEquals("2023-05-06T03:04:56Z", itemsS3ServiceMock.getModificationDate(context, "217849"));
