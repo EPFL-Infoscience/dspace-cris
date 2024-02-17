@@ -8,14 +8,23 @@
 package org.dspace.app.bulkimport.model;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined.LIGHT_ORANGE;
+import static org.dspace.util.WorkbookUtils.MAX_CELL_LENGTH;
 import static org.dspace.util.WorkbookUtils.createCell;
+import static org.dspace.util.WorkbookUtils.getTruncatedCellPrefix;
+import static org.dspace.util.WorkbookUtils.getTruncatedHeaderPrefix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -40,14 +49,22 @@ public final class BulkImportSheet {
 
     private final Map<String, Integer> headers;
 
+    private final Set<Integer> truncatedHeaders;
+
     private final boolean nestedMetadata;
 
+    private final CellStyle cellStyleHighlighted;
+
     public BulkImportSheet(Workbook workbook, String sheetname, boolean nestedMetadata, Collection collection) {
-        this.sheet = workbook.createSheet(sheetname);
+        sheet = workbook.createSheet(sheetname);
         this.collection = collection;
-        this.headerRow = sheet.createRow(0);
-        this.headers = new HashMap<String, Integer>();
+        headerRow = sheet.createRow(0);
+        headers = new HashMap<>();
+        truncatedHeaders = new HashSet<>();
         this.nestedMetadata = nestedMetadata;
+        cellStyleHighlighted = workbook.createCellStyle();
+        cellStyleHighlighted.setFillForegroundColor(LIGHT_ORANGE.getIndex());
+        cellStyleHighlighted.setFillPattern(FillPatternType.SOLID_FOREGROUND);
     }
 
     public Sheet getSheet() {
@@ -108,12 +125,25 @@ public final class BulkImportSheet {
             throw new IllegalArgumentException("Unknown header '" + header + "'");
         }
         String cellContent = WorkbookUtils.getCellValue(lastRow, column);
-        createCell(lastRow, column,
-                getValueLimitedByLength(isEmpty(cellContent) ? value : cellContent + separator + value));
+        cellContent = isEmpty(cellContent) ? value : cellContent + separator + value;
+
+        if (StringUtils.length(cellContent) > MAX_CELL_LENGTH) {
+            createCell(
+                lastRow, column, getTruncatedCellPrefix()
+                    + value.substring(0, MAX_CELL_LENGTH - getTruncatedCellPrefix().length() - 1) + "…",
+                cellStyleHighlighted
+            );
+            truncatedHeaders.add(column);
+        } else {
+            createCell(lastRow, column, value);
+        }
     }
 
-    private String getValueLimitedByLength(String value) {
-        return StringUtils.length(value) > 32726 ? value.substring(0, 32725) + "…" : value;
+    public void highlightTruncatedHeaders() {
+        for (Integer column : truncatedHeaders) {
+            Cell headerCell = sheet.getRow(0).getCell(column);
+            headerCell.setCellValue(getTruncatedHeaderPrefix() + headerCell.getStringCellValue());
+            headerCell.setCellStyle(cellStyleHighlighted);
+        }
     }
-
 }

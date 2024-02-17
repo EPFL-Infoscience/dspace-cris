@@ -494,7 +494,7 @@ public class ItemsImportFromS3Script
 
     private void addMetadataValues(ItemImportDTO itemImport, Item item) throws SQLException {
 
-        for (MetadataValueDTO metadataValue : itemImport.getItem().getMetadataValues()) {
+        for (MetadataValueDTO metadataValue : getMetadataValuesWithoutDoiDuplicates(itemImport)) {
 
             String authority = metadataValue.getAuthority();
             String value = metadataValue.getValue();
@@ -516,6 +516,23 @@ public class ItemsImportFromS3Script
                 authority, confidence);
         }
 
+    }
+
+    private List<MetadataValueDTO> getMetadataValuesWithoutDoiDuplicates(ItemImportDTO itemImport) {
+        List<MetadataValueDTO> metadataValueDTOs = itemImport.getItem().getMetadataValues();
+        List<MetadataValueDTO> metadataValuesWithoutDuplicates = new ArrayList<>();
+        List<String> doiValuesForCheck = new ArrayList<>();
+        for (MetadataValueDTO metadataValue : metadataValueDTOs) {
+            if (metadataValue.getMetadataField().equals("dc.identifier.doi")) {
+                if (doiValuesForCheck.contains(metadataValue.getValue())) {
+                    continue;
+                } else {
+                    doiValuesForCheck.add(metadataValue.getValue());
+                }
+            }
+            metadataValuesWithoutDuplicates.add(metadataValue);
+        }
+        return metadataValuesWithoutDuplicates;
     }
 
     private String replaceOldDoiPrefix(String value) {
