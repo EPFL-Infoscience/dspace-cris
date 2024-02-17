@@ -219,9 +219,9 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
             "Univ Montreal, Ecole Bibliothecon & Sci Informat, Montreal, PQ, Canada");
         MetadatumDTO orgunit7 = createMetadatumDTO("oairecerif", "affiliation", "orgunit",
                                                    "Univ Quebec Montreal, Observ Sci & Technol, Montreal, PQ, Canada");
-        MetadatumDTO orgunit8 = createMetadatumDTO(
-            "oairecerif", "affiliation", "orgunit",
-            "Stellenbosch Univ, Natl Res Fdn Ctr Excellence Scientometr & Sci Tec, Dept Sci & Innovat, Stellenbosch, South Africa");
+        MetadatumDTO orgunit8 = createMetadatumDTO("oairecerif", "affiliation", "orgunit",
+                "Stellenbosch Univ, Natl Res Fdn Ctr Excellence Scientometr & Sci Tec, Dept Sci & Innovat, "
+                + "Stellenbosch, South Africa");
         MetadatumDTO orgunit9 = createMetadatumDTO("oairecerif", "affiliation", "orgunit",
                                                    "Georgia Inst Technol, Sch Publ Policy, Atlanta, GA 30332 USA");
         MetadatumDTO orgunit10 = createMetadatumDTO("oairecerif", "affiliation", "orgunit",
