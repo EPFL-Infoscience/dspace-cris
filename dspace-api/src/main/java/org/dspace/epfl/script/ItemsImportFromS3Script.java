@@ -343,7 +343,6 @@ public class ItemsImportFromS3Script
 
         addMetadataValues(itemImport, item);
         addBitstreams(itemImport, item);
-        itemService.setMetadataModified(item);
 
         itemService.update(context, item);
 
