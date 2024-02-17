@@ -8,7 +8,6 @@
 package org.dspace.epfl.script;
 
 import java.sql.SQLException;
-import java.util.Optional;
 
 import org.apache.commons.cli.Options;
 import org.dspace.authorize.service.AuthorizeService;
@@ -34,7 +33,14 @@ public class OrgUnitHiddenItemsScriptConfiguration<T extends OrgUnitHiddenItemsS
 
     @Override
     public Options getOptions() {
-        return Optional.ofNullable(options).orElse(new Options());
+        if (options == null) {
+            Options options = new Options();
+            options.addOption("c", "check", false,
+                    "check if the relation is already in place (needed for update / subsequent runs)");
+            options.getOption("c").setRequired(false);
+            super.options = options;
+        }
+        return options;
     }
 
     @Override

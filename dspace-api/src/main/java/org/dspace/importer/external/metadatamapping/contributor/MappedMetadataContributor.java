@@ -39,7 +39,7 @@ public class MappedMetadataContributor<T> implements MetadataContributor<T> {
 
     @Override
     public void setMetadataFieldMapping(MetadataFieldMapping<T, MetadataContributor<T>> rt) {
-
+        innerContributor.setMetadataFieldMapping(rt);
     }
 
     public void setField(MetadataFieldConfig fieldConfig) {
