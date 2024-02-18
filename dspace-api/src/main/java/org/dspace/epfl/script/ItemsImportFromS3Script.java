@@ -242,6 +242,12 @@ public class ItemsImportFromS3Script
 
         context.turnOffAuthorisationSystem();
 
+        collectionIds = readCollectionIds();
+
+        if (isNotBlank(keysFilename)) {
+            keys.addAll(readKeysFile());
+        }
+
         if (modificationDateMode) {
             Iterator<ItemImportDTO> items = readItems();
             Integer count = itemsS3Service.importModificationDates(context, items, handler);
@@ -265,12 +271,6 @@ public class ItemsImportFromS3Script
             context.restoreAuthSystemState();
 
             return;
-        }
-
-        collectionIds = readCollectionIds();
-
-        if (isNotBlank(keysFilename)) {
-            keys.addAll(readKeysFile());
         }
 
         try {
