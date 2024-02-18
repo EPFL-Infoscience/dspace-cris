@@ -2698,9 +2698,33 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .getServiceByName("referCrosswalkPublicationDataciteXml", ReferCrosswalk.class);
         assertThat(referCrosswalk, notNullValue());
 
+        Item orgunit = createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("OrgUnit Name")
+                .withOrgUnitRORIdentifier("rorID")
+                .build();
+
+        Item author = createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author, Name")
+                .withAffiliation("OrgUnit", orgunit.getID().toString())
+                .withOrcidIdentifier("1234-5678-9012")
+                .build();
+        Item author2 = createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author2, Name")
+                .withAffiliation("OrgUnit", orgunit.getID().toString())
+                .withOrcidIdentifier("9876-5432-1012")
+                .build();
         Item item = createItem(context, collection)
             .withEntityType("Publication")
             .withTitle("Publication title")
+            .withAuthor("Author, Name in Pub", author.getID().toString())
+            .withAuthorAffiliation("OrgUnit in pub", orgunit.getID().toString())
+            .withAuthor("External, Auth")
+            .withAuthorAffiliationPlaceholder()
+            .withAuthor("Author, Name in Pub", author2.getID().toString())
+            .withAuthorAffiliation("OrgUnit in pub2")
             .withPublisher("Publisher")
             .build();
 
