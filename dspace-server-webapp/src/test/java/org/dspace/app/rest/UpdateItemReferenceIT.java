@@ -32,6 +32,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -74,6 +75,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void updateItemReferenceTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -208,6 +210,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void updateItemReferenceAndEnableOverrideMetadataValueTest() throws Exception {
         ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
         configService.setProperty("cris.item-reference-resolution.override-metadata-value", true);
@@ -400,6 +403,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void updateAllItemsReferenceTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

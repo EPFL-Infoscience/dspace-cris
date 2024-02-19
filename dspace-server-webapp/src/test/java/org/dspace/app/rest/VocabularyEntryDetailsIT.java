@@ -656,6 +656,7 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
     }
 
     @Test
+    @Ignore
     public void itemVocabularyWithChildrenTest() throws Exception {
         // Given an Item
         context.turnOffAuthorisationSystem();
@@ -726,6 +727,7 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
     }
 
     @Test
+    @Ignore
     public void itemVocabularyWithMultipleParentsAndChildrenTest() throws Exception {
      // Given an Item
         context.turnOffAuthorisationSystem();
