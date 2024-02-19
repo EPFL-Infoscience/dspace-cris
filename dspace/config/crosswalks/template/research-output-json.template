@@ -27,7 +27,7 @@
 	  "Name": "@dc.relation.ispartof@",
 	@if.metadata.dc-relation-ispartof.end@
 	@if.metadata.dc-relation-journal.start@
-      "Name": "@dc.relation.journal@",
+      "JournalName": "@dc.relation.journal@",
       "Articlenumber": "@oaire.citation.articlenumber@",
     @if.metadata.dc-relation-journal.end@
     @if.metadata.oaire-citation-startPage.start@
