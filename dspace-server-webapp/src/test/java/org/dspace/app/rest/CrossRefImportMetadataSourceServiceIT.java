@@ -147,7 +147,7 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         MetadatumDTO author = createMetadatumDTO("dc", "contributor", "author", "L.V. Senyuk");
         MetadatumDTO type = createMetadatumDTO("dc", "type", null, "text::journal::journal article");
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2016-05-19");
-        MetadatumDTO ispartof = createMetadatumDTO("dc", "relation", "ispartof",
+        MetadatumDTO ispartof = createMetadatumDTO("dc", "relation", "journal",
                                    "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
         MetadatumDTO doi = createMetadatumDTO("dc", "identifier", "doi", "10.26693/jmbs01.02.184");
         MetadatumDTO issn = createMetadatumDTO("dc", "relation", "issn", "2415-3060");
@@ -177,7 +177,7 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         MetadatumDTO type2 = createMetadatumDTO("dc", "type", null,
             "text::journal::journal article");
         MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2016-05-19");
-        MetadatumDTO ispartof2 = createMetadatumDTO("dc", "relation", "ispartof",
+        MetadatumDTO ispartof2 = createMetadatumDTO("dc", "relation", "journal",
                                      "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
         MetadatumDTO doi2 = createMetadatumDTO("dc", "identifier", "doi", "10.26693/jmbs01.02.105");
         MetadatumDTO issn2 = createMetadatumDTO("dc", "relation", "issn", "2415-3060");
