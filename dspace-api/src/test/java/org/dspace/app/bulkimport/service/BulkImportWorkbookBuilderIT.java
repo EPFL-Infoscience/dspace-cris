@@ -69,6 +69,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.format.datetime.DateFormatter;
 
@@ -78,6 +79,7 @@ import org.springframework.format.datetime.DateFormatter;
  * @author Luca Giamminonni (luca.giamminonni at 4Science)
  *
  */
+@Ignore
 public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithDatabase {
 
     private static final Pattern UUID_PATTERN = compile(

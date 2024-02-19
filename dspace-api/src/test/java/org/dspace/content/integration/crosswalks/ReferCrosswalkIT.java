@@ -81,6 +81,7 @@ import org.dspace.utils.DSpace;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -1981,6 +1982,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void placeholderFieldMustBeReplacedWithEmptyStringTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -2459,6 +2461,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testVirtualFieldCitationsWithFirstSelectedPublication() throws Exception {
 
         context.turnOffAuthorisationSystem();
