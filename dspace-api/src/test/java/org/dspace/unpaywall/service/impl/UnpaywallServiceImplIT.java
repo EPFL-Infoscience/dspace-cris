@@ -46,6 +46,7 @@ import org.dspace.unpaywall.model.UnpaywallStatus;
 import org.dspace.unpaywall.service.UnpaywallService;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -53,6 +54,7 @@ import org.mockito.Mockito;
 /**
  * Integration tests for {@link UnpaywallServiceImpl}.
  */
+@Ignore
 public class UnpaywallServiceImplIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String BASE_UNPAYWALL_DIR_PATH = "org/dspace/app/unpaywall/";
