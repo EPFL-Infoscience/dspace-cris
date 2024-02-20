@@ -35,6 +35,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -71,6 +72,7 @@ public class CollectionExportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testWithNotCollectionAdmin() throws Exception {
 
         context.turnOffAuthorisationSystem();

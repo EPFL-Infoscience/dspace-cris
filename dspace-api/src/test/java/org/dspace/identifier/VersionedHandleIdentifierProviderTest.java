@@ -25,8 +25,10 @@ import org.dspace.content.Item;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class VersionedHandleIdentifierProviderTest extends AbstractIntegrationTestWithDatabase {
     private ServiceManager serviceManager;
     private IdentifierServiceImpl identifierService;

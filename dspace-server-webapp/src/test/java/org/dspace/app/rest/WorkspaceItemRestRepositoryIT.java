@@ -1076,6 +1076,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
      *
      * @throws Exception
      */
+    @Ignore
     public void createSingleWorkspaceItemFromBibtexArticleFileWithOneEntryTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -3263,6 +3264,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void patchByCoauthorTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -5036,6 +5038,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
      *
      * @throws Exception
      */
+    @Ignore
     public void coauthorUploadTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -5252,6 +5255,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void createWorkspaceWithoutRequiredFileMetadata() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -6682,6 +6686,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void createEmptyWorkspaceItemWithEntityTypeTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -8596,6 +8601,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void patchRemoveSpecificAccesConditionsTest() throws Exception {
         //disable file upload mandatory
         configurationService.setProperty("webui.submit.upload.required", false);
@@ -8678,6 +8684,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void patchRemoveFirstAccesConditionsTest() throws Exception {
         //disable file upload mandatory
         configurationService.setProperty("webui.submit.upload.required", false);

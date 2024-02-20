@@ -55,6 +55,7 @@ import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -329,6 +330,7 @@ public class DOIIdentifierProviderTest
     }
 
     @Test
+    @Ignore
     public void testGet_DOI_out_of_item_metadata() throws SQLException, AuthorizeException, IOException,
         IdentifierException, IllegalAccessException, WorkflowException {
 

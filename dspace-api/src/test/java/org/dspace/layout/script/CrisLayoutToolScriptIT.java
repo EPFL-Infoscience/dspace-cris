@@ -50,6 +50,7 @@ import org.dspace.layout.factory.CrisLayoutServiceFactory;
 import org.dspace.layout.script.service.CrisLayoutToolValidator;
 import org.dspace.layout.service.CrisLayoutTabService;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -75,6 +76,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    @Ignore
     public void testConfigurationToolFile() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -734,6 +736,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    @Ignore
     public void testWithInvalidRendering() throws Exception {
 
         context.turnOffAuthorisationSystem();

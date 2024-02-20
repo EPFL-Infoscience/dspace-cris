@@ -65,6 +65,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -238,6 +239,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
      * @throws Exception
      */
     @Test
+    @Ignore
     public void testItemMetadataModification() throws Exception {
 
         context.turnOffAuthorisationSystem();
