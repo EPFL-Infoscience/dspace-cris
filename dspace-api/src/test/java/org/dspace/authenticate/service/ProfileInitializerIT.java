@@ -55,7 +55,6 @@ import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
@@ -218,7 +217,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     @SuppressWarnings("unchecked")
-    @Ignore
     public void testProfileCreationWithOnlyOneExistingUnit() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();
@@ -349,7 +347,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testUpdateProfileWithoutDuplicatingAffiliations() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();
@@ -503,7 +500,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testInitializeWithUpdate() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();
