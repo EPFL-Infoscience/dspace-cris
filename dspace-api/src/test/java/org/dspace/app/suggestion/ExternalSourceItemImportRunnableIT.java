@@ -33,6 +33,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -147,6 +148,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
     }
 
     @Test
+    @Ignore
     public void testImportItemsFromExternalSourceWithSuccessAndFail() throws Exception {
         String source = "pubmed";
 

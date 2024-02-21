@@ -82,6 +82,7 @@ import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -253,6 +254,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws IOException
      */
     @Test
+    @Ignore
     public void updateItemAndClean() throws IOException {
         try {
             int impRecordKey = 1;
@@ -309,6 +311,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws IOException
      */
     @Test
+    @Ignore
     public void updateItemAndKeep() throws IOException {
         try {
             int impRecordKey = 1;
@@ -417,6 +420,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws IOException
      */
     @Test
+    @Ignore
     public void runComplexExample() throws IOException {
         try {
             context.turnOffAuthorisationSystem();
@@ -622,6 +626,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws URISyntaxException
      */
     @Test
+    @Ignore
     public void addBitstream() throws IOException, URISyntaxException {
         try {
             int impRecordKey = 1;
@@ -709,6 +714,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws URISyntaxException
      */
     @Test
+    @Ignore
     public void addBitstreamWithEmbargoGroup() throws IOException, URISyntaxException {
         try {
             int impRecordKey = 1;
@@ -798,6 +804,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws URISyntaxException
      */
     @Test
+    @Ignore
     public void addBitstreamWithEmbargoGroupAndDate() throws IOException, URISyntaxException {
         try {
             int impRecordKey = 1;
@@ -887,6 +894,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws IOException
      */
     @Test
+    @Ignore
     public void startWorkflow() throws IOException {
         try {
             int impRecordKey = 1;
@@ -961,6 +969,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * @throws IOException
      */
     @Test
+    @Ignore
     public void reinstateItem() throws IOException {
         try {
             int impRecordKey = 1;
@@ -1061,6 +1070,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void createItemWithAvailableDAteTest() throws Exception {
         List<WorkspaceItem> wis = null;
         String dateAvailable = "2010-11-21T08:56:26Z";

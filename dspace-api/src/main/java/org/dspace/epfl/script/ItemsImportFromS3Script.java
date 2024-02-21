@@ -156,6 +156,8 @@ public class ItemsImportFromS3Script
 
     private boolean modificationDateMode;
 
+    private boolean forceMode;
+
     private boolean workbookMode;
 
     private int commitSize = 20;
@@ -217,6 +219,7 @@ public class ItemsImportFromS3Script
         String configuration = configurationService.getProperty("epfl.items-import.mapping-configuration.path");
         mapping = marcXmlParser.parseMapping(configuration);
         modificationDateMode = commandLine.hasOption('m');
+        forceMode = commandLine.hasOption('f');
         typeCounts = new HashMap<>();
 
     }
@@ -238,6 +241,12 @@ public class ItemsImportFromS3Script
         }
 
         context.turnOffAuthorisationSystem();
+
+        collectionIds = readCollectionIds();
+
+        if (isNotBlank(keysFilename)) {
+            keys.addAll(readKeysFile());
+        }
 
         if (modificationDateMode) {
             Iterator<ItemImportDTO> items = readItems();
@@ -262,12 +271,6 @@ public class ItemsImportFromS3Script
             context.restoreAuthSystemState();
 
             return;
-        }
-
-        collectionIds = readCollectionIds();
-
-        if (isNotBlank(keysFilename)) {
-            keys.addAll(readKeysFile());
         }
 
         try {
@@ -329,7 +332,21 @@ public class ItemsImportFromS3Script
         Item item = searchItemById(itemImport.getItem().getId());
 
         if (item != null) {
-            item = updateItem(itemImport, item);
+            if (forceMode) {
+                WorkspaceItem wi = workspaceItemService.findByItem(context, item);
+                if (wi != null) {
+                    workspaceItemService.deleteAll(context, wi);
+                    handler.logInfo("Deleted existing workspaceitem " + wi.getID() + " for record "
+                            + itemImport.getItem().getId());
+                } else {
+                    handler.logInfo("Deleted existing item " + item.getID().toString() + " for record "
+                            + itemImport.getItem().getId());
+                    itemService.delete(context, item);
+                }
+                item = createItem(itemImport);
+            } else {
+                item = updateItem(itemImport, item);
+            }
         } else {
             item = createItem(itemImport);
         }

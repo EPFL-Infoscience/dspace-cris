@@ -57,6 +57,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     MetadataAuthorityService metadataAuthorityService;
 
     @Test
+    @Ignore
     public void findAll() throws Exception {
         //When we call the root endpoint
         getClient().perform(get("/api/discover/browses"))

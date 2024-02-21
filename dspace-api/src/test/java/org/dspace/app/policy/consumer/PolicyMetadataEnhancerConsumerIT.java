@@ -552,6 +552,32 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
     }
 
     @Test
+    public void testCreateItemWithoutBitstreamWithMetadataUpdate()
+            throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        item = context.reloadEntity(item);
+
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+
+        context.turnOffAuthorisationSystem();
+        MetadataValue dataciteRights = itemService.getMetadataByMetadataString(item, "datacite.rights").get(0);
+        itemService.removeMetadataValues(context, item, List.of(dataciteRights));
+        itemService.update(context, item);
+        context.restoreAuthSystemState();
+        context.commit();
+
+        item = context.reloadEntity(item);
+
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+    }
+
+    @Test
     public void testCreateItemWithOneBitstream()
             throws SQLException, AuthorizeException, IOException, ParseException {
         context.turnOffAuthorisationSystem();

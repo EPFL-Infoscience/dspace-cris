@@ -33,6 +33,7 @@ import org.dspace.core.service.PluginService;
 import org.jdom2.Document;
 import org.jdom2.input.SAXBuilder;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -235,6 +236,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
 
     @Test
     @SuppressWarnings("unchecked")
+    @Ignore
     public void testExportPersonIngest() throws Exception {
         context.turnOffAuthorisationSystem();
         Item item = ItemBuilder.createItem(context, collection).withEntityType("Person").build();

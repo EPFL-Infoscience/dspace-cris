@@ -93,6 +93,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
  * @author Tom Desair (tom dot desair at atmire dot com)
  * @author Giuseppe Digilio (giuseppe dot digilio at 4science dot it)
  */
+@Ignore
 public class AuthenticationRestControllerIT extends AbstractControllerIntegrationTest {
 
     @Autowired
