@@ -346,7 +346,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         MetadataValueDTO currentset1 = new MetadataValueDTO("epfl", "oai", "currentset", null, "SB");
         MetadataValueDTO currentset2 = new MetadataValueDTO("epfl", "oai", "currentset", null, "OpenAIREv4");
         MetadataValueDTO currentset3 = new MetadataValueDTO("epfl", "oai", "currentset", null, "article");
-        MetadataValueDTO writtenat = new MetadataValueDTO("epfl", "writtenat", null, null, "EPFL");
+        MetadataValueDTO writtenat = new MetadataValueDTO("epfl", "writtenAt", null, null, "EPFL");
         MetadataValueDTO peerreviewed = new MetadataValueDTO("epfl", "peerreviewed", null, null, "REVIEWED");
         MetadataValueDTO version = new MetadataValueDTO("epfl", "publication", "version", null,
                                                         "http://purl.org/coar/version/c_970fb48d4fbd8a85");

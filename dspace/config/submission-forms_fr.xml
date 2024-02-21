@@ -6731,7 +6731,7 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>writtenat</dc-element>
+          <dc-element>writtenAt</dc-element>
           <label>Rédigé à</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
