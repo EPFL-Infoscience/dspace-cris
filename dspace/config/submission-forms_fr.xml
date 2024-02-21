@@ -905,7 +905,7 @@
           <dc-qualifier>editor</dc-qualifier>
           <label>Gestionnaire d'unité délégué</label>
           <input-type>onebox</input-type>
-          <repeatable>orgunit-director</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -1900,7 +1900,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Type de ressource</hint>
           <vocabulary>article-coar-types</vocabulary>
@@ -2217,7 +2217,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Type de ressource</hint>
           <vocabulary>media-coar-types</vocabulary>
@@ -2476,7 +2476,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>dataset-coar-types</vocabulary>
@@ -2731,7 +2731,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type de brevet est obligatoire</required>
           <hint>Type de brevet</hint>
           <vocabulary>patent-coar-types</vocabulary>
@@ -3010,7 +3010,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>thesis-coar-types</vocabulary>
@@ -3024,7 +3024,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Par exemple, Mémoire de Bachelor ou de Master</hint>
           <vocabulary>student-coar-types</vocabulary>
@@ -3390,7 +3390,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>conference-coar-types</vocabulary>
@@ -3675,7 +3675,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>report-coar-types</vocabulary>
@@ -3901,7 +3901,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>design-coar-types</vocabulary>
@@ -4097,7 +4097,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Le t resource</hint>
           <vocabulary>preprint-coar-types</vocabulary>
@@ -4247,7 +4247,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>teaching-coar-types</vocabulary>
@@ -4492,7 +4492,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Exemple : Ouvrage ou Chapitre d'ouvrage</hint>
           <vocabulary>book-coar-types</vocabulary>
@@ -4960,7 +4960,7 @@
           <dc-element>type</dc-element>
           <label>Type de projet</label>
           <input-type value-pairs-name="project_types">dropdown</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
@@ -5193,7 +5193,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type value-pairs-name="funding_types">dropdown</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
@@ -5406,7 +5406,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>publication-coar-types</vocabulary>
@@ -5420,7 +5420,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>product-coar-types</vocabulary>
@@ -6813,7 +6813,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
