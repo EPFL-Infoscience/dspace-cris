@@ -190,8 +190,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(ISSN, item, value -> itemBuilder.ISSN(value));
         consumeMetadataIfNotBlank(issue, item, value -> itemBuilder.issue(value));
         consumeMetadataIfNotBlank(jurisdiction, item, value -> itemBuilder.jurisdiction(value));
-        consumeIfNotBlank(keyword, value ->
-            itemBuilder.keyword(String.join(" | ", getMetadataValues(item, value))));
+        consumeMetadataValuesIfNotBlank(keyword, item, values -> itemBuilder.keyword(String.join(" | ", values)));
         consumeMetadataIfNotBlank(locator, item, value -> itemBuilder.locator(value));
         consumeMetadataIfNotBlank(medium, item, value -> itemBuilder.medium(value));
         consumeMetadataIfNotBlank(note, item, value -> itemBuilder.note(value));
@@ -309,6 +308,15 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
             String metadataFirstValue = getMetadataFirstValue(item, value);
             if (StringUtils.isNotBlank(metadataFirstValue)) {
                 consumer.accept(metadataFirstValue);
+            }
+        }
+    }
+
+    private void consumeMetadataValuesIfNotBlank(String value, Item item, Consumer<String[]> consumer) {
+        if (StringUtils.isNotBlank(value)) {
+            String[] metadataValues = getMetadataValues(item, value);
+            if (metadataValues.length > 0) {
+                consumer.accept(metadataValues);
             }
         }
     }
