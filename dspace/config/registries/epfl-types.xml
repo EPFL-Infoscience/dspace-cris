@@ -309,12 +309,6 @@
 
     <dc-type>
         <schema>epfl</schema>
-        <element>writtenat</element>
-        <qualifier></qualifier>
-    </dc-type>
-
-    <dc-type>
-        <schema>epfl</schema>
         <element>peerreviewed</element>
         <qualifier></qualifier>
     </dc-type>
