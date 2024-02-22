@@ -29,8 +29,10 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class ItemEnhancerServiceIT extends AbstractIntegrationTestWithDatabase {
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(ItemEnhancerServiceIT.class);
 

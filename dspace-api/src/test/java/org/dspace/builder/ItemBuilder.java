@@ -129,6 +129,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "oairecerif", "author", "affiliation", affiliation);
     }
 
+    public ItemBuilder withAuthorAffiliation(String affiliation, String authority) {
+        return addMetadataValue(item, "oairecerif", "author", "affiliation", null, affiliation, authority, 600);
+    }
+
     public ItemBuilder withAuthorAffiliationForLanguage(String affiliation, String language) {
         return addMetadataValue(item, "oairecerif", "author", "affiliation", language, affiliation);
     }
@@ -492,6 +496,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withPublisher(String publisher) {
         return addMetadataValue(item, "dc", "publisher", null, publisher);
+    }
+
+    public ItemBuilder withWrittenAt(String publisher) {
+        return addMetadataValue(item, "epfl", "writtenAt", null, publisher);
     }
 
     public ItemBuilder withRelationPublication(String publication) {
@@ -858,6 +866,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withOrgUnitCrossrefIdentifier(String crossrefid) {
         return addMetadataValue(item, "organization", "identifier", "crossrefid", crossrefid);
+    }
+
+    public ItemBuilder withOrgUnitRORIdentifier(String ror) {
+        return addMetadataValue(item, "organization", "identifier", "ror", ror);
     }
 
     public ItemBuilder withProjectStartDate(String startDate) {

@@ -11,7 +11,7 @@
 	"Keywords":[
 	    "@dc.subject@",
 	    ],
-	"IsProducedAtEpfl": "@virtual.mapConverter.writtenAtEpfl.epfl-writtenat@",
+	"IsProducedAtEpfl": "@virtual.mapConverter.writtenAtEpfl.epfl-writtenAt@",
 	"Reviewed": "@epfl.peerreviewed@",
 	"Status": "@oaire.version@",
 	"Distribution": {

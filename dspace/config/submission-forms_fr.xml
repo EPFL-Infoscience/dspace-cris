@@ -905,7 +905,7 @@
           <dc-qualifier>editor</dc-qualifier>
           <label>Gestionnaire d'unité délégué</label>
           <input-type>onebox</input-type>
-          <repeatable>orgunit-director</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -1900,7 +1900,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Type de ressource</hint>
           <vocabulary>article-coar-types</vocabulary>
@@ -2019,7 +2019,7 @@
           <required />
           <style>col-xs-12 col-md-9</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -2031,7 +2031,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint>Si l'ISSN de la revue ou de la série n'a pas été détecté automatiquement, veuillez le saisir ici</hint>
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -2045,7 +2045,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2057,7 +2057,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -2069,7 +2069,7 @@
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -2083,7 +2083,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>Exemple : 052005</hint>
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2095,7 +2095,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
@@ -2107,7 +2107,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>text::preprint, text::working paper, text::preprint, text::working paper, text::journal::editorial, text::journal::journal article,text::journal::journal article::research article, text::journal::journal article::review article, text::journal::journal article::software paper, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>article-coar-types:c_816b, article-coar-types:c_8042, article-coar-types:c_b239, article-coar-types:c_6501, article-coar-types:c_2df8fbb1, article-coar-types:c_dcae04bc, article-coar-types:c_7bab, article-coar-types:c_c94f, article-coar-types:c_5794, article-coar-types:c_6670, article-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
     </form>
@@ -2217,7 +2217,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Type de ressource</hint>
           <vocabulary>media-coar-types</vocabulary>
@@ -2476,7 +2476,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>dataset-coar-types</vocabulary>
@@ -2731,7 +2731,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type de brevet est obligatoire</required>
           <hint>Type de brevet</hint>
           <vocabulary>patent-coar-types</vocabulary>
@@ -3010,7 +3010,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>thesis-coar-types</vocabulary>
@@ -3024,7 +3024,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Par exemple, Mémoire de Bachelor ou de Master</hint>
           <vocabulary>student-coar-types</vocabulary>
@@ -3390,7 +3390,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>conference-coar-types</vocabulary>
@@ -3675,7 +3675,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>report-coar-types</vocabulary>
@@ -3901,7 +3901,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>design-coar-types</vocabulary>
@@ -4097,7 +4097,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Le t resource</hint>
           <vocabulary>preprint-coar-types</vocabulary>
@@ -4247,7 +4247,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>teaching-coar-types</vocabulary>
@@ -4492,7 +4492,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Exemple : Ouvrage ou Chapitre d'ouvrage</hint>
           <vocabulary>book-coar-types</vocabulary>
@@ -4666,7 +4666,7 @@
           <repeatable>false</repeatable>
           <required>Le titre du livre est obligatoire</required>
           <hint>Veuillez indiquer la publication dans laquelle ce travail apparaît. Par exemple, s'il s'agit d'un chapitre de livre, précisez le livre ; s'il s'agit d'une contribution à une conférence, précisez les actes de la conférence.</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -4679,7 +4679,7 @@
           <required>L'éditeur est obligatoire</required>
           <style>col-xs-12 col-md-8</style>
           <hint />
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4691,7 +4691,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -4705,7 +4705,7 @@
           <required />
           <style>col-xs-12 col-md-8</style>
           <hint>Par exemple : 2ème édition</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4716,7 +4716,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint />
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -4730,7 +4730,7 @@
           <required />
           <style>col-xs-12 col-md-8</style>
           <hint>Pour un ouvrage en plusieurs parties</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>epfl</dc-schema>
@@ -4742,7 +4742,7 @@
           <required />
           <style>col-xs-12 col-md-4</style>
           <hint>Par exemple : Volume 1</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -4756,7 +4756,7 @@
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>Par exemple l'ISBN de l'ouvrage dans lequel apparait l'élément</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4768,7 +4768,7 @@
           <required />
           <style>col-xs-12 col-md-6</style>
           <hint>Par exemple le DOI de l'ouvrage dans lequel apparait l'élément</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
       <row>
@@ -4782,7 +4782,7 @@
           <required />
           <style>col-xs-12 col-md-9</style>
           <hint>Veuillez fournir la série et le volume dans laquelle l'élément apparait l'élément, si applicable</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -4794,7 +4794,7 @@
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint>L'ISSN de la série associée</hint>
-          <type-bind>text::book/monograph::book part or chapter, text::book/monograph, text::conference output, text::conference output::conference proceedings::conference paper, text::conference output::conference proceedings::conference poster, text::conference output::conference proceedings</type-bind>
+          <type-bind>book-coar-types:c_3248, book-coar-types:c_2f33, book-coar-types:c_c94f, book-coar-types:c_5794, book-coar-types:c_6670, book-coar-types:c_f744, conference-coar-types:c_c94f, conference-coar-types:c_5794, conference-coar-types:c_6670, conference-coar-types:c_f744</type-bind>
         </field>
       </row>
     </form>
@@ -4960,7 +4960,7 @@
           <dc-element>type</dc-element>
           <label>Type de projet</label>
           <input-type value-pairs-name="project_types">dropdown</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
@@ -5193,7 +5193,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type value-pairs-name="funding_types">dropdown</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>
@@ -5406,7 +5406,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>publication-coar-types</vocabulary>
@@ -5420,7 +5420,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>product-coar-types</vocabulary>
@@ -5701,9 +5701,9 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>funder</dc-element>
-          <dc-qualifier>identifier</dc-qualifier>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>grantno</dc-qualifier>
           <label>Identifiant</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
@@ -6731,7 +6731,7 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>writtenat</dc-element>
+          <dc-element>writtenAt</dc-element>
           <label>Rédigé à</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
@@ -6813,7 +6813,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
           <hint />
         </field>

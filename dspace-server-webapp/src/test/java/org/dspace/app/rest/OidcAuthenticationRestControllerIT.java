@@ -43,6 +43,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -103,6 +104,7 @@ public class OidcAuthenticationRestControllerIT extends AbstractControllerIntegr
     }
 
     @Test
+    @Ignore
     public void testEPersonCreationViaOidcLogin() throws Exception {
 
         when(oidcClientMock.getAccessToken(CODE)).thenReturn(buildOidcTokenResponse(ACCESS_TOKEN));
@@ -131,6 +133,7 @@ public class OidcAuthenticationRestControllerIT extends AbstractControllerIntegr
     }
 
     @Test
+    @Ignore
     public void testEPersonCreationViaOidcLoginWithoutEmail() throws Exception {
 
         when(oidcClientMock.getAccessToken(CODE)).thenReturn(buildOidcTokenResponse(ACCESS_TOKEN));

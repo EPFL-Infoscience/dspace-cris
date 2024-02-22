@@ -78,10 +78,19 @@
         <constructor-arg value="oaire.citation.endPage"/>
     </bean>
 
-    <bean id="wosTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+    <bean id="innerWosTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="wos.type"/>
         <property name="query" value="static_data/summary/doctypes"/>
         <property name="prefixToNamespaceMapping" ref="wosNs"/>
+    </bean>
+    <bean id="wosTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.MappedMetadataContributor">
+        <constructor-arg name="innerContributor" ref="innerWosTypeContrib"/>
+        <constructor-arg name="mapConverter" ref="wosTypeMapConverter"/>
+    </bean>
+    <bean name="wosTypeMapConverter" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-wosTypes.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="NA"/>
     </bean>
     <bean id="wos.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.type"/>
