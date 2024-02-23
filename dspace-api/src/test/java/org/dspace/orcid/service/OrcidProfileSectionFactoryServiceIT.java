@@ -180,6 +180,8 @@ public class OrcidProfileSectionFactoryServiceIT extends AbstractIntegrationTest
             .withPersonAffiliationRole(PLACEHOLDER_PARENT_METADATA_VALUE)
             .build();
 
+        context.restoreAuthSystemState();
+
         OrcidProfileSectionFactory affiliationFactory = getFactory(item, AFFILIATION);
 
         List<String> signatures = affiliationFactory.getMetadataSignatures(context, item);

@@ -24,13 +24,14 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class VersionedHandleIdentifierProviderIT extends AbstractIntegrationTestWithDatabase {
     private ServiceManager serviceManager;
     private IdentifierServiceImpl identifierService;
-
+    private List<IdentifierProvider> originalProviders;
     private String firstHandle;
 
     private Collection collection;
@@ -47,14 +48,21 @@ public class VersionedHandleIdentifierProviderIT extends AbstractIntegrationTest
         serviceManager = DSpaceServicesFactory.getInstance().getServiceManager();
         identifierService = serviceManager.getServicesByType(IdentifierServiceImpl.class).get(0);
         // Clean out providers to avoid any being used for creation of community and collection
+        originalProviders = identifierService.getProviders();
         identifierService.setProviders(new ArrayList<>());
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
         collection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection")
                 .build();
+    }
+
+    @Override
+    @After
+    public void destroy() throws Exception {
+        super.destroy();
+        identifierService.setProviders(originalProviders);
     }
 
     private void registerProvider(Class type) {
