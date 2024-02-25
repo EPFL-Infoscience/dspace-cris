@@ -1057,9 +1057,13 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
         String leftPart = DOI.SCHEME + getPrefix() + SLASH + getNamespaceSeparator();
         for (MetadataValue id : metadata) {
-            final String valueFormatted = doiService.formatIdentifier(id.getValue());
-            if (StringUtils.startsWith(valueFormatted, leftPart)) {
-                return doiService.formatIdentifier(id.getValue());
+            try {
+                final String valueFormatted = doiService.formatIdentifier(id.getValue());
+                if (StringUtils.startsWith(valueFormatted, leftPart)) {
+                    return doiService.formatIdentifier(id.getValue());
+                }
+            } catch (DOIIdentifierException e) {
+                // do nothing, if the identifier is not proper formatted it is not a DSpace minted DOI
             }
         }
         return null;
