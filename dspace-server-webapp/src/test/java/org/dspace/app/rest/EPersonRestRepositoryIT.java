@@ -84,15 +84,12 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.PasswordHash;
 import org.dspace.eperson.RegistrationData;
 import org.dspace.eperson.RegistrationTypeEnum;
-import org.dspace.eperson.dao.RegistrationDataDAO;
 import org.dspace.eperson.service.AccountService;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.RegistrationDataService;
 import org.dspace.services.ConfigurationService;
-import org.dspace.workflow.WorkflowService;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -108,13 +105,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     private EPersonService ePersonService;
 
     @Autowired
-    private WorkflowService workflowService;
-
-    @Autowired
     private GroupService groupService;
-
-    @Autowired
-    private RegistrationDataDAO registrationDataDAO;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -256,7 +247,6 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void findAllTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -301,7 +291,6 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void findAllPaginationTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
