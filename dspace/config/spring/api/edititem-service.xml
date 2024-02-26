@@ -127,45 +127,6 @@
                         </bean>
                     </list>
                 </entry>
-                <entry key="publication.dataset">
-                    <list>
-                        <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="FULLADMIN" />
-                            <property name="security">
-                                <value type="org.dspace.content.security.CrisSecurity">
-                                    ITEM_ADMIN
-                                </value>
-                            </property>
-                            <property name="submissionDefinition" value="dataset-edit" />
-                        </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="THEMATIC-AREA-CURATOR" />
-                            <property name="securities">
-                                <list>
-                                    <value>ADMIN</value>
-                                    <value>GROUP</value>
-                                </list>
-                            </property>
-                            <property name="submissionDefinition" value="virtual-collection-bind" />
-                            <property name="groups">
-                                <list>
-                                    <value>ThematicAreaCurators</value>
-                                    <value>Curators</value>
-                                </list>
-                            </property>
-                        </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
-                            <property name="securities">
-                                <list>
-                                    <value>ALL</value>
-                                </list>
-                            </property>
-                            <property name="submissionDefinition" value="virtual-collection-bind" />
-                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
-                        </bean>
-                    </list>
-                </entry>
                 <entry key="publication.thesis">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
@@ -657,6 +618,45 @@
                                 </value>
                             </property>
                             <property name="submissionDefinition" value="product-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="product.dataset">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="dataset-edit" />
                         </bean>
                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="THEMATIC-AREA-CURATOR" />
