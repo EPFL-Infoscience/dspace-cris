@@ -3035,6 +3035,37 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+    @Test
+    public void testResearchOutputsJsonDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Test Publication")
+            .withIsPartOfSeries("Test ispartofseries Name")
+            .withIsPartOf("test isparOf")
+            .withRelationJournal("Nature Synthesis", "will be generated::ISSN::" + "123")
+            .withScientificEditor("ScientificEditor", "25887329-a648-46f9-a2ac-99319b8e9766")
+            .withRelationConference("The best Conference")
+            .withOaireCitationConferencePlace("test Place")
+            .withOaireCitationConferenceDate("testDate")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("research-outputs-json");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, publication, out);
+
+        try (FileInputStream fis = getFileInputStream("research-outputs.json")) {
+            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedContent);
+        }
+    }
+
 
     private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType) {
         createRelationshipBuilder(context, publication, author, selectedRelationshipType, -1, -1).build();
