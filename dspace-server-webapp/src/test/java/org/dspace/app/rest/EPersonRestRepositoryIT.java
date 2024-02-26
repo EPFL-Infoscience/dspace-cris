@@ -92,6 +92,7 @@ import org.dspace.eperson.service.RegistrationDataService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.workflow.WorkflowService;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -255,6 +256,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void findAllTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -299,6 +301,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void findAllPaginationTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

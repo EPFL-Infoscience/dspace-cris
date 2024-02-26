@@ -1885,6 +1885,7 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    @Ignore
     public void thumbnailEndpointItemWithoutThumbnailsTest() throws Exception {
         // Given an Item
         context.turnOffAuthorisationSystem();

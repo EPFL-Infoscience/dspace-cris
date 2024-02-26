@@ -147,7 +147,7 @@ public class DOIServiceImpl implements DOIService {
 
         String resolver = getResolver();
         if (identifier.startsWith(resolver + "/10.")) { //https://doi.org/10.something
-            return DOI.SCHEME + identifier.substring(resolver.length());
+            return DOI.SCHEME + identifier.substring(resolver.length() + 1);
         }
 
         Matcher matcher = DOI_URL_PATTERN.matcher(identifier);

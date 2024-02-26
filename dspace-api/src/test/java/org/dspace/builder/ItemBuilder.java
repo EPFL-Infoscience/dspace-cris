@@ -493,6 +493,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "publisher", null, publisher);
     }
 
+    public ItemBuilder withWrittenAt(String publisher) {
+        return addMetadataValue(item, "epfl", "writtenAt", null, publisher);
+    }
+
     public ItemBuilder withRelationPublication(String publication) {
         return addMetadataValue(item, "dc", "relation", "publication", publication);
     }

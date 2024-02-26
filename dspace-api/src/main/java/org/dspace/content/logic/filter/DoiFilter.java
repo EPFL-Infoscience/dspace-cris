@@ -37,7 +37,7 @@ public class DoiFilter implements Filter {
     }
 
     private boolean isWrittenEPFL(Item item) {
-        String type = itemService.getMetadataFirstValue(item, "epfl", "writtenat", null, Item.ANY);
+        String type = itemService.getMetadataFirstValue(item, "epfl", "writtenAt", null, Item.ANY);
         if (isBlank(type)) {
             return false;
         }

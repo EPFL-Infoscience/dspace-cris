@@ -690,7 +690,7 @@
     </submission-process>
     <submission-process name="student-edit">
       <step id="extractionstep" />
-      <step id="thesis_type" />
+      <step id="student_type" />
       <step id="thesis_details" />
       <step id="additional_fields" />
       <step id="thesis_involved" />
@@ -704,7 +704,7 @@
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
-      <step id="thesis_type" />
+      <step id="student_type" />
       <step id="thesis_details" />
       <step id="additional_fields" />
       <step id="thesis_involved" />

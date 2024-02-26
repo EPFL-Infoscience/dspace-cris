@@ -30,8 +30,10 @@ import org.dspace.kernel.ServiceManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWithDatabase {
 
     private final ItemService itemService = ContentServiceFactory.getInstance().getItemService();

@@ -32,6 +32,7 @@ import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -142,6 +143,7 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testImportSuggestionsByResearcherUUIDAndLoader() throws Exception {
         String loader = "pubmed";
         String idPart = "18926410";

@@ -295,13 +295,13 @@
 		    <subfield code="a">@epfl.curator.email@</subfield>
     </datafield>
 	@group.epfl-curator-email.end@
-	@group.epfl-writtenat.start@
+	@group.epfl-writtenAt.start@
     <datafield tag="973" ind1=" " ind2=" ">
-		    <subfield code="a">@epfl.writtenat@</subfield>
+		    <subfield code="a">@epfl.writtenAt@</subfield>
 		    <subfield code="r">@epfl.peerreviewed@</subfield>
 		    <subfield code="s">@oaire.version@</subfield>
     </datafield>
-	@group.epfl-writtenat.end@
+	@group.epfl-writtenAt.end@
 	@group.datacite-geoLocation.start@
     <datafield tag="975" ind1=" " ind2=" ">
 		    <subfield code="a">@datacite.geoLocation@</subfield>

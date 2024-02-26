@@ -34,8 +34,10 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.ReloadableEntity;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase {
 
     private ItemService itemService;

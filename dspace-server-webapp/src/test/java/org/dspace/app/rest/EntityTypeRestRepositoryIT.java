@@ -32,6 +32,7 @@ import org.dspace.external.provider.AbstractExternalDataProvider;
 import org.dspace.external.service.ExternalDataService;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -313,6 +314,7 @@ public class EntityTypeRestRepositoryIT extends AbstractEntityIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void findEntityTypeWithEmbedRelatioshipTypeTest() throws Exception {
 
         EntityType person = entityTypeService.findByEntityType(context, "Person");

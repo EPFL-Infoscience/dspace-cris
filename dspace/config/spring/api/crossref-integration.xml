@@ -45,7 +45,7 @@
         <property name="query" value="/container-title"/>
     </bean>
     <bean id="crossref.journal" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.relation.ispartof"/>
+        <constructor-arg value="dc.relation.journal"/>
     </bean>
 
     <bean id="crossrefDoiTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.ReplaceFieldWithMapConverterMetadataContributor">

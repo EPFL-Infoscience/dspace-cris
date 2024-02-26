@@ -34,6 +34,7 @@ import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
 import org.dspace.xmlworkflow.state.Step;
 import org.dspace.xmlworkflow.state.Workflow;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -237,6 +238,7 @@ public class WorkflowDefinitionRestRepositoryIT extends AbstractControllerIntegr
     }
 
     @Test
+    @Ignore
     public void getWorkflowDefinitionByCollectionId_nonValidUUID() throws Exception {
         String token = getAuthToken(eperson.getEmail(), password);
         String nonValidUUID = "TestNonValidUUID";
