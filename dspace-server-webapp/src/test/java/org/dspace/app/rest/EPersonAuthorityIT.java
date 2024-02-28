@@ -19,7 +19,6 @@ import java.sql.SQLException;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.EPersonBuilder;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -30,9 +29,7 @@ import org.junit.Test;
  */
 public class EPersonAuthorityIT extends AbstractControllerIntegrationTest {
 
-
     @Test
-    @Ignore
     public void testEPersonAuthorityWithFirstName() throws Exception {
 
         context.turnOffAuthorisationSystem();
