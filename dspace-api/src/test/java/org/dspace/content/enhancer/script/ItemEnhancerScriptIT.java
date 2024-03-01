@@ -8,11 +8,13 @@
 package org.dspace.content.enhancer.script;
 
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
+import static org.dspace.app.matcher.MetadataValueMatcher.withNoPlace;
 import static org.dspace.content.Item.ANY;
 import static org.dspace.content.enhancer.consumer.ItemEnhancerConsumer.ITEMENHANCER_ENABLED;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -171,11 +173,14 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(firstPublication.getMetadata(), hasItem(with("cris.virtual.department", "4Science")));
         assertThat(firstPublication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId)));
-        assertThat(secondPublication.getMetadata(), hasItem(with("cris.virtual.department", "4Science")));
-        assertThat(secondPublication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId)));
-        assertThat(secondPublication.getMetadata(), hasItem(with("cris.virtual.department", "Company", 1)));
-        assertThat(secondPublication.getMetadata(), hasItem(with("cris.virtualsource.department", secondAuthorId, 1)));
-
+        assertThat(getMetadataValues(secondPublication, "cris.virtual.department"),
+                containsInAnyOrder(
+                    withNoPlace("cris.virtual.department", "4Science"),
+                    withNoPlace("cris.virtual.department", "Company")));
+        assertThat(getMetadataValues(secondPublication, "cris.virtualsource.department"),
+                containsInAnyOrder(
+                    withNoPlace("cris.virtualsource.department", firstAuthorId),
+                    withNoPlace("cris.virtualsource.department", secondAuthorId)));
         assertThat(getMetadataValues(thirdPublication, "cris.virtual.department"), empty());
         assertThat(getMetadataValues(thirdPublication, "cris.virtualsource.department"), empty());
 
@@ -223,10 +228,13 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(2));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(2));
 
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "4Science")));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "Company", 1)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", secondAuthorId, 1)));
+        assertThat(getMetadataValues(publication, "cris.virtual.department"), containsInAnyOrder(
+                withNoPlace("cris.virtual.department", "4Science"),
+                withNoPlace("cris.virtual.department", "Company")));
+
+        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), containsInAnyOrder(
+                withNoPlace("cris.virtualsource.department", firstAuthorId),
+                withNoPlace("cris.virtualsource.department", secondAuthorId)));
 
         context.turnOffAuthorisationSystem();
 
@@ -246,7 +254,8 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(1));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(1));
 
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "University")));
+        // as we run the script with deepMode false we don't expect the update to occur
+        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "4Science")));
         assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId)));
 
     }
@@ -293,10 +302,12 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(2));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(2));
 
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "4Science")));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "Company", 1)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", secondAuthorId, 1)));
+        assertThat(getMetadataValues(publication, "cris.virtual.department"), containsInAnyOrder(
+                withNoPlace("cris.virtual.department", "4Science"),
+                withNoPlace("cris.virtual.department", "Company")));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), containsInAnyOrder(
+                withNoPlace("cris.virtualsource.department", firstAuthorId),
+                withNoPlace("cris.virtualsource.department", secondAuthorId)));
 
         context.turnOffAuthorisationSystem();
 
@@ -375,17 +386,16 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(4));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(4));
 
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department",
-                                                           PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId,0)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "4Science", 1)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", secondAuthorId,1)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "Company", 2)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", thirdAuthorId, 2)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department",
-                                                           PLACEHOLDER_PARENT_METADATA_VALUE, 3)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", fourthAuthorId,3)));
-
+        assertThat(getMetadataValues(publication, "cris.virtual.department"), containsInAnyOrder(
+                withNoPlace("cris.virtual.department", PLACEHOLDER_PARENT_METADATA_VALUE),
+                withNoPlace("cris.virtual.department", "4Science"),
+                withNoPlace("cris.virtual.department", "Company"),
+                withNoPlace("cris.virtual.department", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), containsInAnyOrder(
+                withNoPlace("cris.virtualsource.department", firstAuthorId),
+                withNoPlace("cris.virtualsource.department", secondAuthorId),
+                withNoPlace("cris.virtualsource.department", thirdAuthorId),
+                withNoPlace("cris.virtualsource.department", fourthAuthorId)));
     }
 
     @Test
@@ -420,15 +430,11 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
 
         publication = reload(publication);
 
-        assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(2));
-        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(2));
+        assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(1));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(1));
 
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department",
-                                                           PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department",
-                                                           PLACEHOLDER_PARENT_METADATA_VALUE,0)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "4Science", 1)));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", secondAuthorId,1)));
+        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "4Science", 0)));
+        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", secondAuthorId,0)));
 
     }
 
