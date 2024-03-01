@@ -11,15 +11,17 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 import org.dspace.core.Context;
+import org.dspace.dataquality.service.DeduplicationServiceAddonComposition;
 import org.dspace.deduplication.Deduplication;
-import org.dspace.deduplication.service.DeduplicationService;
 
 /**
  * Builder to construct deduplication decisions in test cases
- * 
+ *
  * @author Francesco Pio Scognamiglio (francescopio.scognamiglio at 4science.it)
  */
-public class DeduplicationSignatureBuilder extends AbstractBuilder<Deduplication, DeduplicationService> {
+public class DeduplicationSignatureBuilder
+    extends AbstractBuilder<Deduplication, DeduplicationServiceAddonComposition>
+    implements AbstractDeduplicationBuilder {
 
     private Deduplication deduplication;
 
@@ -36,7 +38,7 @@ public class DeduplicationSignatureBuilder extends AbstractBuilder<Deduplication
     }
 
     private DeduplicationSignatureBuilder create() throws SQLException {
-        deduplication = deduplicationService.create(context, new Deduplication());
+        deduplication = getDeduplicationService().create(context, new Deduplication());
         return this;
     }
 
@@ -103,11 +105,11 @@ public class DeduplicationSignatureBuilder extends AbstractBuilder<Deduplication
     @Override
     public Deduplication build() {
         try {
-            deduplicationService.update(context, deduplication);
+            getDeduplicationService().update(context, deduplication);
 
-            dedupUtils.verifyOrRejectDups(context, deduplication, action, check);
+            getDedupUtils().verifyOrRejectDups(context, deduplication, action, check);
 
-            dedupUtils.getDedupService().commit();
+            getDedupUtils().getDedupService().commit();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -135,11 +137,11 @@ public class DeduplicationSignatureBuilder extends AbstractBuilder<Deduplication
             getService().delete(c, deduplication);
         }
         c.complete();
-        dedupUtils.getDedupService().commit();
+        getDedupUtils().getDedupService().commit();
     }
 
     @Override
-    protected DeduplicationService getService() {
-        return deduplicationService;
+    protected DeduplicationServiceAddonComposition getService() {
+        return getDeduplicationService();
     }
 }
