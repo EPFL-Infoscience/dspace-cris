@@ -8,16 +8,14 @@
 package org.dspace.app.rest.repository;
 
 import java.sql.SQLException;
-import java.util.List;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
-import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
 import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.app.rest.model.DeduplicationSetRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.projection.Projection;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,27 +27,25 @@ import org.springframework.stereotype.Component;
 
 /**
  * LinkRepository for "items" subresource of an individual set.
- * 
+ *
  * @author Francesco Pio Scognamiglio (francescopio.scognamiglio at 4science.it)
  */
 @Component(DeduplicationSetRest.CATEGORY + "." + DeduplicationSetRest.NAME + "." + DeduplicationSetRest.ITEMS)
 public class DeduplicationSetItemsLinkRepository extends AbstractDSpaceRestRepository implements LinkRestRepository {
 
     @Autowired
-    private DedupUtils dedupUtils;
+    private AbstractDedupUtilsAddon dedupUtilsAddon;
 
-    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<ItemRest> getItems(@Nullable HttpServletRequest request, String id,
-        @Nullable Pageable optionalPageable, Projection projection) {
+                                   @Nullable Pageable optionalPageable, Projection projection) {
         try {
             Context context = obtainContext();
-            DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, id);
+            DuplicateInfo duplicateInfo = dedupUtilsAddon.findGroup(context, id);
             if (duplicateInfo == null) {
                 throw new ResourceNotFoundException("No such set: " + id);
             }
-            List<Item> items = duplicateInfo.getItems();
-            Pageable pageable = utils.getPageable(optionalPageable);
-            return converter.toRestPage(items, pageable, utils.obtainProjection());
+            return converter.toRestPage(duplicateInfo.getItems(), utils.getPageable(optionalPageable), projection);
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
