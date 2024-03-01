@@ -19,15 +19,19 @@ import static org.hamcrest.Matchers.hasSize;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.MetadataFieldBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -84,8 +88,8 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(metadataValues, hasSize(20));
         assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
         assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
-        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
-        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.orcid", personId)));
 
 
         MetadataValue virtualField = getFirstMetadataValue(publication, "cris.virtual.department");
@@ -102,8 +106,8 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(metadataValues, hasItem(with("dc.contributor.author", "Walter White", personId, 600)));
         assertThat(metadataValues, hasItem(with("cris.virtual.department", "4Science")));
         assertThat(metadataValues, hasItem(with("cris.virtualsource.department", personId)));
-        assertThat(metadataValues, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
-        assertThat(metadataValues, hasItem(with("cris.virtualsource.author-orcid", personId)));
+        assertThat(metadataValues, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
+        assertThat(metadataValues, hasItem(with("cris.virtualsource.orcid", personId)));
 
         assertThat(virtualField, equalTo(getFirstMetadataValue(publication, "cris.virtual.department")));
         assertThat(virtualSourceField, equalTo(getFirstMetadataValue(publication, "cris.virtualsource.department")));
@@ -135,7 +139,7 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
             .withAuthor("Red Smith")
             .withAuthor("Walter White", person1.getID().toString())
             .withAuthor("John Smith", person2.getID().toString())
-            .withAuthor("Jesse Pinkman", person3.getID().toString())
+            .withEditor("Jesse Pinkman", person3.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -146,7 +150,7 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(values, hasItem(with("dc.contributor.author", "Red Smith")));
         assertThat(values, hasItem(with("dc.contributor.author", "Walter White", person1.getID().toString(), 1, 600)));
         assertThat(values, hasItem(with("dc.contributor.author", "John Smith", person2.getID().toString(), 2, 600)));
-        assertThat(values, hasItem(with("dc.contributor.author", "Jesse Pinkman", person3.getID().toString(), 3, 600)));
+        assertThat(values, hasItem(with("dc.contributor.editor", "Jesse Pinkman", person3.getID().toString(), 0, 600)));
         // virtual source and virtual metadata are not required to respect the order of the source metadata
         assertThat(values, hasItem(withNoPlace("cris.virtualsource.department", person1.getID().toString())));
         assertThat(values, hasItem(withNoPlace("cris.virtualsource.department", person2.getID().toString())));
@@ -154,17 +158,17 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(values, hasItem(withNoPlace("cris.virtual.department", PLACEHOLDER_PARENT_METADATA_VALUE)));
         assertThat(values, hasItem(withNoPlace("cris.virtual.department", "4Science")));
         assertThat(values, hasItem(withNoPlace("cris.virtual.department", "University of Rome")));
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid", person1.getID().toString())));
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid", person2.getID().toString())));
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid", person3.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid", person1.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid", person2.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid", person3.getID().toString())));
         // we can check with the position as all the values are expected to be placeholder
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(3));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(3));
-        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), hasSize(3));
-        assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), hasSize(3));
+        assertThat(getMetadataValues(publication, "cris.virtual.orcid"), hasSize(3));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.orcid"), hasSize(3));
 
     }
 
@@ -256,15 +260,15 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(3));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(3));
 
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid",  person1.getID().toString())));
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid", person2.getID().toString())));
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid", person3.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid",  person1.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid", person2.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid", person3.getID().toString())));
         // we can check with the position as all the values are expected to be placeholder
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
-        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), hasSize(3));
-        assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), hasSize(3));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
+        assertThat(getMetadataValues(publication, "cris.virtual.orcid"), hasSize(3));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.orcid"), hasSize(3));
 
 
         MetadataValue authorToRemove = getMetadataValues(publication, "dc.contributor.author").get(1);
@@ -284,15 +288,15 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(values, hasItem(withNoPlace("cris.virtualsource.department", person3.getID().toString())));
         assertThat(values, hasItem(withNoPlace("cris.virtual.department", "4Science")));
         assertThat(values, hasItem(withNoPlace("cris.virtual.department", "University of Rome")));
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid",  person1.getID().toString())));
-        assertThat(values, hasItem(withNoPlace("cris.virtualsource.author-orcid", person3.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid",  person1.getID().toString())));
+        assertThat(values, hasItem(withNoPlace("cris.virtualsource.orcid", person3.getID().toString())));
         // we can check with the position as all the values are expected to be placeholder
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
-        assertThat(values, hasItem(with("cris.virtual.author-orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 0)));
+        assertThat(values, hasItem(with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(2));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(2));
-        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), hasSize(2));
-        assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), hasSize(2));
+        assertThat(getMetadataValues(publication, "cris.virtual.orcid"), hasSize(2));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.orcid"), hasSize(2));
 
     }
 
@@ -354,11 +358,11 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
             with("dc.contributor.author", "Walter White", personId, 2, 600),
             with("dc.contributor.author", "Gus Fring", 3)));
 
-        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), contains(
-            with("cris.virtual.author-orcid", "0000-0000-1111-2222")));
+        assertThat(getMetadataValues(publication, "cris.virtual.orcid"), contains(
+            with("cris.virtual.orcid", "0000-0000-1111-2222")));
 
-        assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), contains(
-            with("cris.virtualsource.author-orcid", personId)));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.orcid"), contains(
+            with("cris.virtualsource.orcid", personId)));
 
         context.turnOffAuthorisationSystem();
         itemService.addMetadata(context, publication, "dc", "title", "alternative", null, "Other name");
@@ -372,11 +376,11 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
             with("dc.contributor.author", "Walter White", personId, 2, 600),
             with("dc.contributor.author", "Gus Fring", 3)));
 
-        assertThat(getMetadataValues(publication, "cris.virtual.author-orcid"), contains(
-                with("cris.virtual.author-orcid", "0000-0000-1111-2222")));
+        assertThat(getMetadataValues(publication, "cris.virtual.orcid"), contains(
+                with("cris.virtual.orcid", "0000-0000-1111-2222")));
 
-            assertThat(getMetadataValues(publication, "cris.virtualsource.author-orcid"), contains(
-                with("cris.virtualsource.author-orcid", personId)));
+            assertThat(getMetadataValues(publication, "cris.virtualsource.orcid"), contains(
+                with("cris.virtualsource.orcid", personId)));
 
     }
 
@@ -426,6 +430,83 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(virtualSourceField,
                    equalTo(getFirstMetadataValue(publication, "cris.virtualsource.advisor-sciperId")));
 
+    }
+
+    @Test
+    public void testMultipleRelatedItemValuesEnhancement() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        MetadataSchema schema = ContentServiceFactory.getInstance()
+                .getMetadataSchemaService().find(context, "cris");
+        MetadataFieldBuilder.createMetadataField(context, schema, "virtual", "testmultival", null);
+        MetadataFieldBuilder.createMetadataField(context, schema, "virtualsource", "testmultival", null);
+
+        Item person1 = ItemBuilder.createItem(context, collection)
+            .withTitle("Walter White")
+            .withPersonMainAffiliation("4Science")
+            .withPersonMainAffiliation("DSpace")
+            .withOrcidIdentifier("orcid1")
+            .build();
+
+        Item person2 = ItemBuilder.createItem(context, collection)
+            .withTitle("John Smith")
+            .build();
+
+        Item person3 = ItemBuilder.createItem(context, collection)
+            .withTitle("Jesse Pinkman")
+            .withPersonMainAffiliation("University of Rome")
+            .build();
+
+        Item testEntity = ItemBuilder.createItem(context, collection)
+            .withTitle("Test publication")
+            // let's use our custom entity for test purpose, see extra-metadata-enhancers-for-test.xml
+            .withEntityType("TestEntity")
+            .withAuthor("Red Smith")
+            .withAuthor("Walter White", person1.getID().toString())
+            .withAuthor("John Smith", person2.getID().toString())
+            .withEditor("Jesse Pinkman", person3.getID().toString())
+            .build();
+
+        context.restoreAuthSystemState();
+        testEntity = commitAndReload(testEntity);
+
+        List<MetadataValue> values = testEntity.getMetadata();
+        assertThat(values, hasItem(with("dc.contributor.author", "Red Smith")));
+        assertThat(values, hasItem(with("dc.contributor.author", "Walter White", person1.getID().toString(), 1, 600)));
+        assertThat(values, hasItem(with("dc.contributor.author", "John Smith", person2.getID().toString(), 2, 600)));
+        assertThat(values, hasItem(with("dc.contributor.editor", "Jesse Pinkman", person3.getID().toString(), 0, 600)));
+        // virtual source and virtual metadata are not required to respect the order of the source metadata
+        List<Integer> posPerson1 = getPlacesAsVirtualSource(person1, testEntity, "cris.virtualsource.testmultival");
+        List<Integer> posPerson2 = getPlacesAsVirtualSource(person2, testEntity, "cris.virtualsource.testmultival");
+        List<Integer> posPerson3 = getPlacesAsVirtualSource(person3, testEntity, "cris.virtualsource.testmultival");
+        assertThat(values,
+                hasItem(with("cris.virtualsource.testmultival", person1.getID().toString(), posPerson1.get(0))));
+        assertThat(values, hasItem(with("cris.virtual.testmultival", "4Science", posPerson1.get(0))));
+        assertThat(values,
+                hasItem(with("cris.virtualsource.testmultival", person1.getID().toString(), posPerson1.get(1))));
+        assertThat(values, hasItem(with("cris.virtual.testmultival", "DSpace", posPerson1.get(1))));
+        assertThat(values,
+                hasItem(with("cris.virtualsource.testmultival", person1.getID().toString(), posPerson1.get(2))));
+        assertThat(values, hasItem(with("cris.virtual.testmultival", "orcid1", posPerson1.get(2))));
+
+        assertThat(values,
+                hasItem(with("cris.virtualsource.testmultival", person2.getID().toString(), posPerson2.get(0))));
+        assertThat(values,
+                hasItem(with("cris.virtual.testmultival", PLACEHOLDER_PARENT_METADATA_VALUE, posPerson2.get(0))));
+
+        assertThat(values,
+                hasItem(with("cris.virtualsource.testmultival", person3.getID().toString(), posPerson3.get(0))));
+        assertThat(values, hasItem(with("cris.virtual.testmultival", "University of Rome", posPerson3.get(0))));
+
+        assertThat(getMetadataValues(testEntity, "cris.virtualsource.testmultival"), hasSize(5));
+        assertThat(getMetadataValues(testEntity, "cris.virtual.testmultival"), hasSize(5));
+
+    }
+
+    private List<Integer> getPlacesAsVirtualSource(Item person1, Item publication, String metadata) {
+        return getMetadataValues(publication, metadata).stream()
+                .filter(mv -> StringUtils.equals(mv.getValue(), person1.getID().toString())).map(mv -> mv.getPlace())
+                .collect(Collectors.toList());
     }
 
     private MetadataValue getFirstMetadataValue(Item item, String metadataField) {

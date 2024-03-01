@@ -57,12 +57,12 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     /**
      * the metadata used to navigate the relation, i.e. dc.contributor.author
      */
-    private String sourceItemMetadataField;
+    private List<String> sourceItemMetadataFields;
 
     /**
      * the metadata that is copied from the linked entity, i.e. person.identifier.orcid
      */
-    private String relatedItemMetadataField;
+    private List<String> relatedItemMetadataFields;
 
     @Override
     public boolean canEnhance(Context context, Item item) {
@@ -166,16 +166,10 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                 mvRelated.setValue(PLACEHOLDER_PARENT_METADATA_VALUE);
                 tobeVirtualMetadata.add(mvRelated);
             } else {
-                List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem,
-                        relatedItemMetadataField);
-                if (relatedItemMetadataValues.isEmpty()) {
-                    MetadataValueDTO mvRelated = new MetadataValueDTO();
-                    mvRelated.setSchema(VIRTUAL_METADATA_SCHEMA);
-                    mvRelated.setElement(VIRTUAL_METADATA_ELEMENT);
-                    mvRelated.setQualifier(getVirtualQualifier());
-                    mvRelated.setValue(PLACEHOLDER_PARENT_METADATA_VALUE);
-                    tobeVirtualMetadata.add(mvRelated);
-                } else {
+                boolean foundAtLeastOneValue = false;
+                for (String relatedItemMetadataField : relatedItemMetadataFields) {
+                    List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem,
+                            relatedItemMetadataField);
                     for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
                         MetadataValueDTO mvRelated = new MetadataValueDTO();
                         mvRelated.setSchema(VIRTUAL_METADATA_SCHEMA);
@@ -188,7 +182,16 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                             mvRelated.setConfidence(Choices.CF_ACCEPTED);
                         }
                         tobeVirtualMetadata.add(mvRelated);
+                        foundAtLeastOneValue = true;
                     }
+                }
+                if (!foundAtLeastOneValue) {
+                    MetadataValueDTO mvRelated = new MetadataValueDTO();
+                    mvRelated.setSchema(VIRTUAL_METADATA_SCHEMA);
+                    mvRelated.setElement(VIRTUAL_METADATA_ELEMENT);
+                    mvRelated.setQualifier(getVirtualQualifier());
+                    mvRelated.setValue(PLACEHOLDER_PARENT_METADATA_VALUE);
+                    tobeVirtualMetadata.add(mvRelated);
                 }
             }
             tobeVirtualMetadataMap.put(authority, tobeVirtualMetadata);
@@ -225,8 +228,10 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     }
 
     private Set<String> getVirtualSources(Item item) {
-        return itemService.getMetadataByMetadataString(item, sourceItemMetadataField).stream()
-                .filter(mv -> UUIDUtils.fromString(mv.getAuthority()) != null).map(mv -> mv.getAuthority())
+        return sourceItemMetadataFields.stream()
+                .flatMap(field -> itemService.getMetadataByMetadataString(item, field).stream())
+                .filter(mv -> UUIDUtils.fromString(mv.getAuthority()) != null)
+                .map(mv -> mv.getAuthority())
                 .collect(Collectors.toSet());
     }
 
@@ -276,7 +281,9 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         Map<String, List<MetadataValue>> currentVirtualsMap = getCurrentVirtualsMap(item);
         Set<String> virtualSources = getVirtualSources(item);
         for (String authority : virtualSources) {
+            boolean foundAtLeastOne = false;
             if (!currentVirtualsMap.containsKey(authority)) {
+                result = true;
                 Item relatedItem = findRelatedEntityItem(context, authority);
                 if (relatedItem == null) {
                     addVirtualField(context, item, PLACEHOLDER_PARENT_METADATA_VALUE, null, null, Choices.CF_UNSET);
@@ -284,20 +291,22 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                     continue;
                 }
 
-                List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem,
-                        relatedItemMetadataField);
-                if (relatedItemMetadataValues.isEmpty()) {
+                for (String relatedItemMetadataField : relatedItemMetadataFields) {
+                    List<MetadataValue> relatedItemMetadataValues = getMetadataValues(relatedItem,
+                            relatedItemMetadataField);
+                    for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
+                        foundAtLeastOne = true;
+                        addVirtualField(context, item, relatedItemMetadataValue.getValue(),
+                                relatedItemMetadataValue.getAuthority(), relatedItemMetadataValue.getLanguage(),
+                                relatedItemMetadataValue.getConfidence());
+                        addVirtualSourceField(context, item, authority);
+                    }
+                }
+                if (!foundAtLeastOne) {
                     addVirtualField(context, item, PLACEHOLDER_PARENT_METADATA_VALUE, null, null, Choices.CF_UNSET);
                     addVirtualSourceField(context, item, authority);
                     continue;
                 }
-                for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
-                    addVirtualField(context, item, relatedItemMetadataValue.getValue(),
-                            relatedItemMetadataValue.getAuthority(), relatedItemMetadataValue.getLanguage(),
-                            relatedItemMetadataValue.getConfidence());
-                    addVirtualSourceField(context, item, authority);
-                }
-                result = true;
             }
         }
         return result;
@@ -340,12 +349,28 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
         this.sourceEntityType = sourceEntityType;
     }
 
+    @Deprecated
     public void setSourceItemMetadataField(String sourceItemMetadataField) {
-        this.sourceItemMetadataField = sourceItemMetadataField;
+        LOGGER.warn(
+                "RelatedEntityItemEnhancer configured using the old single source item metadata field, "
+                + "please update the configuration to use the list");
+        this.sourceItemMetadataFields = List.of(sourceItemMetadataField);
     }
 
+    @Deprecated
     public void setRelatedItemMetadataField(String relatedItemMetadataField) {
-        this.relatedItemMetadataField = relatedItemMetadataField;
+        LOGGER.warn(
+                "RelatedEntityItemEnhancer configured using the old single related item metadata field, "
+                + "please update the configuration to use the list");
+        this.relatedItemMetadataFields = List.of(relatedItemMetadataField);
+    }
+
+    public void setRelatedItemMetadataFields(List<String> relatedItemMetadataFields) {
+        this.relatedItemMetadataFields = relatedItemMetadataFields;
+    }
+
+    public void setSourceItemMetadataFields(List<String> sourceItemMetadataFields) {
+        this.sourceItemMetadataFields = sourceItemMetadataFields;
     }
 
 }

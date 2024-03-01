@@ -27,7 +27,24 @@
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Publication" />
-        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="sourceItemMetadataFields">
+            <list>
+                <value>dc.contributor.author</value>
+                <value>dc.contributor.editor</value>
+            </list>
+        </property>
+        <property name="relatedItemMetadataField" value="person.affiliation.name" />
+        <property name="virtualQualifier" value="department" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
+        <property name="sourceEntityType" value="Product" />
+        <property name="sourceItemMetadataFields">
+            <list>
+                <value>dc.contributor.author</value>
+                <value>dc.contributor.editor</value>
+            </list>
+        </property>
         <property name="relatedItemMetadataField" value="person.affiliation.name" />
         <property name="virtualQualifier" value="department" />
     </bean>
@@ -49,16 +66,14 @@
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Publication" />
-        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="sourceItemMetadataFields">
+            <list>
+                <value>dc.contributor.author</value>
+                <value>dc.contributor.editor</value>
+            </list>
+        </property>
         <property name="relatedItemMetadataField" value="person.identifier.orcid" />
-        <property name="virtualQualifier" value="author-orcid" />
-    </bean>
-
-    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityType" value="Publication" />
-        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
-        <property name="relatedItemMetadataField" value="person.identifier.orcid" />
-        <property name="virtualQualifier" value="editor-orcid" />
+        <property name="virtualQualifier" value="orcid" />
     </bean>
 
 
@@ -113,16 +128,14 @@
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityType" value="Product" />
-        <property name="sourceItemMetadataField" value="dc.contributor.author" />
+        <property name="sourceItemMetadataFields">
+            <list>
+                <value>dc.contributor.author</value>
+                <value>dc.contributor.editor</value>
+            </list>
+        </property>
         <property name="relatedItemMetadataField" value="person.identifier.orcid" />
-        <property name="virtualQualifier" value="author-orcid" />
-    </bean>
-
-    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityType" value="Product" />
-        <property name="sourceItemMetadataField" value="dc.contributor.editor" />
-        <property name="relatedItemMetadataField" value="person.identifier.orcid" />
-        <property name="virtualQualifier" value="editor-orcid" />
+        <property name="virtualQualifier" value="orcid" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
@@ -179,13 +192,6 @@
         <property name="sourceItemMetadataField" value="dc.contributor.author" />
         <property name="relatedItemMetadataField" value="person.identifier.scopus-author-id" />
         <property name="virtualQualifier" value="author-scopus" />
-    </bean>
-
-    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityType" value="Patent" />
-        <property name="sourceItemMetadataField" value="dc.contributor.author" />
-        <property name="relatedItemMetadataField" value="person.identifier.orcid" />
-        <property name="virtualQualifier" value="author-orcid" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
