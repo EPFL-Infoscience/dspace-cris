@@ -208,6 +208,13 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
+        <qualifier>orcid</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
         <qualifier>contributor-sciperId</qualifier>
         <scope_note />
     </dc-type>
