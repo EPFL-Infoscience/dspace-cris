@@ -49,10 +49,13 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private RelatedEntityItemEnhancerUtils relatedEntityItemEnhancerUtils;
+
     /**
-     * the entity that can be extended by this enhancer, i.e. Publication
+     * the entities that can be extended by this enhancer, i.e. Publication
      */
-    private String sourceEntityType;
+    private List<String> sourceEntityTypes;
 
     /**
      * the metadata used to navigate the relation, i.e. dc.contributor.author
@@ -66,7 +69,7 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     @Override
     public boolean canEnhance(Context context, Item item) {
-        return sourceEntityType == null || sourceEntityType.equals(itemService.getEntityTypeLabel(item));
+        return sourceEntityTypes == null || sourceEntityTypes.contains(itemService.getEntityTypeLabel(item));
     }
 
     @Override
@@ -81,7 +84,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                 throw new SQLRuntimeException(e);
             }
         } else {
-            Map<String, List<MetadataValue>> currMetadataValues = getCurrentVirtualsMap(item);
+            Map<String, List<MetadataValue>> currMetadataValues = relatedEntityItemEnhancerUtils
+                    .getCurrentVirtualsMap(item, getVirtualQualifier());
             Map<String, List<MetadataValueDTO>> toBeMetadataValues = getToBeVirtualMetadata(context, item);
             if (!equivalent(currMetadataValues, toBeMetadataValues)) {
                 try {
@@ -212,7 +216,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     private List<MetadataValue> getObsoleteVirtualFields(Item item) {
 
         List<MetadataValue> obsoleteVirtualFields = new ArrayList<>();
-        Map<String, List<MetadataValue>> currentVirtualsMap = getCurrentVirtualsMap(item);
+        Map<String, List<MetadataValue>> currentVirtualsMap = relatedEntityItemEnhancerUtils
+                .getCurrentVirtualsMap(item, getVirtualQualifier());
         Set<String> virtualSources = getVirtualSources(item);
         for (String authority : currentVirtualsMap.keySet()) {
             if (!virtualSources.contains(authority)) {
@@ -235,41 +240,6 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                 .collect(Collectors.toSet());
     }
 
-    private Map<String, List<MetadataValue>> getCurrentVirtualsMap(Item item) {
-        Map<String, List<MetadataValue>> currentVirtualsMap = new HashMap<String, List<MetadataValue>>();
-        List<MetadataValue> sources = itemService.getMetadata(item, VIRTUAL_METADATA_SCHEMA,
-                VIRTUAL_SOURCE_METADATA_ELEMENT, getVirtualQualifier(), Item.ANY);
-        List<MetadataValue> generated = itemService.getMetadata(item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_METADATA_ELEMENT,
-                getVirtualQualifier(), Item.ANY);
-
-        if (sources.size() != generated.size()) {
-            LOGGER.error(
-                    "inconsistent virtual metadata for the item {} got {} sources and {} generated virtual metadata",
-                    item.getID().toString(), sources.size(), generated.size());
-        }
-
-        for (int i = 0; i < Integer.max(sources.size(), generated.size()); i++) {
-            String authority;
-            if (i < sources.size()) {
-                authority = sources.get(i).getValue();
-            } else {
-                // we have less source than virtual metadata let's generate a random uuid to
-                // associate with these extra metadata so that they will be managed as obsolete
-                // value
-                authority = UUID.randomUUID().toString();
-            }
-            List<MetadataValue> mvalues = currentVirtualsMap.get(authority);
-            if (mvalues == null) {
-                mvalues = new ArrayList<MetadataValue>();
-            }
-            if (i < generated.size()) {
-                mvalues.add(generated.get(i));
-            }
-            currentVirtualsMap.put(authority, mvalues);
-        }
-        return currentVirtualsMap;
-    }
-
     private Optional<MetadataValue> getRelatedVirtualField(Item item, int pos) {
         return getVirtualFields(item).stream()
             .skip(pos)
@@ -278,7 +248,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     private boolean performEnhancement(Context context, Item item) throws SQLException {
         boolean result = false;
-        Map<String, List<MetadataValue>> currentVirtualsMap = getCurrentVirtualsMap(item);
+        Map<String, List<MetadataValue>> currentVirtualsMap = relatedEntityItemEnhancerUtils
+                .getCurrentVirtualsMap(item, getVirtualQualifier());
         Set<String> virtualSources = getVirtualSources(item);
         for (String authority : virtualSources) {
             boolean foundAtLeastOne = false;
@@ -345,24 +316,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                                 getVirtualQualifier(), null, sourceValueAuthority);
     }
 
-    public void setSourceEntityType(String sourceEntityType) {
-        this.sourceEntityType = sourceEntityType;
-    }
-
-    @Deprecated
-    public void setSourceItemMetadataField(String sourceItemMetadataField) {
-        LOGGER.warn(
-                "RelatedEntityItemEnhancer configured using the old single source item metadata field, "
-                + "please update the configuration to use the list");
-        this.sourceItemMetadataFields = List.of(sourceItemMetadataField);
-    }
-
-    @Deprecated
-    public void setRelatedItemMetadataField(String relatedItemMetadataField) {
-        LOGGER.warn(
-                "RelatedEntityItemEnhancer configured using the old single related item metadata field, "
-                + "please update the configuration to use the list");
-        this.relatedItemMetadataFields = List.of(relatedItemMetadataField);
+    public void setSourceEntityTypes(List<String> sourceEntityTypes) {
+        this.sourceEntityTypes = sourceEntityTypes;
     }
 
     public void setRelatedItemMetadataFields(List<String> relatedItemMetadataFields) {
