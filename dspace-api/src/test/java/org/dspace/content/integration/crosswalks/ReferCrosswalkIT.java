@@ -2239,7 +2239,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testManyEpflPublicationsHtml() throws Exception {
+    public void testManyEpflPublications() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Item firstPerson = createItem(context, collection)
@@ -2250,6 +2250,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withGender("M")
                 .withPersonMainAffiliation("University")
                 .withOrcidIdentifier("0000-0002-9079-5932")
+                .withSciperIdentifier("sciper1")
                 .withScopusAuthorIdentifier("SA-01")
                 .withPersonEmail("test@test.com")
                 .withResearcherIdentifier("R-01")
@@ -2271,6 +2272,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withPersonMainAffiliation("University")
                 .withOrcidIdentifier("0000-0002-9079-5938")
                 .withPersonEmail("w.w@test.com")
+                .withSciperIdentifier("sciper2")
                 .withResearcherIdentifier("R-03")
                 .withPersonAffiliation("Company")
                 .withPersonAffiliationStartDate("2018-01-01")
@@ -2367,16 +2369,28 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
         context.setCurrentUser(admin);
 
-        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publications");
-        assertThat(referCrossWalk, notNullValue());
+        ReferCrosswalk referCrossWalkHtml = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publications");
+        assertThat(referCrossWalkHtml, notNullValue());
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        referCrossWalk.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), out);
+        ByteArrayOutputStream outHtml = new ByteArrayOutputStream();
+        referCrossWalkHtml.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), outHtml);
 
         try (FileInputStream fis = getFileInputStream("epfl-publications.html")) {
             String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
-            compareEachLine(out.toString(), expectedXml);
+            compareEachLine(outHtml.toString(), expectedXml);
         }
+
+        ReferCrosswalk referCrossWalkMarc = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publication-marc-xml");
+        assertThat(referCrossWalkMarc, notNullValue());
+
+        ByteArrayOutputStream outMarc = new ByteArrayOutputStream();
+        referCrossWalkMarc.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), outMarc);
+
+        try (FileInputStream fis = getFileInputStream("epfl-publications-marc.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(outMarc.toString(), expectedXml);
+        }
+
     }
 
     @Test
@@ -3080,6 +3094,9 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             resultLines.length, equalTo(expectedResultLines.length));
 
         for (int i = 0; i < resultLines.length; i++) {
+            if (expectedResultLines[i].contains("SKIP-IN-COMPARING")) {
+                continue;
+            }
             assertThat(removeTabs(resultLines[i]), equalTo(removeTabs(expectedResultLines[i])));
         }
     }

@@ -590,6 +590,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dspace", "object", "owner", null, value, authority, CF_ACCEPTED);
     }
 
+    public ItemBuilder withSciperIdentifier(String sciper) {
+        return addMetadataValue(item, "epfl", "sciperId", null, sciper);
+    }
+
     public ItemBuilder withOrcidIdentifier(String orcid) {
         return addMetadataValue(item, "person", "identifier", "orcid", orcid);
     }

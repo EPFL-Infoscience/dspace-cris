@@ -154,7 +154,7 @@
     <datafield tag="700" ind1=" " ind2=" ">
         <subfield code="0">@epfl.legacy.contributorauthnum@</subfield>
         <subfield code="a">@dc.contributor.author@</subfield>
-        <subfield code="g">@cris.virtual.author-sciperId@</subfield>
+        <subfield code="g">@virtual.sciperId.dc-contributor-author@</subfield>
     </datafield>
     @group.dc-contributor-author.end@
     @group.dc-contributor.start@
@@ -173,14 +173,14 @@
     <datafield tag="720" ind1=" " ind2="1">
         <subfield code="0">@epfl.legacy.contributoradvisornum@</subfield>
         <subfield code="a">@dc.contributor.scientificeditor@</subfield>
-        <subfield code="g">@cris.virtual.scientificeditor-sciperId@</subfield>
+        <subfield code="g">@cvirtual.sciperId.dc-contributor-scientificeditor@</subfield>
     </datafield>
     @group.dc-contributor-scientificeditor.end@
     @group.dc-contributor-advisor.start@
     <datafield tag="720" ind1=" " ind2="2">
         <subfield code="0">@epfl.legacy.contributorscientificeditornum@</subfield>
         <subfield code="a">@dc.contributor.advisor@</subfield>
-        <subfield code="g">@cris.virtual.advisor-sciperId@</subfield>
+        <subfield code="g">@virtual.sciperId.dc-contributor-advisor@</subfield>
     </datafield>
     @group.dc-contributor-advisor.end@
     @group.dc-identifier-stadardno.start@
@@ -223,8 +223,7 @@
     @if.metadata.dc-relation-product.start@
     <datafield tag="790" ind1=" " ind2=" ">
         <subfield code="2">@epfl.relationproduct.type@</subfield>
-        <subfield code="w">@virtual.config.dspace-ui-url@/items/
-@virtual.id@</subfield>
+        <subfield code="w">@virtual.item-ui-url@</subfield>
     </datafield>
     @if.metadata.dc-relation-product.end@
     @if.metadata.epfl-lastmodified-email.start@
