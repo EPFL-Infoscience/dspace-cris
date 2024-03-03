@@ -7,7 +7,6 @@
  */
 package org.dspace.app.dataquality.utils.service;
 
-import org.dspace.app.dataquality.utils.service.IDedupUtilsAddonComposition;
 import org.dspace.app.deduplication.utils.IDedupUtils;
 
 /**

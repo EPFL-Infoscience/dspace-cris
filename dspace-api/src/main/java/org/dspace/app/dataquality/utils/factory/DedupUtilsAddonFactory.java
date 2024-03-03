@@ -9,8 +9,8 @@ package org.dspace.app.dataquality.utils.factory;
 
 import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
 import org.dspace.app.dataquality.utils.service.IDedupUtilsAddonComposition;
-import org.dspace.dataquality.adapter.factory.AddonFactory;
 import org.dspace.app.deduplication.utils.IDedupUtils;
+import org.dspace.dataquality.adapter.factory.AddonFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
