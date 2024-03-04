@@ -102,10 +102,10 @@
             <subfield code="a">export</subfield>
         </datafield>
         <datafield tag="700" ind1=" " ind2=" ">
-            <subfield code="a">Jessie Pinkman</subfield>
+            <subfield code="a">Walter White</subfield>
         </datafield>
         <datafield tag="700" ind1=" " ind2=" ">
-            <subfield code="a">Walter White</subfield>
+            <subfield code="a">Jessie Pinkman</subfield>
             <subfield code="g">sciper2</subfield>
         </datafield>
         <datafield tag="711" ind1="2" ind2=" ">
