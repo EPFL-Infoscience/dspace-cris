@@ -22,15 +22,6 @@
 
     <context:annotation-config />
 
-    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancerUtils"
-          id="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancerUtils" />
-
-    <util:list id="researchOutputsEntityList" value-type="java.lang.String">
-           <value>Publication</value>
-           <value>Product</value>
-           <value>Patent</value>
-    </util:list>
-
     <util:list id="contributorsMetadataList" value-type="java.lang.String">
            <value>dc.contributor.author</value>
            <value>dc.contributor.editor</value>
@@ -41,8 +32,16 @@
     <bean id="org.dspace.content.enhancer.service.ItemEnhancerService" 
         class="org.dspace.content.enhancer.service.impl.ItemEnhancerServiceImpl" />
 
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancerUtils" />
+
+    <util:list id="researchOutputsEntityTypes">
+        <value>Publication</value>
+        <value>Product</value>
+        <value>Patent</value>
+    </util:list>
+
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityTypes" ref="researchOutputsEntityList" />
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields" ref="contributorsMetadataList" />
         <property name="relatedItemMetadataFields">
             <list>
@@ -53,7 +52,7 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityTypes" ref="researchOutputsEntityList" />
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields" ref="contributorsMetadataList" />
         <property name="relatedItemMetadataFields">
             <list>
@@ -65,7 +64,7 @@
 
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityTypes" ref="researchOutputsEntityList" />
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields" ref="contributorsMetadataList" />
         <property name="relatedItemMetadataFields">
             <list>
@@ -76,9 +75,8 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityTypes" ref="researchOutputsEntityList" />
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields" ref="contributorsMetadataList" />
-
         <property name="relatedItemMetadataFields">
             <list>
                 <value>person.identifier.scopus-author-id</value>
@@ -88,7 +86,7 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityTypes" ref="researchOutputsEntityList" />
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields" ref="contributorsMetadataList" />
         <property name="relatedItemMetadataFields">
             <list>
@@ -99,7 +97,7 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityTypes" ref="researchOutputsEntityList" />
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields">
             <list> 
 		        <value>oairecerif.author.affiliation</value>
@@ -155,7 +153,7 @@
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
-        <property name="sourceEntityTypes" ref="researchOutputsEntityList" />
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields" ref="parentOrganizationsSourceMetadata" />
         <property name="relatedItemMetadataFields">
             <list>
