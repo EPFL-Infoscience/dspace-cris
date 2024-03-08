@@ -528,10 +528,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
         switch (service) {
             case SCOPUS:
-                metadata.setQualifier(SCOPUS);
+                metadata.setQualifier("doi");
                 break;
             case WOS:
-                metadata.setQualifier("isi");
+                metadata.setQualifier("doi");
                 break;
             case CROSSREF:
                 metadata.setQualifier("doi");
