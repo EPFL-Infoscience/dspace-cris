@@ -94,6 +94,59 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
     }
 
     @Test
+    public void testPublicationImportCR2andXMFiles() throws Exception {
+        String legacyId = "272263";
+        String key = legacyId + ".zip";
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+        try {
+
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
+                    .getBitstreams();
+
+            for (Bitstream bitstream : bitstreams) {
+                BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
+                String mimeType = bitstreamFormat.getMIMEType();
+                // between the bitstreams we expect to have some cr2 and xm files
+                assertTrue(mimeType.equals("application/pdf")
+                        || mimeType.equals("image/png")
+                        || mimeType.equals("image/jpeg")
+                        || mimeType.equals("image/x-canon-cr2") //.cr2
+                        || mimeType.equals("audio/xm")); //.xm
+                assertThat(handler.getErrorMessages(), empty());
+                assertThat(handler.getWarningMessages(), empty());
+            }
+
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, legacyId);
+            }
+        }
+    }
+
+    @Test
     public void testPublicationImportMIMEType() throws Exception {
         String key = "167656.zip";
 
