@@ -110,8 +110,8 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     private void addMetadata(Context context, Item item, Map<String, List<MetadataValueDTO>> toBeMetadataValues)
             throws SQLException {
         for (Entry<String, List<MetadataValueDTO>> metadataValues : toBeMetadataValues.entrySet()) {
-            addVirtualSourceField(context, item, metadataValues.getKey());
             for (MetadataValueDTO dto : metadataValues.getValue()) {
+                addVirtualSourceField(context, item, metadataValues.getKey());
                 addVirtualField(context, item, dto.getValue(), dto.getAuthority(), dto.getLanguage(),
                         dto.getConfidence());
             }

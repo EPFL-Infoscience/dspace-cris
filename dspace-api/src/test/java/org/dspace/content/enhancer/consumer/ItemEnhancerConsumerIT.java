@@ -379,8 +379,8 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         assertThat(getMetadataValues(publication, "cris.virtual.orcid"), contains(
                 with("cris.virtual.orcid", "0000-0000-1111-2222")));
 
-            assertThat(getMetadataValues(publication, "cris.virtualsource.orcid"), contains(
-                with("cris.virtualsource.orcid", personId)));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.orcid"), contains(
+            with("cris.virtualsource.orcid", personId)));
 
     }
 

@@ -296,25 +296,26 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
 
         context.turnOffAuthorisationSystem();
 
-        Item firstAuthor = ItemBuilder.createItem(context, collection)
+        Item editor = ItemBuilder.createItem(context, collection)
             .withTitle("Walter White")
             .withPersonMainAffiliation("4Science")
             .build();
 
-        String firstAuthorId = firstAuthor.getID().toString();
+        String editorId = editor.getID().toString();
 
-        Item secondAuthor = ItemBuilder.createItem(context, collection)
+        Item author = ItemBuilder.createItem(context, collection)
             .withTitle("Jesse Pinkman")
             .withPersonMainAffiliation("Company")
+            .withPersonMainAffiliation("Another Company")
             .build();
 
-        String secondAuthorId = secondAuthor.getID().toString();
+        String authorId = author.getID().toString();
 
         Item publication = ItemBuilder.createItem(context, collection)
             .withTitle("Test publication 2 ")
             .withEntityType("Publication")
-            .withEditor("Walter White", firstAuthorId)
-            .withAuthor("Jesse Pinkman", secondAuthorId)
+            .withEditor("Walter White", editorId)
+            .withAuthor("Jesse Pinkman", authorId)
             .build();
 
         context.commit();
@@ -330,22 +331,24 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
 
         publication = reload(publication);
 
-        assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(2));
-        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(2));
+        assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(3));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(3));
 
         assertThat(getMetadataValues(publication, "cris.virtual.department"), containsInAnyOrder(
                 withNoPlace("cris.virtual.department", "4Science"),
+                withNoPlace("cris.virtual.department", "Another Company"),
                 withNoPlace("cris.virtual.department", "Company")));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), containsInAnyOrder(
-                withNoPlace("cris.virtualsource.department", firstAuthorId),
-                withNoPlace("cris.virtualsource.department", secondAuthorId)));
+                withNoPlace("cris.virtualsource.department", editorId),
+                withNoPlace("cris.virtualsource.department", authorId),
+                withNoPlace("cris.virtualsource.department", authorId)));
 
         context.turnOffAuthorisationSystem();
 
         MetadataValue authorToRemove = getMetadataValues(publication, "dc.contributor.author").get(0);
         itemService.removeMetadataValues(context, publication, List.of(authorToRemove));
 
-        replaceMetadata(firstAuthor, "person", "affiliation", "name", "University");
+        replaceMetadata(editor, "person", "affiliation", "name", "University");
 
         context.restoreAuthSystemState();
 
@@ -358,9 +361,10 @@ public class ItemEnhancerScriptIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getMetadataValues(publication, "cris.virtual.department"), hasSize(1));
         assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasSize(1));
 
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtual.department", "University")));
-        assertThat(publication.getMetadata(), hasItem(with("cris.virtualsource.department", firstAuthorId)));
-
+        assertThat(getMetadataValues(publication, "cris.virtual.department"), hasItem(
+                with("cris.virtual.department", "University")));
+        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), hasItem(
+                with("cris.virtualsource.department", editorId)));
     }
 
     @Test
