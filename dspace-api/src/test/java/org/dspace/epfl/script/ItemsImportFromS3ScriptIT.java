@@ -94,6 +94,105 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
     }
 
     @Test
+    public void testPublicationImportQpc() throws Exception {
+        String legacyId = "147853";
+        String key = legacyId + ".zip";
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+        try {
+
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
+                    .getBitstreams();
+
+            for (Bitstream bitstream : bitstreams) {
+                BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
+                String mimeType = bitstreamFormat.getMIMEType();
+                assertTrue(mimeType.equals("application/pdf")
+                        || mimeType.equals("application/octet-stream"));
+                assertThat(handler.getErrorMessages(), empty());
+                assertThat(handler.getWarningMessages(), empty());
+            }
+
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, legacyId);
+            }
+        }
+    }
+
+
+    @Test
+    public void testPublicationImportIpynb() throws Exception {
+        String legacyId = "266008";
+        String key = legacyId + ".zip";
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+        try {
+
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
+                    .getBitstreams();
+
+            for (Bitstream bitstream : bitstreams) {
+                BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
+                String mimeType = bitstreamFormat.getMIMEType();
+                // we expect all the bitstreams in this pubblication to be a ipynb file
+                assertTrue(mimeType.equals("application/x-ipynb+json"));
+                assertThat(handler.getErrorMessages(), empty());
+                assertThat(handler.getWarningMessages(), empty());
+            }
+
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, legacyId);
+            }
+        }
+    }
+
+    @Test
     public void testPublicationImportCR2andXMFiles() throws Exception {
         String legacyId = "272263";
         String key = legacyId + ".zip";

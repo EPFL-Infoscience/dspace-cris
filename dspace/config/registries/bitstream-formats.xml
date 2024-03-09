@@ -956,4 +956,12 @@
         <extension>ipynb</extension>
     </bitstream-type>
 
+    <bitstream-type>
+        <mimetype>application/octet-stream</mimetype>
+        <short_description>QPC</short_description>
+        <description>QPC - KaleidaGraph Plot from Synergy Software</description>
+        <support_level>0</support_level>
+        <internal>false</internal>
+        <extension>qpc</extension>
+    </bitstream-type>
 </dspace-bitstream-types>
