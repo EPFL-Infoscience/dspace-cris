@@ -96,10 +96,9 @@ public class ItemForMetadataEnhancementUpdateDAOImpl implements ItemForMetadataE
                         + "     ( SELECT metadata_field_id FROM metadatafieldregistry "
                         + "                WHERE metadata_schema_id = :schema AND element = 'virtualsource'"
                         + "     AND text_value = :uuid) "
-                        + "     AND NOT EXISTS ("
-                        + "             SELECT 1"
+                        + "     AND dspace_object_id NOT IN ("
+                        + "             SELECT uuid"
                         + "             FROM itemupdate_metadata_enhancement"
-                        + "             WHERE uuid = :uuid"
                         + "       )";
                 NativeQuery<?> queryUpdate = session.createNativeQuery(sqlUpdate);
                 queryUpdate.setParameter("uuid", uuid.toString());

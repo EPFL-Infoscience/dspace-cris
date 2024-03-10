@@ -96,6 +96,10 @@ public class MetadataValueMatcher extends TypeSafeMatcher<MetadataValue> {
         return with(field, value, null, null, null, -1);
     }
 
+    public static MetadataValueMatcher withNoPlace(String field, String value, String authority) {
+        return with(field, value, null, authority, null, 600);
+    }
+
     public static MetadataValueMatcher withSecurity(String field, String value, Integer securityLevel) {
         return with(field, value, null, null, 0, -1, securityLevel);
     }

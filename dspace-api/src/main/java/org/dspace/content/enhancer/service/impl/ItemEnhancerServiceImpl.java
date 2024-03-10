@@ -51,6 +51,11 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
 
         if (isUpdateNeeded) {
             updateItem(context, item);
+            try {
+                saveAffectedItemsForUpdate(context, item.getID());
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
     }
 

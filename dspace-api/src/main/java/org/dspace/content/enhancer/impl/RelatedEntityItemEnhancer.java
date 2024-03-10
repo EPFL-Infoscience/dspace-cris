@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.Choices;
@@ -307,8 +308,14 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     private void addVirtualField(Context context, Item item, String value, String authority, String lang,
             int confidence) throws SQLException {
-        itemService.addMetadata(context, item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_METADATA_ELEMENT, getVirtualQualifier(),
-                lang, value, authority, confidence);
+        if (StringUtils.startsWith(authority, AuthorityValueService.GENERATE)
+                || StringUtils.startsWith(authority, AuthorityValueService.REFERENCE)) {
+            itemService.addMetadata(context, item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_METADATA_ELEMENT,
+                    getVirtualQualifier(), lang, value, null, Choices.CF_UNSET);
+        } else {
+            itemService.addMetadata(context, item, VIRTUAL_METADATA_SCHEMA, VIRTUAL_METADATA_ELEMENT,
+                    getVirtualQualifier(), lang, value, authority, confidence);
+        }
     }
 
     private void addVirtualSourceField(Context context, Item item, String sourceValueAuthority) throws SQLException {
