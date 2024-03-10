@@ -127,6 +127,7 @@
         <property name="relatedItemMetadataFields">
             <list>
                 <value>organization.parentOrganization</value>
+                <value>cris.virtual.parent-organization</value>
             </list>
         </property>
         <property name="virtualQualifier" value="parent-organization" />
@@ -147,6 +148,7 @@
         <property name="relatedItemMetadataFields">
             <list>
                 <value>organization.parentOrganization</value>
+                <value>cris.virtual.parent-organization</value>
             </list>
         </property>
         <property name="virtualQualifier" value="parent-organization" />
@@ -157,6 +159,7 @@
         <property name="sourceItemMetadataFields" ref="parentOrganizationsSourceMetadata" />
         <property name="relatedItemMetadataFields">
             <list>
+                <value>person.affiliation.name</value>
                 <!-- this metadata is generated on Person and OrgUnit Items -->
                 <value>cris.virtual.parent-organization</value>
             </list>
