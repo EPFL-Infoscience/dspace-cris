@@ -1510,7 +1510,7 @@
           <dc-qualifier>lateReview</dc-qualifier>
           <label>Flagged for late review</label>
           <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
