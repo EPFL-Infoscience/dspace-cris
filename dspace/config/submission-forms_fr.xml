@@ -1510,7 +1510,7 @@
           <dc-qualifier>lateReview</dc-qualifier>
           <label>A révisé plus tard</label>
           <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
@@ -1655,7 +1655,7 @@
           <hint>Fournissez le titre de la publication ou liez à une entrée existante dans la base</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationpublication</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL ou DOI</label>
@@ -1692,7 +1692,7 @@
           <hint>Fournissez le titre du dataset ou liez à une entrée existante dans la base</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationproduct</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL ou DOI</label>
@@ -1729,7 +1729,7 @@
           <hint>Fournissez le titre du brevet ou liez à une entrée existante dans la base</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationpatent</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL</label>
