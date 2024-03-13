@@ -280,7 +280,27 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
         assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.type"),type);
-        assertEquals(getFirstMetadataValue(itemMetadata, "dc.relationpublication.identifier"),identifier);
+        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.identifier"),identifier);
+    }
+    
+    @Test
+    public void testRelationProductMetadataFieldReader()  {
+        String type = "testType";
+        String identifier = "testIdentifier";
+        String test = " <record> \n" +
+            "<datafield tag=\"790\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"e\">" + type + "</subfield>\n" +
+            "<subfield code=\"w\">" + identifier + "</subfield>\n" +
+            "  </datafield>\n" +
+            "</record>";
+
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationproduct.identifier"),identifier);
     }
 
     @Test
