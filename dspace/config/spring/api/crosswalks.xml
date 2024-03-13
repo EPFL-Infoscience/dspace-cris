@@ -719,6 +719,7 @@
 		<constructor-arg>
 			<map>
 				<entry key="id" value-ref="virtualFieldId" />
+				<entry key="item-ui-url" value-ref="virtualFieldItemURL" />
 				<entry key="config" value-ref="virtualFieldConfigProps" />
 				<entry key="authority" value-ref="virtualFieldAuthority" />
 				<entry key="primary-doi" value-ref="virtualFieldPrimaryDOI" />
@@ -736,11 +737,16 @@
 				<entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
 				<entry key="citations" value-ref="virtualFieldCitations" />
 				<entry key="publisher-with-place" value-ref="publisherWithPlace"></entry>
+				<entry key="sciperId" value-ref="virtualFieldToEnhancedMetadata"></entry>
+				<entry key="orcid" value-ref="virtualFieldToEnhancedMetadata"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
-	
+
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldToEnhancedMetadata"
+        id="virtualFieldToEnhancedMetadata" />
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldId" id="virtualFieldId"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldItemURL" id="virtualFieldItemURL"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldConfigProperties" id="virtualFieldConfigProps">
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 	</bean>
