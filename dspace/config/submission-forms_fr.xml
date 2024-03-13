@@ -1199,8 +1199,8 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début. Même seule l'année au format AAAA est acceptée</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
       <row>
@@ -1813,8 +1813,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début. Même seule l'année au format AAAA est acceptée</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -3600,8 +3600,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début. Même seule l'année au format AAAA est acceptée</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>

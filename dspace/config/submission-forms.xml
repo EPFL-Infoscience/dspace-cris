@@ -1199,8 +1199,8 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
       <row>
@@ -1813,8 +1813,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -3600,8 +3600,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
