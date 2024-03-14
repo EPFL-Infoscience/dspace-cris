@@ -222,7 +222,7 @@
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportJournalReader">
-        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
+        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartof" />
         <property name="issnNodeXpath" value= "./datafield[@tag = '022']/subfield[@code = 'a']" />
     </bean>
     
