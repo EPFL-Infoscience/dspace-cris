@@ -282,7 +282,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.type"),type);
         assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.identifier"),identifier);
     }
-    
+
     @Test
     public void testRelationProductMetadataFieldReader()  {
         String type = "testType";
