@@ -90,7 +90,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
                                                          .build();
         context.restoreAuthSystemState();
         context.commit();
-        readAllTypes().forEach(type -> setCollectionProperty(type));
+        readAllTypes().forEach(type -> setCollectionProperty(type, collection));
     }
 
     @Test
@@ -178,6 +178,58 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
                 marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
                 originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, "167656");
             }
+        }
+    }
+
+    @Test
+    public void testThatItemWIllBeImportedWithCorrectEntityType() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection collectionWithProduct = createCollection(context, community).withEntityType("Product")
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+        readAllTypes().forEach(type -> setCollectionProperty(type, collectionWithProduct));
+
+        String key = "293489.zip";
+
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+
+        try {
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            assertEquals(importedItem.getMetadata().stream()
+                    .filter(metadataValue -> metadataValue.getMetadataField()
+                            .toString('.').equals("dspace.entity.type"))
+                    .map(MetadataValue::getValue).findFirst().orElse("wrongValue"), "Product");
+
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, "293489");
+            }
+            readAllTypes().forEach(type -> setCollectionProperty(type, collection));
         }
     }
 
@@ -541,8 +593,8 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             .collect(Collectors.toList());
     }
 
-    private void setCollectionProperty(String type) {
-        configurationService.setProperty(COLLECTION_PROPERTY_PREFIX + "." + type, collection.getID().toString());
+    private void setCollectionProperty(String type, Collection collectionToSet) {
+        configurationService.setProperty(COLLECTION_PROPERTY_PREFIX + "." + type, collectionToSet.getID().toString());
     }
 
     private File getZipResource(String key) throws URISyntaxException, IOException {
