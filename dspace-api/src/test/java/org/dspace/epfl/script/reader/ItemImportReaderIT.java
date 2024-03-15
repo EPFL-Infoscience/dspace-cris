@@ -304,6 +304,71 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testRelationJournalAndIsPartOf() {
+        String testIssn = "testIssn";
+
+        String typeConferencePapers = "Conference Papers";
+        String relationConferencePapers = "relation conference";
+
+        String nodeConferencePapers = " <record> \n" + "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"t\">" + relationConferencePapers + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"a\">" + testIssn
+                + "</subfield>\n" + "  </datafield>\n" + "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"a\">" + typeConferencePapers + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"r\">" + "NON-REVIEWED"
+                + "</subfield>\n" + "  </datafield>\n" + "</record>";
+
+        InputStream inputStreamConferencePapers = new ByteArrayInputStream(nodeConferencePapers.getBytes());
+        Node recordConferencePapers = marcXmlParser.parse(inputStreamConferencePapers, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataConferencePapers = marcXmlParser.readItemMetadataValues(context,
+                recordConferencePapers, mapping);
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataConferencePapers, "dc.relation.journal"));
+        assertEquals(relationConferencePapers,
+                getFirstMetadataValue(itemMetadataConferencePapers, "dc.relation.ispartof"));
+        assertEquals(NOT_FOUND_VALUE,
+                getFirstMetadataValue(itemMetadataConferencePapers, "dc.relation.ispartofseries"));
+
+        String typeReviews = "Reviews";
+        String relationReviews = "relation reviews";
+
+        String nodeReviews = " <record> \n" + "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"t\">" + relationReviews + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"a\">" + testIssn
+                + "</subfield>\n" + "  </datafield>\n" + "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"a\">" + typeReviews + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"r\">" + "NON-REVIEWED"
+                + "</subfield>\n" + "  </datafield>\n" + "</record>";
+
+        InputStream inputStreamReviews = new ByteArrayInputStream(nodeReviews.getBytes());
+        Node recordReviews = marcXmlParser.parse(inputStreamReviews, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataReviews = marcXmlParser.readItemMetadataValues(context, recordReviews,
+                mapping);
+        assertEquals(relationReviews, getFirstMetadataValue(itemMetadataReviews, "dc.relation.journal"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataReviews, "dc.relation.ispartof"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataReviews, "dc.relation.ispartofseries"));
+
+        String typeJournalArticles = "Journal Articles";
+        String relationJournal = "relation journal";
+
+        String nodeJournalArticles = " <record> \n" + "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"t\">" + relationJournal + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"a\">" + testIssn
+                + "</subfield>\n" + "  </datafield>\n" + "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"a\">" + typeJournalArticles + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"r\">" + "NON-REVIEWED"
+                + "</subfield>\n" + "  </datafield>\n" + "</record>";
+
+        InputStream inputStreamJournalArticles = new ByteArrayInputStream(nodeJournalArticles.getBytes());
+        Node recordJournalArticles = marcXmlParser.parse(inputStreamJournalArticles, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataJournalArticles = marcXmlParser.readItemMetadataValues(context,
+                recordJournalArticles, mapping);
+        assertEquals(relationJournal, getFirstMetadataValue(itemMetadataJournalArticles, "dc.relation.journal"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataJournalArticles, "dc.relation.ispartof"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataJournalArticles, "dc.relation.ispartofseries"));
+
+    }
+
+    @Test
     public void testThatRelationJournalMetadataWithRelationIssnIsPresent() {
         String firstRelationJournal = "first relation";
         String secondRelationJournal = "second relation";
