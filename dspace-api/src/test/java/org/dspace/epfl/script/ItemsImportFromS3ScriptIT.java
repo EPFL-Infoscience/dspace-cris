@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -125,14 +126,15 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
                     .getBitstreams();
 
+            List<String> mimeTypes = new LinkedList<String>();
             for (Bitstream bitstream : bitstreams) {
                 BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
-                String mimeType = bitstreamFormat.getMIMEType();
-                assertTrue(mimeType.equals("application/pdf")
-                        || mimeType.equals("application/octet-stream"));
-                assertThat(handler.getErrorMessages(), empty());
-                assertThat(handler.getWarningMessages(), empty());
+                mimeTypes.add(bitstreamFormat.getMIMEType());
             }
+            assertTrue(mimeTypes.contains("application/pdf"));
+            assertTrue(mimeTypes.contains("application/octet-stream"));
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
 
         } finally {
             if (originalS3serviceOfMarcXmlParserImpl != null) {
@@ -180,9 +182,10 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
                 String mimeType = bitstreamFormat.getMIMEType();
                 // we expect all the bitstreams in this pubblication to be a ipynb file
                 assertTrue(mimeType.equals("application/x-ipynb+json"));
-                assertThat(handler.getErrorMessages(), empty());
-                assertThat(handler.getWarningMessages(), empty());
             }
+
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
 
         } finally {
             if (originalS3serviceOfMarcXmlParserImpl != null) {
@@ -224,18 +227,19 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
                     .getBitstreams();
 
+            List<String> mimeTypes = new LinkedList<String>();
             for (Bitstream bitstream : bitstreams) {
                 BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
-                String mimeType = bitstreamFormat.getMIMEType();
-                // between the bitstreams we expect to have some cr2 and xm files
-                assertTrue(mimeType.equals("application/pdf")
-                        || mimeType.equals("image/png")
-                        || mimeType.equals("image/jpeg")
-                        || mimeType.equals("image/x-canon-cr2") //.cr2
-                        || mimeType.equals("audio/xm")); //.xm
-                assertThat(handler.getErrorMessages(), empty());
-                assertThat(handler.getWarningMessages(), empty());
+                mimeTypes.add(bitstreamFormat.getMIMEType());
             }
+
+            assertTrue(mimeTypes.contains("application/pdf"));
+            assertTrue(mimeTypes.contains("image/png"));
+            assertTrue(mimeTypes.contains("image/jpeg"));
+            assertTrue(mimeTypes.contains("image/x-canon-cr2")); //.cr2
+            assertTrue(mimeTypes.contains("audio/xm")); //.xm
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
 
         } finally {
             if (originalS3serviceOfMarcXmlParserImpl != null) {
