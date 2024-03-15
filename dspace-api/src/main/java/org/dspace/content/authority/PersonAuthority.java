@@ -38,7 +38,7 @@ public class PersonAuthority extends ItemAuthority {
 
     private static final String DATA_EDITOR_AFFILIATION = "data-oairecerif_editor_affiliation";
 
-    private final PersonApiService personApiService = dspace.getSingletonService(PersonApiServiceImpl.class);
+    private PersonApiService personApiService = dspace.getSingletonService(PersonApiServiceImpl.class);
     private final ItemAuthorityServiceFactory itemAuthorityServiceFactory = dspace.getServiceManager()
             .getServiceByName("itemAuthorityServiceFactory", ItemAuthorityServiceFactory.class);
     private final ConfigurationService configurationService =
@@ -55,14 +55,18 @@ public class PersonAuthority extends ItemAuthority {
     }
 
     private Choices getEpflApiMatches(String text, int start, int limit) {
-        Choice[] epflApiChoices =
-            getChoiceFromEpflQueryResults(personApiService.getPersons(text)).toArray(new Choice[0]);
+        try {
+            Choice[] epflApiChoices = getChoiceFromEpflQueryResults(personApiService.getPersons(text))
+                    .toArray(new Choice[0]);
 
-        int confidenceValue = itemAuthorityServiceFactory.getInstance(authorityName)
-                                                         .getConfidenceForChoices(epflApiChoices);
+            int confidenceValue = itemAuthorityServiceFactory.getInstance(authorityName)
+                    .getConfidenceForChoices(epflApiChoices);
 
-        return new Choices(epflApiChoices, start, epflApiChoices.length, confidenceValue,
-                           epflApiChoices.length > (start + limit), 0);
+            return new Choices(epflApiChoices, start, epflApiChoices.length, confidenceValue,
+                    epflApiChoices.length > (start + limit), 0);
+        } catch (Exception e) {
+            return new Choices(true);
+        }
     }
 
     private List<Choice> getChoiceFromEpflQueryResults(List<PersonDTO> persons) {
@@ -130,6 +134,10 @@ public class PersonAuthority extends ItemAuthority {
     @Override
     public String getPluginInstanceName() {
         return authorityName;
+    }
+
+    public void setPersonApiService(PersonApiService personApiService) {
+        this.personApiService = personApiService;
     }
 
 }
