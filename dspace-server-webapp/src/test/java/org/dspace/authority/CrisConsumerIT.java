@@ -20,6 +20,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
@@ -61,6 +65,8 @@ import org.dspace.content.authority.ChoiceAuthorityServiceImpl;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.external.OrcidRestConnector;
 import org.dspace.external.provider.impl.OrcidV3AuthorDataProvider;
 import org.dspace.services.ConfigurationService;
@@ -1205,6 +1211,58 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
             metadataAuthorityService.clearCache();
             choiceAuthorityService.clearCache();
         }
+    }
+
+    @Test
+    public void testCreationOfEPersonOfOrgUnitDirector() throws SQLException {
+        String sciper = "141288";
+        String fullName = "Foray, Dominique";
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community for orgunit")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for orgunit")
+                .withEntityType("OrgUnit")
+                .build();
+
+        CollectionBuilder.createCollection(context, community)
+                .withName("Collection for person")
+                .withEntityType("Person")
+                .build();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withTitle("Test orgunit")
+                .withMetadata("crisou", "director", null, null,
+                        fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+        List<EPerson> people = ePersonService.search(context, fullName);
+
+        assertNotNull(people);
+        assertTrue(people.size() == 1);
+
+        context.reloadEntity(orgUnit);
+
+        assertNotNull(orgUnit);
+
+        String authority = orgUnit.getMetadata().stream()
+                .filter(m -> "crisou".equals(m.getSchema()) && "director".equals(m.getElement()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+
+        assertNotNull(orgUnit.getSubmitter());
+        assertNotNull(orgUnit.getSubmitter().getID());
+        assertEquals(authority, orgUnit.getSubmitter().getID().toString());
+
     }
 
     private ItemRest getItemViaRestByID(String authToken, UUID id) throws Exception {
