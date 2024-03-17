@@ -177,6 +177,18 @@ public class ProfileInitializer {
         setSynchronizationMetadata(context, ePerson, researcherProfile);
     }
 
+    public EPerson findPerson(Context context, PersonDTO epflPerson) throws SQLException {
+        EPerson byNetid = findPersonBySciper(context, epflPerson.getSciper());
+        if (byNetid != null) {
+            return byNetid;
+        }
+        return epersonService.findByEmail(context, epflPerson.getEmail());
+    }
+
+    public EPerson findPersonBySciper(Context context, String sciper) throws SQLException {
+        return epersonService.findByNetid(context, sciper + "@epfl.ch");
+    }
+
     public EPerson createAndSyncEPerson(Context context, PersonDTO epflPerson) throws SQLException, AuthorizeException {
         if (epflPerson.getAccreds() == null || epflPerson.getAccreds().length == 0) {
             return null;

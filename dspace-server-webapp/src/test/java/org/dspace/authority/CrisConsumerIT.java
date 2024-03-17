@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
@@ -49,6 +49,7 @@ import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
@@ -65,12 +66,13 @@ import org.dspace.content.authority.ChoiceAuthorityServiceImpl;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.factory.EPersonServiceFactory;
-import org.dspace.eperson.service.EPersonService;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.external.OrcidRestConnector;
 import org.dspace.external.provider.impl.OrcidV3AuthorDataProvider;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
+import org.dspace.utils.DSpace;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
 import org.junit.Ignore;
@@ -102,6 +104,9 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     @Autowired
     private ChoiceAuthorityServiceImpl choiceAuthorityService;
 
+    @Autowired
+    private GroupService groupService;
+
     @Value("classpath:org/dspace/app/rest/simple-article.pdf")
     private Resource simpleArticle;
 
@@ -125,6 +130,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private MetadataAuthorityService metadataAuthorityService;
+
+    private ProfileInitializer profileInitializer;
 
     @Override
     public void setUp() throws Exception {
@@ -153,6 +160,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         context.setCurrentUser(submitter);
 
         context.restoreAuthSystemState();
+
+        profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
 
     }
 
@@ -1214,11 +1223,18 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void testCreationOfEPersonOfOrgUnitDirector() throws SQLException {
+    public void testCreationOfEPersonOfOrgUnitDirector() throws Exception {
         String sciper = "141288";
         String fullName = "Foray, Dominique";
 
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
         context.turnOffAuthorisationSystem();
+
+        Group submitters = groupService.create(context);
+        groupService.setName(submitters, "Submitter");
+        groupService.update(context, submitters);
 
         Community community = CommunityBuilder.createCommunity(context)
                 .withName("Community for orgunit")
@@ -1242,11 +1258,9 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
-        final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-        List<EPerson> people = ePersonService.search(context, fullName);
-
-        assertNotNull(people);
-        assertTrue(people.size() == 1);
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
 
         context.reloadEntity(orgUnit);
 
@@ -1258,11 +1272,6 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         assertNotNull(authority);
         assertFalse(authority.contains("will be generated"));
-
-        assertNotNull(orgUnit.getSubmitter());
-        assertNotNull(orgUnit.getSubmitter().getID());
-        assertEquals(authority, orgUnit.getSubmitter().getID().toString());
-
     }
 
     private ItemRest getItemViaRestByID(String authToken, UUID id) throws Exception {

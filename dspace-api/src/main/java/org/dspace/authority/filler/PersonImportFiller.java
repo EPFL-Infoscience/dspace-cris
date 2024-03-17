@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -25,7 +26,12 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.eperson.EPerson;
+import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.EpflApiClientImpl;
+import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.service.PersonApiService;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class PersonImportFiller implements AuthorityImportFiller {
@@ -40,6 +46,17 @@ public class PersonImportFiller implements AuthorityImportFiller {
 
     @Autowired
     private BitstreamService bitstreamService;
+
+    private EpflApiClientImpl epflApiClient;
+    private ProfileInitializer profileInitializer;
+
+    public PersonImportFiller() {
+        epflApiClient = new DSpace().getServiceManager()
+                .getServiceByName("org.dspace.epfl.client.EpflApiClientImpl",
+                                  EpflApiClientImpl.class);
+        profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
+
+    }
 
     @Override
     public List<MetadataValueDTO> getMetadataListByRelatedItemAndMetadata(Context context, Item relatedItem,
@@ -58,7 +75,10 @@ public class PersonImportFiller implements AuthorityImportFiller {
         try {
 
             getSciperFromMetadataValue(sourceMetadata)
-                .ifPresent(sciper -> enrichItem(context, item, sciper));
+                .ifPresent(sciper -> {
+                    enrichItem(context, item, sciper);
+                    createOrUpdateEPerson(context, item, sciper);
+                });
 
         } catch (Exception ex) {
             LOGGER.error("An error occurs trying to enrich item with data from OrgUnit API", ex);
@@ -127,6 +147,56 @@ public class PersonImportFiller implements AuthorityImportFiller {
             itemService.setMetadataSingleValue(context, item, schema, element, qualifier, null, value);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
+        }
+    }
+
+    private void createOrUpdateEPerson(Context context, Item item, String sciperId) {
+        Optional<PersonDTO> personDTO = getPersonFromEPFL(sciperId);
+        if (personDTO.isPresent()) {
+            createOrSynch(context, personDTO.get());
+        }
+
+        /*
+        PersonDTO epflPerson = new PersonDTO();
+        epflPerson.setSciper(sciperId);
+
+        EPerson ePerson = profileInitializer.findPersonByNetId(context, epflPerson);
+
+        Optional<PersonDTO> personDTO = epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN);
+        if (personDTO.isPresent()) {
+            createOrSynch(personDTO.get());
+        } else {
+            logInfo("Skipped profile #" + (count + 1) + " with sciper " + sciperId
+                    + " not found in the search api");
+        }
+        */
+    }
+
+    private Optional<PersonDTO> getPersonFromEPFL(String sciperId) {
+        try {
+            return epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN);
+        } catch (Exception e) {
+            LOGGER.error("Exception trying to recover the eperson from epfl api for sciperId: " + sciperId, e);
+            return null;
+        }
+    }
+
+    private void createOrSynch(Context context, PersonDTO epflPerson) {
+        try {
+            EPerson ePerson = profileInitializer.findPerson(context, epflPerson);
+            if (ePerson == null) {
+                EPerson newEPerson = profileInitializer.createAndSyncEPerson(context, epflPerson);
+                if (newEPerson != null) {
+                    LOGGER.info("EPerson with uuid: " + newEPerson.getID() + ", sciperId: " + newEPerson.getNetid()
+                                    + " was created");
+                } else {
+                    LOGGER.info("EPerson with sciperId " + epflPerson.getSciper() + " was not created: 0 accreds");
+                }
+            } else {
+                profileInitializer.syncEPerson(context, epflPerson, ePerson);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Unable to sync profile " + epflPerson.getSciper(), e);
         }
     }
 
