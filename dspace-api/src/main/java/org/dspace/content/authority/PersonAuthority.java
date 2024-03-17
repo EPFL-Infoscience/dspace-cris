@@ -116,7 +116,7 @@ public class PersonAuthority extends ItemAuthority {
     }
 
     private String composePersonAffiliationValue(Accred accred) {
-        String prefix = accred.getName() + configurationService.getProperty("epfl.acronym.prefix",
+        String prefix = accred.getAcronym() + configurationService.getProperty("epfl.acronym.prefix",
                 SPLIT + GENERATE + "ACRONYM" + SPLIT);
         return prefix.endsWith(SPLIT) ? prefix + accred.getAcronym() : prefix + SPLIT + accred.getAcronym();
     }
