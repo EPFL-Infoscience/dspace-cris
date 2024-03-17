@@ -29,8 +29,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
-import org.dspace.epfl.client.EpflApiClient;
-import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.utils.DSpace;
@@ -49,15 +47,10 @@ public class PersonImportFiller implements AuthorityImportFiller {
     @Autowired
     private BitstreamService bitstreamService;
 
-    private EpflApiClientImpl epflApiClient;
     private ProfileInitializer profileInitializer;
 
     public PersonImportFiller() {
-        epflApiClient = new DSpace().getServiceManager()
-                .getServiceByName("org.dspace.epfl.client.EpflApiClientImpl",
-                                  EpflApiClientImpl.class);
         profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
-
     }
 
     @Override
@@ -153,7 +146,7 @@ public class PersonImportFiller implements AuthorityImportFiller {
     }
 
     private void createOrUpdateEPerson(Context context, Item item, String sciperId) {
-        Optional<PersonDTO> personDTO = getPersonFromEPFL(sciperId);
+        Optional<PersonDTO> personDTO = profileInitializer.getPersonFromEPFL(sciperId);
         if (personDTO != null && personDTO.isPresent()) {
             createOrSynch(context, personDTO.get());
         } else {
@@ -161,22 +154,14 @@ public class PersonImportFiller implements AuthorityImportFiller {
                 EPerson ePerson = profileInitializer.findPersonBySciper(context, sciperId);
                 if (ePerson == null) {
                     ePerson = profileInitializer.createBasicEPerson(context, sciperId);
-                    itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(), ePerson.getID().toString(), Choices.CF_ACCEPTED, 0);
+                    itemService.addMetadata(context, item, "dspace", "object", "owner", null,
+                            ePerson.getName(), ePerson.getID().toString(), Choices.CF_ACCEPTED, 0);
                 }
             } catch (SQLException e) {
                 LOGGER.error("Error trying to read the EPerson with sciperId " + sciperId, e);
             } catch (AuthorizeException e) {
                 LOGGER.error("Authorization error trying to initialize the EPerson with sciperId " + sciperId, e);
             }
-        }
-    }
-
-    private Optional<PersonDTO> getPersonFromEPFL(String sciperId) {
-        try {
-            return epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN);
-        } catch (Exception e) {
-            LOGGER.error("Exception trying to recover the eperson from epfl api for sciperId: " + sciperId, e);
-            return null;
         }
     }
 

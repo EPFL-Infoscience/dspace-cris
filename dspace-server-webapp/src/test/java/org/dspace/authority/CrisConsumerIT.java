@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,6 +69,10 @@ import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.epfl.client.EpflApiClient.Language;
+import org.dspace.epfl.client.EpflApiClientImpl;
+import org.dspace.epfl.client.model.PersonDTO;
+import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.external.OrcidRestConnector;
 import org.dspace.external.provider.impl.OrcidV3AuthorDataProvider;
 import org.dspace.services.ConfigurationService;
@@ -75,6 +80,7 @@ import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -132,6 +138,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     private MetadataAuthorityService metadataAuthorityService;
 
     private ProfileInitializer profileInitializer;
+    private EpflApiClientImpl originalEpflApiClient;
+    private EpflApiClientImpl mockEpflApiClient;
 
     @Override
     public void setUp() throws Exception {
@@ -162,7 +170,12 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         context.restoreAuthSystemState();
 
         profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
+        originalEpflApiClient = profileInitializer.getEpflApiClient();
+    }
 
+    @After
+    public void after() throws Exception {
+        profileInitializer.setEpflApiClient(originalEpflApiClient);
     }
 
     @Override
@@ -1227,6 +1240,13 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         String sciper = "141288";
         String fullName = "Foray, Dominique";
 
+        PersonDTO personDTO = getMockPersonDTO(sciper);
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenReturn(Optional.of(personDTO));
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
         EPerson person = profileInitializer.findPersonBySciper(context, sciper);
         assertNull(person);
 
@@ -1274,10 +1294,95 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertFalse(authority.contains("will be generated"));
     }
 
+    private PersonDTO getMockPersonDTO(String sciper) {
+        Accred accred = new Accred();
+        accred.setAcronym("PH-CDM");
+        accred.setCode(11968);
+        accred.setName("MOCK Honorary Professors CDM");
+        accred.setPath("EPFL/CDM/CDM-DIR/PH-CDM");
+        Accred[] accreds = new Accred[1];
+        accreds[0] = accred;
+
+        PersonDTO personDTO = new PersonDTO();
+        personDTO.setEmail("mocked.dominique.foray@epfl.ch");
+        personDTO.setFirstname("Dominique");
+        personDTO.setName("Foray");
+        personDTO.setProfile("dominique.foray");
+        personDTO.setRank(0);
+        personDTO.setSciper(sciper);
+        personDTO.setAccreds(accreds);
+        return personDTO;
+    }
+
     @Test
     public void testCreationOfEPersonOfOrgUnitDirectorNonExistingOnEPFL() throws Exception {
         String sciper = "909090909090";
         String fullName = "NonExistent, John";
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenReturn(Optional.empty());
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        Group submitters = groupService.create(context);
+        groupService.setName(submitters, "Submitter");
+        groupService.update(context, submitters);
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community for orgunit")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for orgunit")
+                .withEntityType("OrgUnit")
+                .build();
+
+        CollectionBuilder.createCollection(context, community)
+                .withName("Collection for person")
+                .withEntityType("Person")
+                .build();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withTitle("Test orgunit")
+                .withMetadata("crisou", "director", null, null,
+                        fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
+        assertEquals(sciper + "@epfl.ch", person.getEmail());
+        assertEquals("Unnamed", person.getFirstName());
+        assertEquals("Unnamed", person.getLastName());
+
+        orgUnit = context.reloadEntity(orgUnit);
+
+        assertNotNull(orgUnit);
+
+        String authority = orgUnit.getMetadata().stream()
+                .filter(m -> "crisou".equals(m.getSchema()) && "director".equals(m.getElement()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+    }
+
+    @Test
+    public void testCreationOfEPersonOfOrgUnitDirectorWithException() throws Exception {
+        String sciper = "909090909090";
+        String fullName = "NonExistent, John";
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenThrow(new RuntimeException("Mocked Exception"));
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
 
         EPerson person = profileInitializer.findPersonBySciper(context, sciper);
         assertNull(person);
