@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authority.service.AuthorityValueService;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.dto.MetadataValueDTO;
@@ -152,24 +153,20 @@ public class PersonImportFiller implements AuthorityImportFiller {
 
     private void createOrUpdateEPerson(Context context, Item item, String sciperId) {
         Optional<PersonDTO> personDTO = getPersonFromEPFL(sciperId);
-        if (personDTO.isPresent()) {
+        if (personDTO != null && personDTO.isPresent()) {
             createOrSynch(context, personDTO.get());
-        }
-
-        /*
-        PersonDTO epflPerson = new PersonDTO();
-        epflPerson.setSciper(sciperId);
-
-        EPerson ePerson = profileInitializer.findPersonByNetId(context, epflPerson);
-
-        Optional<PersonDTO> personDTO = epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN);
-        if (personDTO.isPresent()) {
-            createOrSynch(personDTO.get());
         } else {
-            logInfo("Skipped profile #" + (count + 1) + " with sciper " + sciperId
-                    + " not found in the search api");
+            try {
+                EPerson ePerson = profileInitializer.findPersonBySciper(context, sciperId);
+                if (ePerson == null) {
+                    profileInitializer.createBasicEPerson(context, sciperId);
+                }
+            } catch (SQLException e) {
+                LOGGER.error("Error trying to read the EPerson with sciperId " + sciperId, e);
+            } catch (AuthorizeException e) {
+                LOGGER.error("Authorization error trying to initialize the EPerson with sciperId " + sciperId, e);
+            }
         }
-        */
     }
 
     private Optional<PersonDTO> getPersonFromEPFL(String sciperId) {

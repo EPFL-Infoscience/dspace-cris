@@ -1274,6 +1274,61 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertFalse(authority.contains("will be generated"));
     }
 
+    @Test
+    public void testCreationOfEPersonOfOrgUnitDirectorNonExistingOnEPFL() throws Exception {
+        String sciper = "909090909090";
+        String fullName = "NonExistent, John";
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        Group submitters = groupService.create(context);
+        groupService.setName(submitters, "Submitter");
+        groupService.update(context, submitters);
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community for orgunit")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for orgunit")
+                .withEntityType("OrgUnit")
+                .build();
+
+        CollectionBuilder.createCollection(context, community)
+                .withName("Collection for person")
+                .withEntityType("Person")
+                .build();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withTitle("Test orgunit")
+                .withMetadata("crisou", "director", null, null,
+                        fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
+        assertEquals(sciper + "@epfl.ch", person.getEmail());
+        assertEquals("Unnamed", person.getFirstName());
+        assertEquals("Unnamed", person.getLastName());
+
+        context.reloadEntity(orgUnit);
+
+        assertNotNull(orgUnit);
+
+        String authority = orgUnit.getMetadata().stream()
+                .filter(m -> "crisou".equals(m.getSchema()) && "director".equals(m.getElement()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+    }
+
     private ItemRest getItemViaRestByID(String authToken, UUID id) throws Exception {
         MvcResult result = getClient(authToken)
                 .perform(get(BASE_REST_SERVER_URL + "/api/core/items/{id}", id))

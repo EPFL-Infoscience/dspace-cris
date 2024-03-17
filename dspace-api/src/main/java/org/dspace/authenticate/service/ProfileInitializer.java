@@ -208,6 +208,17 @@ public class ProfileInitializer {
         return newEPerson;
     }
 
+    public EPerson createBasicEPerson(Context context, String sciper) throws SQLException, AuthorizeException {
+        EPerson newEPerson = epersonService.create(context);
+        newEPerson.setNetid(sciper + "@epfl.ch");
+        newEPerson.setEmail(sciper + "@epfl.ch");
+        newEPerson.setFirstName(context, "Unnamed");
+        newEPerson.setLastName(context, "Unnamed");
+        newEPerson.setCanLogIn(true);
+        epersonService.update(context, newEPerson);
+        return newEPerson;
+    }
+
     private void setSynchronizationMetadata(Context context, EPerson ePerson, ResearcherProfile researcherProfile)
             throws SQLException, AuthorizeException {
         String synchronizationDate = DCDate.getCurrent().toString();
