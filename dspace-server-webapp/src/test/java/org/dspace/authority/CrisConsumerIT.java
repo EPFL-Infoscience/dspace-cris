@@ -1262,7 +1262,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertNotNull(person);
         assertEquals(sciper + "@epfl.ch", person.getNetid());
 
-        context.reloadEntity(orgUnit);
+        orgUnit = context.reloadEntity(orgUnit);
 
         assertNotNull(orgUnit);
 
@@ -1317,7 +1317,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertEquals("Unnamed", person.getFirstName());
         assertEquals("Unnamed", person.getLastName());
 
-        context.reloadEntity(orgUnit);
+        orgUnit = context.reloadEntity(orgUnit);
 
         assertNotNull(orgUnit);
 

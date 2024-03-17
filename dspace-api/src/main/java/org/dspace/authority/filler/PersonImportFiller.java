@@ -22,6 +22,7 @@ import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -159,7 +160,8 @@ public class PersonImportFiller implements AuthorityImportFiller {
             try {
                 EPerson ePerson = profileInitializer.findPersonBySciper(context, sciperId);
                 if (ePerson == null) {
-                    profileInitializer.createBasicEPerson(context, sciperId);
+                    ePerson = profileInitializer.createBasicEPerson(context, sciperId);
+                    itemService.addMetadata(context, item, "dspace", "object", "owner", null, ePerson.getName(), ePerson.getID().toString(), Choices.CF_ACCEPTED, 0);
                 }
             } catch (SQLException e) {
                 LOGGER.error("Error trying to read the EPerson with sciperId " + sciperId, e);
