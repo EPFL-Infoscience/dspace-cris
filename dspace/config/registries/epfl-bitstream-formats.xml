@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<dspace-bistream-types>
+<dspace-bitstream-types>
 
     <bitstream-type>
         <mimetype>audio/xm</mimetype>
@@ -28,4 +28,4 @@
         <extension>qpc</extension>
     </bitstream-type>
 
-</dspace-bistream-types>
+</dspace-bitstream-types>
