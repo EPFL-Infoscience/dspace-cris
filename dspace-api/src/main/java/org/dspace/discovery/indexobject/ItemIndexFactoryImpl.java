@@ -664,7 +664,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                             doc.addField(field + "_dt", stringDate);
                         } else {
                             log.warn("Error while indexing sort date field, item: " + item
-                                    .getHandle() + " metadata field: " + field + " date value: " + date);
+                                    .getHandle() + " metadata field: " + field + " date value: " + value);
                         }
                     } else {
                         doc.addField(field + "_sort", value);
