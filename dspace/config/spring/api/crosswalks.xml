@@ -737,9 +737,9 @@
 				<entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
 				<entry key="citations" value-ref="virtualFieldCitations" />
 				<entry key="publisher-with-place" value-ref="publisherWithPlace"></entry>
+                <entry key="epfl-unit-code" value-ref="virtualFieldEpflUnitCodeSplitter"/>
 				<entry key="sciperId" value-ref="virtualFieldToEnhancedMetadata"></entry>
 				<entry key="orcid" value-ref="virtualFieldToEnhancedMetadata"></entry>
-				<entry key="epfl-unit-code" value-ref="virtualFieldEpflUnitCodeSplitter"/>
 			</map>
 		</constructor-arg>
 	</bean>
