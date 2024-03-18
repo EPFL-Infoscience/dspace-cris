@@ -125,6 +125,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     private Community subCommunity;
 
+    private Group submitters;
+
     @Autowired
     private PoolTaskService poolTaskService;
 
@@ -165,6 +167,10 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         publicationCollection = createCollection("Collection of publications", "Publication", subCommunity);
 
+        submitters = groupService.create(context);
+        groupService.setName(submitters, "Submitter");
+        groupService.update(context, submitters);
+
         context.setCurrentUser(submitter);
 
         context.restoreAuthSystemState();
@@ -176,6 +182,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     @After
     public void after() throws Exception {
         profileInitializer.setEpflApiClient(originalEpflApiClient);
+        groupService.delete(context, submitters);
     }
 
     @Override
@@ -1237,7 +1244,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void testCreationOfEPersonOfOrgUnitDirector() throws Exception {
-        String sciper = "141288";
+        String sciper = "1412881";
         String fullName = "Foray, Dominique";
 
         PersonDTO personDTO = getMockPersonDTO(sciper);
@@ -1251,10 +1258,6 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertNull(person);
 
         context.turnOffAuthorisationSystem();
-
-        Group submitters = groupService.create(context);
-        groupService.setName(submitters, "Submitter");
-        groupService.update(context, submitters);
 
         Community community = CommunityBuilder.createCommunity(context)
                 .withName("Community for orgunit")
@@ -1329,10 +1332,6 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         context.turnOffAuthorisationSystem();
 
-        Group submitters = groupService.create(context);
-        groupService.setName(submitters, "Submitter");
-        groupService.update(context, submitters);
-
         Community community = CommunityBuilder.createCommunity(context)
                 .withName("Community for orgunit")
                 .build();
@@ -1376,7 +1375,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void testCreationOfEPersonOfOrgUnitDirectorWithException() throws Exception {
-        String sciper = "909090909090";
+        String sciper = "909090909091";
         String fullName = "NonExistent, John";
 
         mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
@@ -1388,10 +1387,6 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertNull(person);
 
         context.turnOffAuthorisationSystem();
-
-        Group submitters = groupService.create(context);
-        groupService.setName(submitters, "Submitter");
-        groupService.update(context, submitters);
 
         Community community = CommunityBuilder.createCommunity(context)
                 .withName("Community for orgunit")
@@ -1432,6 +1427,57 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         assertNotNull(authority);
         assertFalse(authority.contains("will be generated"));
+    }
+
+    @Test
+    public void testCreationOfEPersonOfPublicationAuthor() throws Exception {
+
+        String sciper = "1412882";
+        String fullName = "Foray, Dominique";
+
+        PersonDTO personDTO = getMockPersonDTO(sciper);
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenReturn(Optional.of(personDTO));
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        CollectionBuilder.createCollection(context, subCommunity)
+        .withName("Collection for person")
+        .withEntityType("Person")
+        .build();
+
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+            .withEntityType("Publication")
+            .withMetadata("dc", "contributor", "author", null,
+                    fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
+
+        publication = context.reloadEntity(publication);
+
+        assertNotNull(publication);
+
+        String authority = publication.getMetadata().stream()
+                .filter(m -> "dc".equals(m.getSchema())
+                        && "contributor".equals(m.getElement())
+                        && "author".equals(m.getQualifier()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+
     }
 
     private ItemRest getItemViaRestByID(String authToken, UUID id) throws Exception {
