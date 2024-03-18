@@ -681,6 +681,8 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .param("page", "15"))
                  .andExpect(status().isOk())
                  .andExpect(content().contentType(contentType))
+                 .andExpect(jsonPath("$._embedded.submissionforms[0].id", is("orange")))
+                 .andExpect(jsonPath("$._embedded.submissionforms[1].id", is("publication-dc-contributor-author")))
                  .andExpect(jsonPath("$._links.first.href", Matchers.allOf(
                          Matchers.containsString("/api/config/submissionforms?"),
                          Matchers.containsString("page=0"), Matchers.containsString("size=2"))))

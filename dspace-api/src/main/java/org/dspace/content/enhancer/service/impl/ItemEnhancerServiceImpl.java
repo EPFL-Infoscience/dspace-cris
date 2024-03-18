@@ -9,9 +9,11 @@ package org.dspace.content.enhancer.service.impl;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
+import org.dspace.content.dao.ItemForMetadataEnhancementUpdateDAO;
 import org.dspace.content.enhancer.ItemEnhancer;
 import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.content.service.ItemService;
@@ -32,10 +34,15 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private ItemForMetadataEnhancementUpdateDAO itemForMetadataEnhancementUpdateDAO;
+
     @Override
     public void enhance(Context context, Item item, boolean deepMode) {
         boolean isUpdateNeeded = false;
-
+        if (deepMode) {
+            itemForMetadataEnhancementUpdateDAO.removeItemForUpdate(context, item.getID());
+        }
         for (ItemEnhancer itemEnhancer : itemEnhancers) {
             if (itemEnhancer.canEnhance(context, item)) {
                 isUpdateNeeded = itemEnhancer.enhance(context, item, deepMode) || isUpdateNeeded;
@@ -44,7 +51,22 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
 
         if (isUpdateNeeded) {
             updateItem(context, item);
+            try {
+                saveAffectedItemsForUpdate(context, item.getID());
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
+    }
+
+    @Override
+    public void saveAffectedItemsForUpdate(Context context, UUID uuid) throws SQLException {
+        itemForMetadataEnhancementUpdateDAO.saveAffectedItemsForUpdate(context, uuid);
+    }
+
+    @Override
+    public UUID pollItemToUpdate(Context context) {
+        return itemForMetadataEnhancementUpdateDAO.pollItemToUpdate(context);
     }
 
     private void updateItem(Context context, Item item) {

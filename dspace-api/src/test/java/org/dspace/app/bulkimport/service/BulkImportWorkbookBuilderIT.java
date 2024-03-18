@@ -69,7 +69,6 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.format.datetime.DateFormatter;
 
@@ -79,7 +78,6 @@ import org.springframework.format.datetime.DateFormatter;
  * @author Luca Giamminonni (luca.giamminonni at 4Science)
  *
  */
-@Ignore
 public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithDatabase {
 
     private static final Pattern UUID_PATTERN = compile(
@@ -182,7 +180,7 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
         bitstreams.add(new BitstreamDTO("MY BUNDLE", storeInTempLocation("Fourth bitstream content"),
             List.of(new MetadataValueDTO("dc", "title", null, "Bitstream 4")), policies));
 
-        ItemDTO secondItemDTO = new ItemDTO("DOI::98765", null, metadata, bitstreams);
+        ItemDTO secondItemDTO = new ItemDTO("DOI::98765", null, false, metadata, bitstreams);
 
         Workbook workbook = builder.build(context, publications, List.of(firstItemDTO, secondItemDTO).iterator());
 
@@ -211,7 +209,7 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
 
         Item firstItem = getItemFromMessage(handler.getInfoMessages().get(7));
         assertThat(firstItem, notNullValue());
-        assertThat(firstItem.getMetadata(), hasSize(28));
+        assertThat(firstItem.getMetadata(), hasSize(30));
         assertThat(firstItem.getMetadata(), hasItems(
             with("dc.title", "Test Publication"),
             with("dc.date.issued", "2020/02/15"),
@@ -221,7 +219,9 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
             with("dc.subject", "Java", 1),
             with("dc.subject", "DSpace", 2),
             with("dc.contributor.author", "White, Walter", authorId, 600),
-            with("oairecerif.author.affiliation", PLACEHOLDER_PARENT_METADATA_VALUE)));
+            with("oairecerif.author.affiliation", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("cris.virtual.department", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
 
         assertThat(getItemBitstreamsByBundle(firstItem, "ORIGINAL"), contains(
             bitstreamWith("Bitstream 1", "First bitstream content"),
@@ -229,7 +229,7 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
 
         Item secondItem = getItemFromMessage(handler.getInfoMessages().get(10));
         assertThat(secondItem, notNullValue());
-        assertThat(secondItem.getMetadata(), hasSize(38));
+        assertThat(secondItem.getMetadata(), hasSize(42));
         assertThat(secondItem.getMetadata(), hasItems(
             with("dc.title", "Second Publication"),
             with("dc.date.issued", "2022/02/15"),
@@ -239,7 +239,11 @@ public class BulkImportWorkbookBuilderIT extends AbstractIntegrationTestWithData
             with("dc.contributor.author", "Jesse Pinkman", jesse.getID().toString(), 600),
             with("dc.contributor.author", "Test User", testUser.getID().toString(), 1, 600),
             with("oairecerif.author.affiliation", PLACEHOLDER_PARENT_METADATA_VALUE),
-            with("oairecerif.author.affiliation", "Company", 1)
+            with("oairecerif.author.affiliation", "Company", 1),
+            with("cris.virtual.department", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("cris.virtual.department", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE),
+            with("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE)
         ));
 
         assertThat(getItemBitstreamsByBundle(secondItem, "ORIGINAL"), contains(

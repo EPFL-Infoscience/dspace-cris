@@ -130,12 +130,12 @@ public final class BulkImportSheet {
         if (StringUtils.length(cellContent) > MAX_CELL_LENGTH) {
             createCell(
                 lastRow, column, getTruncatedCellPrefix()
-                    + value.substring(0, MAX_CELL_LENGTH - getTruncatedCellPrefix().length() - 1) + "…",
+                    + cellContent.substring(0, MAX_CELL_LENGTH - getTruncatedCellPrefix().length() - 1) + "…",
                 cellStyleHighlighted
             );
             truncatedHeaders.add(column);
         } else {
-            createCell(lastRow, column, value);
+            createCell(lastRow, column, cellContent);
         }
     }
 

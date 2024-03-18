@@ -11,12 +11,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
 import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.model.DeduplicationSetRest;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ import org.springframework.stereotype.Component;
 public class DeduplicationSetRestRepository extends DSpaceRestRepository<DeduplicationSetRest, String> {
 
     @Autowired
-    private DedupUtils dedupUtils;
+    private AbstractDedupUtilsAddon dedupUtilsAddon;
 
     @Override
     public Class<DeduplicationSetRest> getDomainClass() {
@@ -47,8 +48,11 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @Override
     public Page<DeduplicationSetRest> findAll(Context context, Pageable pageable) {
         try {
-            return converter.toRestPage(dedupUtils.findAllGroups(context),
-                pageable, utils.obtainProjection());
+            return converter.toRestPage(
+                dedupUtilsAddon.findAllGroups(context),
+                pageable,
+                utils.obtainProjection()
+            );
         } catch (SearchServiceException | SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -58,7 +62,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @Override
     public DeduplicationSetRest findOne(Context context, String id) {
         try {
-            DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, id);
+            DuplicateInfo duplicateInfo = dedupUtilsAddon.findGroup(context, id);
             if (duplicateInfo == null) {
                 return null;
             }
@@ -75,14 +79,17 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
             @Parameter(value = "haveItems", required = false) String haveItems, Pageable pageable) {
         try {
             Context context = obtainContext();
-            List<DuplicateInfo> groups = dedupUtils.findAllGroups(context, signatureId);
+            List<DuplicateInfo> groups = dedupUtilsAddon.findAllGroups(context, signatureId);
 
             if (Boolean.valueOf(haveItems)) {
-                groups = groups.stream().filter(g -> g.getItems().size() > 0).collect(Collectors.toList());
+                groups = groups.stream().filter(g -> !g.getItems().isEmpty()).collect(Collectors.toList());
             }
 
-            return converter.toRestPage(groups,
-                    pageable, utils.obtainProjection());
+            return converter.toRestPage(
+                    groups,
+                    pageable,
+                    utils.obtainProjection()
+            );
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -96,14 +103,17 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
             @Parameter(value = "haveItems", required = false) String haveItems, Pageable pageable) {
         try {
             Context context = obtainContext();
-            List<DuplicateInfo> groups = dedupUtils.findAllGroups(context, signatureId, rule);
+            List<DuplicateInfo> groups = dedupUtilsAddon.findAllGroups(context, signatureId);
 
             if (Boolean.valueOf(haveItems)) {
-                groups = groups.stream().filter(g -> g.getItems().size() > 0).collect(Collectors.toList());
+                groups = groups.stream().filter(g -> !g.getItems().isEmpty()).collect(Collectors.toList());
             }
 
-            return converter.toRestPage(groups,
-                    pageable, utils.obtainProjection());
+            return converter.toRestPage(
+                groups,
+                pageable,
+                utils.obtainProjection()
+            );
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -112,9 +122,9 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
     @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
     @Override
     protected void delete(Context context, String id) throws AuthorizeException {
-        DuplicateInfo duplicateInfo;
+        DuplicateInfo duplicateInfo = null;
         try {
-            duplicateInfo = dedupUtils.findGroup(context, id);
+            duplicateInfo = dedupUtilsAddon.findGroup(context, id);
             if (duplicateInfo == null) {
                 throw new ResourceNotFoundException("Could not find set with id: " + id);
             }
@@ -122,7 +132,7 @@ public class DeduplicationSetRestRepository extends DSpaceRestRepository<Dedupli
             throw new RuntimeException("Could not find set with id: " + id, e);
         }
         try {
-            dedupUtils.rejectAdminDups(context, duplicateInfo);
+            dedupUtilsAddon.rejectAdminDups(context, duplicateInfo, Constants.ITEM);
         } catch (SQLException | SearchServiceException e) {
             throw new RuntimeException("Something went wrong trying to delete set with id: " + id, e);
         }

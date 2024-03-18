@@ -22,8 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -793,8 +791,35 @@ public class ItemsImportFromS3Script
         return mimeRepository.forName(detect).getExtension();
     }
 
-    private boolean isFileHaveExistingExtension(String fileName) throws IOException {
-        return Files.probeContentType(Paths.get(fileName)) != null;
+    private boolean isFileHaveExistingExtension(String fileName) {
+
+        if (fileName == null) {
+            return false;
+        }
+
+        fileName = fileName.toLowerCase();
+
+        String extension = fileName;
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot != -1) {
+            extension = fileName.substring(lastDot + 1);
+        }
+        if (extension.equals("")) {
+            return false;
+        }
+
+        List<BitstreamFormat> bitstreamFormats;
+        try {
+            bitstreamFormats = bitstreamFormatService.findAll(context);
+            for (BitstreamFormat bitstreamFormat : bitstreamFormats) {
+                if (bitstreamFormat.getExtensions().contains(extension)) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            handler.logError("Error while handling the extension for " + fileName, e);
+        }
+        return false;
     }
 
     private String escapeBitstreamName(String name) {

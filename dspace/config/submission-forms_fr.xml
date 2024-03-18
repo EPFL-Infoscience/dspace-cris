@@ -1199,8 +1199,8 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début. Même seule l'année au format AAAA est acceptée</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
       <row>
@@ -1510,7 +1510,7 @@
           <dc-qualifier>lateReview</dc-qualifier>
           <label>A révisé plus tard</label>
           <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
@@ -1655,7 +1655,7 @@
           <hint>Fournissez le titre de la publication ou liez à une entrée existante dans la base</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationpublication</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL ou DOI</label>
@@ -1692,7 +1692,7 @@
           <hint>Fournissez le titre du dataset ou liez à une entrée existante dans la base</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationproduct</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL ou DOI</label>
@@ -1729,7 +1729,7 @@
           <hint>Fournissez le titre du brevet ou liez à une entrée existante dans la base</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationpatent</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL</label>
@@ -1813,8 +1813,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début. Même seule l'année au format AAAA est acceptée</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -1900,7 +1900,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Type de ressource</hint>
           <vocabulary>article-coar-types</vocabulary>
@@ -2217,7 +2217,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Type de ressource</hint>
           <vocabulary>media-coar-types</vocabulary>
@@ -2476,7 +2476,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>dataset-coar-types</vocabulary>
@@ -2731,7 +2731,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type de brevet est obligatoire</required>
           <hint>Type de brevet</hint>
           <vocabulary>patent-coar-types</vocabulary>
@@ -3010,7 +3010,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>thesis-coar-types</vocabulary>
@@ -3024,7 +3024,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Par exemple, Mémoire de Bachelor ou de Master</hint>
           <vocabulary>student-coar-types</vocabulary>
@@ -3390,7 +3390,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>conference-coar-types</vocabulary>
@@ -3600,8 +3600,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Entrez la date de début/fin de la conférence au format AAAA-MM-JJ - AAAA-MM-JJ. Si la conférence a duré seulement une journée, saisissez uniquement la date de début. Même seule l'année au format AAAA est acceptée</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -3675,7 +3675,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>report-coar-types</vocabulary>
@@ -3901,7 +3901,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>design-coar-types</vocabulary>
@@ -4097,7 +4097,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Le t resource</hint>
           <vocabulary>preprint-coar-types</vocabulary>
@@ -4247,7 +4247,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>teaching-coar-types</vocabulary>
@@ -4492,7 +4492,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint>Exemple : Ouvrage ou Chapitre d'ouvrage</hint>
           <vocabulary>book-coar-types</vocabulary>
@@ -4960,7 +4960,7 @@
           <dc-element>type</dc-element>
           <label>Type de projet</label>
           <input-type value-pairs-name="project_types">dropdown</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -5193,7 +5193,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type value-pairs-name="funding_types">dropdown</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -5406,7 +5406,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>publication-coar-types</vocabulary>
@@ -5420,7 +5420,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>Le type est obligatoire</required>
           <hint />
           <vocabulary>product-coar-types</vocabulary>
@@ -6813,7 +6813,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>

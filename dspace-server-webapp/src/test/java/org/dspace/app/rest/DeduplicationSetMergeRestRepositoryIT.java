@@ -865,8 +865,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         // then merged items will contain uri metadata of target item
         String targetUri = itemService.getMetadata(item1, "dc.identifier.uri");
-        String mergedItemTwoUri = itemService.getMetadata(item2, "dspace.merge.target-uri");
-        String mergedIThreeUri = itemService.getMetadata(item3, "dspace.merge.target-uri");
+        String mergedItemTwoUri = itemService.getMetadata(item2, "dq.merge.target-uri");
+        String mergedIThreeUri = itemService.getMetadata(item3, "dq.merge.target-uri");
 
         assertEquals(mergedItemTwoUri, targetUri);
         assertEquals(mergedIThreeUri, targetUri);

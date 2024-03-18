@@ -172,7 +172,8 @@ public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfigu
             item.setSubmitter(submitter);
 
             try {
-                itemService.setMetadataSingleValue(context, item, "dc", "provenance", null, null, newEmail);
+                itemService.setMetadataSingleValue(context, item, "dc", "description", "provenance", null,
+                        "Update submitter with " + newEmail + " as post-migration action");
                 itemService.update(context, item);
             } catch (SQLException | AuthorizeException e) {
                 handler.handleException(e);
@@ -181,8 +182,13 @@ public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfigu
     }
 
     private Optional<EPerson> firstAuthorWithSciper(Item item) {
-        return itemService
-            .getMetadataByMetadataString(item, "dc.contributor.author")
+        List<MetadataValue> valuesToCheck = itemService
+                .getMetadataByMetadataString(item, "dc.contributor.author");
+        valuesToCheck.addAll(itemService
+            .getMetadataByMetadataString(item, "dc.contributor.editor"));
+        valuesToCheck.addAll(itemService
+                .getMetadataByMetadataString(item, "dc.contributor.scientificeditor"));
+        return valuesToCheck
             .stream()
             .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
             .map(throwingMapperWrapper(mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority()))))

@@ -1199,8 +1199,8 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
       <row>
@@ -1510,7 +1510,7 @@
           <dc-qualifier>lateReview</dc-qualifier>
           <label>Flagged for late review</label>
           <input-type value-pairs-name="truefalse">list</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-3</style>
           <hint />
@@ -1655,7 +1655,7 @@
           <hint>Please provide the publication title or find an existing publication in the repository</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationpublication</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL or DOI</label>
@@ -1692,7 +1692,7 @@
           <hint>Please provide the dataset or product title or find an existing product in the repository</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationproduct</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL or DOI</label>
@@ -1729,7 +1729,7 @@
           <hint>Please, provide the patent title or find an existing patent in the repository</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>relationpatent</dc-element>
           <dc-qualifier>identifier</dc-qualifier>
           <label>URL</label>
@@ -1813,8 +1813,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -1900,7 +1900,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>article-coar-types</vocabulary>
@@ -2217,7 +2217,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>media-coar-types</vocabulary>
@@ -2476,7 +2476,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>dataset-coar-types</vocabulary>
@@ -2731,7 +2731,7 @@
           <dc-element>type</dc-element>
           <label>Patent type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The patent type is mandatory</required>
           <hint>The patent type</hint>
           <vocabulary>patent-coar-types</vocabulary>
@@ -3010,7 +3010,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint />
           <vocabulary>thesis-coar-types</vocabulary>
@@ -3024,7 +3024,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>e.g. Bachelor, Master Thesis</hint>
           <vocabulary>student-coar-types</vocabulary>
@@ -3390,7 +3390,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>conference-coar-types</vocabulary>
@@ -3600,8 +3600,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Enter the conference start/end date in the format YYYY-MM-DD - YYYY-MM-DD. If the conference lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -3675,7 +3675,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>report-coar-types</vocabulary>
@@ -3901,7 +3901,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>design-coar-types</vocabulary>
@@ -4097,7 +4097,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>preprint-coar-types</vocabulary>
@@ -4247,7 +4247,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint />
           <vocabulary>teaching-coar-types</vocabulary>
@@ -4492,7 +4492,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>e.g. Book or Book Chapter</hint>
           <vocabulary>book-coar-types</vocabulary>
@@ -4960,7 +4960,7 @@
           <dc-element>type</dc-element>
           <label>Project type</label>
           <input-type value-pairs-name="project_types">dropdown</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -5193,7 +5193,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type value-pairs-name="funding_types">dropdown</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
@@ -5406,7 +5406,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>publication-coar-types</vocabulary>
@@ -5420,7 +5420,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required>The type is mandatory</required>
           <hint>The genre of the resource</hint>
           <vocabulary>product-coar-types</vocabulary>
@@ -6813,7 +6813,7 @@
           <dc-element>type</dc-element>
           <label>Type</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint />
         </field>
