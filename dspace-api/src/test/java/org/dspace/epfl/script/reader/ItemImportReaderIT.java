@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.content.dto.BitstreamDTO;
@@ -301,6 +302,35 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
         assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationproduct.identifier"),identifier);
+    }
+
+    @Test
+    public void testMultipleAcronym() {
+        String acronym1 = "ACRO1";
+        String acronym2 = "ACRO2";
+        String acronym3 = "ACRO3";
+        String test = "<record>\n" +
+                "<datafield tag=\"909\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">" + acronym1 + "</subfield>\n" +
+                "<subfield code=\"p\">" + acronym2 + "</subfield>\n" +
+                "</datafield>\n" +
+                "<datafield tag=\"909\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">" + acronym3 + "</subfield>\n" +
+                "</datafield>\n" +
+                "</record>";
+
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+        List<String> sponsorships = itemMetadata.stream()
+                .filter(metadata -> "dc.description.sponsorship".equals(metadata.getMetadataField()))
+                .map(MetadataValueDTO::getValue)
+                .collect(Collectors.toList());
+
+        assertTrue(sponsorships.contains(acronym1));
+        assertTrue(sponsorships.contains(acronym2));
+        assertTrue(sponsorships.contains(acronym3));
     }
 
     @Test
