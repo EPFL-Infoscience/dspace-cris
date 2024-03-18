@@ -114,8 +114,8 @@
     </type>
     <type>
         <rightType>OrgUnit</rightType>
-        <leftwardType>isPublications_school_collegeHiddenFor</leftwardType>
-        <rightwardType>notDisplayingPublications_school_college</rightwardType>
+        <leftwardType>isPublSchoolCollHiddenFor</leftwardType>
+        <rightwardType>notDisplayingPublSchoolColl</rightwardType>
         <leftCardinality>
             <min>0</min>
         </leftCardinality>
@@ -125,8 +125,8 @@
     </type>
     <type>
         <rightType>OrgUnit</rightType>
-        <leftwardType>isPublications_school_collegeSelectedFor</leftwardType>
-        <rightwardType>hasSelectedPublications_school_college</rightwardType>
+        <leftwardType>isPublSchoolCollSelectedFor</leftwardType>
+        <rightwardType>hasSelectedPublSchoolColl</rightwardType>
         <leftCardinality>
             <min>0</min>
         </leftCardinality>
