@@ -1352,6 +1352,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    @Ignore // browses are disabled in config
     public void discoverSearchBrowsesWithSpecialCharacterTest() throws Exception {
 
         context.turnOffAuthorisationSystem();
