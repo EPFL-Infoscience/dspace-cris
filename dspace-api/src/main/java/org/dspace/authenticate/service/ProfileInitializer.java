@@ -55,6 +55,8 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.epfl.service.OrgUnitApiService;
@@ -63,6 +65,7 @@ import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
+import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +103,13 @@ public class ProfileInitializer {
     private GroupService groupService;
 
     private DCInputsReader dcInputsReader;
+    private EpflApiClientImpl epflApiClient;
+
+    public ProfileInitializer() {
+        epflApiClient = new DSpace().getServiceManager()
+                .getServiceByName("org.dspace.epfl.client.EpflApiClientImpl",
+                                  EpflApiClientImpl.class);
+    }
 
     public boolean syncEPerson(Context context, PersonDTO epflPerson, EPerson ePerson)
             throws SQLException, AuthorizeException {
@@ -177,6 +187,18 @@ public class ProfileInitializer {
         setSynchronizationMetadata(context, ePerson, researcherProfile);
     }
 
+    public EPerson findPerson(Context context, PersonDTO epflPerson) throws SQLException {
+        EPerson byNetid = findPersonBySciper(context, epflPerson.getSciper());
+        if (byNetid != null) {
+            return byNetid;
+        }
+        return epersonService.findByEmail(context, epflPerson.getEmail());
+    }
+
+    public EPerson findPersonBySciper(Context context, String sciper) throws SQLException {
+        return epersonService.findByNetid(context, sciper + "@epfl.ch");
+    }
+
     public EPerson createAndSyncEPerson(Context context, PersonDTO epflPerson) throws SQLException, AuthorizeException {
         if (epflPerson.getAccreds() == null || epflPerson.getAccreds().length == 0) {
             return null;
@@ -194,6 +216,26 @@ public class ProfileInitializer {
         setSynchronizationMetadata(context, newEPerson, profile);
         epersonService.update(context, newEPerson);
         return newEPerson;
+    }
+
+    public EPerson createBasicEPerson(Context context, String sciper) throws SQLException, AuthorizeException {
+        EPerson newEPerson = epersonService.create(context);
+        newEPerson.setNetid(sciper + "@epfl.ch");
+        newEPerson.setEmail(sciper + "@epfl.ch");
+        newEPerson.setFirstName(context, "Unnamed");
+        newEPerson.setLastName(context, "Unnamed");
+        newEPerson.setCanLogIn(true);
+        epersonService.update(context, newEPerson);
+        return newEPerson;
+    }
+
+    public Optional<PersonDTO> getPersonFromEPFL(String sciperId) {
+        try {
+            return epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN);
+        } catch (Exception e) {
+            LOGGER.error("Exception trying to recover the eperson from epfl api for sciperId: " + sciperId, e);
+            return null;
+        }
     }
 
     private void setSynchronizationMetadata(Context context, EPerson ePerson, ResearcherProfile researcherProfile)
@@ -752,6 +794,14 @@ public class ProfileInitializer {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public EpflApiClientImpl getEpflApiClient() {
+        return epflApiClient;
+    }
+
+    public void setEpflApiClient(EpflApiClientImpl epflApiClient) {
+        this.epflApiClient = epflApiClient;
     }
 
     private static class PersonAffiliation {

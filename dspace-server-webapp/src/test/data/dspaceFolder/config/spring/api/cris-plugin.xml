@@ -17,9 +17,12 @@
                 <entry key="ORCID" value-ref="orcidImportFiller" />
                 <entry key="ISSN" value-ref="sherpaImportFiller" />
                 <entry key="OPENAIRE-PROJECT-ID" value-ref="openaireProjectImportFiller" />
+                <entry key="SCIPER-ID" value-ref="personImportFiller" />
             </map>
         </property>
     </bean>
+
+    <bean class="org.dspace.authority.filler.PersonImportFiller" id="personImportFiller" />
 
     <bean class="org.dspace.authority.filler.ItemMetadataImportFiller" id="fullItemMetadataConfiguration" abstract="true">
         <property name="itemService" ref="org.dspace.content.ItemServiceImpl" />

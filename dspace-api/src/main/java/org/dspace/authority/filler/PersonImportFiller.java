@@ -17,15 +17,21 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authority.service.AuthorityValueService;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.eperson.EPerson;
+import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.service.PersonApiService;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class PersonImportFiller implements AuthorityImportFiller {
@@ -40,6 +46,12 @@ public class PersonImportFiller implements AuthorityImportFiller {
 
     @Autowired
     private BitstreamService bitstreamService;
+
+    private ProfileInitializer profileInitializer;
+
+    public PersonImportFiller() {
+        profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
+    }
 
     @Override
     public List<MetadataValueDTO> getMetadataListByRelatedItemAndMetadata(Context context, Item relatedItem,
@@ -58,7 +70,10 @@ public class PersonImportFiller implements AuthorityImportFiller {
         try {
 
             getSciperFromMetadataValue(sourceMetadata)
-                .ifPresent(sciper -> enrichItem(context, item, sciper));
+                .ifPresent(sciper -> {
+                    enrichItem(context, item, sciper);
+                    createOrUpdateEPerson(context, item, sciper);
+                });
 
         } catch (Exception ex) {
             LOGGER.error("An error occurs trying to enrich item with data from OrgUnit API", ex);
@@ -127,6 +142,45 @@ public class PersonImportFiller implements AuthorityImportFiller {
             itemService.setMetadataSingleValue(context, item, schema, element, qualifier, null, value);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
+        }
+    }
+
+    private void createOrUpdateEPerson(Context context, Item item, String sciperId) {
+        Optional<PersonDTO> personDTO = profileInitializer.getPersonFromEPFL(sciperId);
+        if (personDTO != null && personDTO.isPresent()) {
+            createOrSynch(context, personDTO.get());
+        } else {
+            try {
+                EPerson ePerson = profileInitializer.findPersonBySciper(context, sciperId);
+                if (ePerson == null) {
+                    ePerson = profileInitializer.createBasicEPerson(context, sciperId);
+                    itemService.addMetadata(context, item, "dspace", "object", "owner", null,
+                            ePerson.getName(), ePerson.getID().toString(), Choices.CF_ACCEPTED, 0);
+                }
+            } catch (SQLException e) {
+                LOGGER.error("Error trying to read the EPerson with sciperId " + sciperId, e);
+            } catch (AuthorizeException e) {
+                LOGGER.error("Authorization error trying to initialize the EPerson with sciperId " + sciperId, e);
+            }
+        }
+    }
+
+    private void createOrSynch(Context context, PersonDTO epflPerson) {
+        try {
+            EPerson ePerson = profileInitializer.findPerson(context, epflPerson);
+            if (ePerson == null) {
+                EPerson newEPerson = profileInitializer.createAndSyncEPerson(context, epflPerson);
+                if (newEPerson != null) {
+                    LOGGER.info("EPerson with uuid: " + newEPerson.getID() + ", sciperId: " + newEPerson.getNetid()
+                                    + " was created");
+                } else {
+                    LOGGER.info("EPerson with sciperId " + epflPerson.getSciper() + " was not created: 0 accreds");
+                }
+            } else {
+                profileInitializer.syncEPerson(context, epflPerson, ePerson);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Unable to sync profile " + epflPerson.getSciper(), e);
         }
     }
 
