@@ -20,6 +20,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
@@ -35,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +50,7 @@ import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
@@ -61,12 +67,20 @@ import org.dspace.content.authority.ChoiceAuthorityServiceImpl;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
+import org.dspace.epfl.client.EpflApiClient.Language;
+import org.dspace.epfl.client.EpflApiClientImpl;
+import org.dspace.epfl.client.model.PersonDTO;
+import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.external.OrcidRestConnector;
 import org.dspace.external.provider.impl.OrcidV3AuthorDataProvider;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
+import org.dspace.utils.DSpace;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -96,6 +110,9 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     @Autowired
     private ChoiceAuthorityServiceImpl choiceAuthorityService;
 
+    @Autowired
+    private GroupService groupService;
+
     @Value("classpath:org/dspace/app/rest/simple-article.pdf")
     private Resource simpleArticle;
 
@@ -108,6 +125,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     private Community subCommunity;
 
+    private Group submitters;
+
     @Autowired
     private PoolTaskService poolTaskService;
 
@@ -119,6 +138,10 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private MetadataAuthorityService metadataAuthorityService;
+
+    private ProfileInitializer profileInitializer;
+    private EpflApiClientImpl originalEpflApiClient;
+    private EpflApiClientImpl mockEpflApiClient;
 
     @Override
     public void setUp() throws Exception {
@@ -144,10 +167,22 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         publicationCollection = createCollection("Collection of publications", "Publication", subCommunity);
 
+        submitters = groupService.create(context);
+        groupService.setName(submitters, "Submitter");
+        groupService.update(context, submitters);
+
         context.setCurrentUser(submitter);
 
         context.restoreAuthSystemState();
 
+        profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
+        originalEpflApiClient = profileInitializer.getEpflApiClient();
+    }
+
+    @After
+    public void after() throws Exception {
+        profileInitializer.setEpflApiClient(originalEpflApiClient);
+        groupService.delete(context, submitters);
     }
 
     @Override
@@ -1205,6 +1240,244 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
             metadataAuthorityService.clearCache();
             choiceAuthorityService.clearCache();
         }
+    }
+
+    @Test
+    public void testCreationOfEPersonOfOrgUnitDirector() throws Exception {
+        String sciper = "1412881";
+        String fullName = "Foray, Dominique";
+
+        PersonDTO personDTO = getMockPersonDTO(sciper);
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenReturn(Optional.of(personDTO));
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community for orgunit")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for orgunit")
+                .withEntityType("OrgUnit")
+                .build();
+
+        CollectionBuilder.createCollection(context, community)
+                .withName("Collection for person")
+                .withEntityType("Person")
+                .build();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withTitle("Test orgunit")
+                .withMetadata("crisou", "director", null, null,
+                        fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
+
+        orgUnit = context.reloadEntity(orgUnit);
+
+        assertNotNull(orgUnit);
+
+        String authority = orgUnit.getMetadata().stream()
+                .filter(m -> "crisou".equals(m.getSchema()) && "director".equals(m.getElement()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+    }
+
+    private PersonDTO getMockPersonDTO(String sciper) {
+        Accred accred = new Accred();
+        accred.setAcronym("PH-CDM");
+        accred.setCode(11968);
+        accred.setName("MOCK Honorary Professors CDM");
+        accred.setPath("EPFL/CDM/CDM-DIR/PH-CDM");
+        Accred[] accreds = new Accred[1];
+        accreds[0] = accred;
+
+        PersonDTO personDTO = new PersonDTO();
+        personDTO.setEmail("mocked.dominique.foray@epfl.ch");
+        personDTO.setFirstname("Dominique");
+        personDTO.setName("Foray");
+        personDTO.setProfile("dominique.foray");
+        personDTO.setRank(0);
+        personDTO.setSciper(sciper);
+        personDTO.setAccreds(accreds);
+        return personDTO;
+    }
+
+    @Test
+    public void testCreationOfEPersonOfOrgUnitDirectorNonExistingOnEPFL() throws Exception {
+        String sciper = "909090909090";
+        String fullName = "NonExistent, John";
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenReturn(Optional.empty());
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community for orgunit")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for orgunit")
+                .withEntityType("OrgUnit")
+                .build();
+
+        CollectionBuilder.createCollection(context, community)
+                .withName("Collection for person")
+                .withEntityType("Person")
+                .build();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withTitle("Test orgunit")
+                .withMetadata("crisou", "director", null, null,
+                        fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
+        assertEquals(sciper + "@epfl.ch", person.getEmail());
+        assertEquals("Unnamed", person.getFirstName());
+        assertEquals("Unnamed", person.getLastName());
+
+        orgUnit = context.reloadEntity(orgUnit);
+
+        assertNotNull(orgUnit);
+
+        String authority = orgUnit.getMetadata().stream()
+                .filter(m -> "crisou".equals(m.getSchema()) && "director".equals(m.getElement()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+    }
+
+    @Test
+    public void testCreationOfEPersonOfOrgUnitDirectorWithException() throws Exception {
+        String sciper = "909090909091";
+        String fullName = "NonExistent, John";
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenThrow(new RuntimeException("Mocked Exception"));
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community for orgunit")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for orgunit")
+                .withEntityType("OrgUnit")
+                .build();
+
+        CollectionBuilder.createCollection(context, community)
+                .withName("Collection for person")
+                .withEntityType("Person")
+                .build();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withTitle("Test orgunit")
+                .withMetadata("crisou", "director", null, null,
+                        fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
+        assertEquals(sciper + "@epfl.ch", person.getEmail());
+        assertEquals("Unnamed", person.getFirstName());
+        assertEquals("Unnamed", person.getLastName());
+
+        orgUnit = context.reloadEntity(orgUnit);
+
+        assertNotNull(orgUnit);
+
+        String authority = orgUnit.getMetadata().stream()
+                .filter(m -> "crisou".equals(m.getSchema()) && "director".equals(m.getElement()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+    }
+
+    @Test
+    public void testCreationOfEPersonOfPublicationAuthor() throws Exception {
+
+        String sciper = "1412882";
+        String fullName = "Foray, Dominique";
+
+        PersonDTO personDTO = getMockPersonDTO(sciper);
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+        .thenReturn(Optional.of(personDTO));
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        CollectionBuilder.createCollection(context, subCommunity)
+        .withName("Collection for person")
+        .withEntityType("Person")
+        .build();
+
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+            .withEntityType("Publication")
+            .withMetadata("dc", "contributor", "author", null,
+                    fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNotNull(person);
+        assertEquals(sciper + "@epfl.ch", person.getNetid());
+
+        publication = context.reloadEntity(publication);
+
+        assertNotNull(publication);
+
+        String authority = publication.getMetadata().stream()
+                .filter(m -> "dc".equals(m.getSchema())
+                        && "contributor".equals(m.getElement())
+                        && "author".equals(m.getQualifier()))
+                .map(MetadataValue::getAuthority).findFirst().orElse(null);
+
+        assertNotNull(authority);
+        assertFalse(authority.contains("will be generated"));
+
     }
 
     private ItemRest getItemViaRestByID(String authToken, UUID id) throws Exception {
