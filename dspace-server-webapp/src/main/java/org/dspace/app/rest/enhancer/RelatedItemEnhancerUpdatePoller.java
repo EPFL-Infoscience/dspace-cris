@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.content.enhancer;
+package org.dspace.app.rest.enhancer;
 
 import java.sql.SQLException;
 import java.util.UUID;
