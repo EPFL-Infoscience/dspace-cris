@@ -29,7 +29,7 @@ public class RelatedItemEnhancerUpdatePoller {
     @Autowired
     private ItemService itemService;
 
-    @Scheduled(fixedDelayString = "${related-item-enhancer-poller.delay:-1}")
+    @Scheduled(cron = "${related-item-enhancer-poller.cron:-}")
     public void pollItemToUpdateAndProcess() {
         try {
             Context context = new Context();
