@@ -915,6 +915,7 @@
         <property name="converterNameFile" value="mapConverter-datacitePublicationTypes.properties" />
         <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
         <property name="defaultValue" value="Text"/>
+        <property name="useAuthority" value="true" />
     </bean>
 
     <bean name="mapConverterDataciteToPublicationLicense" class="org.dspace.util.SimpleMapConverter" init-method="init">
