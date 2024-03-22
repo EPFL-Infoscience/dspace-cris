@@ -17,10 +17,12 @@ import org.dspace.core.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty("related-item-enhancer-poller.enabled")
 public class RelatedItemEnhancerUpdatePoller {
     private static final Logger log = LoggerFactory.getLogger(RelatedItemEnhancerUpdatePoller.class);
     @Autowired
@@ -29,7 +31,7 @@ public class RelatedItemEnhancerUpdatePoller {
     @Autowired
     private ItemService itemService;
 
-    @Scheduled(cron = "${related-item-enhancer-poller.cron:-}")
+    @Scheduled(fixedDelayString = "${related-item-enhancer-poller.delay}")
     public void pollItemToUpdateAndProcess() {
         try {
             Context context = new Context();
