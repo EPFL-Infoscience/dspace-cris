@@ -180,6 +180,13 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
+        <qualifier>unitId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
         <qualifier>department</qualifier>
         <scope_note />
     </dc-type>
