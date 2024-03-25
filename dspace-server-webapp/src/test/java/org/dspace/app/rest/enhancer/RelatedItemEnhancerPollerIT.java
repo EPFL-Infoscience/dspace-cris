@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.content.enhancer;
+package org.dspace.app.rest.enhancer;
 
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.dspace.app.matcher.MetadataValueMatcher.withNoPlace;
