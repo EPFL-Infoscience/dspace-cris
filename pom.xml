@@ -993,7 +993,13 @@
                 <dependencies>
                     <dependency>
                         <groupId>it.4science.dspace</groupId>
-                        <artifactId>addon-orchestrator</artifactId>
+                        <artifactId>addon-orchestrator-api</artifactId>
+                        <version>${addon-orchestrator.version}</version>
+                        <type>jar</type>
+                    </dependency>
+                    <dependency>
+                        <groupId>it.4science.dspace</groupId>
+                        <artifactId>addon-orchestrator-rest</artifactId>
                         <version>${addon-orchestrator.version}</version>
                         <type>jar</type>
                     </dependency>
