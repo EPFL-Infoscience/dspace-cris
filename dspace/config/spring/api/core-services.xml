@@ -215,8 +215,5 @@
     <!-- Submission Config Service -->
     <bean class="org.dspace.submit.service.SubmissionConfigServiceImpl"/>
 
-    <!-- Bean new task Executor -->
-    <bean id="orchestratorTaskExecutor" class="com.science4.orchestrator.executor.OrchestratorTaskExecutor"/>
-
 </beans>
 
