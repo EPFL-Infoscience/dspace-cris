@@ -81,7 +81,7 @@ public class PersonAuthority extends ItemAuthority {
                 .stream()
                 .map(person -> {
                     Map<String, String> extras = buildPersonAffiliationExtras(
-                        person.getMainAffiliation().orElse(new Accred())
+                        person.getMainAffiliation().orElse(new PersonDTO.Accred())
                     );
                     return new Choice(composeAuthorityValue(person.getSciper()), person.getFullName(),
                                       person.getFullName(), extras);
