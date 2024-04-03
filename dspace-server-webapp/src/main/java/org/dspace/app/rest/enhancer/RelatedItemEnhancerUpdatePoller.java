@@ -43,6 +43,7 @@ public class RelatedItemEnhancerUpdatePoller {
                     itemEnhancerService.enhance(context, item, true);
                 }
                 context.commit();
+                context.clear();
             }
             context.restoreAuthSystemState();
             context.complete();
