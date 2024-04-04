@@ -80,20 +80,20 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 .withDoiIdentifier("doi:10.9999/publication")
                 .withPublisher("A Publisher")
                 .withWrittenAt("Not at EPFL")
-                .withType("text::thesis::doctoral thesis")
+                .withType("thesis::doctoral thesis", "thesis-coar-types:c_46ec")
                 .build();
         Item itemWithPreviousEPFLDOI = ItemBuilder.createItem(context, col)
                 .withTitle("itemWithPreviousEPFLDOI")
                 .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
                 .withPublisher("School of XXX")
                 .withWrittenAt("EPFL")
-                .withType("text::thesis::doctoral thesis")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_46ec")
                 .build();
         Item newItemThatShouldGetDOI = ItemBuilder.createItem(context, col)
                 .withTitle("newItemThatShouldGetDOI")
                 .withPublisher("School of YYYY")
                 .withWrittenAt("EPFL")
-                .withType("text::thesis::doctoral thesis")
+                .withType("thesis::doctoral thesis", "thesis-coar-types:c_46ec")
                 .build();
         Item itemThatShouldNotGetADOI = ItemBuilder.createItem(context, col)
                 .withTitle("itemThatShouldNotGetADOI")

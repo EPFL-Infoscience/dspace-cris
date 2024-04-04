@@ -3084,6 +3084,33 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testEpflThesisDataciteXMLDisseminate() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemWithPreviousEPFLDOI = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("itemWithPreviousEPFLDOI")
+                .withAuthor("Student, Name")
+                .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
+                .withPublisher("School of XXX")
+                .withWrittenAt("EPFL")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("publication-datacite-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, itemWithPreviousEPFLDOI, out);
+
+        try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
     public void testResearchOutputsJsonDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
