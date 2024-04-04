@@ -27,8 +27,15 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 public class PersonAuthority extends ItemAuthority {
 
     private static final String AUTHOR_AFFILIATION = "oairecerif_author_affiliation";
+    private static final String SCIENTIFIC_EDITOR_AFFILIATION = "oairecerif_scientificeditor_affiliation";
+    private static final String ADVISOR_AFFILIATION = "oairecerif_advisor_affiliation";
+    private static final String CONTRIBUTOR_AFFILIATION = "oairecerif_contributor_affiliation";
 
     private static final String DATA_AUTHOR_AFFILIATION = "data-oairecerif_author_affiliation";
+    private static final String DATA_SCIENTIFIC_EDITOR_AFFILIATION = "data-oairecerif_scientificeditor_affiliation";
+    private static final String DATA_ADVISOR_AFFILIATION = "data-oairecerif_advisor_affiliation";
+    private static final String DATA_CONTRIBUTOR_AFFILIATION = "data-oairecerif_contributor_affiliation";
+
 
     private static final String AUTHOR_ORGUNIT = "oairecerif_affiliation_orgunit";
 
@@ -85,23 +92,41 @@ public class PersonAuthority extends ItemAuthority {
     private Map<String, String> buildPersonAffiliationExtras(Accred accred) {
         Map<String, String> extras = new HashMap<>();
 
-        if (authorityName.equals("AuthorAuthority")) {
-            buildAuthorExtras(extras, accred);
-        }
-
-        if (authorityName.equals("EditorAuthority")) {
-            buildEditorExtras(extras, accred);
+        switch (authorityName) {
+            case "AuthorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_AUTHOR_AFFILIATION, AUTHOR_AFFILIATION);
+                break;
+            case "ScientificEditorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_SCIENTIFIC_EDITOR_AFFILIATION, SCIENTIFIC_EDITOR_AFFILIATION);
+                break;
+            case "AdvisorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_ADVISOR_AFFILIATION, ADVISOR_AFFILIATION);
+                break;
+            case "ContributorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_CONTRIBUTOR_AFFILIATION, CONTRIBUTOR_AFFILIATION);
+                break;
+            case "EditorAuthority":
+                buildEditorExtras(extras, accred);
+                break;
+            default:
+                break;
         }
 
         return extras;
     }
-
-    private void buildAuthorExtras(Map<String, String> extras, Accred accred) {
+    private void buildBasicAuthorExtras(Map<String, String> extras, Accred accred) {
         extras.put(DATA_AUTHOR_ORGUNIT, composePersonAffiliationValue(accred));
         extras.put(AUTHOR_ORGUNIT, accred.getName());
+    }
 
-        extras.put(DATA_AUTHOR_AFFILIATION, "EPFL" + "::" + configurationService.getProperty("epfl.head-orgunit.uuid"));
-        extras.put(AUTHOR_AFFILIATION, "EPFL");
+    private void buildAffiliationAuthorExtras(Map<String, String> extras,
+                                              String dataAffiliatoinMetadata, String affiliationMetadata) {
+        extras.put(dataAffiliatoinMetadata, "EPFL" + "::" + configurationService.getProperty("epfl.head-orgunit.uuid"));
+        extras.put(affiliationMetadata, "EPFL");
     }
 
     private void buildEditorExtras(Map<String, String> extras, Accred accred) {
