@@ -52,7 +52,7 @@ public class DoiFilter implements Filter {
     }
 
     private boolean isThesis(Item item) {
-        List<MetadataValue> values = itemService.getMetadata(item, "dc.type", "thesis-coar-types:c_46ec");
+        List<MetadataValue> values = itemService.getMetadata(item, "dc.type", "thesis-coar-types:c_db06");
         return values.size() > 0;
     }
 
