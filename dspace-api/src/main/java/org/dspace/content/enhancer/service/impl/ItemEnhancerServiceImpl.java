@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.dao.ItemForMetadataEnhancementUpdateDAO;
@@ -28,6 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ItemEnhancerServiceImpl implements ItemEnhancerService {
 
+    /**
+     * log4j category
+     */
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(ItemEnhancerServiceImpl.class);
+
     @Autowired
     private List<ItemEnhancer> itemEnhancers;
 
@@ -41,14 +47,15 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
     public void enhance(Context context, Item item, boolean deepMode) {
         boolean isUpdateNeeded = false;
         if (deepMode) {
-            itemForMetadataEnhancementUpdateDAO.removeItemForUpdate(context, item.getID());
+            final UUID id = item.getID();
+            log.debug("deepMode enabled, removing item with uuid {} from the queue", id);
+            itemForMetadataEnhancementUpdateDAO.removeItemForUpdate(context, id);
         }
         for (ItemEnhancer itemEnhancer : itemEnhancers) {
             if (itemEnhancer.canEnhance(context, item)) {
                 isUpdateNeeded = itemEnhancer.enhance(context, item, deepMode) || isUpdateNeeded;
             }
         }
-
         if (isUpdateNeeded) {
             updateItem(context, item);
             try {
@@ -61,7 +68,8 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
 
     @Override
     public void saveAffectedItemsForUpdate(Context context, UUID uuid) throws SQLException {
-        itemForMetadataEnhancementUpdateDAO.saveAffectedItemsForUpdate(context, uuid);
+        int queued = itemForMetadataEnhancementUpdateDAO.saveAffectedItemsForUpdate(context, uuid);
+        log.debug("queued {} items for metadata enhancement check", queued);
     }
 
     @Override
