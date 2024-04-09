@@ -396,7 +396,8 @@ public class DOIOrganiser {
         }
 
         try {
-            List<DOI> doiList = doiService.getDOIsByStatus(context, Arrays.asList(status), limit);
+            int offset = -1;
+            List<DOI> doiList = doiService.getDOIsByStatus(context, Arrays.asList(status), offset, limit);
             if (0 < doiList.size()) {
                 out.println("First " + limit + " DOIs queued for " + processName + ": ");
             } else {
