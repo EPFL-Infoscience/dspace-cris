@@ -40,7 +40,7 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
     }
 
     @Test
-    public void testExportFormatWithoutTYpe() throws Exception {
+    public void testExportFormatWithoutType() throws Exception {
         getClient().perform(get("/api/integration/itemexportformats/search/byEntityTypeAndMolteplicity")
                         .param("size", "100")
                         .param("molteplicity", SINGLE.name()))
