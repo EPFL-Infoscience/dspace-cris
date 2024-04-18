@@ -38,4 +38,14 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(15)));
     }
+
+    @Test
+    public void testExportFormatWithoutTYpe() throws Exception {
+        getClient().perform(get("/api/integration/itemexportformats/search/byEntityTypeAndMolteplicity")
+                        .param("size", "100")
+                        .param("molteplicity", SINGLE.name()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.itemexportformats.length()",
+                        Matchers.greaterThanOrEqualTo(9)));
+    }
 }
