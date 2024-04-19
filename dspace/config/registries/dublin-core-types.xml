@@ -1014,4 +1014,11 @@
     <scope_note></scope_note>
   </dc-type>
 
+  <dc-type>
+    <schema>dc</schema>
+    <element>relation</element>
+    <qualifier>title</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
 </dspace-dc-types>
