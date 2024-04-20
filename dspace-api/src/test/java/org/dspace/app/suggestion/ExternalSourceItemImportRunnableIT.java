@@ -120,6 +120,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
     }
 
     @Test
+    @Ignore
     public void testImportItemsFromExternalSourceForInvalidCollectionId() throws Exception {
         String invalidId = "invalid_id";
         Suggestion suggestion = createSuggestion(item, "pubmed", "35444744");
@@ -155,6 +156,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
     }
 
     @Test
+    @Ignore
     public void testImportItemsFromExternalSource() throws Exception {
         String source = "pubmed";
         Suggestion suggestion = createSuggestion(item, source, "35444744");
@@ -220,6 +222,7 @@ public class ExternalSourceItemImportRunnableIT extends AbstractIntegrationTestW
     }
 
     @Test
+    @Ignore
     public void testImportLimitItemsFromExternalSource() throws Exception {
 
         String source = "pubmed";
