@@ -1540,7 +1540,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         md5Signature.setNormalizationRegexp(normalizeRegex);
         md5Signature.setUseEntityType(false);
     }
-/*
+
     @Test
     public void findItemsBySignatureWithoutVirtualMetadataTest() throws Exception {
         // Turn off the authorization system in order to create the structure as defined below
@@ -1574,19 +1574,19 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
                                       .withAuthor("Smith, Donald")
                                       .withIdentifierDoi("10.1234/123456789")
                                       .withMetadata("cris", "virtual", "department", "fake-department-1")
-                                      .withMetadata("cris", "virtual", "author-orcid", "fake-author-1")
-                                      .withMetadata("cris", "virtual", "editor-orcid", "fake-editor-1")
+                                      .withMetadata("cris", "virtual", "sciperId", "fake-sciper")
                                       .build();
         Item publicItem2 = ItemBuilder.createItem(context, collection)
                                       .withTitle("Second Test")
                                       .withIssueDate("2015-12-18")
                                       .withIdentifierDoi("10.1234/123456789")
                                       .withMetadata("cris", "virtual", "department", "fake-department-2")
-                                      .withMetadata("cris", "virtual", "author-orcid", "fake-author-2")
-                                      .withMetadata("cris", "virtual", "editor-orcid", "fake-editor-2")
+                                      .withMetadata("cris", "virtual", "sciperId", "fake-author-2")
                                       .build();
         // Set up MD5ValueSignature state to produce the same signature
-        String signature = DOISignature.getSignature(publicItem1, context).get(0);
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
         // Restore the authorization system
         context.restoreAuthSystemState();
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -1607,13 +1607,7 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
                              )
                              .andExpect(
                                  jsonPath(
-                                     "$._embedded.items[*].metadata['cris.virtual.author-orcid']",
-                                     Matchers.emptyIterable()
-                                 )
-                             )
-                             .andExpect(
-                                 jsonPath(
-                                     "$._embedded.items[*].metadata['cris.virtual.editor-orcid']",
+                                     "$._embedded.items[*].metadata['cris.virtual.sciperId']",
                                      Matchers.emptyIterable()
                                  )
                              );
@@ -1663,7 +1657,9 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
                                       .withAlternativeTitle("excluded title metadatum")
                                       .build();
         // Set up MD5ValueSignature state to produce the same signature
-        String signature = DOISignature.getSignature(publicItem1, context).get(0);
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
         // Restore the authorization system
         context.restoreAuthSystemState();
         String adminToken = getAuthToken(admin.getEmail(), password);
@@ -1689,5 +1685,5 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
                                  )
                              );
     }
-*/
+
 }
