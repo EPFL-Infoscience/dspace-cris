@@ -546,7 +546,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item updatedProfile = researcherProfile.getItem();
         assertThat(updatedProfile, is(profile));
 
-        assertThat(updatedProfile.getMetadata(), hasSize(27));
+        assertThat(updatedProfile.getMetadata(), hasSize(40));
 
         Bitstream newPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(newPicture, notNullValue());
