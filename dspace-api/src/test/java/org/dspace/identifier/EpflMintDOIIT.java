@@ -82,9 +82,23 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 .withWrittenAt("Not at EPFL")
                 .withType("thesis::doctoral thesis", "thesis-coar-types:c_db06")
                 .build();
+        Item itemWithPreviousEPFLHttpDOI = ItemBuilder.createItem(context, col)
+                .withTitle("itemWithPreviousHttpEPFLDOI")
+                .withDoiIdentifier("https://doi.org/10.5072/epfl-thesis-old-http-doi")
+                .withPublisher("School of XXX")
+                .withWrittenAt("EPFL")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
+                .build();
         Item itemWithPreviousEPFLDOI = ItemBuilder.createItem(context, col)
                 .withTitle("itemWithPreviousEPFLDOI")
                 .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
+                .withPublisher("School of XXX")
+                .withWrittenAt("EPFL")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
+                .build();
+        Item itemWithPreviousEPFLPlainDOI = ItemBuilder.createItem(context, col)
+                .withTitle("itemWithPreviousPlainEPFLDOI")
+                .withDoiIdentifier("10.5072/epfl-thesis-old-plain-doi")
                 .withPublisher("School of XXX")
                 .withWrittenAt("EPFL")
                 .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
@@ -107,15 +121,42 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 Matchers.isEmptyOrNullString());
         assertThat(identifierService.lookup(context, itemWithPreviousEPFLDOI, DOI.class),
                 Matchers.equalTo("doi:10.5072/epfl-thesis-old-doi"));
+        assertThat(identifierService.lookup(context, itemWithPreviousEPFLHttpDOI, DOI.class),
+                Matchers.equalTo("doi:10.5072/epfl-thesis-old-http-doi"));
+        assertThat(identifierService.lookup(context, itemWithPreviousEPFLPlainDOI, DOI.class),
+                Matchers.equalTo("doi:10.5072/epfl-thesis-old-plain-doi"));
         assertThat(identifierService.lookup(context, newItemThatShouldGetDOI, DOI.class),
                 Matchers.startsWith("doi:10.5072/"));
         assertThat(identifierService.lookup(context, itemThatShouldNotGetADOI, DOI.class),
                 Matchers.isEmptyOrNullString());
 
+        assertThat(runDSpaceScript("doi-organiser", "-r"), Matchers.is(0));
+        context.turnOffAuthorisationSystem();
+        itemWithPreviousEPFLHttpDOI = context.reloadEntity(itemWithPreviousEPFLHttpDOI);
+        itemWithPreviousEPFLPlainDOI = context.reloadEntity(itemWithPreviousEPFLPlainDOI);
+        itemWithPreviousEPFLDOI = context.reloadEntity(itemWithPreviousEPFLDOI);
+        newItemThatShouldGetDOI = context.reloadEntity(newItemThatShouldGetDOI);
+        assertThat(getFirstDOIMetadata(itemWithPreviousEPFLDOI),
+                Matchers.equalTo("doi:10.5072/epfl-thesis-old-doi"));
+        assertThat(getFirstDOIMetadata(itemWithPreviousEPFLHttpDOI),
+                Matchers.equalTo("https://doi.org/10.5072/epfl-thesis-old-http-doi"));
+        assertThat(getFirstDOIMetadata(itemWithPreviousEPFLPlainDOI),
+                Matchers.equalTo("10.5072/epfl-thesis-old-plain-doi"));
+        assertThat(getFirstDOIMetadata(newItemThatShouldGetDOI),
+                Matchers.startsWith("https://doi.org/10.5072/"));
+        assertThat(getNumDOIMetadata(itemWithPreviousEPFLDOI), Matchers.is(1));
+        assertThat(getNumDOIMetadata(itemWithPreviousEPFLHttpDOI), Matchers.is(1));
+        assertThat(getNumDOIMetadata(itemWithPreviousEPFLPlainDOI), Matchers.is(1));
+        assertThat(getNumDOIMetadata(newItemThatShouldGetDOI), Matchers.is(1));
+        context.restoreAuthSystemState();
     }
 
     private String getFirstDOIMetadata(Item newItemThatShouldGetDOI) {
         return itemService.getMetadataFirstValue(newItemThatShouldGetDOI, "dc", "identifier", "doi", Item.ANY);
+    }
+
+    private int getNumDOIMetadata(Item newItemThatShouldGetDOI) {
+        return itemService.getMetadata(newItemThatShouldGetDOI, "dc", "identifier", "doi", Item.ANY).size();
     }
 
 }
