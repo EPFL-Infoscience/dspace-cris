@@ -16,12 +16,10 @@ public class MockDataCiteConnector extends DataCiteConnector {
 
     /**
      * Mock the internal method to send requests prepared by the caller to DataCite
-     * to force a specific response (200 for metadata request, 201 for doi request)
-     * to allow test of doi registration.
+     * to simulate a successful response (200, 201) as appropriate
      */
     protected DataCiteResponse sendHttpRequest(HttpUriRequest req, String doi) throws DOIIdentifierException {
-        if (req.getURI().getPath().contains(METADATA_PATH)) {
-            // metadata request are used to check if the doi is already registered
+        if (req.getMethod().contains("GET")) {
             return new DataCiteResponse(200, "OK");
         } else {
             return new DataCiteResponse(201, "OK");

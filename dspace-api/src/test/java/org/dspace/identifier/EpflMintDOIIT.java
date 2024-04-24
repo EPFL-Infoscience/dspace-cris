@@ -129,9 +129,24 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 Matchers.startsWith("doi:10.5072/"));
         assertThat(identifierService.lookup(context, itemThatShouldNotGetADOI, DOI.class),
                 Matchers.isEmptyOrNullString());
-
+        assertThat(runDSpaceScript("doi-organiser", "-l"), Matchers.is(0));
+        assertThat(runDSpaceScript("doi-organiser", "-u"), Matchers.is(0));
         assertThat(runDSpaceScript("doi-organiser", "-r"), Matchers.is(0));
         context.turnOffAuthorisationSystem();
+        itemWithPreviousEPFLHttpDOI = context.reloadEntity(itemWithPreviousEPFLHttpDOI);
+        itemWithPreviousEPFLPlainDOI = context.reloadEntity(itemWithPreviousEPFLPlainDOI);
+        itemWithPreviousEPFLDOI = context.reloadEntity(itemWithPreviousEPFLDOI);
+        newItemThatShouldGetDOI = context.reloadEntity(newItemThatShouldGetDOI);
+        itemService.addMetadata(context, itemWithPreviousEPFLHttpDOI, "dc", "subject", null, null, "to trigger an update");
+        itemService.update(context, itemWithPreviousEPFLHttpDOI);
+        itemService.addMetadata(context, itemWithPreviousEPFLPlainDOI, "dc", "subject", null, null, "to trigger an update");
+        itemService.update(context, itemWithPreviousEPFLPlainDOI);
+        itemService.addMetadata(context, itemWithPreviousEPFLDOI, "dc", "subject", null, null, "to trigger an update");
+        itemService.update(context, itemWithPreviousEPFLDOI);
+        itemService.addMetadata(context, newItemThatShouldGetDOI, "dc", "subject", null, null, "to trigger an update");
+        itemService.update(context, newItemThatShouldGetDOI);
+        context.commit();
+        assertThat(runDSpaceScript("doi-organiser", "-u"), Matchers.is(0));
         itemWithPreviousEPFLHttpDOI = context.reloadEntity(itemWithPreviousEPFLHttpDOI);
         itemWithPreviousEPFLPlainDOI = context.reloadEntity(itemWithPreviousEPFLPlainDOI);
         itemWithPreviousEPFLDOI = context.reloadEntity(itemWithPreviousEPFLDOI);
@@ -149,6 +164,7 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
         assertThat(getNumDOIMetadata(itemWithPreviousEPFLPlainDOI), Matchers.is(1));
         assertThat(getNumDOIMetadata(newItemThatShouldGetDOI), Matchers.is(1));
         context.restoreAuthSystemState();
+        assertThat(runDSpaceScript("doi-organiser", "-l"), Matchers.is(0));
     }
 
     private String getFirstDOIMetadata(Item newItemThatShouldGetDOI) {
