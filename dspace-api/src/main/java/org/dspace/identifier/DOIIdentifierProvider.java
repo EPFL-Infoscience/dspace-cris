@@ -1040,7 +1040,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
     }
 
     /**
-     * Loads a DOI out of the metadata of an DSpaceObject.
+     * Loads a DOI out of the metadata of an DSpaceObject. If found it will be in the format doi:10.xxx/yyy
      *
      * @param dso DSpace object to get DOI metadata from
      * @return The DOI or null if no DOI was found.
@@ -1087,13 +1087,31 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
                 contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso) + ".");
         }
         Item item = (Item) dso;
+        String doiUrn = doiService.formatIdentifier(doi);
 
-        itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
-            doiService.DOIToExternalForm(doi));
-        try {
-            itemService.update(context, item);
-        } catch (SQLException | AuthorizeException ex) {
-            throw ex;
+        List<MetadataValue> identifiers = itemService
+                .getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
+        boolean alreadyPresent = false;
+        for (MetadataValue identifier : identifiers) {
+            String identifierUrn = identifier.getValue();
+            try {
+                identifierUrn = doiService.formatIdentifier(identifier.getValue());
+            } catch (DOIIdentifierException e) {
+                // unknown format take it as is
+            }
+            if (StringUtils.startsWithIgnoreCase(identifierUrn, doiUrn)) {
+                alreadyPresent = true;
+            }
+        }
+
+        if (!alreadyPresent) {
+            itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
+                doiService.DOIToExternalForm(doi));
+            try {
+                itemService.update(context, item);
+            } catch (SQLException | AuthorizeException ex) {
+                throw ex;
+            }
         }
     }
 
