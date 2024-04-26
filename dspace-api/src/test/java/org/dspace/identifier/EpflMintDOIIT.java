@@ -137,9 +137,11 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
         itemWithPreviousEPFLPlainDOI = context.reloadEntity(itemWithPreviousEPFLPlainDOI);
         itemWithPreviousEPFLDOI = context.reloadEntity(itemWithPreviousEPFLDOI);
         newItemThatShouldGetDOI = context.reloadEntity(newItemThatShouldGetDOI);
-        itemService.addMetadata(context, itemWithPreviousEPFLHttpDOI, "dc", "subject", null, null, "to trigger an update");
+        itemService.addMetadata(context,
+                itemWithPreviousEPFLHttpDOI, "dc", "subject", null, null, "to trigger an update");
         itemService.update(context, itemWithPreviousEPFLHttpDOI);
-        itemService.addMetadata(context, itemWithPreviousEPFLPlainDOI, "dc", "subject", null, null, "to trigger an update");
+        itemService.addMetadata(context,
+                itemWithPreviousEPFLPlainDOI, "dc", "subject", null, null, "to trigger an update");
         itemService.update(context, itemWithPreviousEPFLPlainDOI);
         itemService.addMetadata(context, itemWithPreviousEPFLDOI, "dc", "subject", null, null, "to trigger an update");
         itemService.update(context, itemWithPreviousEPFLDOI);
