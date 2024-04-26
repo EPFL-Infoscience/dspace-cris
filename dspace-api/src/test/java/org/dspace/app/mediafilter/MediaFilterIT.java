@@ -7,11 +7,13 @@
  */
 package org.dspace.app.mediafilter;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -143,6 +145,13 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void mediaFilterScriptDateModifiedNotChangedTest() throws Exception {
+        Date itemDateModified = item1_1_a.getLastModified();
+        performMediaFilterScript(item1_1_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_a, itemDateModified);
+    }
+
+    @Test
     public void mediaFilterScriptIdentifiersTest() throws Exception {
         // process the item 1_1_a and verify that no other items has been processed using the "closer" one
         performMediaFilterScript(item1_1_a);
@@ -203,6 +212,12 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
                 StringUtils.equals(bitstreams.get(0).getName(), expectedFileName));
         assertTrue("The text bistream in the " + item.getName() + " doesn't contain the proper content ["
                 + expectedContent + "]", StringUtils.contains(getContent(bitstreams.get(0)), expectedContent));
+    }
+
+    private void checkItemHasBeenProcessedAndDateModifiedIsNotChanged(Item item, Date previousDateModified)
+            throws IOException, SQLException, AuthorizeException {
+        checkItemHasBeenProcessed(item);
+        assertEquals(item.getLastModified().getTime(), previousDateModified.getTime());
     }
 
     private CharSequence getContent(Bitstream bitstream) throws IOException, SQLException, AuthorizeException {

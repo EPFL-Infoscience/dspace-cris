@@ -95,6 +95,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private Set<Item> itemsToProcess = new HashSet<>();
     private Set<Item> itemsToUpdate = new HashSet<>();
     private MetadataFieldService metadataFieldService;
+    private Boolean updateLastModified = true;
 
     @Override
     public void initialize() throws Exception {
@@ -103,6 +104,12 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         this.resourcePolicyService = ContentServiceFactory.getInstance().getResourcePolicyService();
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
+    }
+
+    @Override
+    public void consume(Context ctx, Event event, Boolean updateLastModified) throws Exception {
+        this.updateLastModified = updateLastModified;
+        consume(ctx, event);
     }
 
     @Override
@@ -150,7 +157,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
             .forEach(item -> this.handleItemConsumer(ctx, item));
         itemsToProcess.clear();
 
-        itemsToUpdate.forEach(item -> updateItem(ctx, item));
+        itemsToUpdate.forEach(item -> updateItem(ctx, item, updateLastModified));
         itemsToUpdate.clear();
     }
 
@@ -532,10 +539,10 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 .isPresent();
     }
 
-    private void updateItem(Context context, Item item) {
+    private void updateItem(Context context, Item item, Boolean updateLastModified) {
         try {
             context.turnOffAuthorisationSystem();
-            itemService.update(context, item);
+            itemService.update(context, item, updateLastModified);
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         } finally {

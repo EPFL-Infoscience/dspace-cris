@@ -38,13 +38,31 @@ public interface MediaFilterService {
 
     public void applyFiltersAllItems(Context context) throws Exception;
 
+    default void applyFiltersAllItems(Context context, Boolean updateLastModified) throws Exception {
+        applyFiltersAllItems(context);
+    }
+
     public void applyFiltersCommunity(Context context, Community community)
         throws Exception;
+
+    default void applyFiltersCommunity(Context context, Community community, Boolean updateLastModified)
+            throws Exception {
+        applyFiltersCommunity(context, community);
+    }
 
     public void applyFiltersCollection(Context context, Collection collection)
         throws Exception;
 
+    default void applyFiltersCollection(Context context, Collection collection, Boolean updateLastModified)
+            throws Exception {
+        applyFiltersCollection(context, collection);
+    }
+
     public void applyFiltersItem(Context c, Item item) throws Exception;
+
+    default void applyFiltersItem(Context c, Item item, Boolean updateLastModified) throws Exception {
+        applyFiltersItem(c, item);
+    }
 
 
     /**

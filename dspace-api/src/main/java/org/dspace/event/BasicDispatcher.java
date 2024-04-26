@@ -64,6 +64,11 @@ public class BasicDispatcher extends Dispatcher {
      */
     @Override
     public void dispatch(Context ctx) {
+        dispatch(ctx, true);
+    }
+
+    @Override
+    public void dispatch(Context ctx, Boolean updateLastModified) {
         if (!consumers.isEmpty()) {
 
             if (!ctx.hasEvents()) {
@@ -72,7 +77,7 @@ public class BasicDispatcher extends Dispatcher {
 
             if (log.isDebugEnabled()) {
                 log.debug("Processing queue of "
-                              + String.valueOf(ctx.getEvents().size()) + " events.");
+                        + String.valueOf(ctx.getEvents().size()) + " events.");
             }
 
             // transaction identifier applies to all events created in
@@ -87,8 +92,8 @@ public class BasicDispatcher extends Dispatcher {
 
                 if (log.isDebugEnabled()) {
                     log.debug("Iterating over "
-                                  + String.valueOf(consumers.values().size())
-                                  + " consumers...");
+                            + String.valueOf(consumers.values().size())
+                            + " consumers...");
                 }
 
                 for (Iterator ci = consumers.values().iterator(); ci.hasNext(); ) {
@@ -97,18 +102,18 @@ public class BasicDispatcher extends Dispatcher {
                     if (event.pass(cp.getFilters())) {
                         if (log.isDebugEnabled()) {
                             log.debug("Sending event to \"" + cp.getName()
-                                          + "\": " + event.toString());
+                                    + "\": " + event.toString());
                         }
 
                         try {
-                            cp.getConsumer().consume(ctx, event);
+                            cp.getConsumer().consume(ctx, event, updateLastModified);
 
                             // Record that the event has been consumed by this
                             // consumer
                             event.setBitSet(cp.getName());
                         } catch (Exception e) {
                             log.error("Consumer(\"" + cp.getName()
-                                          + "\").consume threw: " + e.toString(), e);
+                                    + "\").consume threw: " + e.toString(), e);
                         }
                     }
 
@@ -121,14 +126,14 @@ public class BasicDispatcher extends Dispatcher {
                 if (cp != null) {
                     if (log.isDebugEnabled()) {
                         log.debug("Calling end for consumer \"" + cp.getName()
-                                      + "\"");
+                                + "\"");
                     }
 
                     try {
                         cp.getConsumer().end(ctx);
                     } catch (Exception e) {
                         log.error("Error in Consumer(\"" + cp.getName()
-                                      + "\").end: " + e.toString(), e);
+                                + "\").end: " + e.toString(), e);
                     }
                 }
             }

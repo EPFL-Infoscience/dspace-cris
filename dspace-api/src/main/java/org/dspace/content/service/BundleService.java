@@ -56,6 +56,11 @@ public interface BundleService extends DSpaceObjectService<Bundle>, DSpaceObject
         throws SQLException, AuthorizeException;
 
 
+    default void addBitstream(Context context, Bundle bundle, Bitstream bitstream, Boolean updateLastModified)
+            throws SQLException, AuthorizeException {
+        addBitstream(context, bundle, bitstream);
+    }
+
     /**
      * Remove a bitstream from this bundle - the bitstream is only deleted if
      * this was the last reference to it

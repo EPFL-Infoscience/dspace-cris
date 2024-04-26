@@ -225,7 +225,7 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
 
             // now apply the filters
             if (identifier == null) {
-                mediaFilterService.applyFiltersAllItems(c);
+                mediaFilterService.applyFiltersAllItems(c, false);
             } else {
                 // restrict application scope to identifier
                 DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(c, identifier);
@@ -236,13 +236,13 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
 
                 switch (dso.getType()) {
                     case Constants.COMMUNITY:
-                        mediaFilterService.applyFiltersCommunity(c, (Community) dso);
+                        mediaFilterService.applyFiltersCommunity(c, (Community) dso, false);
                         break;
                     case Constants.COLLECTION:
-                        mediaFilterService.applyFiltersCollection(c, (Collection) dso);
+                        mediaFilterService.applyFiltersCollection(c, (Collection) dso, false);
                         break;
                     case Constants.ITEM:
-                        mediaFilterService.applyFiltersItem(c, (Item) dso);
+                        mediaFilterService.applyFiltersItem(c, (Item) dso, false);
                         break;
                     default:
                         break;

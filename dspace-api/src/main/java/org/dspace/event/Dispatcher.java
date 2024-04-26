@@ -67,4 +67,8 @@ public abstract class Dispatcher {
      */
     public abstract void dispatch(Context ctx);
 
+    public void dispatch(Context ctx, Boolean updateLastModified) {
+        dispatch(ctx);
+    }
+
 }

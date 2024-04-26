@@ -132,8 +132,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         return target;
     }
 
-    @Override
-    public void addBitstream(Context context, Bundle bundle, Bitstream bitstream)
+    public void addBitstream(Context context, Bundle bundle, Bitstream bitstream, Boolean updateLastModified)
             throws SQLException, AuthorizeException {
         // Check authorisation
         authorizeService.authorizeAction(context, bundle, Constants.ADD);
@@ -155,8 +154,8 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         // Ensure that the last modified from the item is triggered !
         Item owningItem = (Item) getParentObject(context, bundle);
         if (owningItem != null) {
-            itemService.updateLastModified(context, owningItem);
-            itemService.update(context, owningItem);
+            itemService.updateLastModified(context, owningItem, updateLastModified);
+            itemService.update(context, owningItem, updateLastModified);
         }
 
         bundle.addBitstream(bitstream);
@@ -209,6 +208,12 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
             }
         }
         bitstreamService.update(context, bitstream);
+    }
+
+    @Override
+    public void addBitstream(Context context, Bundle bundle, Bitstream bitstream)
+            throws SQLException, AuthorizeException {
+        addBitstream(context, bundle, bitstream, true);
     }
 
     @Override
