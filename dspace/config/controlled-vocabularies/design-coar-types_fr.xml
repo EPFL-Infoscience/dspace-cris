@@ -36,6 +36,10 @@
         </node>
       </isComposedBy>
     </node>
+    <node id="c_18cc" label="document sonore">
+      <hasNote>A resource primarily intended to be heard. Examples include a music playback file format, an audio compact disc, and recorded speech or sounds. [Source: http://dublincore.org/documents/dcmi-terms/#dcmitype-Sound]
+      </hasNote>
+    </node>
     <node id="c_e9a0" label="ressource interactive">
       <hasNote>A resource requiring interaction from the user to be understood, executed, or experienced. Examples include forms on Web pages, applets, multimedia learning objects, chat services, or virtual reality environments.
 Source: http://purl.org/dc/dcmitype/InteractiveResource

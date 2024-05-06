@@ -41,9 +41,13 @@ public class PersonAuthority extends ItemAuthority {
 
     private static final String DATA_AUTHOR_ORGUNIT = "data-oairecerif_affiliation_orgunit";
 
-    private static final String EDITOR_AFFILIATION = "oairecerif_editor_affiliation";
+    private static final String EDITOR_AFFILIATION = "oairecerif_scientificeditor_affiliation";
 
-    private static final String DATA_EDITOR_AFFILIATION = "data-oairecerif_editor_affiliation";
+    private static final String DATA_EDITOR_AFFILIATION = "data-oairecerif_scientificeditor_affiliation";
+
+    private static final String EDITOR_ORGUNIT = "oairecerif_affiliation_orgunit";
+
+    private static final String DATA_EDITOR_ORGUNIT = "data-oairecerif_affiliation_orgunit";
 
     private PersonApiService personApiService = dspace.getSingletonService(PersonApiServiceImpl.class);
     private final ItemAuthorityServiceFactory itemAuthorityServiceFactory = dspace.getServiceManager()
@@ -130,8 +134,11 @@ public class PersonAuthority extends ItemAuthority {
     }
 
     private void buildEditorExtras(Map<String, String> extras, Accred accred) {
-        extras.put(DATA_EDITOR_AFFILIATION, composePersonAffiliationValue(accred));
-        extras.put(EDITOR_AFFILIATION, accred.getName());
+        extras.put(DATA_EDITOR_ORGUNIT, composePersonAffiliationValue(accred));
+        extras.put(EDITOR_ORGUNIT, accred.getName());
+
+        extras.put(DATA_EDITOR_AFFILIATION, "EPFL" + "::" + configurationService.getProperty("epfl.head-orgunit.uuid"));
+        extras.put(EDITOR_AFFILIATION, "EPFL");
     }
 
     private String composeAuthorityValue(String sciper) {

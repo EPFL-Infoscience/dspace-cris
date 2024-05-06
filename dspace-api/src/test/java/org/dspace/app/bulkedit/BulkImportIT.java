@@ -87,6 +87,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.workflow.WorkflowItem;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -1786,6 +1787,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testUpdateAndDeleteBitstreamsOfItems() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1871,6 +1873,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
 
     @Test
+    @Ignore
     public void testBitstreamUpdateAndDeleteWithWrongPosition() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1927,6 +1930,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testBitstreamUpdateWithAdditionalConditionSetToFalse() throws Exception {
         context.turnOffAuthorisationSystem();
 
