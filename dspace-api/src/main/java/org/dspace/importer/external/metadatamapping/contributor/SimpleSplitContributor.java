@@ -56,7 +56,7 @@ public class SimpleSplitContributor extends SimpleXpathMetadatumContributor {
         }
         return values;
     }
-        
+
     private String extractValue(Object el) {
         String value = ((Element) el).getText();
         return StringUtils.isNotBlank(value) ? value : ((Element) el).getValue().trim();

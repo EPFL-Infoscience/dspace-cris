@@ -9,7 +9,6 @@ import java.util.Objects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,11 +41,11 @@ public class PageRangeJsonPathMetadataContributor extends SimpleJsonPathMetadata
         // Extract page range from JSON
         String pageRange = extractPageRangeFromJson(fullJson);
         metadatums = getMetadatum(pageRange);
-            if (Objects.nonNull(metadatums)) {
-                for (MetadatumDTO metadatum : metadatums) {
-                        values.add(metadatum);
-                }
+        if (Objects.nonNull(metadatums)) {
+            for (MetadatumDTO metadatum : metadatums) {
+                values.add(metadatum);
             }
+        }
         return values;
     }
 
@@ -63,7 +62,7 @@ public class PageRangeJsonPathMetadataContributor extends SimpleJsonPathMetadata
             metadatums.add(setStartPage(range));
         }
         return metadatums;
-    }    
+    }
 
     private MetadatumDTO setEndPage(String[] range) {
         MetadatumDTO endPage = new MetadatumDTO();
