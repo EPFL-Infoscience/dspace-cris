@@ -134,6 +134,8 @@ public class DOIOrganiser {
                           "Perform online deletion for all identifiers queued for deletion.");
         options.addOption("q", "quiet", false,
                           "Turn the command line output off.");
+        options.addOption("o", "offset", true, "The records offset");
+        options.addOption("li", "limit", true, "The records limit");
 
         Option filterDoi = Option.builder().optionalArg(true).longOpt("filter").hasArg().argName("filterName")
                 .desc("Use the specified filter name instead of the provider's filter. Defaults to a special " +
@@ -214,6 +216,17 @@ public class DOIOrganiser {
             organiser.list("deletion", null, null, DOIIdentifierProvider.TO_BE_DELETED);
         }
 
+        int limit = organiser.getLimit();
+        int offset = -1;
+
+        if (line.hasOption("li")) {
+            limit = Integer.valueOf(line.getOptionValue("li"));
+        }
+
+        if (line.hasOption("o")) {
+            offset = Integer.valueOf(line.getOptionValue("o"));
+        }
+
         DOIService doiService = IdentifierServiceFactory.getInstance().getDOIService();
         // Do we get a filter?
         if (line.hasOption("filter")) {
@@ -222,11 +235,11 @@ public class DOIOrganiser {
                 organiser.filter = FilterUtils.getFilterFromConfiguration(filter);
             }
         }
-        int limit = organiser.getLimit();
+
         if (line.hasOption('s')) {
             try {
                 List<DOI> dois = doiService
-                    .getDOIsByStatus(context, Arrays.asList(DOIIdentifierProvider.TO_BE_RESERVED), limit);
+                    .getDOIsByStatus(context, Arrays.asList(DOIIdentifierProvider.TO_BE_RESERVED), offset, limit);
                 if (dois.isEmpty()) {
                     System.err.println("There are no objects in the database "
                                            + "that could be reserved.");
@@ -245,7 +258,7 @@ public class DOIOrganiser {
         if (line.hasOption('r')) {
             try {
                 List<DOI> dois = doiService
-                    .getDOIsByStatus(context, Arrays.asList(DOIIdentifierProvider.TO_BE_REGISTERED), limit);
+                    .getDOIsByStatus(context, Arrays.asList(DOIIdentifierProvider.TO_BE_REGISTERED), offset, limit);
                 if (dois.isEmpty()) {
                     System.err.println("There are no objects in the database "
                                            + "that could be registered.");
@@ -267,8 +280,7 @@ public class DOIOrganiser {
                 List<DOI> dois = doiService.getDOIsByStatus(context, Arrays.asList(
                     DOIIdentifierProvider.UPDATE_BEFORE_REGISTRATION,
                     DOIIdentifierProvider.UPDATE_RESERVED,
-                    DOIIdentifierProvider.UPDATE_REGISTERED),
-                    limit);
+                    DOIIdentifierProvider.UPDATE_REGISTERED), offset, limit);
                 if (dois.isEmpty()) {
                     System.err.println("There are no objects in the database "
                                            + "whose metadata needs an update.");
@@ -287,7 +299,7 @@ public class DOIOrganiser {
         if (line.hasOption('d')) {
             try {
                 List<DOI> dois = doiService
-                    .getDOIsByStatus(context, Arrays.asList(DOIIdentifierProvider.TO_BE_DELETED), limit);
+                    .getDOIsByStatus(context, Arrays.asList(DOIIdentifierProvider.TO_BE_DELETED), offset, limit);
                 if (dois.isEmpty()) {
                     System.err.println("There are no objects in the database "
                                            + "that could be deleted.");
@@ -384,7 +396,8 @@ public class DOIOrganiser {
         }
 
         try {
-            List<DOI> doiList = doiService.getDOIsByStatus(context, Arrays.asList(status), limit);
+            int offset = -1;
+            List<DOI> doiList = doiService.getDOIsByStatus(context, Arrays.asList(status), offset, limit);
             if (0 < doiList.size()) {
                 out.println("First " + limit + " DOIs queued for " + processName + ": ");
             } else {

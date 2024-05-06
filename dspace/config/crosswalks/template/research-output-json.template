@@ -42,8 +42,8 @@
 	@group.dc-contributor-author.start@
     {
       "Name": "@dc.contributor.author@",
-      "Orcid": "@cris.virtual.author-orcid@",
-      "Sciper": "@cris.virtual.author-sciperId@",
+      "Orcid": "@virtual.orcid.dc-contributor-author@",
+      "Sciper": "@virtual.sciperId.dc-contributor-author@",
       "Affiliation": "@oairecerif.author.affiliation@"
     },
     @group.dc-contributor-author.end@
@@ -52,8 +52,8 @@
     @group.dc-contributor-scientificeditor.start@
     {
       "Name": "@dc.contributor.scientificeditor@",
-      "Orcid": "@cris.virtual.scientificeditor-orcid@",
-      "Sciper": "@cris.virtual.scientificeditor-sciperId@",
+      "Orcid": "@virtual.orcid.dc-contributor-scientificeditor@",
+      "Sciper": "@virtual.sciperId.dc-contributor-scientificeditor@",
       "Affiliation": "@oairecerif.scientificeditor.affiliation@"
     },
     @group.dc-contributor-editor.end@
@@ -61,7 +61,7 @@
     {
       "Name": "@epfl.contributor.advisor@",
       "Orcid": "@person.identifier.orcid@",
-      "Sciper": "@cris.virtual.advisor-sciperId@",
+      "Sciper": "@virtual.sciperId.dc-contributor-advisor@",
       "Affiliation": "@oairecerif.advisor.affiliation@"
     },
     @group.epfl-contributor-advisor.end@

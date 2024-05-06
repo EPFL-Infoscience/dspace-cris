@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.crosswalk.CrosswalkMode;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.integration.crosswalks.ItemExportCrosswalk;
@@ -76,10 +75,7 @@ public class ItemExportFormatServiceImpl implements ItemExportFormatService {
 
     private boolean hasSameEntityType(ItemExportCrosswalk exportCrosswalk, String entityType) {
         Optional<String> crosswalkEntityType = exportCrosswalk.getEntityType();
-        if (StringUtils.isBlank(entityType) && crosswalkEntityType.map("all"::equals).orElse(false)) {
-            return false;
-        }
-        if (!crosswalkEntityType.isPresent() || StringUtils.isBlank(entityType)) {
+        if (!crosswalkEntityType.isPresent() || crosswalkEntityType.map("all"::equals).orElse(false)) {
             return true;
         }
         return crosswalkEntityType.get().equals(entityType);

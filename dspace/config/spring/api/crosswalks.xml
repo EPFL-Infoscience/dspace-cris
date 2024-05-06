@@ -208,7 +208,7 @@
 		<property name="templateFileName" value="crosswalks/template/epfl-publication-marc-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="publications.xml"/>
-		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/epfl-publications-marc-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
 		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
@@ -719,6 +719,7 @@
 		<constructor-arg>
 			<map>
 				<entry key="id" value-ref="virtualFieldId" />
+				<entry key="item-ui-url" value-ref="virtualFieldItemURL" />
 				<entry key="config" value-ref="virtualFieldConfigProps" />
 				<entry key="authority" value-ref="virtualFieldAuthority" />
 				<entry key="primary-doi" value-ref="virtualFieldPrimaryDOI" />
@@ -736,11 +737,17 @@
 				<entry key="bitstreamData" value-ref="virtualFieldBitstreamData" />
 				<entry key="citations" value-ref="virtualFieldCitations" />
 				<entry key="publisher-with-place" value-ref="publisherWithPlace"></entry>
+                <entry key="epfl-unit-code" value-ref="virtualFieldEpflUnitCodeSplitter"/>
+				<entry key="sciperId" value-ref="virtualFieldToEnhancedMetadata"></entry>
+				<entry key="orcid" value-ref="virtualFieldToEnhancedMetadata"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
-	
+
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldToEnhancedMetadata"
+        id="virtualFieldToEnhancedMetadata" />
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldId" id="virtualFieldId"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldItemURL" id="virtualFieldItemURL"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldConfigProperties" id="virtualFieldConfigProps">
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 	</bean>
@@ -794,7 +801,9 @@
 
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.FirstSelectedCitationsPostProcessor" />
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.GroupByTypeCitationsPostProcessor" />
-	
+  <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMultiValueSplitter" id="virtualFieldEpflUnitCodeSplitter">
+    	<property name="metadataToSplit" value="epfl.unit.code" />
+  </bean>
 	<!-- MapConverter configuration -->
 
 	<bean id="org.dspace.util.MapConverters"  class="org.dspace.util.MapConverters"> 
@@ -812,6 +821,7 @@
 				<entry key="cerifToOrgUnitTypes" value-ref="mapConverterCerifToOrgUnitTypes" />
 				<entry key="cerifToFundingTypes" value-ref="mapConverterCerifToFundingTypes" />
 				<entry key="type2datacite" value-ref="mapConverterDataciteToPublicationTypes" />
+				<entry key="type2datacitelabel" value-ref="mapConverterDataciteToPublicationLabelTypes" />
 				<entry key="right2licenseUrl" value-ref="mapConverterDataciteToPublicationLicense" />
 				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
 				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
@@ -907,6 +917,14 @@
         <property name="converterNameFile" value="mapConverter-datacitePublicationTypes.properties" />
         <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
         <property name="defaultValue" value="Text"/>
+        <property name="useAuthority" value="true" />
+    </bean>
+
+    <bean name="mapConverterDataciteToPublicationLabelTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-datacitePublicationLabelTypes.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="Text"/>
+        <property name="useAuthority" value="true" />
     </bean>
 
     <bean name="mapConverterDataciteToPublicationLicense" class="org.dspace.util.SimpleMapConverter" init-method="init">

@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.BitstreamBuilder;
@@ -81,7 +80,6 @@ import org.dspace.utils.DSpace;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -1982,8 +1980,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
-    public void placeholderFieldMustBeReplacedWithEmptyStringTest() throws Exception {
+    public void placeholderFieldMustBeSkippedTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Item patent = ItemBuilder.createItem(context, collection)
@@ -2000,8 +1997,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         String json = out.toString();
         JSONObject obj = new JSONObject(json);
-        assertTrue(obj.has("title"));
-        assertTrue(StringUtils.equals(obj.getString("title"), StringUtils.EMPTY));
+        assertTrue(!obj.has("title"));
     }
 
     @Test
@@ -2239,7 +2235,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testManyEpflPublicationsHtml() throws Exception {
+    public void testManyEpflPublications() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Item firstPerson = createItem(context, collection)
@@ -2250,6 +2246,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withGender("M")
                 .withPersonMainAffiliation("University")
                 .withOrcidIdentifier("0000-0002-9079-5932")
+                .withSciperIdentifier("sciper1")
                 .withScopusAuthorIdentifier("SA-01")
                 .withPersonEmail("test@test.com")
                 .withResearcherIdentifier("R-01")
@@ -2271,6 +2268,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withPersonMainAffiliation("University")
                 .withOrcidIdentifier("0000-0002-9079-5938")
                 .withPersonEmail("w.w@test.com")
+                .withSciperIdentifier("sciper2")
                 .withResearcherIdentifier("R-03")
                 .withPersonAffiliation("Company")
                 .withPersonAffiliationStartDate("2018-01-01")
@@ -2352,10 +2350,10 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withSubject("export")
                 .withType("Controlled Vocabulary for Resource Type Genres::text::review")
                 .withIssueDate("2022-08-22")
-                .withAuthor("Jessie Pinkman", secondPerson.getID().toString())
-                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
                 .withAuthor("Walter White")
                 .withAuthorAffiliation("Company")
+                .withAuthor("Jessie Pinkman", secondPerson.getID().toString())
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
                 .withEditor("Editor")
                 .withEditorAffiliation("Editor Affiliation")
                 .withRelationProject("Test Project", project.getID().toString())
@@ -2367,16 +2365,28 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
         context.setCurrentUser(admin);
 
-        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publications");
-        assertThat(referCrossWalk, notNullValue());
+        ReferCrosswalk referCrossWalkHtml = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publications");
+        assertThat(referCrossWalkHtml, notNullValue());
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        referCrossWalk.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), out);
+        ByteArrayOutputStream outHtml = new ByteArrayOutputStream();
+        referCrossWalkHtml.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), outHtml);
 
         try (FileInputStream fis = getFileInputStream("epfl-publications.html")) {
             String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
-            compareEachLine(out.toString(), expectedXml);
+            compareEachLine(outHtml.toString(), expectedXml);
         }
+
+        ReferCrosswalk referCrossWalkMarc = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publication-marc-xml");
+        assertThat(referCrossWalkMarc, notNullValue());
+
+        ByteArrayOutputStream outMarc = new ByteArrayOutputStream();
+        referCrossWalkMarc.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), outMarc);
+
+        try (FileInputStream fis = getFileInputStream("epfl-publications-marc.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(outMarc.toString(), expectedXml);
+        }
+
     }
 
     @Test
@@ -2461,7 +2471,6 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testVirtualFieldCitationsWithFirstSelectedPublication() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -3036,6 +3045,72 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testEpflPublicationsMarcXmlMultiValueDisseminate() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withAcronym("TOU|TOU2")
+                .withTitle("Test OrgUnit")
+                .withOrgUnitLegalName("Test OrgUnit LegalName")
+                .withType("Strategic Research Insitute")
+                .withParentOrganization("Parent OrgUnit")
+                .withOrgUnitIdentifier("ID-01")
+                .withOrgUnitIdentifier("ID-02")
+                .withUrlIdentifier("www.orgUnit.com")
+                .withUrlIdentifier("www.orgUnit.it")
+                .withMetadata("epfl", "unit", "code", "unitCode1|unitCode2")
+                .build();
+
+        Item publication = createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("publication title|secondValueAfterSplit")
+                .withMetadata("dc", "description", "sponsorship", null,  "TOU|TOU2",
+                        orgUnit.getID().toString(), -1)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("epfl-publication-marc-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, publication, out);
+
+        try (FileInputStream fis = getFileInputStream("epfl-publication-marc.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    public void testEpflThesisDataciteXMLDisseminate() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemWithPreviousEPFLDOI = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("itemWithPreviousEPFLDOI")
+                .withAuthor("Student, Name")
+                .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
+                .withPublisher("School of XXX")
+                .withWrittenAt("EPFL")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("publication-datacite-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, itemWithPreviousEPFLDOI, out);
+
+        try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
     public void testResearchOutputsJsonDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -3066,9 +3141,10 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
-
-    private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType) {
-        createRelationshipBuilder(context, publication, author, selectedRelationshipType, -1, -1).build();
+    private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType)
+            throws SQLException {
+        createRelationshipBuilder(context, context.reloadEntity(publication),
+                context.reloadEntity(author), selectedRelationshipType, -1, -1).build();
     }
 
     private void compareEachLine(String result, String expectedResult) {
@@ -3080,6 +3156,9 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             resultLines.length, equalTo(expectedResultLines.length));
 
         for (int i = 0; i < resultLines.length; i++) {
+            if (expectedResultLines[i].contains("SKIP-IN-COMPARING")) {
+                continue;
+            }
             assertThat(removeTabs(resultLines[i]), equalTo(removeTabs(expectedResultLines[i])));
         }
     }
