@@ -145,7 +145,7 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
                 "State of Awareness of Freshers’ Groups Chortkiv State"
                 + " Medical College of Prevention of Iodine Deficiency Diseases");
         MetadatumDTO author = createMetadatumDTO("dc", "contributor", "author", "Senyuk, L.V.");
-        MetadatumDTO type = createMetadatumDTO("dc", "type", null, 
+        MetadatumDTO type = createMetadatumDTO("dc", "type", null,
                 "text::journal::journal article::research article");
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2016-05-19");
         MetadatumDTO journal = createMetadatumDTO("dc", "relation", "journal",
@@ -171,7 +171,7 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         metadatums.add(issn);
         metadatums.add(volume);
         metadatums.add(issue);
-        metadatums.add(publisher);        
+        metadatums.add(publisher);
         metadatums.add(startPage);
         metadatums.add(endPage);
 
@@ -211,7 +211,6 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         metadatums2.add(publisher2);
         metadatums2.add(startPage2);
         metadatums2.add(endPage2);
-        
 
         ImportRecord secondRecord = new ImportRecord(metadatums2);
         records.add(firstrRecord);

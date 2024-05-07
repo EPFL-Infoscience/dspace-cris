@@ -238,7 +238,8 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO subject27 = createMetadatumDTO("dc", "subject", null, "Science & Technology");
         MetadatumDTO subject28 = createMetadatumDTO("dc", "subject", null, "Life Sciences & Biomedicine");
         MetadatumDTO isi2 = createMetadatumDTO("dc", "identifier", "isi", "WOS:000805100600001");
-        MetadatumDTO funder2 = createMetadatumDTO("oairecerif", "funder", null, "Air Force Office of Scientific Research");
+        MetadatumDTO funder2 = createMetadatumDTO("oairecerif", "funder", null,
+                "Air Force Office of Scientific Research");
         metadatums2.add(edition2);
         metadatums2.add(edition3);
         metadatums2.add(date2);
