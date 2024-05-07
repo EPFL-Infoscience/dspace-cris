@@ -144,10 +144,11 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         MetadatumDTO title = createMetadatumDTO("dc", "title", null,
                 "State of Awareness of Freshers’ Groups Chortkiv State"
                 + " Medical College of Prevention of Iodine Deficiency Diseases");
-        MetadatumDTO author = createMetadatumDTO("dc", "contributor", "author", "L.V. Senyuk");
-        MetadatumDTO type = createMetadatumDTO("dc", "type", null, "text::journal::journal article");
+        MetadatumDTO author = createMetadatumDTO("dc", "contributor", "author", "Senyuk, L.V.");
+        MetadatumDTO type = createMetadatumDTO("dc", "type", null, 
+                "text::journal::journal article::research article");
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2016-05-19");
-        MetadatumDTO ispartof = createMetadatumDTO("dc", "relation", "journal",
+        MetadatumDTO journal = createMetadatumDTO("dc", "relation", "journal",
                                    "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
         MetadatumDTO doi = createMetadatumDTO("dc", "identifier", "doi", "10.26693/jmbs01.02.184");
         MetadatumDTO issn = createMetadatumDTO("dc", "relation", "issn", "2415-3060");
@@ -155,17 +156,24 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         MetadatumDTO issue = createMetadatumDTO("oaire", "citation", "issue", "2");
         MetadatumDTO publisher = createMetadatumDTO("dc", "publisher", null,
                 "Petro Mohyla Black Sea National University");
+        MetadatumDTO isPartOf = createMetadatumDTO("dc", "relation", "ispartof",
+                "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
+        MetadatumDTO startPage = createMetadatumDTO("oaire", "citation", "startPage", "184");
+        MetadatumDTO endPage = createMetadatumDTO("oaire", "citation", "endPage", "187");
 
         metadatums.add(title);
         metadatums.add(author);
         metadatums.add(date);
         metadatums.add(type);
-        metadatums.add(ispartof);
+        metadatums.add(isPartOf);
+        metadatums.add(journal);
         metadatums.add(doi);
         metadatums.add(issn);
         metadatums.add(volume);
         metadatums.add(issue);
-        metadatums.add(publisher);
+        metadatums.add(publisher);        
+        metadatums.add(startPage);
+        metadatums.add(endPage);
 
         ImportRecord firstrRecord = new ImportRecord(metadatums);
 
@@ -173,11 +181,11 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         List<MetadatumDTO> metadatums2  = new ArrayList<MetadatumDTO>();
         MetadatumDTO title2 = createMetadatumDTO("dc", "title", null,
                 "Ischemic Heart Disease and Role of Nurse of Cardiology Department");
-        MetadatumDTO author2 = createMetadatumDTO("dc", "contributor", "author", "K. І. Kozak");
+        MetadatumDTO author2 = createMetadatumDTO("dc", "contributor", "author", "Kozak, K. І.");
         MetadatumDTO type2 = createMetadatumDTO("dc", "type", null,
-            "text::journal::journal article");
+            "text::journal::journal article::research article");
         MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2016-05-19");
-        MetadatumDTO ispartof2 = createMetadatumDTO("dc", "relation", "journal",
+        MetadatumDTO journal2 = createMetadatumDTO("dc", "relation", "journal",
                                      "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
         MetadatumDTO doi2 = createMetadatumDTO("dc", "identifier", "doi", "10.26693/jmbs01.02.105");
         MetadatumDTO issn2 = createMetadatumDTO("dc", "relation", "issn", "2415-3060");
@@ -185,17 +193,25 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
         MetadatumDTO issue2 = createMetadatumDTO("oaire", "citation", "issue", "2");
         MetadatumDTO publisher2 = createMetadatumDTO("dc", "publisher", null,
                 "Petro Mohyla Black Sea National University");
+        MetadatumDTO isPartOf2 = createMetadatumDTO("dc", "relation", "ispartof",
+                "Ukraïnsʹkij žurnal medicini, bìologìï ta sportu");
+        MetadatumDTO startPage2 = createMetadatumDTO("oaire", "citation", "startPage", "105");
+        MetadatumDTO endPage2 = createMetadatumDTO("oaire", "citation", "endPage", "108");
 
         metadatums2.add(title2);
         metadatums2.add(author2);
         metadatums2.add(date2);
         metadatums2.add(type2);
-        metadatums2.add(ispartof2);
+        metadatums2.add(isPartOf2);
+        metadatums2.add(journal2);
         metadatums2.add(doi2);
         metadatums2.add(issn2);
         metadatums2.add(volume2);
         metadatums2.add(issue2);
         metadatums2.add(publisher2);
+        metadatums2.add(startPage2);
+        metadatums2.add(endPage2);
+        
 
         ImportRecord secondRecord = new ImportRecord(metadatums2);
         records.add(firstrRecord);
