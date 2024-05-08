@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -90,7 +91,162 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
                                                          .build();
         context.restoreAuthSystemState();
         context.commit();
-        readAllTypes().forEach(type -> setCollectionProperty(type));
+        readAllTypes().forEach(type -> setCollectionProperty(type, collection));
+    }
+
+    @Test
+    public void testPublicationImportQpc() throws Exception {
+        String legacyId = "147853";
+        String key = legacyId + ".zip";
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+        try {
+
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
+                    .getBitstreams();
+
+            List<String> mimeTypes = new LinkedList<String>();
+            for (Bitstream bitstream : bitstreams) {
+                BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
+                mimeTypes.add(bitstreamFormat.getMIMEType());
+            }
+            assertTrue(mimeTypes.contains("application/pdf"));
+            assertTrue(mimeTypes.contains("application/octet-stream"));
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, legacyId);
+            }
+        }
+    }
+
+
+    @Test
+    public void testPublicationImportIpynb() throws Exception {
+        String legacyId = "266008";
+        String key = legacyId + ".zip";
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+        try {
+
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
+                    .getBitstreams();
+
+            for (Bitstream bitstream : bitstreams) {
+                BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
+                String mimeType = bitstreamFormat.getMIMEType();
+                // we expect all the bitstreams in this pubblication to be a ipynb file
+                assertTrue(mimeType.equals("application/x-ipynb+json"));
+            }
+
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, legacyId);
+            }
+        }
+    }
+
+    @Test
+    public void testPublicationImportCR2andXMFiles() throws Exception {
+        String legacyId = "272263";
+        String key = legacyId + ".zip";
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+        try {
+
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            List<Bitstream> bitstreams = itemService.find(context, importedItem.getID()).getBundles("ORIGINAL").get(0)
+                    .getBitstreams();
+
+            List<String> mimeTypes = new LinkedList<String>();
+            for (Bitstream bitstream : bitstreams) {
+                BitstreamFormat bitstreamFormat = bitstreamService.getFormat(context, bitstream);
+                mimeTypes.add(bitstreamFormat.getMIMEType());
+            }
+
+            assertTrue(mimeTypes.contains("application/pdf"));
+            assertTrue(mimeTypes.contains("image/png"));
+            assertTrue(mimeTypes.contains("image/jpeg"));
+            assertTrue(mimeTypes.contains("image/x-canon-cr2")); //.cr2
+            assertTrue(mimeTypes.contains("audio/xm")); //.xm
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, legacyId);
+            }
+        }
     }
 
     @Test
@@ -178,6 +334,58 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
                 marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
                 originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, "167656");
             }
+        }
+    }
+
+    @Test
+    public void testThatItemWIllBeImportedWithCorrectEntityType() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection collectionWithProduct = createCollection(context, community).withEntityType("Product")
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+        readAllTypes().forEach(type -> setCollectionProperty(type, collectionWithProduct));
+
+        String key = "293489.zip";
+
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+
+        try {
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> items = itemService.findAll(context);
+            assertTrue(items.hasNext());
+            Item importedItem = items.next();
+            assertFalse(items.hasNext());
+
+            assertEquals(importedItem.getMetadata().stream()
+                    .filter(metadataValue -> metadataValue.getMetadataField()
+                            .toString('.').equals("dspace.entity.type"))
+                    .map(MetadataValue::getValue).findFirst().orElse("wrongValue"), "Product");
+
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, "293489");
+            }
+            readAllTypes().forEach(type -> setCollectionProperty(type, collection));
         }
     }
 
@@ -346,7 +554,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         MetadataValueDTO currentset1 = new MetadataValueDTO("epfl", "oai", "currentset", null, "SB");
         MetadataValueDTO currentset2 = new MetadataValueDTO("epfl", "oai", "currentset", null, "OpenAIREv4");
         MetadataValueDTO currentset3 = new MetadataValueDTO("epfl", "oai", "currentset", null, "article");
-        MetadataValueDTO writtenat = new MetadataValueDTO("epfl", "writtenat", null, null, "EPFL");
+        MetadataValueDTO writtenat = new MetadataValueDTO("epfl", "writtenAt", null, null, "EPFL");
         MetadataValueDTO peerreviewed = new MetadataValueDTO("epfl", "peerreviewed", null, null, "REVIEWED");
         MetadataValueDTO version = new MetadataValueDTO("epfl", "publication", "version", null,
                                                         "http://purl.org/coar/version/c_970fb48d4fbd8a85");
@@ -541,8 +749,8 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             .collect(Collectors.toList());
     }
 
-    private void setCollectionProperty(String type) {
-        configurationService.setProperty(COLLECTION_PROPERTY_PREFIX + "." + type, collection.getID().toString());
+    private void setCollectionProperty(String type, Collection collectionToSet) {
+        configurationService.setProperty(COLLECTION_PROPERTY_PREFIX + "." + type, collectionToSet.getID().toString());
     }
 
     private File getZipResource(String key) throws URISyntaxException, IOException {

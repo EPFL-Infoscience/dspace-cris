@@ -798,6 +798,29 @@ public class DiscoveryIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+    @Test
+    public void indexItemWithLongAbstract() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Community com1 = CommunityBuilder.createCommunity(context).withName("Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, com1).withName("Collection").build();
+
+        String longAbstract = "üüü".repeat(20000);
+        ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2010-10-17")
+                .withAuthor("White, Walter").withSubject("Subj").withDescriptionAbstract(longAbstract).build();
+
+        longAbstract = "\uD808\uDC00".repeat(50000);
+        ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2010-10-17")
+                .withAuthor("White, Walter").withSubject("Subj").withDescriptionAbstract(longAbstract).build();
+
+        context.restoreAuthSystemState();
+
+        assertSearchQuery(IndexableItem.TYPE, 2);
+
+    }
+
     private void assertSearchQuery(String resourceType, int size) throws SearchServiceException {
         assertSearchQuery(resourceType, size, size, 0, -1);
     }

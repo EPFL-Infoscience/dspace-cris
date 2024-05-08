@@ -27,18 +27,29 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 public class PersonAuthority extends ItemAuthority {
 
     private static final String AUTHOR_AFFILIATION = "oairecerif_author_affiliation";
+    private static final String SCIENTIFIC_EDITOR_AFFILIATION = "oairecerif_scientificeditor_affiliation";
+    private static final String ADVISOR_AFFILIATION = "oairecerif_advisor_affiliation";
+    private static final String CONTRIBUTOR_AFFILIATION = "oairecerif_contributor_affiliation";
 
     private static final String DATA_AUTHOR_AFFILIATION = "data-oairecerif_author_affiliation";
+    private static final String DATA_SCIENTIFIC_EDITOR_AFFILIATION = "data-oairecerif_scientificeditor_affiliation";
+    private static final String DATA_ADVISOR_AFFILIATION = "data-oairecerif_advisor_affiliation";
+    private static final String DATA_CONTRIBUTOR_AFFILIATION = "data-oairecerif_contributor_affiliation";
+
 
     private static final String AUTHOR_ORGUNIT = "oairecerif_affiliation_orgunit";
 
     private static final String DATA_AUTHOR_ORGUNIT = "data-oairecerif_affiliation_orgunit";
 
-    private static final String EDITOR_AFFILIATION = "oairecerif_editor_affiliation";
+    private static final String EDITOR_AFFILIATION = "oairecerif_scientificeditor_affiliation";
 
-    private static final String DATA_EDITOR_AFFILIATION = "data-oairecerif_editor_affiliation";
+    private static final String DATA_EDITOR_AFFILIATION = "data-oairecerif_scientificeditor_affiliation";
 
-    private final PersonApiService personApiService = dspace.getSingletonService(PersonApiServiceImpl.class);
+    private static final String EDITOR_ORGUNIT = "oairecerif_affiliation_orgunit";
+
+    private static final String DATA_EDITOR_ORGUNIT = "data-oairecerif_affiliation_orgunit";
+
+    private PersonApiService personApiService = dspace.getSingletonService(PersonApiServiceImpl.class);
     private final ItemAuthorityServiceFactory itemAuthorityServiceFactory = dspace.getServiceManager()
             .getServiceByName("itemAuthorityServiceFactory", ItemAuthorityServiceFactory.class);
     private final ConfigurationService configurationService =
@@ -55,14 +66,18 @@ public class PersonAuthority extends ItemAuthority {
     }
 
     private Choices getEpflApiMatches(String text, int start, int limit) {
-        Choice[] epflApiChoices =
-            getChoiceFromEpflQueryResults(personApiService.getPersons(text)).toArray(new Choice[0]);
+        try {
+            Choice[] epflApiChoices = getChoiceFromEpflQueryResults(personApiService.getPersons(text))
+                    .toArray(new Choice[0]);
 
-        int confidenceValue = itemAuthorityServiceFactory.getInstance(authorityName)
-                                                         .getConfidenceForChoices(epflApiChoices);
+            int confidenceValue = itemAuthorityServiceFactory.getInstance(authorityName)
+                    .getConfidenceForChoices(epflApiChoices);
 
-        return new Choices(epflApiChoices, start, epflApiChoices.length, confidenceValue,
-                           epflApiChoices.length > (start + limit), 0);
+            return new Choices(epflApiChoices, start, epflApiChoices.length, confidenceValue,
+                    epflApiChoices.length > (start + limit), 0);
+        } catch (Exception e) {
+            return new Choices(true);
+        }
     }
 
     private List<Choice> getChoiceFromEpflQueryResults(List<PersonDTO> persons) {
@@ -81,28 +96,49 @@ public class PersonAuthority extends ItemAuthority {
     private Map<String, String> buildPersonAffiliationExtras(Accred accred) {
         Map<String, String> extras = new HashMap<>();
 
-        if (authorityName.equals("AuthorAuthority")) {
-            buildAuthorExtras(extras, accred);
-        }
-
-        if (authorityName.equals("EditorAuthority")) {
-            buildEditorExtras(extras, accred);
+        switch (authorityName) {
+            case "AuthorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_AUTHOR_AFFILIATION, AUTHOR_AFFILIATION);
+                break;
+            case "ScientificEditorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_SCIENTIFIC_EDITOR_AFFILIATION, SCIENTIFIC_EDITOR_AFFILIATION);
+                break;
+            case "AdvisorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_ADVISOR_AFFILIATION, ADVISOR_AFFILIATION);
+                break;
+            case "ContributorAuthority":
+                buildBasicAuthorExtras(extras, accred);
+                buildAffiliationAuthorExtras(extras, DATA_CONTRIBUTOR_AFFILIATION, CONTRIBUTOR_AFFILIATION);
+                break;
+            case "EditorAuthority":
+                buildEditorExtras(extras, accred);
+                break;
+            default:
+                break;
         }
 
         return extras;
     }
-
-    private void buildAuthorExtras(Map<String, String> extras, Accred accred) {
+    private void buildBasicAuthorExtras(Map<String, String> extras, Accred accred) {
         extras.put(DATA_AUTHOR_ORGUNIT, composePersonAffiliationValue(accred));
         extras.put(AUTHOR_ORGUNIT, accred.getName());
+    }
 
-        extras.put(DATA_AUTHOR_AFFILIATION, "EPFL" + "::" + configurationService.getProperty("epfl.head-orgunit.uuid"));
-        extras.put(AUTHOR_AFFILIATION, "EPFL");
+    private void buildAffiliationAuthorExtras(Map<String, String> extras,
+                                              String dataAffiliatoinMetadata, String affiliationMetadata) {
+        extras.put(dataAffiliatoinMetadata, "EPFL" + "::" + configurationService.getProperty("epfl.head-orgunit.uuid"));
+        extras.put(affiliationMetadata, "EPFL");
     }
 
     private void buildEditorExtras(Map<String, String> extras, Accred accred) {
-        extras.put(DATA_EDITOR_AFFILIATION, composePersonAffiliationValue(accred));
-        extras.put(EDITOR_AFFILIATION, accred.getName());
+        extras.put(DATA_EDITOR_ORGUNIT, composePersonAffiliationValue(accred));
+        extras.put(EDITOR_ORGUNIT, accred.getName());
+
+        extras.put(DATA_EDITOR_AFFILIATION, "EPFL" + "::" + configurationService.getProperty("epfl.head-orgunit.uuid"));
+        extras.put(EDITOR_AFFILIATION, "EPFL");
     }
 
     private String composeAuthorityValue(String sciper) {
@@ -112,7 +148,7 @@ public class PersonAuthority extends ItemAuthority {
     }
 
     private String composePersonAffiliationValue(Accred accred) {
-        String prefix = accred.getName() + configurationService.getProperty("epfl.acronym.prefix",
+        String prefix = accred.getAcronym() + configurationService.getProperty("epfl.acronym.prefix",
                 SPLIT + GENERATE + "ACRONYM" + SPLIT);
         return prefix.endsWith(SPLIT) ? prefix + accred.getAcronym() : prefix + SPLIT + accred.getAcronym();
     }
@@ -130,6 +166,10 @@ public class PersonAuthority extends ItemAuthority {
     @Override
     public String getPluginInstanceName() {
         return authorityName;
+    }
+
+    public void setPersonApiService(PersonApiService personApiService) {
+        this.personApiService = personApiService;
     }
 
 }

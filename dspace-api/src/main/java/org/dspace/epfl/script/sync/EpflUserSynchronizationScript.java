@@ -191,7 +191,7 @@ public class EpflUserSynchronizationScript
 
     private void createOrSynch(PersonDTO epflPerson) {
         try {
-            EPerson ePerson = findPerson(epflPerson);
+            EPerson ePerson = profileInitializer.findPerson(context, epflPerson);
             if (ePerson == null) {
                 EPerson newEPerson = profileInitializer.createAndSyncEPerson(context, epflPerson);
                 if (newEPerson != null) {
@@ -210,15 +210,6 @@ public class EpflUserSynchronizationScript
             logError("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
         }
     }
-
-    private EPerson findPerson(PersonDTO epflPerson) throws SQLException {
-        EPerson byNetid = ePersonService.findByNetid(context, epflPerson.getSciper() + "@epfl.ch");
-        if (byNetid != null) {
-            return byNetid;
-        }
-        return ePersonService.findByEmail(context, epflPerson.getEmail());
-    }
-
 
     private void finalLogging() {
         if (createdPersonCount == 0 && updatedPersonCount == 0) {

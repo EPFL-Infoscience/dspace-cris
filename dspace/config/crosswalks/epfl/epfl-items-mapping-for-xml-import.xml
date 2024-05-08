@@ -261,7 +261,7 @@
             <xpath>./datafield[@tag = '961']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>epfl.writtenat</field>
+            <field>epfl.writtenAt</field>
             <xpath>./datafield[@tag = '973']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>

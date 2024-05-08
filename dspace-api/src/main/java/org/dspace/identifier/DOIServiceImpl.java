@@ -147,7 +147,7 @@ public class DOIServiceImpl implements DOIService {
 
         String resolver = getResolver();
         if (identifier.startsWith(resolver + "/10.")) { //https://doi.org/10.something
-            return DOI.SCHEME + identifier.substring(resolver.length());
+            return DOI.SCHEME + identifier.substring(resolver.length() + 1);
         }
 
         Matcher matcher = DOI_URL_PATTERN.matcher(identifier);
@@ -161,12 +161,13 @@ public class DOIServiceImpl implements DOIService {
 
     @Override
     public List<DOI> getDOIsByStatus(Context context, List<Integer> statuses) throws SQLException {
-        return doiDAO.findByStatus(context, statuses, -1);
+        return doiDAO.findByStatus(context, statuses, -1, -1);
     }
 
     @Override
-    public List<DOI> getDOIsByStatus(Context context, List<Integer> statuses, int limit) throws SQLException {
-        return doiDAO.findByStatus(context, statuses, limit);
+    public List<DOI> getDOIsByStatus(Context context, List<Integer> statuses, int offset, int limit)
+        throws SQLException {
+        return doiDAO.findByStatus(context, statuses, offset, limit);
     }
 
     @Override

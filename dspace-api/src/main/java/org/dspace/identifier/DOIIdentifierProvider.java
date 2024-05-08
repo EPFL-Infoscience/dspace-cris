@@ -1019,8 +1019,11 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
             checkMintable(context, filter, dso);
 
             doi = doiService.create(context);
-            doiIdentifier = this.getPrefix() + "/" + this.getNamespaceSeparator() +
-                doi.getID();
+            doiIdentifier = getDOIOutOfObject(dso);
+            if (doiIdentifier == null) {
+                doiIdentifier = this.getPrefix() + "/" + this.getNamespaceSeparator() +
+                        doi.getID();
+            }
         }
 
         // prepare new doiRow
@@ -1051,20 +1054,16 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         }
         Item item = (Item) dso;
 
-        String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
-        if (StringUtils.isNotBlank(doi)) {
-            if (!StringUtils.startsWith(doi, DOI.SCHEME)) {
-                return DOI.SCHEME + doi;
-            } else {
-                return doi;
-            }
-        }
-
         List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
-        String leftPart = doiService.getResolver() + SLASH + getPrefix() + SLASH + getNamespaceSeparator();
+        String leftPart = DOI.SCHEME + getPrefix() + SLASH + getNamespaceSeparator();
         for (MetadataValue id : metadata) {
-            if (id.getValue().startsWith(leftPart)) {
-                return doiService.DOIFromExternalFormat(id.getValue());
+            try {
+                final String valueFormatted = doiService.formatIdentifier(id.getValue());
+                if (StringUtils.startsWith(valueFormatted, leftPart)) {
+                    return doiService.formatIdentifier(id.getValue());
+                }
+            } catch (DOIIdentifierException e) {
+                // do nothing, if the identifier is not proper formatted it is not a DSpace minted DOI
             }
         }
         return null;
@@ -1117,16 +1116,16 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         }
         Item item = (Item) dso;
 
-        List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
         List<String> remainder = new ArrayList<>();
 
         for (MetadataValue id : metadata) {
-            if (!doiService.DOIToExternalForm(doi).contains(id.getValue())) {
+            if (!StringUtils.equals(doiService.formatIdentifier(id.getValue()), doi)) {
                 remainder.add(id.getValue());
             }
         }
 
-        itemService.clearMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        itemService.clearMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
         itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
                 remainder);
         itemService.update(context, item);

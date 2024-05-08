@@ -12,7 +12,7 @@
     <dc-type>
         <schema>cris</schema>
         <element>sourceId</element>
-        <qualifier />
+        <qualifier></qualifier>
         <scope_note>Used by the cris consumer to store the source that has originated the item</scope_note>
     </dc-type>
 
@@ -130,20 +130,6 @@
 
     <dc-type>
         <schema>cris</schema>
-        <element>author</element>
-        <qualifier>orcid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>author</element>
-        <qualifier>rid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
         <element>legacyId</element>
         <qualifier />
         <scope_note />
@@ -159,91 +145,42 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
-        <qualifier>author-orcid</qualifier>
+        <qualifier>orcid</qualifier>
         <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
-        <qualifier>author-sciperId</qualifier>
+        <qualifier>sciperId</qualifier>
         <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
-        <qualifier>editor-orcid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>editor-sciperId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>contributor-sciperId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>contributor-unitId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>sponsor-unitId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>advisor-sciperId</qualifier>
+        <qualifier>unitId</qualifier>
         <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
-        <qualifier>contributor-sciperId</qualifier>
+        <qualifier>orcid</qualifier>
         <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
-        <qualifier>author-sciperId</qualifier>
+        <qualifier>sciperId</qualifier>
         <scope_note />
     </dc-type>
 
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
-        <qualifier>editor-sciperId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>contributor-unitId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>sponsor-unitId</qualifier>
+        <qualifier>unitId</qualifier>
         <scope_note />
     </dc-type>
 
@@ -251,41 +188,6 @@
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>department</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>author-orcid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>editor-orcid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>scientificeditor-sciperId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>scientificeditor-sciperId</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>advisor-sciperId</qualifier>
         <scope_note />
     </dc-type>
 
@@ -378,13 +280,6 @@
         <qualifier>scopus-person</qualifier>
         <scope_note />
     </dc-type>
-    
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>epflgroupunits</qualifier>
-        <scope_note />
-    </dc-type>
 
     <dc-type>
         <schema>cris</schema>
@@ -396,21 +291,7 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>
-        <qualifier>editor-scopus</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>author-rid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtual</element>
-        <qualifier>editor-rid</qualifier>
+        <qualifier>rid</qualifier>
         <scope_note />
     </dc-type>
 
@@ -438,28 +319,7 @@
     <dc-type>
         <schema>cris</schema>
         <element>virtualsource</element>
-        <qualifier>editor-scopus</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>author-rid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>editor-rid</qualifier>
-        <scope_note />
-    </dc-type>
-
-    <dc-type>
-        <schema>cris</schema>
-        <element>virtualsource</element>
-        <qualifier>epflgroupunits</qualifier>
+        <qualifier>rid</qualifier>
         <scope_note />
     </dc-type>
 

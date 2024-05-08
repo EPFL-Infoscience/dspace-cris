@@ -7,13 +7,18 @@
  */
 package org.dspace.discovery.indexobject.document;
 
-import org.apache.commons.lang3.StringUtils;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class TruncatedSolrInputDocument extends SolrInputDocument {
-    private static final int FIELD_MAX_LENGTH = 32764;
+    private static final int FIELD_MAX_BYTE_LENGTH = 32000;
 
     private ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -29,10 +34,28 @@ public class TruncatedSolrInputDocument extends SolrInputDocument {
 
     private Object truncateValue(Object value) {
         if (value instanceof String) {
-            String stringValue = (String) value;
-            return StringUtils.length(stringValue) > FIELD_MAX_LENGTH ?
-                    stringValue.substring(0, FIELD_MAX_LENGTH - 1) + "…" : stringValue;
+            return truncateToFitUtf8ByteLength((String) value);
         }
         return value;
+    }
+
+    public static String truncateToFitUtf8ByteLength(String s) {
+        if (s == null) {
+            return null;
+        }
+        Charset charset = Charset.forName("UTF-8");
+        CharsetDecoder decoder = charset.newDecoder();
+        byte[] sba = s.getBytes(charset);
+        if (sba.length <= FIELD_MAX_BYTE_LENGTH) {
+            return s;
+        }
+        // Ensure truncation by having byte buffer = maxBytes
+        ByteBuffer bb = ByteBuffer.wrap(sba, 0, FIELD_MAX_BYTE_LENGTH);
+        CharBuffer cb = CharBuffer.allocate(FIELD_MAX_BYTE_LENGTH);
+        // Ignore an incomplete character
+        decoder.onMalformedInput(CodingErrorAction.IGNORE);
+        decoder.decode(bb, cb, true);
+        decoder.flush(cb);
+        return new String(cb.array(), 0, cb.position());
     }
 }

@@ -30,7 +30,7 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
     @Autowired
     private ConfigurationService configurationService;
 
-    private String isPartOfSeriesMetadataField;
+    private String isPartOfMetadataField;
 
     private XPath xPath = XPathFactory.newInstance().newXPath();
 
@@ -61,7 +61,7 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
                     metadataValues.add(new MetadataValueDTO(metadataField, value));
                 }
             } else {
-                metadataValues.add(new MetadataValueDTO(isPartOfSeriesMetadataField, value));
+                metadataValues.add(new MetadataValueDTO(isPartOfMetadataField, value));
             }
         }
         return metadataValues;
@@ -107,11 +107,19 @@ public class ItemsImportJournalReader implements ItemsImportMetadataFieldReader 
     }
 
     public String getIsPartOfSeriesMetadataField() {
-        return isPartOfSeriesMetadataField;
+        return isPartOfMetadataField;
     }
 
     public void setIsPartOfSeriesMetadataField(String isPartOfSeriesMetadataField) {
-        this.isPartOfSeriesMetadataField = isPartOfSeriesMetadataField;
+        this.isPartOfMetadataField = isPartOfSeriesMetadataField;
+    }
+
+    public String getIsPartOfMetadataField() {
+        return isPartOfMetadataField;
+    }
+
+    public void setIsPartOfMetadataField(String isPartOfMetadataField) {
+        this.isPartOfMetadataField = isPartOfMetadataField;
     }
 
     public String getIssnNodeXpath() {

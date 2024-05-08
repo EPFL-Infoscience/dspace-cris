@@ -637,28 +637,6 @@
   </dc-type>
 
   <dc-type>
-    <schema>dc</schema>
-    <element>relationpublication</element>
-    <qualifier>identifier</qualifier>
-    <scope_note/>
-  </dc-type>
-
-  <dc-type>
-    <schema>dc</schema>
-    <element>relationproduct</element>
-    <qualifier>identifier</qualifier>
-    <scope_note/>
-  </dc-type>
-
-
-  <dc-type>
-    <schema>dc</schema>
-    <element>relationpatent</element>
-    <qualifier>identifier</qualifier>
-    <scope_note/>
-  </dc-type>
-
-  <dc-type>
 	<schema>dc</schema>
     <element>rights</element>
     <!-- unqualified -->
@@ -1033,6 +1011,13 @@
     <schema>dc</schema>
     <element>relation</element>
     <qualifier>serieissn</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>relation</element>
+    <qualifier>title</qualifier>
     <scope_note></scope_note>
   </dc-type>
 

@@ -8,21 +8,23 @@
     	<property name="typeConverter" ref="mapConverterPublicationTypes"/>
     	<property name="type" value="dc.type"/>
     	<property name="language" value="dc.language.iso"/>
-      <property name="abstrct" value="dc.description.abstract"/>
-      <property name="DOI" value="dc.identifier.doi"/>
-      <property name="ISBN" value="dc.relation.isbn"/>
-      <property name="ISSN" value="dc.relation.issn"/>
-      <property name="keyword" value="dc.subject"/>
-      <property name="publisher" value="dc.publisher"/>
-      <property name="publisherPlace" value="dc.publisher.place"/>
-      <property name="volume" value="oaire.citation.volume"/>
-      <property name="issue" value="oaire.citation.issue"/>
-      <property name="event" value="dc.relation.conference"/>
-      <property name="title" value="dc.title"/>
-      <property name="URL" value="dc.identifier.uri"/>
-      <property name="issued" value="dc.date.issued"/>
-      <property name="author" value="dc.contributor.author"/>
-      <property name="editor" value="dc.contributor.editor"/>
+        <!-- please note the following is not a typo abstract is a reserved word in JAVA
+             so the property has been named abstrct (without the a) -->
+        <property name="abstrct" value="dc.description.abstract"/>
+        <property name="DOI" value="dc.identifier.doi"/>
+        <property name="ISBN" value="dc.relation.isbn"/>
+        <property name="ISSN" value="dc.relation.issn"/>
+        <property name="keyword" value="dc.subject"/>
+        <property name="publisher" value="dc.publisher"/>
+        <property name="publisherPlace" value="dc.publisher.place"/>
+        <property name="volume" value="oaire.citation.volume"/>
+        <property name="issue" value="oaire.citation.issue"/>
+        <property name="event" value="dc.relation.conference"/>
+        <property name="title" value="dc.title"/>
+        <property name="URL" value="dc.identifier.uri"/>
+        <property name="issued" value="dc.date.issued"/>
+        <property name="author" value="dc.contributor.author"/>
+        <property name="editor" value="dc.contributor.editor"/>
     </bean>
     
     <bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">

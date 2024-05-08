@@ -127,6 +127,7 @@ public class OrgUnitHiddenItemsScript
         switch (itemService.getEntityType(item)) {
             case "Publication":
                 return List.of(getRelationshipType("isPublicationsHiddenFor"),
+                               getRelationshipType("isPublSchoolCollHiddenFor"),
                                getRelationshipType("isRppublicationsHiddenFor"));
             case "Product":
                 return List.of(getRelationshipType("isProductsHiddenFor"));
