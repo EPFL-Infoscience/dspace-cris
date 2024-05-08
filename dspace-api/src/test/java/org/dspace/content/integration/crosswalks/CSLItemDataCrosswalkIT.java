@@ -31,7 +31,6 @@ import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -123,7 +122,6 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
-    @Ignore
     public void testBibtexDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -133,8 +131,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withType("text::journal::journal article")
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
-            .withIsbnIdentifier("11-22-33")
-            .withIssnIdentifier("0002")
+            .withRelationIsbn("11-22-33")
+            .withRelationIssn("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -163,7 +161,6 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
-    @Ignore
     public void testSingleItemJsonDisseminate() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -172,8 +169,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withType("text::journal::journal article")
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
-            .withIsbnIdentifier("11-22-33")
-            .withIssnIdentifier("0002")
+            .withRelationIsbn("11-22-33")
+            .withRelationIssn("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -202,7 +199,6 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
-    @Ignore
     public void testMutlipleItemsJsonDisseminate() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -211,8 +207,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withType("text::journal::journal article")
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
-            .withIsbnIdentifier("11-22-33")
-            .withIssnIdentifier("0002")
+            .withRelationIsbn("11-22-33")
+            .withRelationIssn("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -228,7 +224,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
 
         Item anotherItem = createItem(context, collection)
             .withEntityType("Publication")
-            .withType("text::book")
+            .withType("text::book/monograph")
             .withLanguage("en")
             .withDoiIdentifier("10.1000/183")
             .withTitle("Another Publication title")
@@ -260,8 +256,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withType("text::journal::journal article")
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
-            .withIsbnIdentifier("11-22-33")
-            .withIssnIdentifier("0002")
+            .withRelationIsbn("11-22-33")
+            .withRelationIssn("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")

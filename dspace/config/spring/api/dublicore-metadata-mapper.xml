@@ -51,7 +51,7 @@
         <constructor-arg value="dc.description.abstract"/>
     </bean>
     <bean id="dcAbstractNote" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.description.abstract"/>
+        <constructor-arg value="dc.description"/>
     </bean>
  	  <bean id="dcAllKeyword" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.subject"/>
