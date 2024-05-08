@@ -154,7 +154,7 @@
     <datafield tag="700" ind1=" " ind2=" ">
         <subfield code="0">@epfl.legacy.contributorauthnum@</subfield>
         <subfield code="a">@dc.contributor.author@</subfield>
-        <subfield code="g">@cris.virtual.author-sciperId@</subfield>
+        <subfield code="g">@virtual.sciperId.dc-contributor-author@</subfield>
     </datafield>
     @group.dc-contributor-author.end@
     @group.dc-contributor.start@
@@ -173,14 +173,14 @@
     <datafield tag="720" ind1=" " ind2="1">
         <subfield code="0">@epfl.legacy.contributoradvisornum@</subfield>
         <subfield code="a">@dc.contributor.scientificeditor@</subfield>
-        <subfield code="g">@cris.virtual.scientificeditor-sciperId@</subfield>
+        <subfield code="g">@cvirtual.sciperId.dc-contributor-scientificeditor@</subfield>
     </datafield>
     @group.dc-contributor-scientificeditor.end@
     @group.dc-contributor-advisor.start@
     <datafield tag="720" ind1=" " ind2="2">
         <subfield code="0">@epfl.legacy.contributorscientificeditornum@</subfield>
         <subfield code="a">@dc.contributor.advisor@</subfield>
-        <subfield code="g">@cris.virtual.advisor-sciperId@</subfield>
+        <subfield code="g">@virtual.sciperId.dc-contributor-advisor@</subfield>
     </datafield>
     @group.dc-contributor-advisor.end@
     @group.dc-identifier-stadardno.start@
@@ -223,8 +223,7 @@
     @if.metadata.dc-relation-product.start@
     <datafield tag="790" ind1=" " ind2=" ">
         <subfield code="2">@epfl.relationproduct.type@</subfield>
-        <subfield code="w">@virtual.config.dspace-ui-url@/items/
-@virtual.id@</subfield>
+        <subfield code="w">@virtual.item-ui-url@</subfield>
     </datafield>
     @if.metadata.dc-relation-product.end@
     @if.metadata.epfl-lastmodified-email.start@
@@ -246,12 +245,15 @@
     @group.epfl-url.start@
     <datafield tag="856" ind1="4" ind2="1">
         <subfield code="u">@epfl.url@</subfield>
+        @if.metadata.epfl-url-description.start@
+            <subfield code="y">@epfl.url.description@</subfield>
+        @if.metadata.epfl-url-description.end@
     </datafield>
     @group.epfl-url.end@
     @relation.dc-description-sponsorship.start@
     <datafield tag="909" ind1="C" ind2="0">
 		    <subfield code="p">@oairecerif.acronym@</subfield>
-		    <subfield code="x">U@epfl.unit.code@</subfield>
+		    <subfield code="x">U@virtual.epfl-unit-code@</subfield>
 		    <subfield code="0">@virtual.id@</subfield>
     </datafield>
     @relation.dc-description-sponsorship.end@
@@ -292,13 +294,13 @@
 		    <subfield code="a">@epfl.curator.email@</subfield>
     </datafield>
 	@group.epfl-curator-email.end@
-	@group.epfl-writtenat.start@
+	@group.epfl-writtenAt.start@
     <datafield tag="973" ind1=" " ind2=" ">
-		    <subfield code="a">@epfl.writtenat@</subfield>
+		    <subfield code="a">@epfl.writtenAt@</subfield>
 		    <subfield code="r">@epfl.peerreviewed@</subfield>
 		    <subfield code="s">@oaire.version@</subfield>
     </datafield>
-	@group.epfl-writtenat.end@
+	@group.epfl-writtenAt.end@
 	@group.datacite-geoLocation.start@
     <datafield tag="975" ind1=" " ind2=" ">
 		    <subfield code="a">@datacite.geoLocation@</subfield>

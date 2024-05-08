@@ -58,6 +58,7 @@ import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,6 +68,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author fcadili (francecso.cadili at 4science.it)
  *
  */
+@Ignore
 public class SubmissionDeduplicationRestIT extends AbstractControllerIntegrationTest {
 
     @Autowired

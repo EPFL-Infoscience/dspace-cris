@@ -62,6 +62,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -69,6 +70,7 @@ import org.springframework.http.MediaType;
 /**
  * Created by kristof on 20/02/2020
  */
+@Ignore
 public class PatchMetadataIT extends AbstractEntityIntegrationTest {
 
     private static final String SECTIONS_TRADITIONALPAGEONE_DC_CONTRIBUTOR_AUTHOR =

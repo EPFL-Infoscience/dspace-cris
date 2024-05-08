@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +42,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -61,6 +63,8 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     private ResearcherProfileService researcherProfileService = new DSpace()
         .getSingletonService(ResearcherProfileService.class);
+
+    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
@@ -125,7 +129,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testProfileCreation() throws SQLException, AuthorizeException {
+    public void testProfileCreation() throws SQLException, AuthorizeException, IOException {
 
         context.turnOffAuthorisationSystem();
 
@@ -149,7 +153,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -162,22 +166,20 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            with("person.affiliation.name", "Laboratory of Sensing and Networking Systems",
-                "will be referenced::ACRONYM::SENS", 400),
+            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
-            with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
-                "will be referenced::ACRONYM::SENS", 400),
+            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("oairecerif.affiliation.startDate", yesterday),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            with("oairecerif.person.affiliation", "SSC - Teaching", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
+            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            with("oairecerif.person.affiliation", "SIN - Teaching", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
+            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -186,6 +188,10 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
         assertThat(groupService.allMemberGroupsSet(context, eperson)
                        .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(true));
+        // delete the profile created by the profileInitializer to avoid to mess the test data
+        context.turnOffAuthorisationSystem();
+        itemService.delete(context, profile);
+        context.restoreAuthSystemState();
 
     }
     @Test
@@ -201,7 +207,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, nullValue());
@@ -227,7 +233,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -240,24 +246,22 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            with("person.affiliation.name", "Laboratory of Sensing and Networking Systems",
-                 "will be referenced::ACRONYM::SENS", 400),
+            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
-            with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
-                 "will be referenced::ACRONYM::SENS", 400),
+            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("oairecerif.affiliation.startDate", yesterday),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE)));
 
         assertThat(profile.getMetadata(), not(hasItems(
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            with("oairecerif.person.affiliation", "SSC - Teaching", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
+            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            with("oairecerif.person.affiliation", "SIN - Teaching", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
+            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)
         )));
@@ -301,7 +305,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -319,22 +323,20 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
             with("person.birthDate", "1992-06-26"),
-            with("person.affiliation.name", "Laboratory of Sensing and Networking Systems",
-                "will be referenced::ACRONYM::SENS", 400),
+            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
-            with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
-                "will be referenced::ACRONYM::SENS", 400),
+            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("oairecerif.affiliation.startDate", yesterday),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            with("oairecerif.person.affiliation", "SSC - Teaching", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
+            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, 400),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            with("oairecerif.person.affiliation", "SIN - Teaching", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
+            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, 400),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -371,13 +373,13 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             .withTitle("My User")
             .withBirthDate("1992-06-26")
             .withMetadata("epfl", "sciperId", null, "352234")
-            .withPersonAffiliation(sens.getName(), sens.getID().toString())
+            .withPersonAffiliation("SENS", sens.getID().toString())
             .withPersonAffiliationStartDate(PLACEHOLDER_PARENT_METADATA_VALUE)
             .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
-            .withPersonAffiliation(ssc.getName(), ssc.getID().toString())
+            .withPersonAffiliation("SSC-ENS", ssc.getID().toString())
             .withPersonAffiliationStartDate("2022-01-01")
             .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
-            .withPersonAffiliation(sin.getName(), sin.getID().toString())
+            .withPersonAffiliation("SIN-ENS", sin.getID().toString())
             .withPersonAffiliationStartDate("2021-01-01")
             .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
 
@@ -387,7 +389,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -400,22 +402,22 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
         assertThat(person.getMetadata(), hasItems(
-            with("oairecerif.person.affiliation", sens.getName(),
+            with("oairecerif.person.affiliation", "SENS",
                 sens.getID().toString(), 600),
             with("oairecerif.affiliation.startDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
-            with("oairecerif.person.affiliation", ssc.getName(),
+            with("oairecerif.person.affiliation", "SSC-ENS",
                  ssc.getID().toString(), 1, 600),
             with("oairecerif.affiliation.startDate", "2022-01-01", 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
-            with("oairecerif.person.affiliation", sin.getName(),
+            with("oairecerif.person.affiliation", "SIN-ENS",
                  sin.getID().toString(), 2, 600),
             with("oairecerif.affiliation.startDate", "2021-01-01", 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
         assertTrue(person.getMetadata().stream().filter(mv -> mv.getMetadataField().toString('.')
                                                                 .equals("oairecerif.person.affiliation"))
-            .filter(mv -> mv.getValue().equals(sens.getName()))
+            .filter(mv -> mv.getValue().equals("SENS"))
             .noneMatch(mv -> mv.getPlace() > 0));
 
 
@@ -452,7 +454,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -481,7 +483,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             .withNetId("352234@epfl.ch")
             .build();
 
-        ItemBuilder.createItem(context, profiles)
+        Item personItem = ItemBuilder.createItem(context, profiles)
             .withTitle("My User")
             .withMetadata("epfl", "sciperId", null, "352234")
             .withDspaceObjectOwner(admin)
@@ -490,10 +492,10 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> profileInitializer.initialize(context, eperson));
+            () -> profileInitializer.createOrUpdateProfile(context, eperson));
 
-        assertThat(exception.getMessage(), is("An item with the sciper 352234 is already linked "
-            + "to another eperson: " + admin.getID()));
+        assertThat(exception.getMessage(), is("The item " + personItem.getID().toString() + " is already linked "
+            + "to another eperson: " + admin.getID() + " cannot be linked to " + eperson.getID().toString()));
 
     }
 
@@ -523,7 +525,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -536,7 +538,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -587,13 +589,13 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item existingProfile = ItemBuilder.createItem(context, profiles)
                                .withDspaceObjectOwner(eperson)
                                .withTitle("User, Test")
-                               .withPersonAffiliation(closedAff.getName(), closedAff.getID().toString())
+                               .withPersonAffiliation("SIN-CLS", closedAff.getID().toString())
                                .withPersonAffiliationStartDate("2022-01-01")
                                .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE).build();
 
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(researcherProfile, notNullValue());
@@ -603,11 +605,10 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = researcherProfile.getItem();
         String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
         assertThat(profile.getMetadata(), hasItems(
-            with("oairecerif.person.affiliation", closedAff.getName(), closedAff.getID().toString(), 600),
+            with("oairecerif.person.affiliation", "SIN-CLS", closedAff.getID().toString(), 600),
             with("oairecerif.affiliation.startDate", "2022-01-01"),
             with("oairecerif.affiliation.endDate", yesterday),
-            with("oairecerif.person.affiliation", "Laboratory of Sensing and Networking Systems",
-                 "will be referenced::ACRONYM::SENS", 1, 400),
+            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", 1, 400),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1)
         ));
@@ -633,7 +634,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         groupService.addMember(context, submitters, eperson);
         context.restoreAuthSystemState();
 
-        profileInitializer.initialize(context, eperson);
+        profileInitializer.createOrUpdateProfile(context, eperson);
 
         assertThat(groupService.allMemberGroupsSet(context, eperson)
                 .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(false));

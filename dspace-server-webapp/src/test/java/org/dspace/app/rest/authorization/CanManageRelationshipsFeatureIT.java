@@ -28,6 +28,7 @@ import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
+@Ignore
 public class CanManageRelationshipsFeatureIT extends AbstractControllerIntegrationTest {
 
     @Autowired

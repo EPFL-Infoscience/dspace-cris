@@ -11,6 +11,9 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
+import static org.dspace.util.WorkbookUtils.MAX_CELL_LENGTH;
+import static org.dspace.util.WorkbookUtils.getTruncatedCellPrefix;
+import static org.dspace.util.WorkbookUtils.getTruncatedHeaderPrefix;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -327,6 +330,8 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
 
         String longAbstract = "A ".repeat(17000);
+        String truncatedAbstract = getTruncatedCellPrefix() +
+            longAbstract.substring(0, MAX_CELL_LENGTH - getTruncatedCellPrefix().length() - 1) + "…";
 
         Item item = ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
@@ -374,16 +379,17 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         //assertThat(sheet.getPhysicalNumberOfRows(), equalTo(1)); // makes the test fail on purpose
         assertThat(sheet.getPhysicalNumberOfRows(), equalTo(2));
 
-        assertThat(getRowValues(sheet.getRow(0)), contains("Title", "Subtitle", "Type", "Language", "Publication date",
-            "Part of", "Journal or Serie", "ISBN (of the container)", "ISSN (of the container)",
-            "DOI (of the container)", "Publisher", "DOI", "ISBN", "ISSN", "ISI-Number", "SCP-Number", "Volume", "Issue",
-            "Start page", "End page", "Authors", "Editors", XlsCrosswalk.COLUMN_CONTAINS_TRUNCATED + "Abstract",
-            "Event", "Product"));
+        assertThat(getRowValues(sheet.getRow(0)),
+                contains("Title", "Subtitle", "Type", "Language", "Publication date", "Part of", "Journal or Serie",
+                        "ISBN (of the container)", "ISSN (of the container)", "DOI (of the container)", "Publisher",
+                        "DOI", "ISBN", "ISSN", "ISI-Number", "SCP-Number", "Volume", "Issue", "Start page", "End page",
+                        "Authors", "Editors", getTruncatedHeaderPrefix() + "Abstract", "Event", "Product"));
 
-        assertThat(getRowValues(sheet.getRow(1)), contains("Test Publication", "Alternate publication title",
-            "http://purl.org/coar/resource_type/c_e059", "en", "2019-12-31", "", "", "", "", "", "",
-            "doi:222.222/publication", "", "", "", "", "V-02", "", "1", "20", "Edward Smith/Company||Walter White", "",
-            XlsCrosswalk.CELL_CONTAINS_TRUNCATED + longAbstract.substring(0, 32726 - 43 - 1) + "…", "", ""));
+        assertThat(getRowValues(sheet.getRow(1)), contains("Test Publication", "Alternative publication title",
+                "http://purl.org/coar/resource_type/c_efa0", "en", "2020-01-01", "Published in publication", "", "", "",
+                "doi:10.3972/test", "Publication publisher", "doi:111.111/publication", "978-3-16-148410-0",
+                "2049-3630", "111-222-333", "99999999", "V.01", "Issue", "", "", "John Smith||Walter White/Company",
+                "Editor/Editor Affiliation", truncatedAbstract, "The best Conference", "DataSet"));
     }
 
     @Test

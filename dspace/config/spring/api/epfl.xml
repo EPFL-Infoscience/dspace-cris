@@ -27,6 +27,8 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportSimpleReader" />
 
     <bean class="org.dspace.epfl.script.reader.ItemImportSimpleStringValueReader" />
+
+    <bean class="org.dspace.epfl.script.reader.ItemsImportUniqueMetadataReader" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamTitleReader" />
     
@@ -36,7 +38,11 @@
         <property name="qualifierXPath" value="./subfield[@code = '2']"/>
         <property name="valueXPath" value="./subfield[@code = 'a']"/>
     </bean>
-    
+
+    <bean class="org.dspace.epfl.script.reader.IsiValueProcessor" >
+        <property name="metadataField" value="dc.identifier.isi"/>
+    </bean>
+
     <bean class="org.dspace.epfl.script.reader.ItemsImportSeriesReader">
         <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
         <property name="titleXPath" value="./subfield[@code = 'a']"/>
@@ -61,7 +67,7 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="oairecerif.funder" value="./subfield[@code = 'a']"/>
-                <entry key="oairecerif.funding.identifier" value="./subfield[@code = 'c']"/>
+                <entry key="dc.relation.grantno" value="./subfield[@code = 'c']"/>
             </util:map>
         </property>
     </bean>
@@ -145,8 +151,8 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="epfl.relationpublication.type" value="./subfield[@code = 'e']"/>
-                <entry key="dc.relation.publication" value="./subfield[@code = 'w']"/>
-                <entry key="dc.relationpublication.identifier" value=""/>
+                <entry key="dc.relation.publication" value=""/>
+                <entry key="epfl.relationpublication.identifier" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
     </bean>
@@ -157,8 +163,8 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="epfl.relationproduct.type" value="static:IsSupplementedBy"/>
-                <entry key="dc.relation.product" value="./subfield[@code = 'w']"/>
-                <entry key="dc.relationproduct.identifier" value=""/>
+                <entry key="dc.relation.product" value=""/>
+                <entry key="epfl.relationproduct.identifier" value="./subfield[@code = 'w']"/>
             </util:map>
         </property>
     </bean>
@@ -190,9 +196,9 @@
     <bean class="org.dspace.epfl.script.reader.ItemsImportPublicDefenseYearReader" />
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportBitstreamRelationReader" >
-        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'u']"/>
+        <property name="relationNodeXPath" value="./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ']/subfield[@code = 'u']"/>
         <property name="relationValueXPath" value = "." />
-        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]"></property>
+        <property name="bitstreamXPath" value= "./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]"/>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPropertiesReader">
@@ -212,11 +218,12 @@
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportPageReader">
         <property name="endPageMetadataField" value="oaire.citation.endPage" />
-        <property name="articleNumberMetadataField" value="oaire.citation.articlenumber"></property>
+        <property name="articleNumberMetadataField" value="oaire.citation.articlenumber"/>
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportJournalReader">
-        <property name="isPartOfSeriesMetadataField" value="dc.relation.ispartofseries" />
+        <property name="isPartOfMetadataField" value="dc.relation.ispartof" />
+        <property name="issnNodeXpath" value= "./datafield[@tag = '022']/subfield[@code = 'a']" />
     </bean>
     
     <bean class="org.dspace.epfl.script.reader.ItemsImportThesisReader">
@@ -225,5 +232,7 @@
     
     <bean class="org.dspace.epfl.script.service.impl.ItemsImportCreationDateDaoImpl">
     </bean>
-    
+
+    <bean class="org.dspace.epfl.script.service.impl.ItemsImportModificationDateDaoImpl">
+    </bean>
 </beans>

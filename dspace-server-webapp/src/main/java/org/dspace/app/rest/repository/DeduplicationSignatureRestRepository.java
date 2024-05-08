@@ -7,7 +7,7 @@
  */
 package org.dspace.app.rest.repository;
 
-import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
 import org.dspace.app.deduplication.utils.DeduplicationSignature;
 import org.dspace.app.rest.model.DeduplicationSignatureRest;
 import org.dspace.core.Context;
@@ -28,29 +28,28 @@ import org.springframework.stereotype.Component;
 public class DeduplicationSignatureRestRepository extends DSpaceRestRepository<DeduplicationSignatureRest, String> {
 
     @Autowired
-    private DedupUtils dedupUtils;
+    private AbstractDedupUtilsAddon dedupUtilsAddon;
 
     @Override
     public Class<DeduplicationSignatureRest> getDomainClass() {
         return DeduplicationSignatureRest.class;
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
     public Page<DeduplicationSignatureRest> findAll(Context context, Pageable pageable) {
         try {
-            return converter.toRestPage(dedupUtils.findAllSignatures(),
-                pageable, utils.obtainProjection());
+            return converter.toRestPage(dedupUtilsAddon.findAllSignatures(), pageable, utils.obtainProjection());
         } catch (SearchServiceException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
     public DeduplicationSignatureRest findOne(Context context, String id) {
         try {
-            DeduplicationSignature deduplicationSignature = dedupUtils.findSignature(id);
+            DeduplicationSignature deduplicationSignature = dedupUtilsAddon.findSignature(id);
             if (deduplicationSignature == null) {
                 return null;
             }

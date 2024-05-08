@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  Search-Engine-Total-Number-Of-Results: 2  -->
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+    <record>
+        <controlfield tag="001">mock-id</controlfield>
+        <datafield tag="024" ind1="7" ind2=" ">
+            <subfield code="2">doi</subfield>
+            <subfield code="a">doi:111.111/publication</subfield>
+        </datafield>
+        <datafield tag="024" ind1="7" ind2="0">
+            <subfield code="a">111-222-333</subfield>
+            <subfield code="2">isi</subfield>
+        </datafield>
+        <datafield tag="024" ind1="/" ind2=" ">
+            <subfield code="a">99999999</subfield>
+        </datafield>
+        <datafield tag="039" ind1=" " ind2="9">
+            <subfield code="y">SKIP-IN-COMPARING</subfield>
+            <subfield code="a">SKIP-IN-COMPARING</subfield>
+        </datafield>
+        <datafield tag="041" ind1=" " ind2=" ">
+            <subfield code="a">en</subfield>
+        </datafield>
+        <datafield tag="245" ind1=" " ind2=" ">
+            <subfield code="a">First Publication</subfield>
+        </datafield>
+        <datafield tag="260" ind1=" " ind2=" ">
+            <subfield code="b">Publication publisher</subfield>
+            <subfield code="c">2022-08-22</subfield>
+        </datafield>
+        <datafield tag="269" ind1=" " ind2=" ">
+            <subfield code="a">2022-08-22</subfield>
+        </datafield>
+        <datafield tag="300" ind1=" " ind2=" ">
+        </datafield>
+        <datafield tag="542" ind1=" " ind2=" ">
+        </datafield>
+        <datafield tag="653" ind1="1" ind2=" ">
+            <subfield code="a">test</subfield>
+        </datafield>
+        <datafield tag="653" ind1="1" ind2=" ">
+            <subfield code="a">export</subfield>
+        </datafield>
+        <datafield tag="700" ind1=" " ind2=" ">
+            <subfield code="a">John Smith</subfield>
+            <subfield code="g">sciper1</subfield>
+        </datafield>
+        <datafield tag="700" ind1=" " ind2=" ">
+            <subfield code="a">Walter White</subfield>
+        </datafield>
+        <datafield tag="711" ind1="2" ind2=" ">
+            <subfield code="a">The best Conference</subfield>
+        </datafield>
+        <datafield tag="787" ind1=" " ind2=" ">
+            <subfield code="w">Published in publication</subfield>
+        </datafield>
+        <datafield tag="790" ind1=" " ind2=" ">
+            <subfield code="w">SKIP-IN-COMPARING</subfield>
+        </datafield>
+    </record>
+    <record>
+        <controlfield tag="001">mock-id</controlfield>
+        <datafield tag="024" ind1="7" ind2=" ">
+            <subfield code="2">doi</subfield>
+            <subfield code="a">doi:111.222/publication</subfield>
+        </datafield>
+        <datafield tag="024" ind1="7" ind2="0">
+            <subfield code="a">111-222-333</subfield>
+            <subfield code="2">isi</subfield>
+        </datafield>
+        <datafield tag="024" ind1="/" ind2=" ">
+            <subfield code="a">99999999</subfield>
+        </datafield>
+        <datafield tag="039" ind1=" " ind2="9">
+            <subfield code="y">SKIP-IN-COMPARING</subfield>
+            <subfield code="a">SKIP-IN-COMPARING</subfield>
+        </datafield>
+        <datafield tag="041" ind1=" " ind2=" ">
+            <subfield code="a">en</subfield>
+        </datafield>
+        <datafield tag="245" ind1=" " ind2=" ">
+            <subfield code="a">Second Publication</subfield>
+        </datafield>
+        <datafield tag="260" ind1=" " ind2=" ">
+            <subfield code="b">Publication publisher</subfield>
+            <subfield code="c">2022-08-22</subfield>
+        </datafield>
+        <datafield tag="269" ind1=" " ind2=" ">
+            <subfield code="a">2022-08-22</subfield>
+        </datafield>
+        <datafield tag="300" ind1=" " ind2=" ">
+        </datafield>
+        <datafield tag="336" ind1=" " ind2=" ">
+            <subfield code="a">Controlled Vocabulary for Resource Type Genres::text::review</subfield>
+        </datafield>
+        <datafield tag="542" ind1=" " ind2=" ">
+        </datafield>
+        <datafield tag="653" ind1="1" ind2=" ">
+            <subfield code="a">test</subfield>
+        </datafield>
+        <datafield tag="653" ind1="1" ind2=" ">
+            <subfield code="a">export</subfield>
+        </datafield>
+        <datafield tag="700" ind1=" " ind2=" ">
+            <subfield code="a">Walter White</subfield>
+        </datafield>
+        <datafield tag="700" ind1=" " ind2=" ">
+            <subfield code="a">Jessie Pinkman</subfield>
+            <subfield code="g">sciper2</subfield>
+        </datafield>
+        <datafield tag="711" ind1="2" ind2=" ">
+            <subfield code="a">The best Conference</subfield>
+        </datafield>
+        <datafield tag="787" ind1=" " ind2=" ">
+            <subfield code="w">Published in publication</subfield>
+        </datafield>
+        <datafield tag="790" ind1=" " ind2=" ">
+            <subfield code="w">SKIP-IN-COMPARING</subfield>
+        </datafield>
+    </record>
+</collection>

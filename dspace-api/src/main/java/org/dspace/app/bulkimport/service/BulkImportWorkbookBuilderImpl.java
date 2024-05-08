@@ -117,6 +117,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
         BulkImportWorkbook bulkImportWorkbook = buildEmptyWorkbook(context, collection);
 
         writeWorkbookContent(items, bulkImportWorkbook);
+        bulkImportWorkbook.getMainSheet().highlightTruncatedHeaders();
 
         autoSizeColumns(bulkImportWorkbook.getAllSheets());
 

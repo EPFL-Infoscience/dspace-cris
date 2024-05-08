@@ -83,7 +83,7 @@ public class FileTypeMetadataEnhancerConsumer implements Consumer {
             );
         } else {
             logger.warn(
-                "Can't consume the DSPaceObject with id {}, only BITSTREAM and ITEMS'CREATION events are consumable!",
+                "Can't consume the DSpaceObject with id {}, only BITSTREAM and ITEMS'CREATION events are consumable!",
                 event.getSubjectID()
             );
         }

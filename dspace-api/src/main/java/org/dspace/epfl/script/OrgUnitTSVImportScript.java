@@ -7,7 +7,6 @@
  */
 package org.dspace.epfl.script;
 
-import static com.google.common.collect.Streams.concat;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.authority.service.AuthorityValueService.GENERATE;
@@ -23,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,9 @@ import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.EpflApiClientImpl;
+import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.script.model.OrgUnitTSV;
 import org.dspace.epfl.script.model.OrgUnitTSV.OrgUnitRow;
 import org.dspace.epfl.script.service.OrgUnitTSVParser;
@@ -77,9 +81,13 @@ public class OrgUnitTSVImportScript
 
     private OrgUnitApiService orgUnitApiService;
 
+    private EpflApiClient epflApiClient;
+
     private String collectionId;
 
     private String filename;
+
+    private Boolean isIntegratedMode;
 
     private Context context;
 
@@ -104,9 +112,13 @@ public class OrgUnitTSVImportScript
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         this.orgUnitTSVParser = new DSpace().getServiceManager().getServicesByType(OrgUnitTSVParser.class).get(0);
+        this.epflApiClient = new DSpace().getServiceManager()
+                .getServiceByName("org.dspace.epfl.client.EpflApiClientImpl",
+                        EpflApiClientImpl.class);
 
         collectionId = commandLine.getOptionValue('c');
         filename = commandLine.getOptionValue('f');
+        isIntegratedMode = commandLine.hasOption('i');
 
         activeOrgUnitAcronymHeader = getActiveOrgUnitAcronymHeader();
         inactiveOrgUnitAcronymHeader = getInactiveOrgUnitAcronymHeader();
@@ -205,7 +217,9 @@ public class OrgUnitTSVImportScript
     }
 
     private List<MetadataValueDTO> getMetadataValues(OrgUnitRow orgUnitRow, String orgUnitAcronym) {
-        if (orgUnitApiService.isOrgUnitActive(orgUnitAcronym)) {
+        if (isIntegratedMode) {
+            return getMetadataValuesFromOrgUnitRow(orgUnitRow);
+        } else if (orgUnitApiService.isOrgUnitActive(orgUnitAcronym)) {
             return getMetadataValuesFromAPI(orgUnitRow);
         } else {
             return getMetadataValuesFromOrgUnitRow(orgUnitRow);
@@ -251,7 +265,15 @@ public class OrgUnitTSVImportScript
 
         String name = getHeadName(orgUnitRow);
         if (StringUtils.isBlank(name)) {
-            return Optional.empty();
+            Optional<String> headNameFromApi = getHeadNameFromApi(orgUnitRow);
+            if (headNameFromApi.isPresent()) {
+                handler.logInfo("Head name is missing in tsv, taking head name from api: " + headNameFromApi.get());
+                name = headNameFromApi.get();
+            } else {
+                handler.logInfo("Head name is missing in tsv, and it was not possible to get it from the api: " +
+                        "head name metadata is not added");
+                return Optional.empty();
+            }
         }
 
         String authority = getHeadAuthority(orgUnitRow);
@@ -261,11 +283,26 @@ public class OrgUnitTSVImportScript
 
     }
 
+    private Optional<String> getHeadNameFromApi(OrgUnitRow orgUnitRow) {
+        String headSciperIdHeader = getHeadSciperIdHeader();
+        Optional<String> headSciperId = orgUnitRow.getValue(headSciperIdHeader);
+
+        if (headSciperId.isPresent()) {
+            Optional<PersonDTO> epflPerson = epflApiClient.getPerson(headSciperId.get(), EpflApiClient.Language.EN);
+            return epflPerson.map(PersonDTO::getFullName);
+        }
+        return Optional.empty();
+    }
+
     private String getHeadName(OrgUnitRow orgUnitRow) {
         String firstName = getHeadFirstNameHeader();
         String lastName = getHeadLastNameHeader();
-        return concat(orgUnitRow.getValue(lastName).stream(), orgUnitRow.getValue(firstName).stream())
-            .collect(Collectors.joining(", "));
+        return Stream.of(
+                        orgUnitRow.getValue(lastName).stream(),
+                        orgUnitRow.getValue(firstName).stream()
+                )
+                .flatMap(Function.identity())
+                .collect(Collectors.joining(", "));
     }
 
     private String getHeadAuthority(OrgUnitRow orgUnitRow) {
@@ -295,7 +332,13 @@ public class OrgUnitTSVImportScript
             return acronym;
         }
 
-        String willBePrefix = orgUnitApiService.isOrgUnitActive(acronym) ? GENERATE : REFERENCE;
+        String willBePrefix;
+        try {
+            willBePrefix = orgUnitApiService.isOrgUnitActive(acronym) ? GENERATE : REFERENCE;
+        } catch (Exception e) {
+            handler.logError("Error retrieving org unit status for acronym " + acronym);
+            willBePrefix = REFERENCE;
+        }
         return willBePrefix + authorityPrefix + acronym;
     }
 
@@ -313,7 +356,8 @@ public class OrgUnitTSVImportScript
         return metadataValues;
     }
 
-    private Optional<MetadataValueDTO> getMetadataValue(String configuredHeader, OrgUnitRow orgUnitRow) {
+    private List<MetadataValueDTO> getMetadataValue(String configuredHeader, OrgUnitRow orgUnitRow) {
+        List<MetadataValueDTO> metadataValues = new ArrayList<>();
 
         for (String header : orgUnitRow.getHeaders()) {
 
@@ -324,14 +368,20 @@ public class OrgUnitTSVImportScript
                     continue;
                 }
 
-                return orgUnitRow.getValue(header)
+                Optional<MetadataValueDTO> metadataValueDTO = orgUnitRow.getValue(header)
                     .map(value -> new MetadataValueDTO(metadataField, getLanguageFromHeader(header), value));
 
+                metadataValueDTO.ifPresent(metadataValues::add);
             }
 
         }
-
-        return Optional.empty();
+        if (!metadataValues.isEmpty()) {
+            handler.logInfo("In row " + orgUnitRow.getIndex() + " for head " + configuredHeader + " "
+                    + metadataValues.size() + " metadatas was imported with "
+                    + metadataValues.stream().map(MetadataValueDTO::getLanguage).collect(Collectors.joining(", "))
+                    + " language values");
+        }
+        return metadataValues;
     }
 
     private String getMetadataFieldForHeader(String header) {

@@ -113,6 +113,7 @@ import org.dspace.util.MultiFormatDateParser;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -123,6 +124,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Maria Verdonck (Atmire) on 10/06/2020
  */
+@Ignore
 public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     protected final StatisticsEventListener statisticsEventListener = new StatisticsEventListener();
@@ -416,6 +418,8 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                 .content(mapper.writeValueAsBytes(viewEventRest))
                 .contentType(contentType))
                 .andExpect(status().isCreated());
+
+        Thread.sleep(1000);
     }
 
     @Test

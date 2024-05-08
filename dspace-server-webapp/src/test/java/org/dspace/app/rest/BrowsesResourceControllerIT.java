@@ -49,6 +49,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
  * @author Frederic Van Reet (frederic dot vanreet at atmire dot com)
  * @author Tom Desair (tom dot desair at atmire dot com)
  */
+@Ignore // no browse indexes are configured
 public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTest {
     @Autowired
     ConfigurationService configurationService;
@@ -94,7 +95,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // title index is commented out in dspace.cfg
     public void findBrowseByTitle() throws Exception {
         //When we call the root endpoint
         getClient().perform(get("/api/discover/browses/title"))
@@ -109,7 +109,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // dateissued index is commented out in dspace.cfg
     public void findBrowseByDateIssued() throws Exception {
         //When we call the root endpoint
         getClient().perform(get("/api/discover/browses/dateissued"))
@@ -515,7 +514,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // title index is commented out in dspace.cfg
     public void findBrowseByTitleItems() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -659,7 +657,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
      *
      * @throws Exception
      */
-    @Ignore // title index is commented out in dspace.cfg
     public void browsePaginationWithoutExplicitParams() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -725,7 +722,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // dateissued index is commented out in dspace.cfg
     public void testPaginationBrowseByDateIssuedItems() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1188,7 +1184,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // dateissued index is commented out in dspace.cfg
     public void testBrowseByItemsStartsWith() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1364,7 +1359,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // dateissued index is commented out in dspace.cfg
     public void testBrowseByStartsWithAndPage() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1465,7 +1459,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
 
 
     @Test
-    @Ignore // title index is commented out in dspace.cfg
     public void testBrowseByTitleStartsWithAndDiacritics() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1546,7 +1539,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // title index is commented out in dspace.cfg
     public void findBrowseByTitleItemsFullProjectionTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1681,7 +1673,6 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
     }
 
     @Test
-    @Ignore // dateissued index is commented out in dspace.cfg
     public void testBrowseByDateIssuedItemsFullProjectionTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

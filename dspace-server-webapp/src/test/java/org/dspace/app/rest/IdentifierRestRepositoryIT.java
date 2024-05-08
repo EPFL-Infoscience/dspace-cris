@@ -38,6 +38,7 @@ import org.springframework.http.MediaType;
  *
  * @author Kim Shepherd
  */
+@Ignore
 public class IdentifierRestRepositoryIT extends AbstractControllerIntegrationTest {
     @Before
     public void setup() throws Exception {

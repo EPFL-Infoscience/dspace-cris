@@ -11,7 +11,7 @@
 	"Keywords":[
 	    "@dc.subject@",
 	    ],
-	"IsProducedAtEpfl": "@virtual.mapConverter.writtenAtEpfl.epfl-writtenat@",
+	"IsProducedAtEpfl": "@virtual.mapConverter.writtenAtEpfl.epfl-writtenAt@",
 	"Reviewed": "@epfl.peerreviewed@",
 	"Status": "@oaire.version@",
 	"Distribution": {
@@ -20,11 +20,16 @@
 	  "Year": "@dc.date.issued@",
 	},
 	"Series": {
-	  "Name": "@dc.relation.ispartof@",
-	  "Volume": "",
+	  "Name": "@dc.relation.ispartofseries@",
 	},
 	"Host": {
+	@if.metadata.dc-relation-ispartof.start@
 	  "Name": "@dc.relation.ispartof@",
+	@if.metadata.dc-relation-ispartof.end@
+	@if.metadata.dc-relation-journal.start@
+      "JournalName": "@dc.relation.journal@",
+      "Articlenumber": "@oaire.citation.articlenumber@",
+    @if.metadata.dc-relation-journal.end@
     @if.metadata.oaire-citation-startPage.start@
 	  "Pages": "@virtual.fullpage@",
     @if.metadata.oaire-citation-startPage.end@
@@ -34,30 +39,30 @@
 	  "Isbn": "@dc.relation.isbn@",
 	},
 	"Persons": [
-	  @group.dc-contributor-author.start@
+	@group.dc-contributor-author.start@
     {
       "Name": "@dc.contributor.author@",
-      "Orcid": "@cris.virtual.author-orcid@",
-      "Sciper": "@cris.virtual.author-sciperId@",
+      "Orcid": "@virtual.orcid.dc-contributor-author@",
+      "Sciper": "@virtual.sciperId.dc-contributor-author@",
       "Affiliation": "@oairecerif.author.affiliation@"
     },
     @group.dc-contributor-author.end@
 	],
 	"Editors": [
-    @group.dc-contributor-editor.start@
+    @group.dc-contributor-scientificeditor.start@
     {
-      "Name": "@dc.contributor.editor@",
-      "Orcid": "@cris.virtual.editor-orcid@",
-      "Sciper": "@cris.virtual.editor-sciperId@",
-      "Affiliation": "@oairecerif.editor.affiliation@"
+      "Name": "@dc.contributor.scientificeditor@",
+      "Orcid": "@virtual.orcid.dc-contributor-scientificeditor@",
+      "Sciper": "@virtual.sciperId.dc-contributor-scientificeditor@",
+      "Affiliation": "@oairecerif.scientificeditor.affiliation@"
     },
     @group.dc-contributor-editor.end@
     @group.epfl-contributor-advisor.start@
     {
       "Name": "@epfl.contributor.advisor@",
-      @relation.epfl-contributor-editor.start@
       "Orcid": "@person.identifier.orcid@",
-      @relation.epfl-contributor-editor.end@
+      "Sciper": "@virtual.sciperId.dc-contributor-advisor@",
+      "Affiliation": "@oairecerif.advisor.affiliation@"
     },
     @group.epfl-contributor-advisor.end@
   ],
@@ -67,17 +72,24 @@
             "Place": "@oairecerif.event.place@",
             "Date": "@oairecerif.event.startDate@",
       @relation.dc-relation-conference.end@
-	  "Place": "@oaire:citationConferencePlace@",
-	  "Date": "@oaire:citationConferenceDate@",
+	  "Place": "@oaire.citation.conferencePlace@",
+	  "Date": "@oaire.citation.conferenceDate@",
 	},
 	"Units": [
-	  "unit": "@epfl.relation.orgunit@",
+	@relation.dc-description-sponsorship.start@
+	        "uni-acronym": "@oairecerif.acronym@",
+	        "unit-code": "@epfl.unit.code@",
+	        "unit-authid": "@virtual.id@",
+	@relation.dc-description-sponsorship.end@
+	"unit": "@dc.description.sponsorship@",
 	],
 	"Resources": [
 	  @group.bundle-original.start@
 	  {
 	    "Url": "@virtual.bitstreamData.original.download-path@",
 	    "Description": "@virtual.bitstreamData.original.metadata.dc-file-type@",
+	    "Version": "@virtual.bitstreamData.original.metadata.oaire-version@",
+	    "Licence": "@virtual.bitstreamData.original.metadata.oaire-licenseCondition@",
 	  },
 	  @group.bundle-original.end@
 	],

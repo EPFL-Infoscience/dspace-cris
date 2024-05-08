@@ -109,11 +109,6 @@
             <reader>funders</reader>
         </metadata-field>
         <metadata-field>
-            <field>dc.rights.accessRights</field>
-            <xpath>./datafield[@tag = '542']</xpath>
-            <reader>accessRights</reader>
-        </metadata-field>
-        <metadata-field>
             <field>epfl.award</field>
             <xpath>./datafield[@tag = '586']</xpath>
             <reader>award</reader>
@@ -210,6 +205,7 @@
         <metadata-field>
             <field>epfl.lastmodified.email</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '0']/subfield[@code = 'f']</xpath>
+            <reader>uniqueMetadata</reader>
         </metadata-field>
         <metadata-field>
             <field>oaire.version</field>
@@ -227,6 +223,16 @@
         <metadata-field>
             <field>dc.relation</field>
             <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = ' ' and not(subfield[@code = 'x'])]/subfield[@code = 'u']</xpath>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.url</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'u']</xpath>
+            <reader>simpleStringValue</reader>
+        </metadata-field>
+        <metadata-field>
+            <field>epfl.url.description</field>
+            <xpath>./datafield[@tag = '856' and @ind1 = '4' and @ind2 = '1']/subfield[@code = 'y']</xpath>
+            <reader>simpleStringValue</reader>
         </metadata-field>
         <metadata-field>
             <field>dc.description.sponsorship</field>
@@ -269,6 +275,7 @@
         <metadata-field>
             <field>epfl.thesis.originalUnit</field>
             <xpath>./datafield[@tag = '919']/subfield[@code = 'a']</xpath>
+            <reader>thesis</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.publicDefenseYear</field>
@@ -288,7 +295,7 @@
             <xpath>./datafield[@tag = '961']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>epfl.writtenat</field>
+            <field>epfl.writtenAt</field>
             <xpath>./datafield[@tag = '973']/subfield[@code = 'a']</xpath>
         </metadata-field>
         <metadata-field>
