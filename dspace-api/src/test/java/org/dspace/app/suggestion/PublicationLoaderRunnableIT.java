@@ -123,7 +123,7 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
 
         TestDSpaceRunnableHandler handler = runScriptWithoutResearcherUUID(loader);
 
-        assertThat(handler.getInfoMessages(), hasSize(6));
+        assertThat(handler.getInfoMessages(), hasSize(2));
         assertThat(handler.getInfoMessages().get(0),
                    containsString("Querying external system for author " + itemB.getName()));
         assertThat(handler.getWarningMessages(), empty());
