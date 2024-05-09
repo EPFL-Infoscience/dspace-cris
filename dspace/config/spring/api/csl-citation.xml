@@ -12,10 +12,11 @@
              so the property has been named abstrct (without the a) -->
         <property name="abstrct" value="dc.description.abstract"/>
         <property name="DOI" value="dc.identifier.doi"/>
-        <property name="ISBN" value="dc.identifier.isbn"/>
-        <property name="ISSN" value="dc.identifier.issn"/>
+        <property name="ISBN" value="dc.relation.isbn"/>
+        <property name="ISSN" value="dc.relation.issn"/>
         <property name="keyword" value="dc.subject"/>
         <property name="publisher" value="dc.publisher"/>
+        <property name="publisherPlace" value="dc.publisher.place"/>
         <property name="volume" value="oaire.citation.volume"/>
         <property name="issue" value="oaire.citation.issue"/>
         <property name="event" value="dc.relation.conference"/>
@@ -27,8 +28,8 @@
     </bean>
     
     <bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
-		<property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
-		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value=""/>
-	</bean>
+		  <property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
+		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		  <property name="defaultValue" value=""/>
+	  </bean>
 </beans>

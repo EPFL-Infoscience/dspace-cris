@@ -10,7 +10,10 @@ package org.dspace.content.logic.filter;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import java.util.List;
+
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.logic.Filter;
 import org.dspace.content.logic.LogicalStatementException;
 import org.dspace.content.service.ItemService;
@@ -49,11 +52,8 @@ public class DoiFilter implements Filter {
     }
 
     private boolean isThesis(Item item) {
-        String type = itemService.getMetadataFirstValue(item, "dc", "type", null, Item.ANY);
-        if (isBlank(type)) {
-            return false;
-        }
-        return type.equals("text::thesis::doctoral thesis") || type.equals("thèses::thèse de doctorat");
+        List<MetadataValue> values = itemService.getMetadata(item, "dc.type", "thesis-coar-types:c_db06");
+        return values.size() > 0;
     }
 
     private boolean hasNotDoiOrHasCustomerDoi(Item item) {

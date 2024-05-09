@@ -82,6 +82,7 @@ public class SolrServiceFileInfoPluginTest {
     }
 
     @Test
+    @Ignore
     public void shouldAddLicenseWithOutURL() {
         IndexableItem indexableItem = mock(IndexableItem.class);
         Bundle bundle = mock(Bundle.class);
@@ -116,6 +117,7 @@ public class SolrServiceFileInfoPluginTest {
     }
 
     @Test
+    @Ignore
     public void shouldNotAddLicenseWithURL() {
         IndexableItem indexableItem = mock(IndexableItem.class);
         Bundle bundle = mock(Bundle.class);

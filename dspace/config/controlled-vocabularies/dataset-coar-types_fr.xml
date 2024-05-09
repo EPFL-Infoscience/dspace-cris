@@ -2,7 +2,7 @@
 <!-- This XML was automatically generated from the SKOS sources for the COAR Vocabulary. It follows the schema developed by 4Science (https://www.4science.it/) for DSpace -->
 <node id="http://purl.org/coar/resource_type/scheme" label="Resource Types">
   <isComposedBy>
-    <node id="c_ddb1" label="Datasets">
+    <node id="c_ddb1" label="dataset">
       <hasNote>A collection of related facts and data encoded in a defined structure. [Source: Adapted from http://purl.org/spar/fabio/Dataset]
       </hasNote>
       <isComposedBy>

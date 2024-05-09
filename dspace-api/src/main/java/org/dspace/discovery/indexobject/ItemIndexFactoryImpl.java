@@ -11,6 +11,9 @@ import static org.dspace.discovery.SolrServiceImpl.SOLR_FIELD_SUFFIX_FACET_PREFI
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -87,7 +90,8 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     public static final String STORE_SEPARATOR = "\n|||\n";
     public static final String STATUS_FIELD = "database_status";
     public static final String STATUS_FIELD_PREDB = "predb";
-
+    public static final String WRONG_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+    public static final String TRUNCATED_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     @Autowired
     protected HandleService handleService;
@@ -658,13 +662,13 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                     }
 
                     if (type.equals(DiscoveryConfigurationParameters.TYPE_DATE)) {
-                        Date date = MultiFormatDateParser.parse(value);
+                        Date date = MultiFormatDateParser.parse(reformatTimestampToMaxMilliseconds(value));
                         if (date != null) {
                             String stringDate = SolrUtils.getDateFormatter().format(date);
                             doc.addField(field + "_dt", stringDate);
                         } else {
                             log.warn("Error while indexing sort date field, item: " + item
-                                    .getHandle() + " metadata field: " + field + " date value: " + date);
+                                    .getHandle() + " metadata field: " + field + " date value: " + value);
                         }
                     } else {
                         doc.addField(field + "_sort", value);
@@ -979,6 +983,18 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                 doc.addField(searchFilter.getIndexFieldName() + SOLR_FIELD_SUFFIX_FACET_PREFIXES,
                              currentPart.toLowerCase() + separator + value);
             }
+        }
+    }
+
+    public static String reformatTimestampToMaxMilliseconds(String timestamp) {
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern(WRONG_TIMESTAMP_FORMAT);
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern(TRUNCATED_TIMESTAMP_FORMAT);
+
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(timestamp, inputFormatter);
+            return dateTime.format(outputFormatter);
+        } catch (DateTimeParseException e) {
+            return timestamp;
         }
     }
 }

@@ -153,7 +153,7 @@
       <type>correction</type>
       <scope visibilityOutside="hidden">workflow</scope>
     </step-definition>
-    <step-definition id="sherpaPolicies" mandatory="true">
+    <step-definition id="sherpaPolicies" mandatory="true" opened="false">
       <heading>submit.progressbar.sherpaPolicies</heading>
       <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
       <type>sherpaPolicy</type>
@@ -203,32 +203,32 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="grants" mandatory="true">
+    <step-definition id="grants" mandatory="true" opened="false">
       <heading>submit.progressbar.describe.grants</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="related_works" mandatory="true">
+    <step-definition id="related_works" mandatory="true" opened="false">
       <heading>submit.progressbar.describe.related_works</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="related_event" mandatory="true">
+    <step-definition id="related_event" mandatory="true" opened="false">
       <heading>submit.progressbar.describe.related_event</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="additional_fields" mandatory="true">
+    <step-definition id="additional_fields" mandatory="true" opened="false">
       <heading>submit.progressbar.describe.additional_fields</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="journalcontainer_details" mandatory="true">
+    <step-definition id="journalcontainer_details" mandatory="true" opened="false">
       <heading>submit.progressbar.describe.journalcontainer_details</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="bookcontainer_details" mandatory="true">
+    <step-definition id="bookcontainer_details" mandatory="true" opened="false">
       <heading>submit.progressbar.describe.bookcontainer_details</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
@@ -340,6 +340,11 @@
     </step-definition>
     <step-definition id="publication-import" mandatory="true">
       <heading>submit.progressbar.describe.publication-import</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="other_details" mandatory="true">
+      <heading>submit.progressbar.describe.other_details</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
@@ -501,6 +506,7 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="article_type" />
       <step id="alternative_identifiers" />
       <step id="article_details" />
@@ -509,13 +515,12 @@
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="article-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="article_type" />
       <step id="alternative_identifiers" />
       <step id="article_details" />
@@ -524,8 +529,6 @@
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="article-correction">
       <step id="extractionstep" />
@@ -544,23 +547,47 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="media_details" />
       <step id="additional_fields" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="media-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="media_details" />
       <step id="additional_fields" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="media-correction">
+      <step id="extractionstep" />
+      <step id="correction" />
+      <step id="notes-for-reviewer" />
+      <step id="media_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="other">
+      <step id="collection" />
+      <step id="correction" />
+      <step id="extractionstep" />
+      <step id="upload-publication" />
+      <step id="other_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+      <step id="detect-duplicate" />
+      <step id="license" />
+    </submission-process>
+    <submission-process name="other-edit">
+      <step id="extractionstep" />
+      <step id="upload-publication" />
+      <step id="other_details" />
+      <step id="additional_fields" />
+      <step id="related_works" />
+    </submission-process>
+    <submission-process name="other-correction">
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
@@ -572,27 +599,27 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-product" />
       <step id="dataset_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
       <step id="related_event" />
-      <step id="ctb-bitstream-metadata" />
       <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
       <step id="detect-duplicate" />
-      <step id="upload-product" />
       <step id="license" />
     </submission-process>
     <submission-process name="dataset-edit">
       <step id="extractionstep" />
+      <step id="upload-product" />
       <step id="dataset_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
       <step id="related_event" />
-      <step id="ctb-bitstream-metadata" />
       <step id="itemAccessConditions" />
-      <step id="upload-product" />
+      <step id="ctb-bitstream-metadata" />
     </submission-process>
     <submission-process name="dataset-correction">
       <step id="extractionstep" />
@@ -608,21 +635,19 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-patent" />
       <step id="patent" />
       <step id="additional_fields" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-patent" />
       <step id="license" />
     </submission-process>
     <submission-process name="patent-edit">
       <step id="extractionstep" />
+      <step id="upload-patent" />
       <step id="patent" />
       <step id="additional_fields" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-patent" />
     </submission-process>
     <submission-process name="patent-correction">
       <step id="extractionstep" />
@@ -636,6 +661,7 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="thesis_type" />
       <step id="thesis_details" />
       <step id="additional_fields" />
@@ -643,13 +669,12 @@
       <step id="thesis_awards" />
       <step id="related_works" />
       <step id="grants" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="thesis-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="thesis_type" />
       <step id="thesis_details" />
       <step id="additional_fields" />
@@ -657,8 +682,6 @@
       <step id="thesis_awards" />
       <step id="related_works" />
       <step id="grants" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="thesis-correction">
       <step id="extractionstep" />
@@ -676,29 +699,25 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="student_type" />
       <step id="thesis_details" />
       <step id="additional_fields" />
       <step id="thesis_involved" />
       <step id="thesis_awards" />
       <step id="related_works" />
-      <step id="grants" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="student-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="student_type" />
       <step id="thesis_details" />
       <step id="additional_fields" />
       <step id="thesis_involved" />
       <step id="thesis_awards" />
       <step id="related_works" />
-      <step id="grants" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="student-correction">
       <step id="extractionstep" />
@@ -717,6 +736,7 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="conference_details" />
       <step id="bookcontainer_details" />
       <step id="journalcontainer_details" />
@@ -726,12 +746,11 @@
       <step id="grants" />
       <step id="related_works" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
-      <step id="itemAccessConditions" />
       <step id="license" />
     </submission-process>
     <submission-process name="conference-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="conference_details" />
       <step id="bookcontainer_details" />
       <step id="journalcontainer_details" />
@@ -740,8 +759,6 @@
       <step id="conference_event" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="upload-publication" />
-      <step id="itemAccessConditions" />
     </submission-process>
     <submission-process name="conference-correction">
       <step id="extractionstep" />
@@ -760,23 +777,21 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="report_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="report-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="report_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="report-correction">
       <step id="extractionstep" />
@@ -791,21 +806,19 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="design_details" />
       <step id="additional_fields" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="design-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="design_details" />
       <step id="additional_fields" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="design-correction">
       <step id="extractionstep" />
@@ -817,30 +830,29 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="preprint">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="preprint_type" />
       <step id="alternative_identifiers" />
       <step id="preprint_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="preprint-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="preprint_type" />
       <step id="alternative_identifiers" />
       <step id="preprint_details" />
       <step id="grants" />
       <step id="additional_fields" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="preprint-correction">
       <step id="extractionstep" />
@@ -857,23 +869,21 @@
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="teaching_details" />
       <step id="additional_fields" />
       <step id="related_event" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="teaching-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="teaching_details" />
       <step id="additional_fields" />
       <step id="related_event" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="teaching-correction">
       <step id="extractionstep" />
@@ -885,28 +895,27 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="book">
+      <step id="unpaywall" />
       <step id="collection" />
       <step id="correction" />
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="book_details" />
       <step id="bookcontainer_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
       <step id="detect-duplicate" />
-      <step id="upload-publication" />
       <step id="license" />
     </submission-process>
     <submission-process name="book-edit">
       <step id="extractionstep" />
+      <step id="upload-publication" />
       <step id="book_details" />
       <step id="bookcontainer_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
-      <step id="itemAccessConditions" />
-      <step id="upload-publication" />
     </submission-process>
     <submission-process name="book-correction">
       <step id="extractionstep" />

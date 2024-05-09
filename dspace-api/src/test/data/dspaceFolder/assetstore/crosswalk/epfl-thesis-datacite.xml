@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.4/metadata.xsd">
+  <identifier identifierType="DOI">doi:10.5072/epfl-thesis-old-doi</identifier>
+  <creators>
+        <creator>
+              <creatorName>Student, Name</creatorName>
+      </creator>
+    </creators>
+  <titles>
+    <title>itemWithPreviousEPFLDOI</title>
+  </titles>
+  <publisher>School of XXX</publisher>
+  <subjects>
+  </subjects>
+  <dates>
+    <date dateType="Available">SKIP-IN-COMPARING</date>
+  </dates>
+  <resourceType resourceTypeGeneral="Dissertation">
+  doctoral thesis
+  </resourceType>
+  <alternateIdentifiers>
+    <alternateIdentifier alternateIdentifierType="url">SKIP-IN-COMPARING</alternateIdentifier>
+  </alternateIdentifiers>
+  <rightsList>
+    <rights rightsURI="metadata-only">
+        metadata-only</rights>
+  </rightsList>
+  <descriptions>
+  </descriptions>
+</resource>
