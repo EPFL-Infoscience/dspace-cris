@@ -240,8 +240,8 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                 }
             } else {
                 log.error("ArXiv request with query: " + queryString +
-                        " to obtain in total entities failed with the code:" + response.getStatus() +
-                        " and status info: " + response.getStatusInfo());
+                              " to obtain in total entities failed with the code:" + response.getStatus() +
+                              " and status info: " + response.getStatusInfo());
                 return null;
             }
         }
@@ -298,7 +298,7 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                 return results;
             } else {
                 log.error("ArXiv request with query: " + queryString + " failed with the code:" + response.getStatus() +
-                        " and status info: " + response.getStatusInfo());
+                              " and status info: " + response.getStatusInfo());
                 return null;
             }
         }
@@ -347,7 +347,7 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                 return results;
             } else {
                 log.error("ArXiv request with query: " + arxivid + " failed with the code:" + response.getStatus() +
-                        " and status info: " + response.getStatusInfo());
+                              " and status info: " + response.getStatusInfo());
                 return null;
             }
         }
@@ -387,7 +387,7 @@ public class ArXivImportMetadataSourceServiceImpl extends AbstractImportMetadata
                 return results;
             } else {
                 log.error("ArXiv request with query: " + queryString + " failed with the code:" + response.getStatus() +
-                        " and status info: " + response.getStatusInfo());
+                              " and status info: " + response.getStatusInfo());
                 return null;
             }
         }

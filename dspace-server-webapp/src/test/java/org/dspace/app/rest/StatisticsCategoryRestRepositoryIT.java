@@ -74,11 +74,10 @@ public class StatisticsCategoryRestRepositoryIT extends AbstractControllerIntegr
                 .param("uri", "http://localhost:8080/server/api/items/" + itemPers.getID().toString())
                 )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.page", PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)))
+            .andExpect(jsonPath("$.page", PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 2)))
             .andExpect(jsonPath("$._embedded.categories", Matchers.contains(
                     StatisticsCategoryMatcher.match("person-mainReports", "mainReports"),
-                    StatisticsCategoryMatcher.match("person-publicationsReports", "publicationsReports"),
-                    StatisticsCategoryMatcher.match("person-projectsReports", "projectsReports")
+                    StatisticsCategoryMatcher.match("person-publicationsReports", "personPublicationsReports")
                     )));
         getClient(authToken).perform(get("/api/statistics/categories/search/object")
                 .param("uri", "http://localhost:8080/server/api/items/" + itemPub.getID().toString())
@@ -152,11 +151,10 @@ public class StatisticsCategoryRestRepositoryIT extends AbstractControllerIntegr
             .param("uri", "http://localhost:8080/server/api/items/" + itemPers.getID().toString())
         )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.page", PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)))
+            .andExpect(jsonPath("$.page", PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 2)))
             .andExpect(jsonPath("$._embedded.categories", Matchers.contains(
                 StatisticsCategoryMatcher.match("person-mainReports", "mainReports"),
-                StatisticsCategoryMatcher.match("person-publicationsReports", "publicationsReports"),
-                StatisticsCategoryMatcher.match("person-projectsReports", "projectsReports")
+                StatisticsCategoryMatcher.match("person-publicationsReports", "personPublicationsReports")
             )));
         configurationService.setProperty("usage-statistics.authorization.admin.usage", true);
     }

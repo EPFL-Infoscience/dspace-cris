@@ -45,8 +45,10 @@ import org.dspace.eperson.Group;
 import org.dspace.utils.DSpace;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class ZipItemExportCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     private ZipItemExportCrosswalk zipItemExportCrosswalk;

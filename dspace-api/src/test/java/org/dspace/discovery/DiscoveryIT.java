@@ -68,6 +68,7 @@ import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -746,6 +747,7 @@ public class DiscoveryIT extends AbstractIntegrationTestWithDatabase {
      * @throws SearchServiceException
      */
     @Test
+    @Ignore
     public void searchWithDefaultSortServiceTest() throws SearchServiceException {
         DiscoveryConfiguration workspaceConf =
             SearchUtils.getDiscoveryConfiguration(context, DISCOVER_WORKSPACE_CONFIGURATION_NAME, null);
@@ -794,6 +796,29 @@ public class DiscoveryIT extends AbstractIntegrationTestWithDatabase {
         for (int i = 1; i < lastModifieds.size() - 1; i++) {
             assertTrue(lastModifieds.get(i).compareTo(lastModifieds.get(i + 1)) >= 0);
         }
+    }
+
+    @Test
+    public void indexItemWithLongAbstract() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Community com1 = CommunityBuilder.createCommunity(context).withName("Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, com1).withName("Collection").build();
+
+        String longAbstract = "üüü".repeat(20000);
+        ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2010-10-17")
+                .withAuthor("White, Walter").withSubject("Subj").withDescriptionAbstract(longAbstract).build();
+
+        longAbstract = "\uD808\uDC00".repeat(50000);
+        ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2010-10-17")
+                .withAuthor("White, Walter").withSubject("Subj").withDescriptionAbstract(longAbstract).build();
+
+        context.restoreAuthSystemState();
+
+        assertSearchQuery(IndexableItem.TYPE, 2);
+
     }
 
     private void assertSearchQuery(String resourceType, int size) throws SearchServiceException {

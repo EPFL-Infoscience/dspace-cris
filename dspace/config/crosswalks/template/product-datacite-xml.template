@@ -10,9 +10,7 @@
 			    @relation.dc-contributor-author.end@
 			@relation.oairecerif-author-affiliation.start@
             <affiliation
-            @if.metadata.organization-identifier-ror.start@
                 affiliationIdentifier="@organization.identifier.ror@" affiliationIdentifierScheme="ROR"
-            @if.metadata.organization-identifier-ror.end@
             >@dc.title@</affiliation>
             @relation.oairecerif-author-affiliation.end@
             @if.not.authority.oairecerif-author-affiliation.start@

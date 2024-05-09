@@ -46,6 +46,18 @@
                   ref="org.dspace.identifier.doi.DOIConnector"/>
     </bean>
 
+    <bean id="epfl-doi-provider"
+        class="org.dspace.identifier.VersionedDOIIdentifierProvider"
+        scope="singleton">
+        <property name="configurationService"
+            ref="org.dspace.services.ConfigurationService" />
+        <property name="DOIConnector"
+            ref="org.dspace.identifier.doi.DOIConnector" />
+        <property name="filter" ref="epfl-doi-filter"></property>
+    </bean>
+
+    <bean id="epfl-doi-filter" class="org.dspace.content.logic.filter.DoiFilter" />
+
     <bean id="org.dspace.identifier.doi.DOIConnector"
           class="org.dspace.identifier.doi.DataCiteConnector">
       <property name='DATACITE_SCHEME' value='https'/>

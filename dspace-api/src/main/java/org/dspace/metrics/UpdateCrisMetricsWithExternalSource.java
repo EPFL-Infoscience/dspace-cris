@@ -211,7 +211,7 @@ public class UpdateCrisMetricsWithExternalSource extends
             }
 
             metricsServices.setLastImportMetadataValue(context, item);
-
+            context.uncacheEntity(item);
             count++;
             if (count == 20) {
                 context.commit();

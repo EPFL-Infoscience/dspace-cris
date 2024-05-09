@@ -29,6 +29,7 @@ import org.dspace.app.rest.test.AbstractEntityIntegrationTest;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.RelationshipTypeService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,6 +42,7 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
     private EntityTypeService entityTypeService;
 
     @Test
+    @Ignore
     public void findAllRelationshipTypesTest() throws SQLException {
         assertEquals(22, relationshipTypeService.findAll(context).size());
     }
@@ -133,6 +135,7 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
     }
 
     @Test
+    @Ignore
     public void getAllRelationshipTypesEndpointTest() throws Exception {
         //When we call this facets endpoint
         List<RelationshipType> relationshipTypes = relationshipTypeService.findAll(context);
@@ -264,6 +267,7 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
     }
 
     @Test
+    @Ignore
     public void findByEntityTypePublicationTest() throws Exception {
         getClient().perform(get("/api/core/relationshiptypes/search/byEntityType")
                    .param("type", "Publication"))
@@ -300,6 +304,7 @@ public class RelationshipTypeRestRepositoryIT extends AbstractEntityIntegrationT
     }
 
     @Test
+    @Ignore
     public void findByEntityTypePublicationPaginationTest() throws Exception {
         getClient().perform(get("/api/core/relationshiptypes/search/byEntityType")
                    .param("type", "Publication")

@@ -1,0 +1,31 @@
+{
+  "Title": "Test Publication",
+  "DoiType": "doi",
+  "Keywords":[
+  ],
+  "Distribution": {
+  },
+  "Series": {
+    "Name": "Test ispartofseries Name"
+  },
+  "Host": {
+    "Name": "test isparOf",
+    "JournalName": "Nature Synthesis"
+  },
+  "Persons": [
+  ],
+  "Editors": [
+    {
+      "Name": "ScientificEditor"
+    }
+  ],
+  "Meeting": {
+    "Name": "The best Conference",
+    "Place": "test Place",
+    "Date": "testDate"
+  },
+  "Units": [
+  ],
+  "Resources": [
+  ]
+}

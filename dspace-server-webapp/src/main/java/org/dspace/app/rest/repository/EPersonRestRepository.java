@@ -244,7 +244,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
     }
 
     @Override
-    @PreAuthorize("hasAuthority('AUTHENTICATED')")
+    @PreAuthorize("hasAuthority('AUTHENTICATED') || hasPermission(#id, 'EPERSON', 'READ')")
     public EPersonRest findOne(Context context, UUID id) {
         EPerson eperson = null;
         try {

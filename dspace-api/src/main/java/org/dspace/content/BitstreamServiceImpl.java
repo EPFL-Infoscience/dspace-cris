@@ -355,6 +355,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             throw new IllegalStateException("Bitstream " + bitstream.getID().toString()
                     + " must be deleted before it can be removed from the database.");
         }
+        handleService.unbindHandle(context, bitstream);
         bitstreamDAO.delete(context, bitstream);
     }
 

@@ -177,18 +177,6 @@
 
     <dc-type>
         <schema>epfl</schema>
-        <element>relationproduct</element>
-        <qualifier>type</qualifier>
-    </dc-type>
-
-    <dc-type>
-        <schema>epfl</schema>
-        <element>relationpublication</element>
-        <qualifier>type</qualifier>
-    </dc-type>
-
-    <dc-type>
-        <schema>epfl</schema>
         <element>workflow</element>
         <qualifier>additionalInformation</qualifier>
     </dc-type>
@@ -305,12 +293,6 @@
         <schema>epfl</schema>
         <element>curator</element>
         <qualifier>email</qualifier>
-    </dc-type>
-
-    <dc-type>
-        <schema>epfl</schema>
-        <element>writtenat</element>
-        <qualifier></qualifier>
     </dc-type>
 
     <dc-type>
@@ -453,13 +435,31 @@
     <dc-type>
         <schema>epfl</schema>
         <element>relationpublication</element>
+        <qualifier>identifier</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relationpublication</element>
         <qualifier>type</qualifier>
     </dc-type>
 
     <dc-type>
         <schema>epfl</schema>
         <element>relationproduct</element>
+        <qualifier>identifier</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relationproduct</element>
         <qualifier>type</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>relationpatent</element>
+        <qualifier>identifier</qualifier>
     </dc-type>
 
     <dc-type>

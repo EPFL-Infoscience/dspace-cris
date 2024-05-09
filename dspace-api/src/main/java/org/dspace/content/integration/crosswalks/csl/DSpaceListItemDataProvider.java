@@ -11,9 +11,7 @@ import static org.dspace.app.itemupdate.MetadataUtilities.parseCompoundForm;
 import static org.dspace.content.Item.ANY;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -157,39 +155,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     public String toJson() {
         JsonBuilder jsonBuilder = new MapJsonBuilderFactory().createJsonBuilder();
         jsonBuilder.add("items", jsonBuilder.toJson(this.items.values()));
-        return prettyPrint(removeAllUnacceptableCharacters(jsonBuilder.build()));
-    }
-
-    private Object removeAllUnacceptableCharacters(Object json) {
-        for ( Object item : ((LinkedHashMap<String, ArrayList>) json).get("items")) {
-            if (((LinkedHashMap<String, ArrayList>) item).get("author").isEmpty()
-                    && ((LinkedHashMap<String, ArrayList>) item).get("editor").isEmpty()) {
-                ((LinkedHashMap<String, Object>) item).replace("title",
-                        replaceAllNonAsciiAndWhitespaces(((LinkedHashMap<String, String>) item).get("title")));
-            } else {
-                for (Object author : ((LinkedHashMap<String, ArrayList>) item).get("author")) {
-                    ((LinkedHashMap<String, Object>) author).replace("family",
-                            replaceAllNonAsciiAndWhitespaces(((LinkedHashMap<String, String>) author).get("family")));
-                    ((LinkedHashMap<String, Object>) author).replace("given",
-                            replaceAllNonAsciiAndWhitespaces(((LinkedHashMap<String, String>) author).get("given")));
-                }
-
-                for (Object editor : ((LinkedHashMap<String, ArrayList>) item).get("editor")) {
-                    ((LinkedHashMap<String, Object>) editor).replace("family",
-                            replaceAllNonAsciiAndWhitespaces(((LinkedHashMap<String, String>) editor).get("family")));
-                    ((LinkedHashMap<String, Object>) editor).replace("given",
-                            replaceAllNonAsciiAndWhitespaces(((LinkedHashMap<String, String>) editor).get("given")));
-                }
-            }
-        }
-        return json;
-    }
-
-    private String replaceAllNonAsciiAndWhitespaces(String value) {
-        if (value != null) {
-            return value.replaceAll("[^\\x00-\\x7F]", "_").replaceAll(" ", "_");
-        }
-        return null;
+        return prettyPrint(jsonBuilder.build());
     }
 
     protected CSLItemDataBuilder handleStringFields(Item item, CSLItemDataBuilder itemBuilder) {
@@ -224,7 +190,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(ISSN, item, value -> itemBuilder.ISSN(value));
         consumeMetadataIfNotBlank(issue, item, value -> itemBuilder.issue(value));
         consumeMetadataIfNotBlank(jurisdiction, item, value -> itemBuilder.jurisdiction(value));
-        consumeMetadataIfNotBlank(keyword, item, value -> itemBuilder.keyword(value));
+        consumeMetadataValuesIfNotBlank(keyword, item, values -> itemBuilder.keyword(String.join(" | ", values)));
         consumeMetadataIfNotBlank(locator, item, value -> itemBuilder.locator(value));
         consumeMetadataIfNotBlank(medium, item, value -> itemBuilder.medium(value));
         consumeMetadataIfNotBlank(note, item, value -> itemBuilder.note(value));
@@ -342,6 +308,15 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
             String metadataFirstValue = getMetadataFirstValue(item, value);
             if (StringUtils.isNotBlank(metadataFirstValue)) {
                 consumer.accept(metadataFirstValue);
+            }
+        }
+    }
+
+    private void consumeMetadataValuesIfNotBlank(String value, Item item, Consumer<String[]> consumer) {
+        if (StringUtils.isNotBlank(value)) {
+            String[] metadataValues = getMetadataValues(item, value);
+            if (metadataValues.length > 0) {
+                consumer.accept(metadataValues);
             }
         }
     }

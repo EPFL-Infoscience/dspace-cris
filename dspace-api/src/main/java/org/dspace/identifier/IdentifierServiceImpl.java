@@ -57,6 +57,10 @@ public class IdentifierServiceImpl implements IdentifierService {
         }
     }
 
+    public List<IdentifierProvider> getProviders() {
+        return providers;
+    }
+
     /**
      * Reserves identifiers for the item
      *

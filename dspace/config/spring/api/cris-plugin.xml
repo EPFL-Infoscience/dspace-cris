@@ -15,7 +15,9 @@
 					<bean class="org.dspace.authority.filler.ItemMetadataImportFiller" parent="fullItemMetadataConfiguration" />
 				</entry>
         <entry key="ORCID" value-ref="orcidImportFiller" />
-        <entry key="ISSN" value-ref="sherpaImportFiller" />
+        <entry key="ISSN">
+            <bean class="org.dspace.authority.filler.ItemMetadataImportFiller" parent="fullItemMetadataConfiguration" />
+        </entry>
         <entry key="ACRONYM" value-ref="orgUnitImportFiller" />
         <entry key="SCIPER-ID" value-ref="personImportFiller" />
         <entry key="OPENAIRE-PROJECT-ID" value-ref="openaireProjectImportFiller" />
@@ -58,7 +60,7 @@
 						</property>
 					</bean>
 				</entry>
-				<entry key="dc.relation.ispartof">
+				<entry key="dc.relation.journal">
 					<bean class="org.dspace.authority.filler.MetadataConfiguration">
 						<property name="updateEnabled" value="false" />
 						<property name="mapping">
@@ -66,6 +68,13 @@
 								<entry key="dc.relation.issn">
 									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
 										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="dc.identifier.issn" />
+									</bean>
+								</entry>
+								<entry key="dc.publisher">
+									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="visibility" value="1" />
+										<property name="targetMetadata" value="dc.publisher" />
 									</bean>
 								</entry>
 							</map>
@@ -115,7 +124,7 @@
 								<entry key="oaire.citation.conferenceDate">
 									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
 										<property name="visibility" value="1" />
-										<property name="targetMetadata" value="oairecerif.event.startDate" />
+										<property name="targetMetadata" value="oaire.citation.conferenceDate" />
 									</bean>
 								</entry>
 							</map>
@@ -161,10 +170,10 @@
 				<entry key="ISNI" value-ref="itemSearcherByISNI"/>
 				<entry key="DOI" value-ref="itemSearcherByDOI"/>
 				<entry key="URL" value-ref="itemSearcherByURL"/>
-        <entry key="ISSN" value-ref="itemSearcherByISSN"/>
-        <entry key="ACRONYM" value-ref="itemSearcherByAcronym"/>
-        <entry key="SCIPER-ID" value-ref="itemSearcherBySciper"/>
-        <entry key="OPENAIRE-PROJECT-ID" value-ref="itemSearcherByOpenaireProjectId"/>
+                <entry key="ISSN" value-ref="itemSearcherByISSN"/>
+                <entry key="ACRONYM" value-ref="itemSearcherByAcronym"/>
+                <entry key="SCIPER-ID" value-ref="itemSearcherBySciper"/>
+                <entry key="OPENAIRE-PROJECT-ID" value-ref="itemSearcherByOpenaireProjectId"/>
 				<entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
 				<entry key="SCOPUS-AUTHOR-ID" value-ref="itemSearcherByScopusAuthorId"/>
 				<entry key="ROR-ID" value-ref="itemSearcherByRorId"/>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+<record>
+  <controlfield tag="001">252005</controlfield>
+  <controlfield tag="005">20220512114412.0</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(lab)5</subfield>
+  </datafield>
+  <datafield tag="195" ind1=" " ind2=" ">
+    <subfield code="a">GGEC</subfield>
+    <subfield code="b">Groupe de genie Electrochimique</subfield>
+    <subfield code="c">Electrochemical Engineering Group</subfield>
+  </datafield>
+  <datafield tag="270" ind1=" " ind2=" ">
+    <subfield code="0">(EPFLAUTH)(author)000000</subfield>
+    <subfield code="g">000000</subfield>
+    <subfield code="m">infoscience@epfl.ch</subfield>
+    <subfield code="p">Infoscience team</subfield>
+  </datafield>
+  <datafield tag="271" ind1=" " ind2=" ">
+    <subfield code="g">148230</subfield>
+    <subfield code="m">alain.borel@epfl.ch</subfield>
+    <subfield code="p">Borel, Alain</subfield>
+    <subfield code="0">240739</subfield>
+  </datafield>
+  <datafield tag="272" ind1=" " ind2=" ">
+    <subfield code="g">104807</subfield>
+    <subfield code="m">christos.comninellis@epfl.ch</subfield>
+    <subfield code="0">240416</subfield>
+  </datafield>
+  <datafield tag="371" ind1=" " ind2=" ">
+    <subfield code="g">U10173</subfield>
+  </datafield>
+  <datafield tag="680" ind1=" " ind2=" ">
+    <subfield code="a">Members of GGEC-unit</subfield>
+  </datafield>
+  <datafield tag="791" ind1=" " ind2=" ">
+    <subfield code="a">ISIC</subfield>
+    <subfield code="0">252707</subfield>
+  </datafield>
+  <datafield tag="792" ind1=" " ind2=" ">
+    <subfield code="a">SB</subfield>
+    <subfield code="0">252734</subfield>
+  </datafield>
+  <datafield tag="856" ind1="4" ind2="1">
+    <subfield code="u">http://ggec.epfl.ch/</subfield>
+  </datafield>
+  <datafield tag="921" ind1=" " ind2=" ">
+    <subfield code="a">Archived</subfield>
+  </datafield>
+  <datafield tag="980" ind1=" " ind2=" ">
+    <subfield code="a">LAB</subfield>
+  </datafield>
+  <datafield tag="980" ind1=" " ind2=" ">
+    <subfield code="a">AUTHORITY</subfield>
+  </datafield>
+  <datafield tag="981" ind1=" " ind2=" ">
+    <subfield code="a">UPDATED2</subfield>
+  </datafield>
+</record>
+</collection>

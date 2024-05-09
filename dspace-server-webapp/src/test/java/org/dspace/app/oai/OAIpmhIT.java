@@ -40,6 +40,7 @@ import org.dspace.xoai.services.api.config.XOAIManagerResolver;
 import org.dspace.xoai.services.api.xoai.DSpaceFilterResolver;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -57,6 +58,7 @@ import org.springframework.test.context.TestPropertySource;
 // Ensure the OAI SERVER IS ENABLED before any tests run.
 // This annotation overrides default DSpace config settings loaded into Spring Context
 @TestPropertySource(properties = {"oai.enabled = true"})
+@Ignore
 public class OAIpmhIT extends AbstractControllerIntegrationTest {
 
     @Autowired

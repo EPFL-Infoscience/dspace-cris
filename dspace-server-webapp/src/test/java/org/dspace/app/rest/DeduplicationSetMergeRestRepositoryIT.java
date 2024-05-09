@@ -110,9 +110,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     @Autowired
     private BundleService bundleService;
 
-    private EPerson submitter;
-    private EPerson reviewer;
-
     private Collection collection;
 
     private Item item1;
@@ -150,16 +147,16 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         mapper = new ObjectMapper();
 
         // Two users: one to use as submitter, another one to use as reviewer
-        submitter = EPersonBuilder.createEPerson(context)
-                                  .withEmail("submitter1@example.com")
-                                  .withPassword(password)
-                                  .build();
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter1@example.com")
+                                          .withPassword(password)
+                                          .build();
         context.setCurrentUser(submitter);
 
-        reviewer = EPersonBuilder.createEPerson(context)
-                                 .withEmail("reviewer1@example.com")
-                                 .withPassword(password)
-                                 .build();
+        EPersonBuilder.createEPerson(context)
+                      .withEmail("reviewer1@example.com")
+                      .withPassword(password)
+                      .build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -168,9 +165,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         collection = CollectionBuilder.createCollection(context, parentCommunity)
                                       .withName("Collection 1")
                                       .withSubmitterGroup(submitter)
-                                      .withWorkflowGroup(1, reviewer)
-                                      .withWorkflowGroup(2, reviewer)
-                                      .withWorkflowGroup(3, reviewer)
                                       .withEntityType("Publication")
                                       .build();
 
@@ -871,8 +865,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         // then merged items will contain uri metadata of target item
         String targetUri = itemService.getMetadata(item1, "dc.identifier.uri");
-        String mergedItemTwoUri = itemService.getMetadata(item2, "dspace.merge.target-uri");
-        String mergedIThreeUri = itemService.getMetadata(item3, "dspace.merge.target-uri");
+        String mergedItemTwoUri = itemService.getMetadata(item2, "dq.merge.target-uri");
+        String mergedIThreeUri = itemService.getMetadata(item3, "dq.merge.target-uri");
 
         assertEquals(mergedItemTwoUri, targetUri);
         assertEquals(mergedIThreeUri, targetUri);
@@ -1061,6 +1055,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         md5Signature.setSignatureType(signatureType);
         md5Signature.setIgnorePrefix(ignorePrefixes);
         md5Signature.setNormalizationRegexp(normalizeRegex);
+        md5Signature.setUseEntityType(false);
     }
 
     private String convertDspaceObjectToUri(DSpaceConverter converter, DSpaceObject item) {
