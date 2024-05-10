@@ -119,7 +119,8 @@ public class AuthorMetadataContributor extends SimpleXpathMetadatumContributor {
         }
         if (this.affiliation != null) {
             for (Element afid : afids) {
-                String affiliationValue = this.affId2affName.getOrDefault(afid.getValue(), "#PLACEHOLDER_PARENT_METADATA_VALUE#");
+                String affiliationValue = this.affId2affName.getOrDefault(afid.getValue(),
+                        "#PLACEHOLDER_PARENT_METADATA_VALUE#");
                 addMetadatum(metadatums, getMetadata(affiliationValue, this.affiliation));
             }
             if (afids.isEmpty()) {
