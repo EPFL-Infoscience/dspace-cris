@@ -30,6 +30,6 @@
     <bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		  <property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
 		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		  <property name="defaultValue" value=""/>
+		  <property name="defaultValue" value="article"/>
 	  </bean>
 </beans>

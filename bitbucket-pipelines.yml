@@ -46,6 +46,7 @@ definitions:
         script:
           - export MAVEN_OPTS="-Xmx4096M"
           - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
+          - ./dspace-api/src/test/data/dspaceFolder/bin/install_citeproc.sh
           - mvn clean install -DskipUnitTests=true -Pdspace-rest -DskipITs=true -DskipIntegrationTests=true -P !assembly -B -V
           - mvn verify -Dmaven.test.skip=false -pl dspace-iiif,dspace-oai,dspace-rdf,dspace-rest,dspace-server-webapp,dspace-services,dspace-sword,dspace-swordv2 -DskipUnitTests=true -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2 -Dtest.argLine=-Xmx4096M
         artifacts:
