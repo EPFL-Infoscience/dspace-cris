@@ -57,9 +57,10 @@ public class DOIDAOImpl extends AbstractHibernateDAO<DOI> implements DOIDAO {
         for (Integer status : statusToExclude) {
             listToIncludeInOrPredicate.add(criteriaBuilder.notEqual(doiRoot.get(DOI_.status), status));
         }
-        listToIncludeInOrPredicate.add(criteriaBuilder.isNull(doiRoot.get(DOI_.status)));
 
-        Predicate orPredicate = criteriaBuilder.or(listToIncludeInOrPredicate.toArray(new Predicate[] {}));
+        Predicate orPredicate = criteriaBuilder.or(
+                criteriaBuilder.and(listToIncludeInOrPredicate.toArray(new Predicate[] {})),
+                criteriaBuilder.isNull(doiRoot.get(DOI_.status)));
 
         criteriaQuery.where(criteriaBuilder.and(orPredicate,
                                                 criteriaBuilder.equal(doiRoot.get(DOI_.dSpaceObject), dso)
