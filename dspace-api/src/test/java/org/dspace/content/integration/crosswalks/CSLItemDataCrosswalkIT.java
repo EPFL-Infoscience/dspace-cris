@@ -79,6 +79,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("John Smith")
             .withAuthor("Edward Red")
+            .withHandle("123456789/9999")
             .build();
         context.restoreAuthSystemState();
 
@@ -110,6 +111,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withEntityType("Publication")
             .withIssueDate("2020-01-31")
             .withAuthor("Walter White")
+            .withHandle("123456789/0002")
             .build();
 
         context.restoreAuthSystemState();
