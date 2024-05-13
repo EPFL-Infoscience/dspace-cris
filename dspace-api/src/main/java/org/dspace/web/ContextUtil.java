@@ -100,7 +100,7 @@ public class ContextUtil {
         Context context = null;
         RequestService requestService = new DSpace().getRequestService();
         Request currentRequest = requestService.getCurrentRequest();
-        if (currentRequest != null) {
+        if (currentRequest != null && currentRequest.getHttpServletRequest() != null) {
             context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
         }
         return context;
