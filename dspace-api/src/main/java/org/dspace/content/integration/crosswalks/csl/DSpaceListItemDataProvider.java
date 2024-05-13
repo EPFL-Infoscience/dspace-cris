@@ -142,7 +142,10 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         handleStringFields(item, itemBuilder);
         handleCslNameFields(item, itemBuilder);
         handleCslDateFields(item, itemBuilder);
-
+        itemBuilder.citationKey("item_" + item.getID().toString().replace("-", ""));
+        // citeproc-server still doesn't understand the citation key
+        // https://github.com/citation-style-language/styles/pull/5117
+        itemBuilder.citationLabel("item_" + item.getID().toString().replace("-", ""));
         CSLItemData cslItemData = itemBuilder.build();
         this.items.put(cslItemData.getId(), cslItemData);
     }
@@ -400,7 +403,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
 
     private CSLType getPublicationType(String value) {
         try {
-            return CSLType.fromString(typeConverter.getValue(value));
+            return CSLType.fromString(typeConverter.getValue(value).toLowerCase());
         } catch (IllegalArgumentException ex) {
             LOGGER.warn("No CSL type found by type: " + value);
             return null;

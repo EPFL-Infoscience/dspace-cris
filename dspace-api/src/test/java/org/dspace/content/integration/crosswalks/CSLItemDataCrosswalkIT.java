@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
@@ -32,6 +33,7 @@ import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Integration tests for {@link CSLItemDataCrosswalk}.
@@ -77,6 +79,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("John Smith")
             .withAuthor("Edward Red")
+            .withHandle("123456789/9999")
             .build();
         context.restoreAuthSystemState();
 
@@ -108,6 +111,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withEntityType("Publication")
             .withIssueDate("2020-01-31")
             .withAuthor("Walter White")
+            .withHandle("123456789/0002")
             .build();
 
         context.restoreAuthSystemState();
@@ -147,12 +151,13 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .build();
 
         context.restoreAuthSystemState();
-
+        Item itemMock = Mockito.spy(item);
+        Mockito.when(itemMock.getID()).thenReturn(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
         StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("bibtex");
         assertThat(crosswalk, notNullValue());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        crosswalk.disseminate(context, item, out);
+        crosswalk.disseminate(context, itemMock, out);
 
         try (FileInputStream fis = getFileInputStream("publication.bib")) {
             String expectedBibtex = IOUtils.toString(fis, Charset.defaultCharset());
@@ -185,12 +190,14 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .build();
 
         context.restoreAuthSystemState();
+        Item itemMock = Mockito.spy(item);
+        Mockito.when(itemMock.getID()).thenReturn(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
 
         StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
         assertThat(crosswalk, notNullValue());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        crosswalk.disseminate(context, item, out);
+        crosswalk.disseminate(context, itemMock, out);
 
         try (FileInputStream fis = getFileInputStream("publication.json")) {
             String expectedJson = IOUtils.toString(fis, Charset.defaultCharset());
@@ -235,11 +242,16 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
 
         context.restoreAuthSystemState();
 
+        Item itemMock = Mockito.spy(item);
+        Mockito.when(itemMock.getID()).thenReturn(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+        Item anotherItemMock = Mockito.spy(anotherItem);
+        Mockito.when(anotherItemMock.getID()).thenReturn(UUID.fromString("550e8400-e29b-41d4-a716-44665544000a"));
+
         StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
         assertThat(crosswalk, notNullValue());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        crosswalk.disseminate(context, Arrays.asList(item, anotherItem).iterator(), out);
+        crosswalk.disseminate(context, Arrays.asList(itemMock, anotherItemMock).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("publications.json")) {
             String expectedJson = IOUtils.toString(fis, Charset.defaultCharset());

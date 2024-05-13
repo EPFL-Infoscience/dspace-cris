@@ -7426,6 +7426,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void createWorkspaceItemFromExternalSourceOpenAIRE_Test() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();

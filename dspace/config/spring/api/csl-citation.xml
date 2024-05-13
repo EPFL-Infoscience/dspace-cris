@@ -34,11 +34,12 @@
     <bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		  <property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
 		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		  <property name="defaultValue" value=""/>
+          <property name="defaultValue" value="article"/>
     </bean>
 
     <util:map id="journalTypesMap" key-type="java.lang.String" value-type="java.lang.String">
         <entry key="article" value="dc.relation.journal" />
         <entry key="chapter" value="dc.relation.ispartof" />
     </util:map>
+
 </beans>

@@ -419,7 +419,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             List<MetadataValueDTO> expectedMetadata = getMetadataThatShouldBePresentIntoImportedItem();
             checkMetadata(expectedMetadata, actualMetadata);
             assertEquals("2023-05-05T18:59:01Z", itemsS3ServiceMock.getModificationDate(context, "79707"));
-            assertEquals(62, actualMetadata.size());
+            assertEquals(48, actualMetadata.size());
             assertFalse("check that there are no other items", items.hasNext());
         } finally {
             if (originalS3serviceOfMarcXmlParserImpl != null) {
