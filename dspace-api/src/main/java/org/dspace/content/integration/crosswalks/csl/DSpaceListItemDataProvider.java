@@ -12,6 +12,7 @@ import static org.dspace.content.Item.ANY;
 
 import java.text.ParseException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -53,7 +54,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private String type;
     private String categories;
     private String language;
-    private String journalAbbreviation;
+    private Map<String, String> journalAbbreviation;
     private String shortTitle;
     private String author;
     private String collectionEditor;
@@ -163,7 +164,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(type, item, value -> itemBuilder.type(getPublicationType(value)));
         consumeIfNotBlank(categories, value -> itemBuilder.categories(getMetadataValues(item, value)));
         consumeMetadataIfNotBlank(language, item, value -> itemBuilder.language(value));
-        consumeMetadataIfNotBlank(journalAbbreviation, item, value -> itemBuilder.journalAbbreviation(value));
+        consumeMetadataByTypeIfNotBlank(journalAbbreviation, item, type,
+            value -> itemBuilder.journalAbbreviation(value));
         consumeMetadataIfNotBlank(shortTitle, item, value -> itemBuilder.shortTitle(value));
         consumeMetadataIfNotBlank(abstrct, item, value -> itemBuilder.abstrct(value));
         consumeMetadataIfNotBlank(annote, item, value -> itemBuilder.annote(value));
@@ -200,7 +202,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(originalPublisher, item, value -> itemBuilder.originalPublisher(value));
         consumeMetadataIfNotBlank(originalPublisherPlace, item, value -> itemBuilder.originalPublisherPlace(value));
         consumeMetadataIfNotBlank(originalTitle, item, value -> itemBuilder.originalTitle(value));
-        consumeMetadataIfNotBlank(page, item, value -> itemBuilder.page(value));
+        consumePageMetadataIfNotBlank(pageFirst, page, item, value -> itemBuilder.page(value));
         consumeMetadataIfNotBlank(pageFirst, item, value -> itemBuilder.pageFirst(value));
         consumeMetadataIfNotBlank(PMCID, item, value -> itemBuilder.PMCID(value));
         consumeMetadataIfNotBlank(PMID, item, value -> itemBuilder.PMID(value));
@@ -312,6 +314,40 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         }
     }
 
+    private void consumeMetadataByTypeIfNotBlank(Map<String, String> map, Item item,
+                                                 String type, Consumer<String> consumer) {
+        String typeValue = null;
+        if (StringUtils.isNotBlank(type)) {
+            String metadataFirstValue = getMetadataFirstValue(item, type);
+            if (StringUtils.isNotBlank(metadataFirstValue)) {
+                CSLType cslType = getPublicationType(metadataFirstValue);
+                if (cslType != null) {
+                    typeValue = cslType.toString();
+                }
+            }
+        }
+        if (StringUtils.isNotBlank(typeValue)) {
+            String value = map.get(typeValue);
+            if (StringUtils.isNotBlank(value)) {
+                String metadataFirstValue = getMetadataFirstValue(item, value);
+                if (StringUtils.isNotBlank(metadataFirstValue)) {
+                    consumer.accept(metadataFirstValue);
+                }
+            }
+        }
+    }
+
+    private void consumePageMetadataIfNotBlank(String firstPage, String secondPage,
+                                               Item item, Consumer<String> consumer) {
+        if (StringUtils.isNotBlank(firstPage) && StringUtils.isNotBlank(secondPage)) {
+            String metadataFirstPageValue = getMetadataFirstValue(item, firstPage);
+            String metadataSecondPageValue = getMetadataFirstValue(item, secondPage);
+            if (StringUtils.isNotBlank(metadataFirstPageValue) && StringUtils.isNotBlank(metadataSecondPageValue)) {
+                consumer.accept(metadataFirstPageValue + "-" + metadataSecondPageValue);
+            }
+        }
+    }
+
     private void consumeMetadataValuesIfNotBlank(String value, Item item, Consumer<String[]> consumer) {
         if (StringUtils.isNotBlank(value)) {
             String[] metadataValues = getMetadataValues(item, value);
@@ -387,7 +423,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return language;
     }
 
-    public String getJournalAbbreviation() {
+    public Map<String, String> getJournalAbbreviation() {
         return journalAbbreviation;
     }
 
@@ -699,7 +735,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.language = language;
     }
 
-    public void setJournalAbbreviation(String journalAbbreviation) {
+    public void setJournalAbbreviation(Map<String, String> journalAbbreviation) {
         this.journalAbbreviation = journalAbbreviation;
     }
 

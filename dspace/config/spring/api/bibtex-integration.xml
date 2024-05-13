@@ -142,7 +142,7 @@
 
     <bean id="bibtexPublisherPlaceContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcPublisherPlace"/>
-        <property name="key" value="publisherPlace" />
+        <property name="key" value="address" />
     </bean>
 
     <bean id="bibtexPagesStartContrib" class="org.dspace.importer.external.metadatamapping.contributor.SplitMetadataContributor">
