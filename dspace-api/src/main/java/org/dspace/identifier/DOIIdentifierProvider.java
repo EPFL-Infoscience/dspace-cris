@@ -736,7 +736,9 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
             String doi = getDOIOutOfObject(dso);
 
             while (null != doi) {
+                context.turnOffAuthorisationSystem();
                 this.removeDOIFromObject(context, dso, doi);
+                context.restoreAuthSystemState();
                 doi = getDOIOutOfObject(dso);
             }
         } catch (AuthorizeException ex) {
@@ -787,7 +789,9 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
 
         // remove DOI from metadata
         try {
+            context.turnOffAuthorisationSystem();
             removeDOIFromObject(context, dso, doi);
+            context.restoreAuthSystemState();
         } catch (AuthorizeException ex) {
             log.error("Not authorized to delete a DOI out of an Item.", ex);
             throw new DOIIdentifierException("Not authorized to delete DOI.",
