@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "a02e86bc-6624-4f7a-bed8-1783df5650f3",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "type": "article",
       "language": "en",
       "author": [
@@ -28,6 +28,8 @@
           ]
         ]
       },
+      "citation-key": "item_550e8400e29b41d4a716446655440000",
+      "citation-label": "item_550e8400e29b41d4a716446655440000",
       "DOI": "10.1000/182",
       "event": "Conference",
       "ISBN": "11-22-33",

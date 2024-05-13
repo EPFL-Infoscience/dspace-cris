@@ -64,6 +64,10 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
+      - name: Install Citeproc Server (only IT)
+        run:  ./dspace-api/src/test/data/dspaceFolder/bin/install_citeproc.sh
+        if: matrix.type == 'Integration Tests'
+
       - name: Install Grobid (only IT)
         run:  ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
         if: matrix.type == 'Integration Tests'
