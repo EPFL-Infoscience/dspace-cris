@@ -54,10 +54,10 @@
         <property name="key" value="year" />
     </bean>
 
-    <bean id="bibtexJournalContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
-        <property name="field" ref="dcJournal"/>
-        <property name="key" value="journal" />
-    </bean>
+<!--    <bean id="bibtexJournalContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">-->
+<!--        <property name="field" ref="dcJournal"/>-->
+<!--        <property name="key" value="journal" />-->
+<!--    </bean>-->
     
     <bean id="bibtexAuthorsContrib" class="org.dspace.importer.external.metadatamapping.contributor.SplitMetadataContributor">
         <constructor-arg name="innerContributor">
@@ -69,6 +69,11 @@
         <constructor-arg name="regex" value="\sand\s"/>
     </bean>
     
+    <bean id="bibtexJournalContrib" class="org.dspace.importer.external.metadatamapping.contributor.MappedByTypeMetadataContributor">
+        <property name="fieldMap" ref="bibTexJournalMap"/>
+        <property name="key" value="journal" />
+    </bean>
+
     <bean id="bibtexTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcTitle"/>
         <property name="key" value="title" />
@@ -142,7 +147,7 @@
 
     <bean id="bibtexPublisherPlaceContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcPublisherPlace"/>
-        <property name="key" value="publisherPlace" />
+        <property name="key" value="address" />
     </bean>
 
     <bean id="bibtexPagesStartContrib" class="org.dspace.importer.external.metadatamapping.contributor.SplitMetadataContributor">

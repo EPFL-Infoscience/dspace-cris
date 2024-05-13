@@ -25,11 +25,21 @@
         <property name="issued" value="dc.date.issued"/>
         <property name="author" value="dc.contributor.author"/>
         <property name="editor" value="dc.contributor.editor"/>
+        <property name="journalAbbreviation" ref="journalTypesMap"/>
+        <property name="pageFirst" value="oaire.citation.startPage"/>
+        <property name="page" value="oaire.citation.endPage"/>
+        <property name="collectionTitle" value="dc.relation.ispartofseries"/>
     </bean>
     
     <bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		  <property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
 		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		  <property name="defaultValue" value="article"/>
-	  </bean>
+          <property name="defaultValue" value="article"/>
+    </bean>
+
+    <util:map id="journalTypesMap" key-type="java.lang.String" value-type="java.lang.String">
+        <entry key="article" value="dc.relation.journal" />
+        <entry key="chapter" value="dc.relation.ispartof" />
+        <entry key="default" value="dc.relation.ispartof" />
+    </util:map>
 </beans>
