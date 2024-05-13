@@ -2428,9 +2428,9 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(resultLines.length, is(6));
         assertThat(resultLines[0].trim(), is("<person>"));
         assertThat(resultLines[1].trim(), is("<citations>"));
-        assertThat(resultLines[2].trim(), is("<citation>John Smith. (2020, April 1). "
+        assertThat(resultLines[2].trim(), is("<citation>John Smith. (2020). "
             + "Second Publication. http://localhost:4000/handle/123456789/99999</citation>"));
-        assertThat(resultLines[3].trim(), is("<citation>John Smith, &amp; Walter White. (2020, January 1). First "
+        assertThat(resultLines[3].trim(), is("<citation>John Smith, &amp; Walter White. (2020). First "
             + "Publication. Test publisher. http://localhost:4000/handle/123456789/111111</citation>"));
         assertThat(resultLines[4].trim(), is("</citations>"));
         assertThat(resultLines[5].trim(), is("</person>"));
@@ -2464,7 +2464,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         String[] resultLines = out.toString().split("\n");
         assertThat(resultLines.length, is(3));
         assertThat(resultLines[0].trim(), is("<publication>"));
-        assertThat(resultLines[1].trim(), is("<citation>John Smith, &amp; Walter White. (2020, January 1). "
+        assertThat(resultLines[1].trim(), is("<citation>John Smith, &amp; Walter White. (2020). "
             + "Publication. Test publisher. http://localhost:4000/handle/123456789/111111</citation>"));
         assertThat(resultLines[2].trim(), is("</publication>"));
 
