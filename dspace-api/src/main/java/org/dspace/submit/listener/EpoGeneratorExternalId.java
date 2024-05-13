@@ -64,7 +64,7 @@ public class EpoGeneratorExternalId implements ExternalIdGenerator {
 
     private static String getValue(List<MetadataValue> metadataValues) {
         String value = metadataValues.get(0).getValue();
-        Pattern pattern = Pattern.compile("^(([A-Z]+|)[0-9]+)");
+        Pattern pattern = Pattern.compile("^(([A-Z]+|)[0-9A-Z]+)");
         Matcher matcher = pattern.matcher(value);
 
         if (matcher.find()) {
