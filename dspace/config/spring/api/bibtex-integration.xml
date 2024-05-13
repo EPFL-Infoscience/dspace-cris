@@ -27,6 +27,7 @@
         <entry key-ref="dcJissn" value-ref="bibtexJissnContrib" />
         <entry key-ref="dcIsbn" value-ref="bibtexIsbnContrib" />
 		    <entry key-ref="dcAbstract" value-ref="bibtexAbstractContrib" />
+        <entry key-ref="dcAbstractNote" value-ref="bibtexAbstractNoteContrib" />
         <entry key-ref="dcJDoi" value-ref="bibtexDoiContrib" />
         <entry key-ref="dcVolume" value-ref="bibtexVolumeContrib" />
         <entry key-ref="dcNumber" value-ref="bibtexNumberContrib" />
@@ -80,7 +81,7 @@
                 <property name="key" value="keywords" />
             </bean>
         </constructor-arg>
-        <constructor-arg name="regex" value="\s\|\s"/>
+        <constructor-arg name="regex" value="\s*\|\s*"/>
     </bean>
 
     <bean id="bibtexMappedTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMappedMetadataContributor">
@@ -141,7 +142,7 @@
 
     <bean id="bibtexPublisherPlaceContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcPublisherPlace"/>
-        <property name="key" value="address" />
+        <property name="key" value="publisherPlace" />
     </bean>
 
     <bean id="bibtexPagesStartContrib" class="org.dspace.importer.external.metadatamapping.contributor.SplitMetadataContributor">

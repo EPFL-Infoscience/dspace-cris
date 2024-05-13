@@ -11,6 +11,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.dspace.importer.external.epo.service.EpoImportMetadataSourceServiceImpl.APP_NO_DATE_SEPARATOR;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,10 +64,14 @@ public class EpoGeneratorExternalId implements ExternalIdGenerator {
 
     private static String getValue(List<MetadataValue> metadataValues) {
         String value = metadataValues.get(0).getValue();
-        if (!value.contains(" ")) {
-            return value;
+        Pattern pattern = Pattern.compile("^([A-Z]+[0-9]+)");
+        Matcher matcher = pattern.matcher(value);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return EMPTY;
         }
-        return value.substring(0, value.indexOf(" ")).trim();
     }
 
     private String generateApplicationNumberAndFilledDateID(Item item, String dateFilled, String applicationNumber) {
