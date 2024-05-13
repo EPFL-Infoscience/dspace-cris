@@ -175,6 +175,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
                 .withType("text::journal::journal article")
                 .withIsPartOf("isPartOf")
                 .withRelationJournal("relationJournal", null)
+                .withHandle("123456789/0002")
                 .build();
 
         Item item2 = createItem(context, collection)
@@ -182,6 +183,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
                 .withType("text::book/monograph::book part or chapter")
                 .withIsPartOf("isPartOf")
                 .withRelationJournal("relationJournal", null)
+                .withHandle("123456789/0003")
                 .build();
 
         context.restoreAuthSystemState();
