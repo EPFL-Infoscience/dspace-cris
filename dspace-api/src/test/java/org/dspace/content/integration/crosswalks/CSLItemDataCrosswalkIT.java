@@ -166,6 +166,53 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    public void testBibtexDisseminateWithDIfferentTypes() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withIsPartOf("isPartOf")
+                .withRelationJournal("relationJournal", null)
+                .build();
+
+        Item item2 = createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::book/monograph::book part or chapter")
+                .withIsPartOf("isPartOf")
+                .withRelationJournal("relationJournal", null)
+                .build();
+
+        context.restoreAuthSystemState();
+        Item itemMock = Mockito.spy(item);
+        Mockito.when(itemMock.getID()).thenReturn(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("bibtex");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, itemMock, out);
+
+        try (FileInputStream fis = getFileInputStream("journal.bib")) {
+            String expectedBibtex = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedBibtex, false);
+        }
+
+        Item itemMock2 = Mockito.spy(item2);
+        Mockito.when(itemMock2.getID()).thenReturn(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+        StreamDisseminationCrosswalk crosswalk2 = crosswalkMapper.getByType("bibtex");
+        assertThat(crosswalk2, notNullValue());
+
+        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, itemMock2, out2);
+
+        try (FileInputStream fis = getFileInputStream("book.bib")) {
+            String expectedBibtex = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out2.toString(), expectedBibtex, false);
+        }
+    }
+
+    @Test
     public void testSingleItemJsonDisseminate() throws Exception {
         context.turnOffAuthorisationSystem();
 

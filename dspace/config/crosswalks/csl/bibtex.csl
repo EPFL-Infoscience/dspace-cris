@@ -139,6 +139,9 @@
   <macro name="pages">
     <text variable="page"/>
   </macro>
+  <macro name="journal">
+        <text variable="journalAbbreviation"/>
+  </macro>
   <macro name="edition">
     <!-- This should probably be ordinal? -->
     <text variable="edition"/>
@@ -187,6 +190,7 @@
         <text macro="issued-year" prefix=" year={" suffix="}"/>
         <text macro="issued-month" prefix=" month={" suffix="}"/>
         <text macro="pages" prefix=" pages={" suffix="}"/>
+        <text macro="journal" prefix=" journal={" suffix="}"/>
         <text variable="collection-title" prefix=" collection={" suffix="}"/>
         <text variable="keyword" prefix=" keywords={" suffix="}"/>
         <text variable="language" prefix="language={" suffix="}"/>

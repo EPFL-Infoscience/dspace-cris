@@ -48,6 +48,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(DSpaceListItemDataProvider.class);
 
+    private final String DEFAULT_TYPE = "default";
+
     private final ItemService itemService;
 
     private String id;
@@ -163,11 +165,12 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     }
 
     protected CSLItemDataBuilder handleStringFields(Item item, CSLItemDataBuilder itemBuilder) {
+        String typeValue = getTypeValue(type, item);
 
         consumeMetadataIfNotBlank(type, item, value -> itemBuilder.type(getPublicationType(value)));
         consumeIfNotBlank(categories, value -> itemBuilder.categories(getMetadataValues(item, value)));
         consumeMetadataIfNotBlank(language, item, value -> itemBuilder.language(value));
-        consumeMetadataByTypeIfNotBlank(journalAbbreviation, item, type,
+        consumeMetadataByTypeIfNotBlank(journalAbbreviation, item, typeValue,
             value -> itemBuilder.journalAbbreviation(value));
         consumeMetadataIfNotBlank(shortTitle, item, value -> itemBuilder.shortTitle(value));
         consumeMetadataIfNotBlank(abstrct, item, value -> itemBuilder.abstrct(value));
@@ -206,7 +209,6 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(originalPublisherPlace, item, value -> itemBuilder.originalPublisherPlace(value));
         consumeMetadataIfNotBlank(originalTitle, item, value -> itemBuilder.originalTitle(value));
         consumePageMetadataIfNotBlank(pageFirst, page, item, value -> itemBuilder.page(value));
-        consumeMetadataIfNotBlank(pageFirst, item, value -> itemBuilder.pageFirst(value));
         consumeMetadataIfNotBlank(PMCID, item, value -> itemBuilder.PMCID(value));
         consumeMetadataIfNotBlank(PMID, item, value -> itemBuilder.PMID(value));
         consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
@@ -317,8 +319,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         }
     }
 
-    private void consumeMetadataByTypeIfNotBlank(Map<String, String> map, Item item,
-                                                 String type, Consumer<String> consumer) {
+    private String getTypeValue(String type, Item item) {
         String typeValue = null;
         if (StringUtils.isNotBlank(type)) {
             String metadataFirstValue = getMetadataFirstValue(item, type);
@@ -329,8 +330,16 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
                 }
             }
         }
+        return typeValue;
+    }
+
+    private void consumeMetadataByTypeIfNotBlank(Map<String, String> mapConfig, Item item,
+                                                 String typeValue, Consumer<String> consumer) {
         if (StringUtils.isNotBlank(typeValue)) {
-            String value = map.get(typeValue);
+            String value = mapConfig.get(typeValue);
+            if (StringUtils.isBlank(value)) {
+                value = mapConfig.get(DEFAULT_TYPE);
+            }
             if (StringUtils.isNotBlank(value)) {
                 String metadataFirstValue = getMetadataFirstValue(item, value);
                 if (StringUtils.isNotBlank(metadataFirstValue)) {
@@ -347,6 +356,16 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
             String metadataSecondPageValue = getMetadataFirstValue(item, secondPage);
             if (StringUtils.isNotBlank(metadataFirstPageValue) && StringUtils.isNotBlank(metadataSecondPageValue)) {
                 consumer.accept(metadataFirstPageValue + "-" + metadataSecondPageValue);
+            }
+        } else if (StringUtils.isNotBlank(firstPage)) {
+            String value = getMetadataFirstValue(item, firstPage);
+            if (StringUtils.isNotBlank(value)) {
+                consumer.accept(value);
+            }
+        } else if (StringUtils.isNotBlank(secondPage)) {
+            String value = getMetadataFirstValue(item, secondPage);
+            if (StringUtils.isNotBlank(value)) {
+                consumer.accept(value);
             }
         }
     }
