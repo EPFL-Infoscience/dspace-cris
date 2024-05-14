@@ -111,7 +111,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     @Override
-    public void applyFiltersAllItems(Context context, Boolean updateLastModified) throws Exception {
+    public void applyFiltersAllItems(Context context, boolean updateLastModified) throws Exception {
         if (skipList != null) {
             //if a skip-list exists, we need to filter community-by-community
             //so we can respect what is in the skip-list
@@ -130,12 +130,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     @Override
-    public void applyFiltersAllItems(Context context) throws Exception {
-        applyFiltersAllItems(context, true);
-    }
-
-    @Override
-    public void applyFiltersCommunity(Context context, Community community, Boolean updateLastModified)
+    public void applyFiltersCommunity(Context context, Community community, boolean updateLastModified)
             throws Exception { //only apply filters if community not in skip-list
         // ensure that the community is attached to the current hibernate session
         // as we are committing after each item (handles, sub-communties and
@@ -157,13 +152,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     @Override
-    public void applyFiltersCommunity(Context context, Community community)
-        throws Exception {
-        applyFiltersCommunity(context, community, true);
-    }
-
-    @Override
-    public void applyFiltersCollection(Context context, Collection collection, Boolean updateLastModified)
+    public void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified)
             throws Exception {
         // ensure that the collection is attached to the current hibernate session
         // as we are committing after each item (handles are lazy attributes)
@@ -178,13 +167,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     @Override
-    public void applyFiltersCollection(Context context, Collection collection)
-        throws Exception {
-        applyFiltersCollection(context, collection, true);
-    }
-
-    @Override
-    public void applyFiltersItem(Context c, Item item, Boolean updateLastModified) throws Exception {
+    public void applyFiltersItem(Context c, Item item, boolean updateLastModified) throws Exception {
         //only apply filters if item not in skip-list
         if (!inSkipList(item.getHandle())) {
             //cache this item in MediaFilterManager
@@ -197,14 +180,9 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             }
             // clear item objects from context cache and internal cache
             c.uncacheEntity(currentItem);
-            c.commit(updateLastModified);
+            c.commit();
             currentItem = null;
         }
-    }
-
-    @Override
-    public void applyFiltersItem(Context c, Item item) throws Exception {
-        applyFiltersItem(c, item, true);
     }
 
     public boolean filterItem(Context context, Item myItem, Boolean updateLastModified) throws Exception {
@@ -336,7 +314,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter,
-                                    Boolean updateLastModified) throws Exception {
+                                    boolean updateLastModified) throws Exception {
         //do pre-processing of this bitstream, and if it fails, skip this bitstream!
         if (!formatFilter.preProcessBitstream(context, item, source, isVerbose)) {
             return false;

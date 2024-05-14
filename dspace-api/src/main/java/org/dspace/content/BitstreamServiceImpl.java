@@ -149,7 +149,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     }
 
     @Override
-    public Bitstream create(Context context, Bundle bundle, InputStream is, Boolean updateLastModified)
+    public Bitstream create(Context context, Bundle bundle, InputStream is, boolean updateLastModified)
             throws IOException, SQLException, AuthorizeException {
         // Check authorisation
         authorizeService.authorizeAction(context, bundle, Constants.ADD);

@@ -426,10 +426,6 @@ public class Context implements AutoCloseable {
      * @throws SQLException When committing the transaction in the database fails.
      */
     public void commit() throws SQLException {
-        commit(true);
-    }
-
-    public void commit(Boolean updateLastModified) throws SQLException {
         // If Context is no longer open/valid, just note that it has already been closed
         if (!isValid()) {
             log.info("commit() was called on a closed Context object. No changes to commit.");
@@ -443,7 +439,7 @@ public class Context implements AutoCloseable {
         try {
             // Dispatch events before committing changes to the database,
             // as the consumers may change something too
-            dispatchEvents(updateLastModified);
+            dispatchEvents();
         } finally {
             if (log.isDebugEnabled()) {
                 log.debug("Cache size on commit is " + getCacheSize());
@@ -473,10 +469,6 @@ public class Context implements AutoCloseable {
      * to the current transaction. Once events are dispatched, the Context's event cache is cleared.
      */
     public void dispatchEvents() {
-        dispatchEvents(true);
-    }
-
-    public void dispatchEvents(Boolean updateLastModified) {
         Dispatcher dispatcher = null;
 
         try {
@@ -487,7 +479,7 @@ public class Context implements AutoCloseable {
                 }
 
                 dispatcher = eventService.getDispatcher(dispName);
-                dispatcher.dispatch(this, updateLastModified);
+                dispatcher.dispatch(this);
             }
         } finally {
             events = null;

@@ -87,7 +87,7 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
     public Bitstream create(Context context, Bundle bundle, InputStream is)
         throws IOException, SQLException, AuthorizeException;
 
-    default Bitstream create(Context context, Bundle bundle, InputStream is, Boolean updateLastModified)
+    default Bitstream create(Context context, Bundle bundle, InputStream is, boolean updateLastModified)
             throws IOException, SQLException, AuthorizeException {
         return create(context, bundle, is);
     }

@@ -499,23 +499,12 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Override
     public void updateLastModified(Context context, Item item) throws SQLException, AuthorizeException {
-        updateLastModified(context, item, true);
-    }
-
-    @Override
-    public void updateLastModified(Context context, Item item, Boolean updateLastModified)
-            throws SQLException, AuthorizeException {
-        if (updateLastModified) {
-            item.setLastModified(new Date());
-        }
-
+        item.setLastModified(new Date());
         // update(context, item);
         //Also fire a modified event since the item HAS been modified
         context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));
 
-        if (updateLastModified) {
-            setLastModifiedDateMetadata(context, item);
-        }
+        setLastModifiedDateMetadata(context, item);
     }
 
     @Override
@@ -768,7 +757,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
-    public void update(Context context, Item item, Boolean updateLastModified) throws SQLException, AuthorizeException {
+    public void update(Context context, Item item, boolean updateLastModified) throws SQLException, AuthorizeException {
         // Check authorisation
         // only do write authorization if user is not an editor
         if (!canEdit(context, item)) {
@@ -776,7 +765,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         }
 
         log.info(LogHelper.getHeader(context, "update_item", "item_id="
-                + item.getID()));
+            + item.getID()));
 
         super.update(context, item);
 
@@ -823,7 +812,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
             if (item.isMetadataModified()) {
                 context.addEvent(new Event(Event.MODIFY_METADATA, item.getType(), item.getID(), item.getDetails(),
-                        new ArrayList<String>()));
+                    new ArrayList<String>()));
             }
 
             context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));

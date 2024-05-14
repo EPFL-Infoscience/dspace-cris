@@ -515,18 +515,13 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
 
     public void updateLastModified(Context context, T dso) throws SQLException, AuthorizeException;
 
-    default void updateLastModified(Context context, T dso, Boolean updateLastModified)
-            throws SQLException, AuthorizeException {
-        updateLastModified(context, dso);
-    }
-
     default void updateLastModifiedDate(Context context, T dso, Date lastModified)
             throws SQLException, AuthorizeException {
     }
 
     public void update(Context context, T dso) throws SQLException, AuthorizeException;
 
-    default void update(Context context, T dso, Boolean updateLastModified) throws SQLException, AuthorizeException {
+    default void update(Context context, T dso, boolean updateLastModified) throws SQLException, AuthorizeException {
         update(context, dso);
     }
 

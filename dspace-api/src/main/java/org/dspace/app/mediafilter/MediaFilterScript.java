@@ -26,6 +26,8 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.SelfNamedPlugin;
 import org.dspace.core.factory.CoreServiceFactory;
+import org.dspace.event.factory.EventServiceFactory;
+import org.dspace.event.service.EventService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -52,6 +54,7 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
     private static final String INPUT_FORMATS_SUFFIX = "inputFormats";
 
     private boolean help;
+    private boolean updateLastModified = false;
     private boolean isVerbose = false;
     private boolean isQuiet = false;
     private boolean isForce = false; // default to not forced
@@ -71,11 +74,14 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
         // set headless for non-gui workstations
         System.setProperty("java.awt.headless", "true");
 
-
         help = commandLine.hasOption('h');
 
         if (commandLine.hasOption('v')) {
             isVerbose = true;
+        }
+
+        if (commandLine.hasOption('u')) {
+            updateLastModified = true;
         }
 
         isQuiet = commandLine.hasOption('q');
@@ -120,6 +126,8 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
             printHelp();
             return;
         }
+
+        EventService eventService = EventServiceFactory.getInstance().getEventService();
 
         MediaFilterService mediaFilterService = MediaFilterServiceFactory.getInstance().getMediaFilterService();
         mediaFilterService.setLogHandler(handler);
@@ -220,12 +228,21 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
         try {
             c = new Context();
 
+            if (eventService.isDispatcherDefined("media-filter")) {
+                c.setDispatcher("media-filter");
+            } else {
+                handler.logWarning(
+                        "The media-filter dispatcher is not defined fallback to default. "
+                                + "Consider to define it for optimal performance");
+            }
+
+
             // have to be super-user to do the filtering
             c.turnOffAuthorisationSystem();
 
             // now apply the filters
             if (identifier == null) {
-                mediaFilterService.applyFiltersAllItems(c, false);
+                mediaFilterService.applyFiltersAllItems(c, updateLastModified);
             } else {
                 // restrict application scope to identifier
                 DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(c, identifier);
@@ -236,13 +253,13 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
 
                 switch (dso.getType()) {
                     case Constants.COMMUNITY:
-                        mediaFilterService.applyFiltersCommunity(c, (Community) dso, false);
+                        mediaFilterService.applyFiltersCommunity(c, (Community) dso, updateLastModified);
                         break;
                     case Constants.COLLECTION:
-                        mediaFilterService.applyFiltersCollection(c, (Collection) dso, false);
+                        mediaFilterService.applyFiltersCollection(c, (Collection) dso, updateLastModified);
                         break;
                     case Constants.ITEM:
-                        mediaFilterService.applyFiltersItem(c, (Item) dso, false);
+                        mediaFilterService.applyFiltersItem(c, (Item) dso, updateLastModified);
                         break;
                     default:
                         break;

@@ -45,10 +45,6 @@ public interface Consumer {
      */
     public void consume(Context ctx, Event event) throws Exception;
 
-    default void consume(Context ctx, Event event, Boolean updateLastModified) throws Exception {
-        consume(ctx, event);
-    }
-
     /**
      * Signal that there are no more events queued in this event stream and
      * event processing for the preceding consume calls should be finished up.

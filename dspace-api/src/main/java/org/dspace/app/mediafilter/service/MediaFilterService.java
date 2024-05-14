@@ -36,33 +36,13 @@ public interface MediaFilterService {
     public static final String FILTER_PLUGIN_SEPARATOR = "\034";
 
 
-    public void applyFiltersAllItems(Context context) throws Exception;
+    void applyFiltersAllItems(Context context, boolean updateLastModified) throws Exception;
 
-    default void applyFiltersAllItems(Context context, Boolean updateLastModified) throws Exception {
-        applyFiltersAllItems(context);
-    }
+    void applyFiltersCommunity(Context context, Community community, boolean updateLastModified) throws Exception;
 
-    public void applyFiltersCommunity(Context context, Community community)
-        throws Exception;
+    void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified) throws Exception;
 
-    default void applyFiltersCommunity(Context context, Community community, Boolean updateLastModified)
-            throws Exception {
-        applyFiltersCommunity(context, community);
-    }
-
-    public void applyFiltersCollection(Context context, Collection collection)
-        throws Exception;
-
-    default void applyFiltersCollection(Context context, Collection collection, Boolean updateLastModified)
-            throws Exception {
-        applyFiltersCollection(context, collection);
-    }
-
-    public void applyFiltersItem(Context c, Item item) throws Exception;
-
-    default void applyFiltersItem(Context c, Item item, Boolean updateLastModified) throws Exception {
-        applyFiltersItem(c, item);
-    }
+    void applyFiltersItem(Context c, Item item, boolean updateLastModified) throws Exception;
 
 
     /**
