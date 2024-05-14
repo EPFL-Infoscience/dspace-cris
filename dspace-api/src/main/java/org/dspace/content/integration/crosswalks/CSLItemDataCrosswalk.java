@@ -129,7 +129,7 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
         return fileName;
     }
 
-    private DSpaceListItemDataProvider getDSpaceListItemDataProviderInstance() {
+    protected DSpaceListItemDataProvider getDSpaceListItemDataProviderInstance() {
         return dSpaceListItemDataProviderObjectFactory.getObject();
     }
 

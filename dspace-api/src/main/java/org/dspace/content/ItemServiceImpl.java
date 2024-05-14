@@ -86,7 +86,6 @@ import org.dspace.eperson.service.SubscribeService;
 import org.dspace.event.Event;
 import org.dspace.harvest.HarvestedItem;
 import org.dspace.harvest.service.HarvestedItemService;
-import org.dspace.identifier.DOI;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.DOIService;
 import org.dspace.identifier.service.IdentifierService;
@@ -1003,17 +1002,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // Remove bundles
         removeAllBundles(context, item);
 
-        // Remove any Handle
-        handleService.unbindHandle(context, item);
-
-        // Delete a DOI if linked to the item.
-        // If no DOI consumer or provider is configured, but a DOI remains linked to this item's uuid,
-        // hibernate will throw a foreign constraint exception.
-        // Here we use the DOI service directly as it is able to manage DOIs even without any configured
-        // consumer or provider.
-        DOI doi = doiService.findDOIByDSpaceObject(context, item);
-        if (doi != null) {
-            doi.setDSpaceObject(null);
+        // Remove any identifiers
+        try {
+            identifierService.delete(context, item);
+        } catch (IdentifierException e) {
+            throw new RuntimeException("Exception attempting to remove item identiers", e);
         }
 
         // remove version attached to the item

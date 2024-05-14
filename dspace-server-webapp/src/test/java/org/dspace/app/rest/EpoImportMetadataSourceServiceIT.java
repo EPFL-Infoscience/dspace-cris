@@ -149,7 +149,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO identifierOther = createMetadatumDTO("dc", "identifier", "other", "epodoc:ES2902749T");
         MetadatumDTO patentno = createMetadatumDTO("dc", "identifier", "patentno", "ES2902749T");
         MetadatumDTO kind = createMetadatumDTO("crispatent", "kind", null, "T3");
-        MetadatumDTO identifier = createMetadatumDTO("dc", "identifier", "applicationnumber", "18705153");
+        MetadatumDTO identifier = createMetadatumDTO("dc", "identifier", "applicationnumber", "ES20180705153T");
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2022-03-29");
         MetadatumDTO dateSubmitted = createMetadatumDTO("dcterms", "dateSubmitted", null, "2018-02-19");
         MetadatumDTO applicant = createMetadatumDTO("dc", "contributor", null, "Panka Blood Test GmbH");
@@ -184,7 +184,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO identifierOther2 = createMetadatumDTO("dc", "identifier", "other", "epodoc:TW202202864");
         MetadatumDTO patentno2 = createMetadatumDTO("dc", "identifier", "patentno", "TW202202864");
         MetadatumDTO kind2 = createMetadatumDTO("crispatent", "kind", null, "A");
-        MetadatumDTO identifier2 = createMetadatumDTO("dc", "identifier", "applicationnumber", "109122801");
+        MetadatumDTO identifier2 = createMetadatumDTO("dc", "identifier", "applicationnumber", "TW20200122801");
         MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2022-01-16");
         MetadatumDTO dateSubmitted2 = createMetadatumDTO("dcterms", "dateSubmitted", null, "2020-07-06");
         MetadatumDTO applicant2 = createMetadatumDTO("dc", "contributor", null, "ADVANTEST CORPORATION");

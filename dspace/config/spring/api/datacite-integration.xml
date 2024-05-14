@@ -19,22 +19,33 @@
             what metadatafield is generated.
         </description>
         <entry key-ref="datacite.title" value-ref="dataciteTitleContrib"/>
-        <entry key-ref="datacite.id" value-ref="dataciteIDContrib"/>
+        <entry key-ref="datacite.id" value-ref="dataciteIDContrib"/> 
         <entry key-ref="datacite.author" value-ref="dataciteAuthorContrib"/>
+        <entry key-ref="datacite.abstract" value-ref="dataciteAbstractContrib"/>
+        <entry key-ref="datacite.year" value-ref="dataciteYearContrib"/>
+        <entry key-ref="datacite.publisher" value-ref="datacitePublisherContrib"/>
+        <entry key-ref="datacite.subject" value-ref="dataciteSubjectContrib"/>
+        <entry key-ref="datacite.funding.name" value-ref="dataciteFundingContrib" />  
+        <entry key-ref="datacite.language" value-ref="dataciteLanguageContrib" />
+        <entry key-ref="datacite.relation.type" value-ref="dataciteRelationContrib"/>
+        <entry key-ref="datacite.type" value-ref="dataciteTypeContrib"/>
         <!-- TODO: Further Mappings here! querys are applied among the data.attributes object containing the informations -->
     </util:map>
 
-    <bean id="dataciteAuthorContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
-        <property name="metadataProcessor">
-            <bean class="org.dspace.importer.external.metadatamapping.contributor.ArrayElementAttributeProcessor">
-                <property name="pathToArray" value="/creators"/>
-                <property name="elementAttribute" value="/name"/>
-            </bean>
+    <bean id="dataciteAuthorContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathNestedMetadataContributor">
+        <property name="query" value="/creators"/>
+        <property name="nestedfields">
+            <map>
+                <entry key="/name" value-ref="datacite.author" />
+                <entry key="/affiliation" value-ref="datacite.author.affiliation" />
+            </map>
         </property>
-        <property name="field" ref="datacite.author"/>
     </bean>
     <bean id="datacite.author" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.contributor.author"/>
+    </bean>
+    <bean id="datacite.author.affiliation" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="oairecerif.author.affiliation"/>
     </bean>
 
     <bean id="dataciteTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
@@ -59,4 +70,110 @@
         <constructor-arg value="dc.identifier.doi"/>
     </bean>
 
+    <bean id="dataciteAbstractContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
+        <property name="metadataProcessor">
+            <bean class="org.dspace.importer.external.metadatamapping.contributor.ArrayElementAttributeProcessor">
+                <property name="pathToArray" value="/descriptions"/>
+                <property name="elementAttribute" value="/description"/>
+            </bean>
+        </property>
+        <property name="field" ref="datacite.abstract"/>
+    </bean>
+    <bean id="datacite.abstract" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.description.abstract"/>
+    </bean>
+
+    <bean id="dataciteYearContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
+        <property name="field" ref="datacite.year"/>
+        <property name="query" value="/publicationYear"/>
+    </bean>
+    <bean id="datacite.year" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.date.issued"/>
+    </bean>
+
+    <bean id="datacitePublisherContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
+        <property name="field" ref="datacite.publisher"/>
+        <property name="query" value="/publisher"/>
+    </bean>
+    <bean id="datacite.publisher" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.publisher"/>
+    </bean>
+
+    <bean id="dataciteSubjectContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
+        <property name="metadataProcessor">
+            <bean class="org.dspace.importer.external.metadatamapping.contributor.ArrayElementAttributeProcessor">
+                <property name="pathToArray" value="/subjects"/>
+                <property name="elementAttribute" value="/subject"/>
+            </bean>
+        </property>
+        <property name="field" ref="datacite.subject"/>
+    </bean>
+    <bean id="datacite.subject" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.subject"/>
+    </bean>
+
+    <bean id="dataciteFundingContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathNestedMetadataContributor">
+        <property name="query" value="/fundingReferences"/>
+        <property name="nestedfields">
+            <map>
+                <entry key="/awardTitle" value-ref="datacite.funding.name" />
+                <entry key="/funderName" value-ref="datacite.funding.funder" />
+                <entry key="/awardNumber" value-ref="datacite.funding.award" />
+            </map>
+        </property>
+    </bean>
+    <bean id="datacite.funding.name" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.relation.funding"/>
+    </bean>
+    <bean id="datacite.funding.funder" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="oairecerif.funder"/>
+    </bean>
+    <bean id="datacite.funding.award" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.relation.grantno"/>
+    </bean>
+
+    <bean id="dataciteRelationContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathNestedMetadataContributor">
+        <property name="query" value="/relatedIdentifiers"/>
+        <property name="nestedfields">
+            <map>
+                <entry key="/relationType" value-ref="datacite.relation.type" />
+                <entry key="/relatedIdentifier" value-ref="datacite.relation.identifier" />
+                <entry key="/relatedTitle" value-ref="datacite.relation" />
+            </map>
+        </property>
+    </bean>
+    <bean id="datacite.relation.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="datacite.relationType"/>
+    </bean>
+    <bean id="datacite.relation" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.relation.title"/>
+    </bean>
+    <bean id="datacite.relation.identifier" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="datacite.relatedIdentifier"/>
+    </bean>
+
+    
+    <bean id="dataciteLanguageContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleJsonPathMetadataContributor">
+        <property name="field" ref="datacite.language"/>
+        <property name="query" value="/language"/>
+    </bean>
+    <bean id="datacite.language" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <constructor-arg value="dc.language.iso"/>
+    </bean>
+
+<bean id="dataciteTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.ReplaceFieldWithMapConverterMetadataContributor">
+    <property name="field" ref="datacite.type"/>
+    <property name="query" value="/types/resourceTypeGeneral"/>
+    <property name="simpleMapConverter" ref="mapConverterDataciteToDSpacePublicationType"/>
+</bean>
+
+<bean name="mapConverterDataciteToDSpacePublicationType" class="org.dspace.util.SimpleMapConverter" init-method="init">
+    <property name="converterNameFile" value="mapConverter-datacite-to-dspace-publication-type.properties" />
+    <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+    <property name="defaultValue" value="Controlled Vocabulary for Resource Type Genres::other"/>
+</bean>
+
+<bean id="datacite.type" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+    <constructor-arg value="dc.type"/>
+</bean>
 </beans>
