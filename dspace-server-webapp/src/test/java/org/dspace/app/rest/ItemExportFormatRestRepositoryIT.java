@@ -36,6 +36,16 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
                         .param("molteplicity", SINGLE.name())
                         .param("entityTypeId", "Publication"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(15)));
+                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(6)));
+    }
+
+    @Test
+    public void testExportFormatWithoutType() throws Exception {
+        getClient().perform(get("/api/integration/itemexportformats/search/byEntityTypeAndMolteplicity")
+                        .param("size", "100")
+                        .param("molteplicity", SINGLE.name()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.itemexportformats.length()",
+                        Matchers.greaterThanOrEqualTo(9)));
     }
 }

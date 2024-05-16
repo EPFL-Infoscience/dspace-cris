@@ -212,10 +212,6 @@
             <reader>orgUnit</reader>
         </metadata-field>
         <metadata-field>
-            <field>dspace.legacy.oai-identifier</field>
-            <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = 'O']/subfield[@code = 'o']</xpath>
-        </metadata-field>
-        <metadata-field>
             <field>epfl.oai.currentset</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = 'O']/subfield[@code = 'p']</xpath>
         </metadata-field>

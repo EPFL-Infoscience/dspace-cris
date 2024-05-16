@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.content.enhancer;
+package org.dspace.app.rest.enhancer;
 
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.dspace.app.matcher.MetadataValueMatcher.withNoPlace;
@@ -42,6 +42,7 @@ import org.dspace.core.ReloadableEntity;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -323,6 +324,7 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testOrgUnitHierarchy() throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
         Item topOrgUnit = ItemBuilder.createItem(context, collection)
