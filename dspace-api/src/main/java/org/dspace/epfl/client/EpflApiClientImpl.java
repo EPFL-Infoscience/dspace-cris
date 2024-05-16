@@ -119,11 +119,11 @@ public class EpflApiClientImpl implements EpflApiClient {
         }
         if (persons.length > 1) {
             String message = "Invalid response from Person API. Too much results returned for the scipter " + sciper;
-                throw new RuntimeException(message);
+            throw new RuntimeException(message);
         } else if (!StringUtils.equals(persons[0].getSciper(), sciper)) {
             String message = "Invalid response from Person API. The sciper in the response "
                     + persons[0].getSciper() + " doesn't match the requested one " + sciper;
-                throw new RuntimeException(message);
+            throw new RuntimeException(message);
         }
         return Optional.of(persons[0]);
 
