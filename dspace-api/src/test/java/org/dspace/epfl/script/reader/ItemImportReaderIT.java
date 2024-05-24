@@ -280,8 +280,8 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
-        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.type"),type);
-        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.identifier"),identifier);
+        assertEquals(getFirstMetadataValue(itemMetadata, "datacite.relationType"),type);
+        assertEquals(getFirstMetadataValue(itemMetadata, "datacite.relatedIdentifier"),identifier);
     }
 
     @Test
@@ -301,7 +301,7 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
-        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationproduct.identifier"),identifier);
+        assertEquals(getFirstMetadataValue(itemMetadata, "datacite.relatedIdentifier"),identifier);
     }
 
     @Test
