@@ -10,8 +10,11 @@ package org.dspace.content.integration.crosswalks.csl;
 import static org.apache.commons.lang.ArrayUtils.nullToEmpty;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import de.undercouch.citeproc.csl.CSLItemData;
 import de.undercouch.citeproc.output.Bibliography;
 
 /**
@@ -50,9 +53,14 @@ public class CSLResult {
 
     }
 
-    public static CSLResult fromBibliography(String format, Bibliography bibliogr) {
-        UUID[] entryIds = convertToUUIDs(bibliogr.getEntryIds());
-        return new CSLResult(format, entryIds, bibliogr.getEntries(), bibliogr.makeString());
+    public static CSLResult fromBibliography(String format, Collection<CSLItemData> collection, Bibliography bibliogr) {
+        String[] entryIds = bibliogr.getEntryIds();
+        if (entryIds == null) {
+            entryIds = collection.stream().map(c -> c.getId()).collect(Collectors.toList()).toArray(new String[0]);
+        }
+        UUID[] uuidIds = convertToUUIDs(entryIds);
+
+        return new CSLResult(format, uuidIds, bibliogr.getEntries(), bibliogr.makeString());
     }
 
     public UUID[] getItemIds() {

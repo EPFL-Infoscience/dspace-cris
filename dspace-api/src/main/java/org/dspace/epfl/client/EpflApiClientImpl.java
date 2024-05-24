@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -106,7 +107,7 @@ public class EpflApiClientImpl implements EpflApiClient {
         }
 
         if (isNotSuccessfull(response)) {
-            String message = "Not successfully response incoming from OrgUnit API. "
+            String message = "Not successfully response incoming from Person API. "
                 + "Status: " + getStatusCode(response) + " - Content: " + getContent(response);
             throw new RuntimeException(message);
         }
@@ -116,7 +117,14 @@ public class EpflApiClientImpl implements EpflApiClient {
         if (ArrayUtils.isEmpty(persons)) {
             return Optional.empty();
         }
-
+        if (persons.length > 1) {
+            String message = "Invalid response from Person API. Too much results returned for the scipter " + sciper;
+            throw new RuntimeException(message);
+        } else if (!StringUtils.equals(persons[0].getSciper(), sciper)) {
+            String message = "Invalid response from Person API. The sciper in the response "
+                    + persons[0].getSciper() + " doesn't match the requested one " + sciper;
+            throw new RuntimeException(message);
+        }
         return Optional.of(persons[0]);
 
     }

@@ -103,9 +103,8 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         //define first record
         MetadatumDTO edition = createMetadatumDTO("oaire","citation", "edition", "WOS.SSCI");
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2022-06-02");
-        MetadatumDTO localWosSourceTypeA = createMetadatumDTO("local", "wos", "sourceType",
-                "text::journal::journal article");
-        MetadatumDTO localWosSourceTypeB = createMetadatumDTO("local", "wos", "sourceType",
+        MetadatumDTO type = createMetadatumDTO("dc", "type", null, "text::journal::journal article");
+        MetadatumDTO localWosSourceType = createMetadatumDTO("local", "wos", "sourceType",
                 "ArticleEarly Access");
         MetadatumDTO ispartof = createMetadatumDTO("dc", "relation", "ispartof",
                                    "ETR&D-EDUCATIONAL TECHNOLOGY RESEARCH AND DEVELOPMENT");
@@ -120,10 +119,6 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO description = createMetadatumDTO("dc", "description", "abstract",
                 "National and state science learning standards urge K-12 educators to offer authentic Science,"
                 + " Technology, Engineering, and Mathematics learning experiences.");
-        MetadatumDTO orgunit = createMetadatumDTO("oairecerif", "author", "affiliation",
-                                              "University of South Carolina Columbia");
-        MetadatumDTO orgunit2 = createMetadatumDTO("oairecerif", "author", "affiliation",
-                                                   "Pennsylvania State University");
         MetadatumDTO iso = createMetadatumDTO("dc", "language", "iso", "English");
         MetadatumDTO author = createMetadatumDTO("dc", "contributor", "author", "Vasconcelos, Lucas");
         MetadatumDTO author2 = createMetadatumDTO("dc", "contributor", "author", "Kim, ChanMin");
@@ -151,8 +146,8 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
                                                 "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         metadatums.add(edition);
         metadatums.add(date);
-        metadatums.add(localWosSourceTypeA);
-        metadatums.add(localWosSourceTypeB);
+        metadatums.add(type);
+        metadatums.add(localWosSourceType);
         metadatums.add(ispartof);
         metadatums.add(journal);
         metadatums.add(publisher);
@@ -161,8 +156,6 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         metadatums.add(doi);
         metadatums.add(description);
         metadatums.add(iso);
-        metadatums.add(orgunit);
-        metadatums.add(orgunit2);
         metadatums.add(author);
         metadatums.add(author2);
         metadatums.add(subject);
@@ -194,9 +187,9 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO edition2 = createMetadatumDTO("oaire","citation", "edition", "WOS.SCI");
         MetadatumDTO edition3 = createMetadatumDTO("oaire","citation", "edition", "WOS.SSCI");
         MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2022-06-02");
-        MetadatumDTO localWosSourceType2A = createMetadatumDTO("local", "wos", "sourceType",
+        MetadatumDTO type2 = createMetadatumDTO("dc", "type", null,
                 "text::journal::journal article");
-        MetadatumDTO localWosSourceType2B = createMetadatumDTO("local", "wos", "sourceType",
+        MetadatumDTO localWosSourceType2 = createMetadatumDTO("local", "wos", "sourceType",
                 "ArticleEarly Access");
         MetadatumDTO ispartof2 = createMetadatumDTO("dc", "relation", "ispartof", "NATURE HUMAN BEHAVIOUR");
         MetadatumDTO journal2 = createMetadatumDTO("dc", "relation", "journal", "NATURE HUMAN BEHAVIOUR");
@@ -212,14 +205,6 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
                 + "By examining the scientific output of each country,"
                 + " Ahn et al. reveal a three-cluster structure of global science.");
         MetadatumDTO iso2 = createMetadatumDTO("dc", "language", "iso", "English");
-        MetadatumDTO affiliation2A = createMetadatumDTO("oairecerif", "author", "affiliation",
-                "Indiana University Bloomington");
-        MetadatumDTO affiliation2B = createMetadatumDTO("oairecerif", "author", "affiliation",
-                "University of Quebec Montreal");
-        MetadatumDTO affiliation2C = createMetadatumDTO("oairecerif", "author", "affiliation",
-                "Georgia Institute of Technology");
-        MetadatumDTO affiliation2D = createMetadatumDTO("oairecerif", "author", "affiliation",
-                "Indiana University Bloomington");
         MetadatumDTO author3 = createMetadatumDTO("dc", "contributor", "author", "Miao, Lili");
         MetadatumDTO author4 = createMetadatumDTO("dc", "contributor", "author", "Murray, Dakota");
         MetadatumDTO author5 = createMetadatumDTO("dc", "contributor", "author", "Jung, Woo-Sung");
@@ -243,8 +228,8 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         metadatums2.add(edition2);
         metadatums2.add(edition3);
         metadatums2.add(date2);
-        metadatums2.add(localWosSourceType2A);
-        metadatums2.add(localWosSourceType2B);
+        metadatums2.add(type2);
+        metadatums2.add(localWosSourceType2);
         metadatums2.add(ispartof2);
         metadatums2.add(journal2);
         metadatums2.add(publisher2);
@@ -253,10 +238,6 @@ public class WOSImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         metadatums2.add(doi2);
         metadatums2.add(description2);
         metadatums2.add(iso2);
-        metadatums2.add(affiliation2A);
-        metadatums2.add(affiliation2B);
-        metadatums2.add(affiliation2C);
-        metadatums2.add(affiliation2D);
         metadatums2.add(author3);
         metadatums2.add(author4);
         metadatums2.add(author5);

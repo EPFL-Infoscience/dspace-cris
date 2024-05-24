@@ -76,7 +76,7 @@ public class PersonImportFiller implements AuthorityImportFiller {
                 });
 
         } catch (Exception ex) {
-            LOGGER.error("An error occurs trying to enrich item with data from OrgUnit API", ex);
+            LOGGER.error("An error occurs trying to enrich item with data from Person API", ex);
         }
 
         setMetadataIfNotAlreadySet(context, item, "dc", "title", null, sourceMetadata.getValue());

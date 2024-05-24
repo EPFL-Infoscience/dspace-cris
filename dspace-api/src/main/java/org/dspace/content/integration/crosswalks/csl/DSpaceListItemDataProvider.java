@@ -12,6 +12,7 @@ import static org.dspace.content.Item.ANY;
 
 import java.text.ParseException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -47,13 +48,15 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(DSpaceListItemDataProvider.class);
 
+    private final String DEFAULT_TYPE = "default";
+
     private final ItemService itemService;
 
     private String id;
     private String type;
     private String categories;
     private String language;
-    private String journalAbbreviation;
+    private Map<String, String> journalAbbreviation;
     private String shortTitle;
     private String author;
     private String collectionEditor;
@@ -141,7 +144,10 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         handleStringFields(item, itemBuilder);
         handleCslNameFields(item, itemBuilder);
         handleCslDateFields(item, itemBuilder);
-
+        itemBuilder.citationKey("item_" + item.getID().toString().replace("-", ""));
+        // citeproc-server still doesn't understand the citation key
+        // https://github.com/citation-style-language/styles/pull/5117
+        itemBuilder.citationLabel("item_" + item.getID().toString().replace("-", ""));
         CSLItemData cslItemData = itemBuilder.build();
         this.items.put(cslItemData.getId(), cslItemData);
     }
@@ -159,11 +165,13 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     }
 
     protected CSLItemDataBuilder handleStringFields(Item item, CSLItemDataBuilder itemBuilder) {
+        String typeValue = getTypeValue(type, item);
 
         consumeMetadataIfNotBlank(type, item, value -> itemBuilder.type(getPublicationType(value)));
         consumeIfNotBlank(categories, value -> itemBuilder.categories(getMetadataValues(item, value)));
         consumeMetadataIfNotBlank(language, item, value -> itemBuilder.language(value));
-        consumeMetadataIfNotBlank(journalAbbreviation, item, value -> itemBuilder.journalAbbreviation(value));
+        consumeMetadataByTypeIfNotBlank(journalAbbreviation, item, typeValue,
+            value -> itemBuilder.journalAbbreviation(value));
         consumeMetadataIfNotBlank(shortTitle, item, value -> itemBuilder.shortTitle(value));
         consumeMetadataIfNotBlank(abstrct, item, value -> itemBuilder.abstrct(value));
         consumeMetadataIfNotBlank(annote, item, value -> itemBuilder.annote(value));
@@ -200,8 +208,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(originalPublisher, item, value -> itemBuilder.originalPublisher(value));
         consumeMetadataIfNotBlank(originalPublisherPlace, item, value -> itemBuilder.originalPublisherPlace(value));
         consumeMetadataIfNotBlank(originalTitle, item, value -> itemBuilder.originalTitle(value));
-        consumeMetadataIfNotBlank(page, item, value -> itemBuilder.page(value));
-        consumeMetadataIfNotBlank(pageFirst, item, value -> itemBuilder.pageFirst(value));
+        consumePageMetadataIfNotBlank(pageFirst, page, item, value -> itemBuilder.page(value));
         consumeMetadataIfNotBlank(PMCID, item, value -> itemBuilder.PMCID(value));
         consumeMetadataIfNotBlank(PMID, item, value -> itemBuilder.PMID(value));
         consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
@@ -312,6 +319,57 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         }
     }
 
+    private String getTypeValue(String type, Item item) {
+        String typeValue = null;
+        if (StringUtils.isNotBlank(type)) {
+            String metadataFirstValue = getMetadataFirstValue(item, type);
+            if (StringUtils.isNotBlank(metadataFirstValue)) {
+                CSLType cslType = getPublicationType(metadataFirstValue);
+                if (cslType != null) {
+                    typeValue = cslType.toString();
+                }
+            }
+        }
+        return typeValue;
+    }
+
+    private void consumeMetadataByTypeIfNotBlank(Map<String, String> mapConfig, Item item,
+                                                 String typeValue, Consumer<String> consumer) {
+        if (StringUtils.isNotBlank(typeValue)) {
+            String value = mapConfig.get(typeValue);
+            if (StringUtils.isBlank(value)) {
+                value = mapConfig.get(DEFAULT_TYPE);
+            }
+            if (StringUtils.isNotBlank(value)) {
+                String metadataFirstValue = getMetadataFirstValue(item, value);
+                if (StringUtils.isNotBlank(metadataFirstValue)) {
+                    consumer.accept(metadataFirstValue);
+                }
+            }
+        }
+    }
+
+    private void consumePageMetadataIfNotBlank(String firstPage, String secondPage,
+                                               Item item, Consumer<String> consumer) {
+        if (StringUtils.isNotBlank(firstPage) && StringUtils.isNotBlank(secondPage)) {
+            String metadataFirstPageValue = getMetadataFirstValue(item, firstPage);
+            String metadataSecondPageValue = getMetadataFirstValue(item, secondPage);
+            if (StringUtils.isNotBlank(metadataFirstPageValue) && StringUtils.isNotBlank(metadataSecondPageValue)) {
+                consumer.accept(metadataFirstPageValue + "-" + metadataSecondPageValue);
+            }
+        } else if (StringUtils.isNotBlank(firstPage)) {
+            String value = getMetadataFirstValue(item, firstPage);
+            if (StringUtils.isNotBlank(value)) {
+                consumer.accept(value);
+            }
+        } else if (StringUtils.isNotBlank(secondPage)) {
+            String value = getMetadataFirstValue(item, secondPage);
+            if (StringUtils.isNotBlank(value)) {
+                consumer.accept(value);
+            }
+        }
+    }
+
     private void consumeMetadataValuesIfNotBlank(String value, Item item, Consumer<String[]> consumer) {
         if (StringUtils.isNotBlank(value)) {
             String[] metadataValues = getMetadataValues(item, value);
@@ -364,7 +422,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
 
     private CSLType getPublicationType(String value) {
         try {
-            return CSLType.fromString(typeConverter.getValue(value));
+            return CSLType.fromString(typeConverter.getValue(value).toLowerCase());
         } catch (IllegalArgumentException ex) {
             LOGGER.warn("No CSL type found by type: " + value);
             return null;
@@ -387,7 +445,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return language;
     }
 
-    public String getJournalAbbreviation() {
+    public Map<String, String> getJournalAbbreviation() {
         return journalAbbreviation;
     }
 
@@ -699,7 +757,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.language = language;
     }
 
-    public void setJournalAbbreviation(String journalAbbreviation) {
+    public void setJournalAbbreviation(Map<String, String> journalAbbreviation) {
         this.journalAbbreviation = journalAbbreviation;
     }
 
