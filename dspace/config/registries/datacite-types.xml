@@ -76,5 +76,65 @@
         <element>Other</element>
         <qualifier></qualifier>
     </dc-type>
-	
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Accepted</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Available</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Copyrighted</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Collected</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Created</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Submitted</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Updated</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Valid</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Withdrawn</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Other</qualifier>
+    </dc-type>
+
 </dspace-dc-types>
