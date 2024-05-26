@@ -136,6 +136,11 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="unit-attribution-bind" mandatory="true">
+      <heading>submit.progressbar.describe.unit-attribution-bind</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
     <step-definition id="collection" mandatory="true">
       <heading>submit.progressbar.collection</heading>
       <processing-class>org.dspace.app.rest.submit.step.CollectionStep</processing-class>
@@ -500,6 +505,9 @@
     </submission-process>
     <submission-process name="virtual-collection-bind">
       <step id="virtual-collection-bind" />
+    </submission-process>
+    <submission-process name="unit-attribution-bind">
+      <step id="unit-attribution-bind" />
     </submission-process>
     <submission-process name="article">
       <step id="unpaywall" />
