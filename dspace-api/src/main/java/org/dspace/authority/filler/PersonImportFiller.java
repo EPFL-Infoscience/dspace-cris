@@ -147,21 +147,28 @@ public class PersonImportFiller implements AuthorityImportFiller {
 
     private void createOrUpdateEPerson(Context context, Item item, String sciperId) {
         Optional<PersonDTO> personDTO = profileInitializer.getPersonFromEPFL(sciperId);
-        if (personDTO != null && personDTO.isPresent()) {
-            createOrSynch(context, personDTO.get());
-        } else {
-            try {
-                EPerson ePerson = profileInitializer.findPersonBySciper(context, sciperId);
+        EPerson ePerson;
+        try {
+            if (personDTO != null && personDTO.isPresent()) {
+                createOrSynch(context, personDTO.get());
+                ePerson = profileInitializer.findPersonBySciper(context, sciperId);
+            } else {
+                ePerson = profileInitializer.findPersonBySciper(context, sciperId);
                 if (ePerson == null) {
                     ePerson = profileInitializer.createBasicEPerson(context, sciperId);
-                    itemService.addMetadata(context, item, "dspace", "object", "owner", null,
-                            ePerson.getName(), ePerson.getID().toString(), Choices.CF_ACCEPTED, 0);
                 }
-            } catch (SQLException e) {
-                LOGGER.error("Error trying to read the EPerson with sciperId " + sciperId, e);
-            } catch (AuthorizeException e) {
-                LOGGER.error("Authorization error trying to initialize the EPerson with sciperId " + sciperId, e);
             }
+            boolean isAddingOwnerNeeded = item.getMetadata().stream()
+                    .noneMatch(metadataValue ->
+                            metadataValue.getMetadataField().toString().equals("dspace_object_owner"));
+            if (isAddingOwnerNeeded) {
+                itemService.addMetadata(context, item, "dspace", "object", "owner", null,
+                        ePerson.getName(), ePerson.getID().toString(), Choices.CF_ACCEPTED, 0);
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Error trying to read the EPerson with sciperId " + sciperId, e);
+        } catch (AuthorizeException e) {
+            LOGGER.error("Authorization error trying to initialize the EPerson with sciperId " + sciperId, e);
         }
     }
 
