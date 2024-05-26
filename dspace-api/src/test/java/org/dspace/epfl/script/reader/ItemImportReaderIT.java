@@ -398,6 +398,30 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    /**
+     * This test checks that epfl.relation.rejectedOrgUnit and
+     * epfl.relation.pendingOrgUnit are NOT imported
+     */
+    @Test
+    public void testRejectedAndPendingOrgUnitsSkipped() {
+        String test = " <record> \n" +
+                "<datafield tag=\"910\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">testRejected</subfield>\n" +
+                "</datafield>\n" +
+                "<datafield tag=\"999\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">testPending</subfield>\n" +
+                "</datafield>\n" +
+                "</record>";
+
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relation.rejectedOrgUnit"), NOT_FOUND_VALUE);
+        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relation.pendingOrgUnit"), NOT_FOUND_VALUE);
+    }
+
     @Test
     public void testThatRelationJournalMetadataWithRelationIssnIsPresent() {
         String firstRelationJournal = "first relation";
