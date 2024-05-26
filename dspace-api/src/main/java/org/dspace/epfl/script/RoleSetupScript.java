@@ -39,8 +39,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
     private static final String EPFL_PUBLICATION_REVIEWERS = "EPFL Publications reviewers";
 
-    private static final String PUBLICATION_REVIEWERS = "Publications reviewers";
-
     private static final String RESERVED_GROUP = "ReservedAccess";
 
     private static final String RESTRICTED_GROUP = "LoggedIn";
@@ -70,8 +68,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
     private Group reservedGroup;
 
     private Group epflReviewersGroup;
-
-    private Group reviewersGroup;
 
     private Context context;
 
@@ -106,7 +102,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             curatorsGroup = findByNameOrCreate(CURATORS_GROUP);
             submittersGroup = findByNameOrCreate(SUBMITTERS_GROUP);
             epflReviewersGroup = findByNameOrCreate(EPFL_PUBLICATION_REVIEWERS);
-            reviewersGroup = findByNameOrCreate(PUBLICATION_REVIEWERS);
             reservedGroup = findByNameOrCreate(RESERVED_GROUP);
             restrictedGroup = findByNameOrCreate(RESTRICTED_GROUP);
 
@@ -150,11 +145,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             addSubgroup(firstRoleGroup, epflReviewersGroup);
             addSubgroup(epflReviewersGroup, curatorsGroup);
             addSubgroup(epflReviewersGroup, adminsGroup);
-
-            Group secondRoleGroup = createWorkflowRoleGroup(collection, "reviewer");
-            addSubgroup(secondRoleGroup, reviewersGroup);
-            addSubgroup(reviewersGroup, curatorsGroup);
-            addSubgroup(reviewersGroup, adminsGroup);
         }
     }
 
