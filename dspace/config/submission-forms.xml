@@ -3502,7 +3502,7 @@
           <label>Author name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>Make sure to enter the author name</required>
+          <required />
           <hint>Written as: Last Name, First Name</hint>
         </field>
       </row>
@@ -3614,7 +3614,7 @@
           <label>Author(s)</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
-          <required>An author is at least required</required>
+          <required />
           <hint />
         </field>
       </row>
@@ -5696,6 +5696,32 @@
           <repeatable>true</repeatable>
           <required />
           <hint />
+        </field>
+      </row>
+    </form>
+    <form name="unit-attribution-bind">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Applied to:</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <readonly>all</readonly>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <label>Involved EPFL unit(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>As head of unit (or her/his delegate), you are allowed to add or remove attribution only for units or labs under your responsibility. For any questions or concerns, please contact &lt;a href="mailto:infoscience@epfl.ch"&gt;Infoscience@epfl.ch&lt;/a&gt;.</hint>
         </field>
       </row>
     </form>
