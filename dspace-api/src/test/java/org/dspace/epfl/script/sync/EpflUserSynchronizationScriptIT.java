@@ -565,6 +565,53 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
     }
 
     @Test
+    public void testUpdateAffiliationsWithNotActiveAffiliations()
+            throws SQLException, AuthorizeException, InstantiationException, IllegalAccessException {
+
+        context.turnOffAuthorisationSystem();
+
+
+        Item sensAff = ItemBuilder.createItem(context, orgUnits)
+                .withTitle("Laboratory of Sensing and Networking Systems")
+                .withAcronym("SENS").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withTitle("SCI-CDH-FGB")
+                .withAcronym("SCI-CDH-FGB").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withTitle("SHS-ENS")
+                .withAcronym("SHS-ENS").build();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Graezer", "Bideau")
+                .withEmail("florence.graezerbideau@epfl.ch")
+                .withNetId("196358@epfl.ch")
+                .build();
+
+        Item existingProfile = ItemBuilder
+                .createItem(context, profiles)
+                .withDspaceObjectOwner(eperson)
+                .withTitle("Graezer, Bideau").build();
+
+        context.restoreAuthSystemState();
+
+        // run script
+        String[] args = new String[]{"epfl-user-synchronization", "-e", admin.getEmail()};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        //After actually sync all values check that process will run with no problem and no changes
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+    }
+
+    @Test
     public void testProfileCreationWithActiveAffiliationsButNoMainAffiliation()
         throws SQLException, AuthorizeException, InstantiationException, IllegalAccessException {
 
