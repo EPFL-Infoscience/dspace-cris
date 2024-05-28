@@ -14,6 +14,9 @@ npm -v
 git clone --recurse-submodules https://github.com/zotero/citeproc-js-server.git
 cd citeproc-js-server
 npm install
+# this is needed on bitbucket
 cp ../build/dspace/config/crosswalks/csl/* csl/
+# this is needed on github
+cp /home/runner/work/dspace-cris/dspace-cris/dspace/config/crosswalks/csl/* csl/
 nohup npm start &
 cd -
