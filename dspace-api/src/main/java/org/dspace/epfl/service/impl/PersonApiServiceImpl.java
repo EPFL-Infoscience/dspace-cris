@@ -163,7 +163,7 @@ public class PersonApiServiceImpl implements PersonApiService {
         List<MetadataValueDTO> affiliationMetadataValues =
             Arrays.stream(person.getAccreds())
                   .flatMap(accred -> getAffiliationValues(context, accred, positionField.get(),
-                                                          affiliationField.get(), place.getAndIncrement()).stream())
+                                                          affiliationField.get(), place).stream())
                   .collect(Collectors.toList());
 
         person.getMainAffiliation()
@@ -174,7 +174,7 @@ public class PersonApiServiceImpl implements PersonApiService {
     }
 
     private List<MetadataValueDTO> getAffiliationValues(Context context, Accred accred, String positionField,
-                                                        String affiliationField, int place) {
+                                                        String affiliationField, AtomicInteger atomicPlace) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
@@ -185,6 +185,8 @@ public class PersonApiServiceImpl implements PersonApiService {
             !inDspace(context, acronym)) {
             return List.of();
         }
+
+        int place = atomicPlace.get();
 
         if (StringUtils.isNotBlank(position)) {
             metadataValues.add(new MetadataValueDTO(positionField, position, place));
@@ -204,6 +206,10 @@ public class PersonApiServiceImpl implements PersonApiService {
         getPersonMetadataField("affiliation.end")
             .flatMap(field -> getMetadataValue(PLACEHOLDER_PARENT_METADATA_VALUE, field, place))
             .ifPresent(metadataValues::add);
+
+        if (!metadataValues.isEmpty())  {
+            atomicPlace.set(atomicPlace.get() + 1);
+        }
 
         return metadataValues;
     }

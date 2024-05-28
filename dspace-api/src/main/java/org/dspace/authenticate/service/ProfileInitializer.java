@@ -767,14 +767,23 @@ public class ProfileInitializer {
 
     private void updateMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
         try {
-            MetadataValue mv = itemService.getMetadata(item, metadataValue.getSchema(), metadataValue.getElement(),
-                                                       metadataValue.getQualifier(), metadataValue.getLanguage())
+            Optional<MetadataValue> mvOptional = itemService.getMetadata(item, metadataValue.getSchema(),
+                            metadataValue.getElement(), metadataValue.getQualifier(), metadataValue.getLanguage())
                                           .stream()
                                           .filter(value -> Objects.equals(value.getPlace(), metadataValue.getPlace()))
-                                          .findFirst().get();
+                                          .findFirst();
+            MetadataValue mv;
+
+            if (mvOptional.isPresent()) {
+                mv = mvOptional.get();
+            } else {
+                throw new RuntimeException("Could not find metadata value for " +
+                        metadataValue.getMetadataField() + " with place " + metadataValue.getPlace());
+            }
+
             mv.setValue(metadataValue.getValue());
             context.reloadEntity(mv);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
