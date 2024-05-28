@@ -87,10 +87,23 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
     public Bitstream create(Context context, Bundle bundle, InputStream is)
         throws IOException, SQLException, AuthorizeException;
 
-    default Bitstream create(Context context, Bundle bundle, InputStream is, boolean updateLastModified)
-            throws IOException, SQLException, AuthorizeException {
-        return create(context, bundle, is);
-    }
+    /**
+     * Create a new bitstream, with a new ID. The checksum and file size are
+     * calculated.
+     * The newly created bitstream has the "unknown" format.
+     *
+     * @param context             DSpace context object
+     * @param bundle              The bundle in which our bitstream should be added.
+     * @param is                  the bits to put in the bitstream
+     * @param updateLastModified  true if the creation should alter the last modified
+     *                            date of the item
+     * @return the newly created bitstream
+     * @throws IOException        if IO error
+     * @throws SQLException       if database error
+     * @throws AuthorizeException if authorization error
+     */
+    public Bitstream create(Context context, Bundle bundle, InputStream is, boolean updateLastModified)
+            throws IOException, SQLException, AuthorizeException;
 
     /**
      * Register a new bitstream, with a new ID.  The checksum and file size

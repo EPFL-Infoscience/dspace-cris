@@ -174,7 +174,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             //so it can be accessed by MediaFilters as necessary
             currentItem = item;
 
-            if (filterItem(c, item, updateLastModified)) {
+            if (filterItemInternal(c, item, updateLastModified)) {
                 // increment processed count
                 ++processed;
             }
@@ -185,7 +185,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
         }
     }
 
-    public boolean filterItem(Context context, Item myItem, Boolean updateLastModified) throws Exception {
+    private boolean filterItemInternal(Context context, Item myItem, boolean updateLastModified) throws Exception {
         // get 'original' bundles
         List<Bundle> myBundles = itemService.getBundles(myItem, "ORIGINAL");
         boolean done = false;
@@ -202,7 +202,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
 
     @Override
     public boolean filterItem(Context context, Item myItem) throws Exception {
-        return filterItem(context, myItem, true);
+        return filterItemInternal(context, myItem, true);
     }
 
     public boolean filterBitstream(Context context, Item myItem,

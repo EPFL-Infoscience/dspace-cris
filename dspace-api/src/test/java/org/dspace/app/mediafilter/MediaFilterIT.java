@@ -7,7 +7,6 @@
  */
 package org.dspace.app.mediafilter;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -71,6 +70,7 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
     protected Item item1_2_2_b;
     protected Item item2_1_a;
     protected Item item2_1_b;
+    protected long setupEndTime;
 
     @Before
     public void setup() throws IOException, SQLException, AuthorizeException {
@@ -126,6 +126,7 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         addBitstream(item1_2_2_b, "test.txt");
         addBitstream(item2_1_a, "test.csv");
         addBitstream(item2_1_b, "test.txt");
+        setupEndTime = new Date().getTime();
         context.restoreAuthSystemState();
     }
 
@@ -136,37 +137,40 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     public void mediaFilterScriptAllItemsTest() throws Exception {
-        performMediaFilterScript(null);
+        performMediaFilterScript(null, true);
         Iterator<Item> items = itemService.findAll(context);
         while (items.hasNext()) {
             Item item = items.next();
-            checkItemHasBeenProcessed(item);
+            checkItemHasBeenProcessedAndDateModifiedUpdated(item);
         }
     }
 
     @Test
-    public void mediaFilterScriptDateModifiedNotChangedTest() throws Exception {
-        Date itemDateModified = item1_1_a.getLastModified();
-        performMediaFilterScript(item1_1_a);
-        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_a, itemDateModified);
+    public void mediaFilterScriptAllItemsNoUpdateTest() throws Exception {
+        performMediaFilterScript(null, false);
+        Iterator<Item> items = itemService.findAll(context);
+        while (items.hasNext()) {
+            Item item = items.next();
+            checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item);
+        }
     }
 
     @Test
     public void mediaFilterScriptIdentifiersTest() throws Exception {
         // process the item 1_1_a and verify that no other items has been processed using the "closer" one
-        performMediaFilterScript(item1_1_a);
-        checkItemHasBeenProcessed(item1_1_a);
+        performMediaFilterScript(item1_1_a, true);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_a);
         checkItemHasBeenNotProcessed(item1_1_b);
         // process the collection 1_1_1 and verify that items in another collection has not been processed
-        performMediaFilterScript(col1_1_1);
-        checkItemHasBeenProcessed(item1_1_1_a);
-        checkItemHasBeenProcessed(item1_1_1_b);
+        performMediaFilterScript(col1_1_1, true);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_1_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_1_b);
         checkItemHasBeenNotProcessed(item1_1_2_a);
         checkItemHasBeenNotProcessed(item1_1_2_b);
         // process a top community with only collections
-        performMediaFilterScript(topComm2);
-        checkItemHasBeenProcessed(item2_1_a);
-        checkItemHasBeenProcessed(item2_1_b);
+        performMediaFilterScript(topComm2, true);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item2_1_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item2_1_b);
         // verify that the other items have not been processed yet
         checkItemHasBeenNotProcessed(item1_1_b);
         checkItemHasBeenNotProcessed(item1_2_a);
@@ -178,21 +182,65 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         checkItemHasBeenNotProcessed(item1_2_2_a);
         checkItemHasBeenNotProcessed(item1_2_2_b);
         // process a more structured community and verify that all the items at all levels are processed
-        performMediaFilterScript(topComm1);
+        performMediaFilterScript(topComm1, true);
         // items that were already processed should stay processed
-        checkItemHasBeenProcessed(item1_1_a);
-        checkItemHasBeenProcessed(item1_1_1_a);
-        checkItemHasBeenProcessed(item1_1_1_b);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_1_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_1_b);
         // residual items should have been processed as well now
-        checkItemHasBeenProcessed(item1_1_b);
-        checkItemHasBeenProcessed(item1_2_a);
-        checkItemHasBeenProcessed(item1_2_b);
-        checkItemHasBeenProcessed(item1_1_2_a);
-        checkItemHasBeenProcessed(item1_1_2_b);
-        checkItemHasBeenProcessed(item1_2_1_a);
-        checkItemHasBeenProcessed(item1_2_1_b);
-        checkItemHasBeenProcessed(item1_2_2_a);
-        checkItemHasBeenProcessed(item1_2_2_b);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_b);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_2_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_2_b);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_2_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_2_b);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_2_1_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_2_1_b);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_2_2_a);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_2_2_b);
+    }
+
+    @Test
+    public void mediaFilterScriptIdentifiersNoUpdateTest() throws Exception {
+        // process the item 1_1_a and verify that no other items has been processed using the "closer" one
+        performMediaFilterScript(item1_1_a, false);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_a);
+        checkItemHasBeenNotProcessed(item1_1_b);
+        // process the collection 1_1_1 and verify that items in another collection has not been processed
+        performMediaFilterScript(col1_1_1, false);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_1_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_1_b);
+        checkItemHasBeenNotProcessed(item1_1_2_a);
+        checkItemHasBeenNotProcessed(item1_1_2_b);
+        // process a top community with only collections
+        performMediaFilterScript(topComm2, false);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item2_1_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item2_1_b);
+        // verify that the other items have not been processed yet
+        checkItemHasBeenNotProcessed(item1_1_b);
+        checkItemHasBeenNotProcessed(item1_2_a);
+        checkItemHasBeenNotProcessed(item1_2_b);
+        checkItemHasBeenNotProcessed(item1_1_2_a);
+        checkItemHasBeenNotProcessed(item1_1_2_b);
+        checkItemHasBeenNotProcessed(item1_2_1_a);
+        checkItemHasBeenNotProcessed(item1_2_1_b);
+        checkItemHasBeenNotProcessed(item1_2_2_a);
+        checkItemHasBeenNotProcessed(item1_2_2_b);
+        // process a more structured community and verify that all the items at all levels are processed
+        performMediaFilterScript(topComm1, false);
+        // items that were already processed should stay processed
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_1_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_1_b);
+        // residual items should have been processed as well now
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_b);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_b);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_2_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_1_2_b);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_1_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_1_b);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_2_a);
+        checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_2_b);
     }
 
     private void checkItemHasBeenNotProcessed(Item item) throws IOException, SQLException, AuthorizeException {
@@ -200,7 +248,19 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         assertTrue("The item " + item.getName() + " should NOT have the TEXT bundle", textBundles.size() == 0);
     }
 
-    private void checkItemHasBeenProcessed(Item item) throws IOException, SQLException, AuthorizeException {
+    private void checkItemHasBeenProcessedAndDateModifiedUpdated(Item item)
+            throws IOException, SQLException, AuthorizeException {
+        checkItemHasBeenProcessedInternal(item);
+        assertTrue(item.getLastModified().getTime() > setupEndTime);
+    }
+
+    private void checkItemHasBeenProcessedAndDateModifiedIsNotChanged(Item item)
+            throws IOException, SQLException, AuthorizeException {
+        checkItemHasBeenProcessedInternal(item);
+        assertTrue(item.getLastModified().getTime() < setupEndTime);
+    }
+
+    private void checkItemHasBeenProcessedInternal(Item item) throws IOException, SQLException, AuthorizeException {
         String expectedFileName = StringUtils.endsWith(item.getName(), "_a") ? "test.csv.txt" : "test.txt.txt";
         String expectedContent = StringUtils.endsWith(item.getName(), "_a") ? "data3,3" : "quick brown fox";
         List<Bundle> textBundles = item.getBundles("TEXT");
@@ -214,23 +274,25 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
                 + expectedContent + "]", StringUtils.contains(getContent(bitstreams.get(0)), expectedContent));
     }
 
-    private void checkItemHasBeenProcessedAndDateModifiedIsNotChanged(Item item, Date previousDateModified)
-            throws IOException, SQLException, AuthorizeException {
-        checkItemHasBeenProcessed(item);
-        assertEquals(item.getLastModified().getTime(), previousDateModified.getTime());
-    }
-
     private CharSequence getContent(Bitstream bitstream) throws IOException, SQLException, AuthorizeException {
         try (InputStream input = bitstreamService.retrieve(context, bitstream)) {
             return IOUtils.toString(input, "UTF-8");
         }
     }
 
-    private void performMediaFilterScript(DSpaceObject dso) throws Exception {
+    private void performMediaFilterScript(DSpaceObject dso, boolean updateLastModified) throws Exception {
         if (dso != null) {
-            runDSpaceScript("filter-media", "-i", dso.getHandle());
+            if (updateLastModified) {
+                runDSpaceScript("filter-media", "-i", dso.getHandle(), "-u");
+            } else {
+                runDSpaceScript("filter-media", "-i", dso.getHandle());
+            }
         } else {
-            runDSpaceScript("filter-media");
+            if (updateLastModified) {
+                runDSpaceScript("filter-media", "-u");
+            } else {
+                runDSpaceScript("filter-media");
+            }
         }
         // reload our items to see the changes
         item1_1_a = context.reloadEntity(item1_1_a);
