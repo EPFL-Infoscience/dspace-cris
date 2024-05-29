@@ -390,6 +390,68 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
     }
 
     @Test
+    public void testThatAllIssnWillBeAddedToRelatedJournal() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection collectionWithPublications = createCollection(context, community).withEntityType("Publication")
+                .build();
+        Collection collectionWithJournals = createCollection(context, community).withEntityType("Journal")
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+        readAllTypes().forEach(type -> setCollectionProperty(type, collectionWithPublications));
+
+        String key = "267999.zip";
+
+        deleteAllFilesOnExit();
+        MarcXmlParserImpl marcXmlParserImpl = null;
+        ItemsS3Service originalS3serviceOfMarcXmlParserImpl = null;
+        ItemsImportFromS3Script itemsImportFromS3Script = new ItemsImportFromS3Script();
+
+        try {
+            String[] args = new String[] { "items-import-from-s3", "-k", key };
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+            itemsImportFromS3Script.initialize(args, handler, admin);
+            marcXmlParserImpl = (MarcXmlParserImpl) itemsImportFromS3Script.getMarcXmlParser();
+            originalS3serviceOfMarcXmlParserImpl = marcXmlParserImpl.getItemsS3Service();
+            ItemsS3Service itemsS3ServiceMock = spy(originalS3serviceOfMarcXmlParserImpl);
+            itemsImportFromS3Script.setItemsS3Service(itemsS3ServiceMock);
+            marcXmlParserImpl.setItemsS3Service(itemsS3ServiceMock);
+
+            doReturn(getZipResource(key)).when(itemsS3ServiceMock).getObject(ArgumentMatchers.any());
+            doReturn(null).when(itemsS3ServiceMock).getCreationDate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            itemsImportFromS3Script.run();
+
+            Iterator<Item> importedItems = itemService.findAllByCollection(context, collectionWithPublications);
+            assertTrue(importedItems.hasNext());
+            Item importedItem = importedItems.next();
+            assertFalse(importedItems.hasNext());
+
+            Iterator<Item> journalItems = itemService.findAllByCollection(context, collectionWithJournals);
+            assertTrue(journalItems.hasNext());
+            Item journalItem = journalItems.next();
+            assertFalse(journalItems.hasNext());
+
+            assertEquals((int) importedItem.getMetadata().stream()
+                    .filter(metadataValue -> metadataValue.getMetadataField()
+                            .toString('.').equals("dc.relation.issn")).count(), 2);
+
+            assertEquals((int) journalItem.getMetadata().stream()
+                    .filter(metadataValue -> metadataValue.getMetadataField()
+                            .toString('.').equals("dc.identifier.issn")).count(), 2);
+
+            assertThat(handler.getErrorMessages(), empty());
+            assertThat(handler.getWarningMessages(), empty());
+        } finally {
+            if (originalS3serviceOfMarcXmlParserImpl != null) {
+                marcXmlParserImpl.setItemsS3Service(originalS3serviceOfMarcXmlParserImpl);
+                originalS3serviceOfMarcXmlParserImpl.deleteModificationDate(context, "267999");
+            }
+            readAllTypes().forEach(type -> setCollectionProperty(type, collection));
+        }
+    }
+
+    @Test
     public void importAnItemFromS3ScriptTest() throws Exception {
         String key = "79707.zip";
 
@@ -419,7 +481,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             List<MetadataValueDTO> expectedMetadata = getMetadataThatShouldBePresentIntoImportedItem();
             checkMetadata(expectedMetadata, actualMetadata);
             assertEquals("2023-05-05T18:59:01Z", itemsS3ServiceMock.getModificationDate(context, "79707"));
-            assertEquals(62, actualMetadata.size());
+            assertEquals(48, actualMetadata.size());
             assertFalse("check that there are no other items", items.hasNext());
         } finally {
             if (originalS3serviceOfMarcXmlParserImpl != null) {

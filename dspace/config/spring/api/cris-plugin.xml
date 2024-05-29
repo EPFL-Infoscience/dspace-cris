@@ -67,6 +67,7 @@
 							<map>
 								<entry key="dc.relation.issn">
 									<bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+										<property name="useAll" value="true" />
 										<property name="visibility" value="1" />
 										<property name="targetMetadata" value="dc.identifier.issn" />
 									</bean>

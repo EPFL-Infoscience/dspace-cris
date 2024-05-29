@@ -1216,8 +1216,8 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>Use the format YYYY-MM-DD - YYYY-MM-DD. If the event lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Use the format YYYY-MM-DD - YYYY-MM-DD. If the event lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
       <row>
@@ -1688,8 +1688,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Use the format YYYY-MM-DD - YYYY-MM-DD. If the event lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Use the format YYYY-MM-DD - YYYY-MM-DD. If the event lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -3502,7 +3502,7 @@
           <label>Author name</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>Make sure to enter the author name</required>
+          <required />
           <hint>Written as: Last Name, First Name</hint>
         </field>
       </row>
@@ -3614,7 +3614,7 @@
           <label>Author(s)</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
-          <required>An author is at least required</required>
+          <required />
           <hint />
         </field>
       </row>
@@ -3797,8 +3797,8 @@
           <repeatable>false</repeatable>
           <required />
           <style>col-xs-12 col-md-6</style>
-          <hint>Use the format YYYY-MM-DD - YYYY-MM-DD. If the event lasted just one day, enter only the start date.</hint>
-          <regex>^\d{4}-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?$</regex>
+          <hint>Use the format YYYY-MM-DD - YYYY-MM-DD. If the event lasted just one day, enter only the start date. Even just the year in YYYY format is accepted.</hint>
+          <regex>^\d{4}(?:-\d{2}-\d{2}(?:\s*-\s*\d{4}-\d{2}-\d{2})?)?$</regex>
         </field>
       </row>
     </form>
@@ -5696,6 +5696,32 @@
           <repeatable>true</repeatable>
           <required />
           <hint />
+        </field>
+      </row>
+    </form>
+    <form name="unit-attribution-bind">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Applied to:</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <readonly>all</readonly>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <label>Involved EPFL unit(s)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>As head of unit (or her/his delegate), you are allowed to add or remove attribution only for units or labs under your responsibility. For any questions or concerns, please contact &lt;a href="mailto:infoscience@epfl.ch"&gt;Infoscience@epfl.ch&lt;/a&gt;.</hint>
         </field>
       </row>
     </form>

@@ -107,7 +107,7 @@ public class AuthorMetadataContributor extends SimpleXpathMetadatumContributor {
         Element givenName = element.getChild("given-name", NAMESPACE);
         Element scopusId = element.getChild("authid", NAMESPACE);
         Element orcid = element.getChild("orcid", NAMESPACE);
-        Element afid = element.getChild("afid", NAMESPACE);
+        List<Element> afids = element.getChildren("afid", NAMESPACE);
 
         addMetadatum(metadatums, getMetadata(getElementValue(surname) + ", " +
             getElementValue(givenName), this.authname));
@@ -118,9 +118,16 @@ public class AuthorMetadataContributor extends SimpleXpathMetadatumContributor {
             addMetadatum(metadatums, getMetadata(getElementValue(orcid), this.orcid));
         }
         if (this.affiliation != null) {
-            addMetadatum(metadatums, getMetadata(StringUtils.isNotBlank(afid.getValue())
-                    ? this.affId2affName.get(afid.getValue()) : null, this.affiliation));
+            for (Element afid : afids) {
+                String affiliationValue = this.affId2affName.getOrDefault(afid.getValue(),
+                        "#PLACEHOLDER_PARENT_METADATA_VALUE#");
+                addMetadatum(metadatums, getMetadata(affiliationValue, this.affiliation));
+            }
+            if (afids.isEmpty()) {
+                addMetadatum(metadatums, getMetadata("#PLACEHOLDER_PARENT_METADATA_VALUE#", this.affiliation));
+            }
         }
+
         return metadatums;
     }
 

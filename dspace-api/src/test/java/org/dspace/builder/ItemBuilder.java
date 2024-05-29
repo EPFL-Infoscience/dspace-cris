@@ -518,6 +518,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "relation", "isbn", isbn);
     }
 
+    public ItemBuilder withRelationIssn(String isbn) {
+        return addMetadataValue(item, "dc", "relation", "issn", isbn);
+    }
+
     public ItemBuilder withRelationProject(String project) {
         return addMetadataValue(item, "dc", "relation", "project", project);
     }
