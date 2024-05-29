@@ -55,6 +55,19 @@ public interface BundleService extends DSpaceObjectService<Bundle>, DSpaceObject
     public void addBitstream(Context context, Bundle bundle, Bitstream bitstream)
         throws SQLException, AuthorizeException;
 
+    /**
+     * Add an existing bitstream to this bundle
+     *
+     * @param context             DSpace Context
+     * @param bundle              the bitstream bundle
+     * @param bitstream           the bitstream to add
+     * @param updateLastModified  true if the creation should alter the last modified
+     *                            date of the item
+     * @throws AuthorizeException if authorization error
+     * @throws SQLException       if database error
+     */
+    public void addBitstream(Context context, Bundle bundle, Bitstream bitstream, boolean updateLastModified)
+            throws SQLException, AuthorizeException;
 
     /**
      * Remove a bitstream from this bundle - the bitstream is only deleted if

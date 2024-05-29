@@ -1576,7 +1576,7 @@ public class BulkAccessControlIT extends AbstractIntegrationTestWithDatabase {
         mediaFilterService.setFilterFormats(filterFormats);
 
         // here will create derivative bitstreams
-        mediaFilterService.applyFiltersItem(context, item);
+        mediaFilterService.applyFiltersItem(context, item, false);
 
         context.restoreAuthSystemState();
 
