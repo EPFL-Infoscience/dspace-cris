@@ -33,6 +33,7 @@ public interface PersonApiService {
 
     public List<String> getMetadataFields();
 
-    public Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper);
+    public Optional<ResearcherProfile> findProfileBySciperAndFixOwnerIfNeeded(Context context, EPerson eperson,
+            String sciper);
 
 }

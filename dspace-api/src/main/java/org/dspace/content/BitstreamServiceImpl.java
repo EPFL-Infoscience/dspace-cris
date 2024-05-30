@@ -149,14 +149,20 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     }
 
     @Override
-    public Bitstream create(Context context, Bundle bundle, InputStream is)
-        throws IOException, SQLException, AuthorizeException {
+    public Bitstream create(Context context, Bundle bundle, InputStream is, boolean updateLastModified)
+            throws IOException, SQLException, AuthorizeException {
         // Check authorisation
         authorizeService.authorizeAction(context, bundle, Constants.ADD);
 
         Bitstream b = create(context, is);
-        bundleService.addBitstream(context, bundle, b);
+        bundleService.addBitstream(context, bundle, b, updateLastModified);
         return b;
+    }
+
+    @Override
+    public Bitstream create(Context context, Bundle bundle, InputStream is)
+        throws IOException, SQLException, AuthorizeException {
+        return create(context, bundle, is, true);
     }
 
     @Override
@@ -355,6 +361,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             throw new IllegalStateException("Bitstream " + bitstream.getID().toString()
                     + " must be deleted before it can be removed from the database.");
         }
+        handleService.unbindHandle(context, bitstream);
         bitstreamDAO.delete(context, bitstream);
     }
 

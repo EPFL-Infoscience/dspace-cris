@@ -29,7 +29,6 @@ import org.junit.Test;
  */
 public class EPersonAuthorityIT extends AbstractControllerIntegrationTest {
 
-
     @Test
     public void testEPersonAuthorityWithFirstName() throws Exception {
 

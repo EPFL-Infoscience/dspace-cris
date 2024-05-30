@@ -2,10 +2,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="dspaceRunnableThreadExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
-        <property name="corePoolSize" value="5"/>
-    </bean>
-
     <!-- This primary attribute is present so that we can assure that in the REST layer we'll always use this
         bean if it is present-->
     <bean id="metadata-import" class="org.dspace.app.bulkedit.MetadataImportScriptConfiguration" primary="true">
@@ -140,4 +136,9 @@
         <property name="description" value="Exports a given schema into a registry xml-format file"/>
         <property name="dspaceRunnableClass" value="org.dspace.app.metadata.export.MetadataSchemaExportScript"/>
     </bean>
+    
+    <bean id="orgunit-xml-import" class="org.dspace.epfl.script.OrgUnitXMLImportScriptConfiguration" primary="true">
+		<property name="description" value="Import the OrgUnits present in the given XML file" />
+		<property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitXMLImportScript" />
+	</bean>
 </beans>

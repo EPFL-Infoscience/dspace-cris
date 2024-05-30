@@ -58,7 +58,7 @@ public class PersonApiServiceImpl implements PersonApiService {
     private ConfigurationService configurationService;
 
     @Autowired
-    private EPersonService ePersonService;
+    private EPersonService epersonService;
 
     @Autowired
     private ItemService itemService;
@@ -163,7 +163,7 @@ public class PersonApiServiceImpl implements PersonApiService {
         List<MetadataValueDTO> affiliationMetadataValues =
             Arrays.stream(person.getAccreds())
                   .flatMap(accred -> getAffiliationValues(context, accred, positionField.get(),
-                                                          affiliationField.get(), place.getAndIncrement()).stream())
+                                                          affiliationField.get(), place).stream())
                   .collect(Collectors.toList());
 
         person.getMainAffiliation()
@@ -174,26 +174,28 @@ public class PersonApiServiceImpl implements PersonApiService {
     }
 
     private List<MetadataValueDTO> getAffiliationValues(Context context, Accred accred, String positionField,
-                                                        String affiliationField, int place) {
+                                                        String affiliationField, AtomicInteger atomicPlace) {
 
         List<MetadataValueDTO> metadataValues = new ArrayList<MetadataValueDTO>();
 
-        String name = accred.getName();
         String position = accred.getPosition();
+        String acronym = accred.getAcronym();
 
-        if (StringUtils.isAllBlank(name, position) ||
-            !inDspace(context, accred.getAcronym())) {
+        if (StringUtils.isAllBlank(acronym, position) ||
+            !inDspace(context, acronym)) {
             return List.of();
         }
+
+        int place = atomicPlace.get();
 
         if (StringUtils.isNotBlank(position)) {
             metadataValues.add(new MetadataValueDTO(positionField, position, place));
         }
 
-        if (StringUtils.isNotBlank(name)) {
-            String authority = getOrgUnitAuthority(accred.getAcronym());
+        if (StringUtils.isNotBlank(acronym)) {
+            String authority = getOrgUnitAuthority(acronym);
             int confidence = StringUtils.isBlank(authority) ? Choices.CF_UNSET : Choices.CF_AMBIGUOUS;
-            metadataValues.add(new MetadataValueDTO(affiliationField, name, authority, confidence, place));
+            metadataValues.add(new MetadataValueDTO(affiliationField, acronym, authority, confidence, place));
         }
 
         String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
@@ -204,6 +206,10 @@ public class PersonApiServiceImpl implements PersonApiService {
         getPersonMetadataField("affiliation.end")
             .flatMap(field -> getMetadataValue(PLACEHOLDER_PARENT_METADATA_VALUE, field, place))
             .ifPresent(metadataValues::add);
+
+        if (!metadataValues.isEmpty())  {
+            atomicPlace.set(atomicPlace.get() + 1);
+        }
 
         return metadataValues;
     }
@@ -227,8 +233,8 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     private Optional<MetadataValueDTO> getMainAffiliationMetadataValue(Context context, Accred mainAffiliation) {
 
-        String name = mainAffiliation.getName();
-        if (StringUtils.isBlank(name)
+        String acronym = mainAffiliation.getAcronym();
+        if (StringUtils.isBlank(mainAffiliation.getName())
             || StringUtils.isBlank(mainAffiliation.getAcronym())
             || !inDspace(context, mainAffiliation.getAcronym())
         ) {
@@ -239,8 +245,7 @@ public class PersonApiServiceImpl implements PersonApiService {
         int confidence = StringUtils.isBlank(authority) ? Choices.CF_UNSET : Choices.CF_AMBIGUOUS;
 
         return getPersonMetadataField("affiliation.main")
-            .map(field -> new MetadataValueDTO(field, name, authority, confidence));
-
+            .map(field -> new MetadataValueDTO(field, acronym, authority, confidence));
     }
 
     private Optional<MetadataValueDTO> getUrlMetadataValue(String profile, String field) {
@@ -288,7 +293,8 @@ public class PersonApiServiceImpl implements PersonApiService {
             .orElseThrow(() -> new IllegalStateException("No Sciper metadata field configured"));
     }
 
-    public Optional<ResearcherProfile> findProfileBySciper(Context context, EPerson eperson, String sciper) {
+    public Optional<ResearcherProfile> findProfileBySciperAndFixOwnerIfNeeded(Context context, EPerson eperson,
+            String sciper) {
 
         String sciperMetadataField = getSciperMetadataField();
 
@@ -302,19 +308,21 @@ public class PersonApiServiceImpl implements PersonApiService {
         }
 
         Item item = items.get(0);
-
-        EPerson owner = getOwner(context, item);
-
-        if (owner != null && !owner.equals(eperson)) {
-            throw new IllegalStateException("An item with the sciper " + sciper + " is already linked "
-                                                + "to another eperson: " + owner.getID());
-        }
-
-        setOwner(context, item, eperson);
-
+        fixOwnerIfNeeded(context, eperson, item);
         return Optional.of(new ResearcherProfile(item));
-
     }
+
+    private void fixOwnerIfNeeded(Context context, EPerson eperson, Item item) {
+        EPerson owner = getOwner(context, item);
+        if (owner != null && !owner.equals(eperson)) {
+            throw new IllegalStateException("The item " + item.getID().toString() + " is already linked "
+                    + "to another eperson: " + owner.getID() + " cannot be linked to " + eperson.getID().toString());
+        }
+        if (owner == null) {
+            setOwner(context, item, eperson);
+        }
+    }
+
     private void setOwner(Context context, Item item, EPerson ePerson) {
         try {
             itemService.clearMetadata(context, item, "dspace", "object", "owner", Item.ANY);
@@ -328,7 +336,7 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     private EPerson getOwner(Context context, Item item) {
         try {
-            return ePersonService.findByProfileItem(context, item);
+            return epersonService.findByProfileItem(context, item);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

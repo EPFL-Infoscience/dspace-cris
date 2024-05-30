@@ -7,6 +7,12 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import static org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined.LIGHT_ORANGE;
+import static org.dspace.util.WorkbookUtils.MAX_CELL_LENGTH;
+import static org.dspace.util.WorkbookUtils.createCell;
+import static org.dspace.util.WorkbookUtils.getTruncatedCellPrefix;
+import static org.dspace.util.WorkbookUtils.getTruncatedHeaderPrefix;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -14,6 +20,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -35,38 +43,49 @@ public class XlsCrosswalk extends TabularCrosswalk {
 
     @Override
     protected void writeRows(List<List<String>> rows, OutputStream out) {
-
         try (Workbook workbook = new HSSFWorkbook()) {
-
             Sheet sheet = workbook.createSheet(sheetName);
 
-            int rowCount = 0;
-            for (List<String> row : rows) {
-                Row sheetRow = sheet.createRow(rowCount++);
-                int cellCount = 0;
-                for (String field : row) {
-                    Cell cell = sheetRow.createCell(cellCount++);
-                    cell.setCellValue(StringUtils.length(field) > 32726 ? field.substring(0, 32725) + "…" : field );
+            CellStyle cellStyleHighlighted = workbook.createCellStyle();
+            cellStyleHighlighted.setFillForegroundColor(LIGHT_ORANGE.getIndex());
+            cellStyleHighlighted.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            for (int i = 0; i < rows.size(); i++) {
+                List<String> row = rows.get(i);
+                Row sheetRow = sheet.createRow(i);
+
+                for (int j = 0; j < row.size(); j++) {
+                    String field = row.get(j);
+
+                    if (StringUtils.length(field) > MAX_CELL_LENGTH) {
+                        createCell(
+                            sheetRow, j, getTruncatedCellPrefix()
+                                + field.substring(0, MAX_CELL_LENGTH - getTruncatedCellPrefix().length() - 1) + "…",
+                            cellStyleHighlighted
+                        );
+
+                        Cell headerCell = sheet.getRow(0).getCell(j);
+
+                        if (!headerCell.getStringCellValue().startsWith(getTruncatedHeaderPrefix())) {
+                            headerCell.setCellValue(getTruncatedHeaderPrefix() + headerCell.getStringCellValue());
+                            headerCell.setCellStyle(cellStyleHighlighted);
+                        }
+                    } else {
+                        createCell(sheetRow, j, field);
+                    }
                 }
             }
 
             autoSizeColumns(sheet);
-
             workbook.write(out);
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private void autoSizeColumns(Sheet sheet) {
         if (sheet.getPhysicalNumberOfRows() > 0) {
-            Row row = sheet.getRow(sheet.getFirstRowNum());
-            for (Cell cell : row) {
-                int columnIndex = cell.getColumnIndex();
-                sheet.autoSizeColumn(columnIndex);
-            }
+            sheet.getRow(sheet.getFirstRowNum()).forEach(cell -> sheet.autoSizeColumn(cell.getColumnIndex()));
         }
     }
 

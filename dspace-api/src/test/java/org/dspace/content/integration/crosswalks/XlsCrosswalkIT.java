@@ -11,6 +11,9 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
+import static org.dspace.util.WorkbookUtils.MAX_CELL_LENGTH;
+import static org.dspace.util.WorkbookUtils.getTruncatedCellPrefix;
+import static org.dspace.util.WorkbookUtils.getTruncatedHeaderPrefix;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -319,6 +322,74 @@ public class XlsCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             "doi:333.333/publication", "", "", "", "", "", "", "", "", "Jessie Pinkman", "",
             "Description of publication", "", ""));
 
+    }
+
+    @Test
+    public void testDisseminatePublicationsWithLongAbstract() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        String longAbstract = "A ".repeat(17000);
+        String truncatedAbstract = getTruncatedCellPrefix() +
+            longAbstract.substring(0, MAX_CELL_LENGTH - getTruncatedCellPrefix().length() - 1) + "…";
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Test Publication")
+                .withAlternativeTitle("Alternative publication title")
+                .withRelationPublication("Published in publication")
+                .withRelationDoi("doi:10.3972/test")
+                .withDoiIdentifier("doi:111.111/publication")
+                .withIsbnIdentifier("978-3-16-148410-0")
+                .withIssnIdentifier("2049-3630")
+                .withIsiIdentifier("111-222-333")
+                .withScopusIdentifier("99999999")
+                .withLanguage("en")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withSubject("test")
+                .withSubject("export")
+                .withType("Controlled Vocabulary for Resource Type Genres::text::review")
+                .withIssueDate("2020-01-01")
+                .withAuthor("John Smith")
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor("Walter White")
+                .withAuthorAffiliation("Company")
+                .withEditor("Editor")
+                .withEditorAffiliation("Editor Affiliation")
+                .withRelationConference("The best Conference")
+                .withRelationProduct("DataSet")
+                .withDescriptionAbstract(longAbstract)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        xlsCrosswalk = (XlsCrosswalk) crosswalkMapper.getByType("publication-xls");
+        assertThat(xlsCrosswalk, notNullValue());
+        xlsCrosswalk.setDCInputsReader(dcInputsReader);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        xlsCrosswalk.disseminate(context, Arrays.asList(item).iterator(), baos);
+
+        Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
+        assertThat(workbook.getNumberOfSheets(), equalTo(1));
+
+        Sheet sheet = workbook.getSheetAt(0);
+        //assertThat(sheet.getPhysicalNumberOfRows(), equalTo(1)); // makes the test fail on purpose
+        assertThat(sheet.getPhysicalNumberOfRows(), equalTo(2));
+
+        assertThat(getRowValues(sheet.getRow(0)),
+                contains("Title", "Subtitle", "Type", "Language", "Publication date", "Part of", "Journal or Serie",
+                        "ISBN (of the container)", "ISSN (of the container)", "DOI (of the container)", "Publisher",
+                        "DOI", "ISBN", "ISSN", "ISI-Number", "SCP-Number", "Volume", "Issue", "Start page", "End page",
+                        "Authors", "Editors", getTruncatedHeaderPrefix() + "Abstract", "Event", "Product"));
+
+        assertThat(getRowValues(sheet.getRow(1)), contains("Test Publication", "Alternative publication title",
+                "http://purl.org/coar/resource_type/c_efa0", "en", "2020-01-01", "Published in publication", "", "", "",
+                "doi:10.3972/test", "Publication publisher", "doi:111.111/publication", "978-3-16-148410-0",
+                "2049-3630", "111-222-333", "99999999", "V.01", "Issue", "", "", "John Smith||Walter White/Company",
+                "Editor/Editor Affiliation", truncatedAbstract, "The best Conference", "DataSet"));
     }
 
     @Test

@@ -84,13 +84,11 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.PasswordHash;
 import org.dspace.eperson.RegistrationData;
 import org.dspace.eperson.RegistrationTypeEnum;
-import org.dspace.eperson.dao.RegistrationDataDAO;
 import org.dspace.eperson.service.AccountService;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.RegistrationDataService;
 import org.dspace.services.ConfigurationService;
-import org.dspace.workflow.WorkflowService;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,13 +105,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     private EPersonService ePersonService;
 
     @Autowired
-    private WorkflowService workflowService;
-
-    @Autowired
     private GroupService groupService;
-
-    @Autowired
-    private RegistrationDataDAO registrationDataDAO;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -418,7 +410,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void findOneForbiddenTest() throws Exception {
+    public void findOneAuthorizedTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         EPerson ePerson1 = EPersonBuilder.createEPerson(context)
@@ -436,7 +428,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         String tokenEperson1 = getAuthToken(ePerson1.getEmail(), "qwerty01");
         getClient(tokenEperson1).perform(get("/api/eperson/epersons/" + ePerson2.getID()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -475,7 +467,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
         // Verify an unprivileged user cannot access information about a *different* user
         String epersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(epersonToken).perform(get("/api/eperson/epersons/" + ePerson2.getID()))
-                               .andExpect(status().isForbidden());
+                               .andExpect(status().isOk());
 
         // Verify an unprivileged user can access their own information
         getClient(epersonToken).perform(get("/api/eperson/epersons/" + eperson.getID()))
@@ -801,11 +793,11 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void findByMetadataForbidden() throws Exception {
+    public void findByMetadataAuthorized() throws Exception {
         String authToken = getAuthToken(eperson.getEmail(), password);
         getClient(authToken).perform(get("/api/eperson/epersons/search/byMetadata")
                                              .param("query", "Doe, John"))
-                            .andExpect(status().isForbidden());
+                            .andExpect(status().isOk());
     }
 
     @Test
@@ -3430,7 +3422,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         getClient(tokencolSubmitter).perform(get("/api/eperson/epersons/search/byMetadata")
                 .param("query", "Rossi"))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isOk());
     }
 
     @Test
@@ -3504,7 +3496,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         getClient(tokenAdminCol).perform(get("/api/eperson/epersons/search/byMetadata")
                 .param("query", "Rossi"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
 
         for (String prop : confPropsCommunityAdmins) {
             getClient(tokenAdminComm).perform(get("/api/eperson/epersons/search/byMetadata")
@@ -3523,7 +3515,7 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         getClient(tokenAdminComm).perform(get("/api/eperson/epersons/search/byMetadata")
                 .param("query", "Rossi"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test

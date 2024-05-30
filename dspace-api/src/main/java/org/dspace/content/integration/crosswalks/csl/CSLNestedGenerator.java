@@ -35,7 +35,7 @@ public class CSLNestedGenerator implements CSLGenerator {
     public CSLResult generate(DSpaceListItemDataProvider itemDataProvider, String style, String format) {
         CSL citeproc = createCitationProcessor(itemDataProvider, style, format);
         Bibliography bibliography = citeproc.makeBibliography();
-        return CSLResult.fromBibliography(format, bibliography);
+        return CSLResult.fromBibliography(format, citeproc.getRegisteredItems(), bibliography);
     }
 
     private CSL createCitationProcessor(DSpaceListItemDataProvider itemDataProvider, String style, String format) {
@@ -50,7 +50,14 @@ public class CSLNestedGenerator implements CSLGenerator {
     }
 
     private String getStyle(String style) throws IOException {
-        return CSL.supportsStyle(style) ? style : readXmlStyleContent(style);
+        try {
+            return readXmlStyleContent(style);
+        } catch (FileNotFoundException e) {
+            if (CSL.supportsStyle(style)) {
+                return style;
+            }
+        }
+        throw new IllegalArgumentException("Could not find style " + style);
     }
 
     private String readXmlStyleContent(String style) throws IOException {

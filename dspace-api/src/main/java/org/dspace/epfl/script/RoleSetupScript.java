@@ -39,7 +39,9 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
     private static final String EPFL_PUBLICATION_REVIEWERS = "EPFL Publications reviewers";
 
-    private static final String PUBLICATION_REVIEWERS = "Publications reviewers";
+    private static final String RESERVED_GROUP = "ReservedAccess";
+
+    private static final String RESTRICTED_GROUP = "LoggedIn";
 
     private GroupService groupService;
 
@@ -61,9 +63,11 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
     private Group adminsGroup;
 
-    private Group epflReviewersGroup;
+    private Group restrictedGroup;
 
-    private Group reviewersGroup;
+    private Group reservedGroup;
+
+    private Group epflReviewersGroup;
 
     private Context context;
 
@@ -95,10 +99,11 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
 
         try {
             adminsGroup = findByName(ADMINS_GROUP);
-            curatorsGroup = findByName(CURATORS_GROUP);
-            submittersGroup = findByName(SUBMITTERS_GROUP);
+            curatorsGroup = findByNameOrCreate(CURATORS_GROUP);
+            submittersGroup = findByNameOrCreate(SUBMITTERS_GROUP);
             epflReviewersGroup = findByNameOrCreate(EPFL_PUBLICATION_REVIEWERS);
-            reviewersGroup = findByNameOrCreate(PUBLICATION_REVIEWERS);
+            reservedGroup = findByNameOrCreate(RESERVED_GROUP);
+            restrictedGroup = findByNameOrCreate(RESTRICTED_GROUP);
 
             setupRoles();
 
@@ -112,6 +117,8 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
     }
 
     private void setupRoles() throws Exception {
+        addSubgroup(reservedGroup, adminsGroup);
+        addSubgroup(reservedGroup, curatorsGroup);
         setupResearchOutputCommunityRoles();
         setupEntitiesCommunityRoles();
     }
@@ -138,11 +145,6 @@ public class RoleSetupScript extends DSpaceRunnable<RoleSetupScriptConfiguration
             addSubgroup(firstRoleGroup, epflReviewersGroup);
             addSubgroup(epflReviewersGroup, curatorsGroup);
             addSubgroup(epflReviewersGroup, adminsGroup);
-
-            Group secondRoleGroup = createWorkflowRoleGroup(collection, "reviewer");
-            addSubgroup(secondRoleGroup, reviewersGroup);
-            addSubgroup(reviewersGroup, curatorsGroup);
-            addSubgroup(reviewersGroup, adminsGroup);
         }
     }
 

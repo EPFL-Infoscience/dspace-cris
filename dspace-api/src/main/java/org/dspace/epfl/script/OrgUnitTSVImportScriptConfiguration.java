@@ -45,6 +45,10 @@ public class OrgUnitTSVImportScriptConfiguration<T extends OrgUnitTSVImportScrip
             options.getOption("f").setType(InputStream.class);
             options.getOption("f").setRequired(true);
 
+            options.addOption("i", "integrated-mode", false,
+                    "if used, there will be no distinction between active and inactive units");
+            options.getOption("i").setType(Boolean.class);
+
             super.options = options;
         }
         return options;

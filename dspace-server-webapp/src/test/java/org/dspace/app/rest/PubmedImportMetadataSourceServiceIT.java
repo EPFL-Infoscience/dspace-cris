@@ -152,7 +152,6 @@ public class PubmedImportMetadataSourceServiceIT extends AbstractLiveImportInteg
         MetadatumDTO relationCitVolume = createMetadatumDTO("oaire", "citation", "volume", "67");
         MetadatumDTO doiIdentifier = createMetadatumDTO("dc", "identifier", "doi", "10.1016/j.nepr.2023.103548");
         MetadatumDTO dcType = createMetadatumDTO("dc", "type", null, "text::journal::journal article");
-        MetadatumDTO dcType2 = createMetadatumDTO("dc", "type", null, "text::review");
 
         metadatums.add(title);
         metadatums.add(description1);
@@ -181,7 +180,6 @@ public class PubmedImportMetadataSourceServiceIT extends AbstractLiveImportInteg
         metadatums.add(relationCitVolume);
         metadatums.add(doiIdentifier);
         metadatums.add(dcType);
-        metadatums.add(dcType2);
         ImportRecord record = new ImportRecord(metadatums);
 
         records.add(record);

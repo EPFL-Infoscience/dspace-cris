@@ -17,6 +17,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.core.Context;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -28,6 +29,9 @@ public class ItemsImportIdentifierReader implements ItemsImportMetadataFieldRead
     private String qualifierXPath;
 
     private String valueXPath;
+
+    @Autowired
+    private ImportIdentifierValueProcessor importIdentifierValueProcessor;
 
     @Override
     public List<MetadataValueDTO> readValues(Context context, String metadataField, String type, NodeList nodeList) {
@@ -43,6 +47,7 @@ public class ItemsImportIdentifierReader implements ItemsImportMetadataFieldRead
             String qualifier = getQualifier(node);
             String identifierField = isNotBlank(qualifier) ? metadataField + "." + qualifier : metadataField;
 
+            value = importIdentifierValueProcessor.processValue(identifierField, value);
             metadataValues.add(new MetadataValueDTO(identifierField, value));
 
         }

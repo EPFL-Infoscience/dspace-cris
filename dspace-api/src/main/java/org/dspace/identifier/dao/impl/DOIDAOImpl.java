@@ -57,9 +57,10 @@ public class DOIDAOImpl extends AbstractHibernateDAO<DOI> implements DOIDAO {
         for (Integer status : statusToExclude) {
             listToIncludeInOrPredicate.add(criteriaBuilder.notEqual(doiRoot.get(DOI_.status), status));
         }
-        listToIncludeInOrPredicate.add(criteriaBuilder.isNull(doiRoot.get(DOI_.status)));
 
-        Predicate orPredicate = criteriaBuilder.or(listToIncludeInOrPredicate.toArray(new Predicate[] {}));
+        Predicate orPredicate = criteriaBuilder.or(
+                criteriaBuilder.and(listToIncludeInOrPredicate.toArray(new Predicate[] {})),
+                criteriaBuilder.isNull(doiRoot.get(DOI_.status)));
 
         criteriaQuery.where(criteriaBuilder.and(orPredicate,
                                                 criteriaBuilder.equal(doiRoot.get(DOI_.dSpaceObject), dso)
@@ -70,7 +71,7 @@ public class DOIDAOImpl extends AbstractHibernateDAO<DOI> implements DOIDAO {
     }
 
     @Override
-    public List<DOI> findByStatus(Context context, List<Integer> statuses) throws SQLException {
+    public List<DOI> findByStatus(Context context, List<Integer> statuses, int offset, int limit) throws SQLException {
         CriteriaBuilder criteriaBuilder = getCriteriaBuilder(context);
         CriteriaQuery criteriaQuery = getCriteriaQuery(criteriaBuilder, DOI.class);
         Root<DOI> doiRoot = criteriaQuery.from(DOI.class);
@@ -80,7 +81,7 @@ public class DOIDAOImpl extends AbstractHibernateDAO<DOI> implements DOIDAO {
             orPredicates.add(criteriaBuilder.equal(doiRoot.get(DOI_.status), status));
         }
         criteriaQuery.where(criteriaBuilder.or(orPredicates.toArray(new Predicate[] {})));
-        return list(context, criteriaQuery, false, DOI.class, -1, -1);
+        return list(context, criteriaQuery, false, DOI.class, limit, offset);
     }
 
     @Override

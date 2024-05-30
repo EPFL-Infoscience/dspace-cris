@@ -109,7 +109,7 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
     public Optional<ExternalDataObject> getExternalDataObject(String id) {
         try {
             logInfo("Getting record by id: " + getActualQuery(id));
-            return Optional.of(getExternalDataObject(querySource.getRecord(id)));
+            return Optional.ofNullable(getExternalDataObject(querySource.getRecord(id)));
         } catch (MetadataSourceException e) {
             throw new RuntimeException(
                     "The live import provider " + querySource.getImportSource() + " throws an exception", e);
