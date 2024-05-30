@@ -1884,7 +1884,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -2233,7 +2233,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -2443,7 +2443,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -2767,7 +2767,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -3072,7 +3072,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -3384,7 +3384,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -3502,7 +3502,7 @@
           <label>Auteur</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>Veuillez renseigner le nom de l'auteur</required>
+          <required />
           <hint>Sous la forme : Nom de famille, Prénom</hint>
         </field>
       </row>
@@ -3614,7 +3614,7 @@
           <label>Auteur(s)</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
-          <required>Au moins un auteur est nécessaire</required>
+          <required />
           <hint />
         </field>
       </row>
@@ -3706,7 +3706,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -4032,7 +4032,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -4225,7 +4225,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -4424,7 +4424,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -4617,7 +4617,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -4872,7 +4872,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>sponsorship</dc-qualifier>
-          <label>Unité(s) EPFL impliquée(s)</label>
+          <label>Unités impliquées</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required>Vous devez attribuer votre soumission à au moins une unité</required>
@@ -5695,6 +5695,32 @@
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="unit-attribution-bind">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Concerne le document :</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+          <readonly>all</readonly>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <label>Unités impliquées</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required>En tant que responsable d'unité/laboratoire (ou sa/son délégué.e), vous avez la possibilité d'ajouter ou supprimer des attributions pour les unités ou laboratoires sous votre responsabilité. Pour toute question ou préoccupation, veuillez contacter &lt;a href="mailto:infoscience@epfl.ch"&gt;Infoscience@epfl.ch&lt;/a&gt;.</required>
           <hint />
         </field>
       </row>

@@ -216,11 +216,6 @@
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = 'O']/subfield[@code = 'p']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>epfl.relation.rejectedOrgUnit</field>
-            <xpath>./datafield[@tag = '910' and @ind1 = 'C' and @ind2 = '0']</xpath>
-            <reader>orgUnit</reader>
-        </metadata-field>
-        <metadata-field>
             <field>epfl.thesis.faculty</field>
             <xpath>./datafield[@tag = '918']/subfield[@code = 'a']</xpath>
         </metadata-field>
@@ -275,11 +270,6 @@
         <metadata-field>
             <field>epfl.thesis.degreelevel</field>
             <xpath>./datafield[@tag = '980']/subfield[@code = 'b']</xpath>
-        </metadata-field>
-        <metadata-field>
-            <field>epfl.relation.pendingOrgUnit</field>
-            <xpath>./datafield[@tag = '999' and @ind1 = 'C' and @ind2 = '0']</xpath>
-            <reader>orgUnit</reader>
         </metadata-field>
     </metadata-fields>
     

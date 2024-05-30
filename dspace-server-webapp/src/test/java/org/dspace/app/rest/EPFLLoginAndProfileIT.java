@@ -141,9 +141,6 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", -1),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -236,9 +233,6 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
             with("person.birthDate", "1992-06-26"), // existing extra metadata are preserved
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", -1),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
