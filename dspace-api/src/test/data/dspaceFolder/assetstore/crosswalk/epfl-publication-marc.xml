@@ -1,0 +1,20 @@
+<record>
+    <controlfield tag="001">mock-id</controlfield>
+    <datafield tag="039" ind1=" " ind2="9">
+        <subfield code="y">SKIP-IN-COMPARING</subfield>
+        <subfield code="a">SKIP-IN-COMPARING</subfield>
+    </datafield>
+    <datafield tag="245" ind1=" " ind2=" ">
+        <subfield code="a">publication title|secondValueAfterSplit</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+    </datafield>
+    <datafield tag="542" ind1=" " ind2=" ">
+    </datafield>
+    <datafield tag="909" ind1="C" ind2="0">
+        <subfield code="p">TOU|TOU2</subfield>
+        <subfield code="x">UunitCode1</subfield>
+        <subfield code="x">UunitCode2</subfield>
+        <subfield code="0">mock-id</subfield>
+    </datafield>
+</record>

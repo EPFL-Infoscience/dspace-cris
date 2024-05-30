@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -43,9 +44,11 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration;
+import org.dspace.discovery.indexobject.IndexableClaimedTask;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexablePoolTask;
 import org.dspace.discovery.indexobject.IndexableWorkflowItem;
 import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.discovery.utils.DiscoverQueryBuilder;
@@ -169,7 +172,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         }
         try {
             String[] items = StringUtils.isNotBlank(this.selectedItems) ? selectedItems.split(";") : null;
-            this.query = Objects.isNull(items) || items.length == 0 ? this.query : buildQuery(items);
+            this.query = Objects.isNull(items) || ArrayUtils.isEmpty(items) ? this.query : buildQuery(items);
             if (maxResults > 0) {
                 handler.logInfo("Export will be limited to " + maxResults + " items.");
             }
@@ -276,7 +279,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     private DiscoverQuery buildDiscoveryQuery(DiscoveryConfiguration discoveryConfiguration,
         IndexableObject<?, ?> scope, boolean onlyPublic) throws SQLException, SearchServiceException {
 
-        List<String> dsoTypes = List.of(IndexableItem.TYPE, IndexableWorkspaceItem.TYPE, IndexableWorkflowItem.TYPE);
+        List<String> dsoTypes = List.of(IndexableItem.TYPE, IndexableWorkspaceItem.TYPE, IndexableWorkflowItem.TYPE,
+                IndexablePoolTask.TYPE, IndexableClaimedTask.TYPE);
 
         String sortBy = null;
         String sortOrder = null;

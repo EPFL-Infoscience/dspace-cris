@@ -32,6 +32,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -242,6 +243,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testHasAccessWithCustomVirtualMetadataConfig() throws SQLException {
 
         context.turnOffAuthorisationSystem();

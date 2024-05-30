@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.metrics.service.CrisMetricsService;
 import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.requestitem.service.RequestItemService;
@@ -85,7 +86,6 @@ import org.dspace.eperson.service.SubscribeService;
 import org.dspace.event.Event;
 import org.dspace.harvest.HarvestedItem;
 import org.dspace.harvest.service.HarvestedItemService;
-import org.dspace.identifier.DOI;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.DOIService;
 import org.dspace.identifier.service.IdentifierService;
@@ -104,6 +104,7 @@ import org.dspace.orcid.service.OrcidSynchronizationService;
 import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.service.VersionHistoryService;
@@ -222,28 +223,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         if (thumbnail != null) {
             return thumbnail;
         }
-        // If no thumbnail is retrieved by the first strategy
-        // then use the fallback strategy
-        Bitstream thumbBitstream = null;
-        List<Bundle> originalBundles = getBundles(item, "ORIGINAL");
-        Bitstream primaryBitstream = null;
-        if (CollectionUtils.isNotEmpty(originalBundles)) {
-            primaryBitstream = originalBundles.get(0).getPrimaryBitstream();
-        }
-        if (primaryBitstream == null) {
-            primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
-        }
-        if (primaryBitstream != null) {
-            thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream);
-            if (thumbBitstream == null) {
-                thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
-            }
-        }
-
-        if (thumbBitstream != null) {
-            return new Thumbnail(thumbBitstream, primaryBitstream);
-        }
-
         return null;
     }
 
@@ -258,7 +237,27 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
         List<CrisLayoutField> thumbFields = getThumbnailFields(crisLayoutTabs);
         if (CollectionUtils.isEmpty(thumbFields)) {
-            return null;
+            // If no thumbnail is retrieved by the first strategy
+            // then use the fallback strategy
+            Bitstream thumbBitstream = null;
+            List<Bundle> originalBundles = getBundles(item, "ORIGINAL");
+            Bitstream primaryBitstream = null;
+            if (CollectionUtils.isNotEmpty(originalBundles)) {
+                primaryBitstream = originalBundles.get(0).getPrimaryBitstream();
+            }
+            if (primaryBitstream == null) {
+                primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
+            }
+            if (primaryBitstream != null) {
+                thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream);
+                if (thumbBitstream == null) {
+                    thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
+                }
+            }
+
+            if (thumbBitstream != null) {
+                return new Thumbnail(thumbBitstream, primaryBitstream);
+            }
         }
         return retrieveThumbnailFromFields(context, item, thumbFields);
     }
@@ -319,9 +318,13 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         if (CollectionUtils.isNotEmpty(bundles)) {
             Optional<Bitstream> primaryBitstream = bundles.get(0).getBitstreams().stream().filter(bitstream -> {
                 return bitstream.getMetadata().stream().anyMatch(metadataValue -> {
-                    return metadataValue.getMetadataField().getID() == metadataField.getID()
-                        && metadataValue.getValue() != null
-                        && metadataValue.getValue().equalsIgnoreCase(value);
+                    if (metadataField != null) {
+                        return metadataValue.getMetadataField().getID() == metadataField.getID()
+                            && metadataValue.getValue() != null
+                            && metadataValue.getValue().equalsIgnoreCase(value);
+                    } else {
+                        return true;
+                    }
                 });
             }).findFirst();
             if (primaryBitstream.isEmpty()) {
@@ -754,7 +757,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
-    public void update(Context context, Item item) throws SQLException, AuthorizeException {
+    public void update(Context context, Item item, boolean updateLastModified) throws SQLException, AuthorizeException {
         // Check authorisation
         // only do write authorization if user is not an editor
         if (!canEdit(context, item)) {
@@ -798,9 +801,12 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         }
 
         if (item.isMetadataModified() || item.isModified()) {
-            // Set the last modified date
-            item.setLastModified(new Date());
-            setLastModifiedDateMetadata(context, item);
+            if (updateLastModified) {
+                // Set the last modified date
+                item.setLastModified(new Date());
+                setLastModifiedDateMetadata(context, item);
+            }
+
 
             itemDAO.save(context, item);
 
@@ -813,6 +819,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             item.clearModified();
             item.clearDetails();
         }
+    }
+
+    @Override
+    public void update(Context context, Item item) throws SQLException, AuthorizeException {
+        update(context, item, true);
     }
 
 
@@ -952,8 +963,14 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
         authorizeService.authorizeAction(context, item, Constants.REMOVE);
 
+        ArrayList<String> identifiers = getIdentifiers(context, item);
+        // cannot autowire it as this would generate a cyclic dependency
+        CustomUrlService customUrlService = new DSpace().getSingletonService(CustomUrlService.class);
+        if (customUrlService != null) {
+            customUrlService.getCustomUrl(item).ifPresent(url -> identifiers.add("customurl:" + url));
+        }
         context.addEvent(new Event(Event.DELETE, Constants.ITEM, item.getID(),
-                item.getHandle(), getIdentifiers(context, item)));
+                item.getHandle(), identifiers));
 
         log.info(LogHelper.getHeader(context, "delete_item", "item_id="
             + item.getID()));
@@ -974,17 +991,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // Remove bundles
         removeAllBundles(context, item);
 
-        // Remove any Handle
-        handleService.unbindHandle(context, item);
-
-        // Delete a DOI if linked to the item.
-        // If no DOI consumer or provider is configured, but a DOI remains linked to this item's uuid,
-        // hibernate will throw a foreign constraint exception.
-        // Here we use the DOI service directly as it is able to manage DOIs even without any configured
-        // consumer or provider.
-        DOI doi = doiService.findDOIByDSpaceObject(context, item);
-        if (doi != null) {
-            doi.setDSpaceObject(null);
+        // Remove any identifiers
+        try {
+            identifierService.delete(context, item);
+        } catch (IdentifierException e) {
+            throw new RuntimeException("Exception attempting to remove item identiers", e);
         }
 
         // remove version attached to the item
@@ -1974,7 +1985,8 @@ prevent the generation of resource policy entry values with null dspace_object a
     public List<MetadataValue> getMetadata(Item item, String schema, String element, String qualifier, String lang,
                                            boolean enableVirtualMetadata) {
 
-        enableVirtualMetadata = false;
+        enableVirtualMetadata = enableVirtualMetadata
+            && configurationService.getBooleanProperty("item.enable-virtual-metadata", false);
 
         if (!enableVirtualMetadata) {
             log.debug("Called getMetadata for " + item.getID() + " without enableVirtualMetadata");
@@ -1986,7 +1998,9 @@ prevent the generation of resource policy entry values with null dspace_object a
             List<MetadataValue> dbMetadataValues = item.getMetadata();
 
             List<MetadataValue> fullMetadataValueList = new LinkedList<>();
-            fullMetadataValueList.addAll(relationshipMetadataService.getRelationshipMetadata(item, true));
+            if (configurationService.getBooleanProperty("item.enable-virtual-metadata", false)) {
+                fullMetadataValueList.addAll(relationshipMetadataService.getRelationshipMetadata(item, true));
+            }
             fullMetadataValueList.addAll(dbMetadataValues);
 
             item.setCachedMetadata(MetadataValueComparators.sort(fullMetadataValueList));

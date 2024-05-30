@@ -207,9 +207,9 @@ public class IndexEventConsumer implements Consumer {
 
         // Change the mode to readonly to improve performance
         Context.Mode originalMode = ctx.getCurrentMode();
-        ctx.setMode(Context.Mode.READ_ONLY);
 
         try {
+            ctx.setMode(Context.Mode.READ_ONLY);
             for (String uid : uniqueIdsToDelete) {
                 try {
                     indexer.unIndexContent(ctx, uid, false);

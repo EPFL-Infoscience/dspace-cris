@@ -214,7 +214,7 @@ public class OrgUnitApiServiceImpl implements OrgUnitApiService {
         }
 
         String authority = getParentOrgUnitAuthority(parentAcronym);
-        return Optional.of(new MetadataValueDTO(field, parentName, authority, Choices.CF_AMBIGUOUS));
+        return Optional.of(new MetadataValueDTO(field, parentAcronym, authority, Choices.CF_AMBIGUOUS));
 
     }
 

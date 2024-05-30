@@ -10,6 +10,8 @@ package org.dspace.epfl.script.reader;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -37,15 +39,25 @@ public class ItemsImportAuthorityReader implements ItemsImportMetadataFieldReade
 
             Node node = nodeList.item(i);
 
-            String value = getSingleValue(node, xPath, valueXPath);
-
-            if (StringUtils.isNotBlank(value)) {
-                String authority = getSingleValue(node, xPath, authorityXPath);
-                metadataValues.add(buildMetadata(metadataField, value, authority));
+            NodeList subNodes = getSubnodes(node, xPath, valueXPath);
+            for (int j = 0; j < subNodes.getLength(); j++) {
+                Node subNode = subNodes.item(j);
+                String value = getSingleValue(subNode, xPath, ".");
+                if (StringUtils.isNotBlank(value)) {
+                    String authority = getSingleValue(subNode, xPath, ".");
+                    metadataValues.add(buildMetadata(metadataField, value, authority));
+                }
             }
-
         }
         return metadataValues;
+    }
+
+    private NodeList getSubnodes(Node node, XPath xPath, String path) {
+        try {
+            return (NodeList) xPath.compile(path).evaluate(node, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException("An error occurs evaluating path " + path, e);
+        }
     }
 
     private MetadataValueDTO buildMetadata(String metadataField, String value, String authority) {

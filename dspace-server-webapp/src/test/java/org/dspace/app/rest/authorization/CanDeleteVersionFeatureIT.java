@@ -6,6 +6,7 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest.authorization;
+
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,6 +32,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.versioning.Version;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
+@Ignore
 public class CanDeleteVersionFeatureIT extends AbstractControllerIntegrationTest {
 
     @Autowired

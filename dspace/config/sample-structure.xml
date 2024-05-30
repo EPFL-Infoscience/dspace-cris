@@ -30,7 +30,7 @@
         </collection>
         <collection>
             <name>Datasets and Code</name>
-            <entity-type>Publication</entity-type>
+            <entity-type>Product</entity-type>
             <submission-type>dataset</submission-type>
             <description />
             <intro />
@@ -52,7 +52,7 @@
         </collection>
         <collection>
             <name>Images, Videos, Interactive resources, and Design</name>
-            <entity-type>Publication</entity-type>
+            <entity-type>Product</entity-type>
             <submission-type>design</submission-type>
             <description />
             <intro />
@@ -140,7 +140,7 @@
         </collection>
         <collection>
             <name>Teaching Materials</name>
-            <entity-type>Publication</entity-type>
+            <entity-type>Product</entity-type>
             <submission-type>teaching</submission-type>
             <description />
             <intro />

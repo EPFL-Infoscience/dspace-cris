@@ -118,27 +118,94 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
                 "Mathematical Proof Between Generations");
         MetadatumDTO doi = createMetadatumDTO("dc", "identifier", "doi", "10.48550/arxiv.2207.04779");
         MetadatumDTO author1 = createMetadatumDTO("dc", "contributor", "author", "Bayer, Jonas");
+        MetadatumDTO author1Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author2 = createMetadatumDTO("dc", "contributor", "author", "Benzmüller, Christoph");
+        MetadatumDTO author2Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author3 = createMetadatumDTO("dc", "contributor", "author", "Buzzard, Kevin");
+        MetadatumDTO author3Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author4 = createMetadatumDTO("dc", "contributor", "author", "David, Marco");
+        MetadatumDTO author4Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author5 = createMetadatumDTO("dc", "contributor", "author", "Lamport, Leslie");
+        MetadatumDTO author5Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author6 = createMetadatumDTO("dc", "contributor", "author", "Matiyasevich, Yuri");
+        MetadatumDTO author6Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author7 = createMetadatumDTO("dc", "contributor", "author", "Paulson, Lawrence");
+        MetadatumDTO author7Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author8 = createMetadatumDTO("dc", "contributor", "author", "Schleicher, Dierk");
+        MetadatumDTO author8Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author9 = createMetadatumDTO("dc", "contributor", "author", "Stock, Benedikt");
+        MetadatumDTO author9Affiliation = createMetadatumDTO("oairecerif", "author",
+                "affiliation", "#PLACEHOLDER_PARENT_METADATA_VALUE#");
         MetadatumDTO author10 = createMetadatumDTO("dc", "contributor", "author", "Zelmanov, Efim");
+        MetadatumDTO author10Affiliation = createMetadatumDTO("oairecerif", "author", "affiliation",
+                "#PLACEHOLDER_PARENT_METADATA_VALUE#");
+        MetadatumDTO dcAbstract = createMetadatumDTO("dc", "description", "abstract", "A proof is one of the most "
+                + "important concepts of mathematics. However, there is a striking difference between how a proof "
+                + "is defined in theory and how it is used in practice. This puts the unique status of mathematics "
+                + "as exact science into peril. Now may be the time to reconcile theory and practice, i.e. precision "
+                + "and intuition, through the advent of computer proof assistants. For the most time this has been a "
+                + "topic for experts in specialized communities. However, mathematical proofs have become "
+                + "increasingly sophisticated, stretching the boundaries of what is humanly comprehensible, so that "
+                + "leading mathematicians have asked for formal verification of their proofs. At the same time, "
+                + "major theorems in mathematics have recently been computer-verified by people from outside of "
+                + "these communities, even by beginning students. This article investigates the gap between the "
+                + "different definitions of a proof and possibilities to build bridges. It is written as a polemic "
+                + "or a collage by different members of the communities in mathematics and computer science at "
+                + "different stages of their careers, challenging well-known preconceptions and exploring new "
+                + "perspectives.");
+        MetadatumDTO dcAbstract2 = createMetadatumDTO("dc", "description", "abstract", "17 pages, 1 figure");
+        MetadatumDTO dateIssued = createMetadatumDTO("dc", "date", "issued", "2022");
+        MetadatumDTO publisher = createMetadatumDTO("dc", "publisher", null, "arXiv");
+        MetadatumDTO subject1 = createMetadatumDTO("dc", "subject", null, "History and Overview (math.HO)");
+        MetadatumDTO subject2 = createMetadatumDTO("dc", "subject", null, "Logic in Computer Science (cs.LO)");
+        MetadatumDTO subject3 = createMetadatumDTO("dc", "subject", null, "FOS: Mathematics");
+        MetadatumDTO subject4 = createMetadatumDTO("dc", "subject", null, "FOS: Mathematics");
+        MetadatumDTO subject5 = createMetadatumDTO("dc", "subject", null, "FOS: Computer and information sciences");
+        MetadatumDTO subject6 = createMetadatumDTO("dc", "subject", null, "FOS: Computer and information sciences");
+        MetadatumDTO type = createMetadatumDTO("dc", "type", null, "text::preprint");
+
         metadatums.add(title);
         metadatums.add(doi);
         metadatums.add(author1);
+        metadatums.add(author1Affiliation);
         metadatums.add(author2);
+        metadatums.add(author2Affiliation);
         metadatums.add(author3);
+        metadatums.add(author3Affiliation);
         metadatums.add(author4);
+        metadatums.add(author4Affiliation);
         metadatums.add(author5);
+        metadatums.add(author5Affiliation);
         metadatums.add(author6);
+        metadatums.add(author6Affiliation);
         metadatums.add(author7);
+        metadatums.add(author7Affiliation);
         metadatums.add(author8);
+        metadatums.add(author8Affiliation);
         metadatums.add(author9);
+        metadatums.add(author9Affiliation);
         metadatums.add(author10);
+        metadatums.add(author10Affiliation);
+        metadatums.add(dcAbstract);
+        metadatums.add(dcAbstract2);
+        metadatums.add(dateIssued);
+        metadatums.add(publisher);
+        metadatums.add(subject1);
+        metadatums.add(subject2);
+        metadatums.add(subject3);
+        metadatums.add(subject4);
+        metadatums.add(subject5);
+        metadatums.add(subject6);
+        metadatums.add(type);
+
 
         ImportRecord firstRecord = new ImportRecord(metadatums);
 

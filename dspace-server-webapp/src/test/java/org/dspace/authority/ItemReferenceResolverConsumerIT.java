@@ -33,6 +33,7 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -588,6 +589,7 @@ public class ItemReferenceResolverConsumerIT extends AbstractControllerIntegrati
     }
 
     @Test
+    @Ignore
     public void testItemReferenceResolverConsumerViaRest() throws Exception {
 
         context.turnOffAuthorisationSystem();

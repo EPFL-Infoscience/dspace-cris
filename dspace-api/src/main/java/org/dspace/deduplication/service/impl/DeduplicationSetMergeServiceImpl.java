@@ -7,10 +7,6 @@
  */
 package org.dspace.deduplication.service.impl;
 
-import static org.dspace.util.FunctionalUtils.throwingConsumerWrapper;
-import static org.dspace.util.FunctionalUtils.throwingMapperWrapper;
-import static org.dspace.util.FunctionalUtils.throwingPredicateWrapper;
-
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
@@ -32,9 +28,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
 import org.dspace.app.deduplication.model.DeduplicationMerge;
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
-import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
@@ -45,7 +42,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
-import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
@@ -53,6 +50,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
 import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
@@ -87,13 +85,10 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     private EntityTypeService entityTypeService;
 
     @Autowired
-    private DedupUtils dedupUtils;
-
-    @Autowired
     private BitstreamService bitstreamService;
 
     @Autowired
-    private MetadataAuthorityService metadataAuthorityService;
+    private ChoiceAuthorityService choiceAuthorityService;
 
     @Autowired
     private BundleService bundleService;
@@ -104,17 +99,26 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     @Autowired
     private WorkspaceItemService workspaceItemService;
 
+    @Autowired
+    private AbstractDedupUtilsAddon dedupUtilsAddon;
+
     private final List<String[]> authorityMetadataFields = new ArrayList<>();
 
     @PostConstruct
     private void init() {
-        metadataAuthorityService
-            .getAuthorityMetadata()
-            .forEach(value -> authorityMetadataFields.add(getElements(value)));
+        List<String> values = choiceAuthorityService.getAuthorityControlledFieldsByEntityType(null);
+        for (String value : values) {
+            authorityMetadataFields.add(getElements(value));
+        }
     }
 
     private String[] getElements(String fieldName) {
-        String[] tokens = StringUtils.split(fieldName, ".");
+        String[] tokens;
+        if (fieldName.contains("_")) {
+            tokens = StringUtils.split(fieldName, "_");
+        } else {
+            tokens = StringUtils.split(fieldName, ".");
+        }
         int add = 4 - tokens.length;
         if (add > 0) {
             tokens = ArrayUtils.addAll(tokens, new String[add]);
@@ -143,14 +147,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
         addUriMetadataToOtherItems(context, targetItem, otherItems);
 
-        List<Item> itemsToWithdraw = otherItems.isEmpty()
-            ? dedupUtils.findGroup(context, deduplicationSetMergeDTO.getSetId())
-                        .getItems().stream()
-                        .filter(item -> !item.getID().equals(targetItem.getID()))
-                        .collect(Collectors.toList())
-            : otherItems;
-
-        withdrawOtherItems(context, itemsToWithdraw);
+        withdrawOtherItems(context, otherItems);
         removeItemsFromSet(context, deduplicationSetMergeDTO.getSetId());
 
         createRelationships(context, targetItem, otherItems);
@@ -192,21 +189,22 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         return itemService.find(context, targetUUID);
     }
 
-    private List<Item> getOtherItems(Context context, DeduplicationSetMergeDTO deduplicationSetMergeDTO) {
-        return deduplicationSetMergeDTO
-            .getMergedItems().stream()
-            .map(this::getUUIDFromUri)
-            .map(throwingMapperWrapper(uuid -> itemService.find(context, uuid)))
-            .collect(Collectors.toList());
+    private List<Item>  getOtherItems(Context context,
+                                      DeduplicationSetMergeDTO deduplicationSetMergeDTO) throws SQLException {
+        List<Item> items = new ArrayList<>();
+        for (String itemUri : deduplicationSetMergeDTO.getMergedItems()) {
+            items.add(itemService.find(context, getUUIDFromUri(itemUri)));
+        }
+        return items;
     }
 
     private List<Bitstream> getBitstreams(Context context,
                                           DeduplicationSetMergeDTO deduplicationSetMergeDTO) throws SQLException {
-        return deduplicationSetMergeDTO
-            .getBitstreams().stream()
-            .map(this::getUUIDFromUri)
-            .map(throwingMapperWrapper(uuid -> bitstreamService.find(context, uuid)))
-            .collect(Collectors.toList());
+        List<Bitstream> bitstreams = new ArrayList<>();
+        for (String bitstreamUri : deduplicationSetMergeDTO.getBitstreams()) {
+            bitstreams.add(bitstreamService.find(context, getUUIDFromUri(bitstreamUri)));
+        }
+        return bitstreams;
     }
 
     private UUID getUUIDFromUri(String uri) {
@@ -225,7 +223,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
             metadataValues = getMetadataValues(context, metadataDTO);
             fields = getElements(metadataDTO.getMetadataField());
 
-            itemService.clearMetadata(context, targetItem, fields[0], fields[1], fields[2], Item.ANY);
+            itemService.clearMetadata(context, targetItem, fields[0], fields[1], fields[2], null);
 
             for (MetadataValue metadataValue : metadataValues) {
                 itemService.addMetadata(context, targetItem, metadataValue.getSchema(), metadataValue.getElement(),
@@ -249,7 +247,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 Item item = itemService.find(context, getUUIDFromUri(source.getItem()));
                 MetadataValue metadataValue = getMatchedMetadataValueFromItem(item, source.getPlace(),
                     metadataDTO.getMetadataField());
-                if (!Objects.isNull(metadataValue) && !isListContainsMetadataValue(metadataValues, metadataValue)) {
+                if (!Objects.isNull(metadataValue)) {
                     metadataValues.add(metadataValue);
                 }
             }
@@ -258,39 +256,33 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         return metadataValues;
     }
 
-    private boolean isListContainsMetadataValue(List<MetadataValue> metadataValues, MetadataValue metadataValue) {
-        return metadataValues
-            .stream()
-            .map(MetadataValue::getValue)
-            .anyMatch(value -> value.equals(metadataValue.getValue()));
-    }
-
     private List<DeduplicationMetadataSourcesDTO> sortSourcesAscByPosition(
         List<DeduplicationMetadataSourcesDTO> sources) {
-        return sources
-            .stream()
-            .sorted(Comparator.comparingInt(DeduplicationMetadataSourcesDTO::getPlace))
-            .collect(Collectors.toList());
+        return sources.stream()
+                      .sorted(Comparator.comparingInt(DeduplicationMetadataSourcesDTO::getPlace))
+                      .collect(Collectors.toList());
     }
 
     private MetadataValue getMatchedMetadataValueFromItem(Item item, int position, String metadataField) {
-        return itemService
-            .getMetadataByMetadataString(item, metadataField)
-            .stream()
-            .filter(mv -> mv.getPlace() == position)
-            .peek(mv -> mv.setPlace(-1))
-            .findFirst()
-            .orElse(null);
+        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(item, metadataField);
+        for (MetadataValue metadataValue : metadataValues) {
+            if (metadataValue.getPlace() == position) {
+                metadataValue.setPlace(-1);
+                return metadataValue;
+            }
+        }
+        return null;
     }
 
     private void updateItemBitstreams(Context context, Item targetItem, List<Item> otherItems,
                                       List<Bitstream> bitstreams) throws SQLException, AuthorizeException, IOException {
+
         for (Bitstream bitstream : bitstreams) {
             Set<Bundle> bundles = getMatchedBundlesFromOtherItems(otherItems, bitstream.getBundles());
             for (Bundle bundle : bundles) {
-                List<Bundle> targetBundles = targetItem.getBundles(bundle.getName());
-                if (!targetBundles.isEmpty()) {
-                    addBitstreamAndReplacePolicies(context, targetBundles.get(0), bitstream);
+                Bundle targetBundle = getTargetBundle(targetItem, bundle.getName());
+                if (targetBundle != null) {
+                    addBitstreamAndReplacePolicies(context, targetBundle, bitstream);
                 } else {
                     createBundleAndAddBitstream(context, targetItem, bitstream, bundle);
                 }
@@ -298,6 +290,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         }
 
         removeUnMergedBitstreamsFromTargetItem(context, targetItem, bitstreams);
+
     }
 
     private Set<Bundle> getMatchedBundlesFromOtherItems(List<Item> otherItems, List<Bundle> bundles) {
@@ -314,23 +307,24 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         return matchedBundles;
     }
 
+    private Bundle getTargetBundle(Item targetItem, String name) {
+        List<Bundle> targetBundles = targetItem.getBundles(name);
+        return findFirstBundle(targetBundles);
+    }
+
+    private Bundle findFirstBundle(List<Bundle> bundles) {
+        if (!bundles.isEmpty()) {
+            return bundles.get(0);
+        }
+        return null;
+    }
+
     private void addBitstreamAndReplacePolicies(Context context, Bundle targetBundle, Bitstream bitstream)
         throws SQLException, AuthorizeException {
-        if (isListContainsBitstream(targetBundle.getBitstreams(), bitstream)) {
-            return;
-        }
-
         List<ResourcePolicy> bundlePolicies = bundleService.getBundlePolicies(context, targetBundle);
         bundleService.addBitstream(context, targetBundle, bitstream);
         bundleService.replaceAllBitstreamPolicies(context, targetBundle, bundlePolicies);
         bundleService.update(context, targetBundle);
-    }
-
-    private boolean isListContainsBitstream(List<Bitstream> bitstreams, Bitstream bitstream) {
-        return bitstreams
-            .stream()
-            .map(Bitstream::getChecksum)
-            .anyMatch(checksum -> checksum.equals(bitstream.getChecksum()));
     }
 
     private void createBundleAndAddBitstream(Context context, Item targetItem, Bitstream bitstream, Bundle oldBundle)
@@ -343,7 +337,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
     private void removeUnMergedBitstreamsFromTargetItem(Context context, Item item, List<Bitstream> bitstreams)
         throws SQLException, AuthorizeException, IOException {
-        boolean bitstreamFound;
+        boolean bitstreamFound = false;
         List<Bundle> bundles = item.getBundles();
         for (Bundle bundle : bundles) {
             for (Bitstream itemBitstream : bundle.getBitstreams()) {
@@ -351,7 +345,6 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                 for (Bitstream mergedBitstream : bitstreams) {
                     if (itemBitstream.getID().toString().equals(mergedBitstream.getID().toString())) {
                         bitstreamFound = true;
-                        break;
                     }
                 }
                 if (!bitstreamFound) {
@@ -388,8 +381,9 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                     while (items.hasNext()) {
                         Item item = items.next();
                         List<MetadataValue> metadataValues = findMatchedByAuthority(item, otherItem, metadataField);
-                        if (!metadataValues.isEmpty()) {
-                            replaceAuthority(context, item, targetItem, otherItem, metadataField, metadataValues);
+                        if (metadataValues.size() > 0) {
+                            replaceAuthority(context, item,
+                                targetItem, otherItem, metadataField, metadataValues);
                         }
                     }
                 } catch (Exception e) {
@@ -400,111 +394,123 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     }
 
     private List<MetadataValue> findMatchedByAuthority(Item item, Item otherItem, String[] metadataField) {
+
         List<MetadataValue> metadataValues = itemService.getMetadata(item, metadataField[0], metadataField[1],
-                                                                     metadataField[2], Item.ANY);
-        return metadataValues
-            .stream()
-            .anyMatch(
-                metadataValue -> Optional
-                    .ofNullable(metadataValue.getAuthority())
-                    .map(authority -> authority.equals(otherItem.getID().toString()))
-                    .isPresent()
-            )
-            ? metadataValues
-            : new ArrayList<>();
+            metadataField[2], null);
+
+        for (MetadataValue metadataValue : metadataValues) {
+            if (metadataValue.getAuthority() != null
+                && metadataValue.getAuthority().equals(otherItem.getID().toString())) {
+                return metadataValues;
+            }
+        }
+        return new ArrayList<>();
     }
 
-    private void replaceAuthority(Context context, Item item, Item targetItem, Item otherItem,
+    private void replaceAuthority(Context context, Item item,
+                                  Item targetItem, Item otherItem,
                                   String[] metadataField, List<MetadataValue> metadataValues)
         throws SQLException, AuthorizeException {
-        metadataValues
-            .stream()
-            .filter(mv -> mv.getAuthority() != null)
-            .filter(mv -> mv.getAuthority().equals(otherItem.getID().toString()))
-            .forEach(mv -> {
-                mv.setAuthority(targetItem.getID().toString());
-                mv.setValue(targetItem.getName());
-            });
+
+        for (MetadataValue metadataValue : metadataValues) {
+            if (metadataValue.getAuthority() != null
+                && metadataValue.getAuthority().equals(otherItem.getID().toString())) {
+                metadataValue.setAuthority(targetItem.getID().toString());
+                metadataValue.setValue(targetItem.getName());
+            }
+        }
         updateItemMetaDataValues(context, item, metadataValues, metadataField);
     }
 
-    private void updateItemMetaDataValues(Context context, Item item,
-                                          List<MetadataValue> metadataValues, String[] metadataField)
-        throws SQLException, AuthorizeException {
+    private void updateItemMetaDataValues(
+        Context context, Item item, List<MetadataValue> metadataValues, String[] metadataField
+    ) throws SQLException, AuthorizeException {
+
         itemService.clearMetadata(context, item, metadataField[0], metadataField[1], metadataField[2], null);
-        metadataValues.forEach(throwingConsumerWrapper(
-            mv -> itemService.addMetadata(
-                context, item, mv.getSchema(), mv.getElement(), mv.getQualifier(), mv.getLanguage(), mv.getValue(),
-                mv.getAuthority(), mv.getConfidence(), mv.getPlace()
-            )
-        ));
+        for (MetadataValue metadataValue : metadataValues) {
+            itemService.addMetadata(context, item, metadataValue.getSchema(), metadataValue.getElement(),
+                metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
+                metadataValue.getAuthority(), metadataValue.getConfidence(), metadataValue.getPlace());
+        }
+
         itemService.update(context, item);
     }
 
-    private void addUriMetadataToOtherItems(Context context, Item targetItem, List<Item> otherItems) {
-        Optional
-            .ofNullable(itemService.getMetadata(targetItem, "dc.identifier.uri"))
-            .ifPresent(targetUri -> otherItems
-                .forEach(throwingConsumerWrapper(
-                    item -> itemService.addMetadata(context, item,"dspace", "merge", "target-uri",
-                                                    null, List.of(targetUri))
-                ))
-            );
+    private void addUriMetadataToOtherItems(Context context, Item targetItem, List<Item> otherItems)
+        throws SQLException {
+        String targetUri = itemService.getMetadata(targetItem, "dc.identifier.uri");
+        if (targetUri != null) {
+            for (Item item : otherItems) {
+                itemService.addMetadata(context, item,"dq", "merge", "target-uri",
+                    null, List.of(targetUri));
+            }
+        }
     }
 
-    @SuppressWarnings({ "unchecked" })
-    private void withdrawOtherItems(Context context, List<Item> otherItems) {
-        otherItems.forEach(throwingConsumerWrapper(item -> {
-            Optional<WorkflowItem> workflowItem = Optional.ofNullable(workflowItemService.findByItem(context, item));
-            Optional<WorkspaceItem> workspaceItem = Optional.ofNullable(workspaceItemService.findByItem(context, item));
+    private void withdrawOtherItems(Context context, List<Item> otherItems)
+        throws SQLException, AuthorizeException, IOException {
+        for (Item item : otherItems) {
 
-            workflowItem.ifPresent(throwingConsumerWrapper(wi -> workflowItemService.delete(context, wi)));
-            workspaceItem.ifPresent(throwingConsumerWrapper(wsi -> workspaceItemService.deleteAll(context, wsi)));
+            WorkflowItem workflowItem = workflowItemService.findByItem(context, item);
+            WorkspaceItem workspaceItem = workspaceItemService.findByItem(context, item);
 
-            if (workflowItem.isEmpty() && workspaceItem.isEmpty()) {
+            if (workflowItem != null) {
+                workflowItemService.delete(context, workflowItem);
+            }
+
+            if (workspaceItem != null) {
+                workspaceItemService.deleteAll(context, workspaceItem);
+            }
+
+            if (workflowItem == null && workspaceItem == null) {
                 itemService.withdraw(context, item);
             }
-        }));
+        }
     }
 
-    private void removeItemsFromSet(Context context, String setId) throws SearchServiceException, SQLException {
-        Optional
-            .ofNullable(dedupUtils.findGroup(context, setId))
-            .ifPresent(duplicateInfo -> duplicateInfo
-                .getItems()
-                .forEach(throwingConsumerWrapper(
-                    item -> dedupUtils.rejectAdminDups(context, duplicateInfo, item.getID())
-                ))
-            );
+    private void removeItemsFromSet(Context context, String setId)
+        throws SearchServiceException, SQLException, AuthorizeException {
+        DuplicateInfo duplicateInfo = dedupUtilsAddon.findGroup(context, setId);
+        if (duplicateInfo != null) {
+            for (Item item : duplicateInfo.getItems()) {
+                dedupUtilsAddon.rejectAdminDups(context, duplicateInfo, item.getID(), Constants.ITEM);
+            }
+            System.out.println(duplicateInfo);
+        }
     }
 
-    private void createRelationships(Context context, Item leftItem, List<Item> rightItems) {
-        rightItems
-            .stream()
-            .filter(throwingPredicateWrapper(rightItem -> itemService.find(context, rightItem.getID()) != null))
-            .forEach(throwingConsumerWrapper(rightItem -> createRelationship(context, leftItem, rightItem)));
+    private void createRelationships(Context context, Item leftItem, List<Item> rightItems)
+        throws SQLException, AuthorizeException {
+        for (Item rightItem : rightItems) {
+            if (itemService.find(context, rightItem.getID()) == null) {
+                continue;
+            }
+            createRelationship(context, leftItem, rightItem);
+        }
     }
 
     private void createRelationship(Context context, Item leftItem, Item rightItem)
         throws SQLException, AuthorizeException {
         EntityType leftEntityType = entityTypeService.findByItem(context, leftItem);
         EntityType rightEntityType = entityTypeService.findByItem(context, rightItem);
-        RelationshipType relationshipType = relationshipTypeService
-            .findbyTypesAndTypeName(context, leftEntityType, rightEntityType, "isMergedFromItem", "isMergedInItem");
+        RelationshipType relationshipType =
+            relationshipTypeService
+                .findbyTypesAndTypeName(context, leftEntityType, rightEntityType, "isMergedFromItem", "isMergedInItem");
         relationshipService.create(context, leftItem, rightItem, relationshipType, false);
     }
 
-    private List<Item> getItemsToMerge(Context context, DeduplicationMerge deduplicationMerge) {
-        return deduplicationMerge
-            .getMergedItems().stream()
-            .map(UUIDUtils::fromString)
-            .map(throwingMapperWrapper(uuid -> itemService.find(context, uuid)))
-            .distinct()
-            .collect(Collectors.toList());
+    private List<Item> getItemsToMerge(Context context,
+                                     DeduplicationMerge deduplicationMerge) throws SQLException {
+        Set<Item> mergedItems = new HashSet<>();
+        for (String mergedItem : deduplicationMerge.getMergedItems()) {
+            mergedItems.add(itemService.find(context, UUIDUtils.fromString(mergedItem)));
+        }
+        return new ArrayList<Item>(mergedItems);
     }
 
     private void replaceItemExistedMetadata(Context context, Item targetItem,
-                                            List<Item> itemsToMerge, List<String> replacedNotEmptyMetadata) {
+                                         List<Item> itemsToMerge, List<String> replacedNotEmptyMetadata)
+        throws SQLException, AuthorizeException {
         replacedNotEmptyMetadata
             .stream()
             .map(metadataField ->
@@ -512,32 +518,42 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
                     metadataField,
                     itemsToMerge
                         .stream()
-                        .flatMap(itemToMerge -> filterEmpty(getItemMetadataValues(itemToMerge, metadataField).stream()))
+                        .flatMap(itemToMerge ->
+                            filterEmpty(getItemMetadataValues(itemToMerge, metadataField).stream())
+                        )
                         .collect(Collectors.toList())
                 )
             )
             .filter(entry -> !CollectionUtils.isEmpty(entry.getValue()))
-            .forEach(throwingConsumerWrapper(
-                entry -> updateItemMetaDataValues(context, targetItem, entry.getValue(), getElements(entry.getKey())),
-                "Error while replacing metadata for deduplication!")
-            );
+            .forEach(entry -> {
+                try {
+                    updateItemMetaDataValues(
+                        context, targetItem,
+                        entry.getValue(),
+                        getElements(entry.getKey())
+                    );
+                } catch (SQLException | AuthorizeException e) {
+                    throw new RuntimeException("Error while replacing metadata for deduplication!", e);
+                }
+            });
     }
 
     private void replaceItemMetadata(Context context, Item targetItem,
-                                     List<Item> mergedItems, List<String> replacedMetadata) {
-        replacedMetadata.forEach(throwingConsumerWrapper(
-            metadataField -> updateItemMetaDataValues(
+                                            List<Item> mergedItems, List<String> replacedMetadata)
+        throws SQLException, AuthorizeException {
+        for (String metadataField : replacedMetadata) {
+            updateItemMetaDataValues(
                 context, targetItem,
                 getItemsMetadataValues(mergedItems, metadataField),
                 getElements(metadataField)
-            )
-        ));
+            );
+        }
     }
 
     private void appendItemExistedMetadata(Context context, Item targetItem,
-                                           List<Item> mergedItems, List<String> appendedMetadata)
+                                            List<Item> mergedItems, List<String> appendedMetadata)
         throws SQLException, AuthorizeException {
-        List<MetadataValue> metadataValues;
+        List<MetadataValue> metadataValues = null;
         for (String metadataField : appendedMetadata) {
             List<MetadataValue> itemMetadataValues =
                 filterEmpty(getItemMetadataValues(targetItem, metadataField).stream())
@@ -552,15 +568,15 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     }
 
     private Stream<MetadataValue> filterEmpty(Stream<MetadataValue> metadatas) {
-        return metadatas.filter(meta -> StringUtils.isNotEmpty(meta.getValue()));
+        return metadatas
+            .filter(meta -> StringUtils.isNotEmpty(meta.getValue()));
     }
 
     private boolean hasValidMetadatas(List<MetadataValue> metadatas) {
-        return Optional
-            .ofNullable(metadatas)
-            .filter(list -> !list.isEmpty())
-            .flatMap(list -> filterEmpty(list.stream()).findAny())
-            .isPresent();
+        return Optional.ofNullable(metadatas)
+                .filter(list -> !list.isEmpty())
+                .map(list -> filterEmpty(list.stream()).findAny().orElse(null))
+                .isPresent();
     }
 
     private List<MetadataValue> getItemsMetadataValues(List<Item> mergedItems, String metadataFiled) {
@@ -575,8 +591,11 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         return itemService.getMetadata(item, elements[0], elements[1], elements[2], null);
     }
 
-    private void deleteMergedItems(Context context, List<Item> mergedItems) {
-        mergedItems.forEach(throwingConsumerWrapper(item -> itemService.delete(context, item)));
+    private void deleteMergedItems(Context context, List<Item> mergedItems)
+        throws SQLException, AuthorizeException, IOException {
+        for (Item item : mergedItems) {
+            itemService.delete(context, item);
+        }
     }
 
 }

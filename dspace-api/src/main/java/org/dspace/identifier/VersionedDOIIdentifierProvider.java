@@ -241,13 +241,13 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider implem
 
     protected String getBareDOI(String identifier)
         throws DOIIdentifierException {
-        doiService.formatIdentifier(identifier);
+        String identifierFormatted = doiService.formatIdentifier(identifier);
         String doiPrefix = DOI.SCHEME.concat(getPrefix())
                                      .concat(String.valueOf(SLASH))
                                      .concat(getNamespaceSeparator());
 
-        if (StringUtils.startsWith(doiPrefix, identifier)) {
-            String doiPostfix = identifier.substring(doiPrefix.length());
+        if (StringUtils.startsWith(doiPrefix, identifierFormatted)) {
+            String doiPostfix = identifierFormatted.substring(doiPrefix.length());
             if (doiPostfix.matches(pattern) && doiPostfix.lastIndexOf(DOT) != -1) {
                 return doiPrefix.concat(doiPostfix.substring(0, doiPostfix.lastIndexOf(DOT)));
             }
@@ -341,7 +341,6 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider implem
         }
 
         String bareDoi = getBareDOI(doiService.formatIdentifier(oldDoi));
-        String bareDoiRef = doiService.DOIToExternalForm(bareDoi);
 
         List<MetadataValue> identifiers = itemService
             .getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
@@ -353,7 +352,13 @@ public class VersionedDOIIdentifierProvider extends DOIIdentifierProvider implem
         ArrayList<String> newIdentifiers = new ArrayList<>(identifiers.size());
         boolean changed = false;
         for (MetadataValue identifier : identifiers) {
-            if (!StringUtils.startsWithIgnoreCase(identifier.getValue(), bareDoiRef)) {
+            String identifierUrn = identifier.getValue();
+            try {
+                identifierUrn = doiService.formatIdentifier(identifier.getValue());
+            } catch (DOIIdentifierException e) {
+                // unknown format take it as is
+            }
+            if (!StringUtils.startsWithIgnoreCase(identifierUrn, bareDoi)) {
                 newIdentifiers.add(identifier.getValue());
             } else {
                 changed = true;

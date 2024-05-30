@@ -51,8 +51,8 @@
     </bean>
 
     <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
-        <property name="authorityName" value="EditorAuthority"/>
-        <property name="keyId" value="oairecerif_editor_affiliation"/>
+        <property name="authorityName" value="ScientificEditorAuthority"/>
+        <property name="keyId" value="oairecerif_scientificeditor_affiliation"/>
         <property name="schema" value="person"/>
         <property name="element" value="affiliation"/>
         <property name="qualifier" value="name"/>
@@ -60,13 +60,62 @@
     </bean>
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
-        <property name="authorityName" value="EditorAuthority"/>
+        <property name="authorityName" value="ScientificEditorAuthority"/>
         <property name="keyId" value="oairecerif_affiliation_orgunit"/>
         <property name="schema" value="person"/>
         <property name="element" value="affiliation"/>
         <property name="qualifier" value="name"/>
         <property name="singleResultOnAggregate" value="false"/>
-     </bean>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+        <property name="authorityName" value="ScientificEditorAuthority"/>
+        <property name="keyId" value="person_identifier_orcid"/>
+        <property name="useForDisplay" value="true"/>
+        <property name="useAsData" value="true"/>
+        <property name="schema" value="person"/>
+        <property name="element" value="identifier"/>
+        <property name="qualifier" value="orcid"/>
+        <property name="singleResultOnAggregate" value="true"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
+        <property name="authorityName" value="AdvisorAuthority"/>
+        <property name="keyId" value="oairecerif_advisor_affiliation"/>
+        <property name="schema" value="person"/>
+        <property name="element" value="affiliation"/>
+        <property name="qualifier" value="name"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+        <property name="authorityName" value="AdvisorAuthority"/>
+        <property name="keyId" value="oairecerif_affiliation_orgunit"/>
+        <property name="schema" value="person"/>
+        <property name="element" value="affiliation"/>
+        <property name="qualifier" value="name"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+        <property name="authorityName" value="AdvisorAuthority"/>
+        <property name="keyId" value="person_identifier_orcid"/>
+        <property name="useForDisplay" value="true"/>
+        <property name="useAsData" value="true"/>
+        <property name="schema" value="person"/>
+        <property name="element" value="identifier"/>
+        <property name="qualifier" value="orcid"/>
+        <property name="singleResultOnAggregate" value="true"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemUriAuthorityMetadataGenerator">
+        <property name="authorityName" value="RelationAuthority"/>
+        <property name="keyId" value="datacite_relatedIdentifier"/>
+        <property name="schema" value="dc"/>
+        <property name="element" value="identifier"/>
+        <property name="qualifier" value="uri"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
 
     <bean class="org.dspace.content.authority.ItemUriAuthorityMetadataGenerator">
         <property name="authorityName" value="PublicationAuthority"/>
@@ -107,9 +156,9 @@
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="EventAuthority"/>
         <property name="keyId" value="oaire_citation_conferenceDate"/>
-        <property name="schema" value="oairecerif"/>
-        <property name="element" value="event"/>
-        <property name="qualifier" value="startDate"/>
+        <property name="schema" value="oaire"/>
+        <property name="element" value="citation"/>
+        <property name="qualifier" value="conferenceDate"/>
         <property name="singleResultOnAggregate" value="false"/>
     </bean>
 
@@ -135,5 +184,24 @@
     	class="org.dspace.content.authority.SherpaExtraISSNmetadataGenerator">
     	<property name="relatedInputFormMetadata" value="dc_relation_issn"/>
      </bean>
+
+	<bean
+		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+		<property name="authorityName" value="SherpaAuthority" />
+		<property name="keyId" value="dc_relation_issn" />
+		<property name="schema" value="dc" />
+		<property name="element" value="identifier" />
+		<property name="qualifier" value="issn" />
+		<property name="singleResultOnAggregate" value="false" />
+	</bean>
+
+	<bean
+		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+		<property name="authorityName" value="SherpaAuthority" />
+		<property name="keyId" value="dc_publisher" />
+		<property name="schema" value="dc" />
+		<property name="element" value="publisher" />
+		<property name="singleResultOnAggregate" value="false" />
+	</bean>
 
 </beans>

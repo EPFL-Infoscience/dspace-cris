@@ -47,6 +47,20 @@
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="publication.article">
@@ -85,6 +99,20 @@
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
                         </bean>
                     </list>
                 </entry>
@@ -125,44 +153,19 @@
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
-                    </list>
-                </entry>
-                <entry key="publication.dataset">
-                    <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="FULLADMIN" />
-                            <property name="security">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
                                 <value type="org.dspace.content.security.CrisSecurity">
-                                    ITEM_ADMIN
+                                    CUSTOM
                                 </value>
                             </property>
-                            <property name="submissionDefinition" value="dataset-edit" />
-                        </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="THEMATIC-AREA-CURATOR" />
-                            <property name="securities">
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
                                 <list>
-                                    <value>ADMIN</value>
-                                    <value>GROUP</value>
+                                    <value>cris.virtual.unitManager</value>
                                 </list>
                             </property>
-                            <property name="submissionDefinition" value="virtual-collection-bind" />
-                            <property name="groups">
-                                <list>
-                                    <value>ThematicAreaCurators</value>
-                                    <value>Curators</value>
-                                </list>
-                            </property>
-                        </bean>
-                        <bean class="org.dspace.content.edit.EditItemMode">
-                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
-                            <property name="securities">
-                                <list>
-                                    <value>ALL</value>
-                                </list>
-                            </property>
-                            <property name="submissionDefinition" value="virtual-collection-bind" />
-                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
                     </list>
                 </entry>
@@ -203,6 +206,20 @@
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="publication.student">
@@ -241,6 +258,20 @@
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
                         </bean>
                     </list>
                 </entry>
@@ -281,6 +312,20 @@
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="publication.report">
@@ -319,6 +364,20 @@
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
                         </bean>
                     </list>
                 </entry>
@@ -359,6 +418,20 @@
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="publication.preprint">
@@ -397,6 +470,20 @@
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
                         </bean>
                     </list>
                 </entry>
@@ -437,6 +524,20 @@
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="publication.book">
@@ -475,6 +576,20 @@
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
                         </bean>
                     </list>
                 </entry>
@@ -618,6 +733,20 @@
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
+                        </bean>
                     </list>
                 </entry>
                 <entry key="project">
@@ -683,6 +812,73 @@
                             </property>
                             <property name="submissionDefinition" value="virtual-collection-bind" />
                             <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
+                        </bean>
+                    </list>
+                </entry>
+                <entry key="product.dataset">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULLADMIN" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="dataset-edit" />
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR" />
+                            <property name="securities">
+                                <list>
+                                    <value>ADMIN</value>
+                                    <value>GROUP</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="groups">
+                                <list>
+                                    <value>ThematicAreaCurators</value>
+                                    <value>Curators</value>
+                                </list>
+                            </property>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="THEMATIC-AREA-CURATOR-DELEGATE" />
+                            <property name="securities">
+                                <list>
+                                    <value>ALL</value>
+                                </list>
+                            </property>
+                            <property name="submissionDefinition" value="virtual-collection-bind" />
+                            <property name="additionalFilter" ref="thematicAreaDelegateFilter"/>
+                        </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="UNIT-ATTRIBUTION" />
+                            <property name="securities">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    CUSTOM
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="unit-attribution-bind" />
+                            <property name="items">
+                                <list>
+                                    <value>cris.virtual.unitManager</value>
+                                </list>
+                            </property>
                         </bean>
                     </list>
                 </entry>

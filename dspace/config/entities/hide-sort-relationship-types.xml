@@ -114,6 +114,28 @@
     </type>
     <type>
         <rightType>OrgUnit</rightType>
+        <leftwardType>isPublSchoolCollHiddenFor</leftwardType>
+        <rightwardType>notDisplayingPublSchoolColl</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+        </rightCardinality>
+    </type>
+    <type>
+        <rightType>OrgUnit</rightType>
+        <leftwardType>isPublSchoolCollSelectedFor</leftwardType>
+        <rightwardType>hasSelectedPublSchoolColl</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+        </rightCardinality>
+    </type>
+    <type>
+        <rightType>OrgUnit</rightType>
         <leftwardType>isRppublicationsHiddenFor</leftwardType>
         <rightwardType>notDisplayingRppublications</rightwardType>
         <leftCardinality>
