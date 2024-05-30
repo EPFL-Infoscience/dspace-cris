@@ -11,6 +11,7 @@ import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -94,6 +95,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private static final String PATENT = "Patent";
     private static final int LIMIT = 10;
 
+    private List<String> importedItems;
+
     private String service;
 
     private String extraQuery;
@@ -158,6 +161,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             ? Integer.valueOf(commandLine.getOptionValue('l'))
             : getDefaultTotalSearchLimit();
         this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
+        importedItems = new ArrayList<>();
     }
 
     private void putServiceIfExists(String key, String serviceName) {
@@ -318,13 +322,22 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                 }
             }
-        } catch (SQLException | InterruptedException e) {
+        } catch (SQLException | RuntimeException | InterruptedException e) {
+            printImportedItemsSummary();
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
         context.commit();
+        printImportedItemsSummary();
         handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
         handler.logInfo("Update end");
+    }
+
+    private void printImportedItemsSummary() {
+        handler.logInfo("SUMMARY: with process the following " + importedItems.size() + " items were imported :");
+        for (String importedItem : importedItems) {
+            handler.logInfo(importedItem);
+        }
     }
 
     private MetadataValue getOwner(Item item) {
@@ -436,6 +449,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
                                         " and put in status: " + finalState);
+                    importedItems.add("Item " + wsItem.getItem().getID().toString()
+                            + " was imported from query: " + id);
                     imported++;
                 }
                 countDataObjects++;
