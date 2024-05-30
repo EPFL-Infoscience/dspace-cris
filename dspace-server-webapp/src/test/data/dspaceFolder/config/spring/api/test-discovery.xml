@@ -153,7 +153,7 @@
         <entry key="RELATION.OrgUnit.institutes" value-ref="relationOrgunitInstituteConfiguration"/>
         <entry key="RELATION.OrgUnit.labs_research_groups" value-ref="relationOrgunitLabConfiguration"/>
         <!-- OrgUnit and SubOrgUnits publications, speficif for collège and école -->
-        <entry key="RELATION.OrgUnit.publications_school_college" value-ref="relationOrgunitPublicationsSchoolCollege"/>
+        <entry key="RELATION.OrgUnit.PublSchoolColl" value-ref="relationOrgunitPublicationsSchoolCollege"/>
         <!-- Project Related items -->
         <entry key="RELATION.Project.projects" value-ref="relationProjectProjectsConfiguration"/>
         <entry key="RELATION.Project.fundings" value-ref="relationProjectFundingsConfiguration"/>

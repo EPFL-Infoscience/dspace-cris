@@ -27,6 +27,7 @@
         <entry key-ref="dcJissn" value-ref="bibtexJissnContrib" />
         <entry key-ref="dcIsbn" value-ref="bibtexIsbnContrib" />
 		    <entry key-ref="dcAbstract" value-ref="bibtexAbstractContrib" />
+        <entry key-ref="dcAbstractNote" value-ref="bibtexAbstractNoteContrib" />
         <entry key-ref="dcJDoi" value-ref="bibtexDoiContrib" />
         <entry key-ref="dcVolume" value-ref="bibtexVolumeContrib" />
         <entry key-ref="dcNumber" value-ref="bibtexNumberContrib" />
@@ -53,10 +54,10 @@
         <property name="key" value="year" />
     </bean>
 
-    <bean id="bibtexJournalContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
-        <property name="field" ref="dcJournal"/>
-        <property name="key" value="journal" />
-    </bean>
+<!--    <bean id="bibtexJournalContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">-->
+<!--        <property name="field" ref="dcJournal"/>-->
+<!--        <property name="key" value="journal" />-->
+<!--    </bean>-->
     
     <bean id="bibtexAuthorsContrib" class="org.dspace.importer.external.metadatamapping.contributor.SplitMetadataContributor">
         <constructor-arg name="innerContributor">
@@ -68,6 +69,11 @@
         <constructor-arg name="regex" value="\sand\s"/>
     </bean>
     
+    <bean id="bibtexJournalContrib" class="org.dspace.importer.external.metadatamapping.contributor.MappedByTypeMetadataContributor">
+        <property name="fieldMap" ref="bibTexJournalMap"/>
+        <property name="key" value="journal" />
+    </bean>
+
     <bean id="bibtexTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMetadataContributor">
         <property name="field" ref="dcTitle"/>
         <property name="key" value="title" />
@@ -80,7 +86,7 @@
                 <property name="key" value="keywords" />
             </bean>
         </constructor-arg>
-        <constructor-arg name="regex" value="\s\|\s"/>
+        <constructor-arg name="regex" value="\s*\|\s*"/>
     </bean>
 
     <bean id="bibtexMappedTypeContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleMappedMetadataContributor">

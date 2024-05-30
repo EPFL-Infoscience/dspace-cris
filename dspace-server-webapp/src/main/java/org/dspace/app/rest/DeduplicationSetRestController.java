@@ -16,12 +16,13 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.dspace.app.deduplication.utils.DedupUtils;
+import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
 import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.app.rest.model.DeduplicationSetRest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DeduplicationSetRestController {
 
     @Autowired
-    private DedupUtils dedupUtils;
+    private AbstractDedupUtilsAddon dedupUtilsAddon;
 
     @Autowired
     ItemService itemService;
@@ -53,13 +54,13 @@ public class DeduplicationSetRestController {
      * @param id the id of the set
      * @param uuid the uuid of the item
      */
-    @PreAuthorize("hasAuthority('ADMIN') || @groupsSecurity.isCurator()")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(method = DELETE, path = "/{id}/items/{uuid}")
     public void deleteItem(@PathVariable String id, @PathVariable UUID uuid,
         HttpServletResponse response, HttpServletRequest request)
         throws SearchServiceException, SQLException, AuthorizeException {
         Context context = obtainContext(request);
-        DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, id);
+        DuplicateInfo duplicateInfo = dedupUtilsAddon.findGroup(context, id);
         if (duplicateInfo == null) {
             throw new ResourceNotFoundException("Could not find set with id: " + id);
         }
@@ -68,7 +69,7 @@ public class DeduplicationSetRestController {
             throw new ResourceNotFoundException("Could not find item with id " + uuid);
         }
 
-        dedupUtils.rejectAdminDups(context, duplicateInfo, uuid);
+        dedupUtilsAddon.rejectAdminDups(context, duplicateInfo, uuid, Constants.ITEM);
 
         context.complete();
         response.setStatus(SC_NO_CONTENT);

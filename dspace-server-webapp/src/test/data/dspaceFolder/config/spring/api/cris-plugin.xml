@@ -15,16 +15,43 @@
                     <bean class="org.dspace.authority.filler.ItemMetadataImportFiller" parent="fullItemMetadataConfiguration" />
                 </entry>
                 <entry key="ORCID" value-ref="orcidImportFiller" />
-                <entry key="ISSN" value-ref="sherpaImportFiller" />
+                <entry key="ISSN">
+                    <bean class="org.dspace.authority.filler.ItemMetadataImportFiller" parent="fullItemMetadataConfiguration" />
+                </entry>
                 <entry key="OPENAIRE-PROJECT-ID" value-ref="openaireProjectImportFiller" />
+                <entry key="SCIPER-ID" value-ref="personImportFiller" />
             </map>
         </property>
     </bean>
+
+    <bean class="org.dspace.authority.filler.PersonImportFiller" id="personImportFiller" />
 
     <bean class="org.dspace.authority.filler.ItemMetadataImportFiller" id="fullItemMetadataConfiguration" abstract="true">
         <property name="itemService" ref="org.dspace.content.ItemServiceImpl" />
         <property name="configurations">
             <map>
+                <entry key="dc.relation.journal">
+                    <bean class="org.dspace.authority.filler.MetadataConfiguration">
+                        <property name="updateEnabled" value="false" />
+                        <property name="mapping">
+                            <map>
+                                <entry key="dc.relation.issn">
+                                    <bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+                                        <property name="useAll" value="true" />
+                                        <property name="visibility" value="1" />
+                                        <property name="targetMetadata" value="dc.identifier.issn" />
+                                    </bean>
+                                </entry>
+                                <entry key="dc.publisher">
+                                    <bean class="org.dspace.authority.filler.MetadataConfiguration.MappingDetails">
+                                        <property name="visibility" value="1" />
+                                        <property name="targetMetadata" value="dc.publisher" />
+                                    </bean>
+                                </entry>
+                            </map>
+                        </property>
+                    </bean>
+                </entry>
                 <entry key="dc.contributor.author">
                     <bean class="org.dspace.authority.filler.MetadataConfiguration">
                         <property name="updateEnabled" value="false" />

@@ -55,7 +55,6 @@ import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
@@ -167,7 +166,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -218,7 +216,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     @SuppressWarnings("unchecked")
-    @Ignore
     public void testProfileCreationWithOnlyOneExistingUnit() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();
@@ -248,7 +245,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -325,7 +321,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
             with("person.birthDate", "1992-06-26"),
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", 400),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -349,7 +344,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testUpdateProfileWithoutDuplicatingAffiliations() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();
@@ -467,7 +461,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(profile, is(person));
 
         person = context.reloadEntity(person);
-        assertThat(person.getMetadata(), hasSize(30));
+        assertThat(person.getMetadata(), hasSize(29));
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
@@ -503,7 +497,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testInitializeWithUpdate() throws SQLException, AuthorizeException {
 
         context.turnOffAuthorisationSystem();
@@ -536,7 +529,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertVisible(researcherProfile);
 
         Item profile = researcherProfile.getItem();
-        assertThat(profile.getMetadata(), hasSize(28));
+        assertThat(profile.getMetadata(), hasSize(27));
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
@@ -550,7 +543,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item updatedProfile = researcherProfile.getItem();
         assertThat(updatedProfile, is(profile));
 
-        assertThat(updatedProfile.getMetadata(), hasSize(40));
+        assertThat(updatedProfile.getMetadata(), hasSize(39));
 
         Bitstream newPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(newPicture, notNullValue());

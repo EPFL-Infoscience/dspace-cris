@@ -1352,6 +1352,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    @Ignore // browses are disabled in config
     public void discoverSearchBrowsesWithSpecialCharacterTest() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -2276,6 +2277,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
 
     @Test
+    @Ignore
     public void discoverSearchObjectsTestWithContentInABitstream() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();

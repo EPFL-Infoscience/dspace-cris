@@ -160,6 +160,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, DC.getName(), "contributor", "editor", null, editorName, authority, 600);
     }
 
+    public ItemBuilder withScientificEditor(final String editorName, final String authority) {
+        return addMetadataValue(item, DC.getName(), "contributor", "scientificeditor", null,
+            editorName, authority, 600);
+    }
+
     public ItemBuilder withEditorAffiliation(String affiliation) {
         return addMetadataValue(item, "oairecerif", "editor", "affiliation", affiliation);
     }
@@ -513,6 +518,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "relation", "isbn", isbn);
     }
 
+    public ItemBuilder withRelationIssn(String isbn) {
+        return addMetadataValue(item, "dc", "relation", "issn", isbn);
+    }
+
     public ItemBuilder withRelationProject(String project) {
         return addMetadataValue(item, "dc", "relation", "project", project);
     }
@@ -527,6 +536,14 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withRelationConference(String conference) {
         return addMetadataValue(item, "dc", "relation", "conference", conference);
+    }
+
+    public ItemBuilder withOaireCitationConferencePlace(String conferencePlace) {
+        return addMetadataValue(item, "oaire", "citation", "conferencePlace", conferencePlace);
+    }
+
+    public ItemBuilder withOaireCitationConferenceDate(String conferenceDate) {
+        return addMetadataValue(item, "oaire", "citation", "conferenceDate", conferenceDate);
     }
 
     public ItemBuilder withRelationProduct(String dataset) {
@@ -553,6 +570,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "relation", "ispartof", isPartOf);
     }
 
+    public ItemBuilder withIsPartOfSeries(String isPartOfSeries) {
+        return addMetadataValue(item, "dc", "relation", "ispartofseries", isPartOfSeries);
+    }
+
     public ItemBuilder withCitationStartPage(String startPage) {
         return addMetadataValue(item, "oaire", "citation", "startPage", startPage);
     }
@@ -571,6 +592,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withDspaceObjectOwner(String value, String authority) {
         return addMetadataValue(item, "dspace", "object", "owner", null, value, authority, CF_ACCEPTED);
+    }
+
+    public ItemBuilder withSciperIdentifier(String sciper) {
+        return addMetadataValue(item, "epfl", "sciperId", null, sciper);
     }
 
     public ItemBuilder withOrcidIdentifier(String orcid) {
@@ -619,6 +644,22 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withOrcidSynchronizationFundingsPreference(String value) {
         return setMetadataSingleValue(item, "dspace", "orcid", "sync-fundings", value);
+    }
+
+    public ItemBuilder withOrcidSynchronizationProductsPreference(OrcidEntitySyncPreference value) {
+        return withOrcidSynchronizationProductsPreference(value.name());
+    }
+
+    public ItemBuilder withOrcidSynchronizationProductsPreference(String value) {
+        return setMetadataSingleValue(item, "dspace", "orcid", "sync-products", value);
+    }
+
+    public ItemBuilder withOrcidSynchronizationPatentsPreference(OrcidEntitySyncPreference value) {
+        return withOrcidSynchronizationPatentsPreference(value.name());
+    }
+
+    public ItemBuilder withOrcidSynchronizationPatentsPreference(String value) {
+        return setMetadataSingleValue(item, "dspace", "orcid", "sync-patents", value);
     }
 
     public ItemBuilder withOrcidSynchronizationProfilePreference(OrcidProfileSyncPreference value) {

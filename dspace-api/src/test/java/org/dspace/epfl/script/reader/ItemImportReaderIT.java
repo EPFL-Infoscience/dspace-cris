@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.content.dto.BitstreamDTO;
@@ -279,8 +280,146 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
 
         List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
 
-        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relationpublication.type"),type);
-        assertEquals(getFirstMetadataValue(itemMetadata, "dc.relationpublication.identifier"),identifier);
+        assertEquals(getFirstMetadataValue(itemMetadata, "datacite.relationType"),type);
+        assertEquals(getFirstMetadataValue(itemMetadata, "datacite.relatedIdentifier"),identifier);
+    }
+
+    @Test
+    public void testRelationProductMetadataFieldReader()  {
+        String type = "testType";
+        String identifier = "testIdentifier";
+        String test = " <record> \n" +
+            "<datafield tag=\"790\" ind1=\" \" ind2=\" \">\n" +
+            "<subfield code=\"e\">" + type + "</subfield>\n" +
+            "<subfield code=\"w\">" + identifier + "</subfield>\n" +
+            "  </datafield>\n" +
+            "</record>";
+
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+
+        assertEquals(getFirstMetadataValue(itemMetadata, "datacite.relatedIdentifier"),identifier);
+    }
+
+    @Test
+    public void testMultipleAcronym() {
+        String acronym1 = "ACRO1";
+        String acronym2 = "ACRO2";
+        String acronym3 = "ACRO3";
+        String test = "<record>\n" +
+                "<datafield tag=\"909\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">" + acronym1 + "</subfield>\n" +
+                "<subfield code=\"p\">" + acronym2 + "</subfield>\n" +
+                "</datafield>\n" +
+                "<datafield tag=\"909\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">" + acronym3 + "</subfield>\n" +
+                "</datafield>\n" +
+                "</record>";
+
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+        List<String> sponsorships = itemMetadata.stream()
+                .filter(metadata -> "dc.description.sponsorship".equals(metadata.getMetadataField()))
+                .map(MetadataValueDTO::getValue)
+                .collect(Collectors.toList());
+
+        assertTrue(sponsorships.contains(acronym1));
+        assertTrue(sponsorships.contains(acronym2));
+        assertTrue(sponsorships.contains(acronym3));
+    }
+
+    @Test
+    public void testRelationJournalAndIsPartOf() {
+        String testIssn = "testIssn";
+
+        String typeConferencePapers = "Conference Papers";
+        String relationConferencePapers = "relation conference";
+
+        String nodeConferencePapers = " <record> \n" + "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"t\">" + relationConferencePapers + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"a\">" + testIssn
+                + "</subfield>\n" + "  </datafield>\n" + "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"a\">" + typeConferencePapers + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"r\">" + "NON-REVIEWED"
+                + "</subfield>\n" + "  </datafield>\n" + "</record>";
+
+        InputStream inputStreamConferencePapers = new ByteArrayInputStream(nodeConferencePapers.getBytes());
+        Node recordConferencePapers = marcXmlParser.parse(inputStreamConferencePapers, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataConferencePapers = marcXmlParser.readItemMetadataValues(context,
+                recordConferencePapers, mapping);
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataConferencePapers, "dc.relation.journal"));
+        assertEquals(relationConferencePapers,
+                getFirstMetadataValue(itemMetadataConferencePapers, "dc.relation.ispartof"));
+        assertEquals(NOT_FOUND_VALUE,
+                getFirstMetadataValue(itemMetadataConferencePapers, "dc.relation.ispartofseries"));
+
+        String typeReviews = "Reviews";
+        String relationReviews = "relation reviews";
+
+        String nodeReviews = " <record> \n" + "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"t\">" + relationReviews + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"a\">" + testIssn
+                + "</subfield>\n" + "  </datafield>\n" + "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"a\">" + typeReviews + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"r\">" + "NON-REVIEWED"
+                + "</subfield>\n" + "  </datafield>\n" + "</record>";
+
+        InputStream inputStreamReviews = new ByteArrayInputStream(nodeReviews.getBytes());
+        Node recordReviews = marcXmlParser.parse(inputStreamReviews, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataReviews = marcXmlParser.readItemMetadataValues(context, recordReviews,
+                mapping);
+        assertEquals(relationReviews, getFirstMetadataValue(itemMetadataReviews, "dc.relation.journal"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataReviews, "dc.relation.ispartof"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataReviews, "dc.relation.ispartofseries"));
+
+        String typeJournalArticles = "Journal Articles";
+        String relationJournal = "relation journal";
+
+        String nodeJournalArticles = " <record> \n" + "<datafield tag=\"773\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"t\">" + relationJournal + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"022\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"a\">" + testIssn
+                + "</subfield>\n" + "  </datafield>\n" + "<datafield tag=\"336\" ind1=\" \" ind2=\" \">\n"
+                + "<subfield code=\"a\">" + typeJournalArticles + "</subfield>\n" + "  </datafield>\n"
+                + "<datafield tag=\"973\" ind1=\" \" ind2=\" \">\n" + "<subfield code=\"r\">" + "NON-REVIEWED"
+                + "</subfield>\n" + "  </datafield>\n" + "</record>";
+
+        InputStream inputStreamJournalArticles = new ByteArrayInputStream(nodeJournalArticles.getBytes());
+        Node recordJournalArticles = marcXmlParser.parse(inputStreamJournalArticles, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataJournalArticles = marcXmlParser.readItemMetadataValues(context,
+                recordJournalArticles, mapping);
+        assertEquals(relationJournal, getFirstMetadataValue(itemMetadataJournalArticles, "dc.relation.journal"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataJournalArticles, "dc.relation.ispartof"));
+        assertEquals(NOT_FOUND_VALUE, getFirstMetadataValue(itemMetadataJournalArticles, "dc.relation.ispartofseries"));
+
+    }
+
+    /**
+     * This test checks that epfl.relation.rejectedOrgUnit and
+     * epfl.relation.pendingOrgUnit are NOT imported
+     */
+    @Test
+    public void testRejectedAndPendingOrgUnitsSkipped() {
+        String test = " <record> \n" +
+                "<datafield tag=\"910\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">testRejected</subfield>\n" +
+                "</datafield>\n" +
+                "<datafield tag=\"999\" ind1=\"C\" ind2=\"0\">\n" +
+                "<subfield code=\"p\">testPending</subfield>\n" +
+                "</datafield>\n" +
+                "</record>";
+
+        InputStream inputStream = new ByteArrayInputStream(test.getBytes());
+
+        Node record = marcXmlParser.parse(inputStream, mapping.getItemXPath());
+
+        List<MetadataValueDTO> itemMetadata = marcXmlParser.readItemMetadataValues(context, record, mapping);
+        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relation.rejectedOrgUnit"), NOT_FOUND_VALUE);
+        assertEquals(getFirstMetadataValue(itemMetadata, "epfl.relation.pendingOrgUnit"), NOT_FOUND_VALUE);
     }
 
     @Test

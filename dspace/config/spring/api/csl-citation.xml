@@ -8,12 +8,15 @@
     	<property name="typeConverter" ref="mapConverterPublicationTypes"/>
     	<property name="type" value="dc.type"/>
     	<property name="language" value="dc.language.iso"/>
+        <!-- please note the following is not a typo abstract is a reserved word in JAVA
+             so the property has been named abstrct (without the a) -->
         <property name="abstrct" value="dc.description.abstract"/>
         <property name="DOI" value="dc.identifier.doi"/>
-        <property name="ISBN" value="dc.identifier.isbn"/>
-        <property name="ISSN" value="dc.identifier.issn"/>
+        <property name="ISBN" value="dc.relation.isbn"/>
+        <property name="ISSN" value="dc.relation.issn"/>
         <property name="keyword" value="dc.subject"/>
         <property name="publisher" value="dc.publisher"/>
+        <property name="publisherPlace" value="dc.publisher.place"/>
         <property name="volume" value="oaire.citation.volume"/>
         <property name="issue" value="oaire.citation.issue"/>
         <property name="event" value="dc.relation.conference"/>
@@ -22,11 +25,21 @@
         <property name="issued" value="dc.date.issued"/>
         <property name="author" value="dc.contributor.author"/>
         <property name="editor" value="dc.contributor.editor"/>
+        <property name="journalAbbreviation" ref="journalTypesMap"/>
+        <property name="pageFirst" value="oaire.citation.startPage"/>
+        <property name="page" value="oaire.citation.endPage"/>
+        <property name="collectionTitle" value="dc.relation.ispartofseries"/>
     </bean>
     
     <bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
-		<property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
-		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value=""/>
-	</bean>
+		  <property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
+		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+          <property name="defaultValue" value="article"/>
+    </bean>
+
+    <util:map id="journalTypesMap" key-type="java.lang.String" value-type="java.lang.String">
+        <entry key="article" value="dc.relation.journal" />
+        <entry key="chapter" value="dc.relation.ispartof" />
+        <entry key="default" value="dc.relation.ispartof" />
+    </util:map>
 </beans>

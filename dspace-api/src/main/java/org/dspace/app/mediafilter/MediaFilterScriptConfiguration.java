@@ -37,6 +37,7 @@ public class MediaFilterScriptConfiguration<T extends MediaFilterScript> extends
             "ONLY process bitstreams belonging to the provided handle identifier");
         options.addOption("m", "maximum", true, "process no more than maximum items");
         options.addOption("h", "help", false, "help");
+        options.addOption("u", "updateLastModified", false, "update last modified metadata");
 
         Option pluginOption = Option.builder("p")
                                     .longOpt("plugins")

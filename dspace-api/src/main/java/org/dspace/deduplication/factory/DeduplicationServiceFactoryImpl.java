@@ -7,8 +7,10 @@
  */
 package org.dspace.deduplication.factory;
 
-import org.dspace.deduplication.service.DeduplicationService;
+import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
+import org.dspace.dataquality.service.AbstractDeduplicationServiceAddon;
 import org.dspace.deduplication.service.DeduplicationSetMergeService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -18,20 +20,27 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Francesco Pio Scognamiglio (francescopio.scognamiglio at 4science.it)
  */
 public class DeduplicationServiceFactoryImpl extends DeduplicationServiceFactory {
-
     @Autowired
-    private DeduplicationService deduplicationService;
-
-    @Autowired(required = true)
     private DeduplicationSetMergeService deduplicationSetMergeService;
 
+
     @Override
-    public DeduplicationService getDeduplicationService() {
-        return deduplicationService;
+    public AbstractDedupUtilsAddon getDedupUtilsAddon() {
+        return DSpaceServicesFactory.getInstance().getServiceManager()
+                                    .getServicesByType(AbstractDedupUtilsAddon.class)
+                                    .get(0);
+    }
+
+    @Override
+    public AbstractDeduplicationServiceAddon getDeduplicationService() {
+        return DSpaceServicesFactory.getInstance().getServiceManager()
+                                    .getServicesByType(AbstractDeduplicationServiceAddon.class)
+                                    .get(0);
     }
 
     @Override
     public DeduplicationSetMergeService getDeduplicationSetMergeService() {
         return deduplicationSetMergeService;
     }
+
 }

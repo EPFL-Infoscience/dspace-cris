@@ -971,6 +971,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore // variants disabled in the discovery.cfg
     public void findPublicationByAuthorNameVariant() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context).build();
@@ -1012,6 +1013,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore // variants disabled in the discovery.cfg
     public void findPublicationByEditorNameVariant() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context).build();

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dspace-dc-types>
+
+	<dspace-header>
+		<title>Copy to bitstream types</title>
+	</dspace-header>
+
+	<dc-type>
+		<schema>datacite</schema>
+		<element>relatedIdentifier</element>
+		<qualifier></qualifier>
+	</dc-type>
+	
+	<dc-type>
+        <schema>datacite</schema>
+        <element>relationType</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Accepted</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Available</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Copyrighted</element>
+        <qualifier></qualifier>
+    </dc-type>
+	
+	<dc-type>
+        <schema>datacite</schema>
+        <element>Collected</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Created</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Submitted</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Updated</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Valid</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Withdrawn</element>
+        <qualifier></qualifier>
+    </dc-type>
+    
+    <dc-type>
+        <schema>datacite</schema>
+        <element>Other</element>
+        <qualifier></qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Accepted</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Available</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Copyrighted</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Collected</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Created</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Submitted</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Updated</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Valid</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Withdrawn</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>datacite</schema>
+        <element>dateType</element>
+        <qualifier>Other</qualifier>
+    </dc-type>
+
+</dspace-dc-types>
