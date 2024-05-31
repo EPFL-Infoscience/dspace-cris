@@ -11,6 +11,7 @@ import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -62,7 +63,6 @@ import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.external.service.impl.ExternalDataServiceImpl;
 import org.dspace.identifier.DOI;
-import org.dspace.identifier.doi.DOIIdentifierException;
 import org.dspace.identifier.factory.IdentifierServiceFactory;
 import org.dspace.identifier.service.DOIService;
 import org.dspace.kernel.ServiceManager;
@@ -105,6 +105,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private String collectionUuid;
 
     private String finalState;
+
+    private List<String> workspaceItemImportedDoi;
 
     private Integer totalSearchLimit;
 
@@ -165,6 +167,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             ? Integer.valueOf(commandLine.getOptionValue('l'))
             : getDefaultTotalSearchLimit();
         this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
+        workspaceItemImportedDoi = new ArrayList<>();
     }
 
     private void putServiceIfExists(String key, String serviceName) {
@@ -285,7 +288,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         try {
             Iterator<Item> itemIterator = findItems();
             handler.logInfo("Update start");
-            while (itemIterator.hasNext() && searchCount < 1) {
+            while (itemIterator.hasNext() && searchCount < totalSearchLimit) {
                 Item item = itemIterator.next();
                 String id = buildID(item);
                 if (StringUtils.isNotBlank(id)) {
@@ -444,6 +447,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
                                         " and put in status: " + finalState);
                     imported++;
+                    workspaceItemImportedDoi.add(dataObject.getId());
                 }
                 countDataObjects++;
             }
@@ -455,6 +459,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private boolean isObjectWithDOIExist(String identifier) {
         try {
+            if (workspaceItemImportedDoi.contains(identifier)) {
+                return true;
+            }
+
             String doi = doiService.formatIdentifier(identifier);
             DOI doiRow = doiService.findByDoi(context, doi.substring(DOI.SCHEME.length()));
 
@@ -463,9 +471,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             } else {
                 return doiRow.getDSpaceObject() != null;
             }
-        } catch (DOIIdentifierException | SQLException e) {
-            throw new RuntimeException("Unable to retrieve information about a DOI out of database.", e);
+        } catch (Exception e) {
+            handler.logError("Unable to retrieve information about a DOI out of database.");
         }
+        return false;
     }
 
     private void makeFinalState(WorkspaceItem wsItem)
