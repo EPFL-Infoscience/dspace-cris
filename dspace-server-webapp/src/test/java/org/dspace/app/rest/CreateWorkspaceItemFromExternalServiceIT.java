@@ -59,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
 * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4Science.it)
 */
-@Ignore
 public class CreateWorkspaceItemFromExternalServiceIT extends AbstractControllerIntegrationTest {
 
     @Autowired
@@ -85,6 +84,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
     private Map<String, LiveImportDataProvider> nameToProvider;
     private LiveImportDataProvider mockScopusProvider;
     private LiveImportDataProvider mockWosProvider;
+    private LiveImportDataProvider mockArxivProvider;
 
     @Before
     @Override
@@ -117,8 +117,10 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         nameToProvider = new HashMap<String, LiveImportDataProvider>();
         mockScopusProvider = Mockito.mock(LiveImportDataProvider.class);
         mockWosProvider = Mockito.mock(LiveImportDataProvider.class);
+        mockArxivProvider = Mockito.mock(LiveImportDataProvider.class);
     }
 
+    @Ignore
     @Test
     public void creatingWorkspaceItemImportedFromScopusTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -209,7 +211,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                  .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
 
-
+    @Ignore
     @Test
     public void createOnlyOneWorkspaceItemImportedFromScopusTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -296,6 +298,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                  .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
+    @Ignore
     @Test
     public void scopusAuthorIdentifierNotFoundTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -322,6 +325,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(0)));
     }
 
+    @Ignore
     @Test
     public void creatingWorkspaceItemImportedFromWOSTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -418,6 +422,104 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
     }
 
     @Test
+    public void creatingWorkspaceItemImportedFromArxivTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+
+        this.itemPersonA = ItemBuilder.createItem(context, this.col1)
+                .withPersonIdentifierFirstName("EDWIN")
+                .withPersonIdentifierLastName("SAUCEDO")
+                .withOrcidIdentifier("0000-0002-9029-1854")
+                .withResearcherIdentifier("123456789")
+                .build();
+
+        //define first record
+        MetadataValueDTO title = new MetadataValueDTO("dc","title", null,null, "Putting Historical Data in Context");
+        MetadataValueDTO identifier = new MetadataValueDTO("dc", "identifier", "other", null, "WOS:000439929300064");
+        MetadataValueDTO date = new MetadataValueDTO("dc", "date", "issued", null, "2017");
+        MetadataValueDTO type = new MetadataValueDTO("dc", "type", null, null, "Book in series");
+        MetadataValueDTO rid = new MetadataValueDTO("person", "identifier", "rid", null, "123456789");
+        MetadataValueDTO orcid = new MetadataValueDTO("person", "identifier", "orcid", null, "0000-0002-9029-1854");
+
+        List<MetadataValueDTO> metadataFirstRecord = new ArrayList<MetadataValueDTO>();
+        metadataFirstRecord.add(type);
+        metadataFirstRecord.add(title);
+        metadataFirstRecord.add(date);
+        metadataFirstRecord.add(identifier);
+        metadataFirstRecord.add(rid);
+        metadataFirstRecord.add(orcid);
+
+        ExternalDataObject firstRecord = new ExternalDataObject();
+        firstRecord.setMetadata(metadataFirstRecord);
+
+        //define second record
+        MetadataValueDTO title2R = new MetadataValueDTO("dc", "title", null, null, "Regional Portal FVG");
+        MetadataValueDTO identifier2R = new MetadataValueDTO("dc", "identifier", "other", null, "WOS:000348252500018");
+        MetadataValueDTO type2R = new MetadataValueDTO("dc", "type", null, null, "Journal");
+        MetadataValueDTO date2R = new MetadataValueDTO("dc", "date", "issued", null, "2017");
+        MetadataValueDTO description2R = new MetadataValueDTO("dc", "description", "abstract", null,
+                "In 2013, Directory of Open Access Journals (DOAJ)");
+        MetadataValueDTO rid2R = new MetadataValueDTO("person", "identifier", "rid", null, "123456789");
+        MetadataValueDTO orcid2R = new MetadataValueDTO("person", "identifier", "orcid", null, "0000-0002-9029-1854");
+
+        List<MetadataValueDTO> metadataSecondRecord = new ArrayList<MetadataValueDTO>();
+        metadataSecondRecord.add(title2R);
+        metadataSecondRecord.add(identifier2R);
+        metadataSecondRecord.add(type2R);
+        metadataSecondRecord.add(date2R);
+        metadataSecondRecord.add(description2R);
+        metadataSecondRecord.add(rid2R);
+        metadataSecondRecord.add(orcid2R);
+
+        ExternalDataObject secondRecord = new ExternalDataObject();
+        secondRecord.setMetadata(metadataSecondRecord);
+
+        List<ExternalDataObject> externalObjects = new ArrayList<ExternalDataObject>();
+        externalObjects.add(firstRecord);
+        externalObjects.add(secondRecord);
+
+        when(mockArxivProvider.getNumberOfResults(ArgumentMatchers.any())).thenReturn(2);
+        when(mockArxivProvider.searchExternalDataObjects(ArgumentMatchers.any(), ArgumentMatchers.anyInt(),
+                ArgumentMatchers.anyInt())).thenReturn(externalObjects);
+        when(mockArxivProvider.getSourceIdentifier()).thenReturn("arxiv");
+
+        context.restoreAuthSystemState();
+
+        String[] args = new String[] {"import-publications", "-s", "arxiv", "-f", "workflow", "-e", admin.getEmail(),
+        "-q", "ti:volume"};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        nameToProvider.put("arxiv", mockArxivProvider);
+        createWorkspaceItemService.initialize(args, handler, admin);
+        createWorkspaceItemService.setNameToProvider(nameToProvider);
+        createWorkspaceItemService.run();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        getClient(tokenAdmin).perform(get("/api/workflow/workflowitems"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.workflowitems[0].sections.publication['dc.title'][0].value",
+                        is(title.getValue())))
+                .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
+                        + ".publication['dc.identifier.other'][0].value", is(identifier.getValue())))
+                .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
+                        + ".publication['dc.date.issued'][0].value", is(date.getValue())))
+                .andExpect(jsonPath("$._embedded.workflowitems[0].sections"
+                        + ".publication['dc.type'][0].value", is(type.getValue())))
+                .andExpect(jsonPath("$._embedded.workflowitems[1].sections.publication['dc.title'][0].value",
+                        is(title2R.getValue())))
+                .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
+                        + ".publication['dc.identifier.other'][0].value",is(identifier2R.getValue())))
+                .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
+                        + ".publication['dc.date.issued'][0].value", is(date2R.getValue())))
+                .andExpect(jsonPath("$._embedded.workflowitems[1].sections"
+                        + ".publication['dc.type'][0].value", is(type2R.getValue())))
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+    }
+
+    @Ignore
+    @Test
     public void creatingWorkspaceItemImportedFromWOSandWorkspaceFinalStatusTest() throws Exception {
         context.turnOffAuthorisationSystem();
         //disable file upload mandatory
@@ -503,6 +605,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
 
+    @Ignore
     @Test
     public void creatingWorkspaceItemImportedFromWOSandItemFinalStatusTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -589,6 +692,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(3)));
     }
 
+    @Ignore
     @Test
     public void allItemsAlreadyExistImportFromWOSTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -668,6 +772,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(0)));
     }
 
+    @Ignore
     @Test
     public void testWithSearchLimit() throws ParseException, SQLException {
 
@@ -735,6 +840,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
     }
 
+    @Ignore
     @Test
     public void testWithSearchLimitUpdatingOnlyItemsWithoutLastImportMetadata() throws ParseException, SQLException {
 
@@ -820,5 +926,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
             throw new RuntimeException();
         }
     }
+
+
 
 }
