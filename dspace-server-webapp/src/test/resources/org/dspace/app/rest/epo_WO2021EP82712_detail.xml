@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="/3.2/style/exchange.xsl"?>
+<ops:world-patent-data xmlns="http://www.epo.org/exchange" xmlns:ops="http://ops.epo.org" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <exchange-documents>
+        <exchange-document system="ops.epo.org" family-id="78821851" country="WO" doc-number="2023093975" kind="A1">
+            <bibliographic-data>
+                <publication-reference>
+                    <document-id document-id-type="docdb">
+                        <country>WO</country>
+                        <doc-number>2023093975</doc-number>
+                        <kind>A1</kind>
+                        <date>20230601</date>
+                    </document-id>
+                    <document-id document-id-type="epodoc">
+                        <doc-number>WO2023093975</doc-number>
+                        <date>20230601</date>
+                    </document-id>
+                </publication-reference>
+                <classifications-ipcr>
+                    <classification-ipcr sequence="1">
+                        <text>G02F   1/   035            A I                    </text>
+                    </classification-ipcr>
+                    <classification-ipcr sequence="2">
+                        <text>H01S   3/   107            A I                    </text>
+                    </classification-ipcr>
+                    <classification-ipcr sequence="3">
+                        <text>H01S   3/    11            A I                    </text>
+                    </classification-ipcr>
+                    <classification-ipcr sequence="4">
+                        <text>H01S   5/    14            A I                    </text>
+                    </classification-ipcr>
+                </classifications-ipcr>
+                <patent-classifications>
+                    <patent-classification sequence="1">
+                        <classification-scheme office="EP" scheme="CPCI"/>
+                        <section>G</section>
+                        <class>02</class>
+                        <subclass>F</subclass>
+                        <main-group>1</main-group>
+                        <subgroup>035</subgroup>
+                        <classification-value>I</classification-value>
+                        <generating-office>EP</generating-office>
+                    </patent-classification>
+                    <patent-classification sequence="2">
+                        <classification-scheme office="EP" scheme="CPCI"/>
+                        <section>H</section>
+                        <class>01</class>
+                        <subclass>S</subclass>
+                        <main-group>3</main-group>
+                        <subgroup>107</subgroup>
+                        <classification-value>I</classification-value>
+                        <generating-office>EP</generating-office>
+                    </patent-classification>
+                    <patent-classification sequence="3">
+                        <classification-scheme office="EP" scheme="CPCI"/>
+                        <section>H</section>
+                        <class>01</class>
+                        <subclass>S</subclass>
+                        <main-group>3</main-group>
+                        <subgroup>1106</subgroup>
+                        <classification-value>I</classification-value>
+                        <generating-office>EP</generating-office>
+                    </patent-classification>
+                    <patent-classification sequence="4">
+                        <classification-scheme office="EP" scheme="CPCI"/>
+                        <section>H</section>
+                        <class>01</class>
+                        <subclass>S</subclass>
+                        <main-group>5</main-group>
+                        <subgroup>141</subgroup>
+                        <classification-value>I</classification-value>
+                        <generating-office>EP</generating-office>
+                    </patent-classification>
+                </patent-classifications>
+                <application-reference doc-id="561990587">
+                    <document-id document-id-type="docdb">
+                        <country>EP</country>
+                        <doc-number>2021082712</doc-number>
+                        <kind>W</kind>
+                    </document-id>
+                    <document-id document-id-type="epodoc">
+                        <doc-number>WO2021EP82712</doc-number>
+                        <date>20211123</date>
+                    </document-id>
+                    <document-id document-id-type="original">
+                        <doc-number>EP2021/082712</doc-number>
+                    </document-id>
+                </application-reference>
+                <priority-claims>
+                    <priority-claim sequence="1" kind="national">
+                        <document-id document-id-type="epodoc">
+                            <doc-number>WO2021EP82712</doc-number>
+                            <date>20211123</date>
+                        </document-id>
+                    </priority-claim>
+                </priority-claims>
+                <parties>
+                    <applicants>
+                        <applicant sequence="1" data-format="epodoc">
+                            <applicant-name>
+                                <name>ECOLE POLYTECHNIQUE FED LAUSANNE EPFL [CH]</name>
+                            </applicant-name>
+                        </applicant>
+                        <applicant sequence="1" data-format="original">
+                            <applicant-name>
+                                <name>ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (EPFL)</name>
+                            </applicant-name>
+                        </applicant>
+                    </applicants>
+                    <inventors>
+                        <inventor sequence="1" data-format="epodoc">
+                            <inventor-name>
+                                <name>KIPPENBERG TOBIAS [CH]</name>
+                            </inventor-name>
+                        </inventor>
+                        <inventor sequence="2" data-format="epodoc">
+                            <inventor-name>
+                                <name> LIKHACHEV GRIGORII [CH]</name>
+                            </inventor-name>
+                        </inventor>
+                        <inventor sequence="3" data-format="epodoc">
+                            <inventor-name>
+                                <name> RIEMENSBERGER JOHANN [CH]</name>
+                            </inventor-name>
+                        </inventor>
+                        <inventor sequence="4" data-format="epodoc">
+                            <inventor-name>
+                                <name> SNIGIREV VIACHESLAV [CH]</name>
+                            </inventor-name>
+                        </inventor>
+                        <inventor sequence="1" data-format="original">
+                            <inventor-name>
+                                <name>KIPPENBERG, Tobias, </name>
+                            </inventor-name>
+                        </inventor>
+                        <inventor sequence="2" data-format="original">
+                            <inventor-name>
+                                <name>LIKHACHEV, Grigorii, </name>
+                            </inventor-name>
+                        </inventor>
+                        <inventor sequence="3" data-format="original">
+                            <inventor-name>
+                                <name>RIEMENSBERGER, Johann, </name>
+                            </inventor-name>
+                        </inventor>
+                        <inventor sequence="4" data-format="original">
+                            <inventor-name>
+                                <name>SNIGIREV, Viacheslav</name>
+                            </inventor-name>
+                        </inventor>
+                    </inventors>
+                </parties>
+                <invention-title lang="fr">ENSEMBLE PHOTONIQUE ACCORDABLE PAR EFFET POCKELS ET PROCÉDÉ D'UTILISATION DANS UN LIDAR MODULÉ EN FRÉQUENCE</invention-title>
+                <invention-title lang="en">PHOTONIC ASSEMBLY TUNABLE VIA THE POCKELS EFFECT AND METHOD FOR USE IN FREQUENCY-MODULATED LIDAR</invention-title>
+                <references-cited>
+                    <citation cited-phase="undefined" cited-by="applicant" sequence="1">
+                        <nplcit num="1">
+                            <text>- G. LIHACHEV et al., "Ultralow-noise frequency-agile photonic integrated lasers", arXiv:2104.02990, (20210000)</text>
+                        </nplcit>
+                    </citation>
+                    <citation cited-phase="undefined" cited-by="applicant" sequence="2">
+                        <nplcit num="2">
+                            <text>- P. WELCH, "The use of fast Fourier transform for the estimation of power spectra: A method based on time averaging over short, modified periodograms", IEEE Transactions on Audio, (19670600), vol. 15, no. 2, pages 70 - 73, XP002586039</text>
+                        </nplcit>
+                    </citation>
+                    <citation cited-phase="undefined" cited-by="applicant" sequence="3">
+                        <nplcit num="3">
+                            <text>- G. DI DOMENICO et al., "Simple approach to the relation between laser frequency noise and laser line shape", Appl. Opt., (20100000), vol. 49, doi:10.1364/AO.49.004801, pages 4801 - 4807, XP001556480</text>
+                        </nplcit>
+                    </citation>
+                    <citation cited-phase="undefined" cited-by="applicant" sequence="4">
+                        <nplcit num="4">
+                            <text>- G. HUANG et al., "Thermorefractive noise in silicon-nitride microresonators", Physical Review A, (20190000), vol. 99, page 061801</text>
+                        </nplcit>
+                    </citation>
+                    <citation cited-phase="international-search-report" cited-by="examiner" sequence="1" office="EP">
+                        <patcit dnum-type="publication number" num="1">
+                            <document-id document-id-type="epodoc">
+                                <doc-number>US2012039346</doc-number>
+                                <name>LIANG WEI [US], et al</name>
+                                <date>20120216</date>
+                            </document-id>
+                            <document-id document-id-type="docdb">
+                                <country>US</country>
+                                <doc-number>2012039346</doc-number>
+                                <kind>A1</kind>
+                                <name>LIANG WEI [US], et al</name>
+                                <date>20120216</date>
+                            </document-id>
+                        </patcit>
+                        <category>I</category>
+                        <rel-claims>1-16</rel-claims>
+                        <rel-passage>
+                            <passage>* paragraph  [0043]  - paragraph  [0053]; figures 11, 7A, 7B *</passage>
+                        </rel-passage>
+                    </citation>
+                    <citation cited-phase="international-search-report" cited-by="examiner" sequence="2">
+                        <nplcit num="1">
+                            <text>- GRIGORY LIHACHEV ET AL, "Ultralow-noise frequency-agile photonic integrated lasers", ARXIV.ORG, CORNELL UNIVERSITY LIBRARY, 201 OLIN LIBRARY CORNELL UNIVERSITY ITHACA, NY 14853, (20210407), XP081933952</text>
+                        </nplcit>
+                        <category>A</category>
+                        <rel-claims>1-16</rel-claims>
+                        <rel-passage>
+                            <passage>* pages  2-3; figure 1 *</passage>
+                        </rel-passage>
+                    </citation>
+                    <citation cited-phase="international-search-report" cited-by="examiner" sequence="3">
+                        <nplcit num="2">
+                            <text>- DI ZHU ET AL, "Integrated photonics on thin-film lithium niobate", ARXIV.ORG, CORNELL UNIVERSITY LIBRARY, 201 OLIN LIBRARY CORNELL UNIVERSITY ITHACA, NY 14853, (20210223), XP081891270</text>
+                        </nplcit>
+                        <category>A</category>
+                        <rel-claims>1-16</rel-claims>
+                        <rel-passage>
+                            <passage>* page  3; figure 1 *</passage>
+                            <passage>* page  71  - page  73; figure 44 *</passage>
+                        </rel-passage>
+                    </citation>
+                    <citation cited-phase="international-search-report" cited-by="examiner" sequence="4">
+                        <nplcit num="3">
+                            <text>- LUKE KEVIN ET AL, "Wafer-scale low-loss lithium niobate photonic integrated circuits", 2020 IEEE PHOTONICS CONFERENCE (IPC), IEEE, (20200928), doi:10.1109/IPC47351.2020.9252499, pages 1 - 2, XP033857570</text>
+                        </nplcit>
+                        <category>A</category>
+                        <rel-claims>1-16</rel-claims>
+                        <rel-passage>
+                            <passage>* abstract *</passage>
+                        </rel-passage>
+                    </citation>
+                </references-cited>
+            </bibliographic-data>
+            <abstract lang="en">
+                <p>THIS IS A MOCK! - A photonic assembly, a laser setup comprising said photonic assembly and a method for performing frequency-modulated continuous-wave light detection and ranging using said laser setup are disclosed. The photonic assembly (1) comprises an active photonic chip (10), a photonic modulator chip (2) comprising a photonic circuit arrangement, and a tuning arrangement comprising a modulation element (33) having a thickness of 10 micrometers or less. The active photonic chip (10) and the photonic modulator chip (2) are optically coupled such, that injection radiation at an optical feedback wavelength is generated, which defines at least one optical lasing wavelength at which the optical radiation is emitted by the active photonic chip (10). The modulation element (33) is arranged such, that an actuation of the modulation element (33) tunes the optical feedback wavelength via the Pockels effect, such, that a tuning of the optical feedback wavelength entails a tuning of the optical lasing wavelength.</p>
+            </abstract>
+            <abstract lang="fr">
+                <p>THIS IS A MOCK! - L'invention concerne un ensemble photonique, une configuration laser comprenant ledit ensemble photonique et un procédé permettant d'exécuter un lidar à onde continue modulé en fréquence à l'aide de ladite configuration laser. L'ensemble photonique (1) comprend une puce photonique active (10), une puce de modulateur photonique (2) comprenant un agencement de circuit photonique, et un agencement d'accord comprenant un élément de modulation (33) doté d'une épaisseur de 10 micromètres ou moins. La puce photonique active (10) et la puce de modulateur photonique (2) sont couplées optiquement de sorte qu'un rayonnement d'injection à une longueur d'onde de rétroaction optique est généré, qui définit au moins une longueur d'onde d'émission laser optique à laquelle le rayonnement optique est émis par la puce photonique active (10). L'élément de modulation (33) est agencé de sorte qu'un actionnement de l'élément de modulation (33) accorde la longueur d'onde de rétroaction optique par l'intermédiaire de l'effet Pockels, de sorte qu'un accord de la longueur d'onde de rétroaction optique implique un accord de la longueur d'onde d'émission laser optique.</p>
+            </abstract>
+        </exchange-document>
+    </exchange-documents>
+</ops:world-patent-data>
