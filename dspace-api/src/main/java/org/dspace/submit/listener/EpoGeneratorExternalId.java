@@ -74,11 +74,23 @@ public class EpoGeneratorExternalId implements ExternalIdGenerator {
         }
     }
 
+    private static String getDateValue(List<MetadataValue> metadataValues) {
+        String value = metadataValues.get(0).getValue();
+        Pattern pattern = Pattern.compile("\\d{4}-\\d{1,2}-\\d{1,2}");
+        Matcher matcher = pattern.matcher(value);
+
+        if (matcher.find()) {
+            return value;
+        } else {
+            return EMPTY;
+        }
+    }
+
     private String generateApplicationNumberAndFilledDateID(Item item, String dateFilled, String applicationNumber) {
         List<MetadataValue> dateFilledValue = itemService.getMetadataByMetadataString(item, dateFilled);
         List<MetadataValue> applicationNumberValue = itemService.getMetadataByMetadataString(item, applicationNumber);
         if (CollectionUtils.isNotEmpty(dateFilledValue) && CollectionUtils.isNotEmpty(applicationNumberValue)) {
-            return getValue(applicationNumberValue) + APP_NO_DATE_SEPARATOR + getValue(dateFilledValue);
+            return getValue(applicationNumberValue) + APP_NO_DATE_SEPARATOR + getDateValue(dateFilledValue);
         }
         return EMPTY;
     }
