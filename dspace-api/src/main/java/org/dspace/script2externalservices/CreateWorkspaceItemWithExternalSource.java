@@ -98,7 +98,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private static final String PATENT = "Patent";
     private static final int LIMIT = 10;
 
-    private List<String> importedItems;
+    int importedItemsCounter = 0;
 
     private String service;
 
@@ -169,8 +169,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             ? Integer.valueOf(commandLine.getOptionValue('l'))
             : getDefaultTotalSearchLimit();
         this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
-        importedItems = new ArrayList<>();
         workspaceItemImportedDoi = new ArrayList<>();
+        importedItemsCounter = 0;
     }
 
     private void putServiceIfExists(String key, String serviceName) {
@@ -343,10 +343,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private void printImportedItemsSummary() {
-        handler.logInfo("SUMMARY: with process the following " + importedItems.size() + " items were imported :");
-        for (String importedItem : importedItems) {
-            handler.logInfo(importedItem);
-        }
+        handler.logInfo("SUMMARY: with process " + importedItemsCounter + " items were imported");
     }
 
     private MetadataValue getOwner(Item item) {
@@ -458,8 +455,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
                                         " and put in status: " + finalState);
-                    importedItems.add("Item " + wsItem.getItem().getID().toString()
-                            + " was imported from query: " + id);
+                    importedItemsCounter++;
                     imported++;
                     workspaceItemImportedDoi.add(dataObject.getId());
                 }
