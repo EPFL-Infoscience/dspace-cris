@@ -8,6 +8,8 @@
 
 package org.dspace.app.requestitem;
 
+import static org.dspace.core.Constants.READ;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -22,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.requestitem.service.RequestItemService;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -34,6 +37,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
+
 
 /**
  * Send item requests and responses by email.
@@ -48,6 +52,9 @@ import org.dspace.services.ConfigurationService;
 @ManagedBean
 public class RequestItemEmailNotifier {
     private static final Logger LOG = LogManager.getLogger();
+
+    @Inject
+    protected AuthorizeService authorizeService;
 
     @Inject
     protected BitstreamService bitstreamService;
@@ -220,7 +227,7 @@ public class RequestItemEmailNotifier {
                         List<Bitstream> bitstreams = bundle.getBitstreams();
                         for (Bitstream bitstream : bitstreams) {
                             if (!bitstream.getFormat(context).isInternal() &&
-                                    requestItemService.isRestricted(context, bitstream, ePerson)) {
+                                    !authorizeService.authorizeActionBoolean(context, ePerson, bitstream, READ, true)) {
                                 // #8636 Anyone receiving the email can respond to the
                                 // request without authenticating into DSpace
                                 context.turnOffAuthorisationSystem();

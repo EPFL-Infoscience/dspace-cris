@@ -163,7 +163,7 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
         requestItemEmailNotifier.bitstreamService = bitstreamService;
         requestItemEmailNotifier.configurationService = configurationService;
         requestItemEmailNotifier.handleService = handleService;
-        requestItemEmailNotifier.requestItemService = requestItemService;
+        requestItemEmailNotifier.authorizeService = authorizeService;
         requestItemEmailNotifier.ePersonService = ePersonService;
 
         // Test the unit.  Template supplies the Subject: value
@@ -219,30 +219,30 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
         Bitstream bitstreamWithGroupPolicy = createBitstream(bundle, "Bitstream with group policy");
         authorizeService.removePoliciesActionFilter(context, bitstreamWithGroupPolicy, READ);
         ResourcePolicyBuilder.createResourcePolicy(context)
-                             .withAction(READ)
-                             .withGroup(group)
-                             .withDspaceObject(bitstreamWithGroupPolicy)
-                             .build();
+                .withAction(READ)
+                .withGroup(group)
+                .withDspaceObject(bitstreamWithGroupPolicy)
+                .build();
 
         Bitstream bitstreamWithEPersonPolicy = createBitstream(bundle, "Bitstream with eperson policy");
         authorizeService.removePoliciesActionFilter(context, bitstreamWithEPersonPolicy, READ);
         ResourcePolicyBuilder.createResourcePolicy(context)
-                             .withAction(READ)
-                             .withUser(eperson)
-                             .withDspaceObject(bitstreamWithEPersonPolicy)
-                             .build();
+                .withAction(READ)
+                .withUser(eperson)
+                .withDspaceObject(bitstreamWithEPersonPolicy)
+                .build();
 
         Bitstream bitstreamEmbargoed = createBitstream(bundle, "Bitstream embargoed");
         authorizeService.removePoliciesActionFilter(context, bitstreamEmbargoed, READ);
         ResourcePolicyBuilder.createResourcePolicy(context)
-                             .withName("embargo")
-                             .withAction(READ)
-                             .withGroup(anonymousGroup)
-                             .withDspaceObject(bitstreamEmbargoed)
-                             .withStartDate(
-                                 new GregorianCalendar(2200, Calendar.DECEMBER, 31).getTime()
-                             )
-                             .build();
+                .withName("embargo")
+                .withAction(READ)
+                .withGroup(anonymousGroup)
+                .withDspaceObject(bitstreamEmbargoed)
+                .withStartDate(
+                        new GregorianCalendar(2200, Calendar.DECEMBER, 31).getTime()
+                )
+                .build();
 
         createBitstream(bundle, "Bitstream open access");
 
@@ -259,8 +259,8 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
         // Install a fake transport for RFC2822 email addresses.
         Session session = DSpaceServicesFactory.getInstance().getEmailService().getSession();
         Provider transportProvider = new Provider(Provider.Type.TRANSPORT,
-                                                  DUMMY_PROTO, JavaMailTestTransport.class.getCanonicalName(),
-                                                  "DSpace", "1.0");
+                DUMMY_PROTO, JavaMailTestTransport.class.getCanonicalName(),
+                "DSpace", "1.0");
         session.addProvider(transportProvider);
         session.setProvider(transportProvider);
         session.setProtocolForAddress("rfc822", DUMMY_PROTO);
@@ -275,15 +275,15 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
 
         // Instantiate and initialize the unit, using the "help desk" strategy.
         RequestItemEmailNotifier requestItemEmailNotifier
-            = new RequestItemEmailNotifier(
-            DSpaceServicesFactory.getInstance()
-                                 .getServiceManager()
-                                 .getServiceByName(RequestItemHelpdeskStrategy.class.getName(),
-                                                   RequestItemAuthorExtractor.class));
+                = new RequestItemEmailNotifier(
+                DSpaceServicesFactory.getInstance()
+                        .getServiceManager()
+                        .getServiceByName(RequestItemHelpdeskStrategy.class.getName(),
+                                RequestItemAuthorExtractor.class));
         requestItemEmailNotifier.bitstreamService = bitstreamService;
         requestItemEmailNotifier.configurationService = configurationService;
         requestItemEmailNotifier.handleService = handleService;
-        requestItemEmailNotifier.requestItemService = requestItemService;
+        requestItemEmailNotifier.authorizeService = authorizeService;
         requestItemEmailNotifier.ePersonService = ePersonService;
 
         // Test the unit.  Template supplies the Subject: value
@@ -294,60 +294,62 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
         // Check the To: address.
         Address[] myAddresses = JavaMailTestTransport.getAddresses();
         assertEquals("Should have one To: address.",
-                     myAddresses.length, 1);
+                myAddresses.length, 1);
         assertThat("To: should be an Internet address",
-                   myAddresses[0], instanceOf(InternetAddress.class));
+                myAddresses[0], instanceOf(InternetAddress.class));
         String address = ((InternetAddress)myAddresses[0]).getAddress();
         assertEquals("To: address should match requester.",
-                     ri.getReqEmail(), address);
+                ri.getReqEmail(), address);
 
         // Check the message body.
         Message myMessage = JavaMailTestTransport.getMessage();
         Object content = myMessage.getContent();
 
         assertThat("Body should be a multipart",
-                   content, instanceOf(MimeMultipart.class));
+                content, instanceOf(MimeMultipart.class));
 
         MimeMultipart multipartContent = (MimeMultipart) content;
 
         assertEquals("Body should have 5 parts (1 main message and 4 attachments)",
-                     5, multipartContent.getCount());
+                5, multipartContent.getCount());
 
         assertThat("Should contain the helpdesk name",
-                   (String) multipartContent.getBodyPart(0).getDataHandler().getContent(),
-                   containsString(HELPDESK_NAME));
+                (String) multipartContent.getBodyPart(0).getDataHandler().getContent(),
+                containsString(HELPDESK_NAME));
 
         assertThat("Should contain the test custom message",
-                   (String) multipartContent.getBodyPart(0).getDataHandler().getContent(),
-                   containsString(TEST_MESSAGE));
+                (String) multipartContent.getBodyPart(0).getDataHandler().getContent(),
+                containsString(TEST_MESSAGE));
 
         assertEquals("Should contain file without policies",
-                     bitstreamWithoutPolicies.getName(),
-                     multipartContent.getBodyPart(1).getFileName());
+                bitstreamWithoutPolicies.getName(),
+                multipartContent.getBodyPart(1).getFileName());
 
         assertEquals("Should contain file with group policy",
-                     bitstreamWithGroupPolicy.getName(),
-                     multipartContent.getBodyPart(2).getFileName());
+                bitstreamWithGroupPolicy.getName(),
+                multipartContent.getBodyPart(2).getFileName());
 
         assertEquals("Should contain file with eperson policy",
-                     bitstreamWithEPersonPolicy.getName(),
-                     multipartContent.getBodyPart(3).getFileName());
+                bitstreamWithEPersonPolicy.getName(),
+                multipartContent.getBodyPart(3).getFileName());
 
         assertEquals("Should contain embargoed file",
-                     bitstreamEmbargoed.getName(),
-                     multipartContent.getBodyPart(4).getFileName());
+                bitstreamEmbargoed.getName(),
+                multipartContent.getBodyPart(4).getFileName());
     }
 
     private Bitstream createBitstream(Bundle bundle, String name) {
         try (InputStream is = IOUtils.toInputStream("Test file content", CharEncoding.UTF_8)) {
             return BitstreamBuilder.createBitstream(context, bundle, is)
-                                   .withName(name)
-                                   .withMimeType("text/plain")
-                                   .build();
+                    .withName(name)
+                    .withMimeType("text/plain")
+                    .build();
         } catch (IOException | SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }
     }
+
+
 
     /**
      * Test of sendResponse method -- rejection case.
@@ -403,7 +405,7 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
         requestItemEmailNotifier.bitstreamService = bitstreamService;
         requestItemEmailNotifier.configurationService = configurationService;
         requestItemEmailNotifier.handleService = handleService;
-        requestItemEmailNotifier.requestItemService = requestItemService;
+        requestItemEmailNotifier.authorizeService = authorizeService;
         requestItemEmailNotifier.ePersonService = ePersonService;
 
         // Test the unit.  Template supplies the Subject: value

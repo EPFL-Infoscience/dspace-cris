@@ -62,6 +62,9 @@ import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.external.service.impl.ExternalDataServiceImpl;
+import org.dspace.identifier.DOI;
+import org.dspace.identifier.factory.IdentifierServiceFactory;
+import org.dspace.identifier.service.DOIService;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -105,6 +108,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private String finalState;
 
+    private List<String> workspaceItemImportedDoi;
+
     private Integer totalSearchLimit;
 
     private Integer perResearcherSearchLimit;
@@ -132,6 +137,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private InstallItemService installItemService;
 
+    protected DOIService doiService;
+
     @Override
     public void setup() throws ParseException {
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -152,6 +159,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+        doiService = IdentifierServiceFactory.getInstance().getDOIService();
 
         this.service = commandLine.getOptionValue('s');
         this.finalState = commandLine.getOptionValue('f');
@@ -162,6 +170,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             : getDefaultTotalSearchLimit();
         this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
         importedItems = new ArrayList<>();
+        workspaceItemImportedDoi = new ArrayList<>();
     }
 
     private void putServiceIfExists(String key, String serviceName) {
@@ -432,7 +441,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         int imported = 0;
         try {
             for (ExternalDataObject dataObject : dataProvider.searchExternalDataObjects(id, record, LIMIT)) {
-                if (!exist(dataObject.getMetadata())) {
+                if (!exist(dataObject.getMetadata()) && !isObjectWithDOIExist(dataObject.getId())) {
                     WorkspaceItem wsItem = externalDataService
                         .createWorkspaceItemFromExternalDataObject(context, dataObject, collection);
                     Item itemFromWs = wsItem.getItem();
@@ -452,6 +461,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     importedItems.add("Item " + wsItem.getItem().getID().toString()
                             + " was imported from query: " + id);
                     imported++;
+                    workspaceItemImportedDoi.add(dataObject.getId());
                 }
                 countDataObjects++;
             }
@@ -459,6 +469,26 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             log.error(e.getMessage(), e);
         }
         return new int[] {countDataObjects, imported};
+    }
+
+    private boolean isObjectWithDOIExist(String identifier) {
+        try {
+            if (workspaceItemImportedDoi.contains(identifier)) {
+                return true;
+            }
+
+            String doi = doiService.formatIdentifier(identifier);
+            DOI doiRow = doiService.findByDoi(context, doi.substring(DOI.SCHEME.length()));
+
+            if (null == doiRow) {
+                return false;
+            } else {
+                return doiRow.getDSpaceObject() != null;
+            }
+        } catch (Exception e) {
+            handler.logError("Unable to retrieve information about a DOI out of database.");
+        }
+        return false;
     }
 
     private void makeFinalState(WorkspaceItem wsItem)

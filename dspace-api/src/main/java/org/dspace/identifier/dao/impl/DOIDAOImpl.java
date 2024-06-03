@@ -37,10 +37,16 @@ public class DOIDAOImpl extends AbstractHibernateDAO<DOI> implements DOIDAO {
     @Override
     public DOI findByDoi(Context context, String doi) throws SQLException {
         CriteriaBuilder criteriaBuilder = getCriteriaBuilder(context);
-        CriteriaQuery criteriaQuery = getCriteriaQuery(criteriaBuilder, DOI.class);
+        CriteriaQuery<DOI> criteriaQuery = getCriteriaQuery(criteriaBuilder, DOI.class);
         Root<DOI> doiRoot = criteriaQuery.from(DOI.class);
         criteriaQuery.select(doiRoot);
-        criteriaQuery.where(criteriaBuilder.equal(doiRoot.get(DOI_.doi), doi));
+
+        // Perform case-insensitive comparison
+        criteriaQuery.where(criteriaBuilder.equal(
+                criteriaBuilder.lower(doiRoot.get(DOI_.doi)),
+                doi.toLowerCase()
+        ));
+
         return uniqueResult(context, criteriaQuery, false, DOI.class);
     }
 

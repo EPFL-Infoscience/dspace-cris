@@ -18,9 +18,16 @@
 
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
-    <bean id="xoaiCerifGenerator" class="org.dspace.xoai.app.XOAICerifItemCompilePlugin">
+    <bean id="xoaiCerifGenerator" class="org.dspace.xoai.app.XOAIExportTemplateCompilePlugin">
         <property name="generator" value="cerif-xml"/>
+        <property name="format" value="cerif"/>
         <property name="fieldName" value="openaire"/>
+    </bean>
+
+    <bean id="xoaiMarcGenerator" class="org.dspace.xoai.app.XOAIExportTemplateCompilePlugin">
+        <property name="generator" value="epfl-publication-marc-xml"/>
+        <property name="format" value="marc"/>
+        <property name="fieldName" value="publication"/>
     </bean>
 
 	<!-- Additional item.compile plugin to enrich field with information about

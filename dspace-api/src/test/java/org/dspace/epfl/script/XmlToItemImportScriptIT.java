@@ -12,6 +12,7 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -20,13 +21,17 @@ import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.builder.CollectionBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.NonUniqueMetadataException;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.eperson.Group;
@@ -47,6 +52,7 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
     private CollectionService collectionService;
     private MetadataSchemaService metadataSchemaService;
     private MetadataFieldService metadataFieldService;
+    private ItemService itemService;
 
     @Before
     public void beforeTests() throws SQLException, AuthorizeException, NonUniqueMetadataException {
@@ -54,6 +60,7 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
         collectionService = ContentServiceFactory.getInstance().getCollectionService();
         metadataSchemaService = ContentServiceFactory.getInstance().getMetadataSchemaService();
         metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
+        itemService = ContentServiceFactory.getInstance().getItemService();
 
         context.turnOffAuthorisationSystem();
         community = createCommunity(context).build();
@@ -116,6 +123,36 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
 
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
+    }
+
+    @Test
+    public void testLanguageValueItems() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Collection collectionForTest = CollectionBuilder.createCollection(context, community)
+                .withName("CollectionForTest")
+                .withEntityType("Publication")
+                .build();
+
+        Group adminGroup = collectionService.createAdministrators(context, collectionForTest);
+        groupService.addMember(context, adminGroup, context.getCurrentUser());
+        context.restoreAuthSystemState();
+
+        String fileLocation = getFilePath("IS-Academia-file.xml");
+        String[] args = new String[]{"is-academia-xml-import", "-c",
+                collectionForTest.getID().toString(), "-f", fileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        Item item = itemService.findAllByCollection(context, collectionForTest).next();
+
+        assertEquals(item.getMetadata().stream().filter(metadataValue ->
+                metadataValue.getMetadataField().toString().equals("dc_language_iso"))
+                .map(MetadataValue::getValue).findFirst().get(), "en");
     }
 
     private String getFilePath(String name) {

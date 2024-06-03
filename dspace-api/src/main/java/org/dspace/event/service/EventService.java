@@ -39,4 +39,6 @@ public interface EventService {
      * Reload the dispatcher configuration.
      */
     public void reloadConfiguration();
+
+    public boolean isDispatcherDefined(String dispatcherName);
 }
