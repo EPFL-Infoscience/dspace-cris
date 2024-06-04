@@ -457,7 +457,10 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                                         " and put in status: " + finalState);
                     importedItemsCounter++;
                     imported++;
-                    workspaceItemImportedDoi.add(dataObject.getId());
+                    String externalId = dataObject.getId();
+                    if (StringUtils.isNotBlank(externalId)) {
+                        workspaceItemImportedDoi.add(externalId);
+                    }
                 }
                 countDataObjects++;
             }
