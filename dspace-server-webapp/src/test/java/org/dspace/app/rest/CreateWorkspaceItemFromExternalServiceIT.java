@@ -453,6 +453,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         metadataFirstRecord.add(orcid);
 
         ExternalDataObject firstRecord = new ExternalDataObject();
+        firstRecord.setId("Casual_id_1");
         firstRecord.setMetadata(metadataFirstRecord);
 
         //define second record
@@ -475,6 +476,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         metadataSecondRecord.add(orcid2R);
 
         ExternalDataObject secondRecord = new ExternalDataObject();
+        secondRecord.setId("Casual_id_2");
         secondRecord.setMetadata(metadataSecondRecord);
 
         List<ExternalDataObject> externalObjects = new ArrayList<ExternalDataObject>();
