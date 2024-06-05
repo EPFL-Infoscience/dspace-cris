@@ -11,6 +11,9 @@ import static org.dspace.discovery.SolrServiceImpl.SOLR_FIELD_SUFFIX_FACET_PREFI
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,6 +34,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -61,6 +65,7 @@ import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.GraphDiscoverSearchFilterFacet;
 import org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.ItemIndexFactory;
 import org.dspace.discovery.indexobject.factory.WorkflowItemIndexFactory;
 import org.dspace.discovery.indexobject.factory.WorkspaceItemIndexFactory;
@@ -85,7 +90,8 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     public static final String STORE_SEPARATOR = "\n|||\n";
     public static final String STATUS_FIELD = "database_status";
     public static final String STATUS_FIELD_PREDB = "predb";
-
+    public static final String WRONG_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
+    public static final String TRUNCATED_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     @Autowired
     protected HandleService handleService;
@@ -93,6 +99,8 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     protected ItemService itemService;
     @Autowired(required = true)
     protected ChoiceAuthorityService choiceAuthorityService;
+    @Autowired(required = true)
+    protected AuthorityValueService authorityValueService;
     @Autowired
     protected MetadataAuthorityService metadataAuthorityService;
     @Autowired
@@ -138,7 +146,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     public SolrInputDocument buildDocument(Context context, IndexableItem indexableItem)
             throws SQLException, IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        SolrInputDocument doc = super.buildDocument(context, indexableItem);
+        TruncatedSolrInputDocument doc = (TruncatedSolrInputDocument) super.buildDocument(context, indexableItem);
 
         final Item item = indexableItem.getIndexedObject();
 
@@ -155,7 +163,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
         }
 
         // Add the item metadata
-        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(item);
+        List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(context, item);
         addDiscoveryFields(doc, context, indexableItem.getIndexedObject(), discoveryConfigurations);
 
         //mandatory facet to show status on mydspace
@@ -391,7 +399,11 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                                                                 Boolean.FALSE),
                                                 true);
 
-                        if (!ignorePrefered && hasChoiceAuthority) {
+                        if (
+                                !ignorePrefered &&
+                                hasChoiceAuthority &&
+                                !authority.startsWith(AuthorityValueService.GENERATE)
+                        ) {
                             try {
                                 preferedLabel = choiceAuthorityService.getLabel(meta, Constants.ITEM, collection,
                                         meta.getLanguage());
@@ -650,13 +662,13 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                     }
 
                     if (type.equals(DiscoveryConfigurationParameters.TYPE_DATE)) {
-                        Date date = MultiFormatDateParser.parse(value);
+                        Date date = MultiFormatDateParser.parse(reformatTimestampToMaxMilliseconds(value));
                         if (date != null) {
                             String stringDate = SolrUtils.getDateFormatter().format(date);
                             doc.addField(field + "_dt", stringDate);
                         } else {
                             log.warn("Error while indexing sort date field, item: " + item
-                                    .getHandle() + " metadata field: " + field + " date value: " + date);
+                                    .getHandle() + " metadata field: " + field + " date value: " + value);
                         }
                     } else {
                         doc.addField(field + "_sort", value);
@@ -957,7 +969,7 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
     private void saveFacetPrefixParts(SolrInputDocument doc, DiscoverySearchFilter searchFilter, String value,
                                       String separator, String authority, String preferedLabel) {
         value = StringUtils.normalizeSpace(value);
-        Pattern pattern = Pattern.compile("\\b\\w+\\b", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("\\b\\w+\\b", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
         Matcher matcher = pattern.matcher(value);
         while (matcher.find()) {
             int index = matcher.start();
@@ -971,6 +983,18 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                 doc.addField(searchFilter.getIndexFieldName() + SOLR_FIELD_SUFFIX_FACET_PREFIXES,
                              currentPart.toLowerCase() + separator + value);
             }
+        }
+    }
+
+    public static String reformatTimestampToMaxMilliseconds(String timestamp) {
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern(WRONG_TIMESTAMP_FORMAT);
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern(TRUNCATED_TIMESTAMP_FORMAT);
+
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(timestamp, inputFormatter);
+            return dateTime.format(outputFormatter);
+        } catch (DateTimeParseException e) {
+            return timestamp;
         }
     }
 }

@@ -9,17 +9,22 @@ package org.dspace.external.provider.impl;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.AbstractExternalDataProvider;
+import org.dspace.importer.external.crossref.CrossRefImportMetadataSourceServiceImpl;
 import org.dspace.importer.external.datamodel.ImportRecord;
 import org.dspace.importer.external.exception.MetadataSourceException;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.dspace.importer.external.service.components.QuerySource;
+import org.dspace.scripts.handler.DSpaceRunnableHandler;
 
 /**
  * This class allows to configure a Live Import Provider as an External Data Provider
@@ -28,10 +33,15 @@ import org.dspace.importer.external.service.components.QuerySource;
  *
  */
 public class LiveImportDataProvider extends AbstractExternalDataProvider {
+
+    private static final Logger log = LogManager.getLogger(LiveImportDataProvider.class);
+
     /**
      * The {@link QuerySource} live import provider
      */
     private QuerySource querySource;
+
+    private DSpaceRunnableHandler handler;
 
     /**
      * An unique human readable identifier for this provider
@@ -87,11 +97,19 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
         this.displayMetadata = displayMetadata;
     }
 
+    /**
+     * This method set the handler to properly display logs in process output
+     * @param handler DspaceRunnableHandler instance
+     */
+    public void setHandler(DSpaceRunnableHandler handler) {
+        this.handler = handler;
+    }
+
     @Override
     public Optional<ExternalDataObject> getExternalDataObject(String id) {
         try {
-            ExternalDataObject externalDataObject = getExternalDataObject(querySource.getRecord(id));
-            return Optional.of(externalDataObject);
+            logInfo("Getting record by id: " + getActualQuery(id));
+            return Optional.ofNullable(getExternalDataObject(querySource.getRecord(id)));
         } catch (MetadataSourceException e) {
             throw new RuntimeException(
                     "The live import provider " + querySource.getImportSource() + " throws an exception", e);
@@ -100,10 +118,11 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
 
     @Override
     public List<ExternalDataObject> searchExternalDataObjects(String query, int start, int limit) {
-        Collection<ImportRecord> records;
         try {
-            records = querySource.getRecords(query, start, limit);
-            return records.stream().map(r -> getExternalDataObject(r)).collect(Collectors.toList());
+            logInfo("Getting records from " + start + " to " + (start + limit) + " by query: " + getActualQuery(query));
+            return querySource.getRecords(query, start, limit).stream()
+                              .map(this::getExternalDataObject)
+                              .collect(Collectors.toList());
         } catch (MetadataSourceException e) {
             throw new RuntimeException(
                     "The live import provider " + querySource.getImportSource() + " throws an exception", e);
@@ -118,6 +137,7 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
     @Override
     public int getNumberOfResults(String query) {
         try {
+            logInfo("Getting number of records by query: " + getActualQuery(query));
             return querySource.getRecordsCount(query);
         } catch (MetadataSourceException e) {
             throw new RuntimeException(
@@ -135,9 +155,8 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
      * @return
      */
     private ExternalDataObject getExternalDataObject(ImportRecord record) {
-        //return 400 if no record were found
-        if (record == null) {
-            throw new IllegalArgumentException("No record found for query or id");
+        if (Objects.isNull(record)) {
+            return null;
         }
         ExternalDataObject externalDataObject = new ExternalDataObject(sourceIdentifier);
         String id = getFirstValue(record, recordIdMetadata);
@@ -165,6 +184,25 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
             id = (values.iterator().next().getValue());
         }
         return id;
+    }
+
+    private String getActualQuery(String query) {
+        // in current implementation of CrossRefImportMetadataSourceServiceImpl
+        // query can consist of orcid id and search query itself (i.e. "0000-0000-1234-1234 text")
+        // and if orcid id is present then search is performed only by orcid id
+        if (querySource instanceof CrossRefImportMetadataSourceServiceImpl) {
+            String id = ((CrossRefImportMetadataSourceServiceImpl) querySource).getID(query);
+            return StringUtils.isNotBlank(id) ? id : query;
+        }
+        return query;
+    }
+
+    private void logInfo(String info) {
+        if (this.handler != null) {
+            this.handler.logInfo(info);
+        } else {
+            log.info(info);
+        }
     }
 
 }

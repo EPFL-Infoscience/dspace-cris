@@ -23,6 +23,7 @@ import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.EntityType;
 import org.dspace.content.EntityType_;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
@@ -69,8 +70,8 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
      * @see org.dspace.layout.dao.CrisLayoutTabDAO#findByEntityType(java.lang.String)
      */
     @Override
-    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context,
-            String entityType, String customFilter) throws SQLException {
+    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context, String entityType,
+                                                                    String customFilter) throws SQLException {
         return findByEntityTypeAndEagerlyFetchBoxes(context, entityType, customFilter, null, null);
     }
 
@@ -78,8 +79,8 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
      * @see org.dspace.layout.dao.CrisLayoutTabDAO#findByEntityType(java.lang.String)
      */
     @Override
-    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context,
-        String entityType) throws SQLException {
+    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context, String entityType)
+        throws SQLException {
         return findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null, null, null);
     }
 
@@ -93,10 +94,10 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
         List<Predicate> andPredicates = new ArrayList<>();
 
         andPredicates.add(cb.equal(tabRoot.get(CrisLayoutTab_.entity).get(EntityType_.LABEL), entityType));
-        if (StringUtils.isNotBlank(customFilter)) {
-            andPredicates.add(cb.equal(tabRoot.get(CrisLayoutTab_.CUSTOM_FILTER), customFilter));
-        } else {
+        if (StringUtils.isBlank(customFilter)) {
             andPredicates.add(cb.isNull((tabRoot.get(CrisLayoutTab_.CUSTOM_FILTER))));
+        } else if (!Item.ANY.equals(customFilter)) {
+            andPredicates.add(cb.equal(tabRoot.get(CrisLayoutTab_.CUSTOM_FILTER), customFilter));
         }
 
         query

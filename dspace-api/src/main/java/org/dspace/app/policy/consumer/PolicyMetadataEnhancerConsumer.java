@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.codec.binary.StringUtils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
@@ -77,13 +78,11 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private static final MetadataFieldName viewerMetadata = new MetadataFieldName("bitstream", "viewer", "provider");
     private static final MetadataFieldName oaireLicenseMetadata = new MetadataFieldName("oaire", "licenseCondition");
     private static final MetadataFieldName epflLicenseMetadata = new MetadataFieldName("epfl", "licenseName");
-    private static final MetadataFieldName oaireVersionMetadata = new MetadataFieldName("oaire", "version");
     private static final List<MetadataFieldName> bitstreamToItemMetadatas = List.of(
         oaireLicenseMetadata,
         dataciteAvailableMetadata,
         dataciteRightsMetadata,
-        epflLicenseMetadata,
-        oaireVersionMetadata
+        epflLicenseMetadata
     );
     private static final Map<MetadataFieldName, List<String>> defaultItemMetadatas = Map.of(dataciteRightsMetadata,
             List.of(METADATA_ONLY));
@@ -94,6 +93,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private AuthorizeService authorizeService;
     private Set<Bitstream> bitstreamAlreadyProcessed = new HashSet<>();
     private Set<Item> itemsToProcess = new HashSet<>();
+    private Set<Item> itemsToUpdate = new HashSet<>();
     private MetadataFieldService metadataFieldService;
 
     @Override
@@ -114,7 +114,8 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                             .orElse(this.loadBitstream(ctx, event)),
                     event
             );
-        } else if (Constants.ITEM == event.getSubjectType() && Event.CREATE == event.getEventType()) {
+        } else if (Constants.ITEM == event.getSubjectType() && (Event.CREATE == event.getEventType() ||
+                Event.MODIFY == event.getEventType())) {
             this.handleItemConsumer(
                     ctx,
                     Optional.ofNullable((Item) event.getObject(ctx))
@@ -129,21 +130,28 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     }
 
     private void removeAllEnhancedMetadatas(Context ctx, Bitstream bitstream) {
-        Optional.of(getRemovableMetadatas(bitstream))
-            .filter(list -> !list.isEmpty())
-            .ifPresent(throwingConsumerWrapper(list ->
-                    this.bitstreamService.removeMetadataValues(ctx, bitstream, list)
-                )
-            );
+        try {
+            ctx.turnOffAuthorisationSystem();
+            Optional.of(getRemovableMetadatas(bitstream))
+                .filter(list -> !list.isEmpty())
+                .ifPresent(throwingConsumerWrapper(list ->
+                        this.bitstreamService.removeMetadataValues(ctx, bitstream, list)
+                    )
+                );
+        } finally {
+            ctx.restoreAuthSystemState();
+        }
     }
 
     @Override
     public void end(Context ctx) throws Exception {
         bitstreamAlreadyProcessed.clear();
         this.itemsToProcess
-            .stream()
             .forEach(item -> this.handleItemConsumer(ctx, item));
         itemsToProcess.clear();
+
+        itemsToUpdate.forEach(item -> updateItem(ctx, item));
+        itemsToUpdate.clear();
     }
 
     @Override
@@ -199,21 +207,24 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                         .map(metadatas -> groupByMetadataField(metadatas))
                         .filter(metadatas -> !metadatas.isEmpty())
                         .orElse(this.mapWithMetadataField(ctx, defaultItemMetadatas));
+            try {
+                ctx.turnOffAuthorisationSystem();
+                this.itemService.removeMetadataValues(ctx, loadedItem, getRemovableMetadatas(loadedItem));
 
-            this.itemService.removeMetadataValues(ctx, loadedItem, getRemovableMetadatas(loadedItem));
-
-            grouped
-                .entrySet()
-                .stream()
-                .forEach(
-                    throwingConsumerWrapper(entry ->
-                        this.itemService.addMetadata(ctx, loadedItem, entry.getKey(), null, entry.getValue())
-                    )
-                );
-
+                grouped
+                    .entrySet()
+                    .stream()
+                    .forEach(
+                        throwingConsumerWrapper(entry ->
+                            this.itemService.addMetadata(ctx, loadedItem, entry.getKey(), null, entry.getValue())
+                        )
+                    );
+            } finally {
+                ctx.restoreAuthSystemState();
+            }
             handleDateAvailableMetadata(ctx, item);
 
-
+            itemsToUpdate.add(loadedItem);
         } catch (SQLException e) {
             logger.error(MessageFormat.format("Error while processing item {}!", item.getID().toString()), e);
             throw new SQLRuntimeException(e);
@@ -272,10 +283,15 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     }
 
     private void updateDateAvailableMetadata(Context ctx, Item item, String date) throws SQLException {
-        List<MetadataValue> dateAvailable = itemService.getMetadata(item, "dc", "date", "available", Item.ANY);
-        itemService.removeMetadataValues(ctx, item, dateAvailable);
-        if (null != date && !date.trim().isEmpty()) {
-            itemService.addMetadata(ctx, item, "dc", "date", "available", null, date);
+        try {
+            ctx.turnOffAuthorisationSystem();
+            List<MetadataValue> dateAvailable = itemService.getMetadata(item, "dc", "date", "available", Item.ANY);
+            itemService.removeMetadataValues(ctx, item, dateAvailable);
+            if (null != date && !date.trim().isEmpty()) {
+                itemService.addMetadata(ctx, item, "dc", "date", "available", null, date);
+            }
+        } finally {
+            ctx.restoreAuthSystemState();
         }
     }
 
@@ -291,8 +307,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                                 MetadataField field = this.metadataFieldService.findByElement(ctx, fieldName.schema,
                                         fieldName.element, fieldName.qualifier);
                                 return new AbstractMap.SimpleEntry<>(field, entry.getValue());
-                            },
-                            null
+                            }
                         )
                     )
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
@@ -301,12 +316,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private Stream<MetadataValue> getMetadatasForItem(Context ctx, List<Bitstream> bitstreams) {
         return bitstreams
             .stream()
-            .map(
-                throwingMapperWrapper(bitstream ->
-                    this.bitstreamService.find(ctx, bitstream.getID()),
-                    null
-                )
-            )
+            .map(throwingMapperWrapper(bitstream -> this.bitstreamService.find(ctx, bitstream.getID())))
             .filter(Objects::nonNull)
             .flatMap(bitstream -> filterMetadatasForItem(bitstream));
     }
@@ -437,7 +447,13 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 dataciteRights.isEmpty() ||
                 dataciteRights.filter(metadata -> !policyValue.equals(metadata.getValue())).isPresent()
         ) {
-            dspaceObjectService.setMetadataSingleValue(ctx, dspaceObject, dataciteRightsMetadata, null, policyValue);
+            try {
+                ctx.turnOffAuthorisationSystem();
+                dspaceObjectService.setMetadataSingleValue(ctx, dspaceObject, dataciteRightsMetadata, null,
+                        policyValue);
+            } finally {
+                ctx.restoreAuthSystemState();
+            }
         }
     }
 
@@ -448,23 +464,28 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         T dspaceObject,
         Optional<MetadataValue> metadataOptional, MetadataFieldName metadataFieldName
     ) throws SQLException {
-        if (metadataValue == null) {
-            if (metadataOptional.isPresent()) {
-                dspaceObjectService.removeMetadataValues(ctx, dspaceObject, List.of(metadataOptional.get()));
+        try {
+            ctx.turnOffAuthorisationSystem();
+            if (metadataValue == null) {
+                if (metadataOptional.isPresent()) {
+                    dspaceObjectService.removeMetadataValues(ctx, dspaceObject, List.of(metadataOptional.get()));
+                }
+            } else {
+                if (
+                        metadataOptional.isEmpty() ||
+                        metadataOptional.filter(metadata -> !metadataValue.equals(metadata.getValue())).isPresent()
+                ) {
+                    dspaceObjectService.setMetadataSingleValue(
+                        ctx,
+                        dspaceObject,
+                        metadataFieldName,
+                        null,
+                        metadataValue
+                    );
+                }
             }
-        } else {
-            if (
-                    metadataOptional.isEmpty() ||
-                    metadataOptional.filter(metadata -> !metadataValue.equals(metadata.getValue())).isPresent()
-            ) {
-                dspaceObjectService.setMetadataSingleValue(
-                    ctx,
-                    dspaceObject,
-                    metadataFieldName,
-                    null,
-                    metadataValue
-                );
-            }
+        } finally {
+            ctx.restoreAuthSystemState();
         }
     }
 
@@ -509,6 +530,17 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 )
                 .findFirst()
                 .isPresent();
+    }
+
+    private void updateItem(Context context, Item item) {
+        try {
+            context.turnOffAuthorisationSystem();
+            itemService.update(context, item);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        } finally {
+            context.restoreAuthSystemState();
+        }
     }
 
 }

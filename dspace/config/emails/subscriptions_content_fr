@@ -4,7 +4,7 @@
   ## {1} Communities updates
   ## {2} Items updates
   ##
-  #set($subject = 'Infoscience : Mise à jour des notices liées à vos préférences'
+  #set($subject = 'Infoscience : Mise à jour des notices liées à vos préférences')
   
  Bonjour !
  

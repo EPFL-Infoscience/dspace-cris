@@ -15,8 +15,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.dspace.app.util.SubmissionConfigReader;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.EntityType;
@@ -26,6 +29,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.dao.CrisLayoutTabDAO;
+import org.dspace.layout.service.CrisLayoutTabAccessService;
 import org.dspace.layout.service.CrisLayoutTabService;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +52,16 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    private SubmissionConfigReader submissionConfigReader;
+
+    @Autowired
+    CrisLayoutTabAccessService crisLayoutTabAccessService;
+
+    @PostConstruct
+    private void setup() throws SubmissionConfigReaderException {
+        submissionConfigReader = new SubmissionConfigReader();
+    }
 
     @Override
     public CrisLayoutTab create(Context c, CrisLayoutTab tab) throws SQLException, AuthorizeException {
@@ -179,21 +193,30 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
     @Override
     public List<CrisLayoutTab> findByItem(Context context, String itemUuid) throws SQLException {
         Item item = Objects.requireNonNull(itemService.find(context, UUID.fromString(itemUuid)),
-                                           "The itemUuid entered does not match with any item");
+            "The itemUuid entered does not match with any item");
+
         String entityTypeValue = itemService.getMetadata(item, "dspace.entity.type");
+        String submissionName = getSubmissionDefinitionName(item);
+
         List<CrisLayoutTab> layoutTabs =
             Optional.ofNullable(this.configurationService.getProperty("dspace.metadata.layout.tab"))
                 .map(metadataField -> this.itemService.getMetadataByMetadataString(item, metadataField))
                 .filter(metadatas -> !metadatas.isEmpty())
                 .map(metadatas -> metadatas.get(0))
                 .map(metadata ->
-                    findValidEntityType(context, entityTypeValue, metadata.getAuthority())
-                        .orElseGet(
-                            () -> findValidEntityType(context, entityTypeValue, metadata.getValue())
-                                .orElse(null)
-                        )
+                        findValidEntityType(context, entityTypeValue, submissionName + "." +
+                            metadata.getAuthority())
+                            .orElse(
+                                findValidEntityType(context, entityTypeValue, submissionName + "." +
+                                    metadata.getValue())
+                                    .orElse(findValidEntityType(context, entityTypeValue, metadata.getAuthority())
+                                        .orElse(findValidEntityType(context, entityTypeValue, metadata.getValue())
+                                            .orElse(null))))
                 )
-                .orElseGet(() -> getByEntityType(context, entityTypeValue));
+                .orElse(findValidEntityType(context, entityTypeValue, submissionName)
+                .orElseGet(() -> getByEntityType(context, entityTypeValue)));
+
+
         if (layoutTabs == null) {
             return Collections.emptyList();
         }
@@ -208,16 +231,22 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
         }
     }
 
+    @Override
+    public boolean hasAccess(Context context, CrisLayoutTab tab, Item item) {
+        return crisLayoutTabAccessService.hasAccess(context, context.getCurrentUser(), tab, item);
+    }
+
+    private String getSubmissionDefinitionName(Item item) {
+        return submissionConfigReader == null || item.getOwningCollection() == null
+            ? ""
+            : submissionConfigReader.getSubmissionConfigByCollection(item.getOwningCollection()).getSubmissionName();
+    }
+
     private Optional<List<CrisLayoutTab>> findValidEntityType(Context context, String entityTypeValue,
-            String customFilter) {
+                                                              String customFilter) {
         return Optional.ofNullable(customFilter)
-                .map(
-                    throwingMapperWrapper(
-                        value -> findByEntityType(context, entityTypeValue, value),
-                        null
-                    )
-                )
-                .filter(tabs -> tabs != null && !tabs.isEmpty());
+            .map(throwingMapperWrapper(value -> findByEntityType(context, entityTypeValue, value)))
+            .filter(tabs -> !tabs.isEmpty());
     }
 
 }

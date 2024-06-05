@@ -60,5 +60,23 @@ public abstract class DuplicateInfo {
         this.otherGroupIds = otherGroupChecksum;
     }
 
+    /** changes in CRIS **/
 
+    public String getSignature() {
+        return this.getGroupChecksum();
+    }
+
+    public void setSignature(String signature) {
+        this.setGroupChecksum(signature);
+    }
+
+    public List<String> getOtherSignature() {
+        return getOtherGroupIds();
+    }
+
+    public void setOtherSignature(List<String> otherSignature) {
+        setOtherGroupIds(otherSignature);
+    }
+
+    /** changes in CRIS **/
 }

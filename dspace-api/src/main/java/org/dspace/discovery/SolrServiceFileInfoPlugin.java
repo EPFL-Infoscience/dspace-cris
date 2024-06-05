@@ -7,17 +7,11 @@
  */
 package org.dspace.discovery;
 
-import java.net.URL;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
@@ -25,12 +19,10 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataFieldName;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
+import org.dspace.discovery.index.adder.IndexAdder;
+import org.dspace.discovery.index.mapper.SolrFieldMetadataMapper;
 import org.dspace.discovery.indexobject.IndexableItem;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,150 +49,23 @@ import org.slf4j.LoggerFactory;
  */
 public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
 
-    /**
-     * Class used to map a target metadata into a solr index using {@code SolrInputDocument}
-     *
-     * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
-     *
-     * @param <T>
-     */
-    private static class SolrFieldMetadataMapper<T> {
-        private final String solrField;
-        private final BiFunction<SolrInputDocument, String, Consumer<T>> fieldAdder;
-
-        public SolrFieldMetadataMapper(
-                String metadata,
-                BiFunction<SolrInputDocument, String, Consumer<T>> fieldAdder
-        ) {
-            super();
-            this.solrField = metadata;
-            this.fieldAdder = fieldAdder;
-        }
-
-        public void map(SolrInputDocument document, T value) {
-            this.fieldAdder.apply(document, this.solrField).accept(value);
-        }
-
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(SolrServiceFileInfoPlugin.class);
 
-    private static final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd");
     private static final String BUNDLE_NAME = "ORIGINAL";
     private static final String SOLR_FIELD_NAME_FOR_FILENAMES = "original_bundle_filenames";
     private static final String SOLR_FIELD_NAME_FOR_DESCRIPTIONS = "original_bundle_descriptions";
-    private static final String SOLR_FIELD_NAME_FOR_OAIRE_LICENSE_CONDITION = "original_bundle_oaire_licenseCondition";
-    private static final String SOLR_FIELD_NAME_FOR_DATACITE_RIGHTS = "original_bundle_datacite_rights";
-    private static final String SOLR_FIELD_NAME_FOR_DATACITE_AVAILABLE = "original_bundle_datacite_available";
     private static final String SOLR_FIELD_NAME_FOR_MIMETYPE = "original_bundle_mime_type";
     private static final String SOLR_FIELD_NAME_FOR_CHECKSUM = "original_bundle_checksum";
     private static final String SOLR_FIELD_NAME_FOR_SIZEBYTES = "original_bundle_sizebytes";
     private static final String SOLR_FIELD_NAME_FOR_SHORT_DESCRIPTION = "original_bundle_short_description";
-    private static final String SOLR_POSTFIX_FILTER = "_filter";
-    private static final String SOLR_POSTFIX_KEYWORD = "_keyword";
-    private static final String SOLR_POSTFIX_PREFIX = "_prefix";
-    private static final String BITSTREAM_METADATA_SOLR_PREFIX_KEYWORD = "bitstreams.";
-    // used for facets and filters of type Date to correctly search them and visualize in facets.
-    private static final String SOLR_POSTFIX_YEAR = ".year";
-    private static final MetadataFieldName METADATA_DATACITE_RIGHTS = new MetadataFieldName("datacite", "rights");
-    private static final MetadataFieldName METADATA_DATACITE_AVAILABLE = new MetadataFieldName("datacite", "available");
-    private static final MetadataFieldName METADATA_EPFL_LICENSENAME = new MetadataFieldName("epfl", "licenseName");
-    private static final MetadataFieldName METADATA_LICENSE_CONDITION =
-        new MetadataFieldName("oaire", "licenseCondition");
 
-    private static final BiFunction<SolrInputDocument, String, Consumer<String>> defaultSolrIndexAdder =
-        (document, fieldName) -> value -> {
-            Collection<Object> fieldValues = document.getFieldValues(fieldName);
-            if (fieldValues == null || !fieldValues.contains(value)) {
-                addField(document, fieldName, value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
-            }
-        };
-    private static final BiFunction<SolrInputDocument, String, Consumer<String>> oaireSolrIndexAdder =
-        (document, fieldName) -> value -> {
-            if (!isValidURL(value)) {
-                Collection<Object> fieldValues = document.getFieldValues(fieldName);
-                if (fieldValues == null || !fieldValues.contains(value)) {
-                    addField(document, fieldName, value);
-                    addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
-                    addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                    addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
-                }
-            }
-        };
+    private Map<String, SolrFieldMetadataMapper> mappableMetadata;
 
-    private static final BiFunction<SolrInputDocument, String, Consumer<String>> simpleSolrIndexAdder =
-        (document, fieldName) -> value -> {
-            Collection<Object> fieldValues = document.getFieldValues(fieldName);
-            if (fieldValues == null || !fieldValues.contains(value)) {
-                addField(document, fieldName, value);
-            }
-        };
+    private IndexAdder simpleIndexAdder;
 
-    private static final BiFunction<SolrInputDocument, String, Consumer<String>> bitstreamMetadataSolrIndexAdder =
-        (document, fieldName) -> value -> {
-            String baseIndex = BITSTREAM_METADATA_SOLR_PREFIX_KEYWORD.concat(fieldName);
-            Collection<Object> fieldValues = document.getFieldValues(baseIndex);
-            if (fieldValues == null || !fieldValues.contains(value)) {
-                addField(document, baseIndex, value);
-                addField(document, baseIndex.concat(SOLR_POSTFIX_KEYWORD), value);
-                addField(document, baseIndex.concat(SOLR_POSTFIX_FILTER), value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
-            }
-        };
+    private IndexAdder defaultIndexAdder;
 
-    private static final BiFunction<SolrInputDocument, String, Consumer<String>> yearSolrIndexAdder =
-        (document, fieldName) -> value -> {
-            Collection<Object> fieldValues = document.getFieldValues(fieldName);
-            if (fieldValues == null || !fieldValues.contains(value)) {
-                addField(document, fieldName, value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_KEYWORD), value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_FILTER), value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_PREFIX), value);
-                addField(document, fieldName.concat(SOLR_POSTFIX_YEAR), dtf.parseLocalDate(value).getYear());
-            }
-        };
-
-    private static final SolrFieldMetadataMapper<String> getFieldMapper(
-        String solrField,
-        BiFunction<SolrInputDocument, String, Consumer<String>> adder
-    ) {
-        return new SolrFieldMetadataMapper<String>(solrField, adder);
-    }
-
-    private static final SolrFieldMetadataMapper<String> OAIRE_LICENSE_MAPPER =
-        new SolrFieldMetadataMapper<String>(
-            SOLR_FIELD_NAME_FOR_OAIRE_LICENSE_CONDITION,
-            oaireSolrIndexAdder
-        );
-
-    private static final SolrFieldMetadataMapper<String> DATACITE_RIGHTS_MAPPER =
-        new SolrFieldMetadataMapper<String>(
-            SOLR_FIELD_NAME_FOR_DATACITE_RIGHTS,
-            defaultSolrIndexAdder
-        );
-
-    private static final SolrFieldMetadataMapper<String> DATACITE_AVAILABLE_MAPPER =
-        new SolrFieldMetadataMapper<String>(
-            SOLR_FIELD_NAME_FOR_DATACITE_AVAILABLE,
-            yearSolrIndexAdder
-        );
-
-    private static final Map<String, SolrFieldMetadataMapper<String>> mappableMetadatas =
-        Stream.of(
-            Map.entry(METADATA_LICENSE_CONDITION.toString(), OAIRE_LICENSE_MAPPER),
-            Map.entry(METADATA_DATACITE_RIGHTS.toString(), DATACITE_RIGHTS_MAPPER),
-            Map.entry(METADATA_DATACITE_AVAILABLE.toString(), DATACITE_AVAILABLE_MAPPER),
-            Map.entry(METADATA_EPFL_LICENSENAME.toString(), OAIRE_LICENSE_MAPPER)
-        )
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-
-    private static void addField(SolrInputDocument document, String name, Object value) {
-        document.addField(name, value);
-    }
+    private IndexAdder bitstreamMetadataIndexAdder;
 
     @Override
     public void additionalIndex(Context context, IndexableObject indexableObject, SolrInputDocument document) {
@@ -239,13 +104,17 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     }
 
     private void indexBitstreamFields(Context context, SolrInputDocument document, Bitstream bitstream) {
-        simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_FILENAMES).accept(bitstream.getName());
+        addAndHandleException(
+            simpleIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_FILENAMES, bitstream.getName()
+        );
 
         Optional.ofNullable(bitstream.getDescription())
             .filter(StringUtils::isNotEmpty)
             .ifPresent(
                 (description) ->
-                    simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_DESCRIPTIONS).accept(description)
+                    addAndHandleException(
+                        simpleIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_DESCRIPTIONS, description
+                    )
             );
 
         try {
@@ -257,30 +126,56 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 .map(BitstreamFormat::getMIMEType)
                 .filter(StringUtils::isNotBlank)
                 .ifPresent(format ->
-                    defaultSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_MIMETYPE).accept(format)
+                    addAndHandleException(
+                        defaultIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_MIMETYPE, format
+                    )
                 );
 
             formatOptional
                 .map(BitstreamFormat::getShortDescription)
                 .ifPresent(format ->
-                    simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_SHORT_DESCRIPTION).accept(format)
+                    addAndHandleException(
+                        defaultIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_SHORT_DESCRIPTION, format
+                    )
                 );
         } catch (SQLException e) {
             logger.error("Error while retrievig bitstream format", e);
             throw new RuntimeException("Error while retrievig bitstream format", e);
         }
 
-        Optional.of(bitstream.getChecksum())
+        Optional.ofNullable(bitstream.getChecksum())
             .filter(StringUtils::isNotBlank)
             .map(checksum -> bitstream.getChecksumAlgorithm() + ":" + bitstream.getChecksum())
             .ifPresent(checksum ->
-                defaultSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_CHECKSUM).accept(checksum)
+                addAndHandleException(
+                    defaultIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_CHECKSUM, checksum
+                )
             );
 
         Optional.of(bitstream.getSizeBytes())
             .filter(l -> l > 0)
             .map(String::valueOf)
-            .ifPresent(size -> simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_SIZEBYTES).accept(size));
+            .ifPresent(size ->
+                addAndHandleException(
+                    simpleIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_SIZEBYTES, size
+                )
+            );
+    }
+
+    protected void addAndHandleException(
+        IndexAdder indexAdder,
+        SolrInputDocument document, Bitstream bitstream,
+        String field, String value
+    ) {
+        try {
+            indexAdder.add(document, field, value);
+        } catch (Exception e) {
+            logger.warn(
+                "Error occurred during the update of index field {} for bitstream {}",
+                field,
+                bitstream.getID()
+            );
+        }
     }
 
     private void indexBitstreamsMetadatadas(SolrInputDocument document, Bitstream bitstream) {
@@ -291,31 +186,25 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
             .forEach(metadata -> {
                 MetadataField metadataField = metadata.getMetadataField();
                 String bitstreamMetadata = metadataField.toString('.');
-                Optional.ofNullable(mappableMetadatas.get(bitstreamMetadata))
-                    .filter(Objects::nonNull)
-                    .orElse(
-                        getFieldMapper(
-                            metadataField.toString(),
-                            bitstreamMetadataSolrIndexAdder
-                        )
-                    )
+                Optional.ofNullable(mappableMetadata.get(bitstreamMetadata))
+                    .orElseGet(() -> new SolrFieldMetadataMapper(metadataField.toString(), bitstreamMetadataIndexAdder))
                     .map(document, metadata.getValue());
             });
     }
 
-    private <T> boolean areEquals(MetadataFieldName metadataFieldName, MetadataValue metadata) {
-        return StringUtils.equals(metadataFieldName.schema, metadata.getSchema()) &&
-        StringUtils.equals(metadataFieldName.element, metadata.getElement()) &&
-        StringUtils.equals(metadataFieldName.qualifier, metadata.getQualifier());
+    public void setMappableMetadata(Map<String, SolrFieldMetadataMapper> mappableMetadata) {
+        this.mappableMetadata = mappableMetadata;
     }
 
-    private static boolean isValidURL(String url) {
-        try {
-            new URL(url).toURI();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void setSimpleIndexAdder(IndexAdder simpleIndexAdder) {
+        this.simpleIndexAdder = simpleIndexAdder;
     }
 
+    public void setDefaultIndexAdder(IndexAdder defaultIndexAdder) {
+        this.defaultIndexAdder = defaultIndexAdder;
+    }
+
+    public void setBitstreamMetadataIndexAdder(IndexAdder bitstreamMetadataIndexAdder) {
+        this.bitstreamMetadataIndexAdder = bitstreamMetadataIndexAdder;
+    }
 }

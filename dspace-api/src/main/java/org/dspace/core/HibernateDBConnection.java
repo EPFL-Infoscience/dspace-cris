@@ -20,6 +20,7 @@ import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.handle.Handle;
+import org.dspace.identifier.DOI;
 import org.dspace.storage.rdbms.DatabaseConfigVO;
 import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
@@ -280,6 +281,11 @@ public class HibernateDBConnection implements DBConnection<Session> {
                 }
             }
 
+            if (entity instanceof DOI) {
+                DOI doi = (DOI) entity;
+                uncacheEntity(doi.getDSpaceObject());
+            }
+
             // ITEM
             if (entity instanceof Item) {
                 Item item = (Item) entity;
@@ -340,6 +346,19 @@ public class HibernateDBConnection implements DBConnection<Session> {
                 // Remove object from Session
                 getSession().evict(entity);
             }
+        }
+    }
+
+    /**
+     * Do a manual flush. This synchronizes the in-memory state of the Session
+     * with the database (write changes to the database)
+     *
+     * @throws SQLException passed through.
+     */
+    @Override
+    public void flushSession() throws SQLException {
+        if (getSession().isDirty()) {
+            getSession().flush();
         }
     }
 }

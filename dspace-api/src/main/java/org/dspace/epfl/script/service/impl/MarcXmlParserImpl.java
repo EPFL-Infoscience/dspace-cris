@@ -69,15 +69,12 @@ import org.xml.sax.SAXException;
 public class MarcXmlParserImpl implements MarcXmlParser {
 
     public static final String TYPE_FILTER_PROPERTY_PREFIX = "epfl.items-import.types";
-
     public static final String TYPE_VOCABULARY_PROPERTY_PREFIX = "epfl.items-import.vocabulary";
 
     @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
     private ItemsS3Service itemsS3Service;
-
+    @Autowired
+    private ConfigurationService configurationService;
     @Autowired
     private ChoiceAuthorityService choiceAuthorityService;
 
@@ -172,7 +169,7 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
         List<MetadataValueDTO> metadataValues = readItemMetadataValues(context, record, recordType, mapping);
 
-        metadataValues.addAll(getCreationDateMetadataValues(id));
+        metadataValues.addAll(getCreationDateMetadataValues(context, id));
 
         List<BitstreamDTO> bitstreams = readBitstreams(context, id, record, mapping);
 
@@ -351,8 +348,11 @@ public class MarcXmlParserImpl implements MarcXmlParser {
 
     }
 
-    private List<MetadataValueDTO> getCreationDateMetadataValues(String id) {
-        String value = itemsS3Service.getCreationDate(id);
+    private List<MetadataValueDTO> getCreationDateMetadataValues(Context context, String id) {
+        String value = itemsS3Service.getCreationDate(context, id);
+        if (StringUtils.isEmpty(value)) {
+            return List.of();
+        }
         String[] metadataFields = getCreationDateMetadataFields();
         return Arrays.stream(metadataFields)
             .map(metadataField -> getCreationDateMetadataValue(metadataField, value))
@@ -431,6 +431,14 @@ public class MarcXmlParserImpl implements MarcXmlParser {
         } catch (XPathExpressionException e) {
             throw new RuntimeException("An error occurs evaluating path " + path, e);
         }
+    }
+
+    public ItemsS3Service getItemsS3Service() {
+        return itemsS3Service;
+    }
+
+    public void setItemsS3Service(ItemsS3Service itemsS3Service) {
+        this.itemsS3Service = itemsS3Service;
     }
 
     private ItemsImportMapping readMappingConfiguration(String config) {

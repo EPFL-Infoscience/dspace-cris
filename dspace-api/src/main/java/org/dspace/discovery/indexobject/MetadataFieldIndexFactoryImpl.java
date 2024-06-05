@@ -19,6 +19,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.MetadataField;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.MetadataFieldIndexFactory;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -44,7 +45,8 @@ public class MetadataFieldIndexFactoryImpl extends IndexFactoryImpl<IndexableMet
     public SolrInputDocument buildDocument(Context context, IndexableMetadataField indexableObject) throws SQLException,
         IOException {
         // Add the ID's, types and call the SolrServiceIndexPlugins
-        final SolrInputDocument doc = super.buildDocument(context, indexableObject);
+        final TruncatedSolrInputDocument doc =
+                (TruncatedSolrInputDocument) super.buildDocument(context, indexableObject);
         final MetadataField metadataField = indexableObject.getIndexedObject();
         // add schema, element, qualifier and full fieldName
         addFacetIndex(doc, SCHEMA_FIELD_NAME, metadataField.getMetadataSchema().getName(),
@@ -68,6 +70,7 @@ public class MetadataFieldIndexFactoryImpl extends IndexFactoryImpl<IndexableMet
             // add read permission on doc for anonymous group
             doc.addField("read", "g" + anonymousGroup.getID());
         }
+        doc.addField(FIELD_NAME_VARIATIONS + "_sort", fieldName);
         return doc;
     }
 

@@ -27,6 +27,9 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -35,23 +38,22 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
 
-public class SubmitterFixScript
-    extends DSpaceRunnable<SubmitterFixScriptConfiguration<SubmitterFixScript>> {
-    private String collectionId;
+public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfiguration<SubmitterFixScript>> {
 
+    // options
     private String email;
-
+    private String collectionId;
     private String defaultEmail;
 
-    private CollectionService collectionService;
-
+    // services
     private ItemService itemService;
-
     private EPersonService ePersonService;
+    private CollectionService collectionService;
 
     private Context context;
 
     @Override
+    @SuppressWarnings("unchecked")
     public SubmitterFixScriptConfiguration<SubmitterFixScript> getScriptConfiguration() {
         return new DSpace().getServiceManager()
                            .getServiceByName("epfl-update-submitter", SubmitterFixScriptConfiguration.class);
@@ -80,10 +82,29 @@ public class SubmitterFixScript
         }
 
         context.turnOffAuthorisationSystem();
-        Iterator<Item> itemIterator = itemService.findAllByCollection(context, collection);
+        Iterator<Item> itemIterator = findItems();
 
         try {
-            itemIterator.forEachRemaining(this::updateSubmitter);
+
+            int count = 0;
+
+            while (itemIterator.hasNext()) {
+                Item item = context.reloadEntity(itemIterator.next());
+
+                try {
+                    updateSubmitter(item);
+                    context.uncacheEntity(item);
+                    count++;
+                } catch (Exception ex) {
+                    handler.logError("An error occurs updating item " + item.getID(), ex);
+                }
+                if (count % 10 == 0) {
+                    context.commit();
+                    handler.logInfo("Processed " + count + " items");
+                }
+
+            }
+
             context.complete();
         } catch (Exception e) {
             handler.handleException(e);
@@ -92,6 +113,13 @@ public class SubmitterFixScript
             context.restoreAuthSystemState();
         }
 
+    }
+
+    private Iterator<Item> findItems() {
+        DiscoverQuery query = new DiscoverQuery();
+        query.setDSpaceObjectFilter(IndexableItem.TYPE);
+        query.addFilterQueries("location.coll:(" + collectionId + ")");
+        return new DiscoverResultItemIterator(context, query);
     }
 
     private void updateSubmitter(Item item) {
@@ -115,8 +143,7 @@ public class SubmitterFixScript
         firstAuthorWithSciper(item)
             .ifPresentOrElse(
                 ePerson -> updateSubmitter(item, ePerson),
-                () -> updateSubmitter(item, StringUtils.isNotBlank(email) ? email : defaultEmail)
-            );
+                () -> updateSubmitter(item, StringUtils.isNotBlank(email) ? email : defaultEmail));
     }
 
     private void updateSubmitter(Item item, String email) {
@@ -134,13 +161,19 @@ public class SubmitterFixScript
     }
 
     private void updateSubmitter(Item item, EPerson submitter) {
-        if (!StringUtils.equalsIgnoreCase(item.getSubmitter().getEmail(), submitter.getEmail())) {
-            handler.logInfo("Item " + item.getID() + " submitter updated from " + item.getSubmitter().getEmail() +
-                            " to " + submitter.getEmail());
+        String newEmail = submitter.getEmail();
+        EPerson currentSubmitter = item.getSubmitter();
+
+        if ((currentSubmitter == null && StringUtils.isNotBlank(newEmail)) ||
+            (currentSubmitter != null && !StringUtils.equalsIgnoreCase(currentSubmitter.getEmail(), newEmail))) {
+
+            var oldEmail = currentSubmitter != null ? currentSubmitter.getEmail() : null;
+            handler.logInfo("Item " + item.getID() + " submitter updated from " + oldEmail + " to " + newEmail);
             item.setSubmitter(submitter);
 
             try {
-                itemService.setMetadataSingleValue(context, item, "dc", "provenance", null, null, submitter.getEmail());
+                itemService.setMetadataSingleValue(context, item, "dc", "description", "provenance", null,
+                        "Update submitter with " + newEmail + " as post-migration action");
                 itemService.update(context, item);
             } catch (SQLException | AuthorizeException e) {
                 handler.handleException(e);
@@ -149,33 +182,46 @@ public class SubmitterFixScript
     }
 
     private Optional<EPerson> firstAuthorWithSciper(Item item) {
-        return itemService
-            .getMetadataByMetadataString(item, "dc.contributor.author")
+        List<MetadataValue> valuesToCheck = itemService
+                .getMetadataByMetadataString(item, "dc.contributor.author");
+        valuesToCheck.addAll(itemService
+            .getMetadataByMetadataString(item, "dc.contributor.editor"));
+        valuesToCheck.addAll(itemService
+                .getMetadataByMetadataString(item, "dc.contributor.scientificeditor"));
+        return valuesToCheck
             .stream()
             .filter(mv -> StringUtils.isNotBlank(mv.getAuthority()))
-            .map(throwingMapperWrapper(mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority())), null))
-            .map(throwingMapperWrapper(this::owner, null))
+            .map(throwingMapperWrapper(mv -> itemService.find(context, UUIDUtils.fromString(mv.getAuthority()))))
+            .map(throwingMapperWrapper(this::owner))
             .filter(Objects::nonNull)
             .filter(this::hasSciper)
             .findFirst();
     }
 
     private EPerson owner(Item author) {
+
+        if (author == null) {
+            return null;
+        }
+
         List<MetadataValue> metadataByMetadataString = itemService
             .getMetadataByMetadataString(author, "dspace.object.owner");
         if (metadataByMetadataString.isEmpty()) {
             return null;
         }
+
         MetadataValue metadataValue = metadataByMetadataString.get(0);
         if (StringUtils.isBlank(metadataValue.getAuthority())) {
             return null;
         }
+
         try {
             return ePersonService.find(context, UUID.fromString(metadataValue.getAuthority()));
         } catch (SQLException e) {
             handler.handleException(e);
             throw new RuntimeException(e);
         }
+
     }
 
     private EPerson getEPersonFromMetadata(Item item, String metadata) {

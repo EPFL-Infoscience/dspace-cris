@@ -322,6 +322,13 @@
   </dc-type>
 
   <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>dar</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
         <schema>dc</schema>
         <element>identifier</element>
         <qualifier>pmid</qualifier>
@@ -976,6 +983,41 @@
     <schema>dc</schema>
     <element>contributor</element>
     <qualifier>scientificeditor</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>prioritynumber</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>reportno</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>description</element>
+    <qualifier>edition</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>relation</element>
+    <qualifier>serieissn</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>relation</element>
+    <qualifier>title</qualifier>
     <scope_note></scope_note>
   </dc-type>
 

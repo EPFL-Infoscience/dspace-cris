@@ -30,6 +30,7 @@ import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.SolrSearchCore;
 import org.dspace.discovery.SolrServiceIndexPlugin;
+import org.dspace.discovery.indexobject.document.TruncatedSolrInputDocument;
 import org.dspace.discovery.indexobject.factory.IndexFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -54,7 +55,7 @@ public abstract class IndexFactoryImpl<T extends IndexableObject, S> implements 
 
     @Override
     public SolrInputDocument buildDocument(Context context, T indexableObject) throws SQLException, IOException {
-        SolrInputDocument doc = new SolrInputDocument();
+        TruncatedSolrInputDocument doc = new TruncatedSolrInputDocument();
         // want to be able to check when last updated
         // (not tokenized, but it is indexed)
         doc.addField(SearchUtils.LAST_INDEXED_FIELD, SolrUtils.getDateFormatter().format(new Date()));
@@ -104,52 +105,63 @@ public abstract class IndexFactoryImpl<T extends IndexableObject, S> implements 
             if (!ConfigurationService.getBooleanProperty("discovery.ignore-fulltext", false) && streams != null
                     && !streams.isEmpty()) {
                 // limit full text indexing to first 100,000 characters unless configured otherwise
-                final int charLimit = DSpaceServicesFactory.getInstance().getConfigurationService()
-                                                           .getIntProperty("discovery.solr.fulltext.charLimit",
-                                                                           100000);
+                final int charLimit = DSpaceServicesFactory.getInstance()
+                                                           .getConfigurationService()
+                                                           .getIntProperty("discovery.solr.fulltext.charLimit", 100000);
 
-                // Use Tika's Text parser as the streams are always from the TEXT bundle (i.e. already extracted text)
-                TextAndCSVParser tikaParser = new TextAndCSVParser();
-                BodyContentHandler tikaHandler = new BodyContentHandler(charLimit);
-                Metadata tikaMetadata = new Metadata();
-                ParseContext tikaContext = new ParseContext();
-
-                // Use Apache Tika to parse the full text stream(s)
-                try (InputStream fullTextStreams = streams.getStream()) {
-                    tikaParser.parse(fullTextStreams, tikaHandler, tikaMetadata, tikaContext);
-                } catch (SAXException saxe) {
-                    // Check if this SAXException is just a notice that this file was longer than the character limit.
-                    // Unfortunately there is not a unique, public exception type to catch here. This error is thrown
-                    // by Tika's WriteOutContentHandler when it encounters a document longer than the char limit
-                    // https://github.com/apache/tika/blob/main/tika-core/src/main/java/org/apache/tika/sax/WriteOutContentHandler.java
-                    if (saxe.getMessage().contains("limit has been reached")) {
-                        // log that we only indexed up to that configured limit
-                        log.info("Full text is larger than the configured limit (discovery.solr.fulltext.charLimit)."
-                                     + " Only the first {} characters were indexed.", charLimit);
-                    } else {
-                        log.error("Tika parsing error. Could not index full text.", saxe);
-                        throw new IOException("Tika parsing error. Could not index full text.", saxe);
-                    }
-                } catch (TikaException ex) {
-                    log.error("Tika parsing error. Could not index full text.", ex);
-                    throw new IOException("Tika parsing error. Could not index full text.", ex);
-                }
-
-                // Write Tika metadata to "tika_meta_*" fields.
-                // This metadata is not very useful right now, but we'll keep it just in case it becomes more useful.
-                for (String name : tikaMetadata.names()) {
-                    for (String value : tikaMetadata.getValues(name)) {
-                        doc.addField("tika_meta_" + name, value);
-                    }
-                }
-
-                // Save (parsed) full text to "fulltext" field
-                doc.addField("fulltext", tikaHandler.toString());
+                addField(doc, "fulltext", streams.getFullTextStreamStream(), charLimit);
+                addField(doc, "fulltext.mirador", streams.getMiradorStream(), charLimit);
+                addField(doc, "fulltext.video", streams.getVideoStream(), charLimit);
             }
-
             // Add document to index
             solr.add(doc);
         }
+    }
+
+    private void addField(SolrInputDocument doc, String field, InputStream stream, int charLimit)
+        throws IOException {
+
+        // Use Tika's Text parser as the streams are always from the TEXT bundle (i.e. already extracted text)
+        TextAndCSVParser tikaParser = new TextAndCSVParser();
+        BodyContentHandler tikaHandler = new BodyContentHandler(charLimit);
+        Metadata tikaMetadata = new Metadata();
+        ParseContext tikaContext = new ParseContext();
+
+        // Use Apache Tika to parse the full text stream(s)
+        try {
+            tikaParser.parse(stream, tikaHandler, tikaMetadata, tikaContext);
+        } catch (SAXException saxe) {
+            // Check if this SAXException is just a notice that this file was longer than the character limit.
+            // Unfortunately there is not a unique, public exception type to catch here. This error is thrown
+            // by Tika's WriteOutContentHandler when it encounters a document longer than the char limit
+            // https://github.com/apache/tika/blob/main/tika-core/src/main/java/org/apache/tika/sax/WriteOutContentHandler.java
+            if (saxe.getMessage().contains("limit has been reached")) {
+                // log that we only indexed up to that configured limit
+                log.info("Full text is larger than the configured limit (discovery.solr.fulltext.charLimit)."
+                    + " Only the first {} characters were indexed.", charLimit);
+            } else {
+                log.error("Tika parsing error. Could not index full text.", saxe);
+                throw new IOException("Tika parsing error. Could not index full text.", saxe);
+            }
+        } catch (TikaException ex) {
+            log.error("Tika parsing error. Could not index full text.", ex);
+            throw new IOException("Tika parsing error. Could not index full text.", ex);
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
+
+        // Write Tika metadata to "tika_meta_*" fields.
+        // This metadata is not very useful right now, but we'll keep it just in case it becomes more useful.
+        for (String name : tikaMetadata.names()) {
+            for (String value : tikaMetadata.getValues(name)) {
+                doc.addField("tika_meta_" + name, value);
+            }
+        }
+
+        // Save (parsed) full text to the provided field
+        doc.addField(field, tikaHandler.toString());
     }
 
 

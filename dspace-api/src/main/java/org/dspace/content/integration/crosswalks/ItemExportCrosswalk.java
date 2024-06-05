@@ -25,7 +25,7 @@ public interface ItemExportCrosswalk extends StreamDisseminationCrosswalk, FileN
     /**
      * Returns the type of entities that the specific ItemExportCrosswalk
      * implementation is capable of processing, if any. If an entity type is not
-     * configured the export can be performed on any item.
+     * configured or special word 'all' used the export can be performed on any item.
      *
      * @return the entity type, if configured, or an empty Optional
      */

@@ -57,26 +57,40 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
- * Class representing an e-mail message, also used to send e-mails.
+ * Class representing an e-mail message.  The {@link send} method causes the
+ * assembled message to be formatted and sent.
  * <p>
  * Typical use:
- * </p>
+ * <pre>
+ * <code>Email email = Email.getEmail(path);</code>
+ * <code>email.addRecipient("foo@bar.com");</code>
+ * <code>email.addArgument("John");</code>
+ * <code>email.addArgument("On the Testing of DSpace");</code>
+ * <code>email.send();</code>
+ * </pre>
+ * {@code path} is the filesystem path of an email template, typically in
+ * {@code ${dspace.dir}/config/emails/} and can include the subject -- see
+ * below.  Templates are processed by <a href='https://velocity.apache.org/'>
+ * Apache Velocity</a>.  They may contain VTL directives and property
+ * placeholders.
  * <p>
- * <code>Email email = new Email();</code><br>
- * <code>email.addRecipient("foo@bar.com");</code><br>
- * <code>email.addArgument("John");</code><br>
- * <code>email.addArgument("On the Testing of DSpace");</code><br>
- * <code>email.send();</code><br>
- * </p>
+ * {@link addArgument(string)} adds a property to the {@code params} array
+ * in the Velocity context, which can be used to replace placeholder tokens
+ * in the message.  These arguments are indexed by number in the order they were
+ * added to the message.
  * <p>
- * <code>name</code> is the name of an email template in
- * <code>dspace-dir/config/emails/</code> (which also includes the subject.)
- * <code>arg0</code> and <code>arg1</code> are arguments to fill out the
- * message with.
- * <P>
- * Emails are formatted using Apache Velocity.  Headers such as Subject may be
- * supplied by the template, by defining them using #set().  Example:
- * </p>
+ * The DSpace configuration properties are also available to templates as the
+ * array {@code config}, indexed by name.  Example:  {@code ${config.get('dspace.name')}}
+ * <p>
+ * Recipients and attachments may be added as needed.  See {@link addRecipient},
+ * {@link addAttachment(File, String)}, and
+ * {@link addAttachment(InputStream, String, String)}.
+ * <p>
+ * Headers such as Subject may be supplied by the template, by defining them
+ * using the VTL directive {@code #set()}.  Only headers named in the DSpace
+ * configuration array property {@code mail.message.headers} will be added.
+ * <p>
+ * Example:
  *
  * <pre>
  *
@@ -91,12 +105,14 @@ import org.dspace.services.factory.DSpaceServicesFactory;
  *
  *     Thank you for sending us your submission &quot;${params[1]}&quot;.
  *
+ *     --
+ *     The ${config.get('dspace.name')} Team
+ *
  * </pre>
  *
  * <p>
  * If the example code above was used to send this mail, the resulting mail
  * would have the subject <code>Example e-mail</code> and the body would be:
- * </p>
  *
  * <pre>
  *
@@ -105,7 +121,16 @@ import org.dspace.services.factory.DSpaceServicesFactory;
  *
  *     Thank you for sending us your submission &quot;On the Testing of DSpace&quot;.
  *
+ *     --
+ *     The DSpace Team
+ *
  * </pre>
+ * <p>
+ * There are two ways to load a message body.  One can create an instance of
+ * {@link Email} and call {@link setContent} on it, passing the body as a String.  Or
+ * one can use the static factory method {@link getEmail} to load a file by its
+ * complete filesystem path.  In either case the text will be loaded into a
+ * Velocity template.
  *
  * @author Robert Tansley
  * @author Jim Downing - added attachment handling code
@@ -184,7 +209,6 @@ public class Email {
         moreAttachments = new ArrayList<>(10);
         subject = "";
         template = null;
-        content = "";
         replyTo = null;
         charset = null;
     }
@@ -199,7 +223,7 @@ public class Email {
     }
 
     /**
-     * Add a recipient
+     * Add a recipient.
      *
      * @param email the recipient's email address
      */
@@ -222,16 +246,25 @@ public class Email {
      * "Subject:" line must be stripped.
      *
      * @param name a name for this message body
-     * @param cnt the content of the message
+     * @param content the content of the message
      */
-    public void setContent(String name, String cnt) {
-        content = cnt;
+    public void setContent(String name, String content) {
+        this.content = content;
         contentName = name;
         arguments.clear();
+
+        VelocityEngine templateEngine = new VelocityEngine();
+        templateEngine.init(VELOCITY_PROPERTIES);
+
+        StringResourceRepository repo = (StringResourceRepository)
+                templateEngine.getApplicationAttribute(RESOURCE_REPOSITORY_NAME);
+        repo.putStringResource(contentName, content);
+        // Turn content into a template.
+        template = templateEngine.getTemplate(contentName);
     }
 
     /**
-     * Set the subject of the message
+     * Set the subject of the message.
      *
      * @param s the subject of the message
      */
@@ -240,7 +273,7 @@ public class Email {
     }
 
     /**
-     * Set the reply-to email address
+     * Set the reply-to email address.
      *
      * @param email the reply-to email address
      */
@@ -249,7 +282,7 @@ public class Email {
     }
 
     /**
-     * Fill out the next argument in the template
+     * Fill out the next argument in the template.
      *
      * @param arg the value for the next argument
      */
@@ -257,6 +290,13 @@ public class Email {
         arguments.add(arg);
     }
 
+    /**
+     * Add an attachment bodypart to the message from an external file.
+     *
+     * @param f reference to a file to be attached.
+     * @param name a name for the resulting bodypart in the message's MIME
+     *              structure.
+     */
     public void addAttachment(File f, String name) {
         attachments.add(new FileAttachment(f, name));
     }
@@ -264,6 +304,17 @@ public class Email {
     /** When given a bad MIME type for an attachment, use this instead. */
     private static final String DEFAULT_ATTACHMENT_TYPE = "application/octet-stream";
 
+    /**
+     * Add an attachment bodypart to the message from a byte stream.
+     *
+     * @param is the content of this stream will become the content of the
+     *              bodypart.
+     * @param name a name for the resulting bodypart in the message's MIME
+     *              structure.
+     * @param mimetype the MIME type of the resulting bodypart, such as
+     *              "text/pdf".  If {@code null} it will default to
+     *              "application/octet-stream", which is MIME for "unknown format".
+     */
     public void addAttachment(InputStream is, String name, String mimetype) {
         if (null == mimetype) {
             LOG.error("Null MIME type replaced with '" + DEFAULT_ATTACHMENT_TYPE
@@ -283,6 +334,11 @@ public class Email {
         moreAttachments.add(new InputStreamAttachment(is, name, mimetype));
     }
 
+    /**
+     * Set the character set of the message.
+     *
+     * @param cs the name of a character set, such as "UTF-8" or "EUC-JP".
+     */
     public void setCharset(String cs) {
         charset = cs;
     }
@@ -307,15 +363,20 @@ public class Email {
      * {@code mail.message.headers} then that name and its value will be added
      * to the message's headers.
      *
-     * <p>"subject" is treated specially:  if {@link setSubject()} has not been called,
-     * the value of any "subject" property will be used as if setSubject had
-     * been called with that value.  Thus a template may define its subject, but
-     * the caller may override it.
+     * <p>"subject" is treated specially:  if {@link setSubject()} has not been
+     * called, the value of any "subject" property will be used as if setSubject
+     * had been called with that value.  Thus a template may define its subject,
+     * but the caller may override it.
      *
      * @throws MessagingException if there was a problem sending the mail.
      * @throws IOException        if IO error
      */
     public void send() throws MessagingException, IOException {
+        if (null == template) {
+            // No template -- no content -- PANIC!!!
+            throw new MessagingException("Email has no body");
+        }
+
         ConfigurationService config
                 = DSpaceServicesFactory.getInstance().getConfigurationService();
 
@@ -353,26 +414,9 @@ public class Email {
         String[] templateHeaders = config.getArrayProperty("mail.message.headers");
 
         // Format the mail message body
-        VelocityEngine templateEngine = new VelocityEngine();
-        templateEngine.init(VELOCITY_PROPERTIES);
-
         VelocityContext vctx = new VelocityContext();
         vctx.put("config", new UnmodifiableConfigurationService(config));
         vctx.put("params", Collections.unmodifiableList(arguments));
-
-        if (null == template) {
-            if (StringUtils.isBlank(content)) {
-                // No template and no content -- PANIC!!!
-                throw new MessagingException("Email has no body");
-            }
-            // No template, so use a String of content.
-            StringResourceRepository repo = (StringResourceRepository)
-                    templateEngine.getApplicationAttribute(RESOURCE_REPOSITORY_NAME);
-            repo.putStringResource(contentName, content);
-            // Turn content into a template.
-            template = templateEngine.getTemplate(contentName);
-            templateHeaders = new String[] {"subject"};
-        }
 
         StringWriter writer = new StringWriter();
         try {
@@ -434,7 +478,7 @@ public class Email {
             if (charset != null) {
                 message.setText(fullMessage, charset, subtype);
             } else {
-                message.setText(fullMessage, null, "html");
+                message.setText(fullMessage, null, subtype);
             }
         } else {
             Multipart multipart = new MimeMultipart();
@@ -459,7 +503,7 @@ public class Email {
                 // add the stream
                 messageBodyPart = new MimeBodyPart();
                 messageBodyPart.setDataHandler(new DataHandler(
-                        new InputStreamDataSource(attachment.name,attachment.mimetype,attachment.is)));
+                        new InputStreamDataSource(attachment.name, attachment.mimetype, attachment.is)));
                 messageBodyPart.setFileName(attachment.name);
                 multipart.addBodyPart(messageBodyPart);
             }
@@ -506,7 +550,7 @@ public class Email {
         }
     }
 
-    private boolean isHtmlContent() {
+    public boolean isHtmlContent() {
         return StringUtils.containsIgnoreCase(content, "<html>")
             && StringUtils.containsIgnoreCase(content, "</html>");
     }
@@ -514,6 +558,9 @@ public class Email {
     /**
      * Get the VTL template for an email message. The message is suitable
      * for inserting values using Apache Velocity.
+     * <p>
+     * Note that everything is stored here, so that only send() throws a
+     * MessagingException.
      *
      * @param emailFile
      *            full name for the email template, for example "/dspace/config/emails/register".
@@ -551,15 +598,6 @@ public class Email {
         }
         return email;
     }
-    /*
-     * Implementation note: It might be necessary to add a quick utility method
-     * like "send(to, subject, message)". We'll see how far we get without it -
-     * having all emails as templates in the config allows customisation and
-     * internationalisation.
-     *
-     * Note that everything is stored and the run in send() so that only send()
-     * throws a MessagingException.
-     */
 
     /**
      * Test method to send an email to check email server settings
@@ -642,14 +680,6 @@ public class Email {
         return replyTo;
     }
 
-    protected List<FileAttachment> getAttachments() {
-        return attachments;
-    }
-
-    protected List<InputStreamAttachment> getMoreAttachments() {
-        return moreAttachments;
-    }
-
     protected String getCharset() {
         return charset;
     }
@@ -662,4 +692,11 @@ public class Email {
         return fullMessage;
     }
 
+    public List<FileAttachment> getAttachments() {
+        return attachments;
+    }
+
+    public List<InputStreamAttachment> getMoreAttachments() {
+        return moreAttachments;
+    }
 }

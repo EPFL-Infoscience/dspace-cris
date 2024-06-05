@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.converter;
 
+import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.Logger;
@@ -95,7 +96,7 @@ public class EditItemConverter
 
             rest.setId(obj.getID() + ":" + mode.getName());
             SubmissionDefinitionRest def = converter.toRest(
-                    submissionConfigReader.getSubmissionConfigByName(mode.getSubmissionDefinition()), projection);
+                    submissionConfigService.getSubmissionConfigByName(mode.getSubmissionDefinition()), projection);
             rest.setSubmissionDefinition(def);
             storeSubmissionName(def.getName());
             for (SubmissionSectionRest sections : def.getPanels()) {
@@ -138,7 +139,9 @@ public class EditItemConverter
         }
         rest.setCollection(collection != null ? converter.toRest(collection, projection) : null);
         rest.setItem(converter.toRest(item, projection));
-        rest.setSubmitter(converter.toRest(submitter, projection));
+        if (Objects.nonNull(submitter)) {
+            rest.setSubmitter(converter.toRest(submitter, projection));
+        }
     }
 
     private void addValidationErrorsToItem(EditItem obj, EditItemRest rest) {

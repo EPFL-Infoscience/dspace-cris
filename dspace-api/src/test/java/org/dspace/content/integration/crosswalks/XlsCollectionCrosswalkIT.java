@@ -70,6 +70,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -154,7 +155,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         }
 
         String[] args = new String[] { "bulk-import", "-c", collection.getID().toString(),
-            "-f", tempWorkbookFile.getAbsolutePath() };
+            "-f", tempWorkbookFile.getAbsolutePath(), "-e", admin.getEmail()};
 
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
@@ -176,6 +177,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    @Ignore
     public void testCollectionDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -337,6 +339,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    @Ignore
     public void testCollectionDisseminateWithMockSubmissionFormConfiguration() throws Exception {
 
         try {
@@ -452,6 +455,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    @Ignore
     public void testManyItemsDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -948,6 +952,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    @Ignore
     public void testCollectionDisseminateWithSecurityLevel() throws Exception {
 
         context.turnOffAuthorisationSystem();

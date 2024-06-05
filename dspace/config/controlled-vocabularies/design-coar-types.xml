@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This XML was automatically generated from the SKOS sources for the COAR Vocabulary. It follows the schema developed by 4Science (https://www.4science.it/) for DSpace -->
+<node id="http://purl.org/coar/resource_type/scheme" label="Resource Types">
+  <isComposedBy>
+    <node id="542X-3S04" label="design">
+      <hasNote>Plans, drawing or set of drawings showing how something e.g. building, product is to be made and how it will work and look. [Source: Adapted from https://dictionary.cambridge.org/dictionary/english/design]
+      </hasNote>
+      <isComposedBy>
+        <node id="JBNF-DYAD" label="industrial design">
+          <hasNote>Industrial designs are applied to a wide variety of industrial products and handicrafts. They refer to the ornamental or aesthetic aspects of a useful article,including compositions of lines or colors or any three-dimensional forms that give a special appearance to a product or handicraft. [Source: https://www.wipo.int/edocs/pubdocs/en/wipo_pub_943_2018.pdf]
+          </hasNote>
+        </node>
+        <node id="BW7T-YM2G" label="layout design">
+          <hasNote>Layout-design (topography) means the three-dimensional disposition, however expressed, of the interconnections of an integrated circuit, or such a three-dimensional disposition prepared for an integrated circuit intended for manufacture the elements of an integrated circuit (at least one of which is an active element) and of some or all. [Source: https://www.wipo.int/edocs/lexdocs/laws/en/hk/hk028en.pdf]
+          </hasNote>
+        </node>
+      </isComposedBy>
+    </node>
+    <node id="c_c513" label="image">
+      <hasNote>A visual representation other than text, including all types of moving image and still image. [Source: Adapted from  http://purl.org/dc/dcmitype/Image]
+      </hasNote>
+      <isComposedBy>
+        <node id="c_8a7e" label="moving image">
+          <hasNote>A moving display, either generated dynamically by a computer program or formed from a series of pre-recorded still images imparting an impression of motion when shown in succession. [Source: http://purl.org/spar/fabio/MovingImage]
+          </hasNote>
+          <isComposedBy>
+            <node id="c_12ce" label="video">
+              <hasNote>A recording of visual images, usually in motion and with sound accompaniment. [Source: http://www.ifla.org/files/assets/cataloguing/isbd/isbd-cons_20110321.pdf ]
+              </hasNote>
+            </node>
+          </isComposedBy>
+        </node>
+        <node id="c_ecc8" label="still image">
+          <hasNote>A recorded static visual representation. This class of image includes diagrams, drawings, graphs, graphic designs, plans, photographs and prints. [Source: Adapted from  http://purl.org/spar/fabio/StillImage]
+          </hasNote>
+        </node>
+      </isComposedBy>
+    </node>
+    <node id="c_18cc" label="sound">
+      <hasNote>A resource primarily intended to be heard. Examples include a music playback file format, an audio compact disc, and recorded speech or sounds. [Source: http://dublincore.org/documents/dcmi-terms/#dcmitype-Sound]
+      </hasNote>
+    </node>
+    <node id="c_e9a0" label="interactive resource">
+      <hasNote>A resource requiring interaction from the user to be understood, executed, or experienced. Examples include forms on Web pages, applets, multimedia learning objects, chat services, or virtual reality environments.
+Source: http://purl.org/dc/dcmitype/InteractiveResource
+      </hasNote>
+      <isComposedBy>
+        <node id="c_7ad9" label="website">
+          <hasNote>A collection of related web pages containing text, images, videos and/or other digital assets that are addressed relative to a common Uniform Resource Locator (URL). A web site is hosted on at least one web server, accessible via a network such as the Internet or a private local area network.
+[Source: http://purl.org/spar/fabio/WebSite]
+          </hasNote>
+        </node>
+      </isComposedBy>
+    </node>
+  </isComposedBy>
+</node>

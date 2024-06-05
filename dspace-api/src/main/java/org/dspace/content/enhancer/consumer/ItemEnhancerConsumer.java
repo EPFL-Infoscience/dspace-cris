@@ -9,12 +9,17 @@ package org.dspace.content.enhancer.consumer;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.dspace.content.Item;
 import org.dspace.content.enhancer.service.ItemEnhancerService;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 /**
@@ -26,9 +31,14 @@ import org.dspace.utils.DSpace;
  */
 public class ItemEnhancerConsumer implements Consumer {
 
-    private Set<Item> itemsAlreadyProcessed = new HashSet<Item>();
+    public static final String ITEMENHANCER_ENABLED = "itemenhancer.enabled";
+    private Set<UUID> itemsToProcess = new HashSet<UUID>();
 
     private ItemEnhancerService itemEnhancerService;
+
+    private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+    private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     @Override
     public void finish(Context ctx) throws Exception {
@@ -43,25 +53,37 @@ public class ItemEnhancerConsumer implements Consumer {
     @Override
     public void consume(Context context, Event event) throws Exception {
 
-        Item item = (Item) event.getSubject(context);
-        if (item == null || itemsAlreadyProcessed.contains(item) || !item.isArchived()) {
+        if (!isConsumerEnabled()) {
             return;
         }
 
-        itemsAlreadyProcessed.add(item);
-
-        context.turnOffAuthorisationSystem();
-        try {
-            itemEnhancerService.enhance(context, item);
-        } finally {
-            context.restoreAuthSystemState();
+        Item item = (Item) event.getSubject(context);
+        if (item == null || !item.isArchived()) {
+            return;
         }
 
+        itemsToProcess.add(item.getID());
+    }
+
+    protected boolean isConsumerEnabled() {
+        return configurationService.getBooleanProperty(ITEMENHANCER_ENABLED, true);
     }
 
     @Override
     public void end(Context ctx) throws Exception {
-        itemsAlreadyProcessed.clear();
+        ctx.turnOffAuthorisationSystem();
+        try {
+            for (UUID uuid : itemsToProcess) {
+                Item item = itemService.find(ctx, uuid);
+                if (item != null) {
+                    itemEnhancerService.enhance(ctx, item, false);
+                    itemEnhancerService.saveAffectedItemsForUpdate(ctx, item.getID());
+                }
+            }
+        } finally {
+            ctx.restoreAuthSystemState();
+        }
+        itemsToProcess.clear();
     }
 
 }

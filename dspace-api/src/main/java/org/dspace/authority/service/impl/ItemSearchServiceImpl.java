@@ -8,7 +8,6 @@
 package org.dspace.authority.service.impl;
 
 import static org.dspace.content.Item.ANY;
-import static org.dspace.content.MetadataSchemaEnum.CRIS;
 
 import java.sql.SQLException;
 import java.util.Iterator;
@@ -26,6 +25,11 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexableWorkflowItem;
+import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,8 +67,8 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         throws SQLException, AuthorizeException {
 
         return findByUuid(context, searchParam, entityType)
-            .or(() -> findByCrisSourceIdAndEntityType(context, searchParam, entityType))
             .or(() -> findByItemSearcher(context, searchParam, entityType, source))
+            .or(() -> findByCrisSourceIdAndEntityType(context, searchParam, entityType))
             .orElse(null);
     }
 
@@ -79,8 +83,10 @@ public class ItemSearchServiceImpl implements ItemSearchService {
             .filter(i -> hasEntityTypeEqualsTo(i, entityType));
     }
 
-    private Optional<Item> findByCrisSourceIdAndEntityType(Context context, String crisSourceId,
-        String entityType) {
+    private Optional<Item> findByCrisSourceIdAndEntityType(Context context, String crisSourceId, String entityType) {
+        if (StringUtils.isBlank(crisSourceId)) {
+            return Optional.empty();
+        }
         Iterator<Item> items = findByCrisSourceId(context, crisSourceId);
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(items, Spliterator.ORDERED), false)
             .filter(item -> hasEntityTypeEqualsTo(item, entityType))
@@ -89,7 +95,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
     private Optional<Item> findByItemSearcher(Context context, String searchParam, String entityType, Item source) {
         String[] searchParamSections = searchParam.split(AuthorityValueService.SPLIT);
-        if (searchParamSections.length != 2) {
+        if (searchParamSections.length != 2 || searchParam.contains("cris.sourceId")) {
             return Optional.empty();
         }
         return Optional.ofNullable(mapper.search(context, searchParamSections[0], searchParamSections[1], source))
@@ -97,11 +103,12 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     }
 
     private Iterator<Item> findByCrisSourceId(Context context, String crisSourceId) {
-        try {
-            return itemService.findUnfilteredByMetadataField(context, CRIS.getName(), "sourceId", null, crisSourceId);
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException("An error occurs searching items by crisSourceId " + crisSourceId, e);
-        }
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
+        discoverQuery.addFilterQueries("cris.sourceId:" + crisSourceId.replace("::", "\\:\\:"));
+        return new DiscoverResultItemIterator(context, discoverQuery);
     }
 
     private boolean hasEntityTypeEqualsTo(Item item, String entityType) {

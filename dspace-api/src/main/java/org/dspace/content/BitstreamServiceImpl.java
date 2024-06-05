@@ -12,6 +12,7 @@ import static org.apache.commons.lang.StringUtils.startsWith;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -149,14 +150,20 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     }
 
     @Override
-    public Bitstream create(Context context, Bundle bundle, InputStream is)
-        throws IOException, SQLException, AuthorizeException {
+    public Bitstream create(Context context, Bundle bundle, InputStream is, boolean updateLastModified)
+            throws IOException, SQLException, AuthorizeException {
         // Check authorisation
         authorizeService.authorizeAction(context, bundle, Constants.ADD);
 
         Bitstream b = create(context, is);
-        bundleService.addBitstream(context, bundle, b);
+        bundleService.addBitstream(context, bundle, b, updateLastModified);
         return b;
+    }
+
+    @Override
+    public Bitstream create(Context context, Bundle bundle, InputStream is)
+        throws IOException, SQLException, AuthorizeException {
+        return create(context, bundle, is, true);
     }
 
     @Override
@@ -255,13 +262,13 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         super.update(context, bitstream);
         if (bitstream.isModified()) {
             context.addEvent(new Event(Event.MODIFY, Constants.BITSTREAM, bitstream.getID(), null,
-                                       getIdentifiers(context, bitstream)));
+                new ArrayList<String>()));
             bitstream.setModified();
         }
         if (bitstream.isMetadataModified()) {
             context.addEvent(
                 new Event(Event.MODIFY_METADATA, Constants.BITSTREAM, bitstream.getID(), bitstream.getDetails(),
-                          getIdentifiers(context, bitstream)));
+                    new ArrayList<String>()));
             bitstream.clearModified();
             bitstream.clearDetails();
         }
@@ -288,6 +295,11 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         //Remove our bitstream from all our bundles
         final List<Bundle> bundles = bitstream.getBundles();
         for (Bundle bundle : bundles) {
+            authorizeService.authorizeAction(context, bundle, Constants.REMOVE);
+            //We also need to remove the bitstream id when it's set as bundle's primary bitstream
+            if (bitstream.equals(bundle.getPrimaryBitstream())) {
+                bundle.unsetPrimaryBitstreamID();
+            }
             bundle.removeBitstream(bitstream);
         }
 
@@ -350,6 +362,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             throw new IllegalStateException("Bitstream " + bitstream.getID().toString()
                     + " must be deleted before it can be removed from the database.");
         }
+        handleService.unbindHandle(context, bitstream);
         bitstreamDAO.delete(context, bitstream);
     }
 
@@ -415,7 +428,7 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 
     @Override
     public Bitstream getThumbnail(Context context, Bitstream bitstream) throws SQLException {
-        Pattern pattern = Pattern.compile("^" + bitstream.getName() + ".([^.]+)$");
+        Pattern pattern = getBitstreamNamePattern(bitstream);
 
         for (Bundle bundle : bitstream.getBundles()) {
             for (Item item : bundle.getItems()) {
@@ -443,6 +456,13 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         }
 
         return null;
+    }
+
+    protected Pattern getBitstreamNamePattern(Bitstream bitstream) {
+        if (bitstream.getName() != null) {
+            return Pattern.compile("^" + Pattern.quote(bitstream.getName()) + ".([^.]+)$");
+        }
+        return Pattern.compile("^" + bitstream.getName() + ".([^.]+)$");
     }
 
     @Override
@@ -618,6 +638,10 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             return bundles.iterator().next();
         }
 
+    }
+
+    public boolean exists(Context context, UUID id) throws SQLException {
+        return this.bitstreamDAO.exists(context, Bitstream.class, id);
     }
 
     private boolean isContainedInBundleNamed(Bitstream bitstream, String name) {

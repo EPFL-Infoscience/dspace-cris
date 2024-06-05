@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.metrics.service.CrisMetricsService;
 import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.requestitem.service.RequestItemService;
@@ -86,6 +87,7 @@ import org.dspace.event.Event;
 import org.dspace.harvest.HarvestedItem;
 import org.dspace.harvest.service.HarvestedItemService;
 import org.dspace.identifier.IdentifierException;
+import org.dspace.identifier.service.DOIService;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutField;
@@ -102,6 +104,7 @@ import org.dspace.orcid.service.OrcidSynchronizationService;
 import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.service.VersionHistoryService;
@@ -151,6 +154,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     protected CollectionService collectionService;
     @Autowired(required = true)
     protected IdentifierService identifierService;
+    @Autowired(required = true)
+    protected DOIService doiService;
     @Autowired(required = true)
     protected VersioningService versioningService;
     @Autowired(required = true)
@@ -218,28 +223,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         if (thumbnail != null) {
             return thumbnail;
         }
-        // If no thumbnail is retrieved by the first strategy
-        // then use the fallback strategy
-        Bitstream thumbBitstream = null;
-        List<Bundle> originalBundles = getBundles(item, "ORIGINAL");
-        Bitstream primaryBitstream = null;
-        if (CollectionUtils.isNotEmpty(originalBundles)) {
-            primaryBitstream = originalBundles.get(0).getPrimaryBitstream();
-        }
-        if (primaryBitstream == null) {
-            primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
-        }
-        if (primaryBitstream != null) {
-            thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream);
-            if (thumbBitstream == null) {
-                thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
-            }
-        }
-
-        if (thumbBitstream != null) {
-            return new Thumbnail(thumbBitstream, primaryBitstream);
-        }
-
         return null;
     }
 
@@ -254,7 +237,27 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
         List<CrisLayoutField> thumbFields = getThumbnailFields(crisLayoutTabs);
         if (CollectionUtils.isEmpty(thumbFields)) {
-            return null;
+            // If no thumbnail is retrieved by the first strategy
+            // then use the fallback strategy
+            Bitstream thumbBitstream = null;
+            List<Bundle> originalBundles = getBundles(item, "ORIGINAL");
+            Bitstream primaryBitstream = null;
+            if (CollectionUtils.isNotEmpty(originalBundles)) {
+                primaryBitstream = originalBundles.get(0).getPrimaryBitstream();
+            }
+            if (primaryBitstream == null) {
+                primaryBitstream = bitstreamService.getFirstBitstream(item, "ORIGINAL");
+            }
+            if (primaryBitstream != null) {
+                thumbBitstream = bitstreamService.getThumbnail(context, primaryBitstream);
+                if (thumbBitstream == null) {
+                    thumbBitstream = bitstreamService.getFirstBitstream(item, "THUMBNAIL");
+                }
+            }
+
+            if (thumbBitstream != null) {
+                return new Thumbnail(thumbBitstream, primaryBitstream);
+            }
         }
         return retrieveThumbnailFromFields(context, item, thumbFields);
     }
@@ -315,9 +318,13 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         if (CollectionUtils.isNotEmpty(bundles)) {
             Optional<Bitstream> primaryBitstream = bundles.get(0).getBitstreams().stream().filter(bitstream -> {
                 return bitstream.getMetadata().stream().anyMatch(metadataValue -> {
-                    return metadataValue.getMetadataField().getID() == metadataField.getID()
-                        && metadataValue.getValue() != null
-                        && metadataValue.getValue().equalsIgnoreCase(value);
+                    if (metadataField != null) {
+                        return metadataValue.getMetadataField().getID() == metadataField.getID()
+                            && metadataValue.getValue() != null
+                            && metadataValue.getValue().equalsIgnoreCase(value);
+                    } else {
+                        return true;
+                    }
                 });
             }).findFirst();
             if (primaryBitstream.isEmpty()) {
@@ -493,9 +500,9 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     @Override
     public void updateLastModified(Context context, Item item) throws SQLException, AuthorizeException {
         item.setLastModified(new Date());
-        update(context, item);
+        // update(context, item);
         //Also fire a modified event since the item HAS been modified
-        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, getIdentifiers(context, item)));
+        context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));
 
         setLastModifiedDateMetadata(context, item);
     }
@@ -508,8 +515,8 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             authorizeService.authorizeAction(context, item, Constants.WRITE);
         }
 
-        log.info(LogHelper.getHeader(context, "update_item", "item_id="
-                + item.getID()));
+//        log.info(LogHelper.getHeader(context, "update_item", "item_id="
+//                + item.getID()));
 
         super.update(context, item);
 
@@ -750,7 +757,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
-    public void update(Context context, Item item) throws SQLException, AuthorizeException {
+    public void update(Context context, Item item, boolean updateLastModified) throws SQLException, AuthorizeException {
         // Check authorisation
         // only do write authorization if user is not an editor
         if (!canEdit(context, item)) {
@@ -794,22 +801,29 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         }
 
         if (item.isMetadataModified() || item.isModified()) {
-            // Set the last modified date
-            item.setLastModified(new Date());
-            setLastModifiedDateMetadata(context, item);
+            if (updateLastModified) {
+                // Set the last modified date
+                item.setLastModified(new Date());
+                setLastModifiedDateMetadata(context, item);
+            }
+
 
             itemDAO.save(context, item);
 
             if (item.isMetadataModified()) {
                 context.addEvent(new Event(Event.MODIFY_METADATA, item.getType(), item.getID(), item.getDetails(),
-                        getIdentifiers(context, item)));
+                    new ArrayList<String>()));
             }
 
-            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(),
-                    null, getIdentifiers(context, item)));
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, item.getID(), null, new ArrayList<String>()));
             item.clearModified();
             item.clearDetails();
         }
+    }
+
+    @Override
+    public void update(Context context, Item item) throws SQLException, AuthorizeException {
+        update(context, item, true);
     }
 
 
@@ -949,8 +963,14 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
         authorizeService.authorizeAction(context, item, Constants.REMOVE);
 
+        ArrayList<String> identifiers = getIdentifiers(context, item);
+        // cannot autowire it as this would generate a cyclic dependency
+        CustomUrlService customUrlService = new DSpace().getSingletonService(CustomUrlService.class);
+        if (customUrlService != null) {
+            customUrlService.getCustomUrl(item).ifPresent(url -> identifiers.add("customurl:" + url));
+        }
         context.addEvent(new Event(Event.DELETE, Constants.ITEM, item.getID(),
-                item.getHandle(), getIdentifiers(context, item)));
+                item.getHandle(), identifiers));
 
         log.info(LogHelper.getHeader(context, "delete_item", "item_id="
             + item.getID()));
@@ -971,8 +991,12 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         // Remove bundles
         removeAllBundles(context, item);
 
-        // Remove any Handle
-        handleService.unbindHandle(context, item);
+        // Remove any identifiers
+        try {
+            identifierService.delete(context, item);
+        } catch (IdentifierException e) {
+            throw new RuntimeException("Exception attempting to remove item identiers", e);
+        }
 
         // remove version attached to the item
         removeVersion(context, item);
@@ -1197,9 +1221,17 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Override
     public void inheritCollectionDefaultPolicies(Context context, Item item, Collection collection)
-            throws SQLException, AuthorizeException {
-        adjustItemPolicies(context, item, collection);
-        adjustBundleBitstreamPolicies(context, item, collection);
+        throws SQLException, AuthorizeException {
+        inheritCollectionDefaultPolicies(context, item, collection, true);
+    }
+
+    @Override
+    public void inheritCollectionDefaultPolicies(Context context, Item item, Collection collection,
+                                                 boolean replaceReadRPWithCollectionRP)
+        throws SQLException, AuthorizeException {
+
+        adjustItemPolicies(context, item, collection, replaceReadRPWithCollectionRP);
+        adjustBundleBitstreamPolicies(context, item, collection, replaceReadRPWithCollectionRP);
 
         log.debug(LogHelper.getHeader(context, "item_inheritCollectionDefaultPolicies",
                                        "item_id=" + item.getID()));
@@ -1207,45 +1239,119 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
 
     @Override
     public void adjustBundleBitstreamPolicies(Context context, Item item, Collection collection)
-            throws SQLException, AuthorizeException {
-        List<ResourcePolicy> defaultCollectionPolicies = authorizeService
-                .getPoliciesActionFilter(context, collection, Constants.DEFAULT_BITSTREAM_READ);
+        throws SQLException, AuthorizeException {
+        adjustBundleBitstreamPolicies(context, item, collection, true);
+    }
+
+    @Override
+    public void adjustBundleBitstreamPolicies(Context context, Item item, Collection collection,
+                                              boolean replaceReadRPWithCollectionRP)
+        throws SQLException, AuthorizeException {
+        // Bundles should inherit from DEFAULT_ITEM_READ so that if the item is readable, the files
+        // can be listed (even if they are themselves not readable as per DEFAULT_BITSTREAM_READ or other
+        // policies or embargos applied
+        List<ResourcePolicy> defaultCollectionBundlePolicies = authorizeService
+                .getPoliciesActionFilter(context, collection, Constants.DEFAULT_ITEM_READ);
+        // Bitstreams should inherit from DEFAULT_BITSTREAM_READ
+        List<ResourcePolicy> defaultCollectionBitstreamPolicies = authorizeService
+            .getPoliciesActionFilter(context, collection, Constants.DEFAULT_BITSTREAM_READ);
 
         List<ResourcePolicy> defaultItemPolicies = authorizeService.findPoliciesByDSOAndType(context, item,
                 ResourcePolicy.TYPE_CUSTOM);
-        if (defaultCollectionPolicies.size() < 1) {
+        if (defaultCollectionBitstreamPolicies.size() < 1) {
             throw new SQLException("Collection " + collection.getID()
                     + " (" + collection.getHandle() + ")"
                     + " has no default bitstream READ policies");
         }
+        // TODO: should we also throw an exception if no DEFAULT_ITEM_READ?
+        // TODO: should we also throw an exception if no DEFAULT_ITEM_READ?
+
+        boolean removeCurrentReadRPBitstream =
+            replaceReadRPWithCollectionRP && defaultCollectionBitstreamPolicies.size() > 0;
+        boolean removeCurrentReadRPBundle =
+            replaceReadRPWithCollectionRP && defaultCollectionBundlePolicies.size() > 0;
 
         // remove all policies from bundles, add new ones
         // Remove bundles
         List<Bundle> bunds = item.getBundles();
         for (Bundle mybundle : bunds) {
+            // If collection has default READ policies, remove the bundle's READ policies.
+            if (removeCurrentReadRPBundle) {
+                authorizeService.removePoliciesActionFilter(context, mybundle, Constants.READ);
+            }
 
             // if come from InstallItem: remove all submission/workflow policies
             authorizeService.removeAllPoliciesByDSOAndType(context, mybundle, ResourcePolicy.TYPE_SUBMISSION);
             authorizeService.removeAllPoliciesByDSOAndType(context, mybundle, ResourcePolicy.TYPE_WORKFLOW);
             addCustomPoliciesNotInPlace(context, mybundle, defaultItemPolicies);
-            addDefaultPoliciesNotInPlace(context, mybundle, defaultCollectionPolicies);
+            addDefaultPoliciesNotInPlace(context, mybundle, defaultCollectionBundlePolicies);
 
             for (Bitstream bitstream : mybundle.getBitstreams()) {
+                // If collection has default READ policies, remove the bundle's READ policies.
+                if (removeCurrentReadRPBitstream) {
+                    authorizeService.removePoliciesActionFilter(context, bitstream, Constants.READ);
+                }
+
                 // if come from InstallItem: remove all submission/workflow policies
-                authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_SUBMISSION);
-                authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_WORKFLOW);
-                addCustomPoliciesNotInPlace(context, bitstream, defaultItemPolicies);
-                addDefaultPoliciesNotInPlace(context, bitstream, defaultCollectionPolicies);
+                removeAllPoliciesAndAddDefault(context, bitstream, defaultItemPolicies,
+                                               defaultCollectionBitstreamPolicies);
             }
         }
     }
 
     @Override
+    public void adjustBitstreamPolicies(Context context, Item item, Collection collection, Bitstream bitstream)
+        throws SQLException, AuthorizeException {
+        adjustBitstreamPolicies(context, item, collection, bitstream, true);
+    }
+
+    @Override
+    public void adjustBitstreamPolicies(Context context, Item item, Collection collection , Bitstream bitstream,
+                                        boolean replaceReadRPWithCollectionRP)
+        throws SQLException, AuthorizeException {
+        List<ResourcePolicy> defaultCollectionPolicies = authorizeService
+            .getPoliciesActionFilter(context, collection, Constants.DEFAULT_BITSTREAM_READ);
+
+        List<ResourcePolicy> defaultItemPolicies = authorizeService.findPoliciesByDSOAndType(context, item,
+                ResourcePolicy.TYPE_CUSTOM);
+        if (defaultCollectionPolicies.size() < 1) {
+            throw new SQLException("Collection " + collection.getID()
+                                       + " (" + collection.getHandle() + ")"
+                                       + " has no default bitstream READ policies");
+        }
+
+        // remove all policies from bitstream, add new ones
+        removeAllPoliciesAndAddDefault(context, bitstream, defaultItemPolicies, defaultCollectionPolicies);
+    }
+
+    private void removeAllPoliciesAndAddDefault(Context context, Bitstream bitstream,
+                                            List<ResourcePolicy> defaultItemPolicies,
+                                            List<ResourcePolicy> defaultCollectionPolicies)
+        throws SQLException, AuthorizeException {
+        authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_SUBMISSION);
+        authorizeService.removeAllPoliciesByDSOAndType(context, bitstream, ResourcePolicy.TYPE_WORKFLOW);
+        addCustomPoliciesNotInPlace(context, bitstream, defaultItemPolicies);
+        addDefaultPoliciesNotInPlace(context, bitstream, defaultCollectionPolicies);
+    }
+
+    @Override
     public void adjustItemPolicies(Context context, Item item, Collection collection)
-            throws SQLException, AuthorizeException {
+        throws SQLException, AuthorizeException {
+        adjustItemPolicies(context, item, collection, true);
+    }
+
+    @Override
+    public void adjustItemPolicies(Context context, Item item, Collection collection,
+                                   boolean replaceReadRPWithCollectionRP)
+        throws SQLException, AuthorizeException {
         // read collection's default READ policies
         List<ResourcePolicy> defaultCollectionPolicies = authorizeService
                 .getPoliciesActionFilter(context, collection, Constants.DEFAULT_ITEM_READ);
+
+        // If collection has defaultREAD policies, remove the item's READ policies.
+        if (replaceReadRPWithCollectionRP && defaultCollectionPolicies.size() > 0) {
+            authorizeService.removePoliciesActionFilter(context, item, Constants.READ);
+        }
 
         // MUST have default policies
         if (defaultCollectionPolicies.size() < 1) {
@@ -1456,9 +1562,18 @@ prevent the generation of resource policy entry values with null dspace_object a
 
     */
 
-    @Override
+    /**
+     * Add the default policies, which have not been already added to the given DSpace object
+     *
+     * @param context                   The relevant DSpace Context.
+     * @param dso                       The DSpace Object to add policies to
+     * @param defaultCollectionPolicies list of policies
+     * @throws SQLException       An exception that provides information on a database access error or other errors.
+     * @throws AuthorizeException Exception indicating the current user of the context does not have permission
+     *                            to perform a particular action.
+     */
     public void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso,
-        List<ResourcePolicy> defaultCollectionPolicies) throws SQLException, AuthorizeException {
+         List<ResourcePolicy> defaultCollectionPolicies) throws SQLException, AuthorizeException {
         boolean appendMode = configurationService
                 .getBooleanProperty("core.authorization.installitem.inheritance-read.append-mode", false);
         for (ResourcePolicy defaultPolicy : defaultCollectionPolicies) {
@@ -1753,7 +1868,7 @@ prevent the generation of resource policy entry values with null dspace_object a
     @Override
     public Iterator<Item> findByIds(Context context, List<String> ids) throws SQLException {
         return itemDAO.findByIds(context,
-                ids.stream().map(uuid -> UUID.fromString(uuid)).collect(Collectors.toList()));
+                ids.stream().map(uuid -> UUID.fromString(uuid)).distinct().collect(Collectors.toList()));
     }
 
     @Override
@@ -1871,7 +1986,7 @@ prevent the generation of resource policy entry values with null dspace_object a
                                            boolean enableVirtualMetadata) {
 
         enableVirtualMetadata = enableVirtualMetadata
-                && configurationService.getBooleanProperty("item.enable-virtual-metadata", false);
+            && configurationService.getBooleanProperty("item.enable-virtual-metadata", false);
 
         if (!enableVirtualMetadata) {
             log.debug("Called getMetadata for " + item.getID() + " without enableVirtualMetadata");
@@ -1883,7 +1998,9 @@ prevent the generation of resource policy entry values with null dspace_object a
             List<MetadataValue> dbMetadataValues = item.getMetadata();
 
             List<MetadataValue> fullMetadataValueList = new LinkedList<>();
-            fullMetadataValueList.addAll(relationshipMetadataService.getRelationshipMetadata(item, true));
+            if (configurationService.getBooleanProperty("item.enable-virtual-metadata", false)) {
+                fullMetadataValueList.addAll(relationshipMetadataService.getRelationshipMetadata(item, true));
+            }
             fullMetadataValueList.addAll(dbMetadataValues);
 
             item.setCachedMetadata(MetadataValueComparators.sort(fullMetadataValueList));
@@ -2087,7 +2204,7 @@ prevent the generation of resource policy entry values with null dspace_object a
         return configurationService.getBooleanProperty("epfl.item-deletion.replication-enabled");
     }
 
-    private void replicateItem(Context context, Item item) throws IOException {
+    private void replicateItem(Context context, Item item) throws IOException, SQLException {
 
         String taskName = "transmitaip";
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -2177,22 +2294,21 @@ prevent the generation of resource policy entry values with null dspace_object a
 
     }
 
-    private void setLastModifiedDateMetadata(Context context, Item item) throws SQLException, AuthorizeException {
-        MetadataField metadataField =
-                metadataFieldService.findByElement(context, "dc", "date", "modified");
-
-        if (metadataField == null) {
-            MetadataSchema metadataSchema = metadataSchemaService.find(context, "dc");
-            try {
-                metadataFieldService.create(context, metadataSchema, "date", "modified", null);
-            } catch (NonUniqueMetadataException e) {
-                log.error(e.getMessage(), e);
-            }
-        }
-
-        setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.modified"),
-                               null,
+    private void setLastModifiedDateMetadata(Context context, Item item) throws SQLException {
+        setMetadataSingleValue(context, item, new MetadataFieldName("dc.date.modified"), null,
                                ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+    }
+
+    @Override
+    public void addResourcePolicy(Context context, Item item, int actionID, EPerson eperson)
+        throws SQLException, AuthorizeException {
+        ResourcePolicy resourcePolicy =
+            this.authorizeService.createResourcePolicy(context, item, null, eperson, actionID, null);
+        item.getResourcePolicies().add(resourcePolicy);
+    }
+
+    public boolean exists(Context context, UUID id) throws SQLException {
+        return this.itemDAO.exists(context, Item.class, id);
     }
 
 }

@@ -7,9 +7,13 @@
  */
 package org.dspace.content.logic.filter;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.util.List;
 
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.logic.Filter;
 import org.dspace.content.logic.LogicalStatementException;
 import org.dspace.content.service.ItemService;
@@ -21,13 +25,26 @@ public class DoiFilter implements Filter {
 
     @Autowired
     private ItemService itemService;
-
     @Autowired
     private ConfigurationService configurationService;
 
     @Override
     public Boolean getResult(Context context, Item item) throws LogicalStatementException {
-        return isPublication(item) && isThesis(item) && hasNotDoiOrHasCustomerDoi(item);
+        return isPublication(item) && isThesis(item) && isWrittenEPFL(item) &&
+               hasPublisher(item) && hasNotDoiOrHasCustomerDoi(item);
+    }
+
+    private boolean hasPublisher(Item item) {
+        String dcPublisher = itemService.getMetadataFirstValue(item, "dc", "publisher", null, Item.ANY);
+        return isNotBlank(dcPublisher);
+    }
+
+    private boolean isWrittenEPFL(Item item) {
+        String type = itemService.getMetadataFirstValue(item, "epfl", "writtenAt", null, Item.ANY);
+        if (isBlank(type)) {
+            return false;
+        }
+        return type.equalsIgnoreCase("EPFL");
     }
 
     private boolean isPublication(Item item) {
@@ -35,27 +52,21 @@ public class DoiFilter implements Filter {
     }
 
     private boolean isThesis(Item item) {
-        String type = itemService.getMetadataFirstValue(item, "dc", "type", null, Item.ANY);
-        if (isEmpty(type)) {
-            return false;
-        }
-        return type.contains("thesis") || type.contains("::thèse");
+        List<MetadataValue> values = itemService.getMetadata(item, "dc.type", "thesis-coar-types:c_db06");
+        return values.size() > 0;
     }
 
     private boolean hasNotDoiOrHasCustomerDoi(Item item) {
         String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
-        if (isEmpty(doi)) {
+        if (isBlank(doi)) {
             return true;
         }
-
         String doiPrefix = configurationService.getProperty("identifier.doi.prefix");
         return doi.contains(doiPrefix);
     }
 
     @Override
-    public void setBeanName(String name) {
-
-    }
+    public void setBeanName(String name) { }
 
     @Override
     public String getName() {

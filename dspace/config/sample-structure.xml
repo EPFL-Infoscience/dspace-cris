@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <import_structure>
 	<community>
-		<name>CRIS</name>
+		<name>Academic and Research Outputs</name>
 		<description />
 		<intro />
 		<copyright />
 		<sidebar />
 		<collection>
-			<name>Person</name>
-			<entity-type>Person</entity-type>
-			<submission-type>person</submission-type>
+			<name>Books and Book parts</name>
+			<entity-type>Publication</entity-type>
+			<submission-type>book</submission-type>
 			<description />
 			<intro />
 			<copyright />
@@ -18,9 +18,159 @@
 			<provenance />
 		</collection>
         <collection>
-            <name>Project</name>
-            <entity-type>Project</entity-type>
-			<submission-type>project</submission-type>
+            <name>Conferences, Workshops, Symposiums, and Seminars</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>conference</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Datasets and Code</name>
+            <entity-type>Product</entity-type>
+            <submission-type>dataset</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>EPFL thesis</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>thesis</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Images, Videos, Interactive resources, and Design</name>
+            <entity-type>Product</entity-type>
+            <submission-type>design</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Journal articles</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>article</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Newspaper, Magazine, or Blog post</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>media</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Other</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>publication</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Patents</name>
+            <entity-type>Patent</entity-type>
+            <submission-type>patent</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Preprints and Working Papers</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>preprint</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Reports, Documentation, and Standards</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>report</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Student works</name>
+            <entity-type>Publication</entity-type>
+            <submission-type>student</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Teaching Materials</name>
+            <entity-type>Product</entity-type>
+            <submission-type>teaching</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+    </community>
+    <community>
+        <name>Person, units and other authorities</name>
+        <description />
+        <intro />
+        <copyright />
+        <sidebar />
+        <collection>
+            <name>Contents</name>
+            <entity-type>Content</entity-type>
+            <submission-type>content</submission-type>
+            <description />
+            <intro />
+            <copyright />
+            <sidebar />
+            <license />
+            <provenance />
+        </collection>
+        <collection>
+            <name>Events</name>
+            <entity-type>Event</entity-type>
+            <submission-type>event</submission-type>
             <description />
             <intro />
             <copyright />
@@ -40,20 +190,9 @@
             <provenance />
         </collection>
         <collection>
-            <name>OrgUnit</name>
-            <entity-type>OrgUnit</entity-type>
-			<submission-type>orgunit</submission-type>
-            <description />
-            <intro />
-            <copyright />
-            <sidebar />
-            <license />
-            <provenance />
-        </collection>
-        <collection>
-            <name>Journal</name>
+            <name>Journals</name>
             <entity-type>Journal</entity-type>
-			<submission-type>journal</submission-type>
+            <submission-type>journal</submission-type>
             <description />
             <intro />
             <copyright />
@@ -62,9 +201,9 @@
             <provenance />
         </collection>
         <collection>
-            <name>Publication</name>
-            <entity-type>Publication</entity-type>
-			<submission-type>publication</submission-type>
+            <name>Units</name>
+            <entity-type>OrgUnit</entity-type>
+            <submission-type>orgunit</submission-type>
             <description />
             <intro />
             <copyright />
@@ -73,9 +212,9 @@
             <provenance />
         </collection>
         <collection>
-            <name>Patent</name>
-            <entity-type>Patent</entity-type>
-			<submission-type>patent</submission-type>
+            <name>Persons</name>
+            <entity-type>Person</entity-type>
+            <submission-type>person</submission-type>
             <description />
             <intro />
             <copyright />
@@ -84,8 +223,9 @@
             <provenance />
         </collection>
         <collection>
-            <name>Dataset or other products</name>
-            <entity-type>Product</entity-type>
+            <name>Projects</name>
+            <entity-type>Project</entity-type>
+            <submission-type>project</submission-type>
             <description />
             <intro />
             <copyright />
@@ -94,20 +234,9 @@
             <provenance />
         </collection>
         <collection>
-            <name>Event</name>
-            <entity-type>Event</entity-type>
-			<submission-type>event</submission-type>
-            <description />
-            <intro />
-            <copyright />
-            <sidebar />
-            <license />
-            <provenance />
-        </collection>
-        <collection>
-            <name>Equipment</name>
-            <entity-type>Equipment</entity-type>
-			<submission-type>equipment</submission-type>
+            <name>Virtual collections</name>
+            <entity-type>VirtualCollection</entity-type>
+            <submission-type>virtual-collection</submission-type>
             <description />
             <intro />
             <copyright />

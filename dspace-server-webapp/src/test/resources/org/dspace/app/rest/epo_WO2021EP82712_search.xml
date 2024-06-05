@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="/3.2/style/exchange.xsl"?>
+<ops:world-patent-data xmlns="http://www.epo.org/exchange" xmlns:ops="http://ops.epo.org" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <ops:biblio-search total-result-count="1">
+        <ops:query syntax="CQL">applicationnumber = WO2021EP82712</ops:query>
+        <ops:range begin="1" end="11"/>
+        <ops:search-result>
+            <ops:publication-reference system="ops.epo.org" family-id="78821851">
+                <document-id document-id-type="docdb">
+                    <country>WO</country>
+                    <doc-number>2023093975</doc-number>
+                    <kind>A1</kind>
+                </document-id>
+            </ops:publication-reference>
+        </ops:search-result>
+    </ops:biblio-search>
+</ops:world-patent-data>

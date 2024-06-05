@@ -52,9 +52,9 @@ public class BulkImportScriptConfiguration<T extends BulkImport> extends ScriptC
             options.getOption("f").setType(InputStream.class);
             options.getOption("f").setRequired(true);
 
-            options.addOption("e", "concludeOnError", false, "conclude the import at the first error");
-            options.getOption("e").setType(boolean.class);
-            options.getOption("e").setRequired(false);
+            options.addOption("er", "concludeOnError", false, "conclude the import at the first error");
+            options.getOption("er").setType(boolean.class);
+            options.getOption("er").setRequired(false);
 
             options.addOption("cb", "clearBitstreams", false,
                 "delete all bitstream during an item update before adding new ones");

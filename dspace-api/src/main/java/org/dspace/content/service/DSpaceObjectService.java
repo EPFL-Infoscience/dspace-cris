@@ -521,6 +521,10 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
 
     public void update(Context context, T dso) throws SQLException, AuthorizeException;
 
+    default void update(Context context, T dso, boolean updateLastModified) throws SQLException, AuthorizeException {
+        update(context, dso);
+    }
+
 
     public void delete(Context context, T dso) throws SQLException, AuthorizeException, IOException;
 
@@ -584,4 +588,6 @@ public interface DSpaceObjectService<T extends DSpaceObject> {
             throws SQLException {
 
     }
+
+    boolean exists(Context context, UUID id) throws SQLException;
 }

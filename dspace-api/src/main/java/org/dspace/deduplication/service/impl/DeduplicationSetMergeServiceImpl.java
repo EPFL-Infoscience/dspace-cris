@@ -28,9 +28,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.dataquality.utils.service.AbstractDedupUtilsAddon;
 import org.dspace.app.deduplication.model.DeduplicationMerge;
 import org.dspace.app.deduplication.model.DeduplicationSetMerge;
-import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.deduplication.utils.DuplicateInfo;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -42,7 +42,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
-import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.EntityTypeService;
@@ -50,6 +50,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.deduplication.dto.DeduplicationMetadataDTO;
 import org.dspace.deduplication.dto.DeduplicationMetadataSourcesDTO;
@@ -84,13 +85,10 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     private EntityTypeService entityTypeService;
 
     @Autowired
-    private DedupUtils dedupUtils;
-
-    @Autowired
     private BitstreamService bitstreamService;
 
     @Autowired
-    private MetadataAuthorityService metadataAuthorityService;
+    private ChoiceAuthorityService choiceAuthorityService;
 
     @Autowired
     private BundleService bundleService;
@@ -101,18 +99,26 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
     @Autowired
     private WorkspaceItemService workspaceItemService;
 
+    @Autowired
+    private AbstractDedupUtilsAddon dedupUtilsAddon;
+
     private final List<String[]> authorityMetadataFields = new ArrayList<>();
 
     @PostConstruct
     private void init() {
-        List<String> values = metadataAuthorityService.getAuthorityMetadata();
+        List<String> values = choiceAuthorityService.getAuthorityControlledFieldsByEntityType(null);
         for (String value : values) {
             authorityMetadataFields.add(getElements(value));
         }
     }
 
     private String[] getElements(String fieldName) {
-        String[] tokens = StringUtils.split(fieldName, ".");
+        String[] tokens;
+        if (fieldName.contains("_")) {
+            tokens = StringUtils.split(fieldName, "_");
+        } else {
+            tokens = StringUtils.split(fieldName, ".");
+        }
         int add = 4 - tokens.length;
         if (add > 0) {
             tokens = ArrayUtils.addAll(tokens, new String[add]);
@@ -435,7 +441,7 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
         String targetUri = itemService.getMetadata(targetItem, "dc.identifier.uri");
         if (targetUri != null) {
             for (Item item : otherItems) {
-                itemService.addMetadata(context, item,"dspace", "merge", "target-uri",
+                itemService.addMetadata(context, item,"dq", "merge", "target-uri",
                     null, List.of(targetUri));
             }
         }
@@ -464,11 +470,12 @@ public class DeduplicationSetMergeServiceImpl implements DeduplicationSetMergeSe
 
     private void removeItemsFromSet(Context context, String setId)
         throws SearchServiceException, SQLException, AuthorizeException {
-        DuplicateInfo duplicateInfo = dedupUtils.findGroup(context, setId);
+        DuplicateInfo duplicateInfo = dedupUtilsAddon.findGroup(context, setId);
         if (duplicateInfo != null) {
             for (Item item : duplicateInfo.getItems()) {
-                dedupUtils.rejectAdminDups(context, duplicateInfo, item.getID());
+                dedupUtilsAddon.rejectAdminDups(context, duplicateInfo, item.getID(), Constants.ITEM);
             }
+            System.out.println(duplicateInfo);
         }
     }
 

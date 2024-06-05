@@ -11,6 +11,7 @@ import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -62,6 +62,9 @@ import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.external.service.impl.ExternalDataServiceImpl;
+import org.dspace.identifier.DOI;
+import org.dspace.identifier.factory.IdentifierServiceFactory;
+import org.dspace.identifier.service.DOIService;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -86,10 +89,13 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     public static final String WOS = "wos";
     public static final String SCOPUS = "scopus";
     public static final String CROSSREF = "crossref";
+    private static final String ARXIV = "arxiv";
+    private static final String EPO = "epo";
     private static final String WORKFLOW_STATE = "workflow";
     private static final String WORKSPACE_STATE = "workspace";
     private static final String ARCHIVED_ITEM_STATE = "item";
-    private static final String ARXIV = "arxiv";
+    private static final String PUBLICATION = "Publication";
+    private static final String PATENT = "Patent";
     private static final int LIMIT = 10;
 
     private String service;
@@ -100,7 +106,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private String finalState;
 
-    private Integer searchLimit;
+    private List<String> workspaceItemImportedDoi;
+
+    private Integer totalSearchLimit;
+
+    private Integer perResearcherSearchLimit;
 
     private Context context;
 
@@ -114,7 +124,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private ConfigurationService configurationService;
 
-    private Map<String, LiveImportDataProvider> nameToProvider = new HashMap<String, LiveImportDataProvider>();
+    private Map<String, LiveImportDataProvider> nameToProvider = new HashMap<>();
 
     @SuppressWarnings("rawtypes")
     private WorkflowService workflowService;
@@ -125,6 +135,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private InstallItemService installItemService;
 
+    protected DOIService doiService;
+
     @Override
     public void setup() throws ParseException {
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -132,38 +144,36 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         itemService = serviceManager.getServiceByName(ItemServiceImpl.class.getName(), ItemServiceImpl.class);
         installItemService = serviceManager.getServiceByName(InstallItemServiceImpl.class.getName(),
                                                              InstallItemServiceImpl.class);
-        collectionService = serviceManager
-                            .getServiceByName(CollectionServiceImpl.class.getName(),CollectionServiceImpl.class);
-        externalDataService = serviceManager
-                             .getServiceByName(ExternalDataServiceImpl.class.getName(), ExternalDataServiceImpl.class);
-        if (serviceManager.isServiceExists("scopusLiveImportDataProvider")) {
-            nameToProvider.put(SCOPUS,
-                    serviceManager.getServiceByName("scopusLiveImportDataProvider", LiveImportDataProvider.class));
-        }
-        if (serviceManager.isServiceExists("wosLiveImportDataProvider")) {
-            nameToProvider.put(WOS,
-                    serviceManager.getServiceByName("wosLiveImportDataProvider", LiveImportDataProvider.class));
-        }
-        if (serviceManager.isServiceExists("crossRefLiveImportDataProvider")) {
-            nameToProvider.put(CROSSREF,
-                    serviceManager.getServiceByName("crossRefLiveImportDataProvider", LiveImportDataProvider.class));
-        }
-        if (serviceManager.isServiceExists("arxivLiveImportDataProvider")) {
-            nameToProvider.put(ARXIV,
-                    serviceManager.getServiceByName("arxivLiveImportDataProvider", LiveImportDataProvider.class));
-        }
+        collectionService = serviceManager.getServiceByName(CollectionServiceImpl.class.getName(),
+                                                            CollectionServiceImpl.class);
+        externalDataService = serviceManager.getServiceByName(ExternalDataServiceImpl.class.getName(),
+                                                              ExternalDataServiceImpl.class);
+        putServiceIfExists(SCOPUS,"scopusLiveImportDataProvider");
+        putServiceIfExists(WOS, "wosLiveImportDataProvider");
+        putServiceIfExists(CROSSREF, "crossRefLiveImportDataProvider");
+        putServiceIfExists(ARXIV, "arxivLiveImportDataProvider");
+        putServiceIfExists(EPO, "epoLiveImportDataProvider");
+
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+        doiService = IdentifierServiceFactory.getInstance().getDOIService();
 
         this.service = commandLine.getOptionValue('s');
         this.finalState = commandLine.getOptionValue('f');
         this.collectionUuid = commandLine.getOptionValue('c');
         this.extraQuery = commandLine.getOptionValue('q');
-        if (commandLine.hasOption('l')) {
-            this.searchLimit = Integer.valueOf(commandLine.getOptionValue('l'));
-        } else {
-            this.searchLimit = getDefaultSearchLimit();
+        this.totalSearchLimit = commandLine.hasOption('l')
+            ? Integer.valueOf(commandLine.getOptionValue('l'))
+            : getDefaultTotalSearchLimit();
+        this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
+        workspaceItemImportedDoi = new ArrayList<>();
+    }
+
+    private void putServiceIfExists(String key, String serviceName) {
+        ServiceManager serviceManager = new DSpace().getServiceManager();
+        if (serviceManager.isServiceExists(serviceName)) {
+            nameToProvider.put(key, serviceManager.getServiceByName(serviceName, LiveImportDataProvider.class));
         }
     }
 
@@ -175,29 +185,32 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             throw new IllegalArgumentException("The name of service must be provided");
         }
 
-        if (StringUtils.isBlank(this.finalState) || isNotSupportedState()) {
-            throw new IllegalArgumentException("The provided final state: (" + this.finalState + ") is not supported,"
+        if (StringUtils.isBlank(finalState) || isNotSupportedState()) {
+            throw new IllegalArgumentException("The provided final state: (" + finalState + ") is not supported,"
                                              + " it must be one of this: workspace, workflow or item");
         }
 
-        if (searchLimit < 0) {
+        if (totalSearchLimit < 0) {
             throw new IllegalArgumentException("The search limit value must be a positive integer");
         }
 
         LiveImportDataProvider dataProvider = nameToProvider.get(service);
         if (Objects.isNull(dataProvider)) {
-            throw new IllegalArgumentException("The " + this.service + " provider does not exist");
+            throw new IllegalArgumentException("The " + service + " provider does not exist");
         }
+        dataProvider.setHandler(handler);
 
         UUID collectionUUID = getCollectionUUID();
-        if (Objects.isNull(collectionUUID)) {
-            this.collection = getPublicationCollection();
-        } else {
-            this.collection = collectionService.find(context, collectionUUID);
-        }
-        if (Objects.isNull(this.collection)) {
+        collection = Objects.nonNull(collectionUUID)
+            ? collectionService.find(context, collectionUUID)
+            : getCollectionByType(EPO.equals(service) ? PATENT : PUBLICATION);
+
+        if (Objects.isNull(collection)) {
             throw new RuntimeException("Collection with uuid" + collectionUUID + "does not exist!");
         }
+
+        validateCollectionEntityType();
+
         if (!authorizeService.isAdmin(context, collection)) {
             throw new RuntimeException("User " + context.getCurrentUser().getEmail() + " cannot submit to collection "
             + collection.getID());
@@ -221,19 +234,29 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private UUID getCollectionUUID() {
-        if (StringUtils.isNoneBlank(collectionUuid)) {
-            return UUID.fromString(collectionUuid);
-        }
-        switch (this.service) {
+        return StringUtils.isNoneBlank(collectionUuid)
+            ? UUID.fromString(collectionUuid)
+            : getUuid(service + ".importworkspaceitem.collection-id");
+    }
+
+    private void validateCollectionEntityType() {
+        String entityType = collection.getEntityType();
+        switch (service) {
             case SCOPUS:
-                return getUuid("scopus.importworkspaceitem.collection-id");
             case WOS:
-                return getUuid("wos.importworkspaceitem.collection-id");
             case CROSSREF:
-                return getUuid("crossref.importworkspaceitem.collection-id");
+            case ARXIV:
+                if (!PUBLICATION.equals(entityType)) {
+                    throw new RuntimeException("Collection type must be Publication, but actually is " + entityType);
+                }
+                break;
+            case EPO:
+                if (!PATENT.equals(entityType)) {
+                    throw new RuntimeException("Collection type must be Patent, but actually is " + entityType);
+                }
+                break;
             default:
         }
-        return null;
     }
 
     private UUID getUuid(final String property) {
@@ -250,10 +273,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             }
         }
         UUID uuid = getEpersonIdentifier();
-        if (uuid != null) {
-            return ePersonService.find(context, uuid);
-        }
-        return null;
+        return uuid != null ? ePersonService.find(context, uuid) : null;
     }
 
     private void performCreatingOfWorkspaceItems(LiveImportDataProvider dataProvider) throws SQLException {
@@ -261,23 +281,38 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         int searchCount = 0;
         int totalRecordWorked = 0;
         int totalItemsProcessed = 0;
+        int recordsFound = 0;
+        int arxivCallCount = 4;
+
 
         try {
             Iterator<Item> itemIterator = findItems();
             handler.logInfo("Update start");
-            while (itemIterator.hasNext() && searchCount < searchLimit) {
+            while (itemIterator.hasNext() && searchCount < totalSearchLimit) {
                 Item item = itemIterator.next();
                 String id = buildID(item);
-                Optional<MetadataValue> owner = getOwner(item);
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
-                    int recordsFound = dataProvider.getNumberOfResults(id);
+                    if (dataProvider.getSourceIdentifier().equals(ARXIV)) {
+                        if (arxivCallCount == 0) {
+                            Thread.sleep(1000);
+                            arxivCallCount = 4;
+                        }
+                        arxivCallCount--;
+                    }
+                    recordsFound = dataProvider.getNumberOfResults(id);
                     handler.logInfo("Found " + recordsFound + " records for researcher " + id +
                                         " that could be imported");
+                    if (recordsFound > perResearcherSearchLimit) {
+                        handler.logInfo(
+                            recordsFound + " exceeds import limit per researcher, importing only first "
+                                + perResearcherSearchLimit + " records");
+                        recordsFound = perResearcherSearchLimit;
+                    }
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
                     for (int i = 1; i <= iterations; i++) {
-                        int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, id, owner);
+                        int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, id, getOwner(item));
                         userPublicationsProcessed[0] += resultFill[0];
                         userPublicationsProcessed[1] += resultFill[1];
                         searchCount++;
@@ -293,7 +328,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException | InterruptedException e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -302,36 +337,35 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         handler.logInfo("Update end");
     }
 
-    private Optional<MetadataValue> getOwner(Item item) {
-        List<MetadataValue> metadataByMetadataString = itemService
-            .getMetadataByMetadataString(item, "dspace.object.owner");
-        return metadataByMetadataString.size() > 0 ? Optional.of(metadataByMetadataString.get(0)) : Optional.empty();
+    private MetadataValue getOwner(Item item) {
+        return itemService.getMetadataByMetadataString(item, "dspace.object.owner").stream()
+                          .findFirst().orElse(null);
     }
 
     /**
      * utility method to check that we have collection's item fully loaded with template item fully initialized,
      * in order to avoid lazy initialization exceptions.
      *
-     * @throws SQLException
+     * @throws SQLException e
      */
     private void reloadCollectionIfNeeded() throws SQLException {
         boolean needsReload;
         try {
-            needsReload = Objects.isNull(this.collection.getTemplateItem()) ||
-                CollectionUtils.isEmpty(this.collection.getTemplateItem().getMetadata());
+            needsReload = Objects.isNull(collection.getTemplateItem()) ||
+                CollectionUtils.isEmpty(collection.getTemplateItem().getMetadata());
         } catch (LazyInitializationException e) {
             log.warn(e.getMessage());
             needsReload = true;
         }
         if (needsReload) {
             log.debug("Reloading collection");
-            this.collection = this.context.reloadEntity(this.collection);
+            collection = context.reloadEntity(collection);
         }
     }
 
     private String buildID(Item item) {
         StringBuilder id = new StringBuilder();
-        switch (this.service) {
+        switch (service) {
             case CROSSREF:
                 String orcid = itemService.getMetadataFirstValue(item, "person", "identifier", "orcid", Item.ANY);
                 if (StringUtils.isNotBlank(orcid)) {
@@ -358,46 +392,62 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                 break;
             case ARXIV:
                 id.append("au:");
-                String dcTitle = itemService.getMetadataFirstValue(
-                    item, "dc", "title", null, Item.ANY);
+                String dcTitle = itemService.getMetadataFirstValue(item, "dc", "title", null, Item.ANY);
                 if (StringUtils.isNotBlank(dcTitle)) {
-                    id.append(dcTitle);
+                    id.append("\"").append(dcTitle).append("\"");
+                }
+                break;
+            case EPO:
+                id.append("in=");
+                String epoTitle = itemService.getMetadataFirstValue(item, "dc", "title", null, Item.ANY);
+                if (StringUtils.isNotBlank(epoTitle)) {
+                    id.append("\"").append(epoTitle).append("\"");
                 }
                 break;
             default:
         }
-        if (StringUtils.isNotBlank(id.toString()) && StringUtils.isNotBlank(this.extraQuery)) {
-            if (this.service.equals(ARXIV)) {
-                id.append(" AND ").append(this.extraQuery);
+        if (StringUtils.isNotBlank(id.toString()) && StringUtils.isNotBlank(extraQuery)) {
+            if (ARXIV.equals(service)) {
+                id.append(" AND ");
+                if (extraQuery.startsWith("ti:")) {
+                    id.append("ti:\"").append(extraQuery.substring(3)).append("\"");
+                } else {
+                    id.append(extraQuery);
+                }
+            } else if (EPO.equals(service)) {
+                id.append(" AND ").append(extraQuery);
             } else {
-                id.append(" ").append(this.extraQuery);
+                id.append(" ").append(extraQuery);
             }
         }
         return id.toString();
     }
 
     private int[] fillWorkspaceItems(Context context, int record, LiveImportDataProvider dataProvider,
-                                     String id, Optional<MetadataValue> owner) throws SQLException {
+                                     String id, MetadataValue owner) throws SQLException {
         int countDataObjects = 0;
         int imported = 0;
         try {
             for (ExternalDataObject dataObject : dataProvider.searchExternalDataObjects(id, record, LIMIT)) {
-                if (!exist(dataObject.getMetadata())) {
-                    WorkspaceItem wsItem = externalDataService.createWorkspaceItemFromExternalDataObject(context,
-                                                               dataObject, this.collection);
+                if (!exist(dataObject.getMetadata()) && !isObjectWithDOIExist(dataObject.getId())) {
+                    WorkspaceItem wsItem = externalDataService
+                        .createWorkspaceItemFromExternalDataObject(context, dataObject, collection);
                     Item itemFromWs = wsItem.getItem();
                     PackageUtils.addDepositLicense(context, null, itemFromWs, wsItem.getCollection());
                     for (List<MetadataValueDTO> metadataList : metadataValueToAdd(wsItem.getItem())) {
                         addMetadata(wsItem.getItem(), metadataList);
                     }
                     itemService.addMetadata(context, wsItem.getItem(), "cris", "source", "name", null, this.service);
-                    owner.ifPresent(mv -> updateSubmitter(wsItem.getItem(), mv));
-                    if (!StringUtils.equals(this.finalState, WORKSPACE_STATE)) {
+                    if (owner != null) {
+                        updateSubmitter(wsItem.getItem(), owner);
+                    }
+                    if (!StringUtils.equals(finalState, WORKSPACE_STATE)) {
                         makeFinalState(wsItem);
                     }
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
                                         " and put in status: " + finalState);
                     imported++;
+                    workspaceItemImportedDoi.add(dataObject.getId());
                 }
                 countDataObjects++;
             }
@@ -407,13 +457,33 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return new int[] {countDataObjects, imported};
     }
 
+    private boolean isObjectWithDOIExist(String identifier) {
+        try {
+            if (workspaceItemImportedDoi.contains(identifier)) {
+                return true;
+            }
+
+            String doi = doiService.formatIdentifier(identifier);
+            DOI doiRow = doiService.findByDoi(context, doi.substring(DOI.SCHEME.length()));
+
+            if (null == doiRow) {
+                return false;
+            } else {
+                return doiRow.getDSpaceObject() != null;
+            }
+        } catch (Exception e) {
+            handler.logError("Unable to retrieve information about a DOI out of database.");
+        }
+        return false;
+    }
+
     private void makeFinalState(WorkspaceItem wsItem)
             throws SQLException, AuthorizeException, IOException, WorkflowException {
-        if (StringUtils.equals(this.finalState, WORKFLOW_STATE)) {
+        if (StringUtils.equals(finalState, WORKFLOW_STATE)) {
             workflowService.start(context, wsItem);
         }
-        if (StringUtils.equals(this.finalState, ARCHIVED_ITEM_STATE)) {
-            installItemService.installItem(this.context, wsItem);
+        if (StringUtils.equals(finalState, ARCHIVED_ITEM_STATE)) {
+            installItemService.installItem(context, wsItem);
         }
     }
 
@@ -446,12 +516,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         }
     }
 
-    private boolean exist(List<MetadataValueDTO> metadatas) throws SQLException {
-        if (metadatas.size() == 0) {
+    private boolean exist(List<MetadataValueDTO> metadataList) {
+        if (metadataList.isEmpty()) {
             return false;
         }
         MetadataValueDTO metadata = getMetadataToCheck();
-        for (MetadataValueDTO mv : metadatas) {
+        for (MetadataValueDTO mv : metadataList) {
             String schema = mv.getSchema();
             String element = mv.getElement();
             String qualifier = mv.getQualifier();
@@ -484,34 +554,31 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private MetadataValueDTO getMetadataToCheck() {
         MetadataValueDTO metadata = new MetadataValueDTO();
-        switch (this.service) {
+        metadata.setSchema("dc");
+        metadata.setElement("identifier");
+
+        switch (service) {
             case SCOPUS:
-                metadata.setSchema("dc");
-                metadata.setElement("identifier");
                 metadata.setQualifier(SCOPUS);
                 break;
             case WOS:
-                metadata.setSchema("dc");
-                metadata.setElement("identifier");
                 metadata.setQualifier("isi");
                 break;
             case CROSSREF:
-                metadata.setSchema("dc");
-                metadata.setElement("identifier");
                 metadata.setQualifier("doi");
                 break;
             case ARXIV:
-                metadata.setSchema("dc");
-                metadata.setElement("identifier");
-                metadata.setQualifier("arxiv");
+                metadata.setQualifier(ARXIV);
+                break;
+            case EPO:
+                metadata.setQualifier("applicationnumber");
                 break;
             default:
         }
         return metadata;
     }
 
-    private Iterator<Item> findItemsInDSpace(Context context, String filter)
-            throws SQLException, SearchServiceException {
+    private Iterator<Item> findItemsInDSpace(Context context, String filter) throws SearchServiceException {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
@@ -522,20 +589,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private Iterator<Item> findItems() {
-
-        Iterator<Item> itemsWithoutLastImport = findItemsWithoutLastImport();
-        Iterator<Item> itemsSortedByLastImport = findItemsSortedByLastImport();
-
-        return chainedIterator(itemsWithoutLastImport, itemsSortedByLastImport);
-
-    }
-
-    private Iterator<Item> findItemsWithoutLastImport() {
-        return findItems(false);
-    }
-
-    private Iterator<Item> findItemsSortedByLastImport() {
-        return findItems(true);
+        return chainedIterator(findItems(false), findItems(true));
     }
 
     private Iterator<Item> findItems(boolean withLastImport) {
@@ -549,7 +603,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         String lastImportMetadataField = getLastImportMetadataField();
         if (withLastImport) {
             // set an upper limit to prevent items updated in the same run from being pulled out again.
-            discoverQuery.setQuery(lastImportMetadataField + ": [* TO " + currentDateMinusOneSecond() + "]");
+            discoverQuery.setQuery(lastImportMetadataField + ": [* TO " + DCDate.getCurrent() + "-1SECONDS]");
             discoverQuery.setSortField(lastImportMetadataField, SORT_ORDER.asc);
         } else {
             discoverQuery.setQuery("-" + lastImportMetadataField + ": [* TO *]");
@@ -558,17 +612,13 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
     }
 
-    private String currentDateMinusOneSecond() {
-        return DCDate.getCurrent().toString() + "-1SECONDS";
-    }
-
     private String getLastImportMetadataField() {
         return "cris.lastimport." + service + "-publication_dt";
     }
 
     private void setFilterQueries(DiscoverQuery discoverQuery) {
-
         discoverQuery.addFilterQueries("search.entitytype:Person");
+
         if (SCOPUS.equals(service)) {
             discoverQuery.addFilterQueries("person.identifier.scopus-author-id:*");
         }
@@ -595,10 +645,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     }
 
     private List<MetadataValueDTO> metadataList(Item item, String identifier) {
-        return itemService.getMetadata(item, "person", "identifier", identifier, Item.ANY)
-            .stream().sorted(Comparator.comparingInt(MetadataValue::getPlace))
-            .map(md -> new MetadataValueDTO("cris", "author", identifier, null,
-                md.getValue()))
+        return itemService.getMetadata(item, "person", "identifier", identifier, Item.ANY).stream()
+            .sorted(Comparator.comparingInt(MetadataValue::getPlace))
+            .map(md -> new MetadataValueDTO("cris", "author", identifier, null, md.getValue()))
             .collect(Collectors.toList());
     }
 
@@ -622,17 +671,21 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         }
     }
 
-    private Collection getPublicationCollection() {
+    private Collection getCollectionByType(String entityType) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setDSpaceObjectFilter(IndexableCollection.TYPE);
         discoverQuery.setMaxResults(1);
-        discoverQuery.addFilterQueries("search.entitytype:Publication");
+        discoverQuery.addFilterQueries("search.entitytype:" + entityType);
         Iterator<Collection> collections = new DiscoverResultIterator<Collection, UUID>(context, discoverQuery);
         return collections.hasNext() ? collections.next() : null;
     }
 
-    private Integer getDefaultSearchLimit() {
-        return configurationService.getIntProperty("importworkspaceitem.limit", Integer.MAX_VALUE);
+    private Integer getDefaultTotalSearchLimit() {
+        return configurationService.getIntProperty("importworkspaceitem.limit-total", Integer.MAX_VALUE);
+    }
+
+    private Integer getDefaultPerResearcherSearchLimit() {
+        return configurationService.getIntProperty("importworkspaceitem.limit-per-researcher", 100);
     }
 
     public Map<String, LiveImportDataProvider> getNameToProvider() {

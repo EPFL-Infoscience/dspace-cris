@@ -16,16 +16,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.requestitem.dao.RequestItemDAO;
 import org.dspace.app.requestitem.service.RequestItemService;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.Bitstream;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.dspace.core.Utils;
+import org.dspace.eperson.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -40,14 +38,17 @@ public class RequestItemServiceImpl implements RequestItemService {
 
     private final Logger log = LogManager.getLogger();
 
-    @Autowired(required = true)
+    @Autowired
     protected RequestItemDAO requestItemDAO;
 
-    @Autowired(required = true)
+    @Autowired
     protected AuthorizeService authorizeService;
 
-    @Autowired(required = true)
+    @Autowired
     protected ResourcePolicyService resourcePolicyService;
+
+    @Autowired
+    protected GroupService groupService;
 
     protected RequestItemServiceImpl() {
 
@@ -116,16 +117,4 @@ public class RequestItemServiceImpl implements RequestItemService {
         }
     }
 
-    @Override
-    public boolean isRestricted(Context context, DSpaceObject o)
-            throws SQLException {
-        List<ResourcePolicy> policies = authorizeService
-                .getPoliciesActionFilter(context, o, Constants.READ);
-        for (ResourcePolicy rp : policies) {
-            if (resourcePolicyService.isDateValid(rp)) {
-                return false;
-            }
-        }
-        return true;
-    }
 }

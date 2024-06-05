@@ -17,7 +17,7 @@
    <parent>
       <groupId>org.dspace</groupId>
       <artifactId>modules</artifactId>
-      <version>cris-2023.01.01-SNAPSHOT</version>
+      <version>cris-2023.02.03</version>
       <relativePath>..</relativePath>
    </parent>
 
@@ -61,22 +61,6 @@
    </build>
 
    <profiles>
-      <profile>
-         <id>oracle-support</id>
-         <activation>
-            <property>
-               <name>db.name</name>
-               <value>oracle</value>
-            </property>
-         </activation>
-         <dependencies>
-            <dependency>
-               <groupId>com.oracle</groupId>
-               <artifactId>ojdbc6</artifactId>
-            </dependency>
-         </dependencies>
-      </profile>
-
       <!-- Setup the Unit Test Environment (when -DskipUnitTests=false) -->
       <profile>
          <id>unit-test-environment</id>
@@ -286,23 +270,57 @@
          </dependencies>
       </profile>
 
-	   	<profile>
-			<id>addon-analytics</id>
-	         <activation>
-	            <property>
-	               <name>analytics.on</name>
-	            </property>
-	         </activation>
-			<dependencies>
-				<dependency>
-					<groupId>it.4science.dspace</groupId>
-					<artifactId>addon-analytics-api</artifactId>
-					<version>${addon-analytics.version}</version>
-					<type>jar</type>
-				</dependency>
-			</dependencies>
-		</profile>      
+     <profile>
+         <id>addon-analytics</id>
+          <activation>
+             <property>
+                <name>analytics.on</name>
+             </property>
+          </activation>
+         <dependencies>
+             <dependency>
+                 <groupId>it.4science.dspace</groupId>
+                 <artifactId>addon-analytics-api</artifactId>
+                 <version>${addon-analytics.version}</version>
+                 <type>jar</type>
+             </dependency>
+         </dependencies>
+     </profile>
 
+      <profile>
+         <id>addon-dataquality</id>
+         <activation>
+            <property>
+               <name>dq.on</name>
+            </property>
+         </activation>
+         <dependencies>
+            <dependency>
+               <groupId>it.4science.dspace</groupId>
+               <artifactId>addon-dataquality</artifactId>
+               <version>${addon-dataquality.version}</version>
+               <type>jar</type>
+            </dependency>
+         </dependencies>
+      </profile>
+
+      <!-- Builds Orchestrator addon for DSpace -->
+      <profile>
+         <id>addon-orchestrator</id>
+         <activation>
+            <property>
+               <name>orchestrator.on</name>
+            </property>
+         </activation>
+         <dependencies>
+            <dependency>
+               <groupId>it.4science.dspace</groupId>
+               <artifactId>addon-orchestrator-api</artifactId>
+               <version>${addon-orchestrator.version}</version>
+               <type>jar</type>
+            </dependency>
+         </dependencies>
+      </profile>
    </profiles>
 
    <!--

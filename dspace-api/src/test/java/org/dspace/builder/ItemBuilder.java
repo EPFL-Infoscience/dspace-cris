@@ -129,6 +129,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "oairecerif", "author", "affiliation", affiliation);
     }
 
+    public ItemBuilder withAuthorAffiliation(String affiliation, String authority) {
+        return addMetadataValue(item, "oairecerif", "author", "affiliation", null, affiliation, authority, 600);
+    }
+
     public ItemBuilder withAuthorAffiliationForLanguage(String affiliation, String language) {
         return addMetadataValue(item, "oairecerif", "author", "affiliation", language, affiliation);
     }
@@ -154,6 +158,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withEditor(final String editorName, final String authority) {
         return addMetadataValue(item, DC.getName(), "contributor", "editor", null, editorName, authority, 600);
+    }
+
+    public ItemBuilder withScientificEditor(final String editorName, final String authority) {
+        return addMetadataValue(item, DC.getName(), "contributor", "scientificeditor", null,
+            editorName, authority, 600);
     }
 
     public ItemBuilder withEditorAffiliation(String affiliation) {
@@ -489,6 +498,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "publisher", null, publisher);
     }
 
+    public ItemBuilder withWrittenAt(String publisher) {
+        return addMetadataValue(item, "epfl", "writtenAt", null, publisher);
+    }
+
     public ItemBuilder withRelationPublication(String publication) {
         return addMetadataValue(item, "dc", "relation", "publication", publication);
     }
@@ -505,6 +518,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "relation", "isbn", isbn);
     }
 
+    public ItemBuilder withRelationIssn(String isbn) {
+        return addMetadataValue(item, "dc", "relation", "issn", isbn);
+    }
+
     public ItemBuilder withRelationProject(String project) {
         return addMetadataValue(item, "dc", "relation", "project", project);
     }
@@ -519,6 +536,14 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withRelationConference(String conference) {
         return addMetadataValue(item, "dc", "relation", "conference", conference);
+    }
+
+    public ItemBuilder withOaireCitationConferencePlace(String conferencePlace) {
+        return addMetadataValue(item, "oaire", "citation", "conferencePlace", conferencePlace);
+    }
+
+    public ItemBuilder withOaireCitationConferenceDate(String conferenceDate) {
+        return addMetadataValue(item, "oaire", "citation", "conferenceDate", conferenceDate);
     }
 
     public ItemBuilder withRelationProduct(String dataset) {
@@ -545,6 +570,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "relation", "ispartof", isPartOf);
     }
 
+    public ItemBuilder withIsPartOfSeries(String isPartOfSeries) {
+        return addMetadataValue(item, "dc", "relation", "ispartofseries", isPartOfSeries);
+    }
+
     public ItemBuilder withCitationStartPage(String startPage) {
         return addMetadataValue(item, "oaire", "citation", "startPage", startPage);
     }
@@ -565,8 +594,20 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dspace", "object", "owner", null, value, authority, CF_ACCEPTED);
     }
 
+    public ItemBuilder withSciperIdentifier(String sciper) {
+        return addMetadataValue(item, "epfl", "sciperId", null, sciper);
+    }
+
     public ItemBuilder withOrcidIdentifier(String orcid) {
         return addMetadataValue(item, "person", "identifier", "orcid", orcid);
+    }
+
+    public ItemBuilder withEpflLastmodifiedEmail(String email) {
+        return addMetadataValue(item, "epfl", "lastmodified", "email", email);
+    }
+
+    public ItemBuilder withEpflCuratorEmail(String email) {
+        return addMetadataValue(item, "epfl", "curator", "email", email);
     }
 
     public ItemBuilder withOrcidAccessToken(String accessToken, EPerson owner) {
@@ -603,6 +644,22 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     public ItemBuilder withOrcidSynchronizationFundingsPreference(String value) {
         return setMetadataSingleValue(item, "dspace", "orcid", "sync-fundings", value);
+    }
+
+    public ItemBuilder withOrcidSynchronizationProductsPreference(OrcidEntitySyncPreference value) {
+        return withOrcidSynchronizationProductsPreference(value.name());
+    }
+
+    public ItemBuilder withOrcidSynchronizationProductsPreference(String value) {
+        return setMetadataSingleValue(item, "dspace", "orcid", "sync-products", value);
+    }
+
+    public ItemBuilder withOrcidSynchronizationPatentsPreference(OrcidEntitySyncPreference value) {
+        return withOrcidSynchronizationPatentsPreference(value.name());
+    }
+
+    public ItemBuilder withOrcidSynchronizationPatentsPreference(String value) {
+        return setMetadataSingleValue(item, "dspace", "orcid", "sync-patents", value);
     }
 
     public ItemBuilder withOrcidSynchronizationProfilePreference(OrcidProfileSyncPreference value) {
@@ -835,6 +892,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "organization", "identifier", "crossrefid", crossrefid);
     }
 
+    public ItemBuilder withOrgUnitRORIdentifier(String ror) {
+        return addMetadataValue(item, "organization", "identifier", "ror", ror);
+    }
+
     public ItemBuilder withProjectStartDate(String startDate) {
         return addMetadataValue(item, "oairecerif", "project", "startDate", startDate);
     }
@@ -864,9 +925,9 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     }
 
     /**
-     * Create an admin group for the collection with the specified members
+     * Assign the admin permission to the specified eperson
      *
-     * @param ePerson eperson to add to the admin group
+     * @param ePerson the eperson that will get the ADMIN permission on the item
      * @return this builder
      * @throws SQLException
      * @throws AuthorizeException

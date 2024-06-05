@@ -12,6 +12,7 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -70,6 +71,41 @@ public class OrgUnitTSVImportScriptIT extends AbstractIntegrationTestWithDatabas
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
 
+    }
+
+    @Test
+    public void testOUnitsImportWithIncompleteNames() throws Exception {
+
+        String fileLocation = getTSVFilePath("units_with_incomplete_names.tsv");
+        String[] args = new String[] { "orgunit-tsv-import", "-c", collection.getID().toString(), "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+        assertTrue(handler.getInfoMessages()
+                .contains("Head name is missing in tsv, and it was not possible to get it from the api:"
+                        + " head name metadata is not added"));
+        assertTrue(handler.getInfoMessages()
+                .contains("Head name is missing in tsv, taking head name from api: Dyson, Paul Joseph"));
+    }
+
+    @Test
+    public void testOrgUnitsImportWithMultilingualValues() throws Exception {
+
+        String fileLocation = getTSVFilePath("units_with_multilingual_values.tsv");
+        String[] args = new String[] { "orgunit-tsv-import", "-c", collection.getID().toString(), "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+        assertTrue(handler.getInfoMessages()
+                .contains("In row 2 for head units_acro 3 metadatas was imported with null, is, en language values"));
+        assertTrue(handler.getInfoMessages()
+                .contains("In row 2 for head unit_name 2 metadatas was imported with fr, en language values"));
     }
 
     private String getTSVFilePath(String name) {

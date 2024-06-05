@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This XML was automatically generated from the SKOS sources for the COAR Vocabulary. It follows
+the schema developed by 4Science (https://www.4science.it/) for DSpace -->
+<node id="http://purl.org/coar/resource_type/scheme" label="Resource Types">
+  <isComposedBy>
+    <node id="c_18cf" label="text">
+      <hasNote>A resource consisting primarily of words for reading. Examples include books,
+        letters,
+        dissertations, poems, newspapers, articles, archives of mailing lists. Note that facsimiles
+        or
+        images of texts are still of the genre Text. [Source: http://purl.org/dc/dcmitype/Text]
+      </hasNote>
+      <isComposedBy>
+        <node id="c_0640" label="revue">
+          <hasNote>A journal is a serial publication devoted to disseminating original research and
+            current
+            developments on a subject. (Adapted from ODLIS) [Source:
+            http://dspacecris.eurocris.org/cris/classcerif/classcerif00422]
+          </hasNote>
+          <isComposedBy>
+            <node id="c_b239" label="éditorial">
+              <hasNote>A brief essay expressing the opinion or position of the chief editor(s) of a
+                (academic) journal with respect to a current political, social, cultural, or
+                professional issue. [Source: Adapted from ODLIS [Source:
+                http://www.abc-clio.com/ODLIS/odlis_e.aspx ]
+              </hasNote>
+            </node>
+            <node id="c_6501" label="article de revue">
+              <hasNote>An article, typically the realization of a research paper reporting original
+                research findings, published in a journal issue. [Source:
+                http://purl.org/spar/fabio/JournalArticle]
+              </hasNote>
+              <isComposedBy>
+                <node id="c_beb9" label="data paper">
+                  <hasNote>A data paper is a scholarly publication describing a particular dataset
+                    or
+                    group of dataset, published in the form of a peer-reviewed article in a
+                    scholarly
+                    journal. The main purpose of a data paper is to describe data, the circumstances
+                    of
+                    their collection, and information related to data features, access and potential
+                    reuse. Adapted from https://en.wikipedia.org/wiki/Data_paper and
+                    http://www.gbif.org/publishing-data/data-papers
+                  </hasNote>
+                </node>
+                <node id="c_2df8fbb1" label="article de revue scientifique">
+                  <hasNote>A research article is a primary source, that is, it reports the methods
+                    and
+                    results of an original study performed by the authors. (adapted from
+                    http://apus.libanswers.com/faq/2324)
+                  </hasNote>
+                </node>
+                <node id="c_dcae04bc" label="article de synthèse">
+                  <hasNote>A review article is a secondary source, that is, it is written about
+                    other
+                    articles, and does not report original research of its own. [Source: Adapted
+                    from
+                    http://apus.libanswers.com/faq/2324]
+                  </hasNote>
+                </node>
+                <node id="c_7bab" label="software paper">
+                  <hasNote>A software paper should include the rationale for the development of the
+                    tool
+                    and details of the code used for its construction. [Source: Adapted from
+                    https://f1000research.com/for-authors/article-guidelines/software-tool-articles
+                    ]
+                  </hasNote>
+                </node>
+              </isComposedBy>
+            </node>
+          </isComposedBy>
+        </node>
+      </isComposedBy>
+    </node>
+  </isComposedBy>
+</node>

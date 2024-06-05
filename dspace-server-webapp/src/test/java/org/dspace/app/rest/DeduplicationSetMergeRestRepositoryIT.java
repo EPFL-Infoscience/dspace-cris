@@ -110,9 +110,6 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     @Autowired
     private BundleService bundleService;
 
-    private EPerson submitter;
-    private EPerson reviewer;
-
     private Collection collection;
 
     private Item item1;
@@ -127,9 +124,10 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
     private Bitstream bitstream;
     private Bitstream bitstream1;
+    private Bitstream bitstream2;
 
-    private String bitstreamUri;
     private String bitstreamUri1;
+    private String bitstreamUri2;
 
     private String setId;
 
@@ -149,16 +147,16 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         mapper = new ObjectMapper();
 
         // Two users: one to use as submitter, another one to use as reviewer
-        submitter = EPersonBuilder.createEPerson(context)
-                                  .withEmail("submitter1@example.com")
-                                  .withPassword(password)
-                                  .build();
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter1@example.com")
+                                          .withPassword(password)
+                                          .build();
         context.setCurrentUser(submitter);
 
-        reviewer = EPersonBuilder.createEPerson(context)
-                                 .withEmail("reviewer1@example.com")
-                                 .withPassword(password)
-                                 .build();
+        EPersonBuilder.createEPerson(context)
+                      .withEmail("reviewer1@example.com")
+                      .withPassword(password)
+                      .build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -167,24 +165,23 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         collection = CollectionBuilder.createCollection(context, parentCommunity)
                                       .withName("Collection 1")
                                       .withSubmitterGroup(submitter)
-                                      .withWorkflowGroup(1, reviewer)
-                                      .withWorkflowGroup(2, reviewer)
-                                      .withWorkflowGroup(3, reviewer)
                                       .withEntityType("Publication")
                                       .build();
 
         item1 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withDescriptionAbstract("abstract")
                            .withIdentifierDoi("10.1234/123456789")
                            .withAlternativeTitle("item1 title1")
                            .withIssueDate("2015-10-17")
-                           .withAuthor("Smith, Donald")
+                           .withAuthor("Smith 2, John")
                            .withEditor("editor")
                            .withType("text1")
                            .build();
 
         item2 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withDescriptionAbstract("abstract")
                            .withIdentifierDoi("10.1234/123456789")
                            .withAlternativeTitle("item2 title1")
                            .withAlternativeTitle("item2 title2")
@@ -195,6 +192,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         item3 = ItemBuilder.createItem(context, collection)
                            .withTitle("Test")
+                           .withDescriptionAbstract("abstract")
                            .withIdentifierDoi("10.1234/123456789")
                            .withAlternativeTitle("item3 title1")
                            .withAlternativeTitle("item3 title2")
@@ -219,12 +217,25 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                            .withType("text5")
                            .build();
 
+        File originalPdf = new File(testProps.getProperty("test.bitstream"));
+
+        //Add a bitstream to item1
+        bitstream = null;
+        try (InputStream is = new FileInputStream(originalPdf)) {
+            bitstream = BitstreamBuilder
+                .createBitstream(context, item1, is)
+                .withName("Test bitstream")
+                .withDescription("This is a bitstream to test the citation cover page.")
+                .withMimeType("application/pdf")
+                .build();
+        }
+
         String bitstreamContent = "ThisIsSomeDummyText";
 
         //Add a bitstream to item2
-        bitstream = null;
+        bitstream1 = null;
         try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
-            bitstream = BitstreamBuilder.
+            bitstream1 = BitstreamBuilder.
                 createBitstream(context, item2, is)
                 .withName("Bitstream")
                 .withDescription("description")
@@ -235,9 +246,9 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         String bitstreamContent1 = "ThisIsSomeDummyTextTest test content for bitstream1";
 
         //Add a bitstream to item3
-        bitstream1 = null;
+        bitstream2 = null;
         try (InputStream is = IOUtils.toInputStream(bitstreamContent1, CharEncoding.UTF_8)) {
-            bitstream1 = BitstreamBuilder.
+            bitstream2 = BitstreamBuilder.
                 createBitstream(context, item3, is)
                 .withName("Bitstream1")
                 .withDescription("description1")
@@ -249,14 +260,14 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         itemUri1 = convertDspaceObjectToUri(itemConverter, item1);
         itemUri2 = convertDspaceObjectToUri(itemConverter, item2);
         itemUri3 = convertDspaceObjectToUri(itemConverter, item3);
-        bitstreamUri = convertDspaceObjectToUri(bitstreamConverter, bitstream);
         bitstreamUri1 = convertDspaceObjectToUri(bitstreamConverter, bitstream1);
+        bitstreamUri2 = convertDspaceObjectToUri(bitstreamConverter, bitstream2);
 
         setId = createTitleSetId(item1);
 
 //      create the request body DTO
         deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId, itemUri1, itemUri2,
-            itemUri3, bitstreamUri, bitstreamUri1);
+                                                                 itemUri3, bitstreamUri1, bitstreamUri2);
 
         context.restoreAuthSystemState();
     }
@@ -320,7 +331,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         DeduplicationSetMergeDTO deduplicationSetMergeDTO = new DeduplicationSetMergeDTO( setId,
             List.of(itemUri2),
-            List.of(bitstreamUri),
+            List.of(bitstreamUri1),
             List.of(metadata)
         );
 
@@ -338,8 +349,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         String itemId = "6ba5125f-5e78-4b68-834f-25a1c67150e6";
         String setId = createTitleSetId(item1);
         DeduplicationSetMergeDTO deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId,
-            item1.getID().toString(), item2.getID().toString(), itemId, bitstream.getID().toString(),
-            bitstream1.getID().toString());
+                     item1.getID().toString(), item2.getID().toString(), itemId, bitstream1.getID().toString(),
+                     bitstream2.getID().toString());
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
@@ -352,9 +363,11 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
     public void testDedupSetMergeIfOneOfBitstreamsDoesNotExist() throws Exception {
         String bitstreamId = "6ba5125f-5e78-4b68-834f-25a1c67150e6";
         String setId = createTitleSetId(item1);
-        DeduplicationSetMergeDTO deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId,
-            item1.getID().toString(), item2.getID().toString(), item3.getID().toString(), bitstreamId,
-            bitstream1.getID().toString());
+        DeduplicationSetMergeDTO deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(
+            setId,
+            item1.getID().toString(), item2.getID().toString(), item3.getID().toString(),
+            bitstreamId, bitstream2.getID().toString()
+        );
 
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
@@ -368,22 +381,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         String adminToken = getAuthToken(admin.getEmail(), password);
 
         context.turnOffAuthorisationSystem();
-
-        Bundle targetBundle = bundleService.create(context, item1, Constants.DEFAULT_BUNDLE_NAME);
-
-        File originalPdf = new File(testProps.getProperty("test.bitstream"));
-
-        //Add a bitstream to target bundle
-        Bitstream targetItemBitstream = null;
-        try (InputStream is = new FileInputStream(originalPdf)) {
-            targetItemBitstream = BitstreamBuilder
-                .createBitstream(context, targetBundle, is)
-                .withName("Test bitstream")
-                .withDescription("This is a bitstream to test the citation cover page.")
-                .withMimeType("application/pdf")
-                .build();
-        }
-
+        Bundle targetBundle = itemService.getBundles(item1, Constants.DEFAULT_BUNDLE_NAME).get(0);
         context.restoreAuthSystemState();
 
 //      before merge target item has a bundle with one bitstream targetItemBitstream
@@ -394,7 +392,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                    .andExpect(content().contentType(contentType))
                    .andExpect(jsonPath("$._embedded.bitstreams", hasSize(1)))
                    .andExpect(jsonPath("$._embedded.bitstreams",
-                       containsInAnyOrder(matchBitstreamEntry(targetItemBitstream))));
+                       containsInAnyOrder(matchBitstreamEntry(bitstream))));
 
 //      perform merge
         getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
@@ -403,8 +401,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.targetItem", is(itemUri1)))
                              .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
-                             .andExpect(jsonPath("$.mergedBitstreams", containsInAnyOrder(bitstreamUri,
-                                 bitstreamUri1)))
+                             .andExpect(jsonPath("$.mergedBitstreams",
+                                        containsInAnyOrder(bitstreamUri1, bitstreamUri2)))
                              .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
                              .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
                                  matchMetadata("dc.type", "text3"),
@@ -423,10 +421,58 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
                              .andExpect(status().isOk())
                              .andExpect(content().contentType(contentType))
                              .andExpect(jsonPath("$._embedded.bitstreams", hasSize(2)))
-                             .andExpect(jsonPath("$._embedded.bitstreams", hasItem(matchBitstreamEntry(bitstream))))
                              .andExpect(jsonPath("$._embedded.bitstreams", hasItem(matchBitstreamEntry(bitstream1))))
+                             .andExpect(jsonPath("$._embedded.bitstreams", hasItem(matchBitstreamEntry(bitstream2))))
                              .andExpect(jsonPath("$._embedded.bitstreams", not(
-                                 hasItem(matchBitstreamEntry(targetItemBitstream)))));
+                                 hasItem(matchBitstreamEntry(bitstream)))));
+    }
+
+    @Test
+    public void testDedupSetMergeIfItemsHaveTheSameAuthorAndAbstract() throws Exception {
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
+                                          .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO))
+                                          .contentType(MediaType.APPLICATION_JSON))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.targetItem", is(itemUri1)))
+                             .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
+                             .andExpect(jsonPath("$._embedded.item.id", is(item1.getID().toString())))
+                             .andExpect(jsonPath("$._embedded.item.metadata", Matchers.allOf(
+                                 matchMetadata("dc.type", "text3"),
+                                 matchMetadata("dc.contributor.author", "Smith 2, John"),
+                                 matchMetadata("dspace.entity.type", "Publication"),
+                                 matchMetadata("dc.description.abstract", "abstract"),
+                                 matchMetadata("dc.title", item1.getName()))));
+    }
+
+    @Test
+    public void testDedupSetMergeIfItemsHaveTheSameBitstream() throws Exception {
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        context.turnOffAuthorisationSystem();
+        Bundle targetBundle = itemService.getBundles(item1, Constants.DEFAULT_BUNDLE_NAME).get(0);
+        context.restoreAuthSystemState();
+
+        DeduplicationSetMergeDTO deduplicationSetMergeDTO1 = buildDeduplicationSetMergeDTO(
+            setId, itemUri1, itemUri2,
+            itemUri3, bitstreamUri1, bitstreamUri1
+        );
+
+        getClient(adminToken).perform(put("/api/deduplications/merge/" + item1.getID())
+                                          .content(mapper.writeValueAsBytes(deduplicationSetMergeDTO1))
+                                          .contentType(MediaType.APPLICATION_JSON))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.targetItem", is(itemUri1)))
+                             .andExpect(jsonPath("$.mergedItems", containsInAnyOrder(itemUri2, itemUri3)))
+                             .andExpect(jsonPath("$.mergedBitstreams", hasItem(bitstreamUri1)));
+
+        getClient(adminToken).perform(get("/api/core/bundles/" + targetBundle.getID() + "/bitstreams")
+                                          .param("projection", "full"))
+                             .andExpect(status().isOk())
+                             .andExpect(content().contentType(contentType))
+                             .andExpect(jsonPath("$._embedded.bitstreams", hasSize(1)))
+                             .andExpect(jsonPath("$._embedded.bitstreams", hasItem(matchBitstreamEntry(bitstream1))));
     }
 
     @Test
@@ -592,7 +638,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
 //       create the request body DTO
         deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(setId, itemUri1, item2.getID().toString(),
-            itemUri3, bitstreamUri, bitstreamUri1);
+                                                                 itemUri3, bitstreamUri1, bitstreamUri2);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
@@ -704,7 +750,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         // create the request body DTO without setId
         deduplicationSetMergeDTO = buildDeduplicationSetMergeDTO(null, itemUri1, itemUri2,
-            itemUri3, bitstreamUri, bitstreamUri1);
+                                                                 itemUri3, bitstreamUri1, bitstreamUri2);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
@@ -819,8 +865,8 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         // then merged items will contain uri metadata of target item
         String targetUri = itemService.getMetadata(item1, "dc.identifier.uri");
-        String mergedItemTwoUri = itemService.getMetadata(item2, "dspace.merge.target-uri");
-        String mergedIThreeUri = itemService.getMetadata(item3, "dspace.merge.target-uri");
+        String mergedItemTwoUri = itemService.getMetadata(item2, "dq.merge.target-uri");
+        String mergedIThreeUri = itemService.getMetadata(item3, "dq.merge.target-uri");
 
         assertEquals(mergedItemTwoUri, targetUri);
         assertEquals(mergedIThreeUri, targetUri);
@@ -842,7 +888,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
 
         getClient(epersonToken).perform(get("/api/deduplications/merge/search/findTargets")
                                    .param("uuid", item1.getID().toString()))
-                               .andExpect(status().isForbidden());
+                               .   andExpect(status().isForbidden());
 
     }
 
@@ -969,17 +1015,37 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         DeduplicationMetadataDTO metadata2 = new DeduplicationMetadataDTO("dc.type",
             List.of(source3));
         DeduplicationMetadataDTO metadata3 = new DeduplicationMetadataDTO("dc.contributor.author",
-            List.of(source3));
+            List.of(source2, source3));
         DeduplicationMetadataDTO metadata4 = new DeduplicationMetadataDTO("dc.contributor.editor",
             new ArrayList<>());
+        DeduplicationMetadataDTO metadata5 = new DeduplicationMetadataDTO("dc.description.abstract",
+            List.of(source1));
 
-        DeduplicationSetMergeDTO deduplicationSetMergeDTO = new DeduplicationSetMergeDTO( id,
+        return new DeduplicationSetMergeDTO(
+            id,
             List.of(item2, item3),
             List.of(bitstream, bitstream1),
-            List.of(metadata1, metadata2, metadata3, metadata4)
+            List.of(metadata1, metadata2, metadata3, metadata4, metadata5)
         );
+    }
 
-        return deduplicationSetMergeDTO;
+    private DeduplicationSetMergeDTO buildNoOtherItemsDeduplicationSetMergeDTO(String id, String item1,
+                                                                               String bitstream, String bitstream1) {
+
+        DeduplicationMetadataSourcesDTO source1 = new DeduplicationMetadataSourcesDTO(item1, 0);
+
+        DeduplicationMetadataDTO metadata1 = new DeduplicationMetadataDTO("dc.title.alternative",
+                                                                          List.of(source1));
+        DeduplicationMetadataDTO metadata2 = new DeduplicationMetadataDTO("dc.type",
+                                                                          List.of(source1));
+        DeduplicationMetadataDTO metadata3 = new DeduplicationMetadataDTO("dc.contributor.author",
+                                                                          List.of(source1));
+        DeduplicationMetadataDTO metadata4 = new DeduplicationMetadataDTO("dc.contributor.editor",
+                                                                          new ArrayList<>());
+
+        return new DeduplicationSetMergeDTO(
+            id, List.of(), List.of(bitstream, bitstream1), List.of(metadata1, metadata2, metadata3, metadata4)
+        );
     }
 
     private void setMD5ValueSignatureInstance(String metadata, String prefix, String signatureType,
@@ -989,6 +1055,7 @@ public class DeduplicationSetMergeRestRepositoryIT extends AbstractEntityIntegra
         md5Signature.setSignatureType(signatureType);
         md5Signature.setIgnorePrefix(ignorePrefixes);
         md5Signature.setNormalizationRegexp(normalizeRegex);
+        md5Signature.setUseEntityType(false);
     }
 
     private String convertDspaceObjectToUri(DSpaceConverter converter, DSpaceObject item) {

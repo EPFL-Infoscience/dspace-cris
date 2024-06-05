@@ -42,9 +42,11 @@ public class RelationshipManagementServiceImpl implements RelationshipManagement
     private boolean hasAccessMode(Context context, DSpaceObject dSpaceObject) {
         Item item = (Item) dSpaceObject;
         String entityType = itemService.getEntityType(item);
-        return Optional.ofNullable(accessModes.get(entityType.toLowerCase()))
-                       .map(modes -> modes.stream()
-                                          .anyMatch(am -> hasAccess(context, am, item))).orElse(false);
+        return Optional.ofNullable(entityType)
+                       .map(String::toLowerCase)
+                       .map(accessModes::get)
+                       .map(modes -> modes.stream().anyMatch(am -> hasAccess(context, am, item)))
+                       .orElse(false);
     }
 
     private boolean hasAccess(Context context, AccessItemMode am, Item item) {

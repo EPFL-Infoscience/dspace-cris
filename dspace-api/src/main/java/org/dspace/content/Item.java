@@ -115,6 +115,9 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport {
     @Transient
     private List<MetadataValue> cachedMetadata = new ArrayList<>();
 
+    @Transient
+    private WorkspaceItem workspaceItem;
+
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.ItemService#create(Context, WorkspaceItem)}
@@ -402,4 +405,13 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport {
         this.cachedMetadata = cachedMetadata;
         modifiedMetadataCache = false;
     }
+
+    public WorkspaceItem getWorkspaceItem() {
+        return workspaceItem;
+    }
+
+    public void setWorkspaceItem(WorkspaceItem workspaceItem) {
+        this.workspaceItem = workspaceItem;
+    }
+
 }

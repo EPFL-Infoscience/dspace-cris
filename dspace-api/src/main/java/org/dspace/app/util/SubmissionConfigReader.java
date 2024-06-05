@@ -7,8 +7,6 @@
  */
 package org.dspace.app.util;
 
-import static org.dspace.content.Item.ANY;
-
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -25,12 +23,17 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.InProgressSubmission;
+import org.dspace.content.Item;
 import org.dspace.content.edit.EditItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
+import org.dspace.discovery.SearchServiceException;
 import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.services.RequestService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.versioning.ItemCorrectionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -58,6 +61,10 @@ import org.xml.sax.SAXException;
  */
 
 public class SubmissionConfigReader {
+
+    @Autowired
+    RequestService requestService;
+
     /**
      * The ID of the default collection. Will never be the ID of a named
      * collection
@@ -112,6 +119,23 @@ public class SubmissionConfigReader {
     private SubmissionConfig lastSubmissionConfig = null;
 
     /**
+     * Collection Service instance, needed to interact with collection's
+     * stored data
+     */
+    protected static final CollectionService collectionService
+                = ContentServiceFactory.getInstance().getCollectionService();
+
+    /**
+     * itemCorrectionService instance, needed to retrieve the handle correctly
+     * item correction actions
+     *
+     */
+    protected static final  ItemCorrectionService itemCorrectionService =
+            DSpaceServicesFactory.getInstance().getServiceManager()
+                    .getServicesByType(ItemCorrectionService.class)
+                    .get(0);
+
+    /**
      * Load Submission Configuration from the
      * item-submission.xml configuration file
      *
@@ -158,6 +182,9 @@ public class SubmissionConfigReader {
         } catch (FactoryConfigurationError fe) {
             throw new SubmissionConfigReaderException(
                 "Cannot create Item Submission Configuration parser", fe);
+        } catch (SearchServiceException se) {
+            throw new SubmissionConfigReaderException(
+                "Cannot perform a discovery search for Item Submission Configuration", se);
         } catch (Exception e) {
             throw new SubmissionConfigReaderException(
                 "Error creating Item Submission Configuration: " + e);
@@ -229,8 +256,10 @@ public class SubmissionConfigReader {
     public SubmissionConfig getCorrectionSubmissionConfigByCollection(Collection collection) {
         CollectionService collService = ContentServiceFactory.getInstance().getCollectionService();
 
-        String submitName = collService.getMetadataFirstValue(collection,
-            "cris", "submission", "definition-correction", ANY);
+        String submitName =
+            collService.getMetadataFirstValue(
+                collection, "cris", "submission", "definition-correction", Item.ANY
+            );
 
         if (submitName != null) {
             SubmissionConfig subConfig = getSubmissionConfigByName(submitName);
@@ -377,7 +406,7 @@ public class SubmissionConfigReader {
      * should correspond to the collection-form maps, the form definitions, and
      * the display/storage word pairs.
      */
-    private void doNodes(Node n) throws SAXException, SubmissionConfigReaderException {
+    private void doNodes(Node n) throws SAXException, SearchServiceException, SubmissionConfigReaderException {
         if (n == null) {
             return;
         }
@@ -418,24 +447,29 @@ public class SubmissionConfigReader {
         }
     }
 
+
+
+
     /**
      * Process the submission-map section of the XML file. Each element looks
      * like: <name-map collection-handle="hdl" submission-name="name" /> Extract
      * the collection handle and item submission name, put name in hashmap keyed
      * by the collection handle.
      */
-    private void processMap(Node e) throws SAXException {
+    private void processMap(Node e) throws SAXException, SearchServiceException {
         NodeList nl = e.getChildNodes();
         int len = nl.getLength();
         for (int i = 0; i < len; i++) {
             Node nd = nl.item(i);
             if (nd.getNodeName().equals("name-map")) {
                 String id = getAttribute(nd, "collection-handle");
+                String entityType = getAttribute(nd, "collection-entity-type");
                 String value = getAttribute(nd, "submission-name");
                 String content = getValue(nd);
-                if (id == null) {
+                if (id == null && entityType == null) {
                     throw new SAXException(
-                        "name-map element is missing collection-handle attribute in 'item-submission.xml'");
+                        "name-map element is missing collection-handle or collection-entity-type attribute " +
+                            "in 'item-submission.xml'");
                 }
                 if (value == null) {
                     throw new SAXException(
@@ -445,7 +479,11 @@ public class SubmissionConfigReader {
                     throw new SAXException(
                         "name-map element has content in 'item-submission.xml', it should be empty.");
                 }
-                collectionToSubmissionConfig.put(id, value);
+                if (id != null) {
+                    collectionToSubmissionConfig.put(id, value);
+                } else {
+                    collectionToSubmissionConfig.putIfAbsent(entityType, value);
+                }
             } // ignore any child node that isn't a "name-map"
         }
     }
@@ -731,12 +769,25 @@ public class SubmissionConfigReader {
         return results;
     }
 
-    public SubmissionConfig getSubmissionConfigByInProgressSubmission(InProgressSubmission<?> object) {
+    public SubmissionConfig getSubmissionConfigByInProgressSubmission(InProgressSubmission<?> object, Context context) {
         if (object instanceof EditItem) {
             String submissionDefinition = ((EditItem) object).getMode().getSubmissionDefinition();
             return getSubmissionConfigByName(submissionDefinition);
         }
 
-        return getSubmissionConfigByCollection(object.getCollection());
+        if (isCorrectionItem(object.getItem(), context)) {
+            return getCorrectionSubmissionConfigByCollection(object.getCollection());
+        } else {
+            return getSubmissionConfigByCollection(object.getCollection());
+        }
+    }
+
+    private boolean isCorrectionItem(Item item, Context context) {
+        try {
+            return itemCorrectionService.checkIfIsCorrectionItem(context, item);
+        } catch (Exception ex) {
+            log.error("An error occurs checking if the given item is a correction item.", ex);
+            return false;
+        }
     }
 }

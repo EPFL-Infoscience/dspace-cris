@@ -139,12 +139,26 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
             return null;
         }
 
-        IndexableObject indexableObject = indexableObjects.get(0);
-        if (indexableObject instanceof IndexableItem) {
-            return ((IndexableItem) indexableObject).getIndexedObject();
-        } else {
-            return ((IndexableInProgressSubmission) indexableObject).getIndexedObject().getItem();
+        return filterByMetadata(indexableObjects, searchParam);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Item filterByMetadata(List<IndexableObject> indexableObjects, String value) {
+        for (IndexableObject indexableObject : indexableObjects) {
+            Item item = null;
+            if (indexableObject instanceof IndexableItem) {
+                item = ((IndexableItem) indexableObject).getIndexedObject();
+            } else {
+                item = ((IndexableInProgressSubmission) indexableObject).getIndexedObject().getItem();
+            }
+            List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(item, metadata);
+            for (MetadataValue metadataValue : metadataValues) {
+                if (value.equals(metadataValue.getValue())) {
+                    return item;
+                }
+            }
         }
+        return null;
     }
 
     private void resolveReferences(Context context, List<MetadataValue> metadataValues, Item item)

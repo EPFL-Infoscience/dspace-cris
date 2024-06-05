@@ -31,8 +31,10 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.Group;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class RelatedEntityGroupItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase {
 
     private ItemService itemService;

@@ -112,10 +112,11 @@
     <bean class="org.dspace.eperson.EPersonServiceImpl"/>
     <bean class="org.dspace.eperson.GroupServiceImpl"/>
     <bean class="org.dspace.eperson.RegistrationDataServiceImpl"/>
+    <bean class="org.dspace.eperson.RegistrationDataMetadataServiceImpl"/>
     <bean class="org.dspace.eperson.SubscribeServiceImpl"/>
-
+    
     <bean class="org.dspace.eperson.SubscribeParameterServiceImpl"/>
-
+    
     <bean class="org.dspace.eperson.CaptchaServiceImpl"/>
     <bean class="org.dspace.event.EventServiceImpl"/>
 
@@ -194,7 +195,7 @@
     <bean class="org.dspace.statistics.LoginStatisticsServiceImpl" />
 
     <bean class="org.dspace.statistics.WorkflowStatisticsServiceImpl" />
-    
+
     <bean class="org.dspace.statistics.SearchStatisticsServiceImpl" />
 
     <!-- OIDC Authentication -->
@@ -207,9 +208,14 @@
     <bean class="org.dspace.authorize.RegexPasswordValidator" />
 
     <bean class="org.dspace.supervision.SupervisionOrderServiceImpl"/>
+    
+    <bean id="com.science4.webcache.WebServerCache" class="com.science4.webcache.NGinxWebServerCache" init-method="initialize"/>
 
     <bean class="org.dspace.ror.client.RORApiClientImpl" />
     <bean class="org.dspace.ror.service.RORApiServiceImpl" />
+
+    <!-- Submission Config Service -->
+    <bean class="org.dspace.submit.service.SubmissionConfigServiceImpl"/>
 
 </beans>
 

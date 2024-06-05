@@ -736,7 +736,9 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
             String doi = getDOIOutOfObject(dso);
 
             while (null != doi) {
+                context.turnOffAuthorisationSystem();
                 this.removeDOIFromObject(context, dso, doi);
+                context.restoreAuthSystemState();
                 doi = getDOIOutOfObject(dso);
             }
         } catch (AuthorizeException ex) {
@@ -787,7 +789,9 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
 
         // remove DOI from metadata
         try {
+            context.turnOffAuthorisationSystem();
             removeDOIFromObject(context, dso, doi);
+            context.restoreAuthSystemState();
         } catch (AuthorizeException ex) {
             log.error("Not authorized to delete a DOI out of an Item.", ex);
             throw new DOIIdentifierException("Not authorized to delete DOI.",
@@ -1019,8 +1023,11 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
             checkMintable(context, filter, dso);
 
             doi = doiService.create(context);
-            doiIdentifier = this.getPrefix() + "/" + this.getNamespaceSeparator() +
-                doi.getID();
+            doiIdentifier = getDOIOutOfObject(dso);
+            if (doiIdentifier == null) {
+                doiIdentifier = this.getPrefix() + "/" + this.getNamespaceSeparator() +
+                        doi.getID();
+            }
         }
 
         // prepare new doiRow
@@ -1037,7 +1044,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
     }
 
     /**
-     * Loads a DOI out of the metadata of an DSpaceObject.
+     * Loads a DOI out of the metadata of an DSpaceObject. If found it will be in the format doi:10.xxx/yyy
      *
      * @param dso DSpace object to get DOI metadata from
      * @return The DOI or null if no DOI was found.
@@ -1051,20 +1058,16 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         }
         Item item = (Item) dso;
 
-        String doi = itemService.getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
-        if (StringUtils.isNotBlank(doi)) {
-            if (!StringUtils.startsWith(doi, DOI.SCHEME)) {
-                return DOI.SCHEME + doi;
-            } else {
-                return doi;
-            }
-        }
-
         List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
-        String leftPart = doiService.getResolver() + SLASH + getPrefix() + SLASH + getNamespaceSeparator();
+        String leftPart = DOI.SCHEME + getPrefix() + SLASH + getNamespaceSeparator();
         for (MetadataValue id : metadata) {
-            if (id.getValue().startsWith(leftPart)) {
-                return doiService.DOIFromExternalFormat(id.getValue());
+            try {
+                final String valueFormatted = doiService.formatIdentifier(id.getValue());
+                if (StringUtils.startsWith(valueFormatted, leftPart)) {
+                    return doiService.formatIdentifier(id.getValue());
+                }
+            } catch (DOIIdentifierException e) {
+                // do nothing, if the identifier is not proper formatted it is not a DSpace minted DOI
             }
         }
         return null;
@@ -1088,13 +1091,31 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
                 contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso) + ".");
         }
         Item item = (Item) dso;
+        String doiUrn = doiService.formatIdentifier(doi);
 
-        itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
-            doiService.DOIToExternalForm(doi));
-        try {
-            itemService.update(context, item);
-        } catch (SQLException | AuthorizeException ex) {
-            throw ex;
+        List<MetadataValue> identifiers = itemService
+                .getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
+        boolean alreadyPresent = false;
+        for (MetadataValue identifier : identifiers) {
+            String identifierUrn = identifier.getValue();
+            try {
+                identifierUrn = doiService.formatIdentifier(identifier.getValue());
+            } catch (DOIIdentifierException e) {
+                // unknown format take it as is
+            }
+            if (StringUtils.startsWithIgnoreCase(identifierUrn, doiUrn)) {
+                alreadyPresent = true;
+            }
+        }
+
+        if (!alreadyPresent) {
+            itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
+                doiService.DOIToExternalForm(doi));
+            try {
+                itemService.update(context, item);
+            } catch (SQLException | AuthorizeException ex) {
+                throw ex;
+            }
         }
     }
 
@@ -1117,16 +1138,20 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         }
         Item item = (Item) dso;
 
-        List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        List<MetadataValue> metadata = itemService.getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
         List<String> remainder = new ArrayList<>();
 
         for (MetadataValue id : metadata) {
-            if (!doiService.DOIToExternalForm(doi).contains(id.getValue())) {
+            try {
+                if (!StringUtils.equals(doiService.formatIdentifier(id.getValue()), doi)) {
+                    remainder.add(id.getValue());
+                }
+            } catch (DOIIdentifierException e) {
                 remainder.add(id.getValue());
             }
         }
 
-        itemService.clearMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null);
+        itemService.clearMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
         itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
                 remainder);
         itemService.update(context, item);

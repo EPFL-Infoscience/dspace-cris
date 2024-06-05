@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This XML was automatically generated from the SKOS sources for the COAR Vocabulary. It follows the schema developed by 4Science (https://www.4science.it/) for DSpace -->
+<node id="http://purl.org/coar/resource_type/scheme" label="Resource Types">
+  <isComposedBy>
+    <node id="c_46ec" label="projet étudiant">
+      <hasNote>A book authored by a student containing a formal presentations of research outputs
+        submitted for examination in completion of a course of study at an institution of higher
+        education, to fulfil the requirements for an academic degree. Also know as a dissertation.
+        [Source: http://purl.org/spar/fabio/Thesis]
+      </hasNote>
+      <isComposedBy>
+        <node id="c_db06" label="thèse de doctorat">
+          <hasNote>A thesis reporting the research undertaken during a period of graduate study
+              leading to a doctoral degree. [Source: http://purl.org/spar/fabio/DoctoralThesis]
+          </hasNote>
+        </node>
+        <node id="c_7a1f" label="mémoire de bachelor">
+          <hasNote>A thesis reporting a research project undertaken as part of an undergraduate
+            course of education leading to a bachelor's degree. [Source:
+            http://purl.org/spar/fabio/BachelorsThesis]
+          </hasNote>
+        </node>
+        <node id="c_bdcc" label="mémoire de master">
+          <hasNote>A thesis reporting a research project undertaken as part of a graduate course of
+            education leading to a master's degree. [Source:
+            http://purl.org/spar/fabio/MastersThesis]
+          </hasNote>
+        </node>
+        <node id="c_18op" label="projet de semestre ou autres projets d'étudiants">
+          <hasNote>A document containing a project report, intended to be delivered to a customer or
+            funding agency describing the results achieved within a specific project. [Source:
+            http://purl.org/spar/fabio/ProjectReportDocument]
+          </hasNote>
+        </node>
+      </isComposedBy>
+    </node>
+  </isComposedBy>
+</node>

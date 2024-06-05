@@ -8,63 +8,75 @@
 
 package org.dspace.app.requestitem;
 
+import static org.dspace.core.Constants.READ;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
+import javax.annotation.ManagedBean;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.mail.MessagingException;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.dspace.app.requestitem.factory.RequestItemServiceFactory;
 import org.dspace.app.requestitem.service.RequestItemService;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
-import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogHelper;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
-import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
+
 
 /**
  * Send item requests and responses by email.
  *
+ * <p>The "strategy" by which approvers are chosen is in an implementation of
+ * {@link RequestItemAuthorExtractor} which is injected by the name
+ * {@code requestItemAuthorExtractor}.  See the DI configuration documents.
+ *
  * @author Mark H. Wood <mwood@iupui.edu>
  */
+@Singleton
+@ManagedBean
 public class RequestItemEmailNotifier {
     private static final Logger LOG = LogManager.getLogger();
 
-    private static final BitstreamService bitstreamService
-            = ContentServiceFactory.getInstance().getBitstreamService();
+    @Inject
+    protected AuthorizeService authorizeService;
 
-    private static final ConfigurationService configurationService
-            = DSpaceServicesFactory.getInstance().getConfigurationService();
+    @Inject
+    protected BitstreamService bitstreamService;
 
-    private static final HandleService handleService
-            = HandleServiceFactory.getInstance().getHandleService();
+    @Inject
+    protected ConfigurationService configurationService;
 
-    private static final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    @Inject
+    protected HandleService handleService;
 
-    private static final RequestItemService requestItemService
-            = RequestItemServiceFactory.getInstance().getRequestItemService();
+    @Inject
+    protected RequestItemService requestItemService;
 
-    private static final RequestItemAuthorExtractor requestItemAuthorExtractor
-            = DSpaceServicesFactory.getInstance()
-                    .getServiceManager()
-                    .getServiceByName("requestItemAuthorExtractor",
-                            RequestItemAuthorExtractor.class);
+    @Inject
+    protected EPersonService ePersonService;
 
-    private RequestItemEmailNotifier() {}
+    protected final RequestItemAuthorExtractor requestItemAuthorExtractor;
+
+    @Inject
+    public RequestItemEmailNotifier(RequestItemAuthorExtractor requestItemAuthorExtractor) {
+        this.requestItemAuthorExtractor = requestItemAuthorExtractor;
+    }
 
     /**
      * Send the request to the approver(s).
@@ -75,7 +87,7 @@ public class RequestItemEmailNotifier {
      * @throws IOException passed through.
      * @throws SQLException if the message was not sent.
      */
-    static public void sendRequest(Context context, RequestItem ri, String responseLink)
+    public void sendRequest(Context context, RequestItem ri, String responseLink)
             throws IOException, SQLException {
         // Who is making this request?
         List<RequestItemAuthor> authors = requestItemAuthorExtractor
@@ -106,7 +118,11 @@ public class RequestItemEmailNotifier {
             email.addRecipient(author.getEmail());
             email.setReplyTo(ri.getReqEmail()); // Requester's address
 
-            email.addArgument(ri.getReqName()); // {0} Requester's name
+            email.addArgument(
+                email.isHtmlContent()
+                    ? ri.getReqName()
+                    : StringEscapeUtils.unescapeHtml4(ri.getReqName())
+            ); // {0} Requester's name
 
             email.addArgument(ri.getReqEmail()); // {1} Requester's address
 
@@ -118,7 +134,11 @@ public class RequestItemEmailNotifier {
 
             email.addArgument(ri.getItem().getName()); // {4} requested item's title
 
-            email.addArgument(ri.getReqMessage()); // {5} message from requester
+            email.addArgument(
+                email.isHtmlContent()
+                    ? ri.getReqMessage()
+                    : StringEscapeUtils.unescapeHtml4(ri.getReqMessage())
+            ); // {5} message from requester
 
             email.addArgument(responseLink); // {6} Link back to DSpace for action
 
@@ -162,12 +182,38 @@ public class RequestItemEmailNotifier {
      * @param message email body (may be empty).
      * @throws IOException if sending failed.
      */
-    static public void sendResponse(Context context, RequestItem ri, String subject,
+    public void sendResponse(Context context, RequestItem ri, String subject,
             String message)
             throws IOException {
+        // Who granted this request?
+        List<RequestItemAuthor> grantors;
+        try {
+            grantors = requestItemAuthorExtractor.getRequestItemAuthor(context, ri.getItem());
+        } catch (SQLException e) {
+            LOG.warn("Failed to get grantor's name and address:  {}", e.getMessage());
+            grantors = List.of();
+        }
+
+        String grantorName;
+        String grantorAddress;
+        if (grantors.isEmpty()) {
+            grantorName = configurationService.getProperty("mail.admin.name");
+            grantorAddress = configurationService.getProperty("mail.admin");
+        } else {
+            RequestItemAuthor grantor = grantors.get(0); // XXX Cannot know which one
+            grantorName = grantor.getFullName();
+            grantorAddress = grantor.getEmail();
+        }
+
         // Build an email back to the requester.
-        Email email = new Email();
-        email.setContent("body", message);
+        Email email = Email.getEmail(I18nUtil.getEmailFilename(context.getCurrentLocale(),
+                ri.isAccept_request() ? "request_item.granted" : "request_item.rejected"));
+        email.addArgument(ri.getReqName()); // {0} requestor's name
+        email.addArgument(handleService.getCanonicalForm(ri.getItem().getHandle())); // {1} URL of the requested Item
+        email.addArgument(ri.getItem().getName()); // {2} title of the requested Item
+        email.addArgument(grantorName);     // {3} name of the grantor
+        email.addArgument(grantorAddress);  // {4} email of the grantor
+        email.addArgument(message); //         {5} grantor's optional message
         email.setSubject(subject);
         email.addRecipient(ri.getReqEmail());
         // Attach bitstreams.
@@ -175,24 +221,32 @@ public class RequestItemEmailNotifier {
             if (ri.isAccept_request()) {
                 if (ri.isAllfiles()) {
                     Item item = ri.getItem();
+                    EPerson ePerson = ePersonService.findByEmail(context, ri.getReqEmail());
                     List<Bundle> bundles = item.getBundles("ORIGINAL");
                     for (Bundle bundle : bundles) {
                         List<Bitstream> bitstreams = bundle.getBitstreams();
                         for (Bitstream bitstream : bitstreams) {
                             if (!bitstream.getFormat(context).isInternal() &&
-                                    requestItemService.isRestricted(context,
-                                    bitstream)) {
-                                email.addAttachment(bitstreamService.retrieve(context,
-                                        bitstream), bitstream.getName(),
+                                    !authorizeService.authorizeActionBoolean(context, ePerson, bitstream, READ, true)) {
+                                // #8636 Anyone receiving the email can respond to the
+                                // request without authenticating into DSpace
+                                context.turnOffAuthorisationSystem();
+                                email.addAttachment(
+                                        bitstreamService.retrieve(context, bitstream),
+                                        bitstream.getName(),
                                         bitstream.getFormat(context).getMIMEType());
+                                context.restoreAuthSystemState();
                             }
                         }
                     }
                 } else {
                     Bitstream bitstream = ri.getBitstream();
+                    // #8636 Anyone receiving the email can respond to the request without authenticating into DSpace
+                    context.turnOffAuthorisationSystem();
                     email.addAttachment(bitstreamService.retrieve(context, bitstream),
                             bitstream.getName(),
                             bitstream.getFormat(context).getMIMEType());
+                    context.restoreAuthSystemState();
                 }
                 email.send();
             } else {
@@ -222,7 +276,7 @@ public class RequestItemEmailNotifier {
      * @throws IOException if the message body cannot be loaded or the message
      *          cannot be sent.
      */
-    static public void requestOpenAccess(Context context, RequestItem ri)
+    public void requestOpenAccess(Context context, RequestItem ri)
             throws IOException {
         Email message = Email.getEmail(I18nUtil.getEmailFilename(context.getCurrentLocale(),
                 "request_item.admin"));

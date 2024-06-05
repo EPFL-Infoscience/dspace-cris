@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
+import static org.dspace.app.rest.model.BrowseIndexRest.BROWSE_TYPE_VALUE_LIST;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -36,6 +37,7 @@ import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -47,6 +49,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
  * @author Frederic Van Reet (frederic dot vanreet at atmire dot com)
  * @author Tom Desair (tom dot desair at atmire dot com)
  */
+@Ignore // no browse indexes are configured
 public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTest {
     @Autowired
     ConfigurationService configurationService;
@@ -63,29 +66,30 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                    //We expect the content type to be "application/hal+json;charset=UTF-8"
                    .andExpect(content().contentType(contentType))
 
-                   //Our default Discovery config has 4 browse indexes so we expect this to be reflected in the page
+                   //Our default Discovery config has 5 browse indexes, so we expect this to be reflected in the page
                    // object
                    .andExpect(jsonPath("$.page.size", is(20)))
-                   .andExpect(jsonPath("$.page.totalElements", is(11)))
+                   .andExpect(jsonPath("$.page.totalElements", is(8)))
                    .andExpect(jsonPath("$.page.totalPages", is(1)))
                    .andExpect(jsonPath("$.page.number", is(0)))
 
                    //The array of browse index should have a size 4
-                   .andExpect(jsonPath("$._embedded.browses", hasSize(11)))
+                   .andExpect(jsonPath("$._embedded.browses", hasSize(8)))
 
                    //Check that all (and only) the default browse indexes are present
                    .andExpect(jsonPath("$._embedded.browses", containsInAnyOrder(
-                       BrowseIndexMatcher.dateIssuedBrowseIndex("asc"),
                        BrowseIndexMatcher.contributorBrowseIndex("asc"),
-                       BrowseIndexMatcher.titleBrowseIndex("asc"),
                        BrowseIndexMatcher.subjectBrowseIndex("asc"),
                        BrowseIndexMatcher.rodeptBrowseIndex("asc"),
-                       BrowseIndexMatcher.typeBrowseIndex("asc"),
-                       BrowseIndexMatcher.rpnameBrowseIndex("asc"),
-                       BrowseIndexMatcher.ounameBrowseIndex("asc"),
-                       BrowseIndexMatcher.pjtitleBrowseIndex("asc"),
-                       BrowseIndexMatcher.rpdeptBrowseIndex("asc"),
-                       BrowseIndexMatcher.eqtitleBrowseIndex("asc")
+                       BrowseIndexMatcher.journalBrowseIndex("asc"),
+                       BrowseIndexMatcher.conferenceBrowseIndex("asc"),
+                       BrowseIndexMatcher.typesBrowseIndex(),
+                       BrowseIndexMatcher.hierarchicalBrowseIndex(
+                           "publication-coar-types", "itemtype", "dc.type"
+                       ),
+                       BrowseIndexMatcher.hierarchicalBrowseIndex(
+                           "srsc", "subject", "dc.subject"
+                       )
                    )))
         ;
     }
@@ -129,6 +133,25 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
 
                    //Check that the JSON root matches the expected browse index
                    .andExpect(jsonPath("$", BrowseIndexMatcher.contributorBrowseIndex("asc")))
+        ;
+    }
+
+    @Test
+    public void findBrowseByVocabulary() throws Exception {
+        //Use srsc as this vocabulary is included by default
+        //When we call the root endpoint
+        getClient().perform(get("/api/discover/browses/srsc"))
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //We expect the content type to be "application/hal+json;charset=UTF-8"
+                   .andExpect(content().contentType(contentType))
+                   //Check that the JSON root matches the expected browse index
+                   .andExpect(
+                       jsonPath(
+                           "$",
+                            BrowseIndexMatcher.hierarchicalBrowseIndex("srsc", "subject", "dc.subject")
+                       )
+                   )
         ;
     }
 
@@ -852,6 +875,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                                        )));
     }
 
+
     @Test
     public void testBrowseByEntriesStartsWith() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -997,7 +1021,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                    //Verify that the startsWith paramater is included in the links
                     .andExpect(jsonPath("$._links.self.href", containsString("?startsWith=C")));
 
-    };
+    }
 
     @Test
     public void testBrowseByEntriesStartsWithAndDiacritics() throws Exception {
@@ -1157,7 +1181,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                    //Verify that the startsWith paramater is included in the links
                    .andExpect(jsonPath("$._links.self.href", containsString("?startsWith=Guión")));
 
-    };
+    }
 
     @Test
     public void testBrowseByItemsStartsWith() throws Exception {
@@ -1708,7 +1732,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                 // The browse definition ID should be "author"
                 .andExpect(jsonPath("$.id", is("author")))
                 // It should be configured as a metadata browse
-                .andExpect(jsonPath("$.metadataBrowse", is(true)))
+                .andExpect(jsonPath("$.browseType", is(BROWSE_TYPE_VALUE_LIST)))
         ;
     }
 
@@ -1725,7 +1749,7 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
                 // The browse definition ID should be "author"
                 .andExpect(jsonPath("$.id", is("author")))
                 // It should be configured as a metadata browse
-                .andExpect(jsonPath("$.metadataBrowse", is(true)));
+                .andExpect(jsonPath("$.browseType", is(BROWSE_TYPE_VALUE_LIST)));
     }
 
     @Test

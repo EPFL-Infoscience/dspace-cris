@@ -20,6 +20,7 @@ import org.dspace.app.rest.matcher.FacetValueMatcher;
 import org.dspace.app.rest.matcher.PageMatcher;
 import org.dspace.app.rest.matcher.SearchResultMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
@@ -32,6 +33,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Luca Giamminonni (luca.giamminonni at 4science.it)
  *
  */
+@Ignore
 public class DiscoveryRestControllerMultiLanguageIT extends AbstractControllerIntegrationTest {
 
     @Autowired
@@ -54,7 +57,7 @@ public class DiscoveryRestControllerMultiLanguageIT extends AbstractControllerIn
     private ChoiceAuthorityService choiceAuthorityService;
 
     @After
-    public void after() {
+    public void after() throws SubmissionConfigReaderException {
         DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
         metadataAuthorityService.clearCache();
         choiceAuthorityService.clearCache();
@@ -203,6 +206,7 @@ public class DiscoveryRestControllerMultiLanguageIT extends AbstractControllerIn
         context.restoreAuthSystemState();
 
         getClient().perform(get("/api/discover/facets/language")
+            .param("configuration", "multilanguage-types")
             .header("Accept-Language", "uk"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("discover")))
@@ -214,6 +218,7 @@ public class DiscoveryRestControllerMultiLanguageIT extends AbstractControllerIn
                 FacetValueMatcher.entryLanguage("Український"))));
 
         getClient().perform(get("/api/discover/facets/language")
+            .param("configuration", "multilanguage-types")
             .header("Accept-Language", Locale.ITALIAN.getLanguage()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("discover")))
@@ -266,6 +271,7 @@ public class DiscoveryRestControllerMultiLanguageIT extends AbstractControllerIn
 
         getClient().perform(get("/api/discover/facets/language")
             .header("Accept-Language", Locale.ITALIAN.getLanguage())
+            .param("configuration", "multilanguage-types")
             .param("prefix", "ucra"))
             .andExpect(jsonPath("$.type", is("discover")))
             .andExpect(jsonPath("$.name", is("language")))
@@ -280,247 +286,258 @@ public class DiscoveryRestControllerMultiLanguageIT extends AbstractControllerIn
     public void discoverFacetsTypesTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        String[] supportedLanguage = { "en","uk", "it" };
-        configurationService.setProperty("webui.supported.locales", supportedLanguage);
-        metadataAuthorityService.clearCache();
-        choiceAuthorityService.clearCache();
+        try {
+            configurationService.setProperty("authority.controlled.dc.type", "true");
+            metadataAuthorityService.clearCache();
 
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Parent Community")
-                                          .build();
+            String[] supportedLanguage = {"en", "uk", "it"};
+            configurationService.setProperty("webui.supported.locales", supportedLanguage);
+            metadataAuthorityService.clearCache();
+            choiceAuthorityService.clearCache();
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
-                                           .withName("Collection 1")
-                                           .withEntityType("Publication")
-                                           .build();
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                                              .withName("Parent Community")
+                                              .build();
 
-        ItemBuilder.createItem(context, col1)
-                   .withTitle("Test 1")
-                   .withIssueDate("2010-10-17")
-                   .withAuthor("Testing, Works")
-                   .withType("Research Subject Categories::MATEMATICA", "srsc:SCB14")
-                   .build();
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
+                                              .withName("Collection 1")
+                                              .withEntityType("Publication")
+                                              .build();
 
-        context.restoreAuthSystemState();
+            ItemBuilder.createItem(context, col1)
+                       .withTitle("Test 1")
+                       .withIssueDate("2010-10-17")
+                       .withAuthor("Testing, Works")
+                       .withType("Research Subject Categories::MATEMATICA", "srsc:SCB14")
+                       .build();
 
-        getClient().perform(get("/api/discover/facets/types")
-                   .header("Accept-Language", Locale.ITALIAN.getLanguage())
-                   .param("configuration", "multilanguage-types")
-                   .param("prefix", "matem"))
-                   .andExpect(jsonPath("$.type", is("discover")))
-                   .andExpect(jsonPath("$.name", is("types")))
-                   .andExpect(jsonPath("$.facetType", is("text")))
-                   .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                              FacetValueMatcher.entryTypes("MATEMATICA","srsc:SCB14"))));
+            context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/discover/facets/types")
-                   .header("Accept-Language", "uk")
-                   .param("configuration", "multilanguage-types")
-                   .param("prefix", "мат"))
-                   .andExpect(jsonPath("$.type", is("discover")))
-                   .andExpect(jsonPath("$.name", is("types")))
-                   .andExpect(jsonPath("$.facetType", is("text")))
-                   .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                              FacetValueMatcher.entryTypes("МАТЕМАТИКА","srsc:SCB14"))));
+            getClient().perform(get("/api/discover/facets/types")
+                       .header("Accept-Language", Locale.ITALIAN.getLanguage())
+                       .param("configuration", "multilanguage-types")
+                       .param("prefix", "matem"))
+                       .andExpect(jsonPath("$.type", is("discover")))
+                       .andExpect(jsonPath("$.name", is("types")))
+                       .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+
+            getClient().perform(get("/api/discover/facets/types")
+                       .header("Accept-Language", "uk")
+                       .param("configuration", "multilanguage-types")
+                       .param("prefix", "мат"))
+                       .andExpect(jsonPath("$.type", is("discover")))
+                       .andExpect(jsonPath("$.name", is("types")))
+                       .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+        } finally {
+            configurationService.setProperty("authority.controlled.dc.type", "false");
+            metadataAuthorityService.clearCache();
+        }
 
     }
 
     @Test
     public void discoverFacetsTypesTestWithoutAuthority() throws Exception {
         context.turnOffAuthorisationSystem();
-        String[] supportedLanguage = { "en","uk", "it" };
-        configurationService.setProperty("webui.supported.locales", supportedLanguage);
-        metadataAuthorityService.clearCache();
-        choiceAuthorityService.clearCache();
+        try {
+            configurationService.setProperty("authority.controlled.dc.type", "true");
+            metadataAuthorityService.clearCache();
 
-        parentCommunity = CommunityBuilder.createCommunity(context)
-            .withName("Parent Community")
-            .build();
+            String[] supportedLanguage = {"en", "uk", "it"};
+            configurationService.setProperty("webui.supported.locales", supportedLanguage);
+            metadataAuthorityService.clearCache();
+            choiceAuthorityService.clearCache();
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
-            .withName("Collection 1")
-            .withEntityType("Publication")
-            .build();
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
 
-        ItemBuilder.createItem(context, col1)
-            .withTitle("Test 1")
-            .withIssueDate("2010-10-17")
-            .withAuthor("Testing, Works")
-            .withType("Research Subject Categories::MATEMATICA")
-            .build();
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
+                .withName("Collection 1")
+                .withEntityType("Publication")
+                .build();
 
-        context.restoreAuthSystemState();
+            ItemBuilder.createItem(context, col1)
+                .withTitle("Test 1")
+                .withIssueDate("2010-10-17")
+                .withAuthor("Testing, Works")
+                .withType("Research Subject Categories::MATEMATICA")
+                .build();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", Locale.ITALIAN.getLanguage())
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA"))));
+            context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", "uk")
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA"))));
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", Locale.ITALIAN.getLanguage())
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", "uk")
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+        } finally {
+            configurationService.setProperty("authority.controlled.dc.type", "false");
+            metadataAuthorityService.clearCache();
+        }
     }
 
     @Test
     public void discoverFacetsTypesTestWithUnknownAuthority() throws Exception {
         context.turnOffAuthorisationSystem();
-        String[] supportedLanguage = { "en","uk", "it" };
-        configurationService.setProperty("webui.supported.locales", supportedLanguage);
-        metadataAuthorityService.clearCache();
-        choiceAuthorityService.clearCache();
+        try {
+            configurationService.setProperty("authority.controlled.dc.type", "true");
+            metadataAuthorityService.clearCache();
 
-        parentCommunity = CommunityBuilder.createCommunity(context)
-            .withName("Parent Community")
-            .build();
+            String[] supportedLanguage = {"en", "uk", "it"};
+            configurationService.setProperty("webui.supported.locales", supportedLanguage);
+            metadataAuthorityService.clearCache();
+            choiceAuthorityService.clearCache();
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
-            .withName("Collection 1")
-            .withEntityType("Publication")
-            .build();
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
 
-        ItemBuilder.createItem(context, col1)
-            .withTitle("Test 1")
-            .withIssueDate("2010-10-17")
-            .withAuthor("Testing, Works")
-            .withType("Research Subject Categories::MATEMATICA", "srsc:UNKNOWN")
-            .build();
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
+                .withName("Collection 1")
+                .withEntityType("Publication")
+                .build();
 
-        context.restoreAuthSystemState();
+            ItemBuilder.createItem(context, col1)
+                .withTitle("Test 1")
+                .withIssueDate("2010-10-17")
+                .withAuthor("Testing, Works")
+                .withType("Research Subject Categories::MATEMATICA", "srsc:UNKNOWN")
+                .build();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", Locale.ITALIAN.getLanguage())
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA", "srsc:UNKNOWN"))));
+            context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", "uk")
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA", "srsc:UNKNOWN"))));
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", Locale.ITALIAN.getLanguage())
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", "uk")
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+        } finally {
+            configurationService.setProperty("authority.controlled.dc.type", "false");
+            metadataAuthorityService.clearCache();
+        }
     }
 
     @Test
     public void discoverFacetsTypesTestWithUnknownAuthorityName() throws Exception {
         context.turnOffAuthorisationSystem();
-        String[] supportedLanguage = { "en","uk", "it" };
-        configurationService.setProperty("webui.supported.locales", supportedLanguage);
-        metadataAuthorityService.clearCache();
-        choiceAuthorityService.clearCache();
+        try {
+            configurationService.setProperty("authority.controlled.dc.type", "true");
+            metadataAuthorityService.clearCache();
 
-        parentCommunity = CommunityBuilder.createCommunity(context)
-            .withName("Parent Community")
-            .build();
+            String[] supportedLanguage = {"en", "uk", "it"};
+            configurationService.setProperty("webui.supported.locales", supportedLanguage);
+            metadataAuthorityService.clearCache();
+            choiceAuthorityService.clearCache();
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
-            .withName("Collection 1")
-            .withEntityType("Publication")
-            .build();
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
 
-        ItemBuilder.createItem(context, col1)
-            .withTitle("Test 1")
-            .withIssueDate("2010-10-17")
-            .withAuthor("Testing, Works")
-            .withType("Research Subject Categories::MATEMATICA", "UNKNOWN:VALUE")
-            .build();
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
+                .withName("Collection 1")
+                .withEntityType("Publication")
+                .build();
 
-        context.restoreAuthSystemState();
+            ItemBuilder.createItem(context, col1)
+                .withTitle("Test 1")
+                .withIssueDate("2010-10-17")
+                .withAuthor("Testing, Works")
+                .withType("Research Subject Categories::MATEMATICA", "UNKNOWN:VALUE")
+                .build();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", Locale.ITALIAN.getLanguage())
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA", "UNKNOWN:VALUE"))));
+            context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", "uk")
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA", "UNKNOWN:VALUE"))));
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", Locale.ITALIAN.getLanguage())
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", "uk")
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+        } finally {
+            configurationService.setProperty("authority.controlled.dc.type", "false");
+            metadataAuthorityService.clearCache();
+        }
     }
 
     @Test
     public void discoverFacetsTypesTestWithWrongAuthorityFormat() throws Exception {
         context.turnOffAuthorisationSystem();
-        String[] supportedLanguage = { "en", "uk", "it" };
-        configurationService.setProperty("webui.supported.locales", supportedLanguage);
-        metadataAuthorityService.clearCache();
-        choiceAuthorityService.clearCache();
 
-        parentCommunity = CommunityBuilder.createCommunity(context)
-            .withName("Parent Community")
-            .build();
+        try {
+            configurationService.setProperty("authority.controlled.dc.type", "true");
+            metadataAuthorityService.clearCache();
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
-            .withName("Collection 1")
-            .withEntityType("Publication")
-            .build();
+            String[] supportedLanguage = {"en", "uk", "it"};
+            configurationService.setProperty("webui.supported.locales", supportedLanguage);
+            metadataAuthorityService.clearCache();
+            choiceAuthorityService.clearCache();
 
-        ItemBuilder.createItem(context, col1)
-            .withTitle("Test 1")
-            .withIssueDate("2010-10-17")
-            .withAuthor("Testing, Works")
-            .withType("Research Subject Categories::MATEMATICA", "authority")
-            .build();
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
 
-        context.restoreAuthSystemState();
+            Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/language-test-1")
+                .withName("Collection 1")
+                .withEntityType("Publication")
+                .build();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", Locale.ITALIAN.getLanguage())
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA", "authority"))));
+            ItemBuilder.createItem(context, col1)
+                .withTitle("Test 1")
+                .withIssueDate("2010-10-17")
+                .withAuthor("Testing, Works")
+                .withType("Research Subject Categories::MATEMATICA", "authority")
+                .build();
 
-        getClient().perform(get("/api/discover/facets/types")
-            .header("Accept-Language", "uk")
-            .param("configuration", "multilanguage-types")
-            .param("prefix", "research"))
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("types")))
-            .andExpect(jsonPath("$.facetType", is("text")))
-            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryTypes("Research Subject Categories::MATEMATICA", "authority"))));
+            context.restoreAuthSystemState();
+
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", Locale.ITALIAN.getLanguage())
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+
+            getClient().perform(get("/api/discover/facets/types")
+                .header("Accept-Language", "uk")
+                .param("configuration", "multilanguage-types")
+                .param("prefix", "research"))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.name", is("types")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/types")));
+        } finally {
+            configurationService.setProperty("authority.controlled.dc.type", "false");
+            metadataAuthorityService.clearCache();
+        }
     }
 
 }

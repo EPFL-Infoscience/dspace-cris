@@ -7,6 +7,8 @@
  */
 package org.dspace.storage.bitstore;
 
+import static java.lang.String.valueOf;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,6 +16,8 @@ import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -23,10 +27,10 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -41,7 +45,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -102,6 +105,7 @@ public class S3BitStoreService extends BaseBitStoreService {
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsRegionName;
+    private String awsSessionToken;
     private boolean useRelativePath;
 
     /**
@@ -152,9 +156,8 @@ public class S3BitStoreService extends BaseBitStoreService {
      *
      * @param s3Service AmazonS3 service
      */
-    protected S3BitStoreService(AmazonS3 s3Service, TransferManager tm) {
+    protected S3BitStoreService(AmazonS3 s3Service) {
         this.s3Service = s3Service;
-        this.tm = tm;
     }
 
     @Override
@@ -189,13 +192,16 @@ public class S3BitStoreService extends BaseBitStoreService {
                     }
                 }
                 // init client
-                s3Service = FunctionalUtils.getDefaultOrBuild(
-                        this.s3Service,
-                        amazonClientBuilderBy(
-                                regions,
-                                new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey())
-                                )
-                        );
+                AWSCredentials awsCredentials = null;
+                if (StringUtils.isNotBlank(getAwsSessionToken())) {
+                    awsCredentials = new BasicSessionCredentials(getAwsAccessKey(),
+                                                                 getAwsSecretKey(),
+                                                                 getAwsSessionToken());
+                } else {
+                    awsCredentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
+                }
+
+                s3Service = FunctionalUtils.getDefaultOrBuild(s3Service,amazonClientBuilderBy(regions, awsCredentials));
                 log.warn("S3 Region set to: " + regions.getName());
             } else {
                 log.info("Using a IAM role or aws environment credentials");
@@ -214,7 +220,7 @@ public class S3BitStoreService extends BaseBitStoreService {
             }
 
             try {
-                if (!s3Service.doesBucketExist(bucketName)) {
+                if (!s3Service.doesBucketExistV2(bucketName)) {
                     s3Service.createBucket(bucketName);
                     log.info("Creating new S3 Bucket: " + bucketName);
                 }
@@ -300,10 +306,6 @@ public class S3BitStoreService extends BaseBitStoreService {
         ) {
             Utils.bufferedCopy(dis, fos);
             in.close();
-            byte[] md5Digest = dis.getMessageDigest().digest();
-            String md5Base64 = Base64.encodeBase64String(md5Digest);
-            ObjectMetadata objMetadata = new ObjectMetadata();
-            objMetadata.setContentMD5(md5Base64);
 
             Upload upload = tm.upload(bucketName, key, scratchFile);
 
@@ -312,7 +314,7 @@ public class S3BitStoreService extends BaseBitStoreService {
             bitstream.setSizeBytes(scratchFile.length());
             // we cannot use the S3 ETAG here as it could be not a MD5 in case of multipart upload (large files) or if
             // the bucket is encrypted
-            bitstream.setChecksum(Utils.toHex(md5Digest));
+            bitstream.setChecksum(Utils.toHex(dis.getMessageDigest().digest()));
             bitstream.setChecksumAlgorithm(CSA);
 
         } catch (AmazonClientException | IOException | InterruptedException e) {
@@ -335,87 +337,56 @@ public class S3BitStoreService extends BaseBitStoreService {
      * (Does not use getContentMD5, as that is 128-bit MD5 digest calculated on caller's side)
      *
      * @param bitstream The asset to describe
-     * @param attrs     A Map whose keys consist of desired metadata fields
+     * @param attrs     A List of desired metadata fields
      * @return attrs
      * A Map with key/value pairs of desired metadata
      * If file not found, then return null
      * @throws java.io.IOException If a problem occurs while obtaining metadata
      */
     @Override
-    public Map about(Bitstream bitstream, Map attrs) throws IOException {
+    public Map<String, Object> about(Bitstream bitstream, List<String> attrs) throws IOException {
+
         String key = getFullKey(bitstream.getInternalId());
         // If this is a registered bitstream, strip the -R prefix before retrieving
         if (isRegisteredBitstream(key)) {
             key = key.substring(REGISTERED_FLAG.length());
         }
+
+        Map<String, Object> metadata = new HashMap<>();
+
         try {
+
             ObjectMetadata objectMetadata = s3Service.getObjectMetadata(bucketName, key);
             if (objectMetadata != null) {
-                if (attrs.containsKey("size_bytes")) {
-                    attrs.put("size_bytes", objectMetadata.getContentLength());
-                }
-                if (attrs.containsKey("modified")) {
-                    attrs.put("modified", String.valueOf(objectMetadata.getLastModified().getTime()));
+                putValueIfExistsKey(attrs, metadata, "size_bytes", objectMetadata.getContentLength());
+                putValueIfExistsKey(attrs, metadata, "modified", valueOf(objectMetadata.getLastModified().getTime()));
+            }
+
+            putValueIfExistsKey(attrs, metadata, "checksum_algorithm", CSA);
+
+            if (attrs.contains("checksum")) {
+                try (InputStream in = get(bitstream);
+                     DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA))
+                ) {
+                    Utils.copy(dis, NullOutputStream.NULL_OUTPUT_STREAM);
+                    byte[] md5Digest = dis.getMessageDigest().digest();
+                    metadata.put("checksum", Utils.toHex(md5Digest));
+                } catch (NoSuchAlgorithmException nsae) {
+                    // Should never happen
+                    log.warn("Caught NoSuchAlgorithmException", nsae);
                 }
             }
-            try (
-                InputStream in = get(bitstream);
-                // Read through a digest input stream that will work out the MD5
-                DigestInputStream dis = new DigestInputStream(in, MessageDigest.getInstance(CSA));
-            ) {
-                Utils.copy(dis, NullOutputStream.NULL_OUTPUT_STREAM);
-                byte[] md5Digest = dis.getMessageDigest().digest();
-                in.close();
-                String md5check = Utils.toHex(md5Digest);
-                attrs.put("checksum", md5check);
-                attrs.put("checksum_algorithm", CSA);
-            } catch (NoSuchAlgorithmException nsae) {
-                // Should never happen
-                log.warn("Caught NoSuchAlgorithmException", nsae);
-            }
-            return attrs;
+
+            return metadata;
         } catch (AmazonS3Exception e) {
             if (e.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                return null;
+                return metadata;
             }
         } catch (AmazonClientException e) {
             log.error("about(" + key + ", attrs)", e);
             throw new IOException(e);
         }
-        return null;
-    }
-
-    private boolean isMD5Checksum(String eTag) {
-        // if the etag is NOT an MD5 it end with -x where x is the number of part used in the multipart upload
-        return StringUtils.contains(eTag, "-");
-    }
-
-    /**
-     * Populates map values by checking key existence
-     * <br>
-     * Adds technical metadata about an asset in the asset store, like:
-     * <ul>
-     *  <li>size_bytes</li>
-     *  <li>checksum</li>
-     *  <li>checksum_algorithm</li>
-     *  <li>modified</li>
-     * </ul>
-     *
-     * @param objectMetadata containing technical data
-     * @param attrs map with keys populated
-     * @return Map of enriched attrs with values
-     */
-    public Map about(ObjectMetadata objectMetadata, Map attrs) {
-        if (objectMetadata != null) {
-            this.putValueIfExistsKey(attrs, SIZE_BYTES, objectMetadata.getContentLength());
-
-            // put CHECKSUM_ALGORITHM if exists CHECKSUM
-            this.putValueIfExistsKey(attrs, CHECKSUM, objectMetadata.getETag());
-            this.putEntryIfExistsKey(attrs, CHECKSUM, Map.entry(CHECKSUM_ALGORITHM, CSA));
-
-            this.putValueIfExistsKey(attrs, MODIFIED, String.valueOf(objectMetadata.getLastModified().getTime()));
-        }
-        return attrs;
+        return metadata;
     }
 
     /**
@@ -579,13 +550,14 @@ public class S3BitStoreService extends BaseBitStoreService {
 
         String accessKey = command.getOptionValue("a");
         String secretKey = command.getOptionValue("s");
-        String assetFile = command.getOptionValue("f");
 
         S3BitStoreService store = new S3BitStoreService();
 
         AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
 
-        store.s3Service = new AmazonS3Client(awsCredentials);
+        store.s3Service = AmazonS3ClientBuilder.standard()
+            .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+            .build();
 
         //Todo configurable region
         Region usEast1 = Region.getRegion(Regions.US_EAST_1);
@@ -667,6 +639,14 @@ public class S3BitStoreService extends BaseBitStoreService {
             IOUtils.copy(get(bitstream), out);
         }
         return tempFile.getAbsolutePath();
+    }
+
+    public String getAwsSessionToken() {
+        return awsSessionToken;
+    }
+
+    public void setAwsSessionToken(String awsSessionToken) {
+        this.awsSessionToken = awsSessionToken;
     }
 
 }

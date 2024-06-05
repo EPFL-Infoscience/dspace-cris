@@ -48,6 +48,10 @@
         		<value>crisrp.name.translated</value>
         		<value>person.givenName</value>
         		<value>person.familyName</value>
+                <value>epfl.sciperId</value>
+                <value>person.identifier.orcid</value>
+                <value>person.identifier.scopus-author-id</value>
+                <value>person.identifier.rid</value>
     		</list>
     	</property>
     </bean>
@@ -56,14 +60,12 @@
     <bean id="sharedWorkspaceSolrIndexPlugin" class="org.dspace.discovery.SharedWorkspaceSolrIndexPlugin">
         <constructor-arg name="additionalReadMetadata" ref="sharedWorkspaceAuthorMetadataFields"/>
     </bean>
-    
+    <bean id="solrServiceCaseSensitiveIndexPlugin" class="org.dspace.discovery.SolrServiceCaseSensitiveIndexPlugin" />
+
     <util:list id="sharedWorkspaceAuthorMetadataFields" value-type="java.lang.String">
         <value>dc.contributor.author</value>
-        <value>dc.contributor.editor</value>
+        <value>dc.contributor.scientificeditor</value>
     </util:list>
-    
-    <!-- Additional indexing plugin enables searching by supervised (true,false) -->
-    <bean id="solrServiceSupervisionOrderIndexingPlugin" class="org.dspace.discovery.SolrServiceSupervisionOrderIndexingPlugin"/>
 
     <alias name="solrServiceResourceIndexPlugin" alias="org.dspace.discovery.SolrServiceResourceRestrictionPlugin"/>
 
@@ -71,7 +73,39 @@
     <bean id="hasContentInOriginalBundlePlugin" class="org.dspace.discovery.SolrServiceContentInOriginalBundleFilterPlugin"/>
 
     <!-- Additional indexing plugin enables searching by filenames and by file descriptions for files in ORIGINAL bundle -->
-    <bean id="solrServiceFileInfoPlugin" class="org.dspace.discovery.SolrServiceFileInfoPlugin"/>
+    <bean id="solrServiceFileInfoPlugin" class="org.dspace.discovery.SolrServiceFileInfoPlugin">
+        <property name="mappableMetadata">
+            <map>
+                <entry key="oaire.licenseCondition" value-ref="oaireLicenseMapper"/>
+                <entry key="datacite.rights" value-ref="dataciteRightsMapper"/>
+                <entry key="datacite.available" value-ref="dataciteAvailableMapper"/>
+            </map>
+        </property>
+        <property name="simpleIndexAdder" ref="simpleIndexAdder"/>
+        <property name="bitstreamMetadataIndexAdder" ref="bitstreamMetadataIndexAdder"/>
+        <property name="defaultIndexAdder" ref="defaultIndexAdder"/>
+    </bean>
+
+    <bean id="oaireLicenseMapper" class="org.dspace.discovery.index.mapper.SolrFieldMetadataMapper">
+        <constructor-arg name="metadata" value="original_bundle_oaire_licenseCondition"/>
+        <constructor-arg name="indexAdder" ref="defaultIndexAdder"/>
+    </bean>
+    <bean id="dataciteRightsMapper" class="org.dspace.discovery.index.mapper.SolrFieldMetadataMapper">
+        <constructor-arg name="metadata" value="original_bundle_datacite_rights"/>
+        <constructor-arg name="indexAdder" ref="defaultIndexAdder"/>
+    </bean>
+    <bean id="dataciteAvailableMapper" class="org.dspace.discovery.index.mapper.SolrFieldMetadataMapper">
+        <constructor-arg name="metadata" value="original_bundle_datacite_available"/>
+        <constructor-arg name="indexAdder" ref="yearIndexAdder"/>
+    </bean>
+
+    <bean id="bitstreamMetadataIndexAdder" class="org.dspace.discovery.index.adder.BitstreamMetadataSolrIndexAdder"/>
+    <bean id="defaultIndexAdder" class="org.dspace.discovery.index.adder.DefaultSolrIndexAdder"/>
+    <bean id="simpleIndexAdder" class="org.dspace.discovery.index.adder.SimpleSolrIndexAdder"/>
+    <bean id="yearIndexAdder" class="org.dspace.discovery.index.adder.YearSolrIndexAdder"/>
+
+    <!-- Additional indexing plugin enables searching by supervised (true,false) -->
+    <bean id="solrServiceSupervisionOrderIndexingPlugin" class="org.dspace.discovery.SolrServiceSupervisionOrderIndexingPlugin"/>
 
     <!--Bean that is used for mapping communities/collections to certain discovery configurations.-->
     <bean id="org.dspace.discovery.configuration.DiscoveryConfigurationService" class="org.dspace.discovery.configuration.DiscoveryConfigurationService">
@@ -92,6 +126,7 @@
                <!-- Do not change the id of special entries or else they won't work -->
                <!-- "workspace" is a special entry to search for your own workspace items -->
                 <entry key="workspace" value-ref="workspaceConfiguration" />
+                <entry key="supervisedWorkspace" value-ref="supervisedWorkspaceConfiguration" />
                 <entry key="otherworkspace" value-ref="otherWorkspaceConfiguration" />
                 <!-- "workflow" is a special entry to search for your own workflow tasks -->
                 <entry key="workflow" value-ref="workflowConfiguration" />
@@ -99,9 +134,10 @@
                 <entry key="workflowAdmin" value-ref="workflowAdminConfiguration" />
                 <!-- "supervision" is a special entry to search for all workspace and workflow items if you are an administrator -->
                 <entry key="supervision" value-ref="supervisionConfiguration" />
+
                 <entry key="undiscoverable" value-ref="unDiscoverableItems" />
                 <entry key="administrativeView" value-ref="administrativeView" />
-                <entry key="backend" value-ref="backendConfiguration" />
+
                 <entry key="publication" value-ref="publication"/>
                 <entry key="researchoutputs" value-ref="researchoutputs"/>
                 <entry key="researchoutputsoa" value-ref="researchoutputsoa"/>
@@ -116,10 +152,12 @@
                 <entry key="journalissue" value-ref="journalIssue"/>
                 <entry key="journalvolume" value-ref="journalVolume"/>
                 <entry key="journal" value-ref="journal"/>
+                <entry key="event" value-ref="event"/>
                 <entry key="project_funding" value-ref="project_funding"/>
                 <entry key="project" value-ref="project"/>
                 <entry key="project-relationships" value-ref="projectRelationships"/>
                 <entry key="homePageTopItems" value-ref="homePageTopItemsConfiguration"/>
+                <entry key="homePageContentItems" value-ref="homePageContentItemsConfiguration"/>
                 <entry key="schoolsAndColleges" value-ref="schoolsAndColleges"/>
                 <entry key="researchCentersAndPlatforms" value-ref="researchCentersAndPlatforms"/>
                 <entry key="sections" value-ref="sections"/>
@@ -151,11 +189,15 @@
                 <entry key="RELATION.OrgUnit.institutes" value-ref="relationOrgunitInstituteConfiguration"/>
                 <entry key="RELATION.OrgUnit.labs_research_groups" value-ref="relationOrgunitLabConfiguration"/>
                 <!-- OrgUnit and SubOrgUnits publications, speficif for collège and école -->
-                <entry key="RELATION.OrgUnit.publications_school_college" value-ref="relationOrgunitPublicationsSchoolCollege"/>
+                <entry key="RELATION.OrgUnit.PublSchoolColl" value-ref="relationOrgunitPublicationsSchoolCollege"/>
                 <!-- Project Related items -->
                 <entry key="RELATION.Project.projects" value-ref="relationProjectProjectsConfiguration"/>
                 <entry key="RELATION.Project.fundings" value-ref="relationProjectFundingsConfiguration"/>
                 <entry key="RELATION.Project.researchoutputs" value-ref="relationProjectPublicationConfiguration"/>
+                <!-- Collection items -->
+                <entry key="RELATION.Collection.items" value-ref="relationCollectionItemsConfiguration"/>
+                <!-- Community items -->
+                <entry key="RELATION.Community.items" value-ref="relationCommunityItemsConfiguration"/>
                 <!-- VirtualCollection Related items -->
                 <entry key="RELATION.VirtualCollection.publications" value-ref="relationVirtualCollectionPublicationsConfiguration"/>
                 <!-- Event Related items -->
@@ -411,7 +453,7 @@
                         <ref bean="sortScore" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortDateIssuedDesc" />
-                        <ref bean="sortDateAccessionedDesc"/>
+                        <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
@@ -660,7 +702,7 @@
                 <ref bean="searchFilterEpflResourceType" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
@@ -672,7 +714,7 @@
             <list>
                 <ref bean="searchFilterEpflResourceType" />
                 <ref bean="searchFilterAuthorEditor" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterSubject" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterContentInOriginalBundle"/>
@@ -788,17 +830,26 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
+                <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
+                <ref bean="searchFilterUnit" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page -->
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterEntityType" />
+                <ref bean="searchFilterAuthorEditor"/>               
+                <ref bean="searchFilterCreated" />
+                <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterAuthor" />
+                <ref bean="searchFilterUnit" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -806,12 +857,18 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                    	  <ref bean="sortDateModifiedDesc" />
-                        <ref bean="sortDateModifiedAsc" />
-                        <ref bean="sortTitleAsc" />
-                        <ref bean="sortDateIssuedDesc" />
-                        <ref bean="sortDateCreatedAsc" />
                         <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortUnitAsc" />
+                        <ref bean="sortUnitDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortTypeAsc" />
+                        <ref bean="sortTypeDesc" />
                     </list>
                 </property>
             </bean>
@@ -822,6 +879,7 @@
             <list>
                 <!--Only find items, workspace and accepted for workflow -->
                 <value>(latestVersion:true AND search.resourcetype:Item AND latestVersion:true) OR search.resourcetype:WorkspaceItem OR search.resourcetype:XmlWorkflowItem</value>
+                <value>entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -832,6 +890,91 @@
                     <list>
                         <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
                             <property name="field" value="dc.title"/>
+                            <property name="snippets" value="5"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="dc.description.abstract"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!-- When true a "did you mean" example will be displayed, value can be true or false -->
+        <property name="spellCheckEnabled" value="true"/>
+    </bean>
+
+    <!--The supervised workspace configuration settings for discovery -->
+    <bean id="supervisedWorkspaceConfiguration"
+          class="org.dspace.discovery.configuration.DiscoveryConfiguration"
+          scope="prototype">
+        <property name="id" value="supervisedWorkspace" />
+        <!--Which sidebar facets are to be displayed -->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterType" />
+                <ref bean="searchFilterIssued" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page -->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterType" />
+                <ref bean="searchFilterIssued" />
+            </list>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--The default sort filter to use for the initial workspace loading-->
+                <property name="defaultSortField" ref="sortLastModified" />
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortLastModified" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find items, workspace and accepted for workflow -->
+                <value>search.resourcetype:WorkspaceItem AND supervised:true</value>
+            </list>
+        </property>
+        <!--Default result per page  -->
+        <property name="defaultRpp" value="10" />
+        <property name="hitHighlightingConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightingConfiguration">
+                <property name="metadataFields">
+                    <list>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="dc.title"/>
+                            <property name="snippets" value="5"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="dc.contributor.author"/>
                             <property name="snippets" value="5"/>
                         </bean>
                         <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
@@ -876,6 +1019,8 @@
         <!--The sort filters for the discovery search-->
         <property name="searchSortConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--The default sort filter to use for the initial workspace loading-->
+                <property name="defaultSortField" ref="sortDateModifiedDesc" />
                 <property name="sortFields">
                     <list>
                         <ref bean="sortDateModifiedDesc" />
@@ -892,6 +1037,7 @@
             <list>
                 <!--Only find items, workspace and accepted for workflow -->
                 <value>search.resourcetype:WorkspaceItem AND latestVersion:true</value>
+                <value>entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -918,6 +1064,16 @@
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
                     </list>
                 </property>
             </bean>
@@ -936,27 +1092,30 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
+                <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterCreated" />
-                <ref bean="searchFilterSubmitter" />
-                <ref bean="searchFilterAuthor" />
                 <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterLateReview" />
+                <ref bean="searchFilterSource" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page -->
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterSubmitter" />
-                <ref bean="searchFilterAuthor" />
+                <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterLateReview" />
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterSource" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -964,12 +1123,12 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
                         <ref bean="sortDateModifiedDesc" />
                         <ref bean="sortDateModifiedAsc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
-                        <ref bean="sortDateCreatedAsc" />
-                        <ref bean="sortDateCreatedDesc" />
                         <ref bean="sortUnitAsc" />
                         <ref bean="sortUnitDesc" />
                         <ref bean="sortAuthorAsc" />
@@ -986,6 +1145,7 @@
             <list>
                 <!--Only find PoolTask and ClaimedTask -->
                 <value>(search.resourcetype:PoolTask OR search.resourcetype:ClaimedTask) AND -latestVersion:false</value>
+                <value>entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent</value>
             </list>
         </property>
         <!--Default result per page  -->
@@ -1008,6 +1168,16 @@
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
                     </list>
                 </property>
             </bean>
@@ -1025,19 +1195,28 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
-                <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterLateReview" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page -->
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterSubmitter" />
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterLateReview" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1045,11 +1224,18 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
                         <ref bean="sortDateModifiedDesc" />
                         <ref bean="sortDateModifiedAsc" />
-                        <ref bean="sortScore" />
-                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortUnitAsc" />
+                        <ref bean="sortUnitDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortTypeAsc" />
+                        <ref bean="sortTypeDesc" />
                     </list>
                 </property>
             </bean>
@@ -1081,6 +1267,16 @@
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
                     </list>
                 </property>
             </bean>
@@ -1088,7 +1284,7 @@
         <!-- When true a "did you mean" example will be displayed, value can be true or false -->
         <property name="spellCheckEnabled" value="true"/>
     </bean>
-    
+
     <bean id="supervisionConfiguration"
           class="org.dspace.discovery.configuration.DiscoveryConfiguration"
           scope="prototype">
@@ -1097,9 +1293,14 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
-                <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterLateReview" />
                 <ref bean="searchFilterSupervision" />
             </list>
         </property>
@@ -1107,9 +1308,14 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterSubmitter" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterLateReview" />
                 <ref bean="searchFilterSupervision" />
             </list>
         </property>
@@ -1118,9 +1324,18 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
-                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateCreatedAsc" />
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortUnitAsc" />
+                        <ref bean="sortUnitDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortTypeAsc" />
+                        <ref bean="sortTypeDesc" />
                     </list>
                 </property>
             </bean>
@@ -1156,6 +1371,16 @@
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
                     </list>
                 </property>
             </bean>
@@ -1165,7 +1390,7 @@
     </bean>
 
     <!-- Inverse Relations -->
-        <!-- project of an researcher -->
+    <!-- project of an researcher -->
     <bean id="relationInvestigatorProjectsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
@@ -1226,14 +1451,16 @@
             <list>
                 <ref bean="graphPublicationByType" />
                 <ref bean="graphPublicationByDate" />
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterAuthor" />
-	            <ref bean="searchFilterEditor" />
-	            <ref bean="searchFilterOrgUnit" />
-	            <ref bean="searchFilterSubject" />
-	            <ref bean="searchFilterFunding" />
-	            <ref bean="searchFilterContentInOriginalBundle"/>
-	            <ref bean="searchFilterType" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterFunderName" />
+                <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -1241,17 +1468,26 @@
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
+                <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
                 <ref bean="graphPublicationByType" />
                 <ref bean="graphPublicationByDate" />
+                <ref bean="searchFilterIdentifier"/>
+                <ref bean="searchFilterAuthorEditor"/>
+                <ref bean="searchFilterPublisher"/>
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterAuthor" />
-                <ref bean="searchFilterEditor" />
+                <ref bean="searchFilterPublishedIn"/>
+                <ref bean="searchFilterAbstract"/>
+                <ref bean="searchFilterSubject"/>
+                <ref bean="searchFilterFullText"/>
+                <ref bean="searchFilterFundingName"/>
+                <ref bean="searchFilterFunderName"/>
                 <ref bean="searchFilterOrgUnit" />
-                <ref bean="searchFilterSubject" />
-                <ref bean="searchFilterFunding" />
-                <ref bean="searchFilterContentInOriginalBundle"/>
-                <ref bean="searchFilterType" />
+                <ref bean="searchFilterUnit"/>
+                <ref bean="searchFilterSource"/>
+                <ref bean="searchFilterDataciteRights"/>
+                <ref bean="searchFilterOaireLicense"/>
+                <ref bean="searchFilterTypes"/>
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -1262,13 +1498,13 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByResearchOutputsSelection" />
+                        <!-- <ref bean="sortByResearchOutputsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc"/>
+                        <ref bean="sortDateIssuedAsc"/>
+                        <ref bean="sortScore"/>
+                        <ref bean="sortScoreAsc"/>
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortTitleAsc" />
-                        <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -1288,7 +1524,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>author_authority:{0} AND search.resourcetype:Item</value>
+                <value>author_editor_authority:{0} AND search.resourcetype:Item</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1315,14 +1551,16 @@
             <list>
                 <ref bean="graphPublicationByType" />
                 <ref bean="graphPublicationByDate" />
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterAuthor" />
-	            <ref bean="searchFilterEditor" />
-	            <ref bean="searchFilterOrgUnit" />
-	            <ref bean="searchFilterSubject" />
-	            <ref bean="searchFilterFunding" />
-	            <ref bean="searchFilterContentInOriginalBundle"/>
-	            <ref bean="searchFilterType" />
+                <ref bean="searchFilterPublishedIn"/>
+                <ref bean="searchFilterOrgUnit"/>
+                <ref bean="searchFilterUnit"/>
+                <ref bean="searchFilterFunderName"/>
+                <ref bean="searchFilterOaireLicense"/>
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -1333,14 +1571,22 @@
                 <ref bean="searchFilterTitle" />
                 <ref bean="graphPublicationByType" />
                 <ref bean="graphPublicationByDate" />
+                <ref bean="searchFilterIdentifier" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterAuthor" />
-                <ref bean="searchFilterEditor" />
+                <ref bean="searchFilterPublishedIn"/>
+                <ref bean="searchFilterAbstract"/>
+                <ref bean="searchFilterSubject"/>
+                <ref bean="searchFilterFullText"/>
+                <ref bean="searchFilterFundingName"/>
+                <ref bean="searchFilterFunderName"/>
                 <ref bean="searchFilterOrgUnit" />
-                <ref bean="searchFilterSubject" />
-                <ref bean="searchFilterFunding" />
-                <ref bean="searchFilterContentInOriginalBundle"/>
-                <ref bean="searchFilterType" />
+                <ref bean="searchFilterUnit"/>
+                <ref bean="searchFilterSource"/>
+                <ref bean="searchFilterDataciteRights"/>
+                <ref bean="searchFilterOaireLicense"/>
+                <ref bean="searchFilterTypes"/>
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -1351,13 +1597,13 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByResearchOutputsSelection" />
-                        <ref bean="sortTitleAsc" />
-                        <ref bean="sortTitleDesc" />
-                        <ref bean="sortTitleAsc" />
-                        <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
+                        <!-- <ref bean="sortByResearchOutputsSelection" /> -->
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -1433,11 +1679,13 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -1456,11 +1704,14 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn"/>
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterFunderName" />                            
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
@@ -1469,20 +1720,22 @@
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterFunderName"/>             
+                <ref bean="searchFilterOrgUnit"/>
+                <ref bean="searchFilterUnit"/>
+                <ref bean="searchFilterSource"/>
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterTypes"/>
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -1492,31 +1745,73 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
-                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0} OR epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0} OR epfl.thesis.doctoralSchool_authority:{0} OR oairecerif.affiliation.orgunit_authority:{0}</value>
+                <value>dc.description.sponsorship_authority:{0} OR epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0} OR epfl.thesis.doctoralSchool_authority:{0}</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
     </bean>
     <bean id="relationOrgunitPublicationsSchoolCollege" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterFunderName" />
+                <ref bean="searchFilterOaireLicense" />
+            </list>
+        </property>
+        <!-- Set TagCloud configuration per discovery configuration -->
+        <property name="tagCloudFacetConfiguration" ref="defaultTagCloudFacetConfiguration" />
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterAll" />
+                <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterPublisher" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterAbstract" />
+                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterFunderName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterOaireLicense" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType" />
+            </list>
+        </property>
         <!--The sort filters for the discovery search-->
         <property name="searchSortConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
-                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
-                        <ref bean="sortViewsAsc"/>
-                        <ref bean="sortViews"/>
-                        <ref bean="sortDownloadsAsc"/>
-                        <ref bean="sortDownloads"/>
-                        <ref bean="sortCitationsAsc"/>
-                        <ref bean="sortCitations"/>
+                        <ref bean="sortViewsAsc" />
+                        <ref bean="sortViews" />
+                        <ref bean="sortDownloadsAsc" />
+                        <ref bean="sortDownloads" />
+                        <ref bean="sortCitationsAsc" />
+                        <ref bean="sortCitations" />
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
@@ -1524,25 +1819,15 @@
             </bean>
         </property>
         <!--Which sidebar facets are to be displayed-->
-        <property name="sidebarFacets">
-            <list>
-                <ref bean="searchFilterOrgUnit" />
-            </list>
-        </property>
-        <!--The search filters which can be used on the discovery search page-->
-        <property name="searchFilters">
-            <list>
-                <ref bean="searchFilterOrgUnit" />
-                <ref bean="searchFilterEntityType"/>
-            </list>
-        </property>
         <!--Any default filter queries, these filter queries will be used for all
                 queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0} OR cris.virtual.parent-organization_authority:{0}</value>
-                <value>entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent</value>
+                <value>dc.description.sponsorship_allauthority:{0} OR organization_allauthority:{0}
+                    OR cris.virtual.parent-organization_allauthority:{0}</value>
+                <value>entityType_keyword:Publication OR entityType_keyword:Product OR
+                    entityType_keyword:Patent</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1550,65 +1835,72 @@
 
     <!-- publication in virtual collection -->
     <bean id="relationVirtualCollectionPublicationsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
-        <!--The sort filters for the discovery search-->
-        <property name="searchSortConfiguration">
-            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
-                <!--<property name="defaultSort" ref="sortDateIssued"/>-->
-                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
-                <property name="sortFields">
-                    <list>
-                        <ref bean="sortByPublicationsSelection" />
-                        <ref bean="sortTitleAsc" />
-                        <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
-                        <ref bean="sortAuthorAsc" />
-                        <ref bean="sortAuthorDesc" />
-                        <ref bean="sortViewsAsc"/>
-                        <ref bean="sortViews"/>
-                        <ref bean="sortDownloadsAsc"/>
-                        <ref bean="sortDownloads"/>
-                        <ref bean="sortCitationsAsc"/>
-                        <ref bean="sortCitations"/>
-                        <ref bean="sortDateAccessionedAsc" />
-                        <ref bean="sortDateAccessionedDesc" />
-                    </list>
-                </property>
-            </bean>
-        </property>
-        <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn"/>
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterFunderName" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
+        <!-- Set TagCloud configuration per discovery configuration -->
+        <property name="tagCloudFacetConfiguration" ref="defaultTagCloudFacetConfiguration" />
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterFunderName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType" />
             </list>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--<property name="defaultSort" ref="sortDateIssued"/>-->
+                <property name="sortFields">
+                    <list>
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc" />
+                        <ref bean="sortViews" />
+                        <ref bean="sortDownloadsAsc" />
+                        <ref bean="sortDownloads" />
+                        <ref bean="sortCitationsAsc" />
+                        <ref bean="sortCitations" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
+                    </list>
+                </property>
+            </bean>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
                 queries done by discovery for this configuration -->
@@ -1631,11 +1923,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -1657,8 +1949,10 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterFunderName" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
@@ -1667,20 +1961,22 @@
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
-                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterOrgUnit"/>
+                <ref bean="searchFilterUnit"/>
+                <ref bean="searchFilterFunderName"/>
+                <ref bean="searchFilterSource"/>
+                <ref bean="searchFilterDataciteRights"/>
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterTypes"/>
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -1706,11 +2002,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -1732,8 +2028,9 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn"/>
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterFunderName" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
@@ -1742,20 +2039,22 @@
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterFunderName" />               
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -1808,8 +2107,9 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterFunderName" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
@@ -1828,6 +2128,7 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterIdentifier"/>
                 <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterFunderName" />
                 <ref bean="searchFilterSubject" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
@@ -1848,14 +2149,33 @@
 
     <!-- people affiliated to an orgunit -->
     <bean id="relationOrgunitPersonsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
-        <!--The sort filters for the discovery search-->
+        <!--Which sidebar facets are to be displayed-->        
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterRole" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterName" />
+                <ref bean="searchFilterRole" />
+                <ref bean="searchFilterEpflParentOrganization" />
+                <ref bean="searchFilterPersonOrgUnit" />
+                <ref bean="searchFilterPersonIdentifier" />
+                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterEpflResearcherActive" />
+                <ref bean="searchFilterEntityType" />
+            </list>
+        </property>
+        <!--The sort filters for the discovery search-->      
         <property name="searchSortConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPeopleSelection" />
+                        <!-- <ref bean="sortByPeopleSelection" /> -->
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
@@ -1907,40 +2227,43 @@
     <!-- suborganisation unit of an orgunit -->
     <bean id="relationOrgunitOrgunitsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
         <!--The sort filters for the discovery search-->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEpflOuActive" />
+                <ref bean="searchFilterEntityType" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEpflOuTitle" />
+                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterEpflOuActive" />
+                <ref bean="searchFilterEntityType" />
+            </list>
+        </property>
+        <!--The sort filters for the discovery search-->
         <property name="searchSortConfiguration">
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
-                <!--<property name="defaultSort" ref="sortDateIssued"/>-->
-                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByOrganizationsSelection" />
-                        <ref bean="sortTitleAsc" />
-                        <ref bean="sortTitleDesc" />
-                        <ref bean="sortOrganizationLegalName"/>
-                        <ref bean="sortOrganizationLegalNameDesc"/>
-                        <ref bean="sortOrganizationAddressCountry"/>
-                        <ref bean="sortOrganizationAddressCountryDesc"/>
-                        <ref bean="sortOrganizationAddressLocality"/>
-                        <ref bean="sortOrganizationAddressLocalityDesc"/>
-                        <ref bean="sortOrganizationFoundingDateAsc"/>
-                        <ref bean="sortOrganizationFoundingDate"/>
+                        <ref bean="sortOrganizationLegalName" />
+                        <ref bean="sortOrganizationLegalNameDesc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
+                        <!-- <ref bean="sortOrganizationAddressCountry" />
+                        <ref bean="sortOrganizationAddressCountryDesc" />
+                        <ref bean="sortOrganizationAddressLocality" />
+                        <ref bean="sortOrganizationAddressLocalityDesc" />
+                        <ref bean="sortOrganizationFoundingDateAsc" />
+                        <ref bean="sortOrganizationFoundingDate" /> -->
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
                 </property>
             </bean>
-        </property>
-
-        <property name="sidebarFacets">
-            <list>
-                <ref bean="searchFilterTypes" />
-            </list>
-        </property>
-        <property name="searchFilters">
-            <list>
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterEntityType"/>
-            </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
                 queries done by discovery for this configuration -->
@@ -1960,7 +2283,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>parentOrganization_authority:{0} AND dc.type:institut</value>
+                <value>organization.parentOrganization_allauthority:{0} AND dc.type:INSTITUT AND epfl.orgUnit.level:3</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1988,11 +2311,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2014,7 +2337,6 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
@@ -2024,21 +2346,22 @@
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2047,7 +2370,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}</value>
-                <value>dc.type:*thesis OR dc.type:*project+deliverable</value>
+                <value>dc.type:*doctoral+thesis</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -2062,11 +2385,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2088,7 +2411,6 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
@@ -2098,21 +2420,22 @@
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2191,11 +2514,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByResearchOutputsSelection" />
+                        <!-- <ref bean="sortByResearchOutputsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2230,11 +2553,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2256,7 +2579,7 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
@@ -2266,20 +2589,21 @@
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -2303,19 +2627,21 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
-                        <ref bean="sortViewsAsc"/>
-                        <ref bean="sortViews"/>
-                        <ref bean="sortDownloadsAsc"/>
-                        <ref bean="sortDownloads"/>
-                        <ref bean="sortCitationsAsc"/>
-                        <ref bean="sortCitations"/>
+                        <ref bean="sortViewsAsc" />
+                        <ref bean="sortViews" />
+                        <ref bean="sortDownloadsAsc" />
+                        <ref bean="sortDownloads" />
+                        <ref bean="sortCitationsAsc" />
+                        <ref bean="sortCitations" />
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
@@ -2326,11 +2652,13 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
@@ -2339,21 +2667,22 @@
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--Any default filter queries, these filter queries will be used for all
@@ -2471,38 +2800,41 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterPublishedIn" />
                 <ref bean="searchFilterOrgUnit" />
-                <ref bean="searchFilterUnitOrLab" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterFunderName" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
         <!-- Set TagCloud configuration per discovery configuration -->
-        <property name="tagCloudFacetConfiguration" ref="defaultTagCloudFacetConfiguration"/>
+        <property name="tagCloudFacetConfiguration" ref="defaultTagCloudFacetConfiguration" />
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
-                <ref bean="searchFilterUnitOrLab" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterFunderName" />               
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -2511,14 +2843,14 @@
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
-                        <ref bean="sortScoreAsc" />
-                        <ref bean="sortScore" />
                         <ref bean="sortViewsAsc"/>
                         <ref bean="sortViews"/>
                         <ref bean="sortDownloadsAsc"/>
@@ -2554,15 +2886,82 @@
         <!-- When true a "did you mean" example will be displayed, value can be true or false -->
         <property name="spellCheckEnabled" value="true"/>
     </bean>
-    
+
     <bean id="researchoutputsoa" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype" parent="researchoutputs">
         <property name="id" value="researchoutputsoa"/>
         <property name="indexAlways" value="true"/>
+        <!--Which sidebar facets are to be displayed-->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterEntityType" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterFunderName" />
+                <ref bean="searchFilterOaireLicense" />
+            </list>
+        </property>
+        <!-- Set TagCloud configuration per discovery configuration -->
+        <property name="tagCloudFacetConfiguration" ref="defaultTagCloudFacetConfiguration" />
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterAll" />
+                <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
+                <ref bean="searchFilterAuthorEditor" />
+                <ref bean="searchFilterPublisher" />
+                <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterPublishedIn" />
+                <ref bean="searchFilterAbstract" />
+                <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterFunderName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterDataciteRights" />
+                <ref bean="searchFilterOaireLicense" />
+                <ref bean="searchFilterTypes" />
+                <ref bean="searchFilterEntityType" />
+            </list>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--<property name="defaultSort" ref="sortDateIssued"/>-->
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateIssuedAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortAuthorAsc" />
+                        <ref bean="sortAuthorDesc" />
+                        <ref bean="sortViewsAsc" />
+                        <ref bean="sortViews" />
+                        <ref bean="sortDownloadsAsc" />
+                        <ref bean="sortDownloads" />
+                        <ref bean="sortCitationsAsc" />
+                        <ref bean="sortCitations" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
+                    </list>
+                </property>
+            </bean>
+        </property>
         <!--Any default filter queries, these filter queries will be used for all
             queries done by discovery for this configuration -->
         <property name="defaultFilterQueries">
             <list>
-                <value>original_bundle_datacite_rights_keyword:openaccess</value>
+                <value>original_bundle_datacite_rights_keyword:openaccess AND -original_bundle_datacite_rights_keyword:restricted AND -original_bundle_datacite_rights_keyword:embargo AND -original_bundle_datacite_rights_keyword:reserved AND -original_bundle_datacite_rights_keyword:administrator</value>
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
@@ -2612,6 +3011,7 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterPersonOrgUnit"/>
+                <ref bean="searchFilterRole"/>
                 <ref bean="searchFilterEpflResearcherActive"/>
             </list>
         </property>
@@ -2620,6 +3020,7 @@
             <list>
                 <ref bean="searchFilterName" />
                 <ref bean="searchFilterRole" />
+                <ref bean="searchFilterEpflParentOrganization" />
                 <ref bean="searchFilterPersonOrgUnit" />
                 <ref bean="searchFilterPersonIdentifier" />
                 <ref bean="searchFilterSubject" />
@@ -2632,14 +3033,14 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
                         <ref bean="sortDateModifiedAsc"/>
                         <ref bean="sortDateModifiedDesc"/>
-                        <ref bean="sortScoreAsc" />
-                        <ref bean="sortScore" />
                     </list>
                 </property>
             </bean>
@@ -2850,8 +3251,9 @@
         <property name="sidebarFacets">
             <list>
                 <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterEpflOuActive"/>
                 <ref bean="searchFilterEpflParentOrganization"/>
+                <ref bean="searchFilterEpflOuActive" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
@@ -2870,16 +3272,16 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortOrganizationLegalName"/>
                         <ref bean="sortOrganizationLegalNameDesc"/>
-                        <ref bean="sortOrganizationAddressCountry"/>
+                        <!-- <ref bean="sortOrganizationAddressCountry"/>
                         <ref bean="sortOrganizationAddressCountryDesc"/>
                         <ref bean="sortOrganizationAddressLocality"/>
                         <ref bean="sortOrganizationAddressLocalityDesc"/>
                         <ref bean="sortOrganizationFoundingDateAsc"/>
-                        <ref bean="sortOrganizationFoundingDate"/>
-                        <ref bean="sortScoreAsc" />
-                        <ref bean="sortScore" />
+                        <ref bean="sortOrganizationFoundingDate"/> -->
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
@@ -3146,18 +3548,15 @@
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterCreativeWorkPublisher"/>
-                <ref bean="searchFilterCreativeWorkEditor"/>
+                <ref bean="searchFilterPublisher" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterTitle"/>
-                <ref bean="searchFilterCreativeWorkPublisher"/>
-                <ref bean="searchFilterCreativeWorkEditor"/>
-                <ref bean="searchFilterIsIssueOfJournalVolumeRelation"/>
-                <ref bean="searchFilterIsVolumeOfJournalRelation"/>
+                <ref bean="searchFilterPublisher"/>
+                <ref bean="searchFilterIdentifier"/>
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -3166,9 +3565,10 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
+                        <ref bean="sortScore"/>
                         <ref bean="sortTitleAsc"/>
-                        <ref bean="sortCreativeWorkDatePublished"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
@@ -3199,35 +3599,23 @@
         <property name="spellCheckEnabled" value="true"/>
     </bean>
 
-    <bean id="personOrOrgunit" class="org.dspace.discovery.configuration.DiscoveryConfiguration"
-          scope="prototype">
-        <property name="id" value="personOrOrgunit"/>
+    <bean id="event" class="org.dspace.discovery.configuration.DiscoveryConfiguration"
+        scope="prototype">
+        <property name="id" value="event" />
         <property name="indexAlways" value="true"/>
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
-                <ref bean="searchFilterOrganizationAddressCountry"/>
-                <ref bean="searchFilterJobtitle"/>
-                <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterEventPlace" />
+                <ref bean="searchFilterEventDate" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
-                <ref bean="searchFilterEntityType"/>
-                <ref bean="searchFilterOrganizationLegalName"/>
-                <ref bean="searchFilterOrganizationAddressCountry"/>
-                <ref bean="searchFilterOrganizationAddressLocality"/>
-                <ref bean="searchFilterOrganizationFoundingDate"/>
-                <ref bean="searchFilterFamilyName"/>
-                <ref bean="searchFilterGivenName"/>
-                <ref bean="searchFilterJobtitle"/>
-                <ref bean="searchFilterIsPersonOfOrgUnitRelation"/>
-                <ref bean="searchFilterIsProjectOfOrgUnitRelation"/>
-                <ref bean="searchFilterIsPublicationOfOrgUnitRelation"/>
-                <ref bean="searchFilterIsOrgUnitOfPersonRelation"/>
-                <ref bean="searchFilterIsProjectOfPersonRelation"/>
-                <ref bean="searchFilterIsPublicationOfAuthorRelation"/>
+                <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterEventPlace" />
+                <ref bean="searchFilterEventDate" />                
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3235,15 +3623,80 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortEntityType"/>
-                        <ref bean="sortOrganizationLegalName"/>
-                        <ref bean="sortOrganizationAddressCountry"/>
-                        <ref bean="sortOrganizationAddressLocality"/>
-                        <ref bean="sortOrganizationFoundingDate"/>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortTitleDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find items, communities and collections-->
+                <value>search.resourcetype:Item AND entityType_keyword:Event</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+            </list>
+        </property>
+        <!--The configuration for the recent submissions-->
+        <property name="recentSubmissionConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
+                <property name="metadataSortField" value="dc.date.accessioned" />
+                <property name="type" value="date"/>
+                <property name="max" value="20" />
+                <!-- If enabled the collection home page will not display metadata but show a
+                pageable list of recent submissions -->
+                <property name="useAsHomePage" value="false" />
+            </bean>
+        </property>
+        <!--Default result per page  -->
+        <property name="defaultRpp" value="10" />
+        <!-- When true a "did you mean" example will be displayed, value can be true or false -->
+        <property name="spellCheckEnabled" value="true"/>
+    </bean>
+
+    <bean id="personOrOrgunit" class="org.dspace.discovery.configuration.DiscoveryConfiguration"
+          scope="prototype">
+        <property name="id" value="personOrOrgunit"/>
+        <property name="indexAlways" value="true"/>
+        <!--Which sidebar facets are to be displayed-->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterPersonOrgUnit"/>
+                <ref bean="searchFilterRole"/>
+                <ref bean="searchFilterEpflResearcherActive"/>
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterName"/>
+                <ref bean="searchFilterRole"/>
+                <ref bean="searchFilterEpflParentOrganization"/>
+                <ref bean="searchFilterPersonOrgUnit"/>
+                <ref bean="searchFilterPersonIdentifier"/>
+                <ref bean="searchFilterSubject"/>
+                <ref bean="searchFilterEpflResearcherActive"/>
+                <ref bean="searchFilterEntityType"/>
+            </list>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortScore"/>
+                        <ref bean="sortScoreAsc"/>
+                        <ref bean="sortTitleAsc"/>
+                        <ref bean="sortTitleDesc"/>
+                        <ref bean="sortDateAccessionedAsc"/>
                         <ref bean="sortDateAccessionedDesc"/>
-                        <ref bean="sortFamilyName"/>
-                        <ref bean="sortGivenName"/>
-                        <ref bean="sortBirthDate"/>
+                        <ref bean="sortDateModifiedAsc"/>
+                        <ref bean="sortDateModifiedDesc"/>
                     </list>
                 </property>
             </bean>
@@ -3296,9 +3749,9 @@
                     <list>
                         <ref bean="sortScore" />
                         <ref bean="sortOrganizationLegalName"/>
-                        <ref bean="sortOrganizationAddressCountry"/>
+                        <!-- <ref bean="sortOrganizationAddressCountry"/>
                         <ref bean="sortOrganizationAddressLocality"/>
-                        <ref bean="sortOrganizationFoundingDate"/>
+                        <ref bean="sortOrganizationFoundingDate"/> -->
                         <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
@@ -3354,6 +3807,28 @@
         <property name="defaultRpp" value="100"/>
         <!-- When true a "did you mean" example will be displayed, value can be true or false -->
         <property name="spellCheckEnabled" value="false"/>
+    </bean>
+
+    <!-- items of a collection -->
+    <bean id="relationCollectionItemsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
+        <property name="indexAlways" value="true"/>
+        <property name="defaultFilterQueries">
+            <list>
+                <!--find collection items. The placeholder {0} will be replaced with scope (UUID of collection)-->
+                <value>location.coll:{0}</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- items of a community -->
+    <bean id="relationCommunityItemsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
+        <property name="indexAlways" value="true"/>
+        <property name="defaultFilterQueries">
+            <list>
+                <!--find community items. The placeholder {0} will be replaced with scope (UUID of community)-->
+                <value>location.comm:{0}</value>
+            </list>
+        </property>
     </bean>
 
 
@@ -3483,8 +3958,46 @@
         </property>
     </bean>
 
+    <bean id="homePageContentItemsConfiguration"
+        class="org.dspace.discovery.configuration.DiscoveryConfiguration">
+        <property name="indexAlways" value="true"/>
+        <!--Which sidebar facets are to be displayed (same as defaultConfiguration above)-->
+        <property name="sidebarFacets">
+            <list>
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page (same as defaultConfiguration above)-->
+        <property name="searchFilters">
+            <list>
+            </list>
+        </property>
+        <!--The sort filters for the discovery search (same as defaultConfiguration above)-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortDateCreatedDesc" />
+                        <ref bean="sortDateAccessionedAsc" />
+                        <ref bean="sortDateAccessionedDesc" />
+                        <ref bean="sortDateModifiedAsc" />
+                        <ref bean="sortDateModifiedDesc" />
+                        <ref bean="sortViews" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration-->
+        <property name="defaultFilterQueries">
+            <list>
+                <value>latestVersion:true AND search.resourcetype:Item AND (entityType_keyword:Content)</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+            </list>
+        </property>
+    </bean>
+
     <bean id="patent" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype">
-        <property name="id" value="patent"/>
+        <property name="id" value="patent" />
         <property name="indexAlways" value="true"/>
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
@@ -3493,32 +4006,31 @@
                 <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterIssued" />
-                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterOaireLicense" />
             </list>
         </property>
-        <!-- Set TagCloud configuration per discovery configuration -->
-        <property name="tagCloudFacetConfiguration" ref="defaultTagCloudFacetConfiguration"/>
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterAll" />
                 <ref bean="searchFilterTitle" />
+                <ref bean="searchFilterIdentifier" />
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterPublisher" />
                 <ref bean="searchFilterIssued" />
                 <ref bean="searchFilterPublishedIn" />
-                <ref bean="searchFilterOrgUnit" />
                 <ref bean="searchFilterAbstract" />
-                <ref bean="searchFilterFullText" />
-                <ref bean="searchFilterTypes" />
-                <ref bean="searchFilterIdentifier"/>
-                <ref bean="searchFilterFundingName" />
                 <ref bean="searchFilterSubject" />
+                <ref bean="searchFilterFullText" />
+                <ref bean="searchFilterFundingName" />
+                <ref bean="searchFilterOrgUnit" />
+                <ref bean="searchFilterUnit" />
+                <ref bean="searchFilterSource" />
                 <ref bean="searchFilterDataciteRights" />
                 <ref bean="searchFilterOaireLicense" />
-                <ref bean="searchFilterSource" />
+                <ref bean="searchFilterTypes" />
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -3528,14 +4040,14 @@
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <property name="sortFields">
                     <list>
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
                         <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
-                        <ref bean="sortScoreAsc" />
-                        <ref bean="sortScore" />
                         <ref bean="sortViewsAsc"/>
                         <ref bean="sortViews"/>
                         <ref bean="sortDownloadsAsc"/>
@@ -3579,7 +4091,8 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find schools and colleges-->
-                <value>dc.type:COLLEGE OR dc.type:FACULTE</value>
+                <value>(dc.type:COLLEGE OR dc.type:FACULTE)</value>
+                <value>epfl.orgUnit.level:2</value>    
                 <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
@@ -3605,7 +4118,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find research centers and platforms-->
-                <value>dc.type:CENTRE</value>
+                <value>dc.type:CENTRE AND epfl.orgUnit.level:3</value>
                 <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
@@ -3631,7 +4144,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find sections-->
-                <value>dc.type:SECTION</value>
+                <value>dc.type:SECTION AND epfl.orgUnit.level:3</value>
                 <value>search.resourcetype:Item AND entityType_keyword:OrgUnit</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
@@ -3850,7 +4363,8 @@
         <property name="metadataFields">
             <list>
                 <value>dc.contributor.author</value>
-                <value>dc.contributor.editor</value>
+                <value>dc.contributor.scientificeditor</value>
+                <value>dc.contributor.advisor</value>
                 <value>dc.creator</value>
             </list>
         </property>
@@ -3889,20 +4403,6 @@
         <property name="exposeMinAndMaxValue" value="true"/>
     </bean>
 
-    <bean id="searchFilterPublishedIn" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
-        <property name="indexFieldName" value="publishedIn"/>
-        <property name="metadataFields">
-            <list>
-                <value>dc.relation.journal</value>
-                <value>dc.identifier.issn</value>
-                <value>dc.identifier.isbn</value>
-                <value>dc.relation.ispartof</value>
-                <value>dc.relation.ispartofseries</value>
-            </list>
-        </property>
-        <property name="isOpenByDefault" value="true"/>
-        <property name="pageSize" value="10"/>
-    </bean>
 
     <bean id="searchFilterJournalAsString" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
         <property name="indexFieldName" value="journal_s"/>
@@ -3926,23 +4426,26 @@
         <property name="pageSize" value="10"/>
     </bean>
 
-    <bean id="searchFilterPublisher" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+    <bean id="searchFilterPublisher" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="publisher"/>
         <property name="metadataFields">
             <list>
                 <value>dc.publisher</value>
             </list>
         </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
     </bean>
 
     <bean id="searchFilterEditor" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="editor"/>
         <property name="metadataFields">
             <list>
-                <value>dc.contributor.editor</value>
-                <value>dc.creator</value>
+                <value>dc.contributor.scientificeditor</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
@@ -3957,8 +4460,7 @@
         <property name="indexFieldName" value="editor_s"/>
         <property name="metadataFields">
             <list>
-                <value>dc.contributor.editor</value>
-                <value>dc.creator</value>
+                <value>dc.contributor.scientificeditor</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
@@ -3969,31 +4471,10 @@
         <property name="indexFieldName" value="organization"/>
         <property name="metadataFields">
             <list>
+                <value>person.affiliation.name</value>
                 <value>oairecerif.author.affiliation</value>
-                <value>oairecerif.editor.affiliation</value>
-                <value>dc.description.sponsorship</value>
-                <value>epfl.thesis.faculty</value>
-                <value>epfl.thesis.section</value>
-                <value>epfl.thesis.institute</value>
-                <value>epfl.thesis.doctoralSchool</value>
-                <value>oairecerif.affiliation.orgunit</value>
-                <value>cris.virtual.parent-organization</value>
-            </list>
-        </property>
-        <property name="facetLimit" value="5"/>
-        <property name="sortOrderSidebar" value="COUNT"/>
-        <property name="sortOrderFilterPage" value="COUNT"/>
-        <property name="isOpenByDefault" value="true"/>
-        <property name="pageSize" value="10"/>
-        <property name="exposeMinAndMaxValue" value="true"/>
-    </bean>
-
-    <bean id="searchFilterUnitOrLab" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-        <property name="indexFieldName" value="unitOrLab"/>
-        <property name="metadataFields">
-            <list>
-                <value>oairecerif.affiliation.orgunit</value>
-                <value>cris.virtual.department</value>
+                <value>oairecerif.scientificeditor.affiliation</value>
+                <value>oairecerif.advisor.affiliation</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
@@ -4005,10 +4486,15 @@
     </bean>
 
     <bean id="searchFilterUnit" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-        <property name="indexFieldName" value="unit"/>
+        <property name="indexFieldName" value="unitOrLab"/>
         <property name="metadataFields">
             <list>
-                <value>oairecerif.author.affiliation</value>
+                <value>dc.description.sponsorship</value>
+                <value>epfl.thesis.faculty</value>
+                <value>epfl.thesis.section</value>
+                <value>epfl.thesis.institute</value>
+                <value>epfl.thesis.originalUnit</value>
+                <value>epfl.thesis.doctoralSchool</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
@@ -4018,6 +4504,7 @@
         <property name="pageSize" value="10"/>
         <property name="exposeMinAndMaxValue" value="true"/>
     </bean>
+
 
     <bean id="searchFilterLateReview" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="latereview"/>
@@ -4039,7 +4526,8 @@
         <property name="metadataFields">
             <list>
                 <value>oairecerif.author.affiliation</value>
-                <value>oairecerif.editor.affiliation</value>
+                <value>oairecerif.scientificeditor.affiliation</value>
+                <value>oairecerif.advisor.affiliation</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
@@ -4224,6 +4712,23 @@
         <property name="exposeMinAndMaxValue" value="true"/>
     </bean>
 
+    <bean id="searchFilterEventDate"
+        class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="eventDate" />
+        <property name="metadataFields">
+            <list>
+                <value>oairecerif.event.startDate</value>
+            </list>
+        </property>
+        <property name="type" value="date"/>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="false"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
+
     <bean id="searchFilterAccessioned" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="dateAccessioned"/>
         <property name="metadataFields">
@@ -4321,7 +4826,7 @@
     </bean>
 
     <bean id="searchFilterType" class="org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration">
-        <property name="indexFieldName" value="itemtype" />
+        <property name="indexFieldName" value="itemtype"/>
         <property name="splitter" value="::" />
         <property name="onlyLastNodeRelevant" value="true" />
         <property name="metadataFields">
@@ -4329,6 +4834,9 @@
                 <value>dc.type</value>
             </list>
         </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterLanguage" class="org.dspace.discovery.configuration.MultiLanguageDiscoverSearchFilterFacet">
@@ -4348,6 +4856,9 @@
                 <value>dc.type</value>
             </list>
         </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
     </bean>
 
     <bean id="searchFilterIdentifier" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -4368,6 +4879,8 @@
                 <value>dc.identifier.url</value>
                 <value>dc.identifier.urn</value>
                 <value>dc.identifier.isi</value>
+                <value>dc.identifier.epo</value>
+                <value>dc.identifier.acoua</value>
             </list>
         </property>
     </bean>
@@ -4460,7 +4973,6 @@
         <property name="indexFieldName" value="personOrgUnits"/>
         <property name="metadataFields">
             <list>
-                <value>person.affiliation.name</value>
                 <value>oairecerif.person.affiliation</value>
             </list>
         </property>
@@ -4474,7 +4986,6 @@
         <property name="indexFieldName" value="personOrgUnits_s"/>
         <property name="metadataFields">
             <list>
-                <value>person.affiliation.name</value>
                 <value>oairecerif.person.affiliation</value>
             </list>
         </property>
@@ -4647,6 +5158,7 @@
         <property name="metadataFields">
             <list>
                 <value>organization.legalName</value>
+                <value>dc.title</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="false"/>
@@ -4816,6 +5328,21 @@
         <property name="pageSize" value="10"/>
     </bean>
 
+    <bean id="searchFilterEventPlace"
+        class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="eventPlace" />
+        <property name="metadataFields">
+            <list>
+                <value>oairecerif.event.place</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
 
     <!-- Used only to READ "submitter" facets (managed programmatically at SolrServiceImpl) -->
     <bean id="searchFilterSubmitter"
@@ -4950,7 +5477,7 @@
         <property name="exposeMore" value="true" />
         <property name="exposeTotalElements" value="true" />
     </bean>
-    
+
     <!-- Used only to READ "supervisedBy" facets -->
     <bean id="searchFilterSupervision"
           class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -5016,6 +5543,12 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
+    <bean id="sortLastModified" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="lastModified" />
+        <property name="type" value="date" />
+        <property name="defaultSortOrder" value="desc"/>
+    </bean>
+
   <bean id="sortDateCreatedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
     <property name="metadataField" value="dc.date.created"/>
     <property name="type" value="date"/>
@@ -5049,7 +5582,7 @@
         <property name="metadataField" value="oairecerif.author.affiliation" />
         <property name="defaultSortOrder" value="desc"/>
     </bean>
-    
+
     <bean id="sortFamilyName" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
         <property name="metadataField" value="person.familyName"/>
         <property name="defaultSortOrder" value="asc"/>
@@ -5077,12 +5610,12 @@
     </bean>
 
     <bean id="sortOrganizationLegalName" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organization.legalName"/>
+        <property name="metadataField" value="dc.title"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <bean id="sortOrganizationLegalNameDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organization.legalName"/>
+        <property name="metadataField" value="dc.title"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
     <bean id="sortOrganizationAddressCountry"
@@ -5387,7 +5920,7 @@
                 <ref bean="searchFilterIsPublicationOfJournalIssueRelation"/>
                 <ref bean="searchFilterIsJournalOfPublicationRelation"/>
                 <ref bean="searchFilterLanguage" />
-                
+
             </list>
         </property>
     </bean>
@@ -5437,15 +5970,18 @@
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
     </bean>
-    <bean id="searchFilterRole" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+    <bean id="searchFilterRole" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="role"/>
         <property name="metadataFields">
             <list>
                 <value>oairecerif.affiliation.role</value>
             </list>
         </property>
-        <property name="isOpenByDefault" value="true"/>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
         <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
     </bean>
     <bean id="searchFilterLegacyId" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
         <property name="indexFieldName" value="legacy-id"/>
@@ -5508,8 +6044,8 @@
             </list>
         </property>
         <property name="facetLimit" value="5"/>
-        <property name="sortOrderSidebar" value="COUNT"/>
-        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
     </bean>
     <bean id="searchFilterFileType" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
         <property name="indexFieldName" value="original_bundle_mime_type"/>
@@ -5582,9 +6118,22 @@
         <property name="metadataFields">
             <list>
                 <value>dc.source</value>
+                <value>cris.source.name</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+    </bean>
+
+    <bean id="searchFilterPublishedIn"
+        class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="container" />
+        <property name="metadataFields">
+            <list>
                 <value>dc.relation.ispartof</value>
-                <value>dc.relation.ispartofseries</value>
-                <value>dc.relation.publication</value>
                 <value>dc.relation.journal</value>
             </list>
         </property>
@@ -5616,6 +6165,7 @@
                 <value>dc.relation.funding</value>
                 <value>dc.relation.grantno</value>
                 <value>dc.relation.grant</value>
+                <value>dc.subject</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>
