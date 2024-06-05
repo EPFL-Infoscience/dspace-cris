@@ -995,6 +995,36 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testCreateRelatedOrgunitPerson() throws Exception {
+        // Test profile affiliation after creation
+        context.turnOffAuthorisationSystem();
+
+        Collection orgunits = createCollection(context, community)
+            .withSubmissionDefinition("orgunit")
+            .withAdminGroup(eperson)
+            .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String orgunitsCollectionId = orgunits.getID().toString();
+        String fileLocation = getXlsFilePath("r6-orgUnits.xls");
+        String[] args = new String[] { "bulk-import", "-c", orgunitsCollectionId, "-f", fileLocation,
+            "-e", eperson.getEmail(), "-er"};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+
+        assertThat(orgunits.countArchivedItems(), is(1));
+
+        // TODO: check that the created Person entities are 2
+
+        // TODO: check that the created Person entities have a non duplicated affiliation
+
+    }
+
+    @Test
     @SuppressWarnings({ "deprecation" })
     public void testUpdateWorkflowPatentWithValidWorkspaceItem() throws Exception {
 

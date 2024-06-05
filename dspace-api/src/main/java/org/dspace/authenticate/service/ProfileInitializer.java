@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 
@@ -303,12 +306,17 @@ public class ProfileInitializer {
     }
 
     private String acronym(Context context, MetadataValue metadataValue) {
-        if (org.apache.commons.lang.StringUtils.isBlank(metadataValue.getAuthority())) {
+        if (StringUtils.isBlank(metadataValue.getAuthority())
+            && StringUtils.isBlank(metadataValue.getValue())) {
             return "PLACEHOLDER";
         }
-        if (metadataValue.getAuthority().startsWith(AuthorityValueService.GENERATE)) {
+        if (StringUtils.startsWithAny(metadataValue.getAuthority(),
+            new String[] { AuthorityValueService.GENERATE, AuthorityValueService.REFERENCE })) {
             return metadataValue.getAuthority()
-                                .split(AuthorityValueService.SPLIT)[2];
+                .split(Pattern.quote(AuthorityValueService.SPLIT))[2];
+        }
+        if (metadataValue.getAuthority() == null) {
+            return metadataValue.getValue();
         }
         try {
             Item item = itemService.find(context, UUIDUtils.fromString(metadataValue.getAuthority()));
@@ -562,8 +570,10 @@ public class ProfileInitializer {
     private void replaceMetadataValues(Context context, Item item, List<MetadataValueDTO> metadataValues,
                                        PersonDTO epflPerson, EPerson ePerson, ResearcherProfile researcherProfile) {
         List<PersonAffiliation> personAffiliations = affiliations(context, item);
+        List<PersonAffiliation> apiAffiliations = apiAffiliations(metadataValues);
+
         List<Integer> affiliationsToClosePositions = affiliationsToBeClosedPositions(item, context,
-                                                                                     epflPerson, personAffiliations);
+            epflPerson, personAffiliations, apiAffiliations);
         if (personAffiliations.isEmpty() || personAffiliations.size() == affiliationsToClosePositions.size()) {
             try {
                 removeFromSubmittersGroup(context, ePerson, researcherProfile);
@@ -573,7 +583,6 @@ public class ProfileInitializer {
         }
         clearMetadataValues(context, item);
         addEndDateToExpiredAccreds(context, item, affiliationsToClosePositions);
-        List<PersonAffiliation> apiAffiliations = apiAffiliations(metadataValues);
         List<PersonAffiliation> alreadySetAffiliations =
             alreadyPresentAffiliations(personAffiliations, apiAffiliations);
         // update oairecerif.person.affiliation value in case it is unit's name instead of acronym
@@ -619,14 +628,28 @@ public class ProfileInitializer {
     }
 
     private List<PersonAffiliation> affiliations(Context context, Item item) {
-        Map<Integer, List<MetadataValue>> metadataMap = item.getMetadata().stream()
-                                                        .filter(mv -> AFFILIATIONS_METADATA.contains(
-                                                            mv.getMetadataField().toString('.')))
-                                                        .collect(Collectors.groupingBy(MetadataValue::getPlace));
-        return metadataMap.entrySet().stream()
-            .map(e -> toAffiliation(context, e))
-            .collect(Collectors.toList());
+        // Group metadata by place for affiliations metadata fields
+        Map<Integer, List<MetadataValue>> metadataMap = new HashMap<>();
+
+        for (MetadataValue mv : item.getMetadata()) {
+            if (AFFILIATIONS_METADATA.contains(mv.getMetadataField().toString('.'))) {
+                int place = mv.getPlace();
+                if (!metadataMap.containsKey(place)) {
+                    metadataMap.put(place, new ArrayList<>());
+                }
+                metadataMap.get(place).add(mv);
+            }
+        }
+
+        // Convert grouped metadata entries to affiliations and collect them into a list
+        List<PersonAffiliation> affiliations = new ArrayList<>();
+        for (Map.Entry<Integer, List<MetadataValue>> entry : metadataMap.entrySet()) {
+            affiliations.add(toAffiliation(context, entry));
+        }
+
+        return affiliations;
     }
+
 
     private PersonAffiliation toAffiliation(Context context, Map.Entry<Integer, List<MetadataValue>> metadataMap) {
         List<MetadataValue> metadataValues = metadataMap.getValue();
@@ -738,22 +761,38 @@ public class ProfileInitializer {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         return dateFormat.format(cal.getTime());
     }
+
     private List<Integer> affiliationsToBeClosedPositions(Item item, Context context, PersonDTO epflPerson,
-                                                          List<PersonAffiliation> personAffiliations) {
+        List<PersonAffiliation> personAffiliations, List<PersonAffiliation> apiAffiliations) {
 
-        Map<String, List<PersonAffiliation>> collect =
-            personAffiliations.stream().collect(Collectors.groupingBy(pa -> pa.acronym));
+        // Group affiliations by acronym
+        Map<String, List<PersonAffiliation>> collect = new HashMap<>();
+        for (PersonAffiliation pa : personAffiliations) {
+            collect.computeIfAbsent(pa.acronym, k -> new ArrayList<>()).add(pa);
+        }
 
-        List<String> epflPersonAccredsAcronym = Arrays.stream(epflPerson.getAccreds()).map(PersonDTO.Accred::getAcronym)
-                                                      .collect(Collectors.toList());
+        // Extract the acronyms of the person's accreditations
+        List<String> epflPersonAccredsAcronym = new ArrayList<>();
+        for (PersonAffiliation pa : apiAffiliations) {
+            epflPersonAccredsAcronym.add(pa.acronym);
+        }
 
-        epflPersonAccredsAcronym.forEach(collect::remove);
-        Set<Integer> collect1 =
-            collect.entrySet().stream()
-                   .flatMap(e -> e.getValue().stream()).map(pa -> pa.position)
-                   .collect(Collectors.toSet());
+        // Remove affiliations already present in the person's acronyms list
+        for (String acronym : epflPersonAccredsAcronym) {
+            collect.remove(acronym);
+        }
+
+        // Extract the positions of the remaining affiliations
+        Set<Integer> collect1 = new HashSet<>();
+        for (Map.Entry<String, List<PersonAffiliation>> entry : collect.entrySet()) {
+            for (PersonAffiliation pa : entry.getValue()) {
+                collect1.add(pa.position);
+            }
+        }
+
         return new ArrayList<>(collect1);
     }
+
 
     private void addMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
         try {

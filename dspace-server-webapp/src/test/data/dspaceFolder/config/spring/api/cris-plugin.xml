@@ -20,9 +20,11 @@
                 </entry>
                 <entry key="OPENAIRE-PROJECT-ID" value-ref="openaireProjectImportFiller" />
                 <entry key="SCIPER-ID" value-ref="personImportFiller" />
+        		<entry key="ACRONYM" value-ref="orgUnitImportFiller" />
             </map>
         </property>
     </bean>
+	<bean class="org.dspace.authority.filler.OrgUnitImportFiller" id="orgUnitImportFiller" />
 
     <bean class="org.dspace.authority.filler.PersonImportFiller" id="personImportFiller" />
 
@@ -167,12 +169,18 @@
                 <entry key="OPENAIRE-PROJECT-ID" value-ref="itemSearcherByOpenaireProjectId"/>
                 <entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
                 <entry key="SCOPUS-AUTHOR-ID" value-ref="itemSearcherByScopusAuthorId"/>
+                <entry key="ACRONYM" value-ref="itemSearcherByAcronym"/>
             </map>
         </constructor-arg>
         <constructor-arg index="1">
             <bean class="org.dspace.authority.service.impl.ItemSearcherById"></bean>
         </constructor-arg>
     </bean>
+	  <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByAcronym">
+	    <constructor-arg value="oairecerif.acronym" />
+	    <constructor-arg value="ACRONYM" />
+	  </bean>
+    
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByORCID">
         <constructor-arg value="person.identifier.orcid"></constructor-arg>
