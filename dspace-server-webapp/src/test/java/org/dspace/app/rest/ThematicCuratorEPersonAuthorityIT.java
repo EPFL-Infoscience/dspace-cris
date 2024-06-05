@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static org.dspace.app.rest.matcher.VocabularyMatcher.matchVocabularyEntry;
+import static org.dspace.content.authority.ThematicCuratorEPersonAuthority.THEMATIC_AREA_GROUP_NAME;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,7 +22,6 @@ import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-
 /**
  * This class handles ItemAuthority related IT.
  *
@@ -29,48 +29,117 @@ import org.junit.Test;
  */
 public class ThematicCuratorEPersonAuthorityIT extends AbstractControllerIntegrationTest {
 
-    private static final String THEMATIC_AREA_GROUP_NAME = "ThematicAreaCurators";
-
     @Test
-    public void checkSearch() throws Exception {
+    public void checkSearchTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context).build();
         context.turnOffAuthorisationSystem();
-        EPerson firstEPersonId = EPersonBuilder.createEPerson(context)
-                .withNameInMetadata("Luca", "Giamminonni")
-                .build();
-        EPerson secondEPersonId = EPersonBuilder.createEPerson(context)
-                .withNameInMetadata("Lucky", "Bollini")
-                .build();
-        EPersonBuilder.createEPerson(context)
-                .withNameInMetadata("Luca", "Bykau")
-                .build();
+        EPerson firstEPerson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Luca", "Giamminonni")
+            .withEmail("giamminonni@test.com")
+            .withPassword(password)
+            .withCanLogin(true)
+            .build();
+
+        EPerson secondEPerson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Lucky", "Bollini")
+            .withEmail("bollini@test.com")
+            .withPassword(password)
+            .withCanLogin(true)
+            .build();
+
+        EPerson thirdEPerson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Luca", "Bykau")
+            .withEmail("bykau@test.com")
+            .withPassword(password)
+            .withCanLogin(true)
+            .build();
 
         GroupBuilder.createGroup(context)
-                .withName(THEMATIC_AREA_GROUP_NAME)
-                .addMember(firstEPersonId)
-                .addMember(secondEPersonId)
-                .build();
+            .withName(THEMATIC_AREA_GROUP_NAME)
+            .addMember(firstEPerson)
+            .addMember(secondEPerson)
+            .build();
         context.restoreAuthSystemState();
 
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get("/api/submission/vocabularies/ThematicCuratorEPersonAuthority/entries")
-                        .param("filter", "Luc"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                        matchVocabularyEntry("Luca Giamminonni", "Luca Giamminonni", "vocabularyEntry",
-                                firstEPersonId.getID().toString()),
-                        matchVocabularyEntry("Lucky Bollini", "Lucky Bollini", "vocabularyEntry",
-                                secondEPersonId.getID().toString()))))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
+        // admin
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(get("/api/submission/vocabularies/ThematicCuratorEPersonAuthority/entries")
+                            .param("filter", "Luc"))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
+                                matchVocabularyEntry("Luca Giamminonni", "Luca Giamminonni", "vocabularyEntry",
+                                    firstEPerson.getID().toString()),
+                                matchVocabularyEntry("Lucky Bollini", "Lucky Bollini", "vocabularyEntry",
+                                    secondEPerson.getID().toString()))))
+                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
 
-        getClient(token).perform(get("/api/submission/vocabularies/ThematicCuratorEPersonAuthority/entries")
-                        .param("filter", "Lucky"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                        matchVocabularyEntry("Lucky Bollini", "Lucky Bollini", "vocabularyEntry",
-                                secondEPersonId.getID().toString()))))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
+        getClient(tokenAdmin).perform(get("/api/submission/vocabularies/ThematicCuratorEPersonAuthority/entries")
+                            .param("filter", "Lucky"))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
+                                matchVocabularyEntry("Lucky Bollini", "Lucky Bollini", "vocabularyEntry",
+                                    secondEPerson.getID().toString()))))
+                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
+        // normal user
+        String tokenThirdEPerson = getAuthToken(thirdEPerson.getEmail(), password);
+        getClient(tokenThirdEPerson).perform(get("/api/submission/vocabularies/ThematicCuratorEPersonAuthority/entries")
+                                    .param("filter", "Luc"))
+                                    .andExpect(status().isOk())
+                                    .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
+                                        matchVocabularyEntry("Luca Giamminonni", "Luca Giamminonni", "vocabularyEntry",
+                                            firstEPerson.getID().toString()),
+                                        matchVocabularyEntry("Lucky Bollini", "Lucky Bollini", "vocabularyEntry",
+                                            secondEPerson.getID().toString()))))
+                                    .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
+
+        getClient(tokenThirdEPerson).perform(get("/api/submission/vocabularies/ThematicCuratorEPersonAuthority/entries")
+                                    .param("filter", "Lucky"))
+                                    .andExpect(status().isOk())
+                                    .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
+                                        matchVocabularyEntry("Lucky Bollini", "Lucky Bollini", "vocabularyEntry",
+                                            secondEPerson.getID().toString()))))
+                                    .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
     }
+
+    @Test
+    public void checkSearchUnauthorizedTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        context.turnOffAuthorisationSystem();
+        EPerson firstEPerson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Luca", "Giamminonni")
+            .withEmail("giamminonni@test.com")
+            .withPassword(password)
+            .withCanLogin(true)
+            .build();
+
+        EPerson secondEPerson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Lucky", "Bollini")
+            .withEmail("bollini@test.com")
+            .withPassword(password)
+            .withCanLogin(true)
+            .build();
+
+        EPerson thirdEPerson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Luca", "Bykau")
+            .withEmail("bykau@test.com")
+            .withPassword(password)
+            .withCanLogin(true)
+            .build();
+
+        GroupBuilder.createGroup(context)
+            .withName(THEMATIC_AREA_GROUP_NAME)
+            .addMember(firstEPerson)
+            .addMember(secondEPerson)
+            .build();
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/submission/vocabularies/ThematicCuratorEPersonAuthority/entries")
+                   .param("filter", "Luc"))
+                   .andExpect(status().isUnauthorized());
+    }
+
 }
