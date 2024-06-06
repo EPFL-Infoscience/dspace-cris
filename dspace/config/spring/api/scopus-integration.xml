@@ -34,7 +34,7 @@
 <!--        <entry key-ref="scopus.ispartofseries" value-ref="scopusIspartofseriesContrib"/>-->
         <entry key-ref="scopus.authname" value-ref="scopusAuthorMetadataContrib"/>
         <!--   <entry key-ref="scopus.source" value-ref="scopusSourceContrib"/>            -->
-           <entry key-ref="scopus.abstract" value-ref="scopusAbstractContrib"/>
+        <entry key-ref="scopus.abstract" value-ref="scopusAbstractContrib"/>
         <!--   <entry key-ref="scopus.author" value-ref="scopusAuthorsContrib"/>           -->
     </util:map>
     
@@ -55,7 +55,6 @@
     <bean id="scopus.author" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.contributor.author"/>
     </bean>
-
 
     <bean id="scopusAbstractContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="scopus.abstract"/>
@@ -81,7 +80,7 @@
         <property name="prefixToNamespaceMapping" ref="scopusPrism"/>
     </bean>
     <bean id="scopus.issn" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.identifier.issn"/>
+        <constructor-arg value="dc.relation.issn"/>
     </bean>
 
     <bean id="scopusIsbnContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
@@ -173,9 +172,10 @@
         <constructor-arg value="dc.identifier.scopus"/>
     </bean>
 
-    <bean id="scopusAuthkeywordsContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+    <bean id="scopusAuthkeywordsContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleSplitContributor">
         <property name="field" ref="scopus.authkeywords"/>
         <property name="query" value="ns:authkeywords"/>
+        <property name="delimiter" value="|"/>
         <property name="prefixToNamespaceMapping" ref="scopusNs"/>
     </bean>
 
@@ -253,7 +253,7 @@
     </bean>
 
     <bean id="scopus.affiliation" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="person.affiliation.name"/>
+        <constructor-arg value="oairecerif.author.affiliation"/>
     </bean>
 
     <util:map id="scopusAtom" map-class="java.util.HashMap"

@@ -67,16 +67,45 @@
         <value>dc.contributor.scientificeditor</value>
     </util:list>
 
-    <!-- Additional indexing plugin enables searching by supervised (true,false) -->
-    <bean id="solrServiceSupervisionOrderIndexingPlugin" class="org.dspace.discovery.SolrServiceSupervisionOrderIndexingPlugin"/>
-
     <alias name="solrServiceResourceIndexPlugin" alias="org.dspace.discovery.SolrServiceResourceRestrictionPlugin"/>
 
     <!-- Additional indexing plugin make filtering by has content in original bundle (like pdf's, images) posible via SOLR -->
     <bean id="hasContentInOriginalBundlePlugin" class="org.dspace.discovery.SolrServiceContentInOriginalBundleFilterPlugin"/>
 
     <!-- Additional indexing plugin enables searching by filenames and by file descriptions for files in ORIGINAL bundle -->
-    <bean id="solrServiceFileInfoPlugin" class="org.dspace.discovery.SolrServiceFileInfoPlugin"/>
+    <bean id="solrServiceFileInfoPlugin" class="org.dspace.discovery.SolrServiceFileInfoPlugin">
+        <property name="mappableMetadata">
+            <map>
+                <entry key="oaire.licenseCondition" value-ref="oaireLicenseMapper"/>
+                <entry key="datacite.rights" value-ref="dataciteRightsMapper"/>
+                <entry key="datacite.available" value-ref="dataciteAvailableMapper"/>
+            </map>
+        </property>
+        <property name="simpleIndexAdder" ref="simpleIndexAdder"/>
+        <property name="bitstreamMetadataIndexAdder" ref="bitstreamMetadataIndexAdder"/>
+        <property name="defaultIndexAdder" ref="defaultIndexAdder"/>
+    </bean>
+
+    <bean id="oaireLicenseMapper" class="org.dspace.discovery.index.mapper.SolrFieldMetadataMapper">
+        <constructor-arg name="metadata" value="original_bundle_oaire_licenseCondition"/>
+        <constructor-arg name="indexAdder" ref="defaultIndexAdder"/>
+    </bean>
+    <bean id="dataciteRightsMapper" class="org.dspace.discovery.index.mapper.SolrFieldMetadataMapper">
+        <constructor-arg name="metadata" value="original_bundle_datacite_rights"/>
+        <constructor-arg name="indexAdder" ref="defaultIndexAdder"/>
+    </bean>
+    <bean id="dataciteAvailableMapper" class="org.dspace.discovery.index.mapper.SolrFieldMetadataMapper">
+        <constructor-arg name="metadata" value="original_bundle_datacite_available"/>
+        <constructor-arg name="indexAdder" ref="yearIndexAdder"/>
+    </bean>
+
+    <bean id="bitstreamMetadataIndexAdder" class="org.dspace.discovery.index.adder.BitstreamMetadataSolrIndexAdder"/>
+    <bean id="defaultIndexAdder" class="org.dspace.discovery.index.adder.DefaultSolrIndexAdder"/>
+    <bean id="simpleIndexAdder" class="org.dspace.discovery.index.adder.SimpleSolrIndexAdder"/>
+    <bean id="yearIndexAdder" class="org.dspace.discovery.index.adder.YearSolrIndexAdder"/>
+
+    <!-- Additional indexing plugin enables searching by supervised (true,false) -->
+    <bean id="solrServiceSupervisionOrderIndexingPlugin" class="org.dspace.discovery.SolrServiceSupervisionOrderIndexingPlugin"/>
 
     <!--Bean that is used for mapping communities/collections to certain discovery configurations.-->
     <bean id="org.dspace.discovery.configuration.DiscoveryConfigurationService" class="org.dspace.discovery.configuration.DiscoveryConfigurationService">
@@ -97,6 +126,7 @@
                <!-- Do not change the id of special entries or else they won't work -->
                <!-- "workspace" is a special entry to search for your own workspace items -->
                 <entry key="workspace" value-ref="workspaceConfiguration" />
+                <entry key="supervisedWorkspace" value-ref="supervisedWorkspaceConfiguration" />
                 <entry key="otherworkspace" value-ref="otherWorkspaceConfiguration" />
                 <!-- "workflow" is a special entry to search for your own workflow tasks -->
                 <entry key="workflow" value-ref="workflowConfiguration" />
@@ -872,6 +902,91 @@
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!-- When true a "did you mean" example will be displayed, value can be true or false -->
+        <property name="spellCheckEnabled" value="true"/>
+    </bean>
+
+    <!--The supervised workspace configuration settings for discovery -->
+    <bean id="supervisedWorkspaceConfiguration"
+          class="org.dspace.discovery.configuration.DiscoveryConfiguration"
+          scope="prototype">
+        <property name="id" value="supervisedWorkspace" />
+        <!--Which sidebar facets are to be displayed -->
+        <property name="sidebarFacets">
+            <list>
+                <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterType" />
+                <ref bean="searchFilterIssued" />
+            </list>
+        </property>
+        <!--The search filters which can be used on the discovery search page -->
+        <property name="searchFilters">
+            <list>
+                <ref bean="searchFilterObjectNamedType" />
+                <ref bean="searchFilterType" />
+                <ref bean="searchFilterIssued" />
+            </list>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--The default sort filter to use for the initial workspace loading-->
+                <property name="defaultSortField" ref="sortLastModified" />
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortLastModified" />
+                        <ref bean="sortTitleAsc" />
+                        <ref bean="sortDateIssuedDesc" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <!--Only find items, workspace and accepted for workflow -->
+                <value>search.resourcetype:WorkspaceItem AND supervised:true</value>
+            </list>
+        </property>
+        <!--Default result per page  -->
+        <property name="defaultRpp" value="10" />
+        <property name="hitHighlightingConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightingConfiguration">
+                <property name="metadataFields">
+                    <list>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="dc.title"/>
+                            <property name="snippets" value="5"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="dc.contributor.author"/>
+                            <property name="snippets" value="5"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="dc.description.abstract"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
                     </list>
                 </property>
             </bean>
@@ -949,6 +1064,16 @@
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
                     </list>
                 </property>
             </bean>
@@ -975,6 +1100,7 @@
                 <ref bean="searchFilterCreated" />
                 <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterLateReview" />
+                <ref bean="searchFilterSource" />
             </list>
         </property>
         <!--The search filters which can be used on the discovery search page -->
@@ -989,6 +1115,7 @@
                 <ref bean="searchFilterAuthorEditor" />
                 <ref bean="searchFilterUnit" />
                 <ref bean="searchFilterLateReview" />
+                <ref bean="searchFilterSource" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1038,6 +1165,16 @@
                         </bean>
                         <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
                             <property name="field" value="fulltext"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
@@ -1127,6 +1264,16 @@
                         </bean>
                         <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
                             <property name="field" value="fulltext"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
@@ -1221,6 +1368,16 @@
                         </bean>
                         <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
                             <property name="field" value="fulltext"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.mirador"/>
+                            <property name="maxSize" value="250"/>
+                            <property name="snippets" value="2"/>
+                        </bean>
+                        <bean class="org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration">
+                            <property name="field" value="fulltext.video"/>
                             <property name="maxSize" value="250"/>
                             <property name="snippets" value="2"/>
                         </bean>
@@ -1341,7 +1498,7 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByResearchOutputsSelection" />
+                        <!-- <ref bean="sortByResearchOutputsSelection" /> -->
                         <ref bean="sortDateIssuedDesc"/>
                         <ref bean="sortDateIssuedAsc"/>
                         <ref bean="sortScore"/>
@@ -1367,7 +1524,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>author_authority:{0} AND search.resourcetype:Item</value>
+                <value>author_editor_authority:{0} AND search.resourcetype:Item</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1440,13 +1597,13 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByResearchOutputsSelection" />
+                        <!-- <ref bean="sortByResearchOutputsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortScore" />
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -1522,9 +1679,9 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
-                        <ref bean="sortDateIssuedAsc" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
                         <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortScore" />
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
@@ -1588,7 +1745,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
-                <value>dc.description.sponsorship_authority:{0} OR epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0} OR epfl.thesis.doctoralSchool_authority:{0} OR oairecerif.affiliation.orgunit_authority:{0}</value>
+                <value>dc.description.sponsorship_authority:{0} OR epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0} OR epfl.thesis.doctoralSchool_authority:{0}</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -1640,13 +1797,13 @@
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortScore" />
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc" />
@@ -1724,13 +1881,13 @@
                 <!--<property name="defaultSort" ref="sortDateIssued"/>-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortScore" />
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc" />
@@ -1766,11 +1923,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -1845,11 +2002,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2018,7 +2175,7 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPeopleSelection" />
+                        <!-- <ref bean="sortByPeopleSelection" /> -->
                         <ref bean="sortTitleAsc"/>
                         <ref bean="sortTitleDesc"/>
                         <ref bean="sortDateAccessionedAsc"/>
@@ -2092,16 +2249,16 @@
             <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortScore" />
-                        <ref bean="sortScoreAsc" />
                         <ref bean="sortOrganizationLegalName" />
                         <ref bean="sortOrganizationLegalNameDesc" />
-                        <ref bean="sortOrganizationAddressCountry" />
+                        <ref bean="sortScore" />
+                        <ref bean="sortScoreAsc" />
+                        <!-- <ref bean="sortOrganizationAddressCountry" />
                         <ref bean="sortOrganizationAddressCountryDesc" />
                         <ref bean="sortOrganizationAddressLocality" />
                         <ref bean="sortOrganizationAddressLocalityDesc" />
                         <ref bean="sortOrganizationFoundingDateAsc" />
-                        <ref bean="sortOrganizationFoundingDate" />
+                        <ref bean="sortOrganizationFoundingDate" /> -->
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
@@ -2154,11 +2311,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2228,11 +2385,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2357,11 +2514,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByResearchOutputsSelection" />
+                        <!-- <ref bean="sortByResearchOutputsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2396,11 +2553,11 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc"/>
@@ -2470,13 +2627,13 @@
                 <!--DefaultSortOrder can either be desc or asc (desc is default)-->
                 <property name="sortFields">
                     <list>
-                        <ref bean="sortByPublicationsSelection" />
+                        <!-- <ref bean="sortByPublicationsSelection" /> -->
+                        <ref bean="sortDateIssuedDesc" />
+                        <ref bean="sortDateIssuedAsc" />
                         <ref bean="sortTitleAsc" />
                         <ref bean="sortTitleDesc" />
                         <ref bean="sortScore" />
                         <ref bean="sortScoreAsc" />
-                        <ref bean="sortDateIssuedAsc" />
-                        <ref bean="sortDateIssuedDesc" />
                         <ref bean="sortAuthorAsc" />
                         <ref bean="sortAuthorDesc" />
                         <ref bean="sortViewsAsc" />
@@ -2842,7 +2999,7 @@
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
                 <!--Only find items with metadata authority equal to scope. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>organization_authority:{0}</value>
+                <value>organization_authority:{0} OR cris.virtualsource.parent-organization:{0}</value>
             </list>
         </property>
     </bean>
@@ -3119,12 +3276,12 @@
                         <ref bean="sortScoreAsc" />
                         <ref bean="sortOrganizationLegalName"/>
                         <ref bean="sortOrganizationLegalNameDesc"/>
-                        <ref bean="sortOrganizationAddressCountry"/>
+                        <!-- <ref bean="sortOrganizationAddressCountry"/>
                         <ref bean="sortOrganizationAddressCountryDesc"/>
                         <ref bean="sortOrganizationAddressLocality"/>
                         <ref bean="sortOrganizationAddressLocalityDesc"/>
                         <ref bean="sortOrganizationFoundingDateAsc"/>
-                        <ref bean="sortOrganizationFoundingDate"/>
+                        <ref bean="sortOrganizationFoundingDate"/> -->
                         <ref bean="sortDateAccessionedAsc" />
                         <ref bean="sortDateAccessionedDesc" />
                     </list>
@@ -3592,9 +3749,9 @@
                     <list>
                         <ref bean="sortScore" />
                         <ref bean="sortOrganizationLegalName"/>
-                        <ref bean="sortOrganizationAddressCountry"/>
+                        <!-- <ref bean="sortOrganizationAddressCountry"/>
                         <ref bean="sortOrganizationAddressLocality"/>
-                        <ref bean="sortOrganizationFoundingDate"/>
+                        <ref bean="sortOrganizationFoundingDate"/> -->
                         <ref bean="sortDateAccessionedDesc"/>
                     </list>
                 </property>
@@ -4338,7 +4495,6 @@
                 <value>epfl.thesis.institute</value>
                 <value>epfl.thesis.originalUnit</value>
                 <value>epfl.thesis.doctoralSchool</value>
-                <value>oairecerif.affiliation.orgunit</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
@@ -5387,6 +5543,12 @@
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
+    <bean id="sortLastModified" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+        <property name="metadataField" value="lastModified" />
+        <property name="type" value="date" />
+        <property name="defaultSortOrder" value="desc"/>
+    </bean>
+
   <bean id="sortDateCreatedAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
     <property name="metadataField" value="dc.date.created"/>
     <property name="type" value="date"/>
@@ -5448,12 +5610,12 @@
     </bean>
 
     <bean id="sortOrganizationLegalName" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organization.legalName"/>
+        <property name="metadataField" value="dc.title"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <bean id="sortOrganizationLegalNameDesc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organization.legalName"/>
+        <property name="metadataField" value="dc.title"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
     <bean id="sortOrganizationAddressCountry"

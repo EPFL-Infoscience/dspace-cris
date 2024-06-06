@@ -41,6 +41,12 @@
     <qualifier>sourceType</qualifier>
   </dc-type>
 
+  <dc-type>
+    <schema>local</schema>
+    <element>wos</element>
+    <qualifier>sourceType</qualifier>
+  </dc-type>
+
 <!--
   <dc-type>
     <schema>local</schema>

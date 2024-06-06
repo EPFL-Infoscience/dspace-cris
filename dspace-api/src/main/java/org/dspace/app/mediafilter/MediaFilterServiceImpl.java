@@ -111,27 +111,27 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     @Override
-    public void applyFiltersAllItems(Context context) throws Exception {
+    public void applyFiltersAllItems(Context context, boolean updateLastModified) throws Exception {
         if (skipList != null) {
             //if a skip-list exists, we need to filter community-by-community
             //so we can respect what is in the skip-list
             List<Community> topLevelCommunities = communityService.findAllTop(context);
 
             for (Community topLevelCommunity : topLevelCommunities) {
-                applyFiltersCommunity(context, topLevelCommunity);
+                applyFiltersCommunity(context, topLevelCommunity, updateLastModified);
             }
         } else {
             //otherwise, just find every item and process
             Iterator<Item> itemIterator = itemService.findAll(context);
             while (itemIterator.hasNext() && processed < max2Process) {
-                applyFiltersItem(context, itemIterator.next());
+                applyFiltersItem(context, itemIterator.next(), updateLastModified);
             }
         }
     }
 
     @Override
-    public void applyFiltersCommunity(Context context, Community community)
-        throws Exception {   //only apply filters if community not in skip-list
+    public void applyFiltersCommunity(Context context, Community community, boolean updateLastModified)
+            throws Exception { //only apply filters if community not in skip-list
         // ensure that the community is attached to the current hibernate session
         // as we are committing after each item (handles, sub-communties and
         // collections are lazy attributes)
@@ -139,21 +139,21 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
         if (!inSkipList(community.getHandle())) {
             List<Community> subcommunities = community.getSubcommunities();
             for (Community subcommunity : subcommunities) {
-                applyFiltersCommunity(context, subcommunity);
+                applyFiltersCommunity(context, subcommunity, updateLastModified);
             }
             // ensure that the community is attached to the current hibernate session
             // as we are committing after each item
             community = context.reloadEntity(community);
             List<Collection> collections = community.getCollections();
             for (Collection collection : collections) {
-                applyFiltersCollection(context, collection);
+                applyFiltersCollection(context, collection, updateLastModified);
             }
         }
     }
 
     @Override
-    public void applyFiltersCollection(Context context, Collection collection)
-        throws Exception {
+    public void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified)
+            throws Exception {
         // ensure that the collection is attached to the current hibernate session
         // as we are committing after each item (handles are lazy attributes)
         collection = context.reloadEntity(collection);
@@ -161,20 +161,20 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
         if (!inSkipList(collection.getHandle())) {
             Iterator<Item> itemIterator = itemService.findAllByCollection(context, collection);
             while (itemIterator.hasNext() && processed < max2Process) {
-                applyFiltersItem(context, itemIterator.next());
+                applyFiltersItem(context, itemIterator.next(), updateLastModified);
             }
         }
     }
 
     @Override
-    public void applyFiltersItem(Context c, Item item) throws Exception {
+    public void applyFiltersItem(Context c, Item item, boolean updateLastModified) throws Exception {
         //only apply filters if item not in skip-list
         if (!inSkipList(item.getHandle())) {
             //cache this item in MediaFilterManager
             //so it can be accessed by MediaFilters as necessary
             currentItem = item;
 
-            if (filterItem(c, item)) {
+            if (filterItemInternal(c, item, updateLastModified)) {
                 // increment processed count
                 ++processed;
             }
@@ -185,8 +185,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
         }
     }
 
-    @Override
-    public boolean filterItem(Context context, Item myItem) throws Exception {
+    private boolean filterItemInternal(Context context, Item myItem, boolean updateLastModified) throws Exception {
         // get 'original' bundles
         List<Bundle> myBundles = itemService.getBundles(myItem, "ORIGINAL");
         boolean done = false;
@@ -195,15 +194,19 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             List<Bitstream> myBitstreams = myBundle.getBitstreams();
 
             for (Bitstream myBitstream : myBitstreams) {
-                done |= filterBitstream(context, myItem, myBitstream);
+                done |= filterBitstream(context, myItem, myBitstream, updateLastModified);
             }
         }
         return done;
     }
 
     @Override
+    public boolean filterItem(Context context, Item myItem) throws Exception {
+        return filterItemInternal(context, myItem, true);
+    }
+
     public boolean filterBitstream(Context context, Item myItem,
-                                   Bitstream myBitstream) throws Exception {
+                                   Bitstream myBitstream, Boolean updateLastModified) throws Exception {
         boolean filtered = false;
 
         // iterate through filter classes. A single format may be actioned
@@ -226,13 +229,14 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             //For other MediaFilters, map key is just:
             //  <class-name>
             List<String> fmts = filterFormats.get(filterClass.getClass().getName() +
-                                                      (pluginName != null ? FILTER_PLUGIN_SEPARATOR + pluginName : ""));
+                    (pluginName != null ? FILTER_PLUGIN_SEPARATOR + pluginName : ""));
 
             if (fmts.contains(myBitstream.getFormat(context).getShortDescription())) {
                 try {
                     // only update item if bitstream not skipped
-                    if (processBitstream(context, myItem, myBitstream, filterClass)) {
-                        itemService.update(context, myItem); // Make sure new bitstream has a sequence
+                    if (processBitstream(context, myItem, myBitstream, filterClass, updateLastModified)) {
+                        // Make sure new bitstream has a sequence
+                        itemService.update(context, myItem, updateLastModified);
                         // number
                         filtered = true;
                     }
@@ -293,7 +297,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
                         }
                     } catch (Exception e) {
                         logError("ERROR filtering, skipping bitstream #"
-                                               + myBitstream.getID() + " " + e);
+                                + myBitstream.getID() + " " + e);
                         e.printStackTrace();
                     }
                 }
@@ -302,9 +306,15 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
         return filtered;
     }
 
+
     @Override
-    public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter)
-        throws Exception {
+    public boolean filterBitstream(Context context, Item myItem,
+                                   Bitstream myBitstream) throws Exception {
+        return filterBitstream(context, myItem, myBitstream, true);
+    }
+
+    public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter,
+                                    boolean updateLastModified) throws Exception {
         //do pre-processing of this bitstream, and if it fails, skip this bitstream!
         if (!formatFilter.preProcessBitstream(context, item, source, isVerbose)) {
             return false;
@@ -338,7 +348,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
         if (!overWrite && (!existingBitstreams.isEmpty())) {
             if (!isQuiet) {
                 logInfo("SKIPPED: bitstream " + source.getID()
-                                       + " (item: " + item.getHandle() + ") because '" + newName + "' already exists");
+                        + " (item: " + item.getHandle() + ") because '" + newName + "' already exists");
             }
 
             return false;
@@ -346,7 +356,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
 
         if (isVerbose) {
             logInfo("PROCESSING: bitstream " + source.getID()
-                                   + " (item: " + item.getHandle() + ")");
+                    + " (item: " + item.getHandle() + ")");
         }
 
         logInfo("File: " + newName);
@@ -377,7 +387,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             }
 
             // create bitstream to store the filter result
-            Bitstream b = bitstreamService.create(context, targetBundle, destStream);
+            Bitstream b = bitstreamService.create(context, targetBundle, destStream, updateLastModified);
             // set the name, source and description of the bitstream
             b.setName(context, newName);
             b.setSource(context, "Written by FormatFilter " + formatFilter.getClass().getName() +
@@ -407,10 +417,16 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
 
         if (!isQuiet) {
             logInfo("FILTERED: bitstream " + source.getID()
-                                   + " (item: " + item.getHandle() + ") and created '" + newName + "'");
+                    + " (item: " + item.getHandle() + ") and created '" + newName + "'");
         }
 
         return true;
+    }
+
+    @Override
+    public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter)
+        throws Exception {
+        return processBitstream(context, item, source, formatFilter, true);
     }
 
     @Override

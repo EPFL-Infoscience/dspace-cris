@@ -8,6 +8,8 @@
 package org.dspace.app.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -142,6 +145,64 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         }
     }
 
+    @Test
+    public void epoImportFromApplicationNumberAndDate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        InputStream fileToken = null;
+        InputStream fileSearch = null;
+        InputStream fileDetail = null;
+        String originKey = epoServiceImpl.getConsumerKey();
+        String originSecret = epoServiceImpl.getConsumerSecret();
+        CloseableHttpClient originalHttpClient = liveImportClient.getHttpClient();
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+
+        try {
+            fileToken = getClass().getResourceAsStream("epo-token.json");
+            fileSearch = getClass().getResourceAsStream("epo_WO2021EP82712_search.xml");
+            fileDetail = getClass().getResourceAsStream("epo_WO2021EP82712_detail.xml");
+            String token = IOUtils.toString(fileToken, Charset.defaultCharset());
+            String epoRespSearch = IOUtils.toString(fileSearch, Charset.defaultCharset());
+            String epoRespDetail = IOUtils.toString(fileDetail, Charset.defaultCharset());
+
+            epoServiceImpl.setConsumerKey("test-key");
+            epoServiceImpl.setConsumerSecret("test-secret");
+            liveImportClient.setHttpClient(httpClient);
+
+            CloseableHttpResponse responseWithToken = mockResponse(token, 200, "OK");
+            CloseableHttpResponse responseSearch = mockResponse(epoRespSearch, 200, "OK");
+            CloseableHttpResponse responseDetail = mockResponse(epoRespDetail, 200, "OK");
+
+            when(httpClient.execute(ArgumentMatchers.any()))
+                .thenReturn(responseWithToken, responseSearch, responseDetail);
+
+            context.restoreAuthSystemState();
+
+            ImportRecord record = epoServiceImpl.getRecord("WO2021EP82712$$$2021-11-23");
+            assertNotNull(record);
+            Optional<String> applicationValue = record.getSingleValue("dc", "identifier", "applicationnumber");
+            assertTrue(applicationValue.isPresent());
+            assertEquals("WO2021EP82712", applicationValue.get());
+            Optional<String> dateSubmitted = record.getSingleValue("dcterms", "dateSubmitted", null);
+            assertTrue(dateSubmitted.isPresent());
+            assertEquals("2021-11-23", dateSubmitted.get());
+
+        } finally {
+            if (Objects.nonNull(fileToken)) {
+                fileToken.close();
+            }
+            if (Objects.nonNull(fileSearch)) {
+                fileSearch.close();
+            }
+            if (Objects.nonNull(fileDetail)) {
+                fileDetail.close();
+            }
+            epoServiceImpl.setConsumerKey(originKey);
+            epoServiceImpl.setConsumerSecret(originSecret);
+            liveImportClient.setHttpClient(originalHttpClient);
+        }
+    }
+
     private ArrayList<ImportRecord> getRecords() {
         ArrayList<ImportRecord> records = new ArrayList<>();
         //define first record
@@ -149,7 +210,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO identifierOther = createMetadatumDTO("dc", "identifier", "other", "epodoc:ES2902749T");
         MetadatumDTO patentno = createMetadatumDTO("dc", "identifier", "patentno", "ES2902749T");
         MetadatumDTO kind = createMetadatumDTO("crispatent", "kind", null, "T3");
-        MetadatumDTO identifier = createMetadatumDTO("dc", "identifier", "applicationnumber", "18705153");
+        MetadatumDTO identifier = createMetadatumDTO("dc", "identifier", "applicationnumber", "ES20180705153T");
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2022-03-29");
         MetadatumDTO dateSubmitted = createMetadatumDTO("dcterms", "dateSubmitted", null, "2018-02-19");
         MetadatumDTO applicant = createMetadatumDTO("dc", "contributor", null, "Panka Blood Test GmbH");
@@ -184,7 +245,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO identifierOther2 = createMetadatumDTO("dc", "identifier", "other", "epodoc:TW202202864");
         MetadatumDTO patentno2 = createMetadatumDTO("dc", "identifier", "patentno", "TW202202864");
         MetadatumDTO kind2 = createMetadatumDTO("crispatent", "kind", null, "A");
-        MetadatumDTO identifier2 = createMetadatumDTO("dc", "identifier", "applicationnumber", "109122801");
+        MetadatumDTO identifier2 = createMetadatumDTO("dc", "identifier", "applicationnumber", "TW20200122801");
         MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2022-01-16");
         MetadatumDTO dateSubmitted2 = createMetadatumDTO("dcterms", "dateSubmitted", null, "2020-07-06");
         MetadatumDTO applicant2 = createMetadatumDTO("dc", "contributor", null, "ADVANTEST CORPORATION");

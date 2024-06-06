@@ -100,9 +100,7 @@
         <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields">
             <list> 
-		        <value>oairecerif.author.affiliation</value>
-		        <value>oairecerif.editor.affiliation</value>
-		        <value>dc.description.sponsorship</value>
+                <value>dc.description.sponsorship</value>
             </list>
         </property>    
         <property name="relatedItemMetadataFields">
@@ -111,6 +109,24 @@
             </list>
         </property>
         <property name="virtualQualifier" value="unitId" />
+    </bean>
+
+    <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer">
+        <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
+        <property name="sourceItemMetadataFields">
+            <list>
+                <value>oairecerif.affiliation.orgunit</value>
+                <value>cris.virtual.department</value>
+                <value>dc.description.sponsorship</value>
+            </list>
+        </property>
+        <property name="relatedItemMetadataFields">
+            <list>
+                <value>crisou.director</value>
+                <value>epfl.orgUnit.editor</value>
+            </list>
+        </property>
+        <property name="virtualQualifier" value="unitManager" />
     </bean>
 
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
@@ -170,8 +186,13 @@
     <util:list id="parentOrganizationsSourceMetadata" value-type="java.lang.String">
         <value>oairecerif.author.affiliation</value>
         <value>oairecerif.editor.affiliation</value>
+        <value>oairecerif.scientificeditor.affiliation</value>
+        <value>oairecerif.advisor.affiliation</value>
+        <value>oairecerif.affiliation.orgunit</value>
         <value>dc.contributor.author</value>
         <value>dc.contributor.editor</value>
+        <value>dc.contributor.scientificeditor</value>
+        <value>dc.contributor.advisor</value>
         <value>dc.description.sponsorship</value>
     </util:list>
 

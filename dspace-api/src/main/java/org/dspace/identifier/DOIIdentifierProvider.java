@@ -736,7 +736,9 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
             String doi = getDOIOutOfObject(dso);
 
             while (null != doi) {
+                context.turnOffAuthorisationSystem();
                 this.removeDOIFromObject(context, dso, doi);
+                context.restoreAuthSystemState();
                 doi = getDOIOutOfObject(dso);
             }
         } catch (AuthorizeException ex) {
@@ -787,7 +789,9 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
 
         // remove DOI from metadata
         try {
+            context.turnOffAuthorisationSystem();
             removeDOIFromObject(context, dso, doi);
+            context.restoreAuthSystemState();
         } catch (AuthorizeException ex) {
             log.error("Not authorized to delete a DOI out of an Item.", ex);
             throw new DOIIdentifierException("Not authorized to delete DOI.",
@@ -1040,7 +1044,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
     }
 
     /**
-     * Loads a DOI out of the metadata of an DSpaceObject.
+     * Loads a DOI out of the metadata of an DSpaceObject. If found it will be in the format doi:10.xxx/yyy
      *
      * @param dso DSpace object to get DOI metadata from
      * @return The DOI or null if no DOI was found.
@@ -1087,13 +1091,31 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
                 contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso) + ".");
         }
         Item item = (Item) dso;
+        String doiUrn = doiService.formatIdentifier(doi);
 
-        itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
-            doiService.DOIToExternalForm(doi));
-        try {
-            itemService.update(context, item);
-        } catch (SQLException | AuthorizeException ex) {
-            throw ex;
+        List<MetadataValue> identifiers = itemService
+                .getMetadata(item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, Item.ANY);
+        boolean alreadyPresent = false;
+        for (MetadataValue identifier : identifiers) {
+            String identifierUrn = identifier.getValue();
+            try {
+                identifierUrn = doiService.formatIdentifier(identifier.getValue());
+            } catch (DOIIdentifierException e) {
+                // unknown format take it as is
+            }
+            if (StringUtils.startsWithIgnoreCase(identifierUrn, doiUrn)) {
+                alreadyPresent = true;
+            }
+        }
+
+        if (!alreadyPresent) {
+            itemService.addMetadata(context, item, MD_SCHEMA, DOI_ELEMENT, DOI_QUALIFIER, null,
+                doiService.DOIToExternalForm(doi));
+            try {
+                itemService.update(context, item);
+            } catch (SQLException | AuthorizeException ex) {
+                throw ex;
+            }
         }
     }
 
@@ -1120,7 +1142,11 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
         List<String> remainder = new ArrayList<>();
 
         for (MetadataValue id : metadata) {
-            if (!StringUtils.equals(doiService.formatIdentifier(id.getValue()), doi)) {
+            try {
+                if (!StringUtils.equals(doiService.formatIdentifier(id.getValue()), doi)) {
+                    remainder.add(id.getValue());
+                }
+            } catch (DOIIdentifierException e) {
                 remainder.add(id.getValue());
             }
         }

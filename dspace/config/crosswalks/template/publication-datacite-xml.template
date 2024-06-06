@@ -37,7 +37,9 @@
     @if.not.metadata.datacite-available.end@
   </dates>
   <language>@dc.language.iso@</language>
-  <resourceType resourceTypeGeneral="@virtual.mapConverter.type2datacite.dc-type@" />
+  <resourceType resourceTypeGeneral="@virtual.mapConverter.type2datacite.dc-type@">
+  @virtual.mapConverter.type2datacitelabel.dc-type@
+  </resourceType>
   <alternateIdentifiers>
     <alternateIdentifier alternateIdentifierType="url">@dc.identifier.uri@</alternateIdentifier>
     <alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</alternateIdentifier>

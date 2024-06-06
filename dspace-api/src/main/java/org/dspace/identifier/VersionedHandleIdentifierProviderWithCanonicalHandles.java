@@ -377,6 +377,8 @@ public class VersionedHandleIdentifierProviderWithCanonicalHandles extends Ident
                     handleService.modifyHandleDSpaceObject(context, canonical, previous);
                 }
             }
+            // remove additional handles
+            handleService.unbindHandle(context, dso);
         } catch (RuntimeException | SQLException e) {
             log.error(LogHelper.getHeader(context,
                     "Error while attempting to register doi",

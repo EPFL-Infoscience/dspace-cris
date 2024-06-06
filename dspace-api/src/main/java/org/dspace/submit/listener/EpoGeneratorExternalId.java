@@ -11,6 +11,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.dspace.importer.external.epo.service.EpoImportMetadataSourceServiceImpl.APP_NO_DATE_SEPARATOR;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,17 +64,33 @@ public class EpoGeneratorExternalId implements ExternalIdGenerator {
 
     private static String getValue(List<MetadataValue> metadataValues) {
         String value = metadataValues.get(0).getValue();
-        if (!value.contains(" ")) {
-            return value;
+        Pattern pattern = Pattern.compile("^(([A-Z]+|)[0-9A-Z]+)");
+        Matcher matcher = pattern.matcher(value);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return EMPTY;
         }
-        return value.substring(0, value.indexOf(" ")).trim();
+    }
+
+    private static String getDateValue(List<MetadataValue> metadataValues) {
+        String value = metadataValues.get(0).getValue();
+        Pattern pattern = Pattern.compile("\\d{4}-\\d{1,2}-\\d{1,2}");
+        Matcher matcher = pattern.matcher(value);
+
+        if (matcher.find()) {
+            return value;
+        } else {
+            return EMPTY;
+        }
     }
 
     private String generateApplicationNumberAndFilledDateID(Item item, String dateFilled, String applicationNumber) {
         List<MetadataValue> dateFilledValue = itemService.getMetadataByMetadataString(item, dateFilled);
         List<MetadataValue> applicationNumberValue = itemService.getMetadataByMetadataString(item, applicationNumber);
         if (CollectionUtils.isNotEmpty(dateFilledValue) && CollectionUtils.isNotEmpty(applicationNumberValue)) {
-            return getValue(applicationNumberValue) + APP_NO_DATE_SEPARATOR + getValue(dateFilledValue);
+            return getValue(applicationNumberValue) + APP_NO_DATE_SEPARATOR + getDateValue(dateFilledValue);
         }
         return EMPTY;
     }
