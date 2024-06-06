@@ -1,0 +1,85 @@
+<collection xmlns="http://ead.nb.admin.ch/web/standards/slb/MARC21/MARC21slim.xsd">
+<record>
+<datafield tag="024" ind1="7" ind2=" ">
+<subfield code="a">10.5075/epfl-thesis-10081</subfield>
+<subfield code="2">doi</subfield>
+</datafield>
+<datafield tag="041" ind1=" " ind2=" ">
+<subfield code="a">eng</subfield>
+</datafield>
+<datafield tag="088" ind1=" " ind2=" ">
+<subfield code="a">10081</subfield>
+</datafield>
+<datafield tag="245" ind1=" " ind2=" ">
+<subfield code="a">Architectural rehearsal: choreopolitical ecologies within a scripted world</subfield>
+</datafield>
+<datafield tag="260" ind1=" " ind2=" ">
+<subfield code="a">Lausanne</subfield>
+<subfield code="b">EPFL</subfield>
+<subfield code="c">2024</subfield>
+</datafield>
+<datafield tag="300" ind1=" " ind2=" ">
+<subfield code="a">486</subfield>
+</datafield>
+<datafield tag="502" ind1=" " ind2=" ">
+<subfield code="a">Prof. Sarah Nichols (présidente) ; Prof. Dieter Dietz, Prof. Yves Citton (directeurs) ; Prof. Momoyo Kaijima, Dr Emma Bigé, Prof. María Auxiliadora Gálvez Pérez (rapporteurs)</subfield>
+</datafield>
+<datafield tag="520" ind1=" " ind2=" ">
+<subfield code="a">For several decades, the fields of dance and performance have been exploring the interplay between movement, conditioning, subjectivity and politics. If "choreopolice" help describe that conditioning regime, "choreopolitics" describe the ways in which a collective gets mobilized, in which a minor knowing-how-to-move circulates and asserts itself. Choreopolitical affirmations unfold through collective experimentation. They are expanded performatively through the capacity of bodies to articulate their imaginative refusals within the assemblages in which they participate. Today, this capacity is at risk. Moving bodies are tracked, mediated, anticipated, and conditioned to move in a certain way as part of a global logistical regime. Yet multiple bodies continue to rise up and refuse to be deprived of the possible surrounding their existence. Collectively, they persist in inventing minor modes of being with the world that question neoliberal conditioning and its choreographies of conformity. These minor practices, although scattered in time and space, are integral to an emerging form of spatial practice, conducted not only by architects, which I conceptualize as "architectural rehearsal". New modes of threading and caring for shared worlds are being collectively rehearsed, revisited, retrieved, reassembled, reenacted, transforming the way architecture works with other agents and practices in the transformation of our world. After tracing the emergence of choreopolitical experimentations and theorization in the field of dance in the second half of the 20th century and up to the present day, as well as discussing questions of mediation and persistence of embodied know-hows and knowledge, I bring these choreopolitical questionings to the field of architecture. What links the politics of bodies, movement and co-presence to the production of spatialities? And how does it spread across the increasingly multiple scales and fields of practice in which shared futures of the living are currently being negotiated? As a means of choreopolitical exploration, I draw on several minor practices in which architectural and movement techniques are engaged. First, architect John Hejduk's texts, drawings and related collective experiments. Then, a process of co-designing a vision for the future of the international district in Geneva. Third, a series of performances and workshops by feminist activist artists from Latin America working around the notion of cuerpo-territorio-tierra. And throughout, other performative and artistic practices of resistance and collective imagination. I define these unique, relational, and more-than-human forms of mobilization and choreopolitics as "choreopolitical ecologies," understood as co-articulations of worldings and habitats away from policed conformity. I examine how these minor ecologies challenge the deeply linear, depoliticized and disembodied understandings of imagination, spatial practice, and climate action that continue to structure western architectural practice and theory until today. At a time of global injunction to reorient our modes of existence, I flesh out how "architectural rehearsal" contributes to this endeavor. The choreopolitical ecologies that are engaged in this rehearsal allow for the study of the unequal ways in which capitalism and extractivism affect movements and the possibilities of life. They stand as a terrain for imagining, engendering, and affirming new forms of solidarity everywhere. </subfield>
+</datafield>
+<datafield tag="653" ind1="1" ind2=" ">
+<subfield code="a">choreopolitics; choreography; minor architecture; collective practice; imagination; performativity; weathering; mobilization; unlearning; rehearsal</subfield>
+</datafield>
+<datafield tag="700" ind1=" " ind2=" ">
+<subfield code="a">Dupuis, Aurélie</subfield>
+<subfield code="g">186919</subfield>
+</datafield>
+<datafield tag="720" ind1=" " ind2="2">
+<subfield code="a">Dietz, Dieter</subfield>
+<subfield code="e">dir.</subfield>
+<subfield code="g">173997</subfield>
+</datafield>
+<datafield tag="720" ind1=" " ind2="2">
+<subfield code="a">Citton, Yves</subfield>
+<subfield code="e">dir.</subfield>
+<subfield code="g">325534</subfield>
+</datafield>
+<datafield tag="909" ind1="C" ind2="0">
+<subfield code="p">ALICE</subfield>
+</datafield>
+<datafield tag="918" ind1=" " ind2=" ">
+<subfield code="a">ENAC</subfield>
+<subfield code="c">IA</subfield>
+<subfield code="d">EDAR</subfield>
+</datafield>
+<datafield tag="919" ind1=" " ind2=" ">
+<subfield code="a">ALICE</subfield>
+</datafield>
+<datafield tag="920" ind1=" " ind2=" ">
+<subfield code="a">2024-05-22</subfield>
+<subfield code="b">2024</subfield>
+</datafield>
+<datafield tag="970" ind1=" " ind2=" ">
+<subfield code="a">10081/THESES</subfield>
+</datafield>
+<datafield tag="973" ind1=" " ind2=" ">
+<subfield code="a">EPFL</subfield>
+<subfield code="s">SUBMITTED</subfield>
+</datafield>
+<datafield tag="980" ind1=" " ind2=" ">
+<subfield code="a">THESIS</subfield>
+</datafield>
+<datafield tag="037" ind1=" " ind2=" ">
+<subfield code="a">THESIS</subfield>
+</datafield>
+<datafield tag="269" ind1=" " ind2=" ">
+<subfield code="a">2024</subfield>
+</datafield>
+<datafield tag="336" ind1=" " ind2=" ">
+<subfield code="a">Theses</subfield>
+</datafield>
+<datafield tag="592" ind1=" " ind2=" ">
+<subfield code="b">2024</subfield>
+</datafield>
+</record>
+</collection>

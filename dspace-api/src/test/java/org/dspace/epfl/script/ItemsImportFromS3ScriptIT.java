@@ -132,7 +132,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
                 mimeTypes.add(bitstreamFormat.getMIMEType());
             }
             assertTrue(mimeTypes.contains("application/pdf"));
-            assertTrue(mimeTypes.contains("application/octet-stream"));
+            assertTrue(mimeTypes.contains("application/x-kaleidagraph-qpc"));
             assertThat(handler.getErrorMessages(), empty());
             assertThat(handler.getWarningMessages(), empty());
 

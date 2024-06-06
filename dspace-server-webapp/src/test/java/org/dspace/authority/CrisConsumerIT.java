@@ -69,6 +69,7 @@ import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient.Language;
 import org.dspace.epfl.client.EpflApiClientImpl;
@@ -113,6 +114,9 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private EPersonService epersonService;
 
     @Value("classpath:org/dspace/app/rest/simple-article.pdf")
     private Resource simpleArticle;
@@ -1402,33 +1406,39 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
                 .withEntityType("Person")
                 .build();
 
-        ItemBuilder.createItem(context, collection)
-                .withTitle("Test orgunit")
-                .withMetadata("crisou", "director", null, null,
-                        fullName, "will be generated::SCIPER-ID::" + sciper, 400)
-                .build();
+        try {
+            ItemBuilder.createItem(context, collection)
+                    .withTitle("Test orgunit")
+                    .withMetadata("crisou", "director", null, null,
+                            fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                    .build();
 
-        context.restoreAuthSystemState();
+            context.restoreAuthSystemState();
 
-        person = profileInitializer.findPersonBySciper(context, sciper);
-        assertNotNull(person);
-        assertEquals(sciper + "@epfl.ch", person.getNetid());
-        assertEquals(sciper + "@epfl.ch", person.getEmail());
-        assertEquals("Unnamed", person.getFirstName());
-        assertEquals("Unnamed", person.getLastName());
+            person = profileInitializer.findPersonBySciper(context, sciper);
+            assertNotNull(person);
+            assertEquals(sciper + "@epfl.ch", person.getNetid());
+            assertEquals(sciper + "@epfl.ch", person.getEmail());
+            assertEquals("Unnamed", person.getFirstName());
+            assertEquals("Unnamed", person.getLastName());
 
-        person = profileInitializer.findPersonBySciper(context, sciper);
+            person = profileInitializer.findPersonBySciper(context, sciper);
 
-        Iterator<Item> persons = itemService.findAllByCollection(context, collectionOfPersons);
-        Item personItem = persons.next();
-        assertFalse(persons.hasNext());
+            Iterator<Item> persons = itemService.findAllByCollection(context, collectionOfPersons);
+            Item personItem = persons.next();
+            assertFalse(persons.hasNext());
 
-        String dspaceOwnerMetadata =  personItem.getMetadata().stream()
-                .filter(metadataValue ->
-                        metadataValue.getMetadataField().toString().equals("dspace_object_owner"))
-                .map(MetadataValue::getValue).findFirst().get();
+            String dspaceOwnerMetadata =  personItem.getMetadata().stream()
+                    .filter(metadataValue ->
+                            metadataValue.getMetadataField().toString().equals("dspace_object_owner"))
+                    .map(MetadataValue::getValue).findFirst().get();
 
-        assertEquals(dspaceOwnerMetadata, person.getEmail());
+            assertEquals(dspaceOwnerMetadata, person.getEmail());
+        } finally {
+            context.turnOffAuthorisationSystem();
+            epersonService.delete(context, person);
+            context.restoreAuthSystemState();
+        }
     }
 
     @Test

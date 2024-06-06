@@ -30,6 +30,7 @@
         <metadata-field>
             <field>dc.language.iso</field>
             <xpath>./datafield[@tag = '041']/subfield[@code = 'a']</xpath>
+            <reader>language</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.number</field>
@@ -207,7 +208,7 @@
             <xpath>./datafield[@tag = '856' and @ind1 = '4']/subfield[@code = 'e']</xpath>
         </metadata-field>
         <metadata-field>
-            <field>epfl.relation.orgunit</field>
+            <field>dc.description.sponsorship</field>
             <xpath>./datafield[@tag = '909' and @ind1 = 'C' and @ind2 = '0']</xpath>
             <reader>orgUnit</reader>
         </metadata-field>
