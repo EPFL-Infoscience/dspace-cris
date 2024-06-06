@@ -259,103 +259,103 @@
     <!-- used to track entity type of collections -->
     <field name="search.entitytype" type="string" indexed="true" stored="true" required="false" />
 
-     <field name="dc.title" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.title" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.contributor.author" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.contributor.author" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.creator" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.creator" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.contributor.editor" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.contributor.editor" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.subject" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.subject" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="oairecerif.author.affiliation" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="oairecerif.author.affiliation" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="oairecerif.editor.affiliation" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="oairecerif.editor.affiliation" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.relation.funding" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.relation.funding" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dspace.entity.type" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dspace.entity.type" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.relation.ispartof" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.relation.ispartof" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="dc.identifier.doi" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="dc.identifier.doi" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="crispj.investigator" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="crispj.investigator" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="crispj.coinvestigators" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="crispj.coinvestigators" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="crispj.coordinator" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="crispj.coordinator" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="crispj.partnerou" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true" >
+     <field name="crispj.partnerou" type="string" indexed="true" stored="true" required="false" multiValued="true" >
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="crispj.organization" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="crispj.organization" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="oairecerif.funder" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="oairecerif.funder" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
@@ -367,37 +367,37 @@
          </analyzer>
      </field>
 
-     <field name="person.familyName" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="person.familyName" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="person.givenName" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="person.givenName" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="person.jobTitle" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="person.jobTitle" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="person.knowsLanguage" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="person.knowsLanguage" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="person.affiliation.name" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="person.affiliation.name" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
      </field>
 
-     <field name="oairecerif.person.affiliation" type="lowerCaseSort" indexed="true" stored="true" required="false" multiValued="true">
+     <field name="oairecerif.person.affiliation" type="string" indexed="true" stored="true" required="false" multiValued="true">
          <analyzer>
              <tokenizer class="solr.KeywordTokenizerFactory"/>
          </analyzer>
