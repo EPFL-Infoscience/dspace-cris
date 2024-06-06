@@ -12,7 +12,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
                 <!-- <ref bean="networkAdministration"/> -->
             </list>
         </property>
@@ -82,7 +81,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -103,7 +101,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -117,7 +114,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -131,7 +127,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -145,7 +140,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -159,7 +153,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -173,7 +166,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -187,7 +179,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -202,7 +193,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -217,7 +207,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -231,7 +220,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
@@ -244,7 +232,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed" />
                 <ref bean="restricted"/>
-                <ref bean="reserved"/>
             </list>
         </property>
         <property name="bitstreamAccessConditionOptions">
@@ -252,7 +239,6 @@
                 <ref bean="openAccess"/>
                 <ref bean="embargoed"/>
                 <ref bean="restricted" />
-                <ref bean="reserved"/>
             </list>
         </property>
     </bean>
