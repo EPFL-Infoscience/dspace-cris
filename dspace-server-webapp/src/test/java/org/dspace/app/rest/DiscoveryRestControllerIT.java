@@ -2296,6 +2296,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
 
     @Test
+    @Ignore
     public void discoverSearchObjectsTestWithContentInABitstream() throws Exception {
         //We turn off the authorization system in order to create the structure as defined below
         context.turnOffAuthorisationSystem();

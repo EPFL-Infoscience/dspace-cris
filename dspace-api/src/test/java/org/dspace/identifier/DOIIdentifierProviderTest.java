@@ -621,6 +621,21 @@ public class DOIIdentifierProviderTest
     }
 
     @Test
+    public void test_DOI_Case_Insensitive()
+            throws SQLException, SQLException, AuthorizeException, IOException,
+            IdentifierException, WorkflowException, IllegalAccessException {
+        Item item = newItem();
+        String doi = this.createDOI(item, DOIIdentifierProvider.IS_REGISTERED, false);
+
+        DSpaceObject dso = provider.getObjectByDOI(context, "doi:" + doi.substring(4).toUpperCase());
+
+        assertNotNull("Failed to load DSpaceObject by DOI.", dso);
+        if (item.getType() != dso.getType() || ObjectUtils.notEqual(item.getID(), dso.getID())) {
+            fail("Object loaded by DOI was another object then expected!");
+        }
+    }
+
+    @Test
     public void testRegister_unreserved_DOI()
         throws SQLException, SQLException, AuthorizeException, IOException,
         IdentifierException, WorkflowException, IllegalAccessException {

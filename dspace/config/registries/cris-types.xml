@@ -12,7 +12,7 @@
     <dc-type>
         <schema>cris</schema>
         <element>sourceId</element>
-        <qualifier />
+        <qualifier></qualifier>
         <scope_note>Used by the cris consumer to store the source that has originated the item</scope_note>
     </dc-type>
 
@@ -151,6 +151,20 @@
 
     <dc-type>
         <schema>cris</schema>
+        <element>author</element>
+        <qualifier>orcid</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>lastimport</element>
+        <qualifier>crossref-publication</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
         <element>virtual</element>
         <qualifier>sciperId</qualifier>
         <scope_note />
@@ -165,6 +179,13 @@
 
     <dc-type>
         <schema>cris</schema>
+        <element>virtual</element>
+        <qualifier>unitManager</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>orcid</qualifier>
         <scope_note />
@@ -174,6 +195,20 @@
         <schema>cris</schema>
         <element>virtualsource</element>
         <qualifier>sciperId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>unitId</qualifier>
+        <scope_note />
+    </dc-type>
+
+    <dc-type>
+        <schema>cris</schema>
+        <element>virtualsource</element>
+        <qualifier>unitManager</qualifier>
         <scope_note />
     </dc-type>
 
@@ -273,7 +308,7 @@
         <qualifier>scopus-person</qualifier>
         <scope_note />
     </dc-type>
-    
+
     <dc-type>
         <schema>cris</schema>
         <element>virtual</element>

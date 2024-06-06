@@ -9,6 +9,11 @@
         [Source: http://purl.org/spar/fabio/Thesis]
       </hasNote>
       <isComposedBy>
+        <node id="c_db06" label="doctoral thesis">
+          <hasNote>A thesis reporting the research undertaken during a period of graduate study
+              leading to a doctoral degree. [Source: http://purl.org/spar/fabio/DoctoralThesis]
+          </hasNote>
+        </node>
         <node id="c_7a1f" label="bachelor thesis">
           <hasNote>A thesis reporting a research project undertaken as part of an undergraduate
             course of education leading to a bachelor's degree. [Source:

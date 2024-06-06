@@ -29,6 +29,7 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
 
     @Autowired
     private TitleWithDigitAndYearSignature titleWithDigitAndYearSignature;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Test
     public void findAllUnauthorizedTest() throws Exception {
@@ -1535,6 +1539,151 @@ public class DeduplicationSetRestRepositoryIT extends AbstractControllerIntegrat
         md5Signature.setIgnorePrefix(ignorePrefixes);
         md5Signature.setNormalizationRegexp(normalizeRegex);
         md5Signature.setUseEntityType(false);
+    }
+
+    @Test
+    public void findItemsBySignatureWithoutVirtualMetadataTest() throws Exception {
+        // Turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+        // ** GIVEN **
+        // 1. Two users: one to use as submitter, another one to use as reviewer
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter1@example.com")
+                                          .withPassword(password)
+                                          .build();
+        context.setCurrentUser(submitter);
+        EPerson reviewer = EPersonBuilder.createEPerson(context)
+                                         .withEmail("reviewer1@example.com")
+                                         .withPassword(password)
+                                         .build();
+        // 2. A community-collection structure with one parent community and one collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                                                 .withName("Collection 1")
+                                                 .withSubmitterGroup(submitter)
+                                                 .withWorkflowGroup(1, reviewer)
+                                                 .withWorkflowGroup(2, reviewer)
+                                                 .withWorkflowGroup(3, reviewer)
+                                                 .build();
+        // 3. Two public items
+        Item publicItem1 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("First Test")
+                                      .withIssueDate("2010-10-17")
+                                      .withAuthor("Smith, Donald")
+                                      .withIdentifierDoi("10.1234/123456789")
+                                      .withMetadata("cris", "virtual", "department", "fake-department-1")
+                                      .withMetadata("cris", "virtual", "sciperId", "fake-sciper")
+                                      .build();
+        Item publicItem2 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Second Test")
+                                      .withIssueDate("2015-12-18")
+                                      .withIdentifierDoi("10.1234/123456789")
+                                      .withMetadata("cris", "virtual", "department", "fake-department-2")
+                                      .withMetadata("cris", "virtual", "sciperId", "fake-author-2")
+                                      .build();
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+        // Restore the authorization system
+        context.restoreAuthSystemState();
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        String id = "identifier:" + signature;
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + id + "/items"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._links.self.href",
+                                                 Matchers.containsString("/api/deduplications/sets/" + id + "/items")))
+                             .andExpect(jsonPath("$.page.number", is(0)))
+                             .andExpect(jsonPath("$.page.size", is(20)))
+                             .andExpect(jsonPath("$.page.totalPages", is(1)))
+                             .andExpect(jsonPath("$.page.totalElements", is(2)))
+                             .andExpect(
+                                 jsonPath(
+                                     "$._embedded.items[*].metadata['cris.virtual.department']",
+                                      Matchers.emptyIterable()
+                                 )
+                             )
+                             .andExpect(
+                                 jsonPath(
+                                     "$._embedded.items[*].metadata['cris.virtual.sciperId']",
+                                     Matchers.emptyIterable()
+                                 )
+                             );
+    }
+    @Test
+    public void findItemsBySignatureWithoutExcludedMetadataTest() throws Exception {
+        // Turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+        this.configurationService.setProperty(
+            "merge.excluded-metadata",
+            new String[]{ "dc.subject", "dc.title.alternative" }
+        );
+        // ** GIVEN **
+        // 1. Two users: one to use as submitter, another one to use as reviewer
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter1@example.com")
+                                          .withPassword(password)
+                                          .build();
+        context.setCurrentUser(submitter);
+        EPerson reviewer = EPersonBuilder.createEPerson(context)
+                                         .withEmail("reviewer1@example.com")
+                                         .withPassword(password)
+                                         .build();
+        // 2. A community-collection structure with one parent community and one collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                                                 .withName("Collection 1")
+                                                 .withSubmitterGroup(submitter)
+                                                 .withWorkflowGroup(1, reviewer)
+                                                 .withWorkflowGroup(2, reviewer)
+                                                 .withWorkflowGroup(3, reviewer)
+                                                 .build();
+        // 3. Two public items
+        Item publicItem1 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("First Test")
+                                      .withIssueDate("2010-10-17")
+                                      .withAuthor("Smith, Donald")
+                                      .withIdentifierDoi("10.1234/123456789")
+                                      .withSubject("excluded subject metadatum")
+                                      .build();
+        Item publicItem2 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Second Test")
+                                      .withIssueDate("2015-12-18")
+                                      .withIdentifierDoi("10.1234/123456789")
+                                      .withAlternativeTitle("excluded title metadatum")
+                                      .build();
+        // Set up MD5ValueSignature state to produce the same signature
+        List<String> ignorePrefix = Arrays.asList("doi://", "doi:", "DOI:", "DOI://", "http://dx.doi.org/", "dx.doi.org/");
+        setMD5ValueSignatureInstance("dc.identifier.doi", "doi:", "identifier", ignorePrefix, "");
+        String signature = md5Signature.getSignature(publicItem1, context).get(0);
+        // Restore the authorization system
+        context.restoreAuthSystemState();
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        String id = "identifier:" + signature;
+        getClient(adminToken).perform(get("/api/deduplications/sets/" + id + "/items"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._links.self.href",
+                                                 Matchers.containsString("/api/deduplications/sets/" + id + "/items")))
+                             .andExpect(jsonPath("$.page.number", is(0)))
+                             .andExpect(jsonPath("$.page.size", is(20)))
+                             .andExpect(jsonPath("$.page.totalPages", is(1)))
+                             .andExpect(jsonPath("$.page.totalElements", is(2)))
+                             .andExpect(
+                                 jsonPath(
+                                     "$._embedded.items[*].metadata['dc.subject']",
+                                     Matchers.emptyIterable()
+                                 )
+                             )
+                             .andExpect(
+                                 jsonPath(
+                                     "$._embedded.items[*].metadata['dc.title.alternative']",
+                                     Matchers.emptyIterable()
+                                 )
+                             );
     }
 
 }

@@ -11,6 +11,7 @@ import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,6 +62,9 @@ import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.external.service.impl.ExternalDataServiceImpl;
+import org.dspace.identifier.DOI;
+import org.dspace.identifier.factory.IdentifierServiceFactory;
+import org.dspace.identifier.service.DOIService;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -94,6 +98,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private static final String PATENT = "Patent";
     private static final int LIMIT = 10;
 
+    int importedItemsCounter = 0;
+
     private String service;
 
     private String extraQuery;
@@ -101,6 +107,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private String collectionUuid;
 
     private String finalState;
+
+    private List<String> workspaceItemImportedDoi;
 
     private Integer totalSearchLimit;
 
@@ -129,6 +137,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private InstallItemService installItemService;
 
+    protected DOIService doiService;
+
     @Override
     public void setup() throws ParseException {
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -149,6 +159,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
+        doiService = IdentifierServiceFactory.getInstance().getDOIService();
 
         this.service = commandLine.getOptionValue('s');
         this.finalState = commandLine.getOptionValue('f');
@@ -158,6 +169,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             ? Integer.valueOf(commandLine.getOptionValue('l'))
             : getDefaultTotalSearchLimit();
         this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
+        workspaceItemImportedDoi = new ArrayList<>();
+        importedItemsCounter = 0;
     }
 
     private void putServiceIfExists(String key, String serviceName) {
@@ -318,13 +331,21 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                 }
             }
-        } catch (SQLException | InterruptedException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            if (context.isValid()) {
+                context.commit();
+            }
+            printImportedItemsSummary();
         }
-        context.commit();
         handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
         handler.logInfo("Update end");
+    }
+
+    private void printImportedItemsSummary() {
+        handler.logInfo("SUMMARY: with process " + importedItemsCounter + " items were imported");
     }
 
     private MetadataValue getOwner(Item item) {
@@ -419,7 +440,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         int imported = 0;
         try {
             for (ExternalDataObject dataObject : dataProvider.searchExternalDataObjects(id, record, LIMIT)) {
-                if (!exist(dataObject.getMetadata())) {
+                if (!exist(dataObject.getMetadata()) && !isObjectWithDOIExist(dataObject.getId())) {
                     WorkspaceItem wsItem = externalDataService
                         .createWorkspaceItemFromExternalDataObject(context, dataObject, collection);
                     Item itemFromWs = wsItem.getItem();
@@ -436,7 +457,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
                                         " and put in status: " + finalState);
+                    importedItemsCounter++;
                     imported++;
+                    String externalId = dataObject.getId();
+                    if (StringUtils.isNotBlank(externalId)) {
+                        workspaceItemImportedDoi.add(externalId);
+                    }
                 }
                 countDataObjects++;
             }
@@ -444,6 +470,26 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             log.error(e.getMessage(), e);
         }
         return new int[] {countDataObjects, imported};
+    }
+
+    private boolean isObjectWithDOIExist(String identifier) {
+        try {
+            if (workspaceItemImportedDoi.contains(identifier)) {
+                return true;
+            }
+
+            String doi = doiService.formatIdentifier(identifier);
+            DOI doiRow = doiService.findByDoi(context, doi.substring(DOI.SCHEME.length()));
+
+            if (null == doiRow) {
+                return false;
+            } else {
+                return doiRow.getDSpaceObject() != null;
+            }
+        } catch (Exception e) {
+            handler.logError("Unable to retrieve information about a DOI out of database.");
+        }
+        return false;
     }
 
     private void makeFinalState(WorkspaceItem wsItem)

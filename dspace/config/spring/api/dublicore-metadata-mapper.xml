@@ -1,7 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd"
        default-autowire-candidates="*Service,*DAO,javax.sql.DataSource">
 
 
@@ -35,6 +35,14 @@
     <bean id="dcType" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.type"/>
     </bean>
+
+    <util:map id="bibTexJournalMap" key-type="java.lang.String"
+              value-type="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
+        <entry key="article" value-ref="dcJournal" />
+        <entry key="chapter" value-ref="dcBooktitle" />
+        <entry key="inbook" value-ref="dcBooktitle" />
+        <entry key="default" value-ref="dcBooktitle" />
+    </util:map>
  	  <bean id="dcAuthors" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.contributor.author"/>
     </bean>
@@ -51,7 +59,7 @@
         <constructor-arg value="dc.description.abstract"/>
     </bean>
     <bean id="dcAbstractNote" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
-        <constructor-arg value="dc.description.abstract"/>
+        <constructor-arg value="dc.description"/>
     </bean>
  	  <bean id="dcAllKeyword" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="dc.subject"/>

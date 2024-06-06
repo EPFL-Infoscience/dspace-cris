@@ -284,6 +284,10 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
                 docType = id.substring(0, positionToSplit);
                 idS = id.substring(positionToSplit + 1);
             } else if (id.contains(APP_NO_DATE_SEPARATOR)) {
+                // check to ensure that we actually have both values
+                if (id.split(APP_NO_DATE_SEPARATOR_REGEX).length < 2) {
+                    return Collections.emptyList();
+                }
                 // special case the id is the combination of the applicationnumber and date filed
                 String query = "applicationnumber=" + id.split(APP_NO_DATE_SEPARATOR_REGEX)[0];
                 return new SearchByQueryCallable(query, bearer, 0, 10)

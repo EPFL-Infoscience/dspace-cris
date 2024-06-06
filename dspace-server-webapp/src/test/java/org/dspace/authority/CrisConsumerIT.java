@@ -38,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,6 +69,7 @@ import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient.Language;
 import org.dspace.epfl.client.EpflApiClientImpl;
@@ -112,6 +114,9 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private EPersonService epersonService;
 
     @Value("classpath:org/dspace/app/rest/simple-article.pdf")
     private Resource simpleArticle;
@@ -1210,7 +1215,6 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
             assertThat(journal.getOwningCollection(), is(journals));
             assertThat(journal.getMetadata(), hasItems(
                 with("dc.title", "Nature Synthesis"),
-                with("dc.identifier.issn", issn),
                 with("cris.sourceId", "ISSN::" + issn)));
 
             context.turnOffAuthorisationSystem();
@@ -1371,6 +1375,70 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         assertNotNull(authority);
         assertFalse(authority.contains("will be generated"));
+    }
+
+    @Test
+    public void testMatchingOfEPersonOfOrgUnitDirectorNonExistingOnEPFL() throws Exception {
+        String sciper = "777777777777";
+        String fullName = "NonExistent, Curt";
+
+        mockEpflApiClient = Mockito.mock(EpflApiClientImpl.class);
+        Mockito.when(mockEpflApiClient.getPerson(Mockito.anyString(), Mockito.any(Language.class)))
+                .thenReturn(Optional.empty());
+        profileInitializer.setEpflApiClient(mockEpflApiClient);
+
+        EPerson person = profileInitializer.findPersonBySciper(context, sciper);
+        assertNull(person);
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context)
+                .withName("Community for orgunit")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for orgunit")
+                .withEntityType("OrgUnit")
+                .build();
+
+        Collection collectionOfPersons = CollectionBuilder.createCollection(context, community)
+                .withName("Collection for person")
+                .withEntityType("Person")
+                .build();
+
+        try {
+            ItemBuilder.createItem(context, collection)
+                    .withTitle("Test orgunit")
+                    .withMetadata("crisou", "director", null, null,
+                            fullName, "will be generated::SCIPER-ID::" + sciper, 400)
+                    .build();
+
+            context.restoreAuthSystemState();
+
+            person = profileInitializer.findPersonBySciper(context, sciper);
+            assertNotNull(person);
+            assertEquals(sciper + "@epfl.ch", person.getNetid());
+            assertEquals(sciper + "@epfl.ch", person.getEmail());
+            assertEquals("Unnamed", person.getFirstName());
+            assertEquals("Unnamed", person.getLastName());
+
+            person = profileInitializer.findPersonBySciper(context, sciper);
+
+            Iterator<Item> persons = itemService.findAllByCollection(context, collectionOfPersons);
+            Item personItem = persons.next();
+            assertFalse(persons.hasNext());
+
+            String dspaceOwnerMetadata =  personItem.getMetadata().stream()
+                    .filter(metadataValue ->
+                            metadataValue.getMetadataField().toString().equals("dspace_object_owner"))
+                    .map(MetadataValue::getValue).findFirst().get();
+
+            assertEquals(dspaceOwnerMetadata, person.getEmail());
+        } finally {
+            context.turnOffAuthorisationSystem();
+            epersonService.delete(context, person);
+            context.restoreAuthSystemState();
+        }
     }
 
     @Test

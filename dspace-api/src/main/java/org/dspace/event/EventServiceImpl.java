@@ -134,6 +134,11 @@ public class EventServiceImpl implements EventService {
         initPool();
     }
 
+    @Override
+    public boolean isDispatcherDefined(String dispatcherName) {
+        return dispatcherFactory.isDispatcherExist(dispatcherName);
+    }
+
     protected void enumerateConsumers() {
         // Get all configs starting with CONSUMER_PFX
         List<String> propertyNames = configurationService.getPropertyKeys(CONSUMER_PFX);
@@ -168,6 +173,10 @@ public class EventServiceImpl implements EventService {
 
         public PooledObject<Dispatcher> wrap(Dispatcher d) {
             return new DefaultPooledObject<>(d);
+        }
+
+        public boolean isDispatcherExist(String dispatcherName) {
+            return dispatchers.get(dispatcherName) != null;
         }
 
         @Override

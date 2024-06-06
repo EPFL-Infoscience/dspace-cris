@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.content.enhancer;
+package org.dspace.app.rest.enhancer;
 
 import java.sql.SQLException;
 import java.util.UUID;
@@ -17,10 +17,12 @@ import org.dspace.core.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty("related-item-enhancer-poller.enabled")
 public class RelatedItemEnhancerUpdatePoller {
     private static final Logger log = LoggerFactory.getLogger(RelatedItemEnhancerUpdatePoller.class);
     @Autowired
@@ -29,18 +31,22 @@ public class RelatedItemEnhancerUpdatePoller {
     @Autowired
     private ItemService itemService;
 
-    @Scheduled(fixedDelayString = "${related-item-enhancer-poller.delay:-1}")
+    @Scheduled(fixedDelayString = "${related-item-enhancer-poller.delay}")
     public void pollItemToUpdateAndProcess() {
         try {
+            log.debug("item enhancer poller executed");
             Context context = new Context();
             context.turnOffAuthorisationSystem();
             UUID extractedUuid;
             while ((extractedUuid = itemEnhancerService.pollItemToUpdate(context)) != null) {
+                log.debug("item enhancer poller processing {}", extractedUuid);
                 Item item = itemService.find(context, extractedUuid);
                 if (item != null) {
                     itemEnhancerService.enhance(context, item, true);
                 }
+                log.debug("item enhancer poller committing");
                 context.commit();
+                context.clear();
             }
             context.restoreAuthSystemState();
             context.complete();

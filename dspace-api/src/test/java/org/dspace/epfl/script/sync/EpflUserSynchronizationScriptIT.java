@@ -181,9 +181,6 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", -1),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -289,9 +286,6 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
             with("person.birthDate", "1992-06-26"), // existing extra metadata are preserved
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", -1),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -435,9 +429,6 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", -1),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -543,9 +534,6 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("person.givenName", "Haitham"),
             with("person.familyName", "Al Hassanieh"),
             with("person.email", "haitham.alhassanieh@epfl.ch"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("person.affiliation.name", "SENS", "will be referenced::ACRONYM::SENS", -1),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
@@ -574,6 +562,53 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+    }
+
+    @Test
+    public void testUpdateAffiliationsWithNotActiveAffiliations()
+            throws SQLException, AuthorizeException, InstantiationException, IllegalAccessException {
+
+        context.turnOffAuthorisationSystem();
+
+
+        Item sensAff = ItemBuilder.createItem(context, orgUnits)
+                .withTitle("Laboratory of Sensing and Networking Systems")
+                .withAcronym("SENS").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withTitle("SCI-CDH-FGB")
+                .withAcronym("SCI-CDH-FGB").build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withTitle("SHS-ENS")
+                .withAcronym("SHS-ENS").build();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Graezer", "Bideau")
+                .withEmail("florence.graezerbideau@epfl.ch")
+                .withNetId("196358@epfl.ch")
+                .build();
+
+        Item existingProfile = ItemBuilder
+                .createItem(context, profiles)
+                .withDspaceObjectOwner(eperson)
+                .withTitle("Graezer, Bideau").build();
+
+        context.restoreAuthSystemState();
+
+        // run script
+        String[] args = new String[]{"epfl-user-synchronization", "-e", admin.getEmail()};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        //After actually sync all values check that process will run with no problem and no changes
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
     }
 
     @Test

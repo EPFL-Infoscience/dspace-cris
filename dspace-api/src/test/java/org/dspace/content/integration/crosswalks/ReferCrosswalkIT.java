@@ -2428,10 +2428,10 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(resultLines.length, is(6));
         assertThat(resultLines[0].trim(), is("<person>"));
         assertThat(resultLines[1].trim(), is("<citations>"));
-        assertThat(resultLines[2].trim(), is("<citation>John Smith. (2020, April 1). "
-            + "Second Publication. Retrieved from http://localhost:4000/handle/123456789/99999</citation>"));
-        assertThat(resultLines[3].trim(), is("<citation>John Smith, &amp; Walter White. (2020, January 1). First "
-            + "Publication. Test publisher. Retrieved from http://localhost:4000/handle/123456789/111111</citation>"));
+        assertThat(resultLines[2].trim(), is("<citation>John Smith. (2020). "
+            + "Second Publication. http://localhost:4000/handle/123456789/99999</citation>"));
+        assertThat(resultLines[3].trim(), is("<citation>John Smith, &amp; Walter White. (2020). First "
+            + "Publication. Test publisher. http://localhost:4000/handle/123456789/111111</citation>"));
         assertThat(resultLines[4].trim(), is("</citations>"));
         assertThat(resultLines[5].trim(), is("</person>"));
 
@@ -2464,8 +2464,8 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         String[] resultLines = out.toString().split("\n");
         assertThat(resultLines.length, is(3));
         assertThat(resultLines[0].trim(), is("<publication>"));
-        assertThat(resultLines[1].trim(), is("<citation>John Smith, &amp; Walter White. (2020, January 1). "
-            + "Publication. Test publisher. Retrieved from http://localhost:4000/handle/123456789/111111</citation>"));
+        assertThat(resultLines[1].trim(), is("<citation>John Smith, &amp; Walter White. (2020). "
+            + "Publication. Test publisher. http://localhost:4000/handle/123456789/111111</citation>"));
         assertThat(resultLines[2].trim(), is("</publication>"));
 
     }
@@ -3078,6 +3078,33 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("epfl-publication-marc.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    public void testEpflThesisDataciteXMLDisseminate() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item itemWithPreviousEPFLDOI = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("itemWithPreviousEPFLDOI")
+                .withAuthor("Student, Name")
+                .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
+                .withPublisher("School of XXX")
+                .withWrittenAt("EPFL")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("publication-datacite-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, itemWithPreviousEPFLDOI, out);
+
+        try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite.xml")) {
             String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
             compareEachLine(out.toString(), expectedXml);
         }

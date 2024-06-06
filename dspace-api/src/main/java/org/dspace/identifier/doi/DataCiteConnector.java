@@ -46,6 +46,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.dspace.identifier.DOI;
+import org.dspace.identifier.service.DOIService;
 import org.dspace.services.ConfigurationService;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -108,6 +109,9 @@ public class DataCiteConnector
     protected String PASSWORD;
     @Autowired
     protected HandleService handleService;
+
+    @Autowired(required = true)
+    protected DOIService doiService;
 
     @Autowired
     private ItemService itemService;
@@ -363,15 +367,18 @@ public class DataCiteConnector
             // sent to DataCite. So we add it to the XML we'll send to DataCite
             // and we'll add it to the DSO after successful registration.
             root = addDOI(doi, root);
-        } else if (!metadataDOI.equals(doi.substring(DOI.SCHEME.length()))) {
-            log.error("While reserving a DOI, the "
-                          + "crosswalk to generate the metadata used another DOI than "
-                          + "the DOI we're reserving (" + metadataDOI + "). Cannot reserve DOI " + doi
-                          + " for " + dSpaceObjectService.getTypeText(dso) + " "
-                          + dso.getID() + ".");
-            throw new IllegalStateException("An internal error occured while "
-                                                + "generating the metadata. Unable to reserve doi, see logs "
-                                                + "for further information.");
+        } else {
+            String metadataDOIUrn = doiService.formatIdentifier(metadataDOI);
+            if (!metadataDOIUrn.equals(doi)) {
+                log.error("While reserving a DOI, the "
+                              + "crosswalk to generate the metadata used another DOI than "
+                              + "the DOI we're reserving (" + metadataDOI + "). Cannot reserve DOI " + doi
+                              + " for " + dSpaceObjectService.getTypeText(dso) + " "
+                              + dso.getID() + ".");
+                throw new IllegalStateException("An internal error occured while "
+                                                    + "generating the metadata. Unable to reserve doi, see logs "
+                                                    + "for further information.");
+            }
         }
 
         // send metadata as post to mds/metadata
