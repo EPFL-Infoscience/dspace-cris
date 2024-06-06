@@ -98,6 +98,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
     private static final String PATENT = "Patent";
     private static final int LIMIT = 10;
 
+    int importedItemsCounter = 0;
+
     private String service;
 
     private String extraQuery;
@@ -168,6 +170,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             : getDefaultTotalSearchLimit();
         this.perResearcherSearchLimit = getDefaultPerResearcherSearchLimit();
         workspaceItemImportedDoi = new ArrayList<>();
+        importedItemsCounter = 0;
     }
 
     private void putServiceIfExists(String key, String serviceName) {
@@ -328,13 +331,21 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                 }
             }
-        } catch (SQLException | InterruptedException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            if (context.isValid()) {
+                context.commit();
+            }
+            printImportedItemsSummary();
         }
-        context.commit();
         handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
         handler.logInfo("Update end");
+    }
+
+    private void printImportedItemsSummary() {
+        handler.logInfo("SUMMARY: with process " + importedItemsCounter + " items were imported");
     }
 
     private MetadataValue getOwner(Item item) {
@@ -446,8 +457,12 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
                                         " and put in status: " + finalState);
+                    importedItemsCounter++;
                     imported++;
-                    workspaceItemImportedDoi.add(dataObject.getId());
+                    String externalId = dataObject.getId();
+                    if (StringUtils.isNotBlank(externalId)) {
+                        workspaceItemImportedDoi.add(externalId);
+                    }
                 }
                 countDataObjects++;
             }

@@ -7,10 +7,8 @@
  */
 package org.dspace.content.authority;
 
-
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +25,6 @@ import org.dspace.eperson.service.GroupService;
 import org.dspace.util.UUIDUtils;
 import org.dspace.web.ContextUtil;
 
-
 /**
  * Implementation of {@link ChoiceAuthority} based on ThematicCuratorGroup. Allows you to set
  * the id of an eperson as authority.
@@ -38,7 +35,7 @@ public class ThematicCuratorEPersonAuthority implements ChoiceAuthority {
 
     private static final Logger log = LogManager.getLogger(ThematicCuratorEPersonAuthority.class);
 
-    private static final String THEMATIC_AREA_GROUP_NAME = "ThematicAreaCurators";
+    public static final String THEMATIC_AREA_GROUP_NAME = "ThematicAreaCurators";
 
     /**
      * the name assigned to the specific instance by the PluginService, @see
@@ -96,11 +93,6 @@ public class ThematicCuratorEPersonAuthority implements ChoiceAuthority {
     }
 
     private List<EPerson> searchEPersons(Context context, String text, int start, int limit) {
-
-        if (!isCurrentUserAdminOrAccessGroupManager(context)) {
-            return Collections.emptyList();
-        }
-
         try {
             List<EPerson> allEPersonsFromSearch = ePersonService.search(context, text, start, limit);
             Group group = groupService.findByName(context, THEMATIC_AREA_GROUP_NAME);
