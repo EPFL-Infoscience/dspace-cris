@@ -200,25 +200,35 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
 
         List<CrisLayoutTab> layoutTabs =
             Optional.ofNullable(this.configurationService.getProperty("dspace.metadata.layout.tab"))
-                    .map(metadataField -> this.itemService.getMetadataByMetadataString(item, metadataField))
-                    .filter(metadatas -> !metadatas.isEmpty())
-                    .map(metadatas -> metadatas.get(0))
-                    .map(metadata ->
-                            findValidEntityType(context, entityTypeValue, submissionName + "." +
-                                metadata.getAuthority())
-                                .orElse(
-                                    findValidEntityType(context, entityTypeValue, submissionName + "." +
-                                        metadata.getValue())
-                                        .orElse(findValidEntityType(context, entityTypeValue, metadata.getAuthority())
-                                            .orElse(findValidEntityType(context, entityTypeValue, metadata.getValue())
-                                                .orElse(null))))
-                    )
-                    .orElse(findValidEntityType(context, entityTypeValue, submissionName)
-                    .orElse(findByEntityType(context, entityTypeValue, null)));
+                .map(metadataField -> this.itemService.getMetadataByMetadataString(item, metadataField))
+                .filter(metadatas -> !metadatas.isEmpty())
+                .map(metadatas -> metadatas.get(0))
+                .map(metadata ->
+                        findValidEntityType(context, entityTypeValue, submissionName + "." +
+                            metadata.getAuthority())
+                            .orElse(
+                                findValidEntityType(context, entityTypeValue, submissionName + "." +
+                                    metadata.getValue())
+                                    .orElse(findValidEntityType(context, entityTypeValue, metadata.getAuthority())
+                                        .orElse(findValidEntityType(context, entityTypeValue, metadata.getValue())
+                                            .orElse(null))))
+                )
+                .orElse(findValidEntityType(context, entityTypeValue, submissionName)
+                .orElseGet(() -> getByEntityType(context, entityTypeValue)));
+
+
         if (layoutTabs == null) {
             return Collections.emptyList();
         }
         return layoutTabs;
+    }
+
+    private List<CrisLayoutTab> getByEntityType(Context context, String entityTypeValue) {
+        try {
+            return findByEntityType(context, entityTypeValue, null);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
