@@ -36,7 +36,7 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
                         .param("molteplicity", SINGLE.name())
                         .param("entityTypeId", "Publication"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(6)));
+                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(7)));
     }
 
     @Test

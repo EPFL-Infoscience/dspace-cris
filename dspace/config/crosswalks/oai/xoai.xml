@@ -61,110 +61,110 @@
 
 
     <Formats>
-        <Format id="oaidc">
+         <Format id="oaidc">
             <Prefix>oai_dc</Prefix>
             <XSLT>metadataFormats/oai_dc.xsl</XSLT>
             <Namespace>http://www.openarchives.org/OAI/2.0/oai_dc/</Namespace>
             <SchemaLocation>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</SchemaLocation>
         </Format>
-        <Format id="mets">
-            <Prefix>mets</Prefix>
-            <XSLT>metadataFormats/mets.xsl</XSLT>
-            <Namespace>http://www.loc.gov/METS/</Namespace>
-            <SchemaLocation>http://www.loc.gov/standards/mets/mets.xsd</SchemaLocation>
-        </Format>
-        <!-- Shows the XOAI internal generated XML -->
-        <Format id="xoai">
-            <Prefix>xoai</Prefix>
-            <XSLT>metadataFormats/xoai.xsl</XSLT>
-            <Namespace>http://www.lyncode.com/xoai</Namespace>
-            <SchemaLocation>http://www.lyncode.com/schemas/xoai.xsd</SchemaLocation>
-        </Format>
-        <Format id="didl">
-            <Prefix>didl</Prefix>
-            <XSLT>metadataFormats/didl.xsl</XSLT>
-            <Namespace>urn:mpeg:mpeg21:2002:02-DIDL-NS</Namespace>
-            <SchemaLocation>http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-21_schema_files/did/didl.xsd
-            </SchemaLocation>
-        </Format>
-        <Format id="dim">
-            <Prefix>dim</Prefix>
-            <XSLT>metadataFormats/dim.xsl</XSLT>
-            <Namespace>http://www.dspace.org/xmlns/dspace/dim</Namespace>
-            <SchemaLocation>http://www.dspace.org/schema/dim.xsd</SchemaLocation>
-        </Format>
-        <Format id="ore">
-            <Prefix>ore</Prefix>
-            <XSLT>metadataFormats/ore.xsl</XSLT>
-            <Namespace>http://www.w3.org/2005/Atom</Namespace>
-            <SchemaLocation>http://tweety.lanl.gov/public/schemas/2008-06/atom-tron.sch</SchemaLocation>
-        </Format>
-        <Format id="rdf">
-            <Prefix>rdf</Prefix>
-            <XSLT>metadataFormats/rdf.xsl</XSLT>
-            <Namespace>http://www.openarchives.org/OAI/2.0/rdf/</Namespace>
-            <SchemaLocation>http://www.openarchives.org/OAI/2.0/rdf.xsd</SchemaLocation>
-        </Format>
-        <Format id="etdms">
-            <Prefix>etdms</Prefix>
-            <XSLT>metadataFormats/etdms.xsl</XSLT>
-            <Namespace>http://www.ndltd.org/standards/metadata/etdms/1.0/</Namespace>
-            <SchemaLocation>http://www.ndltd.org/standards/metadata/etdms/1.0/etdms.xsd</SchemaLocation>
-        </Format>
-        <Format id="mods">
-            <Prefix>mods</Prefix>
-            <XSLT>metadataFormats/mods.xsl</XSLT>
-            <Namespace>http://www.loc.gov/mods/v3</Namespace>
-            <SchemaLocation>http://www.loc.gov/standards/mods/v3/mods-3-1.xsd</SchemaLocation>
-        </Format>
-        <Format id="qdc">
-            <Prefix>qdc</Prefix>
-            <XSLT>metadataFormats/qdc.xsl</XSLT>
-            <Namespace>http://purl.org/dc/terms/</Namespace>
-            <SchemaLocation>http://dublincore.org/schemas/xmls/qdc/2006/01/06/dcterms.xsd</SchemaLocation>
-        </Format>
-        <Format id="marc">
+<!--        <Format id="mets">-->
+<!--            <Prefix>mets</Prefix>-->
+<!--            <XSLT>metadataFormats/mets.xsl</XSLT>-->
+<!--            <Namespace>http://www.loc.gov/METS/</Namespace>-->
+<!--            <SchemaLocation>http://www.loc.gov/standards/mets/mets.xsd</SchemaLocation>-->
+<!--        </Format>-->
+<!--        &lt;!&ndash; Shows the XOAI internal generated XML &ndash;&gt;-->
+<!--        <Format id="xoai">-->
+<!--            <Prefix>xoai</Prefix>-->
+<!--            <XSLT>metadataFormats/xoai.xsl</XSLT>-->
+<!--            <Namespace>http://www.lyncode.com/xoai</Namespace>-->
+<!--            <SchemaLocation>http://www.lyncode.com/schemas/xoai.xsd</SchemaLocation>-->
+<!--        </Format>-->
+<!--        <Format id="didl">-->
+<!--            <Prefix>didl</Prefix>-->
+<!--            <XSLT>metadataFormats/didl.xsl</XSLT>-->
+<!--            <Namespace>urn:mpeg:mpeg21:2002:02-DIDL-NS</Namespace>-->
+<!--            <SchemaLocation>http://standards.iso.org/ittf/PubliclyAvailableStandards/MPEG-21_schema_files/did/didl.xsd-->
+<!--            </SchemaLocation>-->
+<!--        </Format>-->
+<!--        <Format id="dim">-->
+<!--            <Prefix>dim</Prefix>-->
+<!--            <XSLT>metadataFormats/dim.xsl</XSLT>-->
+<!--            <Namespace>http://www.dspace.org/xmlns/dspace/dim</Namespace>-->
+<!--            <SchemaLocation>http://www.dspace.org/schema/dim.xsd</SchemaLocation>-->
+<!--        </Format>-->
+<!--        <Format id="ore">-->
+<!--            <Prefix>ore</Prefix>-->
+<!--            <XSLT>metadataFormats/ore.xsl</XSLT>-->
+<!--            <Namespace>http://www.w3.org/2005/Atom</Namespace>-->
+<!--            <SchemaLocation>http://tweety.lanl.gov/public/schemas/2008-06/atom-tron.sch</SchemaLocation>-->
+<!--        </Format>-->
+<!--        <Format id="rdf">-->
+<!--            <Prefix>rdf</Prefix>-->
+<!--            <XSLT>metadataFormats/rdf.xsl</XSLT>-->
+<!--            <Namespace>http://www.openarchives.org/OAI/2.0/rdf/</Namespace>-->
+<!--            <SchemaLocation>http://www.openarchives.org/OAI/2.0/rdf.xsd</SchemaLocation>-->
+<!--        </Format>-->
+<!--        <Format id="etdms">-->
+<!--            <Prefix>etdms</Prefix>-->
+<!--            <XSLT>metadataFormats/etdms.xsl</XSLT>-->
+<!--            <Namespace>http://www.ndltd.org/standards/metadata/etdms/1.0/</Namespace>-->
+<!--            <SchemaLocation>http://www.ndltd.org/standards/metadata/etdms/1.0/etdms.xsd</SchemaLocation>-->
+<!--        </Format>-->
+<!--        <Format id="mods">-->
+<!--            <Prefix>mods</Prefix>-->
+<!--            <XSLT>metadataFormats/mods.xsl</XSLT>-->
+<!--            <Namespace>http://www.loc.gov/mods/v3</Namespace>-->
+<!--            <SchemaLocation>http://www.loc.gov/standards/mods/v3/mods-3-1.xsd</SchemaLocation>-->
+<!--        </Format>-->
+<!--        <Format id="qdc">-->
+<!--            <Prefix>qdc</Prefix>-->
+<!--            <XSLT>metadataFormats/qdc.xsl</XSLT>-->
+<!--            <Namespace>http://purl.org/dc/terms/</Namespace>-->
+<!--            <SchemaLocation>http://dublincore.org/schemas/xmls/qdc/2006/01/06/dcterms.xsd</SchemaLocation>-->
+<!--        </Format>-->
+         <Format id="marc">
             <Prefix>marcxml</Prefix>
             <XSLT>metadataFormats/marc.xsl</XSLT>
             <Namespace>http://www.loc.gov/MARC21/slim</Namespace>
             <SchemaLocation>http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd</SchemaLocation>
         </Format>
-        <Format id="uketd_dc">
-            <Prefix>uketd_dc</Prefix>
-            <XSLT>metadataFormats/uketd_dc.xsl</XSLT>
-            <Namespace>http://naca.central.cranfield.ac.uk/ethos-oai/2.0/</Namespace>
-            <SchemaLocation>http://naca.central.cranfield.ac.uk/ethos-oai/2.0/uketd_dc.xsd</SchemaLocation>
-            <Filter ref="uketdDcFilter"/>
-        </Format>
-        <Format id="junii2">
-            <Prefix>junii2</Prefix>
-            <XSLT>metadataFormats/junii2.xsl</XSLT>
-            <Namespace>http://irdb.nii.ac.jp/oai</Namespace>
-            <SchemaLocation>http://irdb.nii.ac.jp/oai/junii2-3-1.xsd</SchemaLocation>
-        </Format>
+<!--        <Format id="uketd_dc">-->
+<!--            <Prefix>uketd_dc</Prefix>-->
+<!--            <XSLT>metadataFormats/uketd_dc.xsl</XSLT>-->
+<!--            <Namespace>http://naca.central.cranfield.ac.uk/ethos-oai/2.0/</Namespace>-->
+<!--            <SchemaLocation>http://naca.central.cranfield.ac.uk/ethos-oai/2.0/uketd_dc.xsd</SchemaLocation>-->
+<!--            <Filter ref="uketdDcFilter"/>-->
+<!--        </Format>-->
+<!--        <Format id="junii2">-->
+<!--            <Prefix>junii2</Prefix>-->
+<!--            <XSLT>metadataFormats/junii2.xsl</XSLT>-->
+<!--            <Namespace>http://irdb.nii.ac.jp/oai</Namespace>-->
+<!--            <SchemaLocation>http://irdb.nii.ac.jp/oai/junii2-3-1.xsd</SchemaLocation>-->
+<!--        </Format>-->
         <!-- Metadata format based on the OpenAIRE 4.0 guidelines
              https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/use_of_oai_pmh.html
         -->
-        <Format id="oaiopenaire">
+         <Format id="oaiopenaire">
             <Prefix>oai_openaire</Prefix>
             <XSLT>metadataFormats/oai_openaire.xsl</XSLT>
             <Namespace>http://namespace.openaire.eu/schema/oaire/</Namespace>
             <SchemaLocation>https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd</SchemaLocation>
         </Format>
-        <!-- set the format for openaire cerif profile -->
-        <Format id="oai_cerif">
-            <Prefix>oai_cerif_openaire</Prefix>
-            <XSLT>metadataFormats/oai_cerif.xsl</XSLT>
-            <Namespace>https://www.openaire.eu/cerif-profile/1.1/</Namespace>
-            <SchemaLocation>https://www.openaire.eu/schema/cris/1.1/openaire-cerif-profile.xsd</SchemaLocation>
-        </Format>
-        <!-- set the format that use the new XSL file called datacite41-openaire -->
-        <Format id="datacite41_openaire">
-            <Prefix>oai_datacite</Prefix>
-            <XSLT>metadataFormats/datacite41-openaire.xsl</XSLT>
-            <Namespace>http://schema.datacite.org/oai/oai-1.1/</Namespace>
-            <SchemaLocation>http://schema.datacite.org/oai/oai-1.1/oai.xsd</SchemaLocation>
-        </Format>
+<!--        &lt;!&ndash; set the format for openaire cerif profile &ndash;&gt;-->
+<!--        <Format id="oai_cerif">-->
+<!--            <Prefix>oai_cerif_openaire</Prefix>-->
+<!--            <XSLT>metadataFormats/oai_cerif.xsl</XSLT>-->
+<!--            <Namespace>https://www.openaire.eu/cerif-profile/1.1/</Namespace>-->
+<!--            <SchemaLocation>https://www.openaire.eu/schema/cris/1.1/openaire-cerif-profile.xsd</SchemaLocation>-->
+<!--        </Format>-->
+<!--        &lt;!&ndash; set the format that use the new XSL file called datacite41-openaire &ndash;&gt;-->
+<!--        <Format id="datacite41_openaire">-->
+<!--            <Prefix>oai_datacite</Prefix>-->
+<!--            <XSLT>metadataFormats/datacite41-openaire.xsl</XSLT>-->
+<!--            <Namespace>http://schema.datacite.org/oai/oai-1.1/</Namespace>-->
+<!--            <SchemaLocation>http://schema.datacite.org/oai/oai-1.1/oai.xsd</SchemaLocation>-->
+<!--        </Format>-->
     </Formats>
 
     <Transformers>
