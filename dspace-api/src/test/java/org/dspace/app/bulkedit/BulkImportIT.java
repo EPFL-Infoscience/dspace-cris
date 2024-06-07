@@ -1000,7 +1000,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
 
         Collection orgunits = createCollection(context, community)
-            .withSubmissionDefinition("orgunit")
+            .withSubmissionDefinition("orgunit-for-test")
             .withAdminGroup(eperson)
             .build();
 
