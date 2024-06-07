@@ -535,6 +535,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
+        // we don't expect any change to be performed
         profileInitializer.createOrUpdateProfile(context, eperson);
 
         researcherProfile = researcherProfileService.findById(context, eperson.getID());
@@ -543,7 +544,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item updatedProfile = researcherProfile.getItem();
         assertThat(updatedProfile, is(profile));
 
-        assertThat(updatedProfile.getMetadata(), hasSize(39));
+        assertThat(updatedProfile.getMetadata(), hasSize(27));
 
         Bitstream newPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(newPicture, notNullValue());
