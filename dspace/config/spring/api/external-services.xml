@@ -91,6 +91,7 @@
             </list>
         </property>
     </bean>
+    <bean id="crossRefLiveImportDataProviderProcess" parent="crossRefLiveImportDataProvider" scope="prototype"/>
 
     <bean id="wosLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="WosImportService"/>
@@ -102,6 +103,7 @@
             </list>
         </property>
     </bean>
+    <bean id="wosLiveImportDataProviderProcess" parent="wosLiveImportDataProvider" scope="prototype"/>
 
     <bean id="scopusLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="ScopusImportService"/>
@@ -113,6 +115,7 @@
             </list>
         </property>
     </bean>
+    <bean id="scopusLiveImportDataProviderProcess" parent="scopusLiveImportDataProvider" scope="prototype"/>
 
     <bean id="pubmedLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="pubmedImportService"/>
@@ -137,6 +140,7 @@
             </list>
         </property>
     </bean>
+    <bean id="arxivLiveImportDataProviderProcess" parent="arxivLiveImportDataProvider" scope="prototype"/>
 
     <bean id="epoLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="EpoImportService"/>
@@ -148,6 +152,7 @@
             </list>
         </property>
     </bean>
+    <bean id="epoLiveImportDataProviderProcess" parent="epoLiveImportDataProvider" scope="prototype"/>
 
     <bean id="dataciteLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="DataCiteImportService"/>
