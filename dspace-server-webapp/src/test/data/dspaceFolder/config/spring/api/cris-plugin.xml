@@ -167,6 +167,7 @@
                 <entry key="URL" value-ref="itemSearcherByURL"/>
                 <entry key="ISSN" value-ref="itemSearcherByISSN"/>
                 <entry key="OPENAIRE-PROJECT-ID" value-ref="itemSearcherByOpenaireProjectId"/>
+                <entry key="SCIPER-ID" value-ref="itemSearcherBySciper"/>
                 <entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
                 <entry key="SCOPUS-AUTHOR-ID" value-ref="itemSearcherByScopusAuthorId"/>
                 <entry key="ACRONYM" value-ref="itemSearcherByAcronym"/>
@@ -216,6 +217,11 @@
         <constructor-arg value="oairecerif.funding.identifier"></constructor-arg>
         <constructor-arg value="OPENAIRE-PROJECT-ID"></constructor-arg>
     </bean>
+
+  <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherBySciper">
+    <constructor-arg value="epfl.sciperId" />
+    <constructor-arg value="SCIPER-ID" />
+  </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByLegacyId">
         <constructor-arg value="cris.legacyId"></constructor-arg>

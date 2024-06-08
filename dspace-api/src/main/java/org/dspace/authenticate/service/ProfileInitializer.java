@@ -62,7 +62,6 @@ import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.client.model.PersonDTO.Accred;
-import org.dspace.epfl.service.OrgUnitApiService;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
@@ -79,7 +78,7 @@ public class ProfileInitializer {
         List.of("oairecerif.affiliation.role", "oairecerif.person.affiliation",
                 "oairecerif.affiliation.startDate", "oairecerif.affiliation.endDate");
     private final static Logger LOGGER = LoggerFactory.getLogger(ProfileInitializer.class);
-    private static final String SUBMITTERS = "Submitter";
+    public static final String SUBMITTERS = "Submitter";
 
     @Autowired
     private ResearcherProfileService researcherProfileService;
@@ -94,9 +93,6 @@ public class ProfileInitializer {
     private PersonApiService personApiService;
 
     @Autowired
-    private OrgUnitApiService orgUnitApiService;
-
-    @Autowired
     private ConfigurationService configurationService;
 
     @Autowired
@@ -105,7 +101,6 @@ public class ProfileInitializer {
     @Autowired
     private GroupService groupService;
 
-    private DCInputsReader dcInputsReader;
     private EpflApiClientImpl epflApiClient;
 
     public ProfileInitializer() {

@@ -62,8 +62,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import arq.sse;
-
 public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWithDatabase {
 
     private ResearcherProfileService researcherProfileService = new DSpace()
