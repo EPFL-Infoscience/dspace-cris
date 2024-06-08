@@ -62,6 +62,7 @@ import org.dspace.builder.PoolTaskBuilder;
 import org.dspace.builder.RelationshipBuilder;
 import org.dspace.builder.RelationshipTypeBuilder;
 import org.dspace.builder.SupervisionOrderBuilder;
+import org.dspace.builder.VersionBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
@@ -76,7 +77,11 @@ import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.EntityTypeService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.CrisConstants;
+import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
@@ -89,10 +94,12 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.supervision.SupervisionOrder;
 import org.dspace.util.UUIDUtils;
 import org.dspace.utils.DSpace;
+import org.dspace.versioning.Version;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +111,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
     @Autowired
     MetadataAuthorityService metadataAuthorityService;
+
+    @Autowired
+    private ItemService itemService;
+
+    @Autowired
+    private InstallItemService installItemService;
+
+    @Autowired
+    private IndexingService indexingService;
+
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
 
     @Autowired
     private DiscoveryConfigurationService discoveryConfigurationService;
@@ -8005,5 +8024,79 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$._embedded.values", contains(
                         FacetValueMatcher.entryDateIssuedWithLabelAndCount("journal article", 1)
                 )));
+    }
+
+    @Test
+    public void testLatestVersionForVirtualCollectionRelation() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+
+        final Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("Publication")
+                .build();
+
+        final Collection virtualCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("VirtualCollection")
+                .build();
+
+        final Collection people = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("Person")
+                .build();
+
+
+        Item firstPerson = ItemBuilder.createItem(context, people)
+                .withTitle("Doe, John").build();
+
+        Item virtualCollectionItem = ItemBuilder.createItem(context, virtualCollection)
+                .withTitle("VC for new version test")
+                .withMetadata("epfl", "virtualCollection", "query", "nothing:nothing")
+                .withMetadata("epfl", "virtualCollection", "head", "Doe, John")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, publications)
+                .withTitle("TEST FOR VERSION")
+                .withMetadata("epfl", "virtualCollection", null , null,
+                        "VC for new version test", virtualCollectionItem.getID().toString(), -1)
+                .build();
+        context.restoreAuthSystemState();
+
+        context.turnOffAuthorisationSystem();
+
+        // create a new version, the resulting item is not yet archived
+        Version v2 = VersionBuilder.createVersion(context, item, "create: TEST FOR VERSION - 2 version")
+                .build();
+        Item itemVersion = v2.getItem();
+        Assert.assertNotEquals(item, itemVersion);
+
+        // modify the new version
+        itemService.replaceMetadata(
+                context, itemVersion, "dc", "title", null, Item.ANY,
+                "TEST FOR VERSION - 2 version", null, -1, 0
+        );
+        itemService.update(context, itemVersion);
+        context.commit();
+
+        // archive the new version, this implies that VersioningConsumer will unarchive the previous version
+        installItemService.installItem(context, workspaceItemService.findByItem(context, itemVersion));
+        context.commit();
+        indexingService.commit();
+
+        context.restoreAuthSystemState();
+
+        indexingService.deleteIndex();
+        indexingService.createIndex(context);
+        final String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/discover/search/objects")
+                    .param("configuration", "RELATION.VirtualCollection.publications")
+                    .param("scope", virtualCollectionItem.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.configuration", is("RELATION.VirtualCollection.publications")))
+            .andExpect(
+                jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.name",
+                    is("TEST FOR VERSION - 2 version")))
+            .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
     }
 }
