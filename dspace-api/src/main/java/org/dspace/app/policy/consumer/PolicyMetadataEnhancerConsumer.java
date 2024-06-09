@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -195,6 +196,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
 
         try {
             Item loadedItem = this.itemService.find(ctx, item.getID());
+            boolean updated = false;
             Map<MetadataField, List<String>> grouped =
                 Optional.ofNullable(loadedItem)
                         .map(i -> i.getBundles("ORIGINAL"))
@@ -209,27 +211,56 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                         .orElse(this.mapWithMetadataField(ctx, defaultItemMetadatas));
             try {
                 ctx.turnOffAuthorisationSystem();
-                this.itemService.removeMetadataValues(ctx, loadedItem, getRemovableMetadatas(loadedItem));
-
-                grouped
-                    .entrySet()
-                    .stream()
-                    .forEach(
-                        throwingConsumerWrapper(entry ->
-                            this.itemService.addMetadata(ctx, loadedItem, entry.getKey(), null, entry.getValue())
-                        )
-                    );
+                final List<MetadataValue> removableMetadatas = getRemovableMetadatas(loadedItem);
+                final Set<Entry<MetadataField, List<String>>> entrySet = grouped
+                    .entrySet();
+                if (anyDiff(removableMetadatas, entrySet)) {
+                    this.itemService.removeMetadataValues(ctx, loadedItem, removableMetadatas);
+                    entrySet.stream().forEach(
+                            throwingConsumerWrapper(
+                                entry -> this.itemService.addMetadata(ctx,
+                                            loadedItem, entry.getKey(), null, entry.getValue())));
+                    updated = true;
+                }
             } finally {
                 ctx.restoreAuthSystemState();
             }
-            handleDateAvailableMetadata(ctx, item);
-
-            itemsToUpdate.add(loadedItem);
+            updated = handleDateAvailableMetadata(ctx, item);
+            if (updated) {
+                itemsToUpdate.add(loadedItem);
+            }
         } catch (SQLException e) {
             logger.error(MessageFormat.format("Error while processing item {}!", item.getID().toString()), e);
             throw new SQLRuntimeException(e);
         }
 
+    }
+
+    /**
+     * Return true if the metadata in the two structures are different
+     * @param removableMetadatas
+     * @param entrySet
+     * @return true if different
+     */
+    private boolean anyDiff(List<MetadataValue> removableMetadatas, Set<Entry<MetadataField, List<String>>> entrySet) {
+        Map<String, Integer> countValues = new HashMap<String, Integer>();
+        for (MetadataValue m : removableMetadatas) {
+            final String metadataKey = m.getMetadataField().toString('.');
+            Optional<List<String>> values = entrySet.stream()
+                    .filter(entry -> {
+                        return entry.getKey().toString('.').equals(metadataKey);
+                    })
+                    .findFirst().map(entry -> entry.getValue());
+            if (values.isPresent()) {
+                countValues.put(metadataKey, values.get().size());
+                if (!values.get().contains(m.getValue())) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
+        return countValues.entrySet().stream().mapToInt(entry -> entry.getValue()).sum() != removableMetadatas.size();
     }
 
     private Bitstream getRightBitstream(List<Bitstream> bitstreams, Context ctx) {
@@ -265,31 +296,36 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         }
     }
 
-    private void handleDateAvailableMetadata(Context ctx, Item item) throws SQLException {
+    private boolean handleDateAvailableMetadata(Context ctx, Item item) throws SQLException {
         String rights = itemService.getMetadataFirstValue(item, "datacite", "rights", null, Item.ANY);
         if (null == rights || rights.trim().isEmpty()) {
-            return;
+            return false;
         }
         if (List.of(METADATA_ONLY, ACCESS_OPEN).contains(rights)) {
             String dateAccessioned = itemService.getMetadataFirstValue(item, "dc", "date", "accessioned", Item.ANY);
             String dateAvailable = itemService.getMetadataFirstValue(item, "dc", "date", "available", Item.ANY);
             if (Objects.nonNull(dateAccessioned) && !dateAccessioned.equals(dateAvailable)) {
-                updateDateAvailableMetadata(ctx, item, dateAccessioned);
+                return updateDateAvailableMetadata(ctx, item, dateAccessioned);
             }
-            return;
+            return false;
         }
         String dataciteAvailable = itemService.getMetadataFirstValue(item, "datacite", "available", null, Item.ANY);
-        updateDateAvailableMetadata(ctx, item, dataciteAvailable);
+        return updateDateAvailableMetadata(ctx, item, dataciteAvailable);
     }
 
-    private void updateDateAvailableMetadata(Context ctx, Item item, String date) throws SQLException {
+    private boolean updateDateAvailableMetadata(Context ctx, Item item, String date) throws SQLException {
         try {
             ctx.turnOffAuthorisationSystem();
             List<MetadataValue> dateAvailable = itemService.getMetadata(item, "dc", "date", "available", Item.ANY);
-            itemService.removeMetadataValues(ctx, item, dateAvailable);
-            if (null != date && !date.trim().isEmpty()) {
-                itemService.addMetadata(ctx, item, "dc", "date", "available", null, date);
+            String currDateAvailable = itemService.getMetadataFirstValue(item, "dc", "date", "available", Item.ANY);
+            if (dateAvailable.size() > 1 || date == null || !date.equals(currDateAvailable)) {
+                itemService.removeMetadataValues(ctx, item, dateAvailable);
+                if (null != date && !date.trim().isEmpty()) {
+                    itemService.addMetadata(ctx, item, "dc", "date", "available", null, date);
+                }
+                return true;
             }
+            return false;
         } finally {
             ctx.restoreAuthSystemState();
         }
