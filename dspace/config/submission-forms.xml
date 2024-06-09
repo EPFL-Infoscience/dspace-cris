@@ -845,7 +845,6 @@
           <repeatable>false</repeatable>
           <required>The unit type is mandatory</required>
           <hint />
-          <readonly>all</readonly>
         </field>
       </row>
       <row>
