@@ -82,6 +82,9 @@
 				<entry key="epfl-publication" value-ref="epflPublicationsHtml"></entry>
 				<entry key="epfl-publications" value-ref="epflPublicationsHtml"></entry>
 				<entry key="epfl-publication-marc-xml" value-ref="epflPublicationsMarcXml"></entry>
+				<entry key="oai-openaire-publications-marc-xml" value-ref="oaiOpenairePublicationsMarcXml"></entry>
+				<entry key="oai-openaire-patents-marc-xml" value-ref="oaiOpenairePatentsMarcXml"></entry>
+				<entry key="oai-openaire-products-marc-xml" value-ref="oaiOpenaireProductsMarcXml"></entry>
 				<entry key="research-outputs-json" value-ref="researchOutputsJson"></entry>
 
 				<entry key="cerif-xml" value-ref="referCrosswalkCerifXml"></entry>
@@ -218,6 +221,45 @@
 		<property name="publiclyReadable" value="true"/>
 		<property name="findRelatedItems" value="true"/>
 		<property name="entityType" value="all"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="oaiOpenairePublicationsMarcXml">
+		<property name="templateFileName" value="crosswalks/template/oai-openaire-publication-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="publications.xml"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/oai-openaire-publications-xml.template"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
+		<property name="publiclyReadable" value="true"/>
+		<property name="findRelatedItems" value="true"/>
+		<property name="entityType" value="Publication"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="oaiOpenaireProductsMarcXml">
+		<property name="templateFileName" value="crosswalks/template/oai-openaire-product-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="products.xml"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/oai-openaire-publications-xml.template"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
+		<property name="publiclyReadable" value="true"/>
+		<property name="findRelatedItems" value="true"/>
+		<property name="entityType" value="Product"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="oaiOpenairePatentsMarcXml">
+		<property name="templateFileName" value="crosswalks/template/oai-openaire-patent-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="patents.xml"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/epfl-publications-marc-xml.template"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
+		<property name="publiclyReadable" value="true"/>
+		<property name="findRelatedItems" value="true"/>
+		<property name="entityType" value="Patent"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnote">
