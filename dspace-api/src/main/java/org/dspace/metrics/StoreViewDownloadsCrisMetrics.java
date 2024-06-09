@@ -29,7 +29,6 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResultIterator;
 import org.dspace.discovery.SearchServiceException;
@@ -78,7 +77,6 @@ public class StoreViewDownloadsCrisMetrics extends
         assignSpecialGroupsInContext();
         try {
             context.turnOffAuthorisationSystem();
-            context.setMode(Mode.READ_ONLY);
             performUpdateAndStorage(context);
             updateCrisMetricsInSolrDocService.performUpdate(context, handler, commandLine.hasOption("o"));
             context.complete();
