@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static org.dspace.app.launcher.ScriptLauncher.handleScript;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
@@ -38,6 +39,11 @@ import org.dspace.builder.CrisMetricsBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.DiscoverResult.SearchDocument;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.metrics.scopus.ScopusRestConnector;
 import org.dspace.metrics.scopus.UpdateScopusMetrics;
@@ -64,6 +70,9 @@ public class UpdateScopusMetricsIT extends AbstractControllerIntegrationTest {
     ConfigurationService configurationService;
     @Autowired
     private ScopusRestConnector scopusRestConnector;
+    @Autowired
+    private SearchService searchService;
+
     CrisMetrics crisMetrics = null;
 
     private UpdateScopusMetrics updateScopusMetrics;
@@ -119,6 +128,7 @@ public class UpdateScopusMetricsIT extends AbstractControllerIntegrationTest {
             itemA = ItemBuilder.createItem(context, col1)
                     .withDoiIdentifier("10.1016/j.gene.2009.04.019")
                     .withTitle("Title item A").build();
+            Date lastModifiedItemA = itemA.getLastModified();
 
             crisMetrics = CrisMetricsBuilder.createCrisMetrics(context, itemA)
                     .withMetricType(UpdateScopusMetrics.SCOPUS_CITATION)
@@ -147,6 +157,17 @@ public class UpdateScopusMetricsIT extends AbstractControllerIntegrationTest {
             assertEquals(remark, metrics.getRemark());
             assertNull(metrics.getDeltaPeriod1());
             assertNull(metrics.getDeltaPeriod2());
+            itemA = context.reloadEntity(itemA);
+            assertEquals(lastModifiedItemA.getTime(), itemA.getLastModified().getTime());
+            DiscoverQuery query = new DiscoverQuery();
+            query.setQuery(SearchUtils.RESOURCE_ID_FIELD + ":" + itemA.getID().toString());
+            DiscoverResult result = searchService.search(context, query);
+            final SearchDocument searchDocument = result.getSearchDocument(result.getIndexableObjects().get(0)).get(0);
+            assertThat("last import should be set in solr",
+                    searchDocument.getSearchFieldValues("cris.lastimport.scopus") != null);
+            assertThat("last import _dt should be set in solr",
+                    searchDocument.getSearchFieldValues("cris.lastimport.scopus_dt") != null);
+
         } finally {
             CrisMetricsBuilder.deleteCrisMetrics(itemA);
             scopusRestConnector.setHttpClient(originalHttpClient);

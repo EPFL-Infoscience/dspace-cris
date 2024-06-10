@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,11 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.DiscoverResult.SearchDocument;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.script2externalservices.CreateWorkspaceItemWithExternalSource;
@@ -50,7 +56,6 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -69,6 +74,8 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
     private WorkspaceItemService workspaceItemService;
     @Autowired
     private ItemService itemService;
+    @Autowired
+    private SearchService searchService;
 
     @SuppressWarnings("unused")
     private Item itemPersonA;
@@ -111,18 +118,20 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                                         .withWorkflowGroup(1, admin)
                                         .build();
 
-        configurationService.setProperty("directorios.community-id", parentCommunity.getID());
         configurationService.setProperty("scopus.importworkspaceitem.collection-id", this.col2Scopus.getID());
         configurationService.setProperty("wos.importworkspaceitem.collection-id", this.col2WOS.getID());
         createWorkspaceItemService = new CreateWorkspaceItemWithExternalSource();
         nameToProvider = new HashMap<String, LiveImportDataProvider>();
         mockScopusProvider = Mockito.mock(LiveImportDataProvider.class);
+        when(mockScopusProvider.getSourceIdentifier()).thenReturn("scopus");
         mockWosProvider = Mockito.mock(LiveImportDataProvider.class);
+        when(mockWosProvider.getSourceIdentifier()).thenReturn("wos");
         mockCrossrefProvider = Mockito.mock(LiveImportDataProvider.class);
+        when(mockCrossrefProvider.getSourceIdentifier()).thenReturn("crossref");
         mockArxivProvider = Mockito.mock(LiveImportDataProvider.class);
+        when(mockArxivProvider.getSourceIdentifier()).thenReturn("arxiv");
     }
 
-    @Ignore
     @Test
     public void creatingWorkspaceItemImportedFromScopusTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -213,7 +222,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                  .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
 
-    @Ignore
     @Test
     public void createOnlyOneWorkspaceItemImportedFromScopusTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -300,7 +308,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                  .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
-    @Ignore
     @Test
     public void scopusAuthorIdentifierNotFoundTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -327,7 +334,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(0)));
     }
 
-    @Ignore
     @Test
     public void creatingWorkspaceItemImportedFromWOSTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -430,12 +436,14 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         configurationService.setProperty("webui.submit.upload.required", false);
 
         this.itemPersonA = ItemBuilder.createItem(context, this.col1)
+                .withTitle("SAUCEDO, EDWIN")
                 .withPersonIdentifierFirstName("EDWIN")
                 .withPersonIdentifierLastName("SAUCEDO")
                 .withOrcidIdentifier("0000-0002-9029-1854")
                 .withResearcherIdentifier("123456789")
                 .build();
 
+        final Date lastModifiedPersonA = itemPersonA.getLastModified();
         //define first record
         MetadataValueDTO title = new MetadataValueDTO("dc","title", null,null, "Putting Historical Data in Context");
         MetadataValueDTO identifier = new MetadataValueDTO("dc", "identifier", "other", null, "WOS:000439929300064");
@@ -520,6 +528,16 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                         + ".publication['dc.type'][0].value", is(type2R.getValue())))
                 .andExpect(jsonPath("$.page.totalElements", is(2)));
 
+        itemPersonA = context.reloadEntity(itemPersonA);
+        assertThat("Last modified date should be unchanged", lastModifiedPersonA.equals(itemPersonA.getLastModified()));
+        DiscoverQuery query = new DiscoverQuery();
+        query.setQuery(SearchUtils.RESOURCE_ID_FIELD + ":" + itemPersonA.getID().toString());
+        DiscoverResult result = searchService.search(context, query);
+        final SearchDocument searchDocument = result.getSearchDocument(result.getIndexableObjects().get(0)).get(0);
+        assertThat("last import should be set in solr",
+                searchDocument.getSearchFieldValues("cris.lastimport.arxiv-publication") != null);
+        assertThat("last import _dt should be set in solr",
+                searchDocument.getSearchFieldValues("cris.lastimport.arxiv-publication_dt") != null);
     }
 
     @Test
@@ -607,7 +625,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                 .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
-    @Ignore
     @Test
     public void creatingWorkspaceItemImportedFromWOSandWorkspaceFinalStatusTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -694,7 +711,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
 
-    @Ignore
     @Test
     public void creatingWorkspaceItemImportedFromWOSandItemFinalStatusTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -781,7 +797,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(3)));
     }
 
-    @Ignore
     @Test
     public void allItemsAlreadyExistImportFromWOSTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -861,7 +876,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
                              .andExpect(jsonPath("$.page.totalElements", is(0)));
     }
 
-    @Ignore
     @Test
     public void testWithSearchLimit() throws ParseException, SQLException {
 
@@ -889,8 +903,8 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         context.restoreAuthSystemState();
 
         when(mockScopusProvider.getNumberOfResults("AU-ID(111)")).thenReturn(6);
-        when(mockScopusProvider.getNumberOfResults("AU-ID(222)")).thenReturn(18);
-        when(mockScopusProvider.getNumberOfResults("AU-ID(444)")).thenReturn(5);
+        when(mockScopusProvider.getNumberOfResults("AU-ID(222)")).thenReturn(50);
+        when(mockScopusProvider.getNumberOfResults("AU-ID(444)")).thenReturn(18);
 
         when(mockScopusProvider.searchExternalDataObjects(any(), anyInt(), anyInt())).thenReturn(List.of());
 
@@ -912,13 +926,12 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         createWorkspaceItemService.setNameToProvider(nameToProvider);
         createWorkspaceItemService.run();
 
+        verify(mockScopusProvider).getSourceIdentifier();
         verify(mockScopusProvider).getNumberOfResults("AU-ID(111)");
-        verify(mockScopusProvider).getNumberOfResults("AU-ID(222)");
-        verify(mockScopusProvider).getNumberOfResults("AU-ID(444)");
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(111)", 0, 10);
-        verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 0, 10);
-        verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 10, 10);
+        verify(mockScopusProvider).getNumberOfResults("AU-ID(444)");
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(444)", 0, 10);
+
         verify(mockScopusProvider).setHandler(handler);
         verifyNoMoreInteractions(mockScopusProvider);
 
@@ -929,7 +942,6 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
     }
 
-    @Ignore
     @Test
     public void testWithSearchLimitUpdatingOnlyItemsWithoutLastImportMetadata() throws ParseException, SQLException {
 
@@ -969,16 +981,17 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
         assertThat(fourthPersonLastImport, notNullValue());
 
         String[] args = new String[] { "import-publications", "-s", "scopus", "-f", "item",
-            "-e", admin.getEmail(), "-l", "3" };
+            "-e", admin.getEmail(), "-l", "5" };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
         nameToProvider.put("scopus", mockScopusProvider);
         createWorkspaceItemService.initialize(args, handler, admin);
         createWorkspaceItemService.setNameToProvider(nameToProvider);
         createWorkspaceItemService.run();
 
+        verify(mockScopusProvider).getSourceIdentifier();
         verify(mockScopusProvider).getNumberOfResults("AU-ID(111)");
-        verify(mockScopusProvider).getNumberOfResults("AU-ID(222)");
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(111)", 0, 10);
+        verify(mockScopusProvider).getNumberOfResults("AU-ID(222)");
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 0, 10);
         verify(mockScopusProvider).searchExternalDataObjects("AU-ID(222)", 10, 10);
         verify(mockScopusProvider).setHandler(handler);

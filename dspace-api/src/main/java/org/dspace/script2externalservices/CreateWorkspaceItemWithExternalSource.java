@@ -13,15 +13,12 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.CollectionUtils;
@@ -50,7 +47,9 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
 import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.discovery.DiscoverResultIterator;
+import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.discovery.indexobject.IndexableWorkflowItem;
@@ -137,6 +136,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private InstallItemService installItemService;
 
+    private IndexingService indexingService;
+
     protected DOIService doiService;
 
     @Override
@@ -150,6 +151,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                                                             CollectionServiceImpl.class);
         externalDataService = serviceManager.getServiceByName(ExternalDataServiceImpl.class.getName(),
                                                               ExternalDataServiceImpl.class);
+        indexingService = serviceManager.getServiceByName(IndexingService.class.getName(), IndexingService.class);
         putServiceIfExists(SCOPUS,"scopusLiveImportDataProviderProcess");
         putServiceIfExists(WOS, "wosLiveImportDataProviderProcess");
         putServiceIfExists(CROSSREF, "crossRefLiveImportDataProviderProcess");
@@ -291,12 +293,13 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         try {
             Iterator<Item> itemIterator = findItems();
             handler.logInfo("Update start");
+            final String sourceIdentifier = dataProvider.getSourceIdentifier();
             while (itemIterator.hasNext() && searchCount < totalSearchLimit) {
                 Item item = itemIterator.next();
                 String id = buildID(item);
                 if (StringUtils.isNotBlank(id)) {
                     int currentRecord = 0;
-                    if (dataProvider.getSourceIdentifier().equals(ARXIV)) {
+                    if (sourceIdentifier.equals(ARXIV)) {
                         if (arxivCallCount == 0) {
                             Thread.sleep(1000);
                             arxivCallCount = 4;
@@ -304,6 +307,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                         arxivCallCount--;
                     }
                     recordsFound = dataProvider.getNumberOfResults(id);
+                    // retrieving the number of result usually required 1 search call
+                    searchCount++;
                     handler.logInfo("Found " + recordsFound + " records for researcher " + id +
                                         " that could be imported");
                     if (recordsFound > perResearcherSearchLimit) {
@@ -314,7 +319,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                     int[] userPublicationsProcessed = new int[] {0, 0};
                     int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
-                    for (int i = 1; i <= iterations; i++) {
+                    for (int i = 1; i <= iterations && searchCount < totalSearchLimit; i++) {
                         int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, id, getOwner(item));
                         userPublicationsProcessed[0] += resultFill[0];
                         userPublicationsProcessed[1] += resultFill[1];
@@ -322,6 +327,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                         currentRecord += LIMIT;
                     }
                     setLastImportMetadataValue(item);
+                    context.uncacheEntity(item);
                     totalRecordWorked += userPublicationsProcessed[0];
                     totalItemsProcessed += userPublicationsProcessed[1];
                     if (userPublicationsProcessed[0] >= 1) {
@@ -445,9 +451,6 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                         .createWorkspaceItemFromExternalDataObject(context, dataObject, collection);
                     Item itemFromWs = wsItem.getItem();
                     PackageUtils.addDepositLicense(context, null, itemFromWs, wsItem.getCollection());
-                    for (List<MetadataValueDTO> metadataList : metadataValueToAdd(wsItem.getItem())) {
-                        addMetadata(wsItem.getItem(), metadataList);
-                    }
                     itemService.addMetadata(context, wsItem.getItem(), "cris", "source", "name", null, this.service);
                     if (owner != null) {
                         updateSubmitter(wsItem.getItem(), owner);
@@ -455,6 +458,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     if (!StringUtils.equals(finalState, WORKSPACE_STATE)) {
                         makeFinalState(wsItem);
                     }
+                    context.uncacheEntity(itemFromWs);
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
                                         " and put in status: " + finalState);
                     importedItemsCounter++;
@@ -622,6 +626,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             discoverQuery.setSortField(lastImportMetadataField, SORT_ORDER.asc);
         } else {
             discoverQuery.setQuery("-" + lastImportMetadataField + ": [* TO *]");
+            discoverQuery.setSortField(SearchUtils.LAST_INDEXED_FIELD, SORT_ORDER.asc);
         }
 
         return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
@@ -646,26 +651,6 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     }
 
-    private List<List<MetadataValueDTO>> metadataValueToAdd(Item item) {
-        switch (this.service) {
-            case CROSSREF:
-                return Collections.singletonList(metadataList(item, "orcid"));
-            case SCOPUS:
-                return Collections.singletonList(metadataList(item, "scopus-author-id"));
-            case WOS:
-                return Arrays.asList(metadataList(item, "orcid"), metadataList(item, "rid"));
-            default:
-                return Collections.emptyList();
-        }
-    }
-
-    private List<MetadataValueDTO> metadataList(Item item, String identifier) {
-        return itemService.getMetadata(item, "person", "identifier", identifier, Item.ANY).stream()
-            .sorted(Comparator.comparingInt(MetadataValue::getPlace))
-            .map(md -> new MetadataValueDTO("cris", "author", identifier, null, md.getValue()))
-            .collect(Collectors.toList());
-    }
-
     @Override
     @SuppressWarnings("unchecked")
     public CreateWorkspaceItemWithExternalSourceScriptConfiguration<CreateWorkspaceItemWithExternalSource>
@@ -680,7 +665,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             String metadataField = "cris.lastimport." + service + "-publication";
             String currentDate = DCDate.getCurrent().toString();
             itemService.setMetadataSingleValue(context, item, new MetadataFieldName(metadataField), null, currentDate);
-            itemService.update(context, item);
+            itemService.update(context, item, false);
+            indexingService.updateLastPublicationImport(context, item, service, currentDate);
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }

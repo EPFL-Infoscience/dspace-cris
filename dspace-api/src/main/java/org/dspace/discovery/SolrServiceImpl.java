@@ -1728,16 +1728,44 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         UpdateRequest req = new UpdateRequest();
         SolrClient solrClient = solrSearchCore.getSolr();
         Optional<String> id = findUniqueId(context, metric);
+        final DSpaceObject resource = metric.getResource();
         if (id.isEmpty()) {
-            log.warn("Unable to define unique id for item {}", metric.getResource().getID());
+            log.warn("Unable to define unique id for item {}", resource.getID());
             return;
         }
         try {
             SolrInputDocument solrInDoc = new SolrInputDocument();
             solrInDoc.addField(SearchUtils.RESOURCE_UNIQUE_ID, id.get());
-            solrInDoc.addField(SearchUtils.RESOURCE_TYPE_FIELD, itemType(context, metric.getResource()));
-            solrInDoc.addField(SearchUtils.RESOURCE_ID_FIELD, UUIDUtils.toString(metric.getResource().getID()));
-            req.add(SearchUtils.addMetricFieldsInSolrDoc(metric, solrInDoc));
+            solrInDoc.addField(SearchUtils.RESOURCE_TYPE_FIELD, itemType(context, resource));
+            solrInDoc.addField(SearchUtils.RESOURCE_ID_FIELD, UUIDUtils.toString(resource.getID()));
+            req.add(SearchUtils.addMetricFieldsInSolrDoc(metric, solrInDoc, lastImport(resource, metric)));
+            solrClient.request(req);
+            solrClient.commit();
+        } catch (SolrServerException | IOException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void updateLastPublicationImport(Context context, Item item, String serviceName, String lastImport) {
+        UpdateRequest req = new UpdateRequest();
+        SolrClient solrClient = solrSearchCore.getSolr();
+        Optional<String> id = findIndexableObject(context, item)
+                .map(indexableObject -> indexableObject.getUniqueIndexID());
+        if (id.isEmpty()) {
+            log.warn("Unable to define unique id for item {}", item.getID());
+            return;
+        }
+        try {
+            SolrInputDocument solrInDoc = new SolrInputDocument();
+            solrInDoc.addField(SearchUtils.RESOURCE_UNIQUE_ID, id.get());
+            solrInDoc.addField(SearchUtils.RESOURCE_TYPE_FIELD, itemType(context, item));
+            solrInDoc.addField(SearchUtils.RESOURCE_ID_FIELD, UUIDUtils.toString(item.getID()));
+            Map<String, Object> lastFieldMap = Collections.singletonMap("set", lastImport);
+            String lastField = "cris.lastimport." + serviceName + "-publication";
+            String lastFieldDt = lastField + "_dt";
+            solrInDoc.addField(lastField, lastFieldMap);
+            solrInDoc.addField(lastFieldDt, lastFieldMap);
             solrClient.request(req);
             solrClient.commit();
         } catch (SolrServerException | IOException e) {
@@ -1788,6 +1816,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             .orElseThrow(() -> new RuntimeException(
                 String.format("resource with id %s is of unsupported type: %s",
                     resource.getID(), resource.getClass().getSimpleName())));
+    }
+
+    private String lastImport(DSpaceObject resource, CrisMetrics metric) {
+        return resource.getMetadata().stream()
+                .filter(mv -> ("cris.lastimport." + metric.getMetricType()).equals(
+                        mv.getMetadataField().toString('.')))
+                .findFirst().map(mv -> mv.getValue()).orElse(null);
     }
 
     private Optional<String> findUniqueId(Context context, CrisMetrics metric) {
