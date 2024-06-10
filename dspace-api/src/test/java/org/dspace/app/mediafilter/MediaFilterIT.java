@@ -128,8 +128,9 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         addBitstream(item2_1_b, "test.txt");
         setupEndTime = new Date().getTime();
         try {
-            Thread.sleep(100);
+                Thread.sleep(100);
         } catch (InterruptedException e) {
+            // nothing to do
         }
         context.restoreAuthSystemState();
     }
