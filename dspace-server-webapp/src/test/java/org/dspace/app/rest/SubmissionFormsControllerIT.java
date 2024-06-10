@@ -682,7 +682,7 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .andExpect(status().isOk())
                  .andExpect(content().contentType(contentType))
                  .andExpect(jsonPath("$._embedded.submissionforms[0].id", is("traditionalpagethree-cris-open")))
-                 .andExpect(jsonPath("$._embedded.submissionforms[1].id", is("orange")))
+                 .andExpect(jsonPath("$._embedded.submissionforms[1].id", is("traditionalpagethree-cris-collapsed")))
                  .andExpect(jsonPath("$._links.first.href", Matchers.allOf(
                          Matchers.containsString("/api/config/submissionforms?"),
                          Matchers.containsString("page=0"), Matchers.containsString("size=2"))))
