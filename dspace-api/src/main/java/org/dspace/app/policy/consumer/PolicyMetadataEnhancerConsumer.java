@@ -243,7 +243,6 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
      * @return true if different
      */
     private boolean anyDiff(List<MetadataValue> removableMetadatas, Set<Entry<MetadataField, List<String>>> entrySet) {
-        Map<String, Integer> countValues = new HashMap<String, Integer>();
         for (MetadataValue m : removableMetadatas) {
             final String metadataKey = m.getMetadataField().toString('.');
             Optional<List<String>> values = entrySet.stream()
@@ -252,7 +251,6 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                     })
                     .findFirst().map(entry -> entry.getValue());
             if (values.isPresent()) {
-                countValues.put(metadataKey, values.get().size());
                 if (!values.get().contains(m.getValue())) {
                     return true;
                 }
@@ -260,7 +258,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
                 return true;
             }
         }
-        return countValues.entrySet().stream().mapToInt(entry -> entry.getValue()).sum() != removableMetadatas.size();
+        return entrySet.stream().mapToInt(entry -> entry.getValue().size()).sum() != removableMetadatas.size();
     }
 
     private Bitstream getRightBitstream(List<Bitstream> bitstreams, Context ctx) {
