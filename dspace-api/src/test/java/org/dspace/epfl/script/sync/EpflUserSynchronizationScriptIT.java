@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -51,6 +52,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
@@ -84,6 +86,7 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         .getServicesByType(ResourcePolicyService.class).get(0);
 
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    private EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     private Collection profiles;
 
@@ -110,7 +113,14 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                                     .build();
 
         submitters = GroupBuilder.createGroup(context).withName("Submitter").build();
-
+        List<EPerson> ePersonList = epersonService.findAll(context, EPerson.NETID);
+        // cleanup any epfl eperson left by previous test
+        for (EPerson ePerson : ePersonList) {
+            if (StringUtils.isNotBlank(ePerson.getNetid())) {
+                epersonService.delete(context, ePerson);
+            }
+        }
+        context.commit();
         context.restoreAuthSystemState();
 
     }
