@@ -61,9 +61,6 @@ import org.dspace.external.model.ExternalDataObject;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.external.service.impl.ExternalDataServiceImpl;
-import org.dspace.identifier.DOI;
-import org.dspace.identifier.factory.IdentifierServiceFactory;
-import org.dspace.identifier.service.DOIService;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -138,8 +135,6 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private IndexingService indexingService;
 
-    protected DOIService doiService;
-
     @Override
     public void setup() throws ParseException {
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
@@ -161,7 +156,6 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
-        doiService = IdentifierServiceFactory.getInstance().getDOIService();
 
         this.service = commandLine.getOptionValue('s');
         this.finalState = commandLine.getOptionValue('f');
@@ -446,7 +440,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         int imported = 0;
         try {
             for (ExternalDataObject dataObject : dataProvider.searchExternalDataObjects(id, record, LIMIT)) {
-                if (!exist(dataObject.getMetadata()) && !isObjectWithDOIExist(dataObject.getId())) {
+                if (!exist(dataObject.getMetadata()) && !isExternalIdentifierAlreadyImported(dataObject.getId())) {
                     WorkspaceItem wsItem = externalDataService
                         .createWorkspaceItemFromExternalDataObject(context, dataObject, collection);
                     Item itemFromWs = wsItem.getItem();
@@ -476,22 +470,9 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         return new int[] {countDataObjects, imported};
     }
 
-    private boolean isObjectWithDOIExist(String identifier) {
-        try {
-            if (workspaceItemImportedDoi.contains(identifier)) {
-                return true;
-            }
-
-            String doi = doiService.formatIdentifier(identifier);
-            DOI doiRow = doiService.findByDoi(context, doi.substring(DOI.SCHEME.length()));
-
-            if (null == doiRow) {
-                return false;
-            } else {
-                return doiRow.getDSpaceObject() != null;
-            }
-        } catch (Exception e) {
-            handler.logError("Unable to retrieve information about a DOI out of database.");
+    private boolean isExternalIdentifierAlreadyImported(String identifier) {
+        if (workspaceItemImportedDoi.contains(identifier)) {
+            return true;
         }
         return false;
     }
@@ -547,13 +528,13 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             if (StringUtils.equals(schema, metadata.getSchema()) && StringUtils.equals(element, metadata.getElement())
                     && StringUtils.equals(qualifier, metadata.getQualifier())) {
 
-                String value = (mv.getValue()).replaceAll(":", "");
+                String value = mv.getValue();
                 StringBuilder filter = new StringBuilder();
                 filter.append(metadata.getSchema()).append(".").append(metadata.getElement());
                 if (StringUtils.isNotBlank(metadata.getQualifier())) {
-                    filter.append(".").append(metadata.getQualifier()).append(":").append(value);
+                    filter.append(".").append(metadata.getQualifier()).append(":\"").append(value).append("\"");
                 } else {
-                    filter.append(":").append(value);
+                    filter.append(":\"").append(value).append("\"");
                 }
                 try {
                     Iterator<Item> itemIterator = findItemsInDSpace(context, filter.toString());
