@@ -133,6 +133,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "oairecerif", "author", "affiliation", null, affiliation, authority, 600);
     }
 
+    public ItemBuilder withSponsorship(String sponsorship, String authority) {
+        return addMetadataValue(item, "dc", "description", "sponsorship", null, sponsorship, authority, 600);
+    }
+
     public ItemBuilder withAuthorAffiliationForLanguage(String affiliation, String language) {
         return addMetadataValue(item, "oairecerif", "author", "affiliation", language, affiliation);
     }
@@ -722,6 +726,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     public ItemBuilder withEquipmentOwnerPerson(String ownerPerson) {
         return addMetadataValue(item, "crisequipment", "ownerrp", null, ownerPerson);
     }
+
     public ItemBuilder withOrgUnitRinggoldIdentifier(String identifier) {
         return addMetadataValue(item, "organization", "identifier", "rin", identifier);
     }
