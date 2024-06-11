@@ -24,9 +24,11 @@
   </titles>
   <publisher>@virtual.publisher-with-place@</publisher>
   <publicationYear>@virtual.date.dc-date-issued.YYYY@</publicationYear>
+  @if.metadata.dc-subject.start@
   <subjects>
     <subject>@dc.subject@</subject>
   </subjects>
+  @if.metadata.dc-subject.end@
   <dates>
     <date dateType="Issued">@dc.date.issued@</date>
     @if.metadata.datacite-available.start@

@@ -1,67 +1,89 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.4/metadata.xsd">
-  <identifier identifierType="DOI">@virtual.primary-doi.dc-identifier-doi@</identifier>
-  <creators>
+<resource xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:dcterms="http://purl.org/dc/terms/"
+  xmlns:datacite="http://datacite.org/schema/kernel-4"
+  xmlns="http://namespace.openaire.eu/schema/oaire/"
+  xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
+  <datacite:identifier identifierType="URL">@virtual.item-ui-url@</datacite:identifier>
+  <datacite:creators>
       @group.dc-contributor-author.start@
-	    <creator>
-	  		  <creatorName>@dc.contributor.author@</creatorName>
-	  	    @relation.dc-contributor-author.start@
-	  	    <nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org/">@person.identifier.orcid@</nameIdentifier>
-			    @relation.dc-contributor-author.end@
-			@relation.oairecerif-author-affiliation.start@
-            <affiliation
+        <datacite:creator>
+            <datacite:creatorName>@dc.contributor.author@</datacite:creatorName>
+              @relation.dc-contributor-author.start@
+            <datacite:nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org/">@person.identifier.orcid@</datacite:nameIdentifier>
+            @relation.dc-contributor-author.end@
+            @relation.oairecerif-author-affiliation.start@
+            <datacite:affiliation
                 affiliationIdentifier="@organization.identifier.ror@" affiliationIdentifierScheme="ROR"
-            >@dc.title@</affiliation>
+            >@dc.title@</datacite:affiliation>
             @relation.oairecerif-author-affiliation.end@
             @if.not.authority.oairecerif-author-affiliation.start@
-            <affiliation>@oairecerif.author.affiliation@</affiliation>
+            <datacite:affiliation>@oairecerif.author.affiliation@</datacite:affiliation>
             @if.not.authority.oairecerif-author-affiliation.end@
-      </creator>
-   	  @group.dc-contributor-author.end@
-    </creators>
-  <titles>
-    <title>@dc.title@</title>
-  </titles>
-  <publisher>@virtual.publisher-with-place@</publisher>
-  <publicationYear>@virtual.date.dc-date-issued.YYYY@</publicationYear>
-  <subjects>
-    <subject>@dc.subject@</subject>
-  </subjects>
-  <dates>
-    <date dateType="Issued">@dc.date.issued@</date>
+      </datacite:creator>
+         @group.dc-contributor-author.end@
+    </datacite:creators>
+  <datacite:titles>
+    <datacite:title>@dc.title@</datacite:title>
+  </datacite:titles>
+  <dc:publisher>@virtual.publisher-with-place@</dc:publisher>
+  @if.metadata.dc-subject.start@
+  <datacite:subjects>
+    <datacite:subject>@dc.subject@</datacite:subject>
+  </datacite:subjects>
+  @if.metadata.dc-subject.end@
+  <datacite:dates>
+    <datacite:date dateType="Issued">@dc.date.issued@</datacite:date>
     @if.metadata.datacite-available.start@
-    <date dateType="Available">@datacite.available@</date>
+    <datacite:date dateType="Available">@datacite.available@</datacite:date>
     @if.metadata.datacite-available.end@
     @if.not.metadata.datacite-available.start@
-    <date dateType="Available">@dc.date.available@</date>
+    <datacite:date dateType="Available">@dc.date.available@</datacite:date>
     @if.not.metadata.datacite-available.end@
-  </dates>
-  <language>@virtual.mapConverter.isolanguage2to3.dc-language-iso@</language>
-  <resourceType resourceTypeGeneral="@virtual.mapConverter.type2datacite.dc-type@" />
-  <alternateIdentifiers>
-    <alternateIdentifier alternateIdentifierType="url">@dc.identifier.uri@</alternateIdentifier>
-    <alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</alternateIdentifier>
-    <alternateIdentifier alternateIdentifierType="isbn">@dc.identifier.isbn@</alternateIdentifier>
-    <alternateIdentifier alternateIdentifierType="issn">@dc.identifier.issn@</alternateIdentifier>
-    <alternateIdentifier alternateIdentifierType="Scopus">@dc.identifier.scopus@</alternateIdentifier>
-    <alternateIdentifier alternateIdentifierType="WOS">@dc.identifier.isi@</alternateIdentifier>
-    <alternateIdentifier alternateIdentifierType="arXiv">@dc.identifier.arxiv@</alternateIdentifier>
-    <alternateIdentifier alternateIdentifierType="PMID">@dc.identifier.pmid@</alternateIdentifier>
-  </alternateIdentifiers>
+  </datacite:dates>
+  <dc:language>@virtual.mapConverter.isolanguage2to3.dc-language-iso@</dc:language>
+  <resourceType 
+    resourceTypeGeneral="@virtual.mapConverter.type2oaiopenaire.dc-type@"
+    uri="@virtual.mapConverter.type2oaiopenaireuri.dc-type@">
+  @virtual.mapConverter.type2oaiopenairelabel.dc-type@
+  </resourceType>
+  <datacite:alternateIdentifiers>
+    <datacite:alternateIdentifier alternateIdentifierType="url">@dc.identifier.uri@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.primary-doi.dc-identifier-doi@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="isbn">@dc.identifier.isbn@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="issn">@dc.identifier.issn@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="Scopus">@dc.identifier.scopus@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="WOS">@dc.identifier.isi@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="arXiv">@dc.identifier.arxiv@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="PMID">@dc.identifier.pmid@</datacite:alternateIdentifier>
+  </datacite:alternateIdentifiers>
   <version>@dc.description.version@</version>
   <citationConferenceDate>@oaire.citation.conferenceDate@</citationConferenceDate>
   <citationTitle>@dc.relation.journal@</citationTitle>
   <citationTitle>@dc.relation.ispartof@</citationTitle>
   <citationTitle>@dc.relation.conference@</citationTitle>
   <citationTitle>@dc.relation.ispartofseries@</citationTitle>
-  <rightsList>
-    <rights rightsURI="@virtual.mapConverter.right2licenseUrl.oaire-licenseCondition@">
-        @oaire.licenseCondition@</rights>
-    <rights rightsURI="@virtual.mapConverter.right2conceptUrl.datacite-rights@">
-        @datacite.rights@</rights>
-  </rightsList>
-  <descriptions>
-    <description descriptionType="Abstract">@dc.description.abstract@</description>
-    <description descriptionType="Other">@dc.description@</description>
-  </descriptions>
+  <datacite:rights rightsURI="@virtual.mapConverter.right2conceptUrl.datacite-rights@">
+        @datacite.rights@</datacite:rights>
+  <dc:description>@dc.description.abstract@</dc:description>
+  <dc:description>@dc.description@</dc:description>
+  @if.metadata.oairecerif-funder.start@
+  <fundingReferences>
+  @group.oairecerif-funder.start@
+   <fundingReference>
+    <funderName>@oairecerif.funder@</funderName>
+    @if.metadata.dc-relation-grantno.start@
+    <awardNumber 
+    awardURI="crisfund.award.uri">
+    @dc.relation.grantno@
+    </awardNumber>
+    @if.metadata.dc-relation-grantno.end@
+    <awardTitle>@dc.relation.funding@</awardTitle>
+   </fundingReference>
+  @group.oairecerif-funder.end@
+  </fundingReferences>
+  @if.metadata.oairecerif-funder.end@
 </resource>
