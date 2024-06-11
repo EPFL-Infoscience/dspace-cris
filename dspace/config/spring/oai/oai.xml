@@ -18,55 +18,28 @@
 
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
-    <bean id="xoaiCerifGenerator" class="org.dspace.xoai.app.XOAIExportTemplateCompilePlugin">
-        <property name="generator" value="cerif-xml"/>
-        <property name="format" value="cerif"/>
-        <property name="fieldName" value="openaire"/>
-    </bean>
-
     <bean id="xoaiMarcGenerator" class="org.dspace.xoai.app.XOAIExportTemplateCompilePlugin">
         <property name="generator" value="epfl-publication-marc-xml"/>
         <property name="format" value="marc"/>
         <property name="fieldName" value="publication"/>
     </bean>
 
-	<!-- Additional item.compile plugin to enrich field with information about
-		Creative Commons License metadata -->
-	<bean class="org.dspace.xoai.app.CCElementItemCompilePlugin"/>
+    <bean id="xoaiOaiOpenairePublicationGenerator" class="org.dspace.xoai.app.XOAIExportTemplateCompilePlugin">
+        <property name="generator" value="oai-openaire-publication-xml"/>
+        <property name="format" value="oaiopenaire"/>
+        <property name="fieldName" value="publication"/>
+    </bean>
 
-    <!-- Additional item.compile plugin to enrich the xoai document with information about
-        the fulltext access condition -->
-    <bean class="org.dspace.xoai.app.FulltextAccessElementItemCompilePlugin"/>
+    <bean id="xoaiOaiOpenaireProductGenerator" class="org.dspace.xoai.app.XOAIExportTemplateCompilePlugin">
+        <property name="generator" value="oai-openaire-product-xml"/>
+        <property name="format" value="oaiopenaire"/>
+        <property name="fieldName" value="product"/>
+    </bean>
 
-    <bean class="org.dspace.xoai.app.DataciteDOIItemCompilePlugin"/>
+    <bean id="xoaiOaiOpenairePatentGenerator" class="org.dspace.xoai.app.XOAIExportTemplateCompilePlugin">
+        <property name="generator" value="oai-openaire-patent-xml"/>
+        <property name="format" value="oaiopenaire"/>
+        <property name="fieldName" value="patent"/>
+    </bean>
 
-    <bean class="org.dspace.xoai.app.LinkedItemsCompilePlugin"/>
-
-    <bean class="org.dspace.xoai.app.RorItemCompilePlugin"/>
-
-    <bean class="org.dspace.xoai.app.PersonIdentifiersItemCompilePlugin"/>
-
-    <!-- Additional item.compile plugin to enrich field with information about
-        Access Status metadata -->
-    <bean class="org.dspace.xoai.app.plugins.AccessStatusElementItemCompilePlugin"/>
-        <!--
-         This is no longer needed as the orcid information are consolidated in the publication's metadata via an Item Enhancer
-         see metadata-enancers.xml
-         -->
-<!--    <bean class="org.dspace.xoai.app.LinkedEntityMetadataElementItemCompilePlugin">-->
-<!--        <property name="mapping">-->
-<!--			<map>-->
-<!--		          <entry key="dc.contributor.author">-->
-<!--		              <map>-->
-<!--		                  <entry key="crisitem.author.orcid" value="person.identifier.orcid" />-->
-<!--		              </map>-->
-<!--		          </entry>-->
-<!--		          <entry key="dc.contributor.editor">-->
-<!--                      <map>-->
-<!--                          <entry key="crisitem.editor.orcid" value="person.identifier.orcid" />-->
-<!--                      </map>-->
-<!--                  </entry>-->
-<!--			</map>-->
-<!--        </property>-->
-<!--    </bean>-->
 </beans>

@@ -36,7 +36,7 @@
     <date dateType="Available">@dc.date.available@</date>
     @if.not.metadata.datacite-available.end@
   </dates>
-  <language>@virtual.mapConverter.mapConverterTesseract.dc-language-iso@</language>
+  <language>@virtual.mapConverter.isolanguage2to3.dc-language-iso@</language>
   <resourceType resourceTypeGeneral="@virtual.mapConverter.type2datacite.dc-type@">
   @virtual.mapConverter.type2datacitelabel.dc-type@
   </resourceType>

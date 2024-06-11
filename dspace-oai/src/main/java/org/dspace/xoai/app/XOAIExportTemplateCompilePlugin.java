@@ -29,8 +29,6 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.utils.DSpace;
 import org.dspace.xoai.util.ItemUtils;
 
-
-
 /**
  * Utility class to enrich content of 'item.compile' solr document field, which adds a metadata containing "format"
  * representation of a DSpace item.
@@ -95,6 +93,8 @@ public class XOAIExportTemplateCompilePlugin implements XOAIExtensionItemCompile
                         .orElse(crosswalkMapper.getByType(generator));
             if (crosswalk == null) {
                 log.warn("No Crosswalk found with name " + crosswalkType);
+            } else if (!crosswalk.canDisseminate(context, item)) {
+                log.debug("Crosswalk with name " + crosswalkType + " not suitable for item " + item.getID());
             } else {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 crosswalk.disseminate(context, item, out);

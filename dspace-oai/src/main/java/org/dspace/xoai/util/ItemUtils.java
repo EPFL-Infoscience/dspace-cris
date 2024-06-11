@@ -385,11 +385,13 @@ public class ItemUtils {
 
         // Done! Metadata has been read!
         // Now adding bitstream info
-        try {
-            Element bundles = createBundlesElement(context, item);
-            metadata.getElement().add(bundles);
-        } catch (SQLException e) {
-            log.warn(e.getMessage(), e);
+        if (configurationService.getBooleanProperty("oai.include.bitstreams-info", false)) {
+            try {
+                Element bundles = createBundlesElement(context, item);
+                metadata.getElement().add(bundles);
+            } catch (SQLException e) {
+                log.warn(e.getMessage(), e);
+            }
         }
 
         // Other info
@@ -408,11 +410,13 @@ public class ItemUtils {
         metadata.getElement().add(repository);
 
         // Licensing info
-        try {
-            Element license = createLicenseElement(context, item);
-            metadata.getElement().add(license);
-        } catch (AuthorizeException | IOException | SQLException e) {
-            log.warn(e.getMessage(), e);
+        if (configurationService.getBooleanProperty("oai.include.license", false)) {
+            try {
+                Element license = createLicenseElement(context, item);
+                metadata.getElement().add(license);
+            } catch (AuthorizeException | IOException | SQLException e) {
+                log.warn(e.getMessage(), e);
+            }
         }
 
         return metadata;

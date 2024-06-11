@@ -35,23 +35,10 @@
             <Set ref="fulltextSet"/>
             <Set ref="fulltextPublicSet"/>
             <Set ref="openaire4Set"/>
-            <Set ref="openairePublicationsCrisSet"/>
-            <Set ref="openaireProductsCrisSet"/>
-            <Set ref="openairePatentsCrisSet"/>
-            <Set ref="oaiOpenaireSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="oaiopenaire"/>
-            <Format ref="mets"/>
-            <Format ref="didl"/>
-            <Format ref="dim"/>
-            <Format ref="ore"/>
-            <Format ref="rdf"/>
-            <Format ref="etdms"/>
-            <Format ref="mods"/>
-            <Format ref="qdc"/>
             <Format ref="marc"/>
-            <Format ref="uketd_dc"/>
             <Description>
                 This contexts complies with OpenAIRE Guidelines for Literature Repositories v4.0.
             </Description>
