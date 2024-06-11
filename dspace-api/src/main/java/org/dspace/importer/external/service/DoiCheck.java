@@ -34,8 +34,12 @@ public class DoiCheck {
     private DoiCheck() {}
 
     public static boolean isDoi(final String value) {
-        Matcher m = PATTERN.matcher(purgeDoiValue(value));
-        return m.matches();
+        if (value != null) {
+            Matcher m = PATTERN.matcher(purgeDoiValue(value));
+            return m.matches();
+        } else {
+            return false;
+        }
     }
 
     public static String purgeDoiValue(final String query) {

@@ -1766,6 +1766,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             String lastFieldDt = lastField + "_dt";
             solrInDoc.addField(lastField, lastFieldMap);
             solrInDoc.addField(lastFieldDt, lastFieldMap);
+            req.add(solrInDoc);
             solrClient.request(req);
             solrClient.commit();
         } catch (SolrServerException | IOException e) {
