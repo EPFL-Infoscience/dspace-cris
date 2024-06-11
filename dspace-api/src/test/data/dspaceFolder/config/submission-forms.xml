@@ -2498,6 +2498,143 @@ it, please enter the types and the actual numbers or codes.</hint>
      </row>
    </form>
 
+     <form name="orgunit-for-test">
+         <row>
+             <field>
+                 <dc-schema>dc</dc-schema>
+                 <dc-element>title</dc-element>
+                 <label>Organization name</label>
+                 <input-type>onebox</input-type>
+                 <repeatable>false</repeatable>
+                 <required>You must enter the oganization name.</required>
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>oairecerif</dc-schema>
+                 <dc-element>acronym</dc-element>
+                 <label>Acronym or short form of title</label>
+                 <input-type>onebox</input-type>
+                 <repeatable>false</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>organization</dc-schema>
+                 <dc-element>parentOrganization</dc-element>
+                 <label>Parent Organisation</label>
+                 <input-type>onebox</input-type>
+                 <repeatable>false</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>crisou</dc-schema>
+                 <dc-element>director</dc-element>
+                 <label>Director</label>
+                 <input-type>onebox</input-type>
+                 <repeatable>false</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>organization</dc-schema>
+                 <dc-element>foundingDate</dc-element>
+                 <label>Established</label>
+                 <input-type>date</input-type>
+                 <repeatable>false</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>crisou</dc-schema>
+                 <dc-element>boards</dc-element>
+                 <label>Scientifics Board</label>
+                 <input-type>onebox</input-type>
+                 <repeatable>true</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>organization</dc-schema>
+                 <dc-element>identifier</dc-element>
+                 <label>Identifiers</label>
+                 <input-type value-pairs-name="orgunit_identifiers">qualdrop_value</input-type>
+                 <repeatable>true</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>oairecerif</dc-schema>
+                 <dc-element>identifier</dc-element>
+                 <dc-qualifier>url</dc-qualifier>
+                 <label>Website(s)</label>
+                 <input-type>onebox</input-type>
+                 <repeatable>true</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>dc</dc-schema>
+                 <dc-element>description</dc-element>
+                 <dc-qualifier>abstract</dc-qualifier>
+                 <label>Description for OrgUnit</label>
+                 <input-type>textarea</input-type>
+                 <repeatable>false</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>organization</dc-schema>
+                 <dc-element>address</dc-element>
+                 <dc-qualifier>addressLocality</dc-qualifier>
+                 <label>City</label>
+                 <input-type>onebox</input-type>
+                 <repeatable>false</repeatable>
+                 <required />
+                 <hint />
+             </field>
+             <field>
+                 <dc-schema>organization</dc-schema>
+                 <dc-element>address</dc-element>
+                 <dc-qualifier>addressCountry</dc-qualifier>
+                 <label>Country</label>
+                 <input-type value-pairs-name="common_iso_countries">dropdown</input-type>
+                 <repeatable>false</repeatable>
+                 <required />
+                 <hint />
+             </field>
+         </row>
+         <row>
+             <field>
+                 <dc-schema>dc</dc-schema>
+                 <dc-element>type</dc-element>
+                 <label>Type</label>
+                 <input-type value-pairs-name="orgunit_types">dropdown</input-type>
+                 <repeatable>false</repeatable>
+                 <required>You must specify the organisation type</required>
+                 <hint />
+             </field>
+         </row>
+     </form>
+
      <form name="funding">
          <row>
              <field>

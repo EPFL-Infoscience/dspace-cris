@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
@@ -46,6 +47,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
@@ -81,7 +83,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         .getServicesByType(ResourcePolicyService.class).get(0);
 
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
-
+    private EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
 //    private EpflApiClient mockApiClient;
 
     private Collection profiles;
@@ -110,6 +112,13 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
         submitters = GroupBuilder.createGroup(context).withName("Submitter").build();
 
+        List<EPerson> ePersonList = epersonService.findAll(context, EPerson.NETID);
+        // cleanup any epfl eperson left by previous test
+        for (EPerson ePerson : ePersonList) {
+            if (StringUtils.isNotBlank(ePerson.getNetid())) {
+                epersonService.delete(context, ePerson);
+            }
+        }
         context.restoreAuthSystemState();
 
 //        mockApiClient = mock(EpflApiClient.class);
@@ -535,6 +544,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(picture, notNullValue());
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
+        // we don't expect any change to be performed
         profileInitializer.createOrUpdateProfile(context, eperson);
 
         researcherProfile = researcherProfileService.findById(context, eperson.getID());
@@ -543,7 +553,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item updatedProfile = researcherProfile.getItem();
         assertThat(updatedProfile, is(profile));
 
-        assertThat(updatedProfile.getMetadata(), hasSize(39));
+        assertThat(updatedProfile.getMetadata(), hasSize(27));
 
         Bitstream newPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(newPicture, notNullValue());

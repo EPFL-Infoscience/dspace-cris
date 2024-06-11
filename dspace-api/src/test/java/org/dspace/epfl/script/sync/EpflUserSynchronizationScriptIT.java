@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -44,12 +45,14 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
@@ -83,6 +86,7 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         .getServicesByType(ResourcePolicyService.class).get(0);
 
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    private EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     private Collection profiles;
 
@@ -109,7 +113,14 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                                     .build();
 
         submitters = GroupBuilder.createGroup(context).withName("Submitter").build();
-
+        List<EPerson> ePersonList = epersonService.findAll(context, EPerson.NETID);
+        // cleanup any epfl eperson left by previous test
+        for (EPerson ePerson : ePersonList) {
+            if (StringUtils.isNotBlank(ePerson.getNetid())) {
+                epersonService.delete(context, ePerson);
+            }
+        }
+        context.commit();
         context.restoreAuthSystemState();
 
     }
@@ -185,21 +196,15 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", -1),
+            with("oairecerif.person.affiliation", "SENS", sens.getID().toString(), Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, -1),
+            with("oairecerif.person.affiliation", "SSC-ENS", teaching.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, -1),
+            with("oairecerif.person.affiliation", "SIN-ENS", sinTeaching.getID().toString(), 2, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -233,15 +238,15 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             .withMetadata("epfl", "sciperId", null, "352234")
             .build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item sens = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("Laboratory of Sensing and Networking Systems")
                    .withAcronym("SENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item ssc = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("SSC - Teaching")
                    .withAcronym("SSC-ENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item sin = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("SIN - Teaching")
                    .withAcronym("SIN-ENS").build();
 
@@ -290,21 +295,15 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", -1),
+            with("oairecerif.person.affiliation", "SENS", sens.getID().toString(), Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, -1),
+            with("oairecerif.person.affiliation", "SSC-ENS", ssc.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, -1),
+            with("oairecerif.person.affiliation", "SIN-ENS", sin.getID().toString(), 2, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -365,15 +364,15 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         context.turnOffAuthorisationSystem();
 
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item sens = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("Laboratory of Sensing and Networking Systems")
                    .withAcronym("SENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item ssc = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("SSC - Teaching")
                    .withAcronym("SSC-ENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item sin = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("SIN - Teaching")
                    .withAcronym("SIN-ENS").build();
 
@@ -433,25 +432,19 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", PLACEHOLDER_PARENT_METADATA_VALUE),
-            with("oairecerif.person.affiliation", "SIN-CLS", closedAff.getID().toString(), 600),
+            with("oairecerif.person.affiliation", "SIN-CLS", closedAff.getID().toString(), Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", "2022-01-01"),
             with("oairecerif.affiliation.endDate", yesterday),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-//            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", 1, -1),
+            with("oairecerif.person.affiliation", "SENS", sens.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-//            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 2, -1),
+            with("oairecerif.person.affiliation", "SSC-ENS", ssc.getID().toString(), 2, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2),
             with("oairecerif.affiliation.role", "Associate Professor", 3),
-//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-//            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 3, -1),
+            with("oairecerif.person.affiliation", "SIN-ENS", sin.getID().toString(), 3, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 3),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 3)));
 
@@ -473,13 +466,13 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                                   .withTitle("Laboratory of Sensing and Networking Systems")
                                   .withAcronym("SENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
-                   .withTitle("SSC - Teaching")
-                   .withAcronym("SSC-ENS").build();
+        Item ssc = ItemBuilder.createItem(context, orgUnits)
+                              .withTitle("SSC - Teaching")
+                              .withAcronym("SSC-ENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
-                   .withTitle("SIN - Teaching")
-                   .withAcronym("SIN-ENS").build();
+        Item sin = ItemBuilder.createItem(context, orgUnits)
+                              .withTitle("SIN - Teaching")
+                              .withAcronym("SIN-ENS").build();
 
         Item closedAff = ItemBuilder.createItem(context, orgUnits)
                                     .withTitle("SIN - closed")
@@ -538,21 +531,15 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
-//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-//            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SENS", sensAff.getID().toString(), 0, 600),
+            with("oairecerif.person.affiliation", "SENS", sensAff.getID().toString(), 0, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", "2022-01-01", 0),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-//            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, -1),
+            with("oairecerif.person.affiliation", "SSC-ENS", ssc.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-//            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-//            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, -1),
+            with("oairecerif.person.affiliation", "SIN-ENS", sin.getID().toString(), 2, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -617,13 +604,13 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
 
         context.turnOffAuthorisationSystem();
 
-        ItemBuilder.createItem(context, orgUnits)
-                   .withTitle("Prof. Ablasser Group")
-                   .withAcronym("UPABLASSER").build();
+        Item upa = ItemBuilder.createItem(context, orgUnits)
+                              .withTitle("Prof. Ablasser Group")
+                              .withAcronym("UPABLASSER").build();
 
-        ItemBuilder.createItem(context, orgUnits)
-                   .withTitle("Laboratory of Virology and Genetics")
-                   .withAcronym("LVG").build();
+        Item lvg = ItemBuilder.createItem(context, orgUnits)
+                              .withTitle("Laboratory of Virology and Genetics")
+                              .withAcronym("LVG").build();
 
         EPerson eperson = EPersonBuilder.createEPerson(context)
                                         .withNameInMetadata("Test", "User")
@@ -668,11 +655,11 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("epfl.sciperId", "375968"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/arianna.dorschel"),
             with("oairecerif.affiliation.role", "Doctoral Assistant", 0),
-            with("oairecerif.person.affiliation", "UPABLASSER", "will be referenced::ACRONYM::UPABLASSER", 0, -1),
+            with("oairecerif.person.affiliation", "UPABLASSER", upa.getID().toString(), 0, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 0),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
             with("oairecerif.affiliation.role", "Doctoral Assistant", 1),
-            with("oairecerif.person.affiliation", "LVG", "will be referenced::ACRONYM::LVG", 1, -1),
+            with("oairecerif.person.affiliation", "LVG", lvg.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
 

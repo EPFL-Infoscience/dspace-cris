@@ -36,6 +36,7 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -145,21 +146,19 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", -1),
+            with("oairecerif.person.affiliation", "SENS", sens.getID().toString(), Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
             // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
             // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, -1),
+            with("oairecerif.person.affiliation", "SSC-ENS", teaching.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
             // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
             // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, -1),
+            with("oairecerif.person.affiliation", "SIN-ENS", sinTeaching.getID().toString(), 2, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 
@@ -192,15 +191,15 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
             .withMetadata("epfl", "sciperId", null, "352234")
             .build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item sens = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("Laboratory of Sensing and Networking Systems")
                    .withAcronym("SENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item ssc = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("SSC - Teaching")
                    .withAcronym("SSC-ENS").build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item sin = ItemBuilder.createItem(context, orgUnits)
                    .withTitle("SIN - Teaching")
                    .withAcronym("SIN-ENS").build();
 
@@ -237,21 +236,15 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
             with("epfl.sciperId", "352234"),
             with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
             with("oairecerif.affiliation.role", "Associate Professor"),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SENS", "will be referenced::ACRONYM::SENS", -1),
+            with("oairecerif.person.affiliation", "SENS", sens.getID().toString(), Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE),
             with("oairecerif.affiliation.role", "Associate Professor", 1),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SSC-ENS", "will be referenced::ACRONYM::SSC-ENS", 1, -1),
+            with("oairecerif.person.affiliation", "SSC-ENS", ssc.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
             with("oairecerif.affiliation.role", "Associate Professor", 2),
-            // FIXME the confidence should be 400... the metadata seems to be created in the right way but once that
-            // the item is retrieved from the db it turns to -1
-            with("oairecerif.person.affiliation", "SIN-ENS", "will be referenced::ACRONYM::SIN-ENS", 2, -1),
+            with("oairecerif.person.affiliation", "SIN-ENS", sin.getID().toString(), 2, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 2),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
 

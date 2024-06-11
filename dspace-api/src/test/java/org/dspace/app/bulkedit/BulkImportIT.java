@@ -57,8 +57,11 @@ import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.matcher.DSpaceObjectMatcher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
+import org.dspace.authenticate.service.ProfileInitializer;
+import org.dspace.authority.service.ItemSearcherMapper;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.ResourcePolicyBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
@@ -85,6 +88,7 @@ import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.utils.DSpace;
 import org.dspace.workflow.WorkflowItem;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -992,6 +996,49 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(metadata, hasItems(with("dc.identifier.doi", "10.1000/183")));
         assertThat(metadata, hasItems(with("dc.type", "Article")));
 
+    }
+
+    @Test
+    public void testCreateRelatedOrgunitPerson() throws Exception {
+        // Test profile affiliation after creation
+        context.turnOffAuthorisationSystem();
+
+        Collection orgunits = createCollection(context, community)
+                .withEntityType("OrgUnit")
+                .withSubmissionDefinition("orgunit-for-test")
+                .build();
+
+        Collection people = createCollection(context, community)
+                .withEntityType("Person")
+                .build();
+
+        ItemBuilder.createItem(context, orgunits).withTitle("ASL").withAcronym("ASL").build();
+        // needed to allow sync of eperson / epfl person
+        Group submitters = GroupBuilder.createGroup(context).withName(ProfileInitializer.SUBMITTERS).build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String orgunitsCollectionId = orgunits.getID().toString();
+        String fileLocation = getXlsFilePath("r6-orgUnits.xls");
+        String[] args = new String[] { "bulk-import", "-c", orgunitsCollectionId, "-f", fileLocation,
+            "-e", admin.getEmail(), "-er"};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        orgunits = context.reloadEntity(orgunits);
+        people = context.reloadEntity(people);
+        // 1 are created in advance, 2 orgunits are in the excel,
+        // they have a parent, the second one has a grandparent and a grand-grandparent
+        assertThat(itemService.countItems(context, orgunits), is(1 + 2 + 2 + 3));
+        assertThat(itemService.countItems(context, people), is(2 + 1 + 3));
+        // the MTI has STI as parent that has 283344 as director, let's look for him
+        ItemSearcherMapper itemSearcherMapper = new DSpace().getSingletonService(ItemSearcherMapper.class);
+        Item item = itemSearcherMapper.search(context, "SCIPER-ID", "283344", null);
+        assertThat(itemService.getMetadata(item, "oairecerif", "person", "affiliation", Item.ANY).size(), is(1));
+        assertThat(itemService.getMetadata(item, "oairecerif", "affiliation", "role", Item.ANY).size(), is(1));
+        assertThat(itemService.getMetadata(item, "oairecerif", "affiliation", "startDate", Item.ANY).size(), is(1));
+        assertThat(itemService.getMetadata(item, "oairecerif", "affiliation", "endDate", Item.ANY).size(), is(1));
     }
 
     @Test
