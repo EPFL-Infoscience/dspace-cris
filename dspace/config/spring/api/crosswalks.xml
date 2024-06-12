@@ -759,6 +759,7 @@
 			<map>
 				<entry key="id" value-ref="virtualFieldId" />
 				<entry key="item-ui-url" value-ref="virtualFieldItemURL" />
+				<entry key="handle" value-ref="virtualFieldHandle" />
 				<entry key="config" value-ref="virtualFieldConfigProps" />
 				<entry key="authority" value-ref="virtualFieldAuthority" />
 				<entry key="primary-doi" value-ref="virtualFieldPrimaryDOI" />
@@ -786,6 +787,7 @@
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldToEnhancedMetadata"
         id="virtualFieldToEnhancedMetadata" />
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldId" id="virtualFieldId"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldHandle" id="virtualFieldHandle" />
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldItemURL" id="virtualFieldItemURL"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldConfigProperties" id="virtualFieldConfigProps">
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
@@ -861,8 +863,10 @@
 				<entry key="cerifToFundingTypes" value-ref="mapConverterCerifToFundingTypes" />
 				<entry key="type2datacite" value-ref="mapConverterDataciteToPublicationTypes" />
 				<entry key="type2datacitelabel" value-ref="mapConverterDataciteToPublicationLabelTypes" />
+				<entry key="type2oaiopenaire" value-ref="mapConverterOaiOpenaireToPublicationTypes" />
+                <entry key="type2oaiopenaireuri" value-ref="mapConverterOaiOpenaireToPublicationURITypes" />
+                <entry key="type2oaiopenairelabel" value-ref="mapConverterOaiOpenaireToPublicationLabelTypes" />
 				<entry key="right2licenseUrl" value-ref="mapConverterDataciteToPublicationLicense" />
-				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
 				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
 				<entry key="coar2endnote" value-ref="mapConverterCoarToEndnoteTypes" />
 				<entry key="scopus2coar" value-ref="mapConverterScopusToCoarTypes" />
@@ -964,6 +968,27 @@
         <property name="converterNameFile" value="mapConverter-datacitePublicationLabelTypes.properties" />
         <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
         <property name="defaultValue" value="Text"/>
+        <property name="useAuthority" value="true" />
+    </bean>
+
+    <bean name="mapConverterOaiOpenaireToPublicationLabelTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-oaiopenairePublicationLabelTypes.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="other"/>
+        <property name="useAuthority" value="true" />
+    </bean>
+
+    <bean name="mapConverterOaiOpenaireToPublicationURITypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-oaiopenairePublicationURITypes.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="http://purl.org/coar/resource_type/c_1843"/>
+        <property name="useAuthority" value="true" />
+    </bean>
+
+    <bean name="mapConverterOaiOpenaireToPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-oaiopenairePublicationTypes.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="other research product"/>
         <property name="useAuthority" value="true" />
     </bean>
 
