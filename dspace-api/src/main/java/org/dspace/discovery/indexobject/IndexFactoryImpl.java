@@ -109,9 +109,16 @@ public abstract class IndexFactoryImpl<T extends IndexableObject, S> implements 
                                                            .getConfigurationService()
                                                            .getIntProperty("discovery.solr.fulltext.charLimit", 100000);
 
-                addField(doc, "fulltext", streams.getFullTextStreamStream(), charLimit);
-                addField(doc, "fulltext.mirador", streams.getMiradorStream(), charLimit);
-                addField(doc, "fulltext.video", streams.getVideoStream(), charLimit);
+                try {
+                    addField(doc, "fulltext", streams.getFullTextStreamStream(), charLimit);
+                    addField(doc, "fulltext.mirador", streams.getMiradorStream(), charLimit);
+                    addField(doc, "fulltext.video", streams.getVideoStream(), charLimit);
+                } catch (Exception e) {
+                    log.error("Error adding a fulltext field", e);
+                    if (!ConfigurationService.getBooleanProperty("discovery.ignore-fulltext-exception", true)) {
+                        throw e;
+                    }
+                }
             }
             // Add document to index
             solr.add(doc);
