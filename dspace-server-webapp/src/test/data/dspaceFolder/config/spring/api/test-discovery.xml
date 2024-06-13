@@ -3616,6 +3616,7 @@
         <property name="searchFilters">
             <list>
                 <ref bean="searchFilterEntityType"/>
+                <ref bean="searchFilterOrgUnitHierarchy"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
