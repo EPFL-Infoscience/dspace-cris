@@ -84,7 +84,7 @@ public class SimpleMapConverter {
 
         String value = mapping.getOrDefault(key, defaultValue);
 
-        if (StringUtils.isBlank(value)) {
+        if (StringUtils.isBlank(value) || StringUtils.equals("@@ident@@", value)) {
             return key;
         }
 

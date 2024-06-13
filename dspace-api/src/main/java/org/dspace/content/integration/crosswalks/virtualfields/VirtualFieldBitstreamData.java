@@ -10,6 +10,7 @@ package org.dspace.content.integration.crosswalks.virtualfields;
 
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -76,11 +78,11 @@ public class VirtualFieldBitstreamData
             return new String[0];
         }
 
-        return dataFromBitstreams(virtualFieldName, bitstreams, virtualFieldName[3]);
+        return dataFromBitstreams(context, virtualFieldName, bitstreams, virtualFieldName[3]);
     }
 
-    private String[] dataFromBitstreams(String[] virtualFieldName, List<Bitstream> bitstreamList,
-                                        String attributeType) {
+    private String[] dataFromBitstreams(Context context, String[] virtualFieldName,
+            List<Bitstream> bitstreamList, String attributeType) {
 
 
         Optional<BitstreamAttribute> bitstreamAttribute = BitstreamAttribute.of(attributeType);
@@ -93,20 +95,22 @@ public class VirtualFieldBitstreamData
 
         return bitstreamList
             .stream()
-            .map(bitstream -> bistreamAttributeValue(virtualFieldName.length == 5 ? virtualFieldName[4] : DUMMY,
-                                                     bitstream,
-                                                     bitstreamAttribute.get()))
+            .map(bitstream -> bistreamAttributeValue(
+                    context,
+                    virtualFieldName.length == 5 ? virtualFieldName[4] : DUMMY,
+                    bitstream,
+                    bitstreamAttribute.get()))
             .toArray(String[]::new);
 
     }
 
-    private String bistreamAttributeValue(String attribute, Bitstream bitstream,
+    private String bistreamAttributeValue(Context context, String attribute, Bitstream bitstream,
                                           BitstreamAttribute bitstreamAttribute) {
 
         if (StringUtils.isBlank(attribute)) {
             return PLACEHOLDER_PARENT_METADATA_VALUE;
         }
-        String value = bitstreamAttribute.value(bitstreamService, bitstream, attribute);
+        String value = bitstreamAttribute.value(context, bitstreamService, bitstream, attribute);
 
         return StringUtils.defaultIfBlank(value, PLACEHOLDER_PARENT_METADATA_VALUE);
     }
@@ -116,7 +120,8 @@ public class VirtualFieldBitstreamData
         DATA("data") {
 
             @Override
-            public String value(BitstreamService itemService, Bitstream bitstream, String bitstreamAttribute) {
+            public String value(Context context, BitstreamService itemService,
+                    Bitstream bitstream, String bitstreamAttribute) {
                 // FIXME: could be improved allowing retrieval of all, or a subset, of allowed bitstream attribute,
                 // without hardcoding attributes
                 switch (bitstreamAttribute) {
@@ -124,6 +129,14 @@ public class VirtualFieldBitstreamData
                         return UUIDUtils.toString(bitstream.getID());
                     case "sizeBytes" :
                         return String.valueOf(bitstream.getSizeBytes());
+                    case "mimeType" :
+                        BitstreamFormat format = null;
+                        try {
+                            format = bitstream.getFormat(context);
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                        return format != null ? format.getMIMEType() : "application/octet-stream";
                     default:
                         return "";
                 }
@@ -132,7 +145,7 @@ public class VirtualFieldBitstreamData
         METADATA("metadata") {
 
             @Override
-            public String value(BitstreamService itemService, Bitstream bitstream, String metadata) {
+            public String value(Context context, BitstreamService itemService, Bitstream bitstream, String metadata) {
                 // FIXME: now only first metadata value is returned, if needed for repeatable metadata,
                 //  values could be concatenated
                 //  or a positional indicator can be added to attribute value
@@ -149,8 +162,9 @@ public class VirtualFieldBitstreamData
             private final ConfigurationService configurationService = DSpaceServicesFactory.getInstance()
                                                                                            .getConfigurationService();
             @Override
-            public String value(BitstreamService itemService, Bitstream bitstream, String attributeValue) {
-                String url = configurationService.getProperty("dspace.server.url");
+            public String value(Context context, BitstreamService itemService,
+                    Bitstream bitstream, String attributeValue) {
+                String url = configurationService.getProperty("dspace.ui.url");
                 return url + "/bitstreams/" + bitstream.getID() + "/download";
             }
         };
@@ -173,7 +187,8 @@ public class VirtualFieldBitstreamData
                 .collect(Collectors.joining(", "));
         }
 
-        public abstract String value(BitstreamService itemService, Bitstream bitstream, String attributeValue);
+        public abstract String value(Context context, BitstreamService itemService,
+                Bitstream bitstream, String attributeValue);
     }
 
 

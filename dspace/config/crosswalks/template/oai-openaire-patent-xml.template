@@ -11,8 +11,10 @@
       @group.dc-contributor-author.start@
         <datacite:creator>
             <datacite:creatorName>@dc.contributor.author@</datacite:creatorName>
-              @relation.dc-contributor-author.start@
+            @relation.dc-contributor-author.start@
+            <datacite:nameIdentifier nameIdentifierScheme="Scopus Author ID">@person.identifier.scopus-author-id@</datacite:nameIdentifier>
             <datacite:nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org/">@person.identifier.orcid@</datacite:nameIdentifier>
+            <datacite:nameIdentifier nameIdentifierScheme="RID">@person.identifier.rid@</datacite:nameIdentifier>
             @relation.dc-contributor-author.end@
             @relation.oairecerif-author-affiliation.start@
             <datacite:affiliation
@@ -50,22 +52,39 @@
   @virtual.mapConverter.type2oaiopenairelabel.dc-type@
   </resourceType>
   <datacite:alternateIdentifiers>
-    <datacite:alternateIdentifier alternateIdentifierType="url">@dc.identifier.uri@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.primary-doi.dc-identifier-doi@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="isbn">@dc.identifier.isbn@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="issn">@dc.identifier.issn@</datacite:alternateIdentifier>
-    <datacite:alternateIdentifier alternateIdentifierType="Scopus">@dc.identifier.scopus@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="WOS">@dc.identifier.isi@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="arXiv">@dc.identifier.arxiv@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="PMID">@dc.identifier.pmid@</datacite:alternateIdentifier>
   </datacite:alternateIdentifiers>
   <version>@dc.description.version@</version>
+  @if.not.metadata.dc-description-version.start@>
+  <version uri="@oaire.version@">
+  @virtual.mapConverter.oaireversionuri2label.oaire-version@</version>
+  @if.not.metadata.dc-description-version.end@>
   <citationConferenceDate>@oaire.citation.conferenceDate@</citationConferenceDate>
   <citationTitle>@dc.relation.journal@</citationTitle>
   <citationTitle>@dc.relation.ispartof@</citationTitle>
   <citationTitle>@dc.relation.conference@</citationTitle>
   <citationTitle>@dc.relation.ispartofseries@</citationTitle>
+  <citationVolume>@oaire.citation.volume@</citationVolume>
+  <citationIssue>@oaire.citation.issue@</citationIssue>
+  <citationStartPage>@oaire.citation.startPage@</citationStartPage>
+  <citationEndPage>@oaire.citation.endPage@</citationEndPage>
+  <datacite:relatedIdentifiers>
+    <datacite:relatedIdentifier relatedIdentifierType="ISSN" relationType="IsPartOf">@dc.relation.issn@</datacite:relatedIdentifier>
+    @group.datacite-relatedIdentifier.start@
+    <datacite:relatedIdentifier relatedIdentifierType="ISSN" relationType="IsPartOf">@dc.relation.serieissn@</datacite:relatedIdentifier>
+    <datacite:relatedIdentifier relatedIdentifierType="URL"
+      relationType="@datacite.relationType@"
+      >
+      @datacite.relatedIdentifier@
+    </datacite:relatedIdentifier>
+    @group.datacite-relatedIdentifier.end@
+  </datacite:relatedIdentifiers>
   <datacite:rights rightsURI="@virtual.mapConverter.right2conceptUrl.datacite-rights@">
         @datacite.rights@</datacite:rights>
   <dc:description>@dc.description.abstract@</dc:description>
@@ -77,13 +96,17 @@
     <funderName>@oairecerif.funder@</funderName>
     @if.metadata.dc-relation-grantno.start@
     <awardNumber 
-    awardURI="crisfund.award.uri">
-    @dc.relation.grantno@
-    </awardNumber>
+      awardURI="@crisfund.award.uri@"
+      >@dc.relation.grantno@</awardNumber>
     @if.metadata.dc-relation-grantno.end@
     <awardTitle>@dc.relation.funding@</awardTitle>
    </fundingReference>
   @group.oairecerif-funder.end@
   </fundingReferences>
   @if.metadata.oairecerif-funder.end@
+  @group.bundle-original.start@
+  <file mimeType="@virtual.bitstreamData.original.data.mimeType@"> 
+    @virtual.bitstreamData.original.download-path@
+  </file>
+  @group.bundle-original.end@
 </resource>
