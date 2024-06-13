@@ -7,13 +7,18 @@
  */
 package org.dspace.app.rest.enhancer;
 
+import static org.dspace.app.launcher.ScriptLauncher.handleScript;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.dspace.app.matcher.MetadataValueMatcher.withNoPlace;
+import static org.dspace.builder.CollectionBuilder.createCollection;
+import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,23 +27,33 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.matcher.CustomItemMatcher;
+import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ReloadableEntity;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
@@ -609,6 +624,162 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
               hasItem(withNoPlace("cris.virtual.orcid", PLACEHOLDER_PARENT_METADATA_VALUE)));
       assertThat(getMetadataValues(publication5, "cris.virtualsource.orcid"),
               hasItem(withNoPlace("cris.virtualsource.orcid", person5Id)));
+    }
+
+    @Test
+    @Ignore
+    public void testOrgUnitHierarchyForAffinity() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Community community = createCommunity(context).build();
+        GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+        Collection collectionOrgunit = createCollection(context, community)
+                .withDefaultItemRead(anonymousGroup)
+                .build();
+        Collection collectionPublication = createCollection(context, community)
+                .withDefaultItemRead(anonymousGroup)
+                .build();
+
+        String orgUnitAcronym_A = "SV";
+        Item orgUnit_A = createBaseOrgUnit(orgUnitAcronym_A, collectionOrgunit)
+                .build();
+        String orgUnitId_A = orgUnit_A.getID().toString();
+
+        String orgUnitAcronym_B = "ISREC";
+        Item orgUnit_B = createBaseOrgUnit(orgUnitAcronym_B, collectionOrgunit)
+                .withParentOrganization(orgUnitAcronym_A, orgUnitId_A)
+                .build();
+        String orgUnitId_B = orgUnit_B.getID().toString();
+
+        String orgUnitAcronym_C = "GR-KUHN";
+        Item orgUnit_C = createBaseOrgUnit(orgUnitAcronym_C, collectionOrgunit)
+                .withParentOrganization(orgUnitAcronym_B, orgUnitId_B)
+                .build();
+        String orgUnitId_C = orgUnit_C.getID().toString();
+
+        Item person_A = ItemBuilder.createItem(context, collection)
+                .withTitle("John Red")
+                .withEntityType("Person")
+                .withPersonMainAffiliation(orgUnitAcronym_A, orgUnitId_A)
+                .build();
+
+        Item itemA1 = ItemBuilder.createItem(context, collectionPublication)
+                .withTitle("Title Item A1")
+                .withSubject("Subject Item A1")
+                .withEntityType("Publication")
+                .withAuthor("John Red", person_A.getID().toString())
+                .withSponsorship(orgUnitAcronym_A, orgUnitId_A)
+                .build();
+
+        Item itemA2 = ItemBuilder.createItem(context, collectionPublication)
+                .withTitle("Title Item A2")
+                .withSubject("Subject Item A2")
+                .withEntityType("Publication")
+                .withAuthor("John Red", person_A.getID().toString())
+                .withSponsorship(orgUnitAcronym_A, orgUnitId_A)
+                .build();
+
+        Item person_B = ItemBuilder.createItem(context, collection)
+                .withTitle("Mario Rossi")
+                .withEntityType("Person")
+                .withPersonMainAffiliation(orgUnitAcronym_B, orgUnitId_B)
+                .build();
+
+        Item itemB1 = ItemBuilder.createItem(context, collectionPublication)
+                .withTitle("Title Item B1")
+                .withSubject("Subject Item B1")
+                .withEntityType("Publication")
+                .withAuthor("Mario Rossi", person_B.getID().toString())
+                .withSponsorship(orgUnitAcronym_B, orgUnitId_B)
+                .build();
+
+        Item itemB2 = ItemBuilder.createItem(context, collectionPublication)
+                .withTitle("Title Item B2")
+                .withSubject("Subject Item B2")
+                .withEntityType("Publication")
+                .withAuthor("Mario Rossi", person_B.getID().toString())
+                .withSponsorship(orgUnitAcronym_B, orgUnitId_B)
+                .build();
+
+        Item person_C = ItemBuilder.createItem(context, collection)
+                .withTitle("Banana Joe")
+                .withEntityType("Person")
+                .withPersonMainAffiliation(orgUnitAcronym_C, orgUnitId_C)
+                .build();
+
+        Item itemC1 = ItemBuilder.createItem(context, collectionPublication)
+                .withTitle("Title Item C1")
+                .withSubject("Subject Item C1")
+                .withEntityType("Publication")
+                .withAuthor("Banana Joe", person_C.getID().toString())
+                .withSponsorship(orgUnitAcronym_C, orgUnitId_C)
+                .build();
+
+        Item itemC2 = ItemBuilder.createItem(context, collectionPublication)
+                .withTitle("Title Item C2")
+                .withSubject("Subject Item C2")
+                .withEntityType("Publication")
+                .withAuthor("Banana Joe", person_C.getID().toString())
+                .withSponsorship(orgUnitAcronym_C, orgUnitId_C)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        // setting the real enhancer service
+        poller.setItemEnhancerService(itemEnhancerService);
+
+        // launching the enhancement to create virtual metadata
+        poller.pollItemToUpdateAndProcess();
+
+        // restoring the mock for following tests
+        poller.setItemEnhancerService(spyItemEnhancerService);
+
+        context.commit();
+
+        context.reloadEntity(itemA1);
+        context.reloadEntity(itemA2);
+        context.reloadEntity(itemB1);
+        context.reloadEntity(itemB2);
+        context.reloadEntity(itemC1);
+        context.reloadEntity(itemC2);
+
+        File xml = new File("research-outputs.json");
+        xml.deleteOnExit();
+
+        String[] args = new String[] { "bulk-item-export",
+                "-f", "research-outputs-json",
+                "-s", orgUnitId_A,
+                "-c", "affinitySearch"
+        };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        try (FileInputStream fis = new FileInputStream(xml)) {
+            String content = IOUtils.toString(fis, Charset.defaultCharset());
+            assertThat(content, containsString("\"unit\": \"OrgUnit A\""));
+            assertThat(content, containsString("Title Item A1"));
+            assertThat(content, containsString("Title Item A2"));
+            assertThat(content, containsString("\"unit\": \"OrgUnit B\""));
+            assertThat(content, containsString("Title Item B1"));
+            assertThat(content, containsString("Title Item B2"));
+            assertThat(content, containsString("\"unit\": \"OrgUnit C\""));
+            assertThat(content, containsString("Title Item C1"));
+            assertThat(content, containsString("Title Item C2"));
+        }
+
+    }
+
+    private ItemBuilder createBaseOrgUnit(String acronym, Collection collection) {
+        return ItemBuilder.createItem(context, collection)
+                .withTitle(acronym)
+                .withEntityType("OrgUnit")
+                .withMetadata("oairecerif", "acronym", null, acronym);
     }
 
     private List<MetadataValue> getMetadataValues(Item item, String metadataField) {

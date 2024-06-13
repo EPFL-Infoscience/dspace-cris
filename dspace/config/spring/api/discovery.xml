@@ -212,7 +212,7 @@
                 <entry key="aliases" value-ref="aliases"/>
                 <entry key="RELATION.Site.researchoutputs" value-ref="relationSiteResearchOutputsConfiguration"/>
                 <!-- discovery configuration for epfl enac affinity map -->
-                <entry key="affinitySearch" value-ref="researchoutputsByParentOrganization"/>
+                <entry key="affinitySearch" value-ref="researchoutputsByParentOrganizationHierarchy"/>
             </map>
         </property>
         <property name="toIgnoreMetadataFields">
@@ -2978,6 +2978,42 @@
         <!--The search filters which can be used on the discovery search page-->
         <property name="searchFilters">
             <list>
+                <ref bean="searchFilterOrgUnitHierarchy"/>
+            </list>
+        </property>
+        <!--The sort filters for the discovery search-->
+        <property name="searchSortConfiguration">
+            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
+                <property name="sortFields">
+                    <list>
+                        <ref bean="sortScore" />
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <!--Any default filter queries, these filter queries will be used for all
+            queries done by discovery for this configuration -->
+        <property name="defaultFilterQueries">
+            <list>
+                <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
+                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
+                <!--Only find items with metadata authority equal to scope. The placeholder {0} will be replaced with scope (UUID of item)-->
+                <value>organization_authority:{0}</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="researchoutputsByParentOrganizationHierarchy" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration"
+      scope="prototype">
+        <property name="id" value="researchoutputsByParentOrganizationHierarchy"/>
+        <property name="indexAlways" value="true"/>
+        <property name="sidebarFacets">
+            <list/>
+        </property>
+        <!--The search filters which can be used on the discovery search page-->
+        <property name="searchFilters">
+            <list>
                 <ref bean="searchFilterEntityType"/>
             </list>
         </property>
@@ -2999,7 +3035,7 @@
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
                 <!--Only find items with metadata authority equal to scope. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>organization_authority:{0} OR cris.virtualsource.parent-organization:{0}</value>
+                <value>organizationHierarchy_authority:{0}</value>
             </list>
         </property>
     </bean>
@@ -4475,6 +4511,21 @@
                 <value>oairecerif.author.affiliation</value>
                 <value>oairecerif.scientificeditor.affiliation</value>
                 <value>oairecerif.advisor.affiliation</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
+
+    <bean id="searchFilterOrgUnitHierarchy" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="organizationHierarchy"/>
+        <property name="metadataFields">
+            <list>
+                <value>cris.virtual.parent-organization</value>
             </list>
         </property>
         <property name="facetLimit" value="5"/>
