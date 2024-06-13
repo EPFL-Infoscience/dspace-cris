@@ -51,6 +51,9 @@ import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ReloadableEntity;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
@@ -624,81 +627,101 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
     }
 
     @Test
-    public void testOrgUnitHierarchyWithoutPeople() throws Exception {
+    public void testOrgUnitHierarchyForAffinity() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
         Community community = createCommunity(context).build();
-        Collection collectionOrgunit = createCollection(context, community).withAdminGroup(eperson).build();
-        Collection collectionPublication = createCollection(context, community).withAdminGroup(eperson).build();
-
-        String orgUnitAAcronym = "SV";
-        Item orgUnitA = ItemBuilder.createItem(context, collectionOrgunit)
-                .withTitle(orgUnitAAcronym)
-                .withEntityType("OrgUnit")
-                .withMetadata("oairecerif", "acronym", null, orgUnitAAcronym)
+        GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+        Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+        Collection collectionOrgunit = createCollection(context, community)
+                .withDefaultItemRead(anonymousGroup)
                 .build();
-        String orgUnitAId = orgUnitA.getID().toString();
-
-        String orgUnitBAcronym = "ISREC";
-        Item orgUnitB = ItemBuilder.createItem(context, collection)
-                .withTitle(orgUnitBAcronym)
-                .withEntityType("OrgUnit")
-                .withMetadata("oairecerif", "acronym", null, orgUnitBAcronym)
-                .withParentOrganization(orgUnitAAcronym, orgUnitAId)
+        Collection collectionPublication = createCollection(context, community)
+                .withDefaultItemRead(anonymousGroup)
                 .build();
-        String orgUnitBId = orgUnitB.getID().toString();
 
-        String orgUnitCAcronym = "TEST";
-        Item orgUnitC = ItemBuilder.createItem(context, collection)
-                .withTitle(orgUnitCAcronym)
-                .withEntityType("OrgUnit")
-                .withMetadata("oairecerif", "acronym", null, orgUnitCAcronym)
-                .withParentOrganization(orgUnitBAcronym, orgUnitAId)
-                .withMetadata("cris", "virtual", "parent-organization", null, orgUnitAAcronym, orgUnitAId, 600)
+        String orgUnitAcronym_A = "SV";
+        Item orgUnit_A = createBaseOrgUnit(orgUnitAcronym_A, collectionOrgunit)
                 .build();
-        String orgUnitCId = orgUnitC.getID().toString();
+        String orgUnitId_A = orgUnit_A.getID().toString();
+
+        String orgUnitAcronym_B = "ISREC";
+        Item orgUnit_B = createBaseOrgUnit(orgUnitAcronym_B, collectionOrgunit)
+                .withParentOrganization(orgUnitAcronym_A, orgUnitId_A)
+                .build();
+        String orgUnitId_B = orgUnit_B.getID().toString();
+
+        String orgUnitAcronym_C = "GR-KUHN";
+        Item orgUnit_C = createBaseOrgUnit(orgUnitAcronym_C, collectionOrgunit)
+                .withParentOrganization(orgUnitAcronym_B, orgUnitId_B)
+                .build();
+        String orgUnitId_C = orgUnit_C.getID().toString();
+
+        Item person_A = ItemBuilder.createItem(context, collection)
+                .withTitle("John Red")
+                .withEntityType("Person")
+                .withPersonMainAffiliation(orgUnitAcronym_A, orgUnitId_A)
+                .build();
 
         Item itemA1 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item A1")
                 .withSubject("Subject Item A1")
                 .withEntityType("Publication")
-                .withSponsorship(orgUnitAAcronym, orgUnitAId)
+                .withAuthor("John Red", person_A.getID().toString())
+                .withSponsorship(orgUnitAcronym_A, orgUnitId_A)
                 .build();
 
         Item itemA2 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item A2")
                 .withSubject("Subject Item A2")
                 .withEntityType("Publication")
-                .withSponsorship(orgUnitAAcronym, orgUnitAId)
+                .withAuthor("John Red", person_A.getID().toString())
+                .withSponsorship(orgUnitAcronym_A, orgUnitId_A)
+                .build();
+
+        Item person_B = ItemBuilder.createItem(context, collection)
+                .withTitle("Mario Rossi")
+                .withEntityType("Person")
+                .withPersonMainAffiliation(orgUnitAcronym_B, orgUnitId_B)
                 .build();
 
         Item itemB1 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item B1")
                 .withSubject("Subject Item B1")
                 .withEntityType("Publication")
-                .withSponsorship(orgUnitBAcronym, orgUnitBId)
+                .withAuthor("Mario Rossi", person_B.getID().toString())
+                .withSponsorship(orgUnitAcronym_B, orgUnitId_B)
                 .build();
 
         Item itemB2 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item B2")
                 .withSubject("Subject Item B2")
                 .withEntityType("Publication")
-                .withSponsorship(orgUnitBAcronym, orgUnitBId)
+                .withAuthor("Mario Rossi", person_B.getID().toString())
+                .withSponsorship(orgUnitAcronym_B, orgUnitId_B)
+                .build();
+
+        Item person_C = ItemBuilder.createItem(context, collection)
+                .withTitle("Banana Joe")
+                .withEntityType("Person")
+                .withPersonMainAffiliation(orgUnitAcronym_C, orgUnitId_C)
                 .build();
 
         Item itemC1 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item C1")
                 .withSubject("Subject Item C1")
                 .withEntityType("Publication")
-                .withSponsorship(orgUnitCAcronym, orgUnitCId)
+                .withAuthor("Banana Joe", person_C.getID().toString())
+                .withSponsorship(orgUnitAcronym_C, orgUnitId_C)
                 .build();
 
         Item itemC2 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item C2")
                 .withSubject("Subject Item C2")
                 .withEntityType("Publication")
-                .withSponsorship(orgUnitCAcronym, orgUnitCId)
+                .withAuthor("Banana Joe", person_C.getID().toString())
+                .withSponsorship(orgUnitAcronym_C, orgUnitId_C)
                 .build();
 
         context.restoreAuthSystemState();
@@ -713,12 +736,21 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         // restoring the mock for following tests
         poller.setItemEnhancerService(spyItemEnhancerService);
 
+        context.commit();
+
+        context.reloadEntity(itemA1);
+        context.reloadEntity(itemA2);
+        context.reloadEntity(itemB1);
+        context.reloadEntity(itemB2);
+        context.reloadEntity(itemC1);
+        context.reloadEntity(itemC2);
+
         File xml = new File("research-outputs.json");
         xml.deleteOnExit();
 
         String[] args = new String[] { "bulk-item-export",
                 "-f", "research-outputs-json",
-                "-s", orgUnitAId,
+                "-s", orgUnitId_A,
                 "-c", "affinitySearch"
         };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
@@ -740,6 +772,13 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
             assertThat(content, containsString("Title Item C2"));
         }
 
+    }
+
+    private ItemBuilder createBaseOrgUnit(String acronym, Collection collection) {
+        return ItemBuilder.createItem(context, collection)
+                .withTitle(acronym)
+                .withEntityType("OrgUnit")
+                .withMetadata("oairecerif", "acronym", null, acronym);
     }
 
     private List<MetadataValue> getMetadataValues(Item item, String metadataField) {
