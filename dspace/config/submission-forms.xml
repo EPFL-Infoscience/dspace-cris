@@ -2704,8 +2704,9 @@
           <hint>Format: DATE or DATE/DATE where DATE is YYYY or YYYY-MM or YYYY-MM-DD</hint>
         </field>
         <field>
-          <dc-schema>oaire</dc-schema>
-          <dc-element>version</dc-element>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>version</dc-qualifier>
           <label>Version</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>

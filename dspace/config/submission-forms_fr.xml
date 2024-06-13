@@ -2705,7 +2705,8 @@
         </field>
         <field>
           <dc-schema>oaire</dc-schema>
-          <dc-element>version</dc-element>
+          <dc-element>description</dc-element>
+          <dc-qualifier>version</dc-qualifier>
           <label>Version</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
