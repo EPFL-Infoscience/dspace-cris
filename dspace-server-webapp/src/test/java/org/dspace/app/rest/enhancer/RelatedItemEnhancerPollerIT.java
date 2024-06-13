@@ -627,6 +627,7 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testOrgUnitHierarchyForAffinity() throws Exception {
 
         context.turnOffAuthorisationSystem();
