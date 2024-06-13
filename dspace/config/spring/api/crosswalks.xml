@@ -866,6 +866,7 @@
 				<entry key="type2oaiopenaire" value-ref="mapConverterOaiOpenaireToPublicationTypes" />
                 <entry key="type2oaiopenaireuri" value-ref="mapConverterOaiOpenaireToPublicationURITypes" />
                 <entry key="type2oaiopenairelabel" value-ref="mapConverterOaiOpenaireToPublicationLabelTypes" />
+                <entry key="oaireversionuri2label" value-ref="mapConverterOaiOpenaireVersionURIToLabel" />
 				<entry key="right2licenseUrl" value-ref="mapConverterDataciteToPublicationLicense" />
 				<entry key="right2conceptUrl" value-ref="mapConverterDataciteToPublicationAccessRights" />
 				<entry key="coar2endnote" value-ref="mapConverterCoarToEndnoteTypes" />
@@ -976,6 +977,13 @@
         <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
         <property name="defaultValue" value="other"/>
         <property name="useAuthority" value="true" />
+    </bean>
+
+    <bean name="mapConverterOaiOpenaireVersionURIToLabel" class="org.dspace.util.SimpleMapConverter" init-method="init">
+        <property name="converterNameFile" value="mapConverter-oaireversionuri2label.properties" />
+        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+        <property name="defaultValue" value="NA"/>
+        <property name="useAuthority" value="false" />
     </bean>
 
     <bean name="mapConverterOaiOpenaireToPublicationURITypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
