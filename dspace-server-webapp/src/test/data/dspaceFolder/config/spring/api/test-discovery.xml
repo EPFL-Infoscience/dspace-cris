@@ -5046,6 +5046,11 @@
         <property name="indexFieldName" value="organizationHierarchy"/>
         <property name="metadataFields">
             <list>
+                <value>person.affiliation.name</value>
+                <value>oairecerif.author.affiliation</value>
+                <value>oairecerif.scientificeditor.affiliation</value>
+                <value>oairecerif.advisor.affiliation</value>
+                <value>dc.description.sponsorship</value>
                 <value>cris.virtual.parent-organization</value>
             </list>
         </property>
