@@ -4960,7 +4960,7 @@
           <label>Titre du livre</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>Le titre du livre est obligatoire</required>
+          <required />
           <hint>Indiquez le titre de la principale publication dans laquelle ce document apparaît</hint>
           <type-bind>text, texte, conference-coar-types:c_18cf, publication-coar-types:c_18cf, text::conference output, texte::objet présenté à une conférence, conference-coar-types:c_c94f, publication-coar-types:c_c94f, text::conference output::conference proceedings::conference paper, texte::objet présenté à une conférence::actes de conférence::article dans une conférence/papier de conférence, conference-coar-types:c_5794, publication-coar-types:c_5794, text::conference output::conference proceedings::conference poster, texte::objet présenté à une conférence::actes de conférence::poster dans une conférence, conference-coar-types:c_6670, publication-coar-types:c_6670, text::book/monograph::book part or chapter, texte::livre/monographie::chapitre de livre/partie d'ouvrage, book-coar-types:c_3248, publication-coar-types:c_3248, text, texte, book-coar-types:c_18cf, publication-coar-types:c_18cf</type-bind>
         </field>
@@ -4985,7 +4985,7 @@
           <label>Éditeur</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>L'éditeur est obligatoire</required>
+          <required />
           <style>col-xs-12 col-md-8</style>
           <hint>Exemple : Elsevier</hint>
           <type-bind>text::book/monograph::book part or chapter, texte::livre/monographie::chapitre de livre/partie d'ouvrage, book-coar-types:c_3248, publication-coar-types:c_3248, text::book/monograph, texte::livre/monographie, book-coar-types:c_2f33, publication-coar-types:c_2f33, text, texte, book-coar-types:c_18cf, publication-coar-types:c_18cf, text::conference output, texte::objet présenté à une conférence, conference-coar-types:c_c94f, publication-coar-types:c_c94f, text::conference output::conference proceedings::conference paper, texte::objet présenté à une conférence::actes de conférence::article dans une conférence/papier de conférence, conference-coar-types:c_5794, publication-coar-types:c_5794, text::conference output::conference proceedings::conference poster, texte::objet présenté à une conférence::actes de conférence::poster dans une conférence, conference-coar-types:c_6670, publication-coar-types:c_6670, text::conference output::conference proceedings, texte::objet présenté à une conférence::actes de conférence, conference-coar-types:c_f744, publication-coar-types:c_f744, text::conference output, texte::objet présenté à une conférence, conference-coar-types:c_8544, publication-coar-types:c_8544, text, texte, conference-coar-types:c_18cf, publication-coar-types:c_18cf</type-bind>
