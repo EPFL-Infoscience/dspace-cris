@@ -627,7 +627,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
     }
 
     @Test
-    @Ignore
     public void testOrgUnitHierarchyForAffinity() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -637,9 +636,11 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
         Collection collectionOrgunit = createCollection(context, community)
                 .withDefaultItemRead(anonymousGroup)
+                .withEntityType("OrgUnit")
                 .build();
         Collection collectionPublication = createCollection(context, community)
                 .withDefaultItemRead(anonymousGroup)
+                .withEntityType("Publication")
                 .build();
 
         String orgUnitAcronym_A = "SV";
@@ -668,7 +669,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         Item itemA1 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item A1")
                 .withSubject("Subject Item A1")
-                .withEntityType("Publication")
                 .withAuthor("John Red", person_A.getID().toString())
                 .withSponsorship(orgUnitAcronym_A, orgUnitId_A)
                 .build();
@@ -676,7 +676,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         Item itemA2 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item A2")
                 .withSubject("Subject Item A2")
-                .withEntityType("Publication")
                 .withAuthor("John Red", person_A.getID().toString())
                 .withSponsorship(orgUnitAcronym_A, orgUnitId_A)
                 .build();
@@ -690,7 +689,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         Item itemB1 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item B1")
                 .withSubject("Subject Item B1")
-                .withEntityType("Publication")
                 .withAuthor("Mario Rossi", person_B.getID().toString())
                 .withSponsorship(orgUnitAcronym_B, orgUnitId_B)
                 .build();
@@ -698,7 +696,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         Item itemB2 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item B2")
                 .withSubject("Subject Item B2")
-                .withEntityType("Publication")
                 .withAuthor("Mario Rossi", person_B.getID().toString())
                 .withSponsorship(orgUnitAcronym_B, orgUnitId_B)
                 .build();
@@ -712,7 +709,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         Item itemC1 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item C1")
                 .withSubject("Subject Item C1")
-                .withEntityType("Publication")
                 .withAuthor("Banana Joe", person_C.getID().toString())
                 .withSponsorship(orgUnitAcronym_C, orgUnitId_C)
                 .build();
@@ -720,7 +716,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
         Item itemC2 = ItemBuilder.createItem(context, collectionPublication)
                 .withTitle("Title Item C2")
                 .withSubject("Subject Item C2")
-                .withEntityType("Publication")
                 .withAuthor("Banana Joe", person_C.getID().toString())
                 .withSponsorship(orgUnitAcronym_C, orgUnitId_C)
                 .build();
@@ -762,13 +757,13 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
 
         try (FileInputStream fis = new FileInputStream(xml)) {
             String content = IOUtils.toString(fis, Charset.defaultCharset());
-            assertThat(content, containsString("\"unit\": \"OrgUnit A\""));
+            assertThat(content, containsString("\"unit\": \"" + orgUnitAcronym_A + "\""));
             assertThat(content, containsString("Title Item A1"));
             assertThat(content, containsString("Title Item A2"));
-            assertThat(content, containsString("\"unit\": \"OrgUnit B\""));
+            assertThat(content, containsString("\"unit\": \"" + orgUnitAcronym_B + "\""));
             assertThat(content, containsString("Title Item B1"));
             assertThat(content, containsString("Title Item B2"));
-            assertThat(content, containsString("\"unit\": \"OrgUnit C\""));
+            assertThat(content, containsString("\"unit\": \"" + orgUnitAcronym_C + "\""));
             assertThat(content, containsString("Title Item C1"));
             assertThat(content, containsString("Title Item C2"));
         }
@@ -778,7 +773,6 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
     private ItemBuilder createBaseOrgUnit(String acronym, Collection collection) {
         return ItemBuilder.createItem(context, collection)
                 .withTitle(acronym)
-                .withEntityType("OrgUnit")
                 .withMetadata("oairecerif", "acronym", null, acronym);
     }
 
