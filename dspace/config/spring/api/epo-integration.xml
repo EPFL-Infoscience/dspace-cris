@@ -107,7 +107,6 @@
         <constructor-arg value="dc.identifier.epo"/>
     </bean>
 
-
     <bean id="epoIDContrib" class="org.dspace.importer.external.metadatamapping.contributor.EpoIdMetadataContributor">
         <property name="field" ref="epo.identifier.other"/>
         <property name="query" value="(//ns:publication-reference)[last()]"/>
@@ -121,7 +120,7 @@
     <bean id="epoInventionTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
         <property name="field" ref="epo.dc.title"/>
         <property name="query" value="(//ns:exchange-document)[last()]"/>
-        <property name="queryToSubNode" value=".//ns:invention-title[@lang=&quot;en&quot; or not(@lang)]"/>
+        <property name="queryToSubNode" value=".//ns:invention-title[1]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.dc.title" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -198,7 +197,7 @@
     <bean id="epoAlternativeTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
         <property name="field" ref="epo.dc.title.alternative"/>
         <property name="query" value="(//ns:exchange-document)[last()]"/>
-        <property name="queryToSubNode" value=".//ns:invention-title[@lang=&quot;fr&quot; or not(@lang)]"/>
+        <property name="queryToSubNode" value=".//ns:invention-title[position() > 1]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.dc.title.alternative" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
