@@ -36,7 +36,7 @@ public class SolrServiceCaseSensitiveIndexPlugin implements SolrServiceIndexPlug
 
         for (MetadataValue metadataValue : item.getMetadata()) {
             String metadataField = metadataValue.getMetadataField().toString('.');
-            if (caseSensitiveMetadataFields.contains(metadataField)) {
+            if (caseSensitiveMetadataFields.contains("*") || caseSensitiveMetadataFields.contains(metadataField)) {
                 document.addField(metadataField + "_cs", metadataValue.getValue());
             }
         }
@@ -44,7 +44,9 @@ public class SolrServiceCaseSensitiveIndexPlugin implements SolrServiceIndexPlug
     }
 
     private Set<String> getCaseSensitiveMetadataFields() {
-        String[] arrayProperty = configurationService.getArrayProperty("epfl.discovery.case-sensitive-metadata-fields");
+        String[] arrayProperty =
+                configurationService.getArrayProperty("epfl.discovery.case-sensitive-metadata-fields",
+                        new String[] { "*" });
         return new HashSet<String>(Arrays.asList(arrayProperty));
     }
 
