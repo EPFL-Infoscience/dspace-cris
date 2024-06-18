@@ -37,8 +37,11 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.discovery.IndexingService;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
+import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +59,7 @@ public class FileTypeMetadataEnhancerConsumer implements Consumer {
 
     private BitstreamService bitstreamService;
     private ItemService itemService;
+    private IndexingService indexService;
 
     private Set<Bitstream> bitstreamAlreadyProcessed = new HashSet<>();
     private Set<Item> itemsToProcess = new HashSet<>();
@@ -64,6 +68,7 @@ public class FileTypeMetadataEnhancerConsumer implements Consumer {
     public void initialize() throws Exception {
         this.bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
         this.itemService = ContentServiceFactory.getInstance().getItemService();
+        this.indexService = new DSpace().getSingletonService(IndexingService.class);
     }
 
     @Override
@@ -92,9 +97,11 @@ public class FileTypeMetadataEnhancerConsumer implements Consumer {
     @Override
     public void end(Context ctx) throws Exception {
         bitstreamAlreadyProcessed.clear();
-        this.itemsToProcess
-            .stream()
-            .forEach(item -> this.handleItemConsumer(ctx, item));
+        for (Item item : this.itemsToProcess) {
+            this.handleItemConsumer(ctx, item);
+            indexService.indexContent(ctx, new IndexableItem(item), true);
+            indexService.commit();
+        }
         itemsToProcess.clear();
     }
 

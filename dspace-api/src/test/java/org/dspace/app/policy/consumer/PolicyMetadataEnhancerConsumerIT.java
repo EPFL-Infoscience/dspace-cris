@@ -12,6 +12,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -40,6 +42,15 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.IndexingService;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
+import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -57,6 +68,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
             .getBitstreamService();
     private ItemService itemService = ContentServiceFactory.getInstance()
             .getItemService();
+
+    private IndexingService indexService = new DSpace().getSingletonService(IndexingService.class);
+    private SearchService searchService = SearchUtils.getSearchService();
 
     @Before
     public void setup() {
@@ -575,6 +589,50 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
         assertThat(item.getMetadata(),
                 hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+    }
+
+    @Test
+    public void testCreateItemAndIndexingItem()
+            throws SQLException, AuthorizeException, SearchServiceException {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("itemForTest")
+                .build();
+        context.restoreAuthSystemState();
+        context.commit();
+
+        item = context.reloadEntity(item);
+
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+
+        context.turnOffAuthorisationSystem();
+        MetadataValue dataciteRights = itemService.getMetadataByMetadataString(item, "datacite.rights").get(0);
+        itemService.removeMetadataValues(context, item, List.of(dataciteRights));
+        indexService.indexContent(context, new IndexableItem(item), true);
+        indexService.commit();
+        itemService.update(context, item);
+        context.restoreAuthSystemState();
+        context.commit();
+
+        item = context.reloadEntity(item);
+
+        assertThat(item.getMetadata(),
+                hasItem(with("datacite.rights", PolicyMetadataEnhancerConsumer.METADATA_ONLY)));
+
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.setQuery("itemForTest");
+        discoverQuery.setStart(0);
+        discoverQuery.setMaxResults(1);
+        discoverQuery.addFilterQueries("search.resourcetype:" + IndexableItem.TYPE);
+        DiscoverResult discoverResult = searchService.search(context, discoverQuery);
+        List<IndexableObject> indexableObjects = discoverResult.getIndexableObjects();
+
+        assertEquals(indexableObjects.size(), 1);
+        assertTrue( ((Item) indexableObjects.get(0).getIndexedObject()).getMetadata().stream()
+                .filter(metadataValue -> metadataValue.getMetadataField().toString()
+                        .equals("datacite_rights")).findFirst().get().getValue()
+                .equals(PolicyMetadataEnhancerConsumer.METADATA_ONLY));
     }
 
     @Test
