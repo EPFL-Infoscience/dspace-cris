@@ -18,7 +18,7 @@ import org.jdom2.Element;
  */
 public class RegexCleanupMetadataContributor extends SimpleXpathMetadatumAndAttributeAndSubNodeContributor {
 
-    private String cleanupRegex = ",\s+$";  // Default regex to remove trailing comma and spaces
+    private String cleanupRegex = ",\\s+$";  // Default regex to remove trailing comma and spaces
     private String replacementValue = "";   // Default replacement value
 
     @Override
