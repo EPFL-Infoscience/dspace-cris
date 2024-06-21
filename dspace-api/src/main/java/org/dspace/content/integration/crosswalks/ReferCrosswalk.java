@@ -424,8 +424,16 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
                 }
 
                 if (metadata.size() <= i) {
-                    log.warn("The cardinality of metadata group " + groupName + " is inconsistent for item with id "
-                        + item.getID());
+                    if (metadata.size() == 0) {
+                        // if the group definition has been extended it is quite common that some "nested" metadata
+                        // are completely missing
+                        log.debug("The metadata group " + groupName + " for item with id "
+                            + item.getID() + " miss the field " + field);
+                    } else {
+                        log.warn("The cardinality of metadata group " + groupName + " for the field "
+                                + field + " is inconsistent for item with id "
+                                + item.getID());
+                    }
                     continue;
                 }
 
