@@ -39,7 +39,7 @@ public class RorOrgUnitAuthorityIT extends AbstractControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", hasSize(10)))
             .andExpect(jsonPath("$._embedded.entries",
-                hasItem(matchItemAuthorityWithOtherInformations("ROR-ID:https://ror.org/02z02cv32",
+                hasItem(matchItemAuthorityWithOtherInformations("will be referenced::ROR-ID::https://ror.org/02z02cv32",
                     "Wind Energy Institute of Canada", "Wind Energy Institute of Canada", "vocabularyEntry",
                     expectedExtras))));
     }
