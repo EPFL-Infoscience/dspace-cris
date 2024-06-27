@@ -2704,7 +2704,7 @@
           <hint>Format : DATE ou DATE/DATE où DATE est AAAA ou AAAA-MM ou AAAA-MM-JJ.</hint>
         </field>
         <field>
-          <dc-schema>oaire</dc-schema>
+          <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>version</dc-qualifier>
           <label>Version</label>
