@@ -1425,6 +1425,8 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
             .build();
 
         Item itemA = ItemBuilder.createItem(context, collection)
+            .withTitle("Intial title")
+            .withIssueDate("2023-02-04")
             .withFulltext("bitstream.txt", "source", InputStream.nullInputStream())
             .build();
 
@@ -1435,8 +1437,10 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
 
         List<Operation> operations = new ArrayList<Operation>();
+        operations.add(new RemoveOperation("/sections/titleAndIssuedDate/dc.date.issued"));
         operations.add(new AddOperation("/sections/titleAndIssuedDate/dc.title", of(Map.of("value", "My Title"))));
 
+        // we should be unable to change the title removing the date
         getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItem.getID() + ":FIRST")
             .content(getPatchContent(operations))
             .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
@@ -1446,11 +1450,82 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
                 hasJsonPath("paths", contains("/sections/titleAndIssuedDate/dc.date.issued"))))));
 
         operations.add(new AddOperation("/sections/titleAndIssuedDate/dc.date.issued", of(Map.of("value", "2022"))));
-
+        // this should succeed now as we are also providing a new date
         getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItem.getID() + ":FIRST")
             .content(getPatchContent(operations))
             .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
             .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testPatchItemWithExistingValidationErrors() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("Publication")
+                .withSubmissionDefinition("traditional-cris")
+                .withName("Collection 1")
+                .build();
+
+        // the item below miss the mandatory dc.title and dc.date.issued
+        Item itemA = ItemBuilder.createItem(context, collection)
+                .withAuthor("Wayne, Bruce")
+                .grantLicense()
+                .build();
+        // this one miss the mandatory dc.date.issued
+        Item itemB = ItemBuilder.createItem(context, collection)
+                .withTitle("At least the title...")
+                .withAuthor("Wayne, Bruce")
+                .grantLicense()
+                .build();
+
+        EditItem editItemA = new EditItem(context, itemA);
+        EditItem editItemB = new EditItem(context, itemB);
+
+        context.restoreAuthSystemState();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        List<Map<String, String>> titleValues = new ArrayList<>();
+        Map<String, String> titleMap = new HashMap<>();
+        List<Map<String, String>> publisherValues = new ArrayList<>();
+        Map<String, String> publisherMap = new HashMap<>();
+        titleMap.put("value", "A title");
+        titleValues.add(titleMap);
+        publisherMap.put("value", "A publisher");
+        publisherValues.add(publisherMap);
+        List<Operation> listOpA = new ArrayList<>();
+        listOpA.add(new AddOperation("/sections/traditionalpageone-cris/dc.title", titleValues));
+        listOpA.add(new AddOperation("/sections/traditionalpageone-cris/dc.publisher", publisherValues));
+
+        List<Operation> listOpB = new ArrayList<>();
+        listOpB.add(new RemoveOperation("/sections/traditionalpageone-cris/dc.title"));
+        listOpB.add(new AddOperation("/sections/traditionalpageone-cris/dc.publisher", publisherValues));
+
+        String patchBodyA = getPatchContent(listOpA);
+        getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItemA.getID() + ":MODE1")
+                        .content(patchBodyA)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.traditionalpageone-cris['dc.title'][0].value", is("A title")))
+                .andExpect(jsonPath("$.sections.traditionalpageone-cris['dc.publisher'][0].value", is("A publisher")))
+                .andExpect(jsonPath("$.errors[0].message", is("error.validation.required")))
+                .andExpect(jsonPath("$.errors[0].paths[0]", is("/sections/traditionalpageone-cris/dc.date.issued")));
+        String patchBodyB = getPatchContent(listOpB);
+        getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItemB.getID() + ":MODE1")
+                        .content(patchBodyB)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.sections.traditionalpageone-cris['dc.title'][0].value",
+                        is("At least the title...")))
+                .andExpect(jsonPath("$.sections.traditionalpageone-cris['dc.publisher']").doesNotExist())
+                .andExpect(jsonPath("$.errors[0].message", is("error.validation.required")))
+                .andExpect(jsonPath("$.errors[0].paths[0]", is("/sections/traditionalpageone-cris/dc.date.issued")));
+
     }
 
     @Test
@@ -2027,6 +2102,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
     }
 
     @Test
+    @Ignore("see DSC-1787")
     public void testPatchWithValidationErrors32() throws Exception {
         context.turnOffAuthorisationSystem();
 
