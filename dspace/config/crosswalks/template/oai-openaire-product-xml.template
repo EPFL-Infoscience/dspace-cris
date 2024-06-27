@@ -46,11 +46,18 @@
     @if.not.metadata.datacite-available.end@
   </datacite:dates>
   <dc:language>@virtual.mapConverter.isolanguage2to3.dc-language-iso@</dc:language>
+  @if.metadata.dc-type.start@
   <resourceType 
     resourceTypeGeneral="@virtual.mapConverter.type2oaiopenaire.dc-type@"
     uri="@virtual.mapConverter.type2oaiopenaireuri.dc-type@">
   @virtual.mapConverter.type2oaiopenairelabel.dc-type@
   </resourceType>
+  @if.metadata.dc-type.end@
+  @if.not.metadata.dc-type.start@
+  <resourceType resourceTypeGeneral="other research product" uri="http://purl.org/coar/resource_type/c_1843">
+  other
+  </resourceType>
+  @if.not.metadata.dc-type.end@
   <datacite:alternateIdentifiers>
     <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.primary-doi.dc-identifier-doi@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</datacite:alternateIdentifier>

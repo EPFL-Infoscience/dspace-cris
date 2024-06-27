@@ -821,14 +821,52 @@ public class DiscoveryIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    @Test
+    public void dontSplitHyphenated() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Community com1 = CommunityBuilder.createCommunity(context).withName("Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, com1).withName("Collection").build();
+
+        ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2010-10-17")
+                .withAuthor("White, Walter").withSubject("Test Subj").build();
+
+        ItemBuilder.createItem(context, col1).withTitle("Public item 2").withIssueDate("2010-10-17")
+                .withAuthor("White, Walter").withSubject("Test Subj-hypen").build();
+
+        ItemBuilder.createItem(context, col1).withTitle("Public item 2").withIssueDate("2010-10-17")
+                .withAuthor("White, Walter").withSubject("Test unrelated").build();
+
+        context.restoreAuthSystemState();
+
+        assertSearchQuery("subj", IndexableItem.TYPE, 1, 1, 0 ,10);
+        assertSearchQuery("Subj", IndexableItem.TYPE, 1, 1, 0 ,10);
+        assertSearchQuery("Subj-hypen", IndexableItem.TYPE, 1, 1, 0 ,10);
+        assertSearchQuery("subj-hypen", IndexableItem.TYPE, 1, 1, 0 ,10);
+        assertSearchQuery("subjhypen", IndexableItem.TYPE, 1, 1, 0 ,10);
+        assertSearchQuery("subj*", IndexableItem.TYPE, 2, 2, 0 ,10);
+        assertSearchQuery("Subj*", IndexableItem.TYPE, 2, 2, 0 ,10);
+        assertSearchQuery("Test", IndexableItem.TYPE, 3, 3, 0 ,10);
+        assertSearchQuery("Test*", IndexableItem.TYPE, 3, 3, 0 ,10);
+
+    }
+
     private void assertSearchQuery(String resourceType, int size) throws SearchServiceException {
         assertSearchQuery(resourceType, size, size, 0, -1);
     }
 
     private void assertSearchQuery(String resourceType, int size, int totalFound, int start, int limit)
         throws SearchServiceException {
+        assertSearchQuery("*:*", resourceType, size, totalFound, start, limit);
+    }
+
+    private void assertSearchQuery(String query, String resourceType, int size, int totalFound, int start, int limit)
+        throws SearchServiceException {
+
         DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setQuery("*:*");
+        discoverQuery.setQuery(query);
         discoverQuery.setStart(start);
         discoverQuery.setMaxResults(limit);
         discoverQuery.addFilterQueries("search.resourcetype:" + resourceType);

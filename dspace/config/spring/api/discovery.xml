@@ -2968,42 +2968,6 @@
         </property>
     </bean>
 
-    <bean id="researchoutputsByParentOrganization" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration"
-      scope="prototype">
-        <property name="id" value="researchoutputsByParentOrganization"/>
-        <property name="indexAlways" value="true"/>
-        <property name="sidebarFacets">
-            <list/>
-        </property>
-        <!--The search filters which can be used on the discovery search page-->
-        <property name="searchFilters">
-            <list>
-                <ref bean="searchFilterOrgUnitHierarchy"/>
-            </list>
-        </property>
-        <!--The sort filters for the discovery search-->
-        <property name="searchSortConfiguration">
-            <bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
-                <!--DefaultSortOrder can either be desc or asc (desc is default)-->
-                <property name="sortFields">
-                    <list>
-                        <ref bean="sortScore" />
-                    </list>
-                </property>
-            </bean>
-        </property>
-        <!--Any default filter queries, these filter queries will be used for all
-            queries done by discovery for this configuration -->
-        <property name="defaultFilterQueries">
-            <list>
-                <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
-                <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
-                <!--Only find items with metadata authority equal to scope. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>organization_authority:{0}</value>
-            </list>
-        </property>
-    </bean>
-
     <bean id="researchoutputsByParentOrganizationHierarchy" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration"
       scope="prototype">
         <property name="id" value="researchoutputsByParentOrganizationHierarchy"/>
@@ -3036,7 +3000,8 @@
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
                 <!--Only find items with metadata authority equal to scope. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>organizationHierarchy_authority:{0}</value>
+                <value>epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0}
+                 OR epfl.thesis.doctoralSchool_authority:{0} OR organizationHierarchy_authority:{0}</value>
             </list>
         </property>
     </bean>
@@ -4526,6 +4491,11 @@
         <property name="indexFieldName" value="organizationHierarchy"/>
         <property name="metadataFields">
             <list>
+                <value>person.affiliation.name</value>
+                <value>oairecerif.author.affiliation</value>
+                <value>oairecerif.scientificeditor.affiliation</value>
+                <value>oairecerif.advisor.affiliation</value>
+                <value>dc.description.sponsorship</value>
                 <value>cris.virtual.parent-organization</value>
             </list>
         </property>

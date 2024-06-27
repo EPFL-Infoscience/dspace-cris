@@ -7,16 +7,17 @@
  */
 package org.dspace.unpaywall.service.impl;
 
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.io.IOUtils.copy;
 
-import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -71,13 +72,23 @@ public class UnpaywallClientAPIImpl implements UnpaywallClientAPI {
     }
 
     @Override
-    public InputStream downloadResource(String pdfUrl) throws IOException {
+    public File downloadResource(String pdfUrl) throws IOException {
         try (CloseableHttpClient client = HttpClientBuilder.create()
                 .setConnectionTimeToLive(downloadTimeout, TimeUnit.SECONDS).build()) {
             HttpGet httpGet = new HttpGet(pdfUrl);
-            httpGet.addHeader("Accept", "audio/*, video/*, image/*, text/*");
+            httpGet.addHeader("Accept", "audio/*, video/*, image/*, text/*, */*");
             HttpResponse response = executeHttpCall(client, pdfUrl, httpGet);
-            return new BufferedInputStream(response.getEntity().getContent());
+            File file = File.createTempFile("unpaywall", "download");
+            try (
+                InputStream inputStream = response.getEntity().getContent();
+                OutputStream outputStream = new FileOutputStream(file)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+            return file;
         }
     }
 
@@ -87,7 +98,7 @@ public class UnpaywallClientAPIImpl implements UnpaywallClientAPI {
         // If request returns 301, then get new url from headers and repeat
         while (response.getStatusLine().getStatusCode() == 301) {
             httpGet = new HttpGet(response.getFirstHeader(LOCATION_HEADER).getValue());
-            httpGet.addHeader("Accept", "audio/*, video/*, image/*, text/*");
+            httpGet.addHeader("Accept", "audio/*, video/*, image/*, text/*, */*");
             response = executeHttpCall(client, pdfUrl, httpGet);
         }
 

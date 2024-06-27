@@ -7,17 +7,18 @@
  */
 package org.dspace.unpaywall.service.impl;
 
-
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.rometools.utils.Strings.isBlank;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.dspace.unpaywall.model.UnpaywallStatus.IMPORTED;
-import static org.dspace.unpaywall.model.UnpaywallStatus.NOT_FOUND;
 import static org.dspace.unpaywall.model.UnpaywallStatus.NO_FILE;
 import static org.dspace.unpaywall.model.UnpaywallStatus.PENDING;
 import static org.dspace.unpaywall.model.UnpaywallStatus.SUCCESSFUL;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -45,8 +46,6 @@ import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.unpaywall.dao.UnpaywallDAO;
 import org.dspace.unpaywall.dto.UnpaywallApiResponse;
 import org.dspace.unpaywall.dto.UnpaywallItemVersionDto;
@@ -66,10 +65,6 @@ public class UnpaywallServiceImpl implements UnpaywallService {
     public static final String URL = "url";
     private final Logger logger = LoggerFactory.getLogger(UnpaywallServiceImpl.class);
     private final ObjectMapper objectMapper = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-    private final ConfigurationService configurationService =
-        DSpaceServicesFactory.getInstance()
-                             .getConfigurationService();
 
     @Autowired
     private UnpaywallClientAPI unpaywallClientAPI;
@@ -149,23 +144,28 @@ public class UnpaywallServiceImpl implements UnpaywallService {
 
     protected Unpaywall resolveResourceForItem(Unpaywall unpaywall, Item item) {
         Context context = new Context(Context.Mode.READ_WRITE);
-        try (InputStream inputstream = unpaywallClientAPI.downloadResource(unpaywall.getPdfUrl())) {
+        File file;
+        try {
+            file = unpaywallClientAPI.downloadResource(unpaywall.getPdfUrl());
+        } catch (IOException e) {
+            logger.error("Cannot download the linked unpaywall resource", e);
+            throw new RuntimeException("Cannot retrieve the linked unpaywall resource", e);
+        }
+        try (
+                InputStream inputstream = new BufferedInputStream(new FileInputStream(file))) {
             createUnpaywallBitstream(
                 context, unpaywall,
                 getOrCreateBundle(item, item.getBundles(Constants.DEFAULT_BUNDLE_NAME), context),
                 inputstream
             );
             updateStatus(context, unpaywall, IMPORTED);
-        } catch (IOException e) {
-            unpaywall.setPdfUrl(null);
-            updateStatus(context, unpaywall, NOT_FOUND);
+        } catch (IOException | SQLException | AuthorizeException e) {
             logger.error("Cannot retrieve the linked unpaywall resource", e);
             throw new RuntimeException("Cannot retrieve the linked unpaywall resource", e);
-        } catch (SQLException | AuthorizeException e) {
-            unpaywall.setPdfUrl(null);
-            updateStatus(context, unpaywall, NOT_FOUND);
-            logger.error("Cannot store the linked unpaywall resource", e);
-            throw new RuntimeException("Cannot store the linked unpaywall resource", e);
+        } finally {
+            if (file != null && file.exists()) {
+                file.delete();
+            }
         }
         return unpaywall;
     }

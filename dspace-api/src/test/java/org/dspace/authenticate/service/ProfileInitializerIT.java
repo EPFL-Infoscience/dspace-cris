@@ -470,7 +470,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(profile, is(person));
 
         person = context.reloadEntity(person);
-        assertThat(person.getMetadata(), hasSize(29));
+        assertThat(person.getMetadata(), hasSize(30));
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
@@ -538,7 +538,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         assertVisible(researcherProfile);
 
         Item profile = researcherProfile.getItem();
-        assertThat(profile.getMetadata(), hasSize(27));
+        assertThat(profile.getMetadata(), hasSize(28));
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(picture, notNullValue());
@@ -553,7 +553,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         Item updatedProfile = researcherProfile.getItem();
         assertThat(updatedProfile, is(profile));
 
-        assertThat(updatedProfile.getMetadata(), hasSize(27));
+        assertThat(updatedProfile.getMetadata(), hasSize(28));
 
         Bitstream newPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
         assertThat(newPicture, notNullValue());
