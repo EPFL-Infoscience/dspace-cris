@@ -2899,7 +2899,7 @@
           <style>col-xs-12 col-md-4</style>
           <hint />
         </field>
-         <field>
+        <field>
           <dc-schema>oairecerif</dc-schema>
           <dc-element>patent</dc-element>
           <dc-qualifier>country</dc-qualifier>
@@ -7024,9 +7024,8 @@
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>version</dc-qualifier>
+          <dc-schema>oaire</dc-schema>
+          <dc-element>version</dc-element>
           <label>Version</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
