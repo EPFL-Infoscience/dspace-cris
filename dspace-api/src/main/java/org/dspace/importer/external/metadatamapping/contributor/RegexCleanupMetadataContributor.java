@@ -8,7 +8,7 @@
 package org.dspace.importer.external.metadatamapping.contributor;
 
 import java.util.Collection;
-import org.apache.commons.lang3.StringUtils;
+
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 import org.jdom2.Element;
 
@@ -53,7 +53,7 @@ public class RegexCleanupMetadataContributor extends SimpleXpathMetadatumAndAttr
     public void setCleanupRegex(String regex) {
         this.cleanupRegex = regex;
     }
-    
+
     /**
      * Sets the replacement value used in the regex cleanup.
      * 
@@ -61,5 +61,5 @@ public class RegexCleanupMetadataContributor extends SimpleXpathMetadatumAndAttr
      */
     public void setReplacementValue(String replacement) {
         this.replacementValue = replacement;
-    }    
+    }
 }
