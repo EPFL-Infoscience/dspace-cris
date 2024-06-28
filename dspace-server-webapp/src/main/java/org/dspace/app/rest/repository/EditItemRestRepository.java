@@ -297,7 +297,8 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
         List<ValidationError> errors = validationService.validate(context, source);
         int editErrors = calculateErrors(errors);
         if (numInitialErrors < editErrors) {
-            throw new UnprocessableEditException(errors);
+            throw new UnprocessableEditException(errors, "The number of validation errors in the item increase from "
+                    + numInitialErrors + " to " + editErrors);
         }
 
         eis.update(context, source);
