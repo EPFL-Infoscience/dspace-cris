@@ -89,18 +89,18 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
                         hasItem(withIdAndTextRowComponent("site", 2, 0, null, "link-section"))))
 
                 .andExpect(jsonPath("$._embedded.sections",
-                        hasItem(withIdAndCountersComponent("site", 3, 0, "col-md-12 py-4",
-                                List.of("researchoutputs", "researchoutputsoa", "orgunit", "person")))))
+                        hasItem(withIdAndCountersComponent("site", 3, 0, "col-12 col-lg-6",
+                                List.of("researchoutputs", "researchoutputsoa", "activeUnits", "activeMembers")))))
 
                 .andExpect(jsonPath("$._embedded.sections",
-                        hasItem(withIdAndTopComponent("site", 4, 0, "col-12 col-lg-7", "homePageTopItems",
-                                "dc.date.accessioned", "desc", 5, true, false, "list", "", "col-12 col-lg-7", "", false,
+                        hasItem(withIdAndTopComponent("site", 4, 0, "col-12 col-lg-6", "homePageTopItems",
+                                "dc.date.accessioned", "desc", 5, true, false, "list", "", "", "", false,
                                 "top"))))
 
                 .andExpect(jsonPath("$._embedded.sections",
-                        hasItem(withIdAndTopComponent("site", 4, 1, "col-12 col-lg-5", "homePageContentItems",
-                                "dc.date.accessioned", "desc", 3, true, false, "card", "", "col-12 col-lg-12", "",
-                                false, "top"))))
+                        hasItem(withIdAndTopComponent("site", 4, 1, "col-12 col-lg-6", "homePageLastThesis",
+                                "dc.date.accessioned", "desc", 5, true, false, "list", "", "", "", false,
+                                "top"))))
             ;
     }
 
