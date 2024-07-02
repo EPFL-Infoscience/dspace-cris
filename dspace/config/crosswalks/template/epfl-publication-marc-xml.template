@@ -91,7 +91,7 @@
     @group.dc-date-issued.end@
     @group.dc-date-issued.start@
     <datafield tag="269" ind1=" " ind2=" ">
-        <subfield code="a">@dc.date.issued@</subfield>
+        <subfield code="a">@virtual.date.dc-date-issued.YYYY@</subfield>
     </datafield>
     @group.dc-date-issued.end@
     <datafield tag="300" ind1=" " ind2=" ">
@@ -140,7 +140,7 @@
         <subfield code="c">@oairecerif.funder.identifier@</subfield>
     </datafield>
     @group.epfl-award.start@
-    <datafield tag="586" ind1=" " ind2=" "
+    <datafield tag="586" ind1=" " ind2=" ">
         <subfield code="a">@epfl.award@</subfield>
         <subfield code="b">@epfl.award.year@</subfield>
     </datafield>
