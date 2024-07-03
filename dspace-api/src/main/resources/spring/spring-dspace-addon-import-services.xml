@@ -144,6 +144,7 @@
         <property name="url" value="${epo.url}" />
         <property name="authUrl" value="${epo.authUrl}" />
         <property name="searchUrl" value="${epo.searchUrl}" />
+        <property name="bearerValiditySeconds" value="${epo.loginDuration}" />
         <!-- date filed mapped metadata, see epo-integration.xml -->
         <property name="dateFilled" ref="epo.dcterms.dateSubmitted" />
         <property name="applicationNumber" ref="epo.dc.identifier" />
