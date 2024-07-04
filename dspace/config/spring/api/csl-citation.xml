@@ -5,7 +5,7 @@
     default-lazy-init="true">
 
     <bean id="DSpaceListItemDataProvider" class="org.dspace.content.integration.crosswalks.csl.DSpaceListItemDataProvider" scope="prototype">
-    	<property name="typeConverter" ref="mapConverterPublicationTypes"/>
+        <property name="typeConverter" ref="mapConverterPublicationCSLTypes"/>
     	<property name="type" value="dc.type"/>
     	<property name="language" value="dc.language.iso"/>
         <!-- please note the following is not a typo abstract is a reserved word in JAVA
@@ -31,8 +31,8 @@
         <property name="collectionTitle" value="dc.relation.ispartofseries"/>
     </bean>
     
-    <bean name="mapConverterPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
-		  <property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
+    <bean name="mapConverterPublicationCSLTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		  <property name="converterNameFile" value="mapConverter-publicationTypesCSL.properties" />
 		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
           <property name="defaultValue" value="article"/>
     </bean>
