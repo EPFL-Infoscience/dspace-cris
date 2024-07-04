@@ -1,0 +1,2124 @@
+{
+    "Data": {
+        "Records": {
+            "records": {
+                "REC": [
+                    {
+                        "UID": "WOS:000558415500033",
+                        "static_data": {
+                            "summary": {
+                                "pub_info": {
+                                    "coverdate": "SEP 2020",
+                                    "vol": 81,
+                                    "journal_oas_gold": "N",
+                                    "pubyear": 2020,
+                                    "issue": 3,
+                                    "sortdate": "2020-09-01",
+                                    "has_abstract": "N",
+                                    "pubmonth": "SEP",
+                                    "pubtype": "Journal",
+                                    "page": {
+                                        "end": "E92",
+                                        "begin": "E90",
+                                        "page_count": 3,
+                                        "content": "E90-E92"
+                                    }
+                                },
+                                "names": {
+                                    "count": 25,
+                                    "name": [
+                                        {
+                                            "seq_no": 1,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "noncore_endyear": 2023,
+                                            "last_name": "Cento",
+                                            "display_name": "Cento, Valeria",
+                                            "daisng_id": 575035,
+                                            "full_name": "Cento, Valeria",
+                                            "addr_no": 1,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "K-6636-2012",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "noncore_startyear": 2013,
+                                            "wos_standard": "Cento, V",
+                                            "r_id": "K-6636-2012",
+                                            "first_name": "Valeria",
+                                            "preferred_name": {
+                                                "full_name": "Cento, Valeria",
+                                                "last_name": "Cento",
+                                                "first_name": "Valeria"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 2,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "last_name": "Colagrossi",
+                                            "display_name": "Colagrossi, Luna",
+                                            "daisng_id": 2462969,
+                                            "orcid_id": "0000-0001-5618-1523",
+                                            "full_name": "Colagrossi, Luna",
+                                            "addr_no": 2,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "AAB-7648-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Colagrossi, L",
+                                            "r_id": "AAB-7648-2022",
+                                            "first_name": "Luna",
+                                            "preferred_name": {
+                                                "full_name": "Colagrossi, Luna",
+                                                "last_name": "Colagrossi",
+                                                "first_name": "Luna"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 3,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Nava",
+                                            "display_name": "Nava, Alice",
+                                            "daisng_id": 12369168,
+                                            "full_name": "Nava, Alice",
+                                            "addr_no": 3,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "DJK-8768-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Nava, A",
+                                            "r_id": "DJK-8768-2022",
+                                            "first_name": "Alice",
+                                            "preferred_name": {
+                                                "full_name": "Nava, Alice",
+                                                "last_name": "Nava",
+                                                "first_name": "Alice"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 4,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Lamberti",
+                                            "display_name": "Lamberti, Anna",
+                                            "daisng_id": 32450268,
+                                            "full_name": "Lamberti, Anna",
+                                            "addr_no": 4,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "GOJ-0036-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Lamberti, A",
+                                            "r_id": "GOJ-0036-2022",
+                                            "first_name": "Anna",
+                                            "preferred_name": {
+                                                "full_name": "Lamberti, Anna",
+                                                "last_name": "Lamberti",
+                                                "first_name": "Anna"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 5,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Senatore",
+                                            "display_name": "Senatore, Sabrina",
+                                            "daisng_id": 41166006,
+                                            "orcid_id": "0000-0002-7127-4290",
+                                            "full_name": "Senatore, Sabrina",
+                                            "addr_no": 4,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "HYM-5823-2023",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Senatore, S",
+                                            "r_id": "HYM-5823-2023",
+                                            "first_name": "Sabrina",
+                                            "preferred_name": {
+                                                "full_name": "Senatore, Sabrina",
+                                                "last_name": "Senatore",
+                                                "first_name": "Sabrina"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 6,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "noncore_endyear": 2023,
+                                            "last_name": "Travi",
+                                            "display_name": "Travi, Giovanna",
+                                            "daisng_id": 1593717,
+                                            "orcid_id": "0000-0002-4206-0066",
+                                            "full_name": "Travi, Giovanna",
+                                            "addr_no": 5,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "K-5124-2018",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "noncore_startyear": 2015,
+                                            "wos_standard": "Travi, G",
+                                            "r_id": "K-5124-2018",
+                                            "first_name": "Giovanna",
+                                            "preferred_name": {
+                                                "full_name": "Travi, Giovanna",
+                                                "last_name": "Travi",
+                                                "first_name": "Giovanna"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 7,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "noncore_endyear": 2024,
+                                            "last_name": "Rossotti",
+                                            "display_name": "Rossotti, Roberto",
+                                            "daisng_id": 48109527,
+                                            "orcid_id": "0000-0003-4965-8789",
+                                            "full_name": "Rossotti, Roberto",
+                                            "addr_no": 5,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "JAA-9941-2023",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "noncore_startyear": 2023,
+                                            "wos_standard": "Rossotti, R",
+                                            "r_id": "JAA-9941-2023",
+                                            "first_name": "Roberto",
+                                            "preferred_name": {
+                                                "full_name": "Rossotti, Roberto",
+                                                "last_name": "Rossotti",
+                                                "first_name": "Roberto"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 8,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Vecchi",
+                                            "display_name": "Vecchi, Marta",
+                                            "daisng_id": 29621380,
+                                            "orcid_id": "0000-0002-2917-4587",
+                                            "full_name": "Vecchi, Marta",
+                                            "addr_no": 5,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "GCT-0995-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Vecchi, M",
+                                            "r_id": "GCT-0995-2022",
+                                            "first_name": "Marta",
+                                            "preferred_name": {
+                                                "full_name": "Vecchi, Marta",
+                                                "last_name": "Vecchi",
+                                                "first_name": "Marta"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 9,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Casati",
+                                            "display_name": "Casati, Ornella",
+                                            "daisng_id": 20403858,
+                                            "full_name": "Casati, Ornella",
+                                            "addr_no": 6,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "EQJ-3466-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Casati, O",
+                                            "r_id": "EQJ-3466-2022",
+                                            "first_name": "Ornella",
+                                            "preferred_name": {
+                                                "full_name": "Casati, Ornella",
+                                                "last_name": "Casati",
+                                                "first_name": "Ornella"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 10,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Matarazzo",
+                                            "display_name": "Matarazzo, Elisa",
+                                            "daisng_id": 11501922,
+                                            "full_name": "Matarazzo, Elisa",
+                                            "addr_no": 1,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "DFR-1517-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Matarazzo, E",
+                                            "r_id": "DFR-1517-2022",
+                                            "first_name": "Elisa",
+                                            "preferred_name": {
+                                                "full_name": "Matarazzo, Elisa",
+                                                "last_name": "Matarazzo",
+                                                "first_name": "Elisa"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 11,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Bielli",
+                                            "display_name": "Bielli, Alessandra",
+                                            "daisng_id": 19353666,
+                                            "full_name": "Bielli, Alessandra",
+                                            "addr_no": 3,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "EMB-3273-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Bielli, A",
+                                            "r_id": "EMB-3273-2022",
+                                            "first_name": "Alessandra",
+                                            "preferred_name": {
+                                                "full_name": "Bielli, Alessandra",
+                                                "last_name": "Bielli",
+                                                "first_name": "Alessandra"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 12,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Casalicchio",
+                                            "display_name": "Casalicchio, Giorgia",
+                                            "daisng_id": 20308427,
+                                            "full_name": "Casalicchio, Giorgia",
+                                            "addr_no": 3,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "EPZ-8033-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Casalicchio, G",
+                                            "r_id": "EPZ-8033-2022",
+                                            "first_name": "Giorgia",
+                                            "preferred_name": {
+                                                "full_name": "Casalicchio, Giorgia",
+                                                "last_name": "Casalicchio",
+                                                "first_name": "Giorgia"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 13,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Antonello",
+                                            "display_name": "Antonello, Maria",
+                                            "daisng_id": 4772548,
+                                            "full_name": "Antonello, Maria",
+                                            "addr_no": 7,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "CDV-2142-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Antonello, M",
+                                            "r_id": "CDV-2142-2022",
+                                            "first_name": "Maria",
+                                            "preferred_name": {
+                                                "full_name": "Antonello, Maria",
+                                                "last_name": "Antonello",
+                                                "first_name": "Maria"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 14,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Renica",
+                                            "display_name": "Renica, Silvia",
+                                            "daisng_id": 16108732,
+                                            "orcid_id": "0000-0001-7334-7433",
+                                            "full_name": "Renica, Silvia",
+                                            "addr_no": 7,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "DYQ-8332-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Renica, S",
+                                            "r_id": "DYQ-8332-2022",
+                                            "first_name": "Silvia",
+                                            "preferred_name": {
+                                                "full_name": "Renica, Silvia",
+                                                "last_name": "Renica",
+                                                "first_name": "Silvia"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 15,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "last_name": "Costabile",
+                                            "display_name": "Costabile, Valentino",
+                                            "daisng_id": 3637441,
+                                            "orcid_id": "0000-0002-5207-8147",
+                                            "full_name": "Costabile, Valentino",
+                                            "addr_no": 8,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "AFE-5975-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Costabile, V",
+                                            "r_id": "AFE-5975-2022",
+                                            "first_name": "Valentino",
+                                            "preferred_name": {
+                                                "full_name": "Costabile, Valentino",
+                                                "last_name": "Costabile",
+                                                "first_name": "Valentino"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 16,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Scaglione",
+                                            "display_name": "Scaglione, Francesco",
+                                            "daisng_id": 30275067,
+                                            "orcid_id": "0000-0002-8554-2401",
+                                            "full_name": "Scaglione, Francesco",
+                                            "addr_no": "3 7",
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "GFN-4681-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Scaglione, F",
+                                            "r_id": "GFN-4681-2022",
+                                            "first_name": "Francesco",
+                                            "preferred_name": {
+                                                "full_name": "Scaglione, Francesco",
+                                                "last_name": "Scaglione",
+                                                "first_name": "Francesco"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 17,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Fumagalli",
+                                            "display_name": "Fumagalli, Roberto",
+                                            "daisng_id": 28626259,
+                                            "orcid_id": "0000-0003-0398-1329",
+                                            "full_name": "Fumagalli, Roberto",
+                                            "addr_no": 9,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "FYL-5864-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Fumagalli, R",
+                                            "r_id": "FYL-5864-2022",
+                                            "first_name": "Roberto",
+                                            "preferred_name": {
+                                                "full_name": "Fumagalli, Roberto",
+                                                "last_name": "Fumagalli",
+                                                "first_name": "Roberto"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 18,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Ughi",
+                                            "display_name": "Ughi, Nicola",
+                                            "daisng_id": 29835081,
+                                            "orcid_id": "0000-0003-4637-1133",
+                                            "full_name": "Ughi, Nicola",
+                                            "addr_no": 10,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "GDO-4696-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Ughi, N",
+                                            "r_id": "GDO-4696-2022",
+                                            "first_name": "Nicola",
+                                            "preferred_name": {
+                                                "full_name": "Ughi, N.",
+                                                "last_name": "Ughi",
+                                                "first_name": "N."
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 19,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Epis",
+                                            "display_name": "Epis, Oscar Massimiliano",
+                                            "daisng_id": 44453956,
+                                            "full_name": "Epis, Oscar Massimiliano",
+                                            "addr_no": 10,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "ILP-4211-2023",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Epis, OM",
+                                            "r_id": "ILP-4211-2023",
+                                            "first_name": "Oscar Massimiliano",
+                                            "preferred_name": {
+                                                "full_name": "Epis, Oscar Massimiliano",
+                                                "last_name": "Epis",
+                                                "first_name": "Oscar Massimiliano"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 20,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "last_name": "Puoti",
+                                            "display_name": "Puoti, Massimo",
+                                            "daisng_id": 1921696,
+                                            "orcid_id": "0000-0003-3278-7138",
+                                            "full_name": "Puoti, Massimo",
+                                            "addr_no": 5,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "AAA-6580-2020",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Puoti, M",
+                                            "r_id": "AAA-6580-2020",
+                                            "first_name": "Massimo",
+                                            "preferred_name": {
+                                                "full_name": "Puoti, Massimo",
+                                                "last_name": "Puoti",
+                                                "first_name": "Massimo"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 21,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Vismara",
+                                            "display_name": "Vismara, Chiara",
+                                            "daisng_id": 5402849,
+                                            "full_name": "Vismara, Chiara",
+                                            "addr_no": 3,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "CGJ-2444-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Vismara, C",
+                                            "r_id": "CGJ-2444-2022",
+                                            "first_name": "Chiara",
+                                            "preferred_name": {
+                                                "full_name": "Vismara, Chiara",
+                                                "last_name": "Vismara",
+                                                "first_name": "Chiara"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 22,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Faccini",
+                                            "display_name": "Faccini, Marino",
+                                            "daisng_id": 7678342,
+                                            "full_name": "Faccini, Marino",
+                                            "addr_no": 4,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "CPU-7937-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Faccini, M",
+                                            "r_id": "CPU-7937-2022",
+                                            "first_name": "Marino",
+                                            "preferred_name": {
+                                                "full_name": "Faccini, Marino",
+                                                "last_name": "Faccini",
+                                                "first_name": "Marino"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 23,
+                                            "role": "author",
+                                            "claim_status": false,
+                                            "last_name": "Fanti",
+                                            "display_name": "Fanti, Diana",
+                                            "daisng_id": 7388204,
+                                            "full_name": "Fanti, Diana",
+                                            "addr_no": 3,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "COF-7798-2022",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "wos_standard": "Fanti, D",
+                                            "r_id": "COF-7798-2022",
+                                            "first_name": "Diana",
+                                            "preferred_name": {
+                                                "full_name": "Fanti, Diana",
+                                                "last_name": "Fanti",
+                                                "first_name": "Diana"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 24,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "reprint": "Y",
+                                            "noncore_endyear": 2022,
+                                            "last_name": "Alteri",
+                                            "display_name": "Alteri, Claudia",
+                                            "daisng_id": 1879027,
+                                            "orcid_id": "0000-0003-4270-5079",
+                                            "full_name": "Alteri, Claudia",
+                                            "addr_no": 7,
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "AAB-9956-2019",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "noncore_startyear": 2015,
+                                            "wos_standard": "Alteri, C",
+                                            "r_id": "AAB-9956-2019",
+                                            "first_name": "Claudia",
+                                            "preferred_name": {
+                                                "full_name": "Alteri, Claudia",
+                                                "last_name": "Alteri",
+                                                "first_name": "Claudia"
+                                            }
+                                        },
+                                        {
+                                            "seq_no": 25,
+                                            "role": "author",
+                                            "claim_status": true,
+                                            "noncore_endyear": 2016,
+                                            "last_name": "Perno",
+                                            "display_name": "Perno, Carlo Federico",
+                                            "daisng_id": 478102,
+                                            "orcid_id": "0000-0002-0825-5388",
+                                            "full_name": "Perno, Carlo Federico",
+                                            "addr_no": "3 7",
+                                            "data-item-ids": {
+                                                "data-item-id": {
+                                                    "type": "person",
+                                                    "content": "O-1544-2016",
+                                                    "id-type": "PreferredRID"
+                                                }
+                                            },
+                                            "noncore_startyear": 1983,
+                                            "wos_standard": "Perno, CF",
+                                            "r_id": "O-1544-2016",
+                                            "first_name": "Carlo Federico",
+                                            "preferred_name": {
+                                                "full_name": "perno, carlo federico",
+                                                "last_name": "perno",
+                                                "middle_name": "federico",
+                                                "first_name": "carlo"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "doctypes": {
+                                    "doctype": "Letter",
+                                    "count": 1
+                                },
+                                "publishers": {
+                                    "publisher": {
+                                        "names": {
+                                            "count": 1,
+                                            "name": {
+                                                "seq_no": 1,
+                                                "role": "publisher",
+                                                "full_name": "W B SAUNDERS CO LTD",
+                                                "unified_name": "Elsevier",
+                                                "addr_no": 1,
+                                                "display_name": "W B SAUNDERS CO LTD"
+                                            }
+                                        },
+                                        "address_spec": {
+                                            "city": "LONDON",
+                                            "addr_no": 1,
+                                            "full_address": "32 JAMESTOWN RD, LONDON NW1 7BY, ENGLAND"
+                                        }
+                                    }
+                                },
+                                "EWUID": {
+                                    "WUID": {
+                                        "coll_id": "WOS"
+                                    },
+                                    "edition": {
+                                        "value": "WOS.SCI"
+                                    }
+                                },
+                                "titles": {
+                                    "count": 6,
+                                    "title": [
+                                        {
+                                            "type": "source",
+                                            "content": "JOURNAL OF INFECTION"
+                                        },
+                                        {
+                                            "type": "source_abbrev",
+                                            "content": "J INFECTION"
+                                        },
+                                        {
+                                            "type": "abbrev_iso",
+                                            "content": "J. Infect."
+                                        },
+                                        {
+                                            "type": "abbrev_11",
+                                            "content": "J INFECTION"
+                                        },
+                                        {
+                                            "type": "abbrev_29",
+                                            "content": "J INFECTION"
+                                        },
+                                        {
+                                            "type": "item",
+                                            "content": "Persistent positivity and fluctuations of SARS-CoV-2 RNA in clinically-recovered COVID-19 patients"
+                                        }
+                                    ]
+                                }
+                            },
+                            "item": {
+                                "xsi:type": "itemType_wos",
+                                "coll_id": "WOS",
+                                "ids": {
+                                    "avail": "N",
+                                    "content": "MY4UW"
+                                },
+                                "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+                                "bib_pagecount": {
+                                    "type": "Journal",
+                                    "content": 247
+                                },
+                                "bib_id": "81 (3): E90-E92 SEP 2020"
+                            },
+                            "fullrecord_metadata": {
+                                "addresses": {
+                                    "count": 10,
+                                    "address_name": [
+                                        {
+                                            "names": {
+                                                "count": 2,
+                                                "name": [
+                                                    {
+                                                        "seq_no": 1,
+                                                        "role": "author",
+                                                        "claim_status": true,
+                                                        "noncore_endyear": 2023,
+                                                        "last_name": "Cento",
+                                                        "display_name": "Cento, Valeria",
+                                                        "daisng_id": 575035,
+                                                        "full_name": "Cento, Valeria",
+                                                        "addr_no": 1,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "K-6636-2012",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "noncore_startyear": 2013,
+                                                        "wos_standard": "Cento, V",
+                                                        "first_name": "Valeria",
+                                                        "preferred_name": {
+                                                            "full_name": "Cento, Valeria",
+                                                            "last_name": "Cento",
+                                                            "first_name": "Valeria"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 10,
+                                                        "role": "author",
+                                                        "full_name": "Matarazzo, Elisa",
+                                                        "claim_status": false,
+                                                        "addr_no": 1,
+                                                        "last_name": "Matarazzo",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "DFR-1517-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Matarazzo, Elisa",
+                                                        "wos_standard": "Matarazzo, E",
+                                                        "daisng_id": 11501922,
+                                                        "first_name": "Elisa",
+                                                        "preferred_name": {
+                                                            "full_name": "Matarazzo, Elisa",
+                                                            "last_name": "Matarazzo",
+                                                            "first_name": "Elisa"
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 1,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "Univ Milan"
+                                                        },
+                                                        {
+                                                            "pref": "Y",
+                                                            "content": "University of Milan"
+                                                        }
+                                                    ],
+                                                    "count": 2
+                                                },
+                                                "full_address": "Univ Milan, Microbiol & Virol, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Microbiol & Virol"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 1,
+                                                "name": {
+                                                    "seq_no": 2,
+                                                    "role": "author",
+                                                    "claim_status": true,
+                                                    "last_name": "Colagrossi",
+                                                    "display_name": "Colagrossi, Luna",
+                                                    "daisng_id": 2462969,
+                                                    "orcid_id": "0000-0001-5618-1523",
+                                                    "full_name": "Colagrossi, Luna",
+                                                    "addr_no": 2,
+                                                    "data-item-ids": {
+                                                        "data-item-id": {
+                                                            "type": "person",
+                                                            "content": "AAB-7648-2022",
+                                                            "id-type": "PreferredRID"
+                                                        }
+                                                    },
+                                                    "wos_standard": "Colagrossi, L",
+                                                    "first_name": "Luna",
+                                                    "preferred_name": {
+                                                        "full_name": "Colagrossi, Luna",
+                                                        "last_name": "Colagrossi",
+                                                        "first_name": "Luna"
+                                                    }
+                                                }
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Rome",
+                                                "addr_no": 2,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "Bambino Gasu Childrens Hosp"
+                                                        }
+                                                    ],
+                                                    "count": 1
+                                                },
+                                                "full_address": "Bambino Gasu Childrens Hosp, Dept Labs, Rome, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Dept Labs"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 7,
+                                                "name": [
+                                                    {
+                                                        "seq_no": 3,
+                                                        "role": "author",
+                                                        "full_name": "Nava, Alice",
+                                                        "claim_status": false,
+                                                        "addr_no": 3,
+                                                        "last_name": "Nava",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "DJK-8768-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Nava, Alice",
+                                                        "wos_standard": "Nava, A",
+                                                        "daisng_id": 12369168,
+                                                        "first_name": "Alice",
+                                                        "preferred_name": {
+                                                            "full_name": "Nava, Alice",
+                                                            "last_name": "Nava",
+                                                            "first_name": "Alice"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 11,
+                                                        "role": "author",
+                                                        "full_name": "Bielli, Alessandra",
+                                                        "claim_status": false,
+                                                        "addr_no": 3,
+                                                        "last_name": "Bielli",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "EMB-3273-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Bielli, Alessandra",
+                                                        "wos_standard": "Bielli, A",
+                                                        "daisng_id": 19353666,
+                                                        "first_name": "Alessandra",
+                                                        "preferred_name": {
+                                                            "full_name": "Bielli, Alessandra",
+                                                            "last_name": "Bielli",
+                                                            "first_name": "Alessandra"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 12,
+                                                        "role": "author",
+                                                        "full_name": "Casalicchio, Giorgia",
+                                                        "claim_status": false,
+                                                        "addr_no": 3,
+                                                        "last_name": "Casalicchio",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "EPZ-8033-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Casalicchio, Giorgia",
+                                                        "wos_standard": "Casalicchio, G",
+                                                        "daisng_id": 20308427,
+                                                        "first_name": "Giorgia",
+                                                        "preferred_name": {
+                                                            "full_name": "Casalicchio, Giorgia",
+                                                            "last_name": "Casalicchio",
+                                                            "first_name": "Giorgia"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 16,
+                                                        "role": "author",
+                                                        "claim_status": false,
+                                                        "last_name": "Scaglione",
+                                                        "display_name": "Scaglione, Francesco",
+                                                        "daisng_id": 30275067,
+                                                        "orcid_id": "0000-0002-8554-2401",
+                                                        "full_name": "Scaglione, Francesco",
+                                                        "addr_no": 3,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "GFN-4681-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "wos_standard": "Scaglione, F",
+                                                        "first_name": "Francesco",
+                                                        "preferred_name": {
+                                                            "full_name": "Scaglione, Francesco",
+                                                            "last_name": "Scaglione",
+                                                            "first_name": "Francesco"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 21,
+                                                        "role": "author",
+                                                        "full_name": "Vismara, Chiara",
+                                                        "claim_status": false,
+                                                        "addr_no": 3,
+                                                        "last_name": "Vismara",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "CGJ-2444-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Vismara, Chiara",
+                                                        "wos_standard": "Vismara, C",
+                                                        "daisng_id": 5402849,
+                                                        "first_name": "Chiara",
+                                                        "preferred_name": {
+                                                            "full_name": "Vismara, Chiara",
+                                                            "last_name": "Vismara",
+                                                            "first_name": "Chiara"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 23,
+                                                        "role": "author",
+                                                        "full_name": "Fanti, Diana",
+                                                        "claim_status": false,
+                                                        "addr_no": 3,
+                                                        "last_name": "Fanti",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "COF-7798-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Fanti, Diana",
+                                                        "wos_standard": "Fanti, D",
+                                                        "daisng_id": 7388204,
+                                                        "first_name": "Diana",
+                                                        "preferred_name": {
+                                                            "full_name": "Fanti, Diana",
+                                                            "last_name": "Fanti",
+                                                            "first_name": "Diana"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 25,
+                                                        "role": "author",
+                                                        "claim_status": true,
+                                                        "noncore_endyear": 2016,
+                                                        "last_name": "Perno",
+                                                        "display_name": "Perno, Carlo Federico",
+                                                        "daisng_id": 478102,
+                                                        "orcid_id": "0000-0002-0825-5388",
+                                                        "full_name": "Perno, Carlo Federico",
+                                                        "addr_no": 3,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "O-1544-2016",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "noncore_startyear": 1983,
+                                                        "wos_standard": "Perno, CF",
+                                                        "first_name": "Carlo Federico",
+                                                        "preferred_name": {
+                                                            "full_name": "perno, carlo federico",
+                                                            "last_name": "perno",
+                                                            "middle_name": "federico",
+                                                            "first_name": "carlo"
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 3,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "ASST Grande Osped Metropolitano Niguarda"
+                                                        }
+                                                    ],
+                                                    "count": 1
+                                                },
+                                                "full_address": "ASST Grande Osped Metropolitano Niguarda, Chem Clin & Microbiol Anal, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Chem Clin & Microbiol Anal"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 3,
+                                                "name": [
+                                                    {
+                                                        "seq_no": 4,
+                                                        "role": "author",
+                                                        "full_name": "Lamberti, Anna",
+                                                        "claim_status": false,
+                                                        "addr_no": 4,
+                                                        "last_name": "Lamberti",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "GOJ-0036-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Lamberti, Anna",
+                                                        "wos_standard": "Lamberti, A",
+                                                        "daisng_id": 32450268,
+                                                        "first_name": "Anna",
+                                                        "preferred_name": {
+                                                            "full_name": "Lamberti, Anna",
+                                                            "last_name": "Lamberti",
+                                                            "first_name": "Anna"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 5,
+                                                        "role": "author",
+                                                        "claim_status": false,
+                                                        "last_name": "Senatore",
+                                                        "display_name": "Senatore, Sabrina",
+                                                        "daisng_id": 41166006,
+                                                        "orcid_id": "0000-0002-7127-4290",
+                                                        "full_name": "Senatore, Sabrina",
+                                                        "addr_no": 4,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "HYM-5823-2023",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "wos_standard": "Senatore, S",
+                                                        "first_name": "Sabrina",
+                                                        "preferred_name": {
+                                                            "full_name": "Senatore, Sabrina",
+                                                            "last_name": "Senatore",
+                                                            "first_name": "Sabrina"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 22,
+                                                        "role": "author",
+                                                        "full_name": "Faccini, Marino",
+                                                        "claim_status": false,
+                                                        "addr_no": 4,
+                                                        "last_name": "Faccini",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "CPU-7937-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Faccini, Marino",
+                                                        "wos_standard": "Faccini, M",
+                                                        "daisng_id": 7678342,
+                                                        "first_name": "Marino",
+                                                        "preferred_name": {
+                                                            "full_name": "Faccini, Marino",
+                                                            "last_name": "Faccini",
+                                                            "first_name": "Marino"
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 4,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "Agcy Hlth Protect Metropolitan Area Milan ATS"
+                                                        }
+                                                    ],
+                                                    "count": 1
+                                                },
+                                                "full_address": "Agcy Hlth Protect Metropolitan Area Milan ATS, Milan, Italy"
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 4,
+                                                "name": [
+                                                    {
+                                                        "seq_no": 6,
+                                                        "role": "author",
+                                                        "claim_status": true,
+                                                        "noncore_endyear": 2023,
+                                                        "last_name": "Travi",
+                                                        "display_name": "Travi, Giovanna",
+                                                        "daisng_id": 1593717,
+                                                        "orcid_id": "0000-0002-4206-0066",
+                                                        "full_name": "Travi, Giovanna",
+                                                        "addr_no": 5,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "K-5124-2018",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "noncore_startyear": 2015,
+                                                        "wos_standard": "Travi, G",
+                                                        "first_name": "Giovanna",
+                                                        "preferred_name": {
+                                                            "full_name": "Travi, Giovanna",
+                                                            "last_name": "Travi",
+                                                            "first_name": "Giovanna"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 7,
+                                                        "role": "author",
+                                                        "claim_status": true,
+                                                        "noncore_endyear": 2024,
+                                                        "last_name": "Rossotti",
+                                                        "display_name": "Rossotti, Roberto",
+                                                        "daisng_id": 48109527,
+                                                        "orcid_id": "0000-0003-4965-8789",
+                                                        "full_name": "Rossotti, Roberto",
+                                                        "addr_no": 5,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "JAA-9941-2023",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "noncore_startyear": 2023,
+                                                        "wos_standard": "Rossotti, R",
+                                                        "first_name": "Roberto",
+                                                        "preferred_name": {
+                                                            "full_name": "Rossotti, Roberto",
+                                                            "last_name": "Rossotti",
+                                                            "first_name": "Roberto"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 8,
+                                                        "role": "author",
+                                                        "claim_status": false,
+                                                        "last_name": "Vecchi",
+                                                        "display_name": "Vecchi, Marta",
+                                                        "daisng_id": 29621380,
+                                                        "orcid_id": "0000-0002-2917-4587",
+                                                        "full_name": "Vecchi, Marta",
+                                                        "addr_no": 5,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "GCT-0995-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "wos_standard": "Vecchi, M",
+                                                        "first_name": "Marta",
+                                                        "preferred_name": {
+                                                            "full_name": "Vecchi, Marta",
+                                                            "last_name": "Vecchi",
+                                                            "first_name": "Marta"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 20,
+                                                        "role": "author",
+                                                        "claim_status": true,
+                                                        "last_name": "Puoti",
+                                                        "display_name": "Puoti, Massimo",
+                                                        "daisng_id": 1921696,
+                                                        "orcid_id": "0000-0003-3278-7138",
+                                                        "full_name": "Puoti, Massimo",
+                                                        "addr_no": 5,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "AAA-6580-2020",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "wos_standard": "Puoti, M",
+                                                        "first_name": "Massimo",
+                                                        "preferred_name": {
+                                                            "full_name": "Puoti, Massimo",
+                                                            "last_name": "Puoti",
+                                                            "first_name": "Massimo"
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 5,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "ASST Grande Osped Metropolitano Niguarda"
+                                                        }
+                                                    ],
+                                                    "count": 1
+                                                },
+                                                "full_address": "ASST Grande Osped Metropolitano Niguarda, Infect Dis, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Infect Dis"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 1,
+                                                "name": {
+                                                    "seq_no": 9,
+                                                    "role": "author",
+                                                    "full_name": "Casati, Ornella",
+                                                    "claim_status": false,
+                                                    "addr_no": 6,
+                                                    "last_name": "Casati",
+                                                    "data-item-ids": {
+                                                        "data-item-id": {
+                                                            "type": "person",
+                                                            "content": "EQJ-3466-2022",
+                                                            "id-type": "PreferredRID"
+                                                        }
+                                                    },
+                                                    "display_name": "Casati, Ornella",
+                                                    "wos_standard": "Casati, O",
+                                                    "daisng_id": 20403858,
+                                                    "first_name": "Ornella",
+                                                    "preferred_name": {
+                                                        "full_name": "Casati, Ornella",
+                                                        "last_name": "Casati",
+                                                        "first_name": "Ornella"
+                                                    }
+                                                }
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 6,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "ASST Grande Osped Metropolitano Niguarda"
+                                                        }
+                                                    ],
+                                                    "count": 1
+                                                },
+                                                "full_address": "ASST Grande Osped Metropolitano Niguarda, Continu Osped Terr, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Continu Osped Terr"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 5,
+                                                "name": [
+                                                    {
+                                                        "seq_no": 13,
+                                                        "role": "author",
+                                                        "full_name": "Antonello, Maria",
+                                                        "claim_status": false,
+                                                        "addr_no": 7,
+                                                        "last_name": "Antonello",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "CDV-2142-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Antonello, Maria",
+                                                        "wos_standard": "Antonello, M",
+                                                        "daisng_id": 4772548,
+                                                        "first_name": "Maria",
+                                                        "preferred_name": {
+                                                            "full_name": "Antonello, Maria",
+                                                            "last_name": "Antonello",
+                                                            "first_name": "Maria"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 14,
+                                                        "role": "author",
+                                                        "claim_status": false,
+                                                        "last_name": "Renica",
+                                                        "display_name": "Renica, Silvia",
+                                                        "daisng_id": 16108732,
+                                                        "orcid_id": "0000-0001-7334-7433",
+                                                        "full_name": "Renica, Silvia",
+                                                        "addr_no": 7,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "DYQ-8332-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "wos_standard": "Renica, S",
+                                                        "first_name": "Silvia",
+                                                        "preferred_name": {
+                                                            "full_name": "Renica, Silvia",
+                                                            "last_name": "Renica",
+                                                            "first_name": "Silvia"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 16,
+                                                        "role": "author",
+                                                        "claim_status": false,
+                                                        "last_name": "Scaglione",
+                                                        "display_name": "Scaglione, Francesco",
+                                                        "daisng_id": 30275067,
+                                                        "orcid_id": "0000-0002-8554-2401",
+                                                        "full_name": "Scaglione, Francesco",
+                                                        "addr_no": 7,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "GFN-4681-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "wos_standard": "Scaglione, F",
+                                                        "first_name": "Francesco",
+                                                        "preferred_name": {
+                                                            "full_name": "Scaglione, Francesco",
+                                                            "last_name": "Scaglione",
+                                                            "first_name": "Francesco"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 24,
+                                                        "role": "author",
+                                                        "claim_status": true,
+                                                        "reprint": "Y",
+                                                        "noncore_endyear": 2022,
+                                                        "last_name": "Alteri",
+                                                        "display_name": "Alteri, Claudia",
+                                                        "daisng_id": 1879027,
+                                                        "orcid_id": "0000-0003-4270-5079",
+                                                        "full_name": "Alteri, Claudia",
+                                                        "addr_no": 7,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "AAB-9956-2019",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "noncore_startyear": 2015,
+                                                        "wos_standard": "Alteri, C",
+                                                        "first_name": "Claudia",
+                                                        "preferred_name": {
+                                                            "full_name": "Alteri, Claudia",
+                                                            "last_name": "Alteri",
+                                                            "first_name": "Claudia"
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 25,
+                                                        "role": "author",
+                                                        "claim_status": true,
+                                                        "noncore_endyear": 2016,
+                                                        "last_name": "Perno",
+                                                        "display_name": "Perno, Carlo Federico",
+                                                        "daisng_id": 478102,
+                                                        "orcid_id": "0000-0002-0825-5388",
+                                                        "full_name": "Perno, Carlo Federico",
+                                                        "addr_no": 7,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "O-1544-2016",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "noncore_startyear": 1983,
+                                                        "wos_standard": "Perno, CF",
+                                                        "first_name": "Carlo Federico",
+                                                        "preferred_name": {
+                                                            "full_name": "perno, carlo federico",
+                                                            "last_name": "perno",
+                                                            "middle_name": "federico",
+                                                            "first_name": "carlo"
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 7,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "Univ Milan"
+                                                        },
+                                                        {
+                                                            "pref": "Y",
+                                                            "content": "University of Milan"
+                                                        }
+                                                    ],
+                                                    "count": 2
+                                                },
+                                                "full_address": "Univ Milan, Dept Oncol & Hematooncol, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Dept Oncol & Hematooncol"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 1,
+                                                "name": {
+                                                    "seq_no": 15,
+                                                    "role": "author",
+                                                    "claim_status": true,
+                                                    "last_name": "Costabile",
+                                                    "display_name": "Costabile, Valentino",
+                                                    "daisng_id": 3637441,
+                                                    "orcid_id": "0000-0002-5207-8147",
+                                                    "full_name": "Costabile, Valentino",
+                                                    "addr_no": 8,
+                                                    "data-item-ids": {
+                                                        "data-item-id": {
+                                                            "type": "person",
+                                                            "content": "AFE-5975-2022",
+                                                            "id-type": "PreferredRID"
+                                                        }
+                                                    },
+                                                    "wos_standard": "Costabile, V",
+                                                    "first_name": "Valentino",
+                                                    "preferred_name": {
+                                                        "full_name": "Costabile, Valentino",
+                                                        "last_name": "Costabile",
+                                                        "first_name": "Valentino"
+                                                    }
+                                                }
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 8,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "Univ Milan"
+                                                        },
+                                                        {
+                                                            "pref": "Y",
+                                                            "content": "University of Milan"
+                                                        },
+                                                        {
+                                                            "pref": "N",
+                                                            "content": "University of Milan Faculty of Medicine and Surgery"
+                                                        },
+                                                        {
+                                                            "pref": "N",
+                                                            "content": "University of Milan Department of Medical Surgical and Transplant Physiopathology"
+                                                        }
+                                                    ],
+                                                    "count": 4
+                                                },
+                                                "full_address": "Univ Milan, Dept Pathophysiol & Transplantat, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Dept Pathophysiol & Transplantat"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 1,
+                                                "name": {
+                                                    "seq_no": 17,
+                                                    "role": "author",
+                                                    "claim_status": false,
+                                                    "last_name": "Fumagalli",
+                                                    "display_name": "Fumagalli, Roberto",
+                                                    "daisng_id": 28626259,
+                                                    "orcid_id": "0000-0003-0398-1329",
+                                                    "full_name": "Fumagalli, Roberto",
+                                                    "addr_no": 9,
+                                                    "data-item-ids": {
+                                                        "data-item-id": {
+                                                            "type": "person",
+                                                            "content": "FYL-5864-2022",
+                                                            "id-type": "PreferredRID"
+                                                        }
+                                                    },
+                                                    "wos_standard": "Fumagalli, R",
+                                                    "first_name": "Roberto",
+                                                    "preferred_name": {
+                                                        "full_name": "Fumagalli, Roberto",
+                                                        "last_name": "Fumagalli",
+                                                        "first_name": "Roberto"
+                                                    }
+                                                }
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 9,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "ASST Grande Osped Metropolitano Niguarda"
+                                                        }
+                                                    ],
+                                                    "count": 1
+                                                },
+                                                "full_address": "ASST Grande Osped Metropolitano Niguarda, Dept Anesthesiol Crit Care & Pain Med, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Dept Anesthesiol Crit Care & Pain Med"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "names": {
+                                                "count": 2,
+                                                "name": [
+                                                    {
+                                                        "seq_no": 18,
+                                                        "role": "author",
+                                                        "claim_status": false,
+                                                        "last_name": "Ughi",
+                                                        "display_name": "Ughi, Nicola",
+                                                        "daisng_id": 29835081,
+                                                        "orcid_id": "0000-0003-4637-1133",
+                                                        "full_name": "Ughi, Nicola",
+                                                        "addr_no": 10,
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "GDO-4696-2022",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "wos_standard": "Ughi, N",
+                                                        "first_name": "Nicola",
+                                                        "preferred_name": {
+                                                            "full_name": "Ughi, N.",
+                                                            "last_name": "Ughi",
+                                                            "first_name": "N."
+                                                        }
+                                                    },
+                                                    {
+                                                        "seq_no": 19,
+                                                        "role": "author",
+                                                        "full_name": "Epis, Oscar Massimiliano",
+                                                        "claim_status": false,
+                                                        "addr_no": 10,
+                                                        "last_name": "Epis",
+                                                        "data-item-ids": {
+                                                            "data-item-id": {
+                                                                "type": "person",
+                                                                "content": "ILP-4211-2023",
+                                                                "id-type": "PreferredRID"
+                                                            }
+                                                        },
+                                                        "display_name": "Epis, Oscar Massimiliano",
+                                                        "wos_standard": "Epis, OM",
+                                                        "daisng_id": 44453956,
+                                                        "first_name": "Oscar Massimiliano",
+                                                        "preferred_name": {
+                                                            "full_name": "Epis, Oscar Massimiliano",
+                                                            "last_name": "Epis",
+                                                            "first_name": "Oscar Massimiliano"
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "address_spec": {
+                                                "country": "Italy",
+                                                "city": "Milan",
+                                                "addr_no": 10,
+                                                "organizations": {
+                                                    "organization": [
+                                                        {
+                                                            "pref": null,
+                                                            "content": "ASST Grande Osped Metropolitano Niguarda"
+                                                        }
+                                                    ],
+                                                    "count": 1
+                                                },
+                                                "full_address": "ASST Grande Osped Metropolitano Niguarda, Rheumatol Unit, Milan, Italy",
+                                                "suborganizations": {
+                                                    "count": 1,
+                                                    "suborganization": "Rheumatol Unit"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                "category_info": {
+                                    "subheadings": {
+                                        "count": 1,
+                                        "subheading": "Life Sciences & Biomedicine"
+                                    },
+                                    "subjects": {
+                                        "subject": [
+                                            {
+                                                "ascatype": "traditional",
+                                                "code": "NN",
+                                                "content": "Infectious Diseases"
+                                            },
+                                            {
+                                                "ascatype": "extended",
+                                                "content": "Infectious Diseases"
+                                            }
+                                        ],
+                                        "count": 2
+                                    },
+                                    "headings": {
+                                        "heading": "Science & Technology",
+                                        "count": 1
+                                    }
+                                },
+                                "normalized_languages": {
+                                    "count": 1,
+                                    "language": {
+                                        "type": "primary",
+                                        "content": "English"
+                                    }
+                                },
+                                "languages": {
+                                    "count": 1,
+                                    "language": {
+                                        "type": "primary",
+                                        "content": "English"
+                                    }
+                                },
+                                "refs": {
+                                    "count": 8
+                                },
+                                "reprint_addresses": {
+                                    "count": 1,
+                                    "address_name": {
+                                        "names": {
+                                            "count": 1,
+                                            "name": {
+                                                "seq_no": 1,
+                                                "role": "author",
+                                                "full_name": "Alteri, Claudia",
+                                                "reprint": "Y",
+                                                "addr_no": 1,
+                                                "last_name": "Alteri",
+                                                "display_name": "Alteri, Claudia",
+                                                "wos_standard": "Alteri, C",
+                                                "first_name": "Claudia"
+                                            }
+                                        },
+                                        "address_spec": {
+                                            "country": "Italy",
+                                            "city": "Milan",
+                                            "addr_no": 1,
+                                            "organizations": {
+                                                "organization": [
+                                                    {
+                                                        "pref": null,
+                                                        "content": "Univ Milan"
+                                                    },
+                                                    {
+                                                        "pref": "Y",
+                                                        "content": "University of Milan"
+                                                    }
+                                                ],
+                                                "count": 2
+                                            },
+                                            "full_address": "Univ Milan, Dept Oncol & Hematooncol, Milan, Italy",
+                                            "suborganizations": {
+                                                "count": 1,
+                                                "suborganization": "Dept Oncol & Hematooncol"
+                                            }
+                                        }
+                                    }
+                                },
+                                "normalized_doctypes": {
+                                    "doctype": "Letter",
+                                    "count": 1
+                                }
+                            },
+                            "contributors": {
+                                "contributor": [
+                                    {
+                                        "name": {
+                                            "seq_no": 1,
+                                            "role": "researcher_id",
+                                            "full_name": "perno, carlo federico",
+                                            "last_name": "perno",
+                                            "display_name": "perno, carlo federico",
+                                            "r_id": "O-1544-2016",
+                                            "first_name": "carlo federico"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 2,
+                                            "role": "researcher_id",
+                                            "full_name": "Travi, Giovanna",
+                                            "last_name": "Travi",
+                                            "display_name": "Travi, Giovanna",
+                                            "r_id": "AFF-8405-2022",
+                                            "first_name": "Giovanna"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 3,
+                                            "orcid_id": "0000-0002-3272-4252",
+                                            "role": "researcher_id",
+                                            "full_name": "Cento, Valeria",
+                                            "last_name": "Cento",
+                                            "display_name": "Cento, Valeria",
+                                            "r_id": "K-6636-2012",
+                                            "first_name": "Valeria"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 4,
+                                            "role": "researcher_id",
+                                            "full_name": "Rossotti, Roberto",
+                                            "last_name": "Rossotti",
+                                            "display_name": "Rossotti, Roberto",
+                                            "r_id": "JAA-9941-2023",
+                                            "first_name": "Roberto"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 5,
+                                            "orcid_id": "0000-0001-5618-1523",
+                                            "role": "researcher_id",
+                                            "full_name": "Colagrossi, Luna",
+                                            "last_name": "Colagrossi",
+                                            "display_name": "Colagrossi, Luna",
+                                            "r_id": "AAB-7648-2022",
+                                            "first_name": "Luna"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 6,
+                                            "orcid_id": "0000-0002-4206-0066",
+                                            "role": "researcher_id",
+                                            "full_name": "Travi, Giovanna",
+                                            "last_name": "Travi",
+                                            "display_name": "Travi, Giovanna",
+                                            "r_id": "K-5124-2018",
+                                            "first_name": "Giovanna"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 7,
+                                            "orcid_id": "0000-0003-4270-5079",
+                                            "role": "researcher_id",
+                                            "full_name": "Alteri, Claudia",
+                                            "last_name": "Alteri",
+                                            "display_name": "Alteri, Claudia",
+                                            "r_id": "AAB-9956-2019",
+                                            "first_name": "Claudia"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 8,
+                                            "role": "researcher_id",
+                                            "full_name": "Puoti, Massimo",
+                                            "last_name": "Puoti",
+                                            "display_name": "Puoti, Massimo",
+                                            "r_id": "AAA-6580-2020",
+                                            "first_name": "Massimo"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 9,
+                                            "orcid_id": "0000-0003-3278-7138",
+                                            "role": "researcher_id",
+                                            "full_name": "Puoti, Massimo",
+                                            "last_name": "Puoti",
+                                            "display_name": "Puoti, Massimo",
+                                            "first_name": "Massimo"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 10,
+                                            "orcid_id": "0000-0001-7334-7433",
+                                            "role": "researcher_id",
+                                            "full_name": "renica, silvia",
+                                            "last_name": "renica",
+                                            "display_name": "renica, silvia",
+                                            "first_name": "silvia"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 11,
+                                            "orcid_id": "0000-0002-5207-8147",
+                                            "role": "researcher_id",
+                                            "full_name": "Costabile, Valentino",
+                                            "last_name": "Costabile",
+                                            "display_name": "Costabile, Valentino",
+                                            "first_name": "Valentino"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "seq_no": 12,
+                                            "orcid_id": "0000-0002-0825-5388",
+                                            "role": "researcher_id",
+                                            "full_name": "PERNO, CARLO FEDERICO",
+                                            "last_name": "PERNO",
+                                            "display_name": "PERNO, CARLO FEDERICO",
+                                            "first_name": "CARLO FEDERICO"
+                                        }
+                                    }
+                                ],
+                                "count": 12
+                            }
+                        },
+                        "dates": {
+                            "date_loaded": "2020-09-01T23:59:59.00000",
+                            "date_modified": "2023-05-25T20:55:41.962291",
+                            "date_created": "2020-08-26T13:05:28.543532"
+                        },
+                        "r_id_disclaimer": "ResearcherID data provided by Clarivate Analytics",
+                        "dynamic_data": {
+                            "citation_related": {
+                                "tc_list_cc": {
+                                    "dedup_total_count": 26,
+                                    "function_tc": [
+                                        {
+                                            "local_count": 4,
+                                            "func_class": "basis"
+                                        },
+                                        {
+                                            "local_count": 10,
+                                            "func_class": "background"
+                                        },
+                                        {
+                                            "local_count": 1,
+                                            "func_class": "support"
+                                        },
+                                        {
+                                            "local_count": 0,
+                                            "func_class": "differ"
+                                        },
+                                        {
+                                            "local_count": 15,
+                                            "func_class": "discuss"
+                                        }
+                                    ]
+                                },
+                                "SDG": {
+                                    "sdg_category": {
+                                        "content": "03 Good Health and Well-being",
+                                        "status": "Active"
+                                    },
+                                    "code": 1353
+                                },
+                                "citation_topics": {
+                                    "subj-group": {
+                                        "subject": [
+                                            {
+                                                "content-type": "macro",
+                                                "content-id": "1",
+                                                "content": "Clinical & Life Sciences"
+                                            },
+                                            {
+                                                "content-type": "meso",
+                                                "content-id": "1.104",
+                                                "content": "Virology - General"
+                                            },
+                                            {
+                                                "content-type": "micro",
+                                                "content-id": "1.104.1353",
+                                                "content": "Coronavirus"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "tc_list": {
+                                    "tc_mod_date": "2023-09-30",
+                                    "silo_tc": [
+                                        {
+                                            "coll_id": "WOK",
+                                            "local_count": 53
+                                        },
+                                        {
+                                            "coll_id": "MEDLINE",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "BIOSIS",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "PPRN",
+                                            "local_count": 1
+                                        },
+                                        {
+                                            "coll_id": "WOS",
+                                            "local_count": 51
+                                        },
+                                        {
+                                            "coll_id": "ZOOREC",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "BCI",
+                                            "local_count": 24
+                                        },
+                                        {
+                                            "coll_id": "INSPEC",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "CSCD",
+                                            "local_count": 1
+                                        },
+                                        {
+                                            "coll_id": "DRCI",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "CABI",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "FSTA",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "KJD",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "SCIELO",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "PQDT",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "ARCI",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "RSCI",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "CCC",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "DIIDW",
+                                            "local_count": 0
+                                        },
+                                        {
+                                            "coll_id": "BIOABS",
+                                            "local_count": 0
+                                        }
+                                    ]
+                                }
+                            },
+                            "cluster_related": {
+                                "identifiers": {
+                                    "identifier": [
+                                        {
+                                            "type": "issn",
+                                            "value": "0163-4453"
+                                        },
+                                        {
+                                            "type": "eissn",
+                                            "value": "1532-2742"
+                                        },
+                                        {
+                                            "type": "doi",
+                                            "value": "10.1016/j.jinf.2020.06.024"
+                                        },
+                                        {
+                                            "type": "pmid",
+                                            "value": "MEDLINE:32574567"
+                                        }
+                                    ]
+                                }
+                            },
+                            "wos_usage": {
+                                "last180days": 0,
+                                "alltime": 2
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "QueryResult": {
+        "QueryID": 5,
+        "RecordsSearched": 87740844,
+        "RecordsFound": 1
+    }
+}

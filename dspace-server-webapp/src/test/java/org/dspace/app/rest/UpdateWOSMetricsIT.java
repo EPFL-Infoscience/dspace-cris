@@ -79,7 +79,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
         CloseableHttpClient originalHttpClient = wosRestConnector.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         Item itemA = null;
-        try (FileInputStream file = new FileInputStream(testProps.get("test.wosResponceJSON").toString())) {
+        try (FileInputStream file = new FileInputStream(testProps.get("test.wosResponseJSON").toString())) {
 
             String xmlMetricsExample = IOUtils.toString(file, Charset.defaultCharset());
             wosRestConnector.setHttpClient(httpClient);
@@ -117,7 +117,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
             assertNotEquals(metric1.getID(), metric.getID());
             assertFalse(metric1.getLast());
             assertTrue(metric.getLast());
-            assertEquals(87, metric.getMetricCount(), 0);
+            assertEquals(51, metric.getMetricCount(), 0);
         } finally {
             CrisMetricsBuilder.deleteCrisMetrics(itemA);
             wosRestConnector.setHttpClient(originalHttpClient);
@@ -125,14 +125,14 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void wosResponceMetricCountAbsentMockitoTest() throws Exception {
+    public void wosResponseMetricCountAbsentMockitoTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         CloseableHttpClient originalHttpClient = wosRestConnector.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         Item itemA = null;
         try (FileInputStream file = new FileInputStream(testProps.get(
-                        "test.wosResponceMetricCountAbsent").toString())) {
+                        "test.wosResponseMetricCountAbsent").toString())) {
 
             String xmlMetricsExample = IOUtils.toString(file, Charset.defaultCharset());
             wosRestConnector.setHttpClient(httpClient);
@@ -236,7 +236,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
         CloseableHttpClient originalHttpClient = wosPersonRestConnector.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         Item itemA = null;
-        try (FileInputStream file = new FileInputStream(testProps.get("test.wosResponceMultiRecords").toString())) {
+        try (FileInputStream file = new FileInputStream(testProps.get("test.wosResponseMultiRecords").toString())) {
 
             String wosMetricsExample = IOUtils.toString(file, Charset.defaultCharset());
             wosPersonRestConnector.setHttpClient(httpClient);
@@ -253,11 +253,11 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
 
             itemA = ItemBuilder.createItem(context, col1)
                                .withTitle("Title item A")
-                               .withOrcidIdentifier("0000-0001-8190-0000").build();
+                               .withOrcidIdentifier("0000-0002-9029-1854").build();
 
             CrisMetrics metric = CrisMetricsBuilder.createCrisMetrics(context, itemA)
                                                     .withMetricType(UpdateWOSPersonMetrics.WOS_PERSON_METRIC_TYPE)
-                                                    .withMetricCount(22)
+                                                    .withMetricCount(10)
                                                     .isLast(true).build();
 
             Calendar calendar2 = Calendar.getInstance();
@@ -270,7 +270,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
             CrisMetrics metrics2 = CrisMetricsBuilder.createCrisMetrics(context, itemA)
                                                      .withAcquisitionDate(oneWeekAgo)
                                                      .withMetricType(UpdateWOSPersonMetrics.WOS_PERSON_METRIC_TYPE)
-                                                     .withMetricCount(17)
+                                                     .withMetricCount(7)
                                                      .isLast(false).build();
 
             Calendar calendar3 = Calendar.getInstance();
@@ -283,7 +283,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
             CrisMetrics metrics3 = CrisMetricsBuilder.createCrisMetrics(context, itemA)
                                                      .withAcquisitionDate(oneMonthAgo)
                                                      .withMetricType(UpdateWOSPersonMetrics.WOS_PERSON_METRIC_TYPE)
-                                                     .withMetricCount(10)
+                                                     .withMetricCount(2)
                                                      .isLast(false).build();
 
             context.restoreAuthSystemState();
@@ -297,7 +297,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
                                                        UpdateWOSPersonMetrics.WOS_PERSON_METRIC_TYPE, itemA.getID());
 
             assertNotEquals(metric.getId(), wosMetric.getId());
-            assertEquals(wosMetric.getMetricCount(), 280, 0);
+            assertEquals(wosMetric.getMetricCount(), 13, 0);
             assertEquals(wosMetric.getMetricType(), UpdateWOSPersonMetrics.WOS_PERSON_METRIC_TYPE);
             assertEquals(wosMetric.getMetricCount() - metrics2.getMetricCount(), wosMetric.getDeltaPeriod1(), 0);
             assertEquals(wosMetric.getMetricCount() - metrics3.getMetricCount(), wosMetric.getDeltaPeriod2(), 0);
@@ -414,7 +414,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
         CloseableHttpClient originalHttpClient = wosRestConnector.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         Item itemA = null;
-        try (FileInputStream file = new FileInputStream(testProps.get("test.wosResponceJSON").toString())) {
+        try (FileInputStream file = new FileInputStream(testProps.get("test.wosResponseJSON").toString())) {
 
             String xmlMetricsExample = IOUtils.toString(file, Charset.defaultCharset());
             wosRestConnector.setHttpClient(httpClient);
@@ -487,7 +487,7 @@ public class UpdateWOSMetricsIT extends AbstractControllerIntegrationTest {
             assertNotEquals(crisMetrics.getID(), metric.getID());
             assertFalse(crisMetrics.getLast());
             assertTrue(metric.getLast());
-            assertEquals(87, metric.getMetricCount(), 0);
+            assertEquals(51, metric.getMetricCount(), 0);
             assertEquals(metric.getMetricCount() - metrics2.getMetricCount(), metric.getDeltaPeriod1(), 0);
             assertEquals(metric.getMetricCount() - metrics3.getMetricCount(), metric.getDeltaPeriod2(), 0);
         } finally {
