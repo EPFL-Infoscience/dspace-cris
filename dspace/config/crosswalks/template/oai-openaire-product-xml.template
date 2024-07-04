@@ -93,7 +93,7 @@
     @group.datacite-relatedIdentifier.end@
   </datacite:relatedIdentifiers>
   <datacite:rights rightsURI="@virtual.mapConverter.right2conceptUrl.datacite-rights@">
-        @datacite.rights@</datacite:rights>
+        @virtual.mapConverter.right2openairelabel.datacite-rights@</datacite:rights>
   <dc:description>@dc.description.abstract@</dc:description>
   <dc:description>@dc.description@</dc:description>
   @if.metadata.oairecerif-funder.start@

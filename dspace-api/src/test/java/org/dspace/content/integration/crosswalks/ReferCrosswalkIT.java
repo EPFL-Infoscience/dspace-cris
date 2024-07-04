@@ -3141,6 +3141,60 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         }
     }
 
+    @Test
+    public void testPublicationOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item myOrg = ItemBuilder.createItem(context, collection)
+            .withEntityType("OrgUnit")
+            .withTitle("MyOrg")
+            .withAcronym("MO")
+            .build();
+
+        Item knownAuthor = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Known Author")
+                .build();
+        Item knownAuthor2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Known Author2")
+                .build();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Test Publication")
+            .withPublisher("Publication publisher")
+            .withVolume("V.01")
+            .withIssue("Issue")
+            .withDoiIdentifier("https://doi.org/10.xxxx/yyyy")
+            .withType("text::objet présenté à une conférence::actes de conférence" +
+                    "::article dans une conférence/papier de conférence",
+                    "publication-coar-types:c_5794" )
+            .withIssueDate("2020-01-01")
+            .withAuthor(knownAuthor.getName(), knownAuthor.getID().toString())
+            .withAuthorAffiliation(myOrg.getName(), myOrg.getID().toString())
+            .withAuthor("External Author")
+            .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+            .withAuthor(knownAuthor2.getName(), knownAuthor2.getID().toString())
+            .withAuthorAffiliation(myOrg.getName(), myOrg.getID().toString())
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-publication-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, publication, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-publication.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
     private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType)
             throws SQLException {
         createRelationshipBuilder(context, context.reloadEntity(publication),

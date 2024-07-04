@@ -461,7 +461,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         while (relatedItems.hasNext()) {
             Item relatedItem = relatedItems.next();
             Iterator<TemplateLine> lineIterator = groupLines.iterator();
-            appendLines(context, relatedItem, lineIterator, lines, findRelatedItems, pos);
+            appendLines(context, relatedItem, lineIterator, lines, findRelatedItems, -1);
         }
 
     }
