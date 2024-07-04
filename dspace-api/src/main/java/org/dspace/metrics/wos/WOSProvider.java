@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import net.minidev.json.JSONArray;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,19 +31,20 @@ public class WOSProvider {
         log.debug("looking for wos metrics for DOI: " + id);
         String wosResponse = wosRestConnector.get(id);
         if (StringUtils.isNotBlank(wosResponse)) {
-            return exstractMetricCount(wosResponse);
+            return extractMetricCount(wosResponse);
         }
         log.debug("WOS Response: " + wosResponse);
         log.debug("The DOI : " + id + " is wrong!");
         return null;
     }
 
-    private CrisMetricDTO exstractMetricCount(String wosResponse) {
+    private CrisMetricDTO extractMetricCount(String wosResponse) {
         Integer metricCount = null;
         CrisMetricDTO metricDTO = new CrisMetricDTO();
-        final String path = "$.Data.Records.records.REC[0].dynamic_data.citation_related.tc_list.silo_tc.local_count";
+        final String path = "$.Data.Records.records.REC[0].dynamic_data."
+                + "citation_related.tc_list.silo_tc[?(@.coll_id== 'WOS')].local_count";
         try {
-            metricCount = JsonPath.read(wosResponse, path);
+            metricCount = (Integer) ((JSONArray) JsonPath.read(wosResponse, path)).get(0);
         } catch (PathNotFoundException e) {
             log.error("The path : " + path + " does not exist!");
         }

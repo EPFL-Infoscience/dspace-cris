@@ -107,14 +107,19 @@ public class WOSPersonRestConnector {
         int total = 0;
         if (Objects.nonNull(records)) {
             for (int i = 0; i < records.length(); i++) {
-                Integer count = records.getJSONObject(i)
+                final JSONArray jsonArray = records.getJSONObject(i)
                                        .getJSONObject("dynamic_data")
                                        .getJSONObject("citation_related")
                                        .getJSONObject("tc_list")
-                                       .getJSONObject("silo_tc")
-                                       .getInt("local_count");
-                if (Objects.nonNull(count)) {
-                    total += count.intValue();
+                                       .getJSONArray("silo_tc");
+                for (int idx = 0; idx < jsonArray.length(); idx++) {
+                    if (StringUtils.equals("WOS", jsonArray.getJSONObject(idx).getString("coll_id"))) {
+                        Integer count = jsonArray.getJSONObject(idx).getInt("local_count");
+                        if (Objects.nonNull(count)) {
+                            total += count.intValue();
+                        }
+                        break;
+                    }
                 }
             }
         }
