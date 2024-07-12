@@ -142,7 +142,7 @@
     @group.epfl-award.start@
     <datafield tag="586" ind1=" " ind2=" ">
         <subfield code="a">@epfl.award@</subfield>
-        <subfield code="b">@epfl.award.year@</subfield>
+        <subfield code="b">@epfl.award.date@</subfield>
     </datafield>
     @group.epfl-award.end@
     @group.dc-subject.start@

@@ -481,7 +481,7 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
             List<MetadataValueDTO> expectedMetadata = getMetadataThatShouldBePresentIntoImportedItem();
             checkMetadata(expectedMetadata, actualMetadata);
             assertEquals("2023-05-05T18:59:01Z", itemsS3ServiceMock.getModificationDate(context, "79707"));
-            assertEquals(48, actualMetadata.size());
+            assertEquals(50, actualMetadata.size());
             assertFalse("check that there are no other items", items.hasNext());
         } finally {
             if (originalS3serviceOfMarcXmlParserImpl != null) {
@@ -637,6 +637,11 @@ public class ItemsImportFromS3ScriptIT extends AbstractIntegrationTestWithDataba
         metadataValues.addAll(Arrays.asList(contributorauthnum1, contributorauthnum2, contributorauthnum3,
                                             contributorauthnum4, contributorauthnum5, contributorauthnum6,
                                             contributorauthnum7, contributorauthnum8));
+
+        // awards
+        metadataValues.add(new MetadataValueDTO("epfl", "award", null, "test award title"));
+        metadataValues.add(new MetadataValueDTO("epfl", "award", "date", "2024-07"));
+
         return metadataValues;
     }
 

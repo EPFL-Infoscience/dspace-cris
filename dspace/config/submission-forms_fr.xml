@@ -3116,7 +3116,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>award</dc-element>
-          <dc-qualifier>year</dc-qualifier>
+          <dc-qualifier>date</dc-qualifier>
           <label>Date du prix ou de la récompense</label>
           <input-type>date</input-type>
           <repeatable>false</repeatable>

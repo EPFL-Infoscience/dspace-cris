@@ -322,7 +322,7 @@
     <dc-type>
         <schema>epfl</schema>
         <element>award</element>
-        <qualifier>year</qualifier>
+        <qualifier>date</qualifier>
     </dc-type>
 
     <dc-type>
