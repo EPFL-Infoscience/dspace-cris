@@ -325,7 +325,9 @@ public class OrcidPublicationDataProvider extends AbstractExternalDataProvider {
 
         for (String contributorField : fieldMapping.getContributorFields().keySet()) {
             ContributorRole role = fieldMapping.getContributorFields().get(contributorField);
-            addMetadataValues(externalDataObject, contributorField, () -> getContributors(work, role));
+            if (role.value().equals("author")) {
+                addMetadataValues(externalDataObject, contributorField, () -> getContributors(work));
+            }
         }
 
         for (String externalIdField : fieldMapping.getExternalIdentifierFields().keySet()) {
@@ -430,14 +432,13 @@ public class OrcidPublicationDataProvider extends AbstractExternalDataProvider {
         return work.getLanguageCode() != null ? fieldMapping.convertLanguage(work.getLanguageCode()) : null;
     }
 
-    private List<String> getContributors(Work work, ContributorRole role) {
+    private List<String> getContributors(Work work) {
         WorkContributors workContributors = work.getWorkContributors();
         if (workContributors == null) {
             return emptyList();
         }
 
         return workContributors.getContributor().stream()
-            .filter(contributor -> hasRole(contributor, role))
             .map(contributor -> getContributorName(contributor))
             .flatMap(Optional::stream)
             .collect(Collectors.toList());
@@ -481,11 +482,6 @@ public class OrcidPublicationDataProvider extends AbstractExternalDataProvider {
             .filter(metadataValue -> StringUtils.equals(metadataValue.getElement(), metadata.getElement()))
             .filter(metadataValue -> StringUtils.equals(metadataValue.getQualifier(), metadata.getQualifier()))
             .findAny().isEmpty();
-    }
-
-    private boolean hasRole(Contributor contributor, ContributorRole role) {
-        ContributorAttributes attributes = contributor.getContributorAttributes();
-        return attributes != null ? role.value().equals(attributes.getContributorRole()) : false;
     }
 
     private Optional<String> getContributorName(Contributor contributor) {
