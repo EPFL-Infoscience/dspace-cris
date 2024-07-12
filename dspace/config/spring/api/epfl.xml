@@ -77,7 +77,7 @@
         <property name="metadataFieldsPaths">
             <util:map>
                 <entry key="epfl.award" value="./subfield[@code = 'a']"/>
-                <entry key="epfl.award.year" value="./subfield[@code = 'b']"/>
+                <entry key="epfl.award.date" value="./subfield[@code = 'b']"/>
             </util:map>
         </property>
     </bean>

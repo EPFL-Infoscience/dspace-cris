@@ -475,6 +475,44 @@ public class ItemImportReaderIT extends AbstractIntegrationTestWithDatabase {
         assertEquals(NOT_FOUND_VALUE, getMetadataAuthority(itemMetadataWithoutIssn, "dc.relation.journal"));
     }
 
+    @Test
+    public void testImportEpflAwardDate() {
+        String awardName = "testAward";
+        String awardDateOnlyYear = "2020";
+        String awardDateFullDate = "2020-12-12";
+
+        String testOnlyYear = "<record> \n" +
+                "<datafield tag=\"586\" ind1=\"\" ind2=\"\">\n" +
+                " <subfield code=\"a\">" + awardName + "</subfield>\n" +
+                " <subfield code=\"b\">" + awardDateOnlyYear + "</subfield>\n" +
+                "</datafield>\n" +
+                "</record>";
+
+        InputStream inputStreamOnlyYear = new ByteArrayInputStream(testOnlyYear.getBytes());
+        Node recordOnlyYear = marcXmlParser.parse(inputStreamOnlyYear, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataOnlyYear =
+                marcXmlParser.readItemMetadataValues(context, recordOnlyYear, mapping);
+
+        assertEquals(awardName, getFirstMetadataValue(itemMetadataOnlyYear, "epfl.award"));
+        assertEquals(awardDateOnlyYear, getFirstMetadataValue(itemMetadataOnlyYear, "epfl.award.date"));
+
+        String testFullDate = "<record> \n" +
+                "<datafield tag=\"586\" ind1=\"\" ind2=\"\">\n" +
+                " <subfield code=\"a\">" + awardName + "</subfield>\n" +
+                " <subfield code=\"b\">" + awardDateFullDate + "</subfield>\n" +
+                "</datafield>\n" +
+                "</record>";
+
+        InputStream inputStreamFullDate = new ByteArrayInputStream(testFullDate.getBytes());
+        Node recordFullDate = marcXmlParser.parse(inputStreamFullDate, mapping.getItemXPath());
+        List<MetadataValueDTO> itemMetadataFullDate =
+                marcXmlParser.readItemMetadataValues(context, recordFullDate, mapping);
+
+        assertEquals(awardName, getFirstMetadataValue(itemMetadataFullDate, "epfl.award"));
+        assertEquals(awardDateFullDate, getFirstMetadataValue(itemMetadataFullDate, "epfl.award.date"));
+
+    }
+
     private void checkMetadataValue(String expectedValue, List<MetadataValueDTO> itemMetadata, String field, int pos) {
         Optional<MetadataValueDTO> metadata = getMetadataValue(itemMetadata, field, pos);
         assertTrue(metadata.isPresent());
