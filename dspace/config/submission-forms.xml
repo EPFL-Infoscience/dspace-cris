@@ -1482,6 +1482,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
+          <dc-qualifier>notes</dc-qualifier>
           <label>Note</label>
           <input-type>textarea</input-type>
           <repeatable>true</repeatable>
@@ -3292,6 +3293,15 @@
       </row>
       <row>
         <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <label>Identifier(s)</label>
+          <input-type value-pairs-name="dataset_identifiers">qualdrop_value</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Add any identifier (e.g., DOI), if available</hint>
+        </field>
+        <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>thesis</dc-element>
           <dc-qualifier>number</dc-qualifier>
@@ -3299,7 +3309,7 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <style>col-xs-12 col-md-4</style>
+          <style>col-xs-12 col-md-6</style>
           <hint />
           <type-bind>thesis::doctoral thesis, thèses::thèse de doctorat, thesis-coar-types:c_db06, publication-coar-types:c_db06, student-coar-types:c_db06</type-bind>
         </field>
@@ -6001,8 +6011,8 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>award</dc-element>
-          <dc-qualifier>year</dc-qualifier>
-          <label>Year</label>
+          <dc-qualifier>date</dc-qualifier>
+          <label>Award date</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
