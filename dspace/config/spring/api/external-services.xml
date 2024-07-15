@@ -81,7 +81,8 @@
         <constructor-arg value="${orcid.api-url}"/>
     </bean>
 
-    <bean id="crossRefLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+    <bean id="crossRefLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider"
+        scope="prototype">
         <property name="metadataSource" ref="CrossRefImportService"/>
         <property name="sourceIdentifier" value="crossref"/>
         <property name="recordIdMetadata" value="dc.identifier.doi"/>
@@ -91,9 +92,9 @@
             </list>
         </property>
     </bean>
-    <bean id="crossRefLiveImportDataProviderProcess" parent="crossRefLiveImportDataProvider" scope="prototype"/>
 
-    <bean id="wosLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+    <bean id="wosLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider"
+        scope="prototype">
         <property name="metadataSource" ref="WosImportService"/>
         <property name="sourceIdentifier" value="wos"/>
         <property name="recordIdMetadata" value="dc.identifier.isi"/>
@@ -103,9 +104,9 @@
             </list>
         </property>
     </bean>
-    <bean id="wosLiveImportDataProviderProcess" parent="wosLiveImportDataProvider" scope="prototype"/>
 
-    <bean id="scopusLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+    <bean id="scopusLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider"
+        scope="prototype">
         <property name="metadataSource" ref="ScopusImportService"/>
         <property name="sourceIdentifier" value="scopus"/>
         <property name="recordIdMetadata" value="dc.identifier.scopus"/>
@@ -115,7 +116,6 @@
             </list>
         </property>
     </bean>
-    <bean id="scopusLiveImportDataProviderProcess" parent="scopusLiveImportDataProvider" scope="prototype"/>
 
     <bean id="pubmedLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="pubmedImportService"/>
@@ -130,7 +130,8 @@
     </bean>
 
 
-    <bean id="arxivLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+    <bean id="arxivLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider"
+        scope="prototype">
         <property name="metadataSource" ref="ArXivImportService"/>
         <property name="sourceIdentifier" value="arxiv"/>
         <property name="recordIdMetadata" value="dc.identifier.arxiv"/>
@@ -140,9 +141,9 @@
             </list>
         </property>
     </bean>
-    <bean id="arxivLiveImportDataProviderProcess" parent="arxivLiveImportDataProvider" scope="prototype"/>
 
-    <bean id="epoLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+    <bean id="epoLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider"
+        scope="prototype">
         <property name="metadataSource" ref="EpoImportService"/>
         <property name="sourceIdentifier" value="epo"/>
         <property name="recordIdMetadata" value="dc.identifier.other"/>
@@ -152,7 +153,6 @@
             </list>
         </property>
     </bean>
-    <bean id="epoLiveImportDataProviderProcess" parent="epoLiveImportDataProvider" scope="prototype"/>
 
     <bean id="dataciteLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
         <property name="metadataSource" ref="DataCiteImportService"/>

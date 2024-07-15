@@ -147,11 +147,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         externalDataService = serviceManager.getServiceByName(ExternalDataServiceImpl.class.getName(),
                                                               ExternalDataServiceImpl.class);
         indexingService = serviceManager.getServiceByName(IndexingService.class.getName(), IndexingService.class);
-        putServiceIfExists(SCOPUS,"scopusLiveImportDataProviderProcess");
-        putServiceIfExists(WOS, "wosLiveImportDataProviderProcess");
-        putServiceIfExists(CROSSREF, "crossRefLiveImportDataProviderProcess");
-        putServiceIfExists(ARXIV, "arxivLiveImportDataProviderProcess");
-        putServiceIfExists(EPO, "epoLiveImportDataProviderProcess");
+        putServiceIfExists(SCOPUS,"scopusLiveImportDataProvider");
+        putServiceIfExists(WOS, "wosLiveImportDataProvider");
+        putServiceIfExists(CROSSREF, "crossRefLiveImportDataProvider");
+        putServiceIfExists(ARXIV, "arxivLiveImportDataProvider");
+        putServiceIfExists(EPO, "epoLiveImportDataProvider");
 
         workflowService = WorkflowServiceFactory.getInstance().getWorkflowService();
         ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
