@@ -19,7 +19,7 @@
             @relation.oairecerif-author-affiliation.start@
             <datacite:affiliation
                 affiliationIdentifier="@organization.identifier.ror@" affiliationIdentifierScheme="ROR"
-            >@dc.title@</datacite:affiliation>
+            >@virtual.uniqueTitle@</datacite:affiliation>
             @relation.oairecerif-author-affiliation.end@
             @if.not.authority.oairecerif-author-affiliation.start@
             <datacite:affiliation>@oairecerif.author.affiliation@</datacite:affiliation>

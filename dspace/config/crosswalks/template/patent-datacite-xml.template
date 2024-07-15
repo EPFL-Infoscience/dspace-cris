@@ -11,7 +11,7 @@
 			@relation.oairecerif-author-affiliation.start@
             <affiliation
                 affiliationIdentifier="@organization.identifier.ror@" affiliationIdentifierScheme="ROR"
-            >@dc.title@</affiliation>
+            >@virtual.uniqueTitle@</affiliation>
             @relation.oairecerif-author-affiliation.end@
             @if.not.authority.oairecerif-author-affiliation.start@
             <affiliation>@oairecerif.author.affiliation@</affiliation>
