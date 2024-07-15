@@ -780,10 +780,13 @@
                 <entry key="epfl-unit-code" value-ref="virtualFieldEpflUnitCodeSplitter"/>
 				<entry key="sciperId" value-ref="virtualFieldToEnhancedMetadata"></entry>
 				<entry key="orcid" value-ref="virtualFieldToEnhancedMetadata"></entry>
+				<entry key="uniqueTitle" value-ref="virtualFieldUniqueTitle"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
 
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldUniqueTitle"
+        id="virtualFieldUniqueTitle" />
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldToEnhancedMetadata"
         id="virtualFieldToEnhancedMetadata" />
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldId" id="virtualFieldId"/>

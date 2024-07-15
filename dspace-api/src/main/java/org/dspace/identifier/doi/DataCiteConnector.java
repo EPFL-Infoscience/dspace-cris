@@ -608,7 +608,9 @@ public class DataCiteConnector
         URIBuilder uribuilder = new URIBuilder();
         uribuilder.setScheme(SCHEME).setHost(HOST).setPath(METADATA_PATH);
 
-        log.info(metadata);
+        if (log.isDebugEnabled()) {
+            log.debug(metadata);
+        }
 
         HttpPost httppost = null;
         try {
