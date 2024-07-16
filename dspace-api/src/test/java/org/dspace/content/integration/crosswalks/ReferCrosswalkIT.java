@@ -3086,15 +3086,55 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     @Test
     public void testEpflThesisDataciteXMLDisseminate() throws Exception {
         context.turnOffAuthorisationSystem();
+        configurationService.setProperty("default.locale", "en");
+        Item orgUnitMultipleLang = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("First title", null)
+                .withTitleForLanguage("English title", "en")
+                .withTitleForLanguage("French title", "fr")
+                .build();
+        Item orgUnitMultipleGenericTitle = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("First title", null)
+                .withTitleForLanguage("Second title", "fr")
+                .build();
+        Item orgUnitMultipleTitleInNoPrefLang = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("First title", "zu")
+                .withTitleForLanguage("Second title", "fr")
+                .build();
+
         Item itemWithPreviousEPFLDOI = ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
                 .withTitle("itemWithPreviousEPFLDOI")
                 .withAuthor("Student, Name")
+                .withAuthorAffiliation("test", orgUnitMultipleLang.getID().toString())
                 .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
                 .withPublisher("School of XXX")
                 .withWrittenAt("EPFL")
                 .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
                 .build();
+        Item itemWithPreviousEPFLDOIMultipleGenericTitle = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("itemWithPreviousEPFLDOI")
+                .withAuthor("Student, Name")
+                .withAuthorAffiliation("test", orgUnitMultipleGenericTitle.getID().toString())
+                .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
+                .withPublisher("School of XXX")
+                .withWrittenAt("EPFL")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
+                .build();
+        Item itemWithPreviousEPFLDOIMultipleTitleInNoPrefLang = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("itemWithPreviousEPFLDOI")
+                .withAuthor("Student, Name")
+                .withAuthorAffiliation("test", orgUnitMultipleTitleInNoPrefLang.getID().toString())
+                .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
+                .withPublisher("School of XXX")
+                .withWrittenAt("EPFL")
+                .withType("thèses::thèse de doctorat", "thesis-coar-types:c_db06")
+                .build();
+
         context.restoreAuthSystemState();
         context.commit();
 
@@ -3103,11 +3143,25 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         referCrossWalk.disseminate(context, itemWithPreviousEPFLDOI, out);
-
         try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite.xml")) {
             String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
             compareEachLine(out.toString(), expectedXml);
         }
+
+        out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, itemWithPreviousEPFLDOIMultipleGenericTitle, out);
+        try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite-mgt.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+
+        out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, itemWithPreviousEPFLDOIMultipleTitleInNoPrefLang, out);
+        try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite-mtnopref.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(out.toString(), expectedXml);
+        }
+
     }
 
     @Test
