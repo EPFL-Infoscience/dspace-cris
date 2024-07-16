@@ -28,6 +28,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
 import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
@@ -119,6 +120,7 @@ public class SubmitterFixScript extends DSpaceRunnable<SubmitterFixScriptConfigu
         DiscoverQuery query = new DiscoverQuery();
         query.setDSpaceObjectFilter(IndexableItem.TYPE);
         query.addFilterQueries("location.coll:(" + collectionId + ")");
+        query.setSortField("search.resourceid", SORT_ORDER.asc);
         return new DiscoverResultItemIterator(context, query);
     }
 
