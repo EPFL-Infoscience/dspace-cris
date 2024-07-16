@@ -513,7 +513,7 @@
           <dc-schema>oairecerif</dc-schema>
           <dc-element>identifier</dc-element>
           <dc-qualifier>url</dc-qualifier>
-          <label>Site ou page web</label>
+          <label>URL du site web</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -584,7 +584,7 @@
         <field>
           <dc-schema>person</dc-schema>
           <dc-element>jobTitle</dc-element>
-          <label>Position principale</label>
+          <label>Fonction principale</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -1403,7 +1403,7 @@
           <dc-schema>epfl</dc-schema>
           <dc-element>workflow</dc-element>
           <dc-qualifier>notesForReviewer</dc-qualifier>
-          <label>Notes pour le relecteur</label>
+          <label>Notes pour le curateur</label>
           <input-type>textarea</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -1571,11 +1571,11 @@
         <field>
           <dc-schema>datacite</dc-schema>
           <dc-element>relatedIdentifier</dc-element>
-          <label>Ressource liée</label>
+          <label>Ressources liées</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>Pour chaque ressource liée, décrivez la relation, le titre et fournissez son DOI ou son URL (par exemple, 'https://doi.org/10.5075/epfl-thesis-10116')</hint>
+          <hint>Pour chaque ressource associée, décrivez la relation, le titre et fournissez son DOI ou son URL (par exemple, 'https://doi.org/10.5075/epfl-thesis-10116')</hint>
         </field>
       </row>
     </form>
@@ -1596,7 +1596,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>title</dc-qualifier>
-          <label>Titre de la ressource liée</label>
+          <label>Titre de la ressource</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -1760,7 +1760,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe d'auteurs</label>
+          <label>Collectif d'auteurs</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -1800,7 +1800,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe(s) d'auteurs</label>
+          <label>Collectif(s) d'auteurs</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -1872,10 +1872,10 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>peerreviewed</dc-element>
-          <label>Revue par des pairs</label>
+          <label>Peer-reviewed</label>
           <input-type value-pairs-name="peerreviewed">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required>Le champ "évalué par des pairs doit être renseigné</required>
+          <required>Le champ "Peer-reviewed" doit être renseigné</required>
           <hint />
         </field>
       </row>
@@ -2062,7 +2062,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe d'auteurs</label>
+          <label>Collectif d'auteurs</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -2148,7 +2148,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe(s) d'auteurs</label>
+          <label>Collectif(s) d'auteurs</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -2295,7 +2295,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe d'auteurs</label>
+          <label>Collectif d'auteurs</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -2358,7 +2358,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe(s) d'auteurs</label>
+          <label>Collectif(s) d'auteurs</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -3299,6 +3299,7 @@
           <input-type value-pairs-name="dataset_identifiers">qualdrop_value</input-type>
           <repeatable>true</repeatable>
           <required />
+          <style>col-xs-12 col-md-6</style>
           <hint>Ajoutez tout identifiant disponible (par exemple, DOI)</hint>
         </field>
         <field>
@@ -3581,7 +3582,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe d'auteurs</label>
+          <label>Collectif d'auteurs</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -3642,7 +3643,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe(s) d'auteurs</label>
+          <label>Collectif(s) d'auteurs</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -3713,10 +3714,10 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>peerreviewed</dc-element>
-          <label>Revu par des pairs</label>
+          <label>Peer-reviewed</label>
           <input-type value-pairs-name="peerreviewed">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required>Le champ "évalué par des pairs doit être renseigné</required>
+          <required>Le champ "Peer-reviewed" doit être renseigné</required>
           <hint />
           <type-bind>text::conference output::conference proceedings::conference paper, texte::objet présenté à une conférence::actes de conférence::article dans une conférence/papier de conférence, conference-coar-types:c_5794, publication-coar-types:c_5794, text::conference output::conference proceedings::conference poster, texte::objet présenté à une conférence::actes de conférence::poster dans une conférence, conference-coar-types:c_6670, publication-coar-types:c_6670, text::conference output::conference proceedings, texte::objet présenté à une conférence::actes de conférence, conference-coar-types:c_f744, publication-coar-types:c_f744</type-bind>
         </field>
@@ -3751,7 +3752,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>conference</dc-qualifier>
-          <label>Événement associé (conférence, atelier, cours, etc.)</label>
+          <label>Événement lié (conférence, atelier, cours, etc.)</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required>Au moins un événement associé est nécessaire</required>
@@ -3877,7 +3878,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe d'auteurs</label>
+          <label>Collectif d'auteurs</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -3955,7 +3956,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe(s) d'auteurs</label>
+          <label>Collectif(s) d'auteurs</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -4039,10 +4040,10 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>peerreviewed</dc-element>
-          <label>Revu par des pairs</label>
+          <label>Peer-reviewed</label>
           <input-type value-pairs-name="peerreviewed">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required>Le champ "évalué par des pairs doit être renseigné</required>
+          <required>Le champ "Peer-reviewed" doit être renseigné</required>
           <hint />
           <type-bind>text::report::clinical study, texte::rapport::étude clinique, report-coar-types:c_7877, publication-coar-types:c_7877, text::report, texte::rapport, report-coar-types:c_93fc, publication-coar-types:c_93fc, text::report::research protocol, texte::rapport::research protocol, report-coar-types:YZ1N-ZFT9, publication-coar-types:YZ1N-ZFT9, text::report::research report, texte::rapport::rapport de recherche, report-coar-types:c_18ws, publication-coar-types:c_18ws, text::report::technical report, texte::rapport::rapport technique, report-coar-types:c_18gh, publication-coar-types:c_18gh</type-bind>
         </field>
@@ -4331,7 +4332,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe d'auteurs</label>
+          <label>Collectif d'auteurs</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -4370,7 +4371,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe(s) d'auteurs</label>
+          <label>Collectif(s) d'auteurs</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -4723,7 +4724,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe d'auteurs</label>
+          <label>Collectif d'auteurs</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -4795,7 +4796,7 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
-          <label>Groupe(s) d'auteurs</label>
+          <label>Collectif(s) d'auteurs</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -4880,10 +4881,10 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>peerreviewed</dc-element>
-          <label>Revu par des pairs</label>
+          <label>Peer-reviewed</label>
           <input-type value-pairs-name="peerreviewed">dropdown</input-type>
           <repeatable>false</repeatable>
-          <required>Le champ "évalué par des pairs doit être renseigné</required>
+          <required>Le champ "Peer-reviewed" doit être renseigné</required>
           <hint />
         </field>
       </row>
@@ -6012,7 +6013,7 @@
           <dc-schema>epfl</dc-schema>
           <dc-element>award</dc-element>
           <dc-qualifier>date</dc-qualifier>
-          <label>Année</label>
+          <label>Année du prix</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />

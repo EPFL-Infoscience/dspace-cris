@@ -1211,7 +1211,7 @@
           <dc-schema>oaire</dc-schema>
           <dc-element>citation</dc-element>
           <dc-qualifier>conferenceDate</dc-qualifier>
-          <label>Event Date</label>
+          <label>Event date</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -1495,7 +1495,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>url</dc-element>
-          <label>Supplementary link</label>
+          <label>Additional link</label>
           <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -1622,7 +1622,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>conference</dc-qualifier>
-          <label>Related event (conference, workshop, course, etc.)</label>
+          <label>Related event(s) (conference, workshop, course, etc.)</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
@@ -3299,6 +3299,7 @@
           <input-type value-pairs-name="dataset_identifiers">qualdrop_value</input-type>
           <repeatable>true</repeatable>
           <required />
+          <style>col-xs-12 col-md-6</style>
           <hint>Add any identifier (e.g., DOI), if available</hint>
         </field>
         <field>
@@ -3751,7 +3752,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>conference</dc-qualifier>
-          <label>Related Event(s) (conference, workshop, course, etc)</label>
+          <label>Related event(s) (conference, workshop, course, etc)</label>
           <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required>At least one related event is required</required>
