@@ -7,8 +7,6 @@
  */
 package org.dspace.orcid.model;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
 import static org.dspace.orcid.model.factory.OrcidFactoryUtils.parseConfigurations;
 
 import java.util.Arrays;
@@ -21,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk;
 import org.dspace.util.SimpleMapConverter;
 import org.orcid.jaxb.model.common.CitationType;
-import org.orcid.jaxb.model.common.ContributorRole;
 import org.orcid.jaxb.model.v3.release.record.Work;
 
 /**
@@ -34,9 +31,9 @@ import org.orcid.jaxb.model.v3.release.record.Work;
 public class OrcidWorkFieldMapping {
 
     /**
-     * The metadata fields related to the work contributors.
+     * The metadata field related to the work contributor.
      */
-    private Map<String, ContributorRole> contributorFields = new HashMap<>();
+    private String contributorField;
 
     /**
      * The metadata fields related to the work external identifiers.
@@ -130,12 +127,12 @@ public class OrcidWorkFieldMapping {
         this.typeConverter = typeConverter;
     }
 
-    public Map<String, ContributorRole> getContributorFields() {
-        return contributorFields;
+    public String getContributorField() {
+        return contributorField;
     }
 
-    public void setContributorFields(String contributorFields) {
-        this.contributorFields = parseContributors(contributorFields);
+    public void setContributorField(String contributorField) {
+        this.contributorField = contributorField;
     }
 
     public Map<String, String> getExternalIdentifierFields() {
@@ -258,27 +255,6 @@ public class OrcidWorkFieldMapping {
             throw new IllegalArgumentException("The citation type " + citationType + " is invalid, "
                 + "allowed values are " + getAllowedCitationTypes(), ex);
         }
-    }
-
-    private Map<String, ContributorRole> parseContributors(String contributors) {
-        Map<String, String> contributorsMap = parseConfigurations(contributors);
-        return contributorsMap.keySet().stream()
-            .collect(toMap(identity(), field -> parseContributorRole(contributorsMap.get(field))));
-    }
-
-    private ContributorRole parseContributorRole(String contributorRole) {
-        try {
-            return ContributorRole.fromValue(contributorRole);
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("The contributor role " + contributorRole +
-                " is invalid, allowed values are " + getAllowedContributorRoles(), ex);
-        }
-    }
-
-    private List<String> getAllowedContributorRoles() {
-        return Arrays.asList(ContributorRole.values()).stream()
-            .map(ContributorRole::value)
-            .collect(Collectors.toList());
     }
 
     private List<String> getAllowedCitationTypes() {

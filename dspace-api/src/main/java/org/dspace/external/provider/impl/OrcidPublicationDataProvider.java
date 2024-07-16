@@ -47,7 +47,6 @@ import org.dspace.orcid.model.OrcidWorkFieldMapping;
 import org.dspace.orcid.service.OrcidSynchronizationService;
 import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.web.ContextUtil;
-import org.orcid.jaxb.model.common.ContributorRole;
 import org.orcid.jaxb.model.common.WorkType;
 import org.orcid.jaxb.model.v3.release.common.Contributor;
 import org.orcid.jaxb.model.v3.release.common.PublicationDate;
@@ -321,13 +320,7 @@ public class OrcidPublicationDataProvider extends AbstractExternalDataProvider {
         addMetadataValue(externalDataObject, fieldMapping.getSubTitleField(), () -> getSubTitleField(work));
         addMetadataValue(externalDataObject, fieldMapping.getShortDescriptionField(), () -> getDescription(work));
         addMetadataValue(externalDataObject, fieldMapping.getLanguageField(), () -> getLanguage(work));
-
-        for (String contributorField : fieldMapping.getContributorFields().keySet()) {
-            ContributorRole role = fieldMapping.getContributorFields().get(contributorField);
-            if (role.value().equals("author")) {
-                addMetadataValues(externalDataObject, contributorField, () -> getContributors(work));
-            }
-        }
+        addMetadataValues(externalDataObject, fieldMapping.getContributorField(), () -> getContributors(work));
 
         for (String externalIdField : fieldMapping.getExternalIdentifierFields().keySet()) {
             String type = fieldMapping.getExternalIdentifierFields().get(externalIdField);
