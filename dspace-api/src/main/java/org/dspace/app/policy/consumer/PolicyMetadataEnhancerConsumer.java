@@ -49,8 +49,12 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.discovery.IndexingService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
+import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +93,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private static final Map<MetadataFieldName, List<String>> defaultItemMetadatas = Map.of(dataciteRightsMetadata,
             List.of(METADATA_ONLY));
 
+    private IndexingService indexService;
     private BitstreamService bitstreamService;
     private ItemService itemService;
     private ResourcePolicyService resourcePolicyService;
@@ -105,6 +110,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         this.resourcePolicyService = ContentServiceFactory.getInstance().getResourcePolicyService();
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
+        this.indexService = new DSpace().getSingletonService(IndexingService.class);
     }
 
     @Override
@@ -570,8 +576,10 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private void updateItem(Context context, Item item) {
         try {
             context.turnOffAuthorisationSystem();
+            indexService.indexContent(context, new IndexableItem(item), true);
+            indexService.commit();
             itemService.update(context, item);
-        } catch (SQLException | AuthorizeException e) {
+        } catch (SQLException | AuthorizeException | SearchServiceException e) {
             throw new RuntimeException(e);
         } finally {
             context.restoreAuthSystemState();

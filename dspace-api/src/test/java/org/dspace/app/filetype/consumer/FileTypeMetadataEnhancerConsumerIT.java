@@ -11,6 +11,8 @@ import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,6 +43,13 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
+import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.event.factory.EventServiceFactory;
 import org.dspace.event.service.EventService;
 import org.dspace.services.ConfigurationService;
@@ -66,6 +75,7 @@ public class FileTypeMetadataEnhancerConsumerIT extends AbstractIntegrationTestW
             .getBitstreamService();
     private final ItemService itemService = ContentServiceFactory.getInstance()
             .getItemService();
+    private SearchService searchService = SearchUtils.getSearchService();
 
     private static String[] consumers;
 
@@ -206,6 +216,48 @@ public class FileTypeMetadataEnhancerConsumerIT extends AbstractIntegrationTestW
         assertThat(item.getMetadata(), not(hasItem(with("dc.type", type))));
         assertThat(item.getMetadata(), hasItem(with("dspace.file.type", type)));
     }
+
+    @Test
+    public void testThatItemWasIndexed()
+            throws FileNotFoundException, SQLException, AuthorizeException, IOException,
+            ParseException, SearchServiceException {
+        final String type = "Publication";
+        context.turnOffAuthorisationSystem();
+        final Item item =
+                ItemBuilder
+                        .createItem(context, collection)
+                        .withTitle("itemForTest")
+                        .build();
+        Bitstream bitstream =
+                BitstreamBuilder
+                        .createBitstream(context, item, new StringInputStream("test"))
+                        .withType(type)
+                        .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        bitstream = context.reloadEntity(bitstream);
+
+        assertThat(bitstream.getMetadata(), hasItem(with("dc.type", type)));
+        assertThat(bitstream.getMetadata(), not(hasItem(with("dspace.file.type", type))));
+        assertThat(item.getMetadata(), not(hasItem(with("dc.type", type))));
+        assertThat(item.getMetadata(), hasItem(with("dspace.file.type", type)));
+
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.setQuery("itemForTest");
+        discoverQuery.setStart(0);
+        discoverQuery.setMaxResults(1);
+        discoverQuery.addFilterQueries("search.resourcetype:" + IndexableItem.TYPE);
+        DiscoverResult discoverResult = searchService.search(context, discoverQuery);
+        List<IndexableObject> indexableObjects = discoverResult.getIndexableObjects();
+
+        assertEquals(indexableObjects.size(), 1);
+        assertTrue(((Item) indexableObjects.get(0).getIndexedObject()).getMetadata().stream()
+                .filter(metadataValue -> metadataValue.getMetadataField().toString()
+                        .equals("dspace_file_type")).findFirst().get().getValue().equals(type));
+    }
+
 
     @Test
     public void testWithTypeEdited()
