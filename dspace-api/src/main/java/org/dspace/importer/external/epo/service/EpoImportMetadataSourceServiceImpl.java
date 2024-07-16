@@ -557,4 +557,10 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
         this.searchUrl = searchUrl;
     }
 
+    /**
+     * This method force the next API call to obtain a new login token
+     */
+    public void expireLogin() {
+        this.bearerToken = null;
+    }
 }
