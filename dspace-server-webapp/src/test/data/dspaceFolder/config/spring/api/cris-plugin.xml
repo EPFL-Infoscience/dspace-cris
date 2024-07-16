@@ -171,6 +171,7 @@
                 <entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
                 <entry key="SCOPUS-AUTHOR-ID" value-ref="itemSearcherByScopusAuthorId"/>
                 <entry key="ACRONYM" value-ref="itemSearcherByAcronym"/>
+                <entry key="ROR-ID" value-ref="itemSearcherByRorId"/>
             </map>
         </constructor-arg>
         <constructor-arg index="1">
@@ -231,6 +232,11 @@
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByScopusAuthorId">
         <constructor-arg value="person.identifier.scopus-author-id"></constructor-arg>
         <constructor-arg value="SCOPUS-AUTHOR-ID"></constructor-arg>
+    </bean>
+
+    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByRorId">
+        <constructor-arg value="organization.identifier.ror" />
+        <constructor-arg value="ROR-ID" />
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearchServiceImpl" name="org.dspace.authority.service.ItemSearchService"/>
