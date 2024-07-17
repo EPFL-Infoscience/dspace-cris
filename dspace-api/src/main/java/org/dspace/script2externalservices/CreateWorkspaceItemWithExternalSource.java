@@ -312,7 +312,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                         recordsFound = perResearcherSearchLimit;
                     }
                     int[] userPublicationsProcessed = new int[] {0, 0};
-                    int iterations = recordsFound <= 0 ? 0 : (recordsFound / LIMIT) + 1;
+                    int iterations = recordsFound <= 0 ? 0
+                            : (recordsFound / LIMIT) + (recordsFound % LIMIT == 0 ? 0 : 1);
                     for (int i = 1; i <= iterations && searchCount < totalSearchLimit; i++) {
                         int[] resultFill = fillWorkspaceItems(context, currentRecord, dataProvider, id, getOwner(item));
                         userPublicationsProcessed[0] += resultFill[0];
@@ -341,6 +342,11 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
             printImportedItemsSummary();
         }
         handler.logInfo("Processed " + totalRecordWorked + " records, " + totalItemsProcessed + " imported");
+        if (searchCount == totalSearchLimit) {
+            handler.logInfo("Process terminated as we reach the global limit of search call for execution: "
+                    + totalSearchLimit + ", this can be set using the -l parameter or "
+                    + "updating the default value in the configuration");
+        }
         handler.logInfo("Update end");
     }
 
@@ -454,7 +460,8 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
                     }
                     context.uncacheEntity(itemFromWs);
                     handler.logInfo("Created item with id " + wsItem.getItem().getID() +
-                                        " and put in status: " + finalState);
+                            " from the identifier " + dataObject.getId() +
+                            " with the status: " + finalState);
                     importedItemsCounter++;
                     imported++;
                     String externalId = dataObject.getId();
@@ -472,6 +479,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
 
     private boolean isExternalIdentifierAlreadyImported(String identifier) {
         if (workspaceItemImportedDoi.contains(identifier)) {
+            handler.logInfo("Ignoring record with identifier " + identifier + " already imported in this thread ");
             return true;
         }
         return false;
@@ -603,7 +611,7 @@ public class CreateWorkspaceItemWithExternalSource extends DSpaceRunnable<
         String lastImportMetadataField = getLastImportMetadataField();
         if (withLastImport) {
             // set an upper limit to prevent items updated in the same run from being pulled out again.
-            discoverQuery.setQuery(lastImportMetadataField + ": [* TO " + DCDate.getCurrent() + "-1SECONDS]");
+            discoverQuery.setQuery(lastImportMetadataField + ": [* TO NOW-1SECONDS]");
             discoverQuery.setSortField(lastImportMetadataField, SORT_ORDER.asc);
         } else {
             discoverQuery.setQuery("-" + lastImportMetadataField + ": [* TO *]");

@@ -119,10 +119,13 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
     @Override
     public List<ExternalDataObject> searchExternalDataObjects(String query, int start, int limit) {
         try {
-            logInfo("Getting records from " + start + " to " + (start + limit) + " by query: " + getActualQuery(query));
-            return querySource.getRecords(query, start, limit).stream()
-                              .map(this::getExternalDataObject)
-                              .collect(Collectors.toList());
+            logInfo("Getting records from " + start + " to " + (start + limit - 1) +
+                    " by query: " + getActualQuery(query));
+            List<ExternalDataObject> result = querySource.getRecords(query, start, limit).stream()
+                    .map(this::getExternalDataObject)
+                    .collect(Collectors.toList());
+            logInfo("...retrieved " + result.size() + " records");
+            return result;
         } catch (MetadataSourceException e) {
             throw new RuntimeException(
                     "The live import provider " + querySource.getImportSource() + " throws an exception", e);

@@ -71,7 +71,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
             epoServiceImpl.setConsumerKey("test-key");
             epoServiceImpl.setConsumerSecret("test-secret");
             liveImportClient.setHttpClient(httpClient);
-
+            epoServiceImpl.expireLogin();
             CloseableHttpResponse responseWithToken = mockResponse(tokenResp, 200, "OK");
             CloseableHttpResponse response1 = mockResponse(epoResp, 200, "OK");
             CloseableHttpResponse response2 = mockResponse(epoResp2, 200, "OK");
@@ -123,6 +123,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
             epoServiceImpl.setConsumerKey("test-key");
             epoServiceImpl.setConsumerSecret("test-secret");
             liveImportClient.setHttpClient(httpClient);
+            epoServiceImpl.expireLogin();
 
             CloseableHttpResponse responseWithToken = mockResponse(token, 200, "OK");
             CloseableHttpResponse response1 = mockResponse(epoResp, 200, "OK");
@@ -154,6 +155,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         InputStream fileDetail = null;
         String originKey = epoServiceImpl.getConsumerKey();
         String originSecret = epoServiceImpl.getConsumerSecret();
+        epoServiceImpl.expireLogin();
         CloseableHttpClient originalHttpClient = liveImportClient.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
 
@@ -186,6 +188,20 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
             Optional<String> dateSubmitted = record.getSingleValue("dcterms", "dateSubmitted", null);
             assertTrue(dateSubmitted.isPresent());
             assertEquals("2021-11-23", dateSubmitted.get());
+            // perform the test again, this time we expect that the login is reused
+            responseSearch = mockResponse(epoRespSearch, 200, "OK");
+            responseDetail = mockResponse(epoRespDetail, 200, "OK");
+            when(httpClient.execute(ArgumentMatchers.any()))
+                .thenReturn(responseSearch, responseDetail);
+
+            ImportRecord record2 = epoServiceImpl.getRecord("WO2021EP82712$$$2021-11-23");
+            assertNotNull(record2);
+            Optional<String> applicationValue2 = record.getSingleValue("dc", "identifier", "applicationnumber");
+            assertTrue(applicationValue2.isPresent());
+            assertEquals("WO2021EP82712", applicationValue2.get());
+            Optional<String> dateSubmitted2 = record.getSingleValue("dcterms", "dateSubmitted", null);
+            assertTrue(dateSubmitted2.isPresent());
+            assertEquals("2021-11-23", dateSubmitted2.get());
 
         } finally {
             if (Objects.nonNull(fileToken)) {

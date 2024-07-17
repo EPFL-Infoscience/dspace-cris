@@ -640,7 +640,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
         //define first record
         MetadataValueDTO title = new MetadataValueDTO("dc","title", null,null, "Putting Historical Data in Context");
-        MetadataValueDTO identifier = new MetadataValueDTO("dc", "identifier", "other", null, "WOS:000439929300064");
+        MetadataValueDTO identifier = new MetadataValueDTO("dc", "identifier", "isi", null, "WOS:000439929300064");
         MetadataValueDTO date = new MetadataValueDTO("dc", "date", "issued", null, "2017");
         MetadataValueDTO type = new MetadataValueDTO("dc", "type", null, null, "Book in series");
         MetadataValueDTO rid = new MetadataValueDTO("person", "identifier", "rid", null, "123456789");
@@ -659,7 +659,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
         //define second record
         MetadataValueDTO title2R = new MetadataValueDTO("dc", "title", null, null, "Regional Portal FVG");
-        MetadataValueDTO identifier2R = new MetadataValueDTO("dc", "identifier", "other", null, "WOS:000348252500018");
+        MetadataValueDTO identifier2R = new MetadataValueDTO("dc", "identifier", "isi", null, "WOS:000348252500018");
         MetadataValueDTO type2R = new MetadataValueDTO("dc", "type", null, null, "Journal");
         MetadataValueDTO date2R = new MetadataValueDTO("dc", "date", "issued", null, "2017");
         MetadataValueDTO description2R = new MetadataValueDTO("dc", "description", "abstract", null,
@@ -726,7 +726,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
         //define first record
         MetadataValueDTO title = new MetadataValueDTO("dc","title", null,null, "Putting Historical Data in Context");
-        MetadataValueDTO identifier = new MetadataValueDTO("dc", "identifier", "other", null, "WOS:000439929300064");
+        MetadataValueDTO identifier = new MetadataValueDTO("dc", "identifier", "isi", null, "WOS:000439929300064");
         MetadataValueDTO date = new MetadataValueDTO("dc", "date", "issued", null, "2017");
         MetadataValueDTO type = new MetadataValueDTO("dc", "type", null, null, "Book in series");
         MetadataValueDTO rid = new MetadataValueDTO("person", "identifier", "rid", null, "123456789");
@@ -745,7 +745,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
 
         //define second record
         MetadataValueDTO title2R = new MetadataValueDTO("dc", "title", null, null, "Regional Portal FVG");
-        MetadataValueDTO identifier2R = new MetadataValueDTO("dc", "identifier", "other", null, "WOS:000348252500018");
+        MetadataValueDTO identifier2R = new MetadataValueDTO("dc", "identifier", "isi", null, "WOS:000348252500018");
         MetadataValueDTO type2R = new MetadataValueDTO("dc", "type", null, null, "Journal");
         MetadataValueDTO date2R = new MetadataValueDTO("dc", "date", "issued", null, "2017");
         MetadataValueDTO description2R = new MetadataValueDTO("dc", "description", "abstract", null,

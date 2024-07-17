@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -73,6 +74,14 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
 
     private String consumerKey;
     private String consumerSecret;
+    private String bearerToken;
+    private Date bearerExpire;
+
+    /**
+     * Bearer is valid for 20 minutes according to the doc. Let's override it if
+     * needed and use a safer default to 5 minutes
+     */
+    private int bearerValiditySeconds = 300;
 
     private MetadataFieldConfig dateFilled;
     private MetadataFieldConfig applicationNumber;
@@ -136,25 +145,44 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
         return applicationNumber;
     }
 
+    /**
+     * Bearer is valid for 20 minutes according to the doc. Let's override it if
+     * needed and use a safer default to 5 minutes
+     *
+     * @param bearerValiditySeconds
+     */
+    public void setBearerValiditySeconds(int bearerValiditySeconds) {
+        this.bearerValiditySeconds = bearerValiditySeconds;
+    }
+
     /***
-     * Log to EPO, bearer is valid for 20 minutes
+     * Log to EPO
      * 
      * @return access token
      * @throws IOException e
      * @throws HttpException e
      */
     protected String login() throws IOException, HttpException {
-        Map<String, Map<String, String>> params = Map.of(
-            HEADER_PARAMETERS,
-            Map.of(
-            "Authorization", "Basic " + Base64.encode((consumerKey + ":" + consumerSecret).getBytes()),
-            "Content-type", "application/x-www-form-urlencoded"
-            )
-        );
-        String json = liveImportClient.executeHttpPostRequest(this.authUrl, params, "grant_type=client_credentials");
-        return StringUtils.isBlank(json)
-            ? json
-            : new ObjectMapper(new JsonFactory()).readTree(json).get("access_token").asText();
+        if (bearerToken != null && bearerValiditySeconds > 0 && new Date().before(bearerExpire)) {
+            return bearerToken;
+        } else {
+            Map<String, Map<String, String>> params = Map.of(
+                HEADER_PARAMETERS,
+                Map.of(
+                "Authorization", "Basic " + Base64.encode((consumerKey + ":" + consumerSecret).getBytes()),
+                "Content-type", "application/x-www-form-urlencoded"
+                )
+            );
+            String json = liveImportClient.executeHttpPostRequest(this.authUrl, params,
+                    "grant_type=client_credentials");
+            bearerToken = StringUtils.isBlank(json)
+                ? json
+                : new ObjectMapper(new JsonFactory()).readTree(json).get("access_token").asText();
+            long currentTimeMillis = System.currentTimeMillis();
+            long newTimeMillis = currentTimeMillis + (bearerValiditySeconds * 1000);
+            bearerExpire = new Date(newTimeMillis);
+            return bearerToken;
+        }
     }
 
     @Override
@@ -345,10 +373,16 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
                 return records;
             }
             List<EpoDocumentId> epoDocIds = searchDocumentIds(bearer, queryString, start + 1, count);
+            if (epoDocIds.size() != count) {
+                log.warn("retrieved a different number of identifiers than expected " + epoDocIds.size() +
+                        " vs " + count + " epoDocIds");
+            }
             for (EpoDocumentId epoDocId : epoDocIds) {
                 List<ImportRecord> foundRecords = searchDocument(bearer, epoDocId);
                 if (foundRecords.size() > 1) {
                     log.warn("More than one record are returned with epocID " + epoDocId);
+                } else if (foundRecords.size() == 0) {
+                    log.warn("No record are returned with epocID " + epoDocId);
                 }
                 records.addAll(foundRecords);
             }
@@ -399,7 +433,7 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
     }
 
     private List<EpoDocumentId> searchDocumentIds(String bearer, String query, int start, int count) {
-        int end = start + count;
+        int end = start + count - 1;
         if (StringUtils.isBlank(bearer)) {
             return new ArrayList<>();
         }
@@ -523,4 +557,10 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
         this.searchUrl = searchUrl;
     }
 
+    /**
+     * This method force the next API call to obtain a new login token
+     */
+    public void expireLogin() {
+        this.bearerToken = null;
+    }
 }
