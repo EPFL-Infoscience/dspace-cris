@@ -166,7 +166,7 @@ public class OrcidPublicationDataProviderIT extends AbstractIntegrationTestWithD
         assertThat(metadata, has(metadata("dc.relation.ispartof", "Journal title")));
         assertThat(metadata, has(metadata("dc.contributor.author", "Walter White")));
         assertThat(metadata, has(metadata("dc.contributor.author", "John White")));
-        assertThat(metadata, has(metadata("dc.contributor.editor", "Jesse Pinkman")));
+        assertThat(metadata, has(metadata("dc.contributor.author", "Jesse Pinkman")));
         assertThat(metadata, has(metadata("dc.title", "Another cautionary tale.")));
         assertThat(metadata, has(metadata("dc.type", "text::journal::journal article")));
 
@@ -348,7 +348,7 @@ public class OrcidPublicationDataProviderIT extends AbstractIntegrationTestWithD
         assertThat(metadata, has(metadata("dc.relation.ispartof", "Journal title")));
         assertThat(metadata, has(metadata("dc.contributor.author", "Walter White")));
         assertThat(metadata, has(metadata("dc.contributor.author", "John White")));
-        assertThat(metadata, has(metadata("dc.contributor.editor", "Jesse Pinkman")));
+        assertThat(metadata, has(metadata("dc.contributor.author", "Jesse Pinkman")));
         assertThat(metadata, has(metadata("dc.title", "Another cautionary tale.")));
         assertThat(metadata, has(metadata("dc.type", "text::journal::journal article")));
 

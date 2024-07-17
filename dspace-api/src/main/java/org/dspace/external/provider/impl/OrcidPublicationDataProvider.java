@@ -47,10 +47,8 @@ import org.dspace.orcid.model.OrcidWorkFieldMapping;
 import org.dspace.orcid.service.OrcidSynchronizationService;
 import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.web.ContextUtil;
-import org.orcid.jaxb.model.common.ContributorRole;
 import org.orcid.jaxb.model.common.WorkType;
 import org.orcid.jaxb.model.v3.release.common.Contributor;
-import org.orcid.jaxb.model.v3.release.common.ContributorAttributes;
 import org.orcid.jaxb.model.v3.release.common.PublicationDate;
 import org.orcid.jaxb.model.v3.release.common.Subtitle;
 import org.orcid.jaxb.model.v3.release.common.Title;
@@ -322,11 +320,7 @@ public class OrcidPublicationDataProvider extends AbstractExternalDataProvider {
         addMetadataValue(externalDataObject, fieldMapping.getSubTitleField(), () -> getSubTitleField(work));
         addMetadataValue(externalDataObject, fieldMapping.getShortDescriptionField(), () -> getDescription(work));
         addMetadataValue(externalDataObject, fieldMapping.getLanguageField(), () -> getLanguage(work));
-
-        for (String contributorField : fieldMapping.getContributorFields().keySet()) {
-            ContributorRole role = fieldMapping.getContributorFields().get(contributorField);
-            addMetadataValues(externalDataObject, contributorField, () -> getContributors(work, role));
-        }
+        addMetadataValues(externalDataObject, fieldMapping.getContributorField(), () -> getContributors(work));
 
         for (String externalIdField : fieldMapping.getExternalIdentifierFields().keySet()) {
             String type = fieldMapping.getExternalIdentifierFields().get(externalIdField);
@@ -430,14 +424,13 @@ public class OrcidPublicationDataProvider extends AbstractExternalDataProvider {
         return work.getLanguageCode() != null ? fieldMapping.convertLanguage(work.getLanguageCode()) : null;
     }
 
-    private List<String> getContributors(Work work, ContributorRole role) {
+    private List<String> getContributors(Work work) {
         WorkContributors workContributors = work.getWorkContributors();
         if (workContributors == null) {
             return emptyList();
         }
 
         return workContributors.getContributor().stream()
-            .filter(contributor -> hasRole(contributor, role))
             .map(contributor -> getContributorName(contributor))
             .flatMap(Optional::stream)
             .collect(Collectors.toList());
@@ -481,11 +474,6 @@ public class OrcidPublicationDataProvider extends AbstractExternalDataProvider {
             .filter(metadataValue -> StringUtils.equals(metadataValue.getElement(), metadata.getElement()))
             .filter(metadataValue -> StringUtils.equals(metadataValue.getQualifier(), metadata.getQualifier()))
             .findAny().isEmpty();
-    }
-
-    private boolean hasRole(Contributor contributor, ContributorRole role) {
-        ContributorAttributes attributes = contributor.getContributorAttributes();
-        return attributes != null ? role.value().equals(attributes.getContributorRole()) : false;
     }
 
     private Optional<String> getContributorName(Contributor contributor) {

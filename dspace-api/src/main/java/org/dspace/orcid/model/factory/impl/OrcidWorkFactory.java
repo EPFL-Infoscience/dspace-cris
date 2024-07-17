@@ -105,8 +105,8 @@ public class OrcidWorkFactory implements OrcidEntityFactory {
     }
 
     private WorkContributors getWorkContributors(Context context, Item item) {
-        Map<String, ContributorRole> contributorFields = fieldMapping.getContributorFields();
-        List<Contributor> contributors = getMetadataValues(context, item, contributorFields.keySet()).stream()
+        String contributorField = fieldMapping.getContributorField();
+        List<Contributor> contributors = getMetadataValues(context, item, contributorField).stream()
             .map(metadataValue -> getContributor(context, metadataValue))
             .filter(Optional::isPresent)
             .map(Optional::get)
@@ -115,8 +115,7 @@ public class OrcidWorkFactory implements OrcidEntityFactory {
     }
 
     private Optional<Contributor> getContributor(Context context, MetadataValue metadataValue) {
-        Map<String, ContributorRole> contributorFields = fieldMapping.getContributorFields();
-        ContributorRole role = contributorFields.get(metadataValue.getMetadataField().toString('.'));
+        ContributorRole role = ContributorRole.AUTHOR;
         return orcidCommonObjectFactory.createContributor(context, metadataValue, role);
     }
 

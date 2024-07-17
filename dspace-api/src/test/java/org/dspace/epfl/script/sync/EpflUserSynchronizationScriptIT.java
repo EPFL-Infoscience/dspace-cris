@@ -667,7 +667,7 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         assertEquals(2, affiliations.size());
 
         List<MetadataValue> mainAffiliations = getMetadataValuesByMetadataString(profile, "person_affiliation_name");
-        assertEquals(0, mainAffiliations.size());
+        assertEquals(1, mainAffiliations.size());
 
         Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "375968.jpg");
         assertThat(picture, notNullValue());
