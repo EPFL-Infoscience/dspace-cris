@@ -125,7 +125,7 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     @SuppressWarnings("rawtypes")
     private Item performSearchByMetadata(Context context, String searchParam) throws SearchServiceException {
-        String query = metadata + ":" + searchParam;
+        String query = metadata + ":\"" + searchParam + "\"";
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);

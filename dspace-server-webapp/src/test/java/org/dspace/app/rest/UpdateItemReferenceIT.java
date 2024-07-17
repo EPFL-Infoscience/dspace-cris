@@ -32,7 +32,6 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,6 +48,8 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
+    @Autowired
+    ConfigurationService configurationService;
 
     /**
      * This method will be run before the first test as per @BeforeClass. It will
@@ -75,7 +76,6 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void updateItemReferenceTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -210,7 +210,6 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void updateItemReferenceAndEnableOverrideMetadataValueTest() throws Exception {
         ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
         configService.setProperty("cris.item-reference-resolution.override-metadata-value", true);
@@ -403,7 +402,6 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void updateAllItemsReferenceTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -482,6 +480,59 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
         assertEquals(viktor.getID().toString(), values2.get(0).getAuthority());
         // check metadata value
         assertEquals("V.Stus", values2.get(0).getValue());
+    }
+
+    @Test
+    public void updateItemReferenceWithRorIdTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("cris.ItemAuthority.FunderAuthority.entityType", "OrgUnit");
+        Community rootCommunity = CommunityBuilder.createCommunity(context)
+            .withName("My Root Community")
+            .build();
+        Collection collection = CollectionBuilder.createCollection(context, rootCommunity)
+            .withName("My collection for Publication")
+            .build();
+        Collection collection2 = CollectionBuilder.createCollection(context, rootCommunity)
+            .withName("My collection for OrgUnit")
+            .build();
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+            .withEntityType("OrgUnit")
+            .withTitle("Swiss National Science Foundation")
+            .withOrgUnitRORIdentifier("https://ror.org/001112a3")
+            .build();
+
+        Item publication1 = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Title Publication 1")
+            .withFunder("Swiss National Science Foundation",
+                "will be referenced::ROR-ID::https://ror.org/001112a3")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        //verify that the authority values was not resolved yet
+        publication1 = context.reloadEntity(publication1);
+        List<MetadataValue> values = itemService.getMetadata(publication1, "oairecerif", "funder", null, Item.ANY);
+
+        assertEquals(values.size(), 1);
+        // check authority value
+        assertTrue(StringUtils.equals("will be referenced::ROR-ID::https://ror.org/001112a3", values.get(0).getAuthority()));
+        // check metadata value
+        assertTrue(StringUtils.equals("Swiss National Science Foundation", values.get(0).getValue()));
+
+        // perform the script
+        TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+        String[] args = new String[] { "update-item-references" };
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+
+        //verify that the authority values was resolved
+        publication1 = context.reloadEntity(publication1);
+        values = itemService.getMetadata(publication1, "oairecerif", "funder", null, Item.ANY);
+
+        assertEquals(values.size(), 1);
+        assertTrue(StringUtils.equals(orgUnit.getID().toString(), values.get(0).getAuthority()));
+        // check metadata value
+        assertTrue(StringUtils.equals("Swiss National Science Foundation", values.get(0).getValue()));
     }
 
 }
