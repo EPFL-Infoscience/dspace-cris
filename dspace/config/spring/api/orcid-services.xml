@@ -60,7 +60,7 @@
 	</bean>
 	
 	<bean id="orcidWorkFactoryFieldMapping" class="org.dspace.orcid.model.OrcidWorkFieldMapping" >
-		<property name="contributorField" value="dc.contributor.author" />
+		<property name="contributorField" value="${orcid.mapping.work.contributors}" />
 		<property name="externalIdentifierFields" value="${orcid.mapping.work.external-ids}" />
 		<property name="publicationDateField" value="${orcid.mapping.work.publication-date}" />
 		<property name="titleField" value="${orcid.mapping.work.title}" />
@@ -264,7 +264,7 @@
 	<bean class="org.dspace.orcid.webhook.CheckOrcidAuthorization" />
 	
 	<bean id="orcidPublicationDataProviderFieldMapping" class="org.dspace.orcid.model.OrcidWorkFieldMapping" >
-		<property name="contributorField" value="dc.contributor.author" />
+		<property name="contributorField" value="${orcid.external-data.mapping.publication.contributors}" />
 		<property name="externalIdentifierFields" value="${orcid.external-data.mapping.publication.external-ids}" />
 		<property name="publicationDateField" value="${orcid.external-data.mapping.publication.issued-date}" />
 		<property name="titleField" value="${orcid.external-data.mapping.publication.title}" />
