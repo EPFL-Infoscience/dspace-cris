@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.core.Email;
@@ -51,7 +52,8 @@ public class ContentGenerator {
 
                 String bodyCommunities = generateBodyMail("Community", indexableComm);
                 String bodyCollections = generateBodyMail("Collection", indexableColl);
-                if (bodyCommunities.equals(EMPTY) && bodyCollections.equals(EMPTY)) {
+                String bodyItem = generateBodyMail(indexableEntityByType);
+                if (StringUtils.isAllBlank(bodyCommunities, bodyCollections, bodyItem)) {
                     log.debug("subscription(s) of eperson {} do(es) not match any new items: nothing to send" +
                                   " - exit silently", ePerson::getID);
                     return;
@@ -59,11 +61,7 @@ public class ContentGenerator {
                 email.addArgument(configurationService.getProperty("subscription.url"));
                 email.addArgument(bodyCommunities);
                 email.addArgument(bodyCollections);
-                email.addArgument(
-                    indexableEntityByType.entrySet().stream()
-                                         .map(entry -> generateBodyMail(entry.getKey(), entry.getValue()))
-                                         .collect(Collectors.joining("\n\n"))
-                );
+                email.addArgument(bodyItem);
                 email.send();
             }
         } catch (Exception e) {
@@ -90,15 +88,22 @@ public class ContentGenerator {
                     out.write("\n".getBytes(UTF_8));
                     out.write((entry.getKey() + " - " + entry.getValue()).getBytes(UTF_8));
                 }
-                //Optional.ofNullable(entityType2Disseminator.get(type))
-                //        .orElseGet(() -> entityType2Disseminator.get("Item"))
-                //        .disseminate(context, item, out);
             }
             return out.toString();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         return EMPTY;
+    }
+
+    private String generateBodyMail(Map<String, List<SubscriptionItem>> indexableEntityByType) {
+        if (indexableEntityByType == null || indexableEntityByType.isEmpty()) {
+            return EMPTY;
+        }
+        return indexableEntityByType.entrySet()
+                                    .stream()
+                                    .map(entry -> generateBodyMail(entry.getKey(), entry.getValue()))
+                                    .collect(Collectors.joining("\n\n"));
     }
 
 }
