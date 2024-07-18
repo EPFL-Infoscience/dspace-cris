@@ -292,6 +292,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
         List<QueryBuilderSearchFilter> filters = parseSearchFilters();
 
+        // this query is used by the iterator to scroll the results of interest
+        // up to the requested limit (or the limit imposed to the user by the security)
         DiscoverQuery discoverQuery =
             queryBuilder.buildQuery(
                 context, scope, discoveryConfiguration, query, filters,

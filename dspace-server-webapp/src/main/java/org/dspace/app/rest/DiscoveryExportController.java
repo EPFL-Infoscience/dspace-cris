@@ -73,8 +73,8 @@ public class DiscoveryExportController {
                                  @RequestParam(value = "spc.sf", required = false) String sort,
                                  @RequestParam(value = "spc.sd", required = false) String sortDirection,
                                  @RequestParam(value = "configuration", required = false) String configuration,
-                                 @RequestParam(value = "spc.page", required = false) String spcPage,
-                                 @RequestParam(value = "spc.rpp", required = false) String resultsPerPage,
+                                 @RequestParam(value = "spc.page", required = false) Integer pageNumber,
+                                 @RequestParam(value = "spc.rpp", required = false) Integer resultsPerPage,
                                  List<SearchFilter> searchFilters,
                                  Pageable page) {
 
@@ -88,12 +88,8 @@ public class DiscoveryExportController {
         String sorting = defaultIfBlank(sort, "dc.title") + "," +
             defaultIfBlank(sortDirection, "ASC");
 
-        Integer pageNumber = Objects.nonNull(spcPage) ? Integer.parseInt(spcPage) :
-            page.getPageNumber();
-
-        resultsPerPage = StringUtils.defaultIfBlank(resultsPerPage, "10");
-
-        int limit = Integer.parseInt(resultsPerPage);
+        int limit = resultsPerPage != null ? resultsPerPage.intValue() : page.getPageSize();
+        int p = pageNumber != null ? pageNumber.intValue() : page.getPageNumber();
 
         List<DSpaceCommandLineParameter> dSpaceCommandLineParameters = parameters(
             defaultIfBlank(query, "*"),
