@@ -1748,7 +1748,8 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
-                <value>dc.description.sponsorship_authority:{0} OR epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0} OR epfl.thesis.doctoralSchool_authority:{0}</value>
+                <value>dc.description.sponsorship_authority:{0} OR epfl.thesis.faculty_authority:{0} OR epfl.thesis.section_authority:{0} OR epfl.thesis.institute_authority:{0}
+                    OR epfl.thesis.doctoralSchool_authority:{0} OR cris.virtual.parent-organization_allauthority:{0}</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
         </property>
@@ -2447,7 +2448,7 @@
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Patent OR entityType_keyword:Product)</value>
-                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}}</value>
+                <value>dc.description.sponsorship_authority:{0} OR organization_authority:{0}</value>
                 <value>dc.type:*thesis OR dc.type:*project+deliverable OR dc.type:*learning+object</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
