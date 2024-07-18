@@ -77,6 +77,7 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
 
         Item itemWithPublisherDOI = ItemBuilder.createItem(context, col)
                 .withTitle("itemWithPublisherDOI")
+                .withLegacyId("1")
                 .withDoiIdentifier("doi:10.9999/publication")
                 .withPublisher("A Publisher")
                 .withWrittenAt("Not at EPFL")
@@ -84,6 +85,7 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 .build();
         Item itemWithPreviousEPFLHttpDOI = ItemBuilder.createItem(context, col)
                 .withTitle("itemWithPreviousHttpEPFLDOI")
+                .withLegacyId("2")
                 .withDoiIdentifier("https://doi.org/10.5072/epfl-thesis-old-http-doi")
                 .withPublisher("School of XXX")
                 .withWrittenAt("EPFL")
@@ -91,6 +93,7 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 .build();
         Item itemWithPreviousEPFLDOI = ItemBuilder.createItem(context, col)
                 .withTitle("itemWithPreviousEPFLDOI")
+                .withLegacyId("3")
                 .withDoiIdentifier("doi:10.5072/epfl-thesis-old-doi")
                 .withPublisher("School of XXX")
                 .withWrittenAt("EPFL")
@@ -98,6 +101,7 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 .build();
         Item itemWithPreviousEPFLPlainDOI = ItemBuilder.createItem(context, col)
                 .withTitle("itemWithPreviousPlainEPFLDOI")
+                .withLegacyId("4")
                 .withDoiIdentifier("10.5072/epfl-thesis-old-plain-doi")
                 .withPublisher("School of XXX")
                 .withWrittenAt("EPFL")
@@ -105,6 +109,7 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 .build();
         Item newItemThatShouldGetDOI = ItemBuilder.createItem(context, col)
                 .withTitle("newItemThatShouldGetDOI")
+                .withLegacyId("5")
                 .withPublisher("School of YYYY")
                 .withWrittenAt("EPFL")
                 .withType("thesis::doctoral thesis", "thesis-coar-types:c_db06")
@@ -113,7 +118,8 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
                 .withTitle("itemThatShouldNotGetADOI")
                 .withPublisher("School of XXX")
                 .withWrittenAt("EPFL")
-                .withType("other")
+                .withType("thesis::doctoral thesis", "thesis-coar-types:c_db06")
+                //.withType("other")
                 .build();
         context.restoreAuthSystemState();
 
