@@ -18,8 +18,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -200,14 +202,14 @@ public class SubscriptionEmailNotificationServiceImpl implements SubscriptionEma
     @SuppressWarnings("rawtypes")
     private List<IndexableObject> getItems(Context context, EPerson ePerson, List<IndexableObject> indexableItems)
             throws SQLException {
-        List<IndexableObject> items = new ArrayList<IndexableObject>();
+        Set<IndexableObject> items = new HashSet<>();
         for (IndexableObject indexableItem : indexableItems) {
             Item item = (Item) indexableItem.getIndexedObject();
             if (authorizeService.authorizeActionBoolean(context, ePerson, item, READ, true)) {
                 items.add(indexableItem);
             }
         }
-        return items;
+        return new ArrayList<>(items);
     }
 
     /**
