@@ -30,7 +30,7 @@ public class DoiFilter implements Filter {
 
     @Override
     public Boolean getResult(Context context, Item item) throws LogicalStatementException {
-        return isPublication(item) && isThesis(item) && isWrittenEPFL(item) &&
+        return isLegacyItem(item) && isPublication(item) && isThesis(item) && isWrittenEPFL(item) &&
                hasPublisher(item) && hasNotDoiOrHasCustomerDoi(item);
     }
 
@@ -47,6 +47,14 @@ public class DoiFilter implements Filter {
         return type.equalsIgnoreCase("EPFL");
     }
 
+    private boolean isLegacyItem(Item item) {
+        String legacyId = itemService.getMetadataFirstValue(item, "cris", "legacyId", null, Item.ANY);
+        if (isNotBlank(legacyId)) {
+            return true;
+        }
+        return false;
+    }
+
     private boolean isPublication(Item item) {
         return "Publication".equalsIgnoreCase(itemService.getEntityType(item));
     }
@@ -61,7 +69,8 @@ public class DoiFilter implements Filter {
         if (isBlank(doi)) {
             return true;
         }
-        String doiPrefix = configurationService.getProperty("identifier.doi.prefix");
+        String doiPrefix = configurationService.getProperty("identifier.doi.prefix") + "/"
+                + configurationService.getProperty("identifier.doi.namespaceseparator");
         return doi.contains(doiPrefix);
     }
 

@@ -1064,7 +1064,7 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
             try {
                 final String valueFormatted = doiService.formatIdentifier(id.getValue());
                 if (StringUtils.startsWith(valueFormatted, leftPart)) {
-                    return doiService.formatIdentifier(id.getValue());
+                    return valueFormatted;
                 }
             } catch (DOIIdentifierException e) {
                 // do nothing, if the identifier is not proper formatted it is not a DSpace minted DOI
