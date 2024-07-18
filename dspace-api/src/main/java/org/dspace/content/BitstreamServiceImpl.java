@@ -554,12 +554,26 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         return orderBitstream(stream, filterMetadata).collect(Collectors.toList());
     }
 
+    private boolean isPrimaryBitstream(Bitstream bitstream) {
+        try {
+            final List<Bundle> bundles = bitstream.getBundles();
+            if (bundles != null && bundles.size() > 0) {
+                final Bitstream primaryBitstream = bundles.get(0).getPrimaryBitstream();
+                boolean isPrimary = primaryBitstream != null && primaryBitstream.getID().equals(bitstream.getID());
+                return isPrimary;
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private long computeScore(Bitstream bitstream, Map<String, String> filterMetadata) {
         return filterMetadata.keySet()
                              .stream()
                              .filter(metadataField ->
                                  matchesMetadataValue(bitstream, metadataField, filterMetadata.get(metadataField)))
-                             .count();
+                             .count() * 2 + (isPrimaryBitstream(bitstream) ? 1 : 0);
     }
 
     private boolean matchesMetadataValue(Bitstream bitstream, String metadataField, String value) {

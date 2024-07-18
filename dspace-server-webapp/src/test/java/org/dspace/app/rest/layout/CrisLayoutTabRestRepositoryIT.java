@@ -2461,11 +2461,17 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         Bundle original = BundleBuilder.createBundle(context, item).withName("ORIGINAL").build();
 
         org.dspace.content.Bitstream bitstream0 = BitstreamBuilder
-            .createBitstream(context, original, InputStream.nullInputStream()).withType("other").build();
+            .createBitstream(context, original, InputStream.nullInputStream())
+            .withName("file1.jpg")
+            .withType("other").guessFormat().build();
         org.dspace.content.Bitstream bitstream1 = BitstreamBuilder
-            .createBitstream(context, original, InputStream.nullInputStream()).withType("other").build();
+            .createBitstream(context, original, InputStream.nullInputStream())
+            .withName("file2.jpg")
+            .withType("other").guessFormat().build();
         org.dspace.content.Bitstream bitstream2 = BitstreamBuilder
-            .createBitstream(context, original, InputStream.nullInputStream()).withType("Logo").build();
+            .createBitstream(context, original, InputStream.nullInputStream())
+            .withName("file3.jpg")
+            .withType("logo").guessFormat().build();
 
         original.setPrimaryBitstreamID(bitstream0);
 
@@ -2480,10 +2486,104 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$.uuid", is(bitstream2.getID().toString())))
             .andExpect(jsonPath("$.uuid", not(bitstream0.getID().toString())))
             .andExpect(jsonPath("$.uuid", not(bitstream1.getID().toString())))
-            .andExpect(jsonPath("$.metadata.['dc.type'][0].value", is("Logo")))
+            .andExpect(jsonPath("$.metadata.['dc.type'][0].value", is("logo")))
             .andExpect(jsonPath("$.bundleName", is("ORIGINAL")))
             .andExpect(jsonPath("$.type", is("bitstream")))
             .andExpect(jsonPath("$.name", is(bitstream2.getName())));
+
+    }
+
+    @Test
+    public void findThumbnailUsingOptionalLayoutTabBoxConfiguration() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+        // Setting up configuration for dc.type = logo with rendering thumbnail
+        MetadataField metadataField = mfss.findByElement(context, "dc", "type", null);
+
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType,
+            CrisLayoutBoxTypes.RELATION.name(), true, true)
+            .withShortname("description-test")
+            .build();
+        CrisLayoutField field = CrisLayoutFieldBuilder.createBistreamField(context, metadataField, "ORIGINAL", 0, 0, 0)
+            .withRendering("thumbnail")
+            .withBox(box)
+            .build();
+        ((CrisLayoutFieldBitstream)field).setMetadataValue("*logo");
+        CrisLayoutTabBuilder.createTab(context, eType, 0)
+            .withShortName("TabOne")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withHeader("New Tab header")
+            .addBoxIntoNewRow(box)
+            .build();
+
+        Community testCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection testCollection = CollectionBuilder.createCollection(context, testCommunity).build();
+        Item item = ItemBuilder.createItem(context, testCollection).withEntityType("Publication").build();
+
+        Bundle original = BundleBuilder.createBundle(context, item).withName("ORIGINAL").build();
+
+        org.dspace.content.Bitstream bitstream0 = BitstreamBuilder
+                .createBitstream(context, original, InputStream.nullInputStream())
+                .withName("file1.jpg")
+                .withType("other").guessFormat().build();
+            org.dspace.content.Bitstream bitstream1 = BitstreamBuilder
+                .createBitstream(context, original, InputStream.nullInputStream())
+                .withName("file2.jpg")
+                .withType("other").guessFormat().build();
+            org.dspace.content.Bitstream bitstream2 = BitstreamBuilder
+                .createBitstream(context, original, InputStream.nullInputStream())
+                .withName("file3.jpg")
+                .withType("logo").guessFormat().build();
+        original.setPrimaryBitstreamID(bitstream0);
+
+        Item item2 = ItemBuilder.createItem(context, testCollection).withEntityType("Publication").build();
+
+        Bundle original2 = BundleBuilder.createBundle(context, item2).withName("ORIGINAL").build();
+
+        org.dspace.content.Bitstream bitstream20 = BitstreamBuilder
+                .createBitstream(context, original2, InputStream.nullInputStream())
+                .withName("file1.jpg")
+                .withType("other").guessFormat().build();
+        org.dspace.content.Bitstream bitstream21 = BitstreamBuilder
+                .createBitstream(context, original2, InputStream.nullInputStream())
+                .withName("file2.jpg")
+                .withType("other").guessFormat().build();
+        org.dspace.content.Bitstream bitstream22 = BitstreamBuilder
+                .createBitstream(context, original2, InputStream.nullInputStream())
+                .withName("file3.jpg")
+                .withType("something different").guessFormat().build();
+        original2.setPrimaryBitstreamID(bitstream21);
+
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/core/items/" + item.getID() + "/thumbnail"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.id", is(bitstream2.getID().toString())))
+            .andExpect(jsonPath("$.id", not(bitstream0.getID().toString())))
+            .andExpect(jsonPath("$.id", not(bitstream1.getID().toString())))
+            .andExpect(jsonPath("$.uuid", is(bitstream2.getID().toString())))
+            .andExpect(jsonPath("$.uuid", not(bitstream0.getID().toString())))
+            .andExpect(jsonPath("$.uuid", not(bitstream1.getID().toString())))
+            .andExpect(jsonPath("$.metadata.['dc.type'][0].value", is("logo")))
+            .andExpect(jsonPath("$.bundleName", is("ORIGINAL")))
+            .andExpect(jsonPath("$.type", is("bitstream")))
+            .andExpect(jsonPath("$.name", is(bitstream2.getName())));
+
+        getClient().perform(get("/api/core/items/" + item2.getID() + "/thumbnail"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.id", is(bitstream21.getID().toString())))
+            .andExpect(jsonPath("$.id", not(bitstream20.getID().toString())))
+            .andExpect(jsonPath("$.id", not(bitstream22.getID().toString())))
+            .andExpect(jsonPath("$.uuid", is(bitstream21.getID().toString())))
+            .andExpect(jsonPath("$.uuid", not(bitstream20.getID().toString())))
+            .andExpect(jsonPath("$.uuid", not(bitstream22.getID().toString())))
+            .andExpect(jsonPath("$.metadata.['dc.type'][0].value", is("other")))
+            .andExpect(jsonPath("$.bundleName", is("ORIGINAL")))
+            .andExpect(jsonPath("$.type", is("bitstream")))
+            .andExpect(jsonPath("$.name", is(bitstream21.getName())));
 
     }
 
