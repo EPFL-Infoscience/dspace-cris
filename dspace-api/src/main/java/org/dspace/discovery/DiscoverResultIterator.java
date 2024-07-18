@@ -45,6 +45,8 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
 
     private int maxResults;
 
+    private int initialOffset;
+
     public DiscoverResultIterator(Context context, DiscoverQuery discoverQuery) {
         this(context, null, discoverQuery, true, -1);
     }
@@ -63,11 +65,11 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
         this.context = context;
         this.scopeObject = scopeObject;
         this.discoverQuery = discoverQuery;
-        this.iteratorCounter = discoverQuery.getStart();
+        this.iteratorCounter = 0;
         this.searchService = SearchUtils.getSearchService();
         this.uncacheEntitites = uncacheEntities;
         this.maxResults = maxResults;
-
+        this.initialOffset = discoverQuery.getStart();
         updateCurrentSlotIterator();
     }
 
@@ -89,7 +91,7 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
             return true;
         }
 
-        this.discoverQuery.setStart(iteratorCounter);
+        this.discoverQuery.setStart(initialOffset + iteratorCounter);
 
         if (uncacheEntitites) {
             uncacheEntitites();

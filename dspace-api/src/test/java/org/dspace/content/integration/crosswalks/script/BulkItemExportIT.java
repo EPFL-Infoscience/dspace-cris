@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.not;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.List;
@@ -43,6 +44,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -597,6 +599,18 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(handler.getInfoMessages(), hasItem("Found 1 items to export"));
         assertThat("The xml file should be created", xml.exists(), is(true));
 
+        // include pagination parameters in the export
+        args = new String[] { "bulk-item-export", "-t", "Person", "-f", "person-xml",
+                "-so", "dc.title,ASC", "-o", "2", "-l", "2" };
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, null);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Export will be limited to 1 items."));
+        assertThat(handler.getInfoMessages(), hasItem("Found 1 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+        try (InputStream input = new FileInputStream(xml)) {
+            assertThat(IOUtils.toString(input, Charset.defaultCharset()), Matchers.containsString("Walter White"));
+        }
         configurationService.setProperty("bulk-export.limit.loggedIn", loggedInLimit);
         configurationService.setProperty("bulk-export.limit.notLoggedIn", notLoggedInLimit);
     }
