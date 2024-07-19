@@ -86,7 +86,8 @@ public class ItemsUpdates implements DSpaceObjectUpdates {
                 list.addAll(searchResult.getIndexableObjects());
             }
         } catch (Exception e) {
-            log.error(e);
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
         return list;
     }
