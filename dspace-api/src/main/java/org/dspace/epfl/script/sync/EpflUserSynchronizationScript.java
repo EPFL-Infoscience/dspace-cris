@@ -127,33 +127,41 @@ public class EpflUserSynchronizationScript
 
     private void executeScriptWithOutQuery() throws SQLException, AuthorizeException {
         // sort by netid as it gives a performance boost compared to a metadata sorting
-        List<EPerson> ePersonList = ePersonService.findAll(context, EPerson.NETID);
-        for (EPerson ePerson : ePersonList) {
-            Optional<String> sciper = profileInitializer.getSciperId(ePerson);
-            if (sciper.isPresent()) {
-                try {
-                    Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper.get(), EpflApiClient.Language.EN);
-                    if (epflPerson.isPresent()) {
-                        if (profileInitializer.syncEPerson(context, epflPerson.get(), ePerson)) {
-                            updatedPersonCount++;
-                            logInfo(
-                                    "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get()
-                                            + " was updated");
+        int total = ePersonService.countTotal(context);
+        final int pageSize = 10;
+        int numIter = total / pageSize + (total % pageSize > 0 ? 1 : 0);
+        for (int idx = 0; idx < numIter; idx++) {
+            List<EPerson> ePersonList = ePersonService.findAll(context, EPerson.NETID, pageSize, idx * pageSize);
+            for (EPerson ePerson : ePersonList) {
+                Optional<String> sciper = profileInitializer.getSciperId(ePerson);
+                if (sciper.isPresent()) {
+                    try {
+                        Optional<PersonDTO> epflPerson = epflApiClient.getPerson(sciper.get(),
+                                EpflApiClient.Language.EN);
+                        if (epflPerson.isPresent()) {
+                            if (profileInitializer.syncEPerson(context, epflPerson.get(), ePerson)) {
+                                updatedPersonCount++;
+                                logInfo(
+                                        "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get()
+                                                + " was updated");
+                            } else {
+                                logInfo(
+                                    "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get() +
+                                        " does not need to be updated");
+                            }
                         } else {
-                            logInfo(
-                                "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get() +
-                                    " does not need to be updated");
+                            profileInitializer.closeAffiliations(context, ePerson, sciper.get());
+                            logInfo("Person with sciper: " + sciper
+                                    + " is not active anymore, affiliations have been set as ended.");
+                            updatedPersonCount++;
                         }
-                    } else {
-                        profileInitializer.closeAffiliations(context, ePerson, sciper.get());
-                        logInfo("Person with sciper: " + sciper
-                                + " is not active anymore, affiliations have been set as ended.");
-                        updatedPersonCount++;
+                    } catch (Exception e) {
+                        logError("Unable to sync profile " + sciper.get() + ": " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    logError("Unable to sync profile " + sciper.get() + ": " + e.getMessage());
                 }
             }
+            context.commit();
+            context.clear();
         }
     }
 
@@ -181,6 +189,7 @@ public class EpflUserSynchronizationScript
             if (count % 20 == 0) {
                 handler.logInfo("Processed " + count + " sciper ids");
                 context.commit();
+                context.clear();
             }
 
         }
