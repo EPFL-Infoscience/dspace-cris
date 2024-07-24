@@ -47,6 +47,8 @@ import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
+import org.dspace.discovery.indexobject.IndexableCollection;
+import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -175,6 +177,15 @@ public class OpenSearchController {
 
             if (dsoObject != null) {
                 container = scopeResolver.resolveScope(context, dsoObject);
+                if (!(container instanceof IndexableCommunity || container instanceof IndexableCollection)) {
+                    String err = "The requested scope is invalid. Only community or"
+                                 + " collection can be used at this time";
+                    response.setStatus(422);
+                    response.setContentType("text/html");
+                    response.setContentLength(err.length());
+                    response.getWriter().write(err);
+                    return;
+                }
                 DiscoveryConfiguration discoveryConfiguration = searchConfigurationService
                         .getDiscoveryConfiguration(context,  container);
                 queryArgs.setDiscoveryConfigurationName(discoveryConfiguration.getId());
