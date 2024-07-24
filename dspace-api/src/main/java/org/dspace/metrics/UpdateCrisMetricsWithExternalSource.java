@@ -32,6 +32,8 @@ import org.dspace.discovery.DiscoverResultIterator;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.event.factory.EventServiceFactory;
+import org.dspace.event.service.EventService;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
@@ -237,6 +239,14 @@ public class UpdateCrisMetricsWithExternalSource extends
 
     private void assignCurrentUserInContext() throws SQLException {
         context = new Context();
+        EventService eventService = EventServiceFactory.getInstance().getEventService();
+        if (eventService.isDispatcherDefined("update-metrics")) {
+            context.setDispatcher("update-metrics");
+        } else {
+            handler.logWarning(
+                    "The update-metrics dispatcher is not defined fallback to default. "
+                            + "Consider to define it for optimal performance");
+        }
         UUID uuid = getEpersonIdentifier();
         if (uuid != null) {
             EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);

@@ -136,6 +136,8 @@ public class StoreViewDownloadsCrisMetrics extends
     private boolean createMetricObject(String metricType, double metricCount, DSpaceObject dSpaceObject, String type)
             throws SQLException, AuthorizeException {
         boolean existentValue = false;
+        Double last_week = null;
+        Double last_month = null;
         // if already exists a cris metric set last flag to false
         CrisMetrics existentCrisMetrics = crisMetricsService
                 .findLastMetricByResourceIdAndMetricsTypes(
@@ -144,6 +146,10 @@ public class StoreViewDownloadsCrisMetrics extends
             //set last flag value to false
             existentCrisMetrics.setLast(false);
             existentValue = true;
+            //if there are values one week before
+            last_week = getDeltaPeriod(dSpaceObject.getID(), "week", metricType);
+            //if there are values one month before
+            last_month = getDeltaPeriod(dSpaceObject.getID(), "month", metricType);
         }
         // create new metrics object
         CrisMetrics newScopusMetrics = crisMetricsService.create(context, dSpaceObject);
@@ -154,13 +160,9 @@ public class StoreViewDownloadsCrisMetrics extends
         JSONObject jsonRemark = new JSONObject();
         jsonRemark.put("detailUrl", "/statistics/" + type + "/" + dSpaceObject.getID());
         newScopusMetrics.setRemark(jsonRemark.toString());
-        //if there are values one week before
-        Double last_week = getDeltaPeriod(dSpaceObject.getID(), "week", metricType);
         if (last_week != null) {
             newScopusMetrics.setDeltaPeriod1(metricCount - last_week);
         }
-        //if there are values one month before
-        Double last_month = getDeltaPeriod(dSpaceObject.getID(), "month", metricType);
         if (last_month != null) {
             newScopusMetrics.setDeltaPeriod2(metricCount - last_month);
         }
@@ -180,7 +182,7 @@ public class StoreViewDownloadsCrisMetrics extends
         int countFoundItems = 0;
         int countAddedItems = 0;
         int countUpdatedItems = 0;
-        handler.logInfo("Addition start");
+        handler.logInfo("Addition start " + Constants.typeText[type]);
         TotalDownloadsAndVisitsGenerator totalDownloadsAndVisitsGenerator = new TotalDownloadsAndVisitsGenerator();
         while (dSpaceObjectIterator.hasNext()) {
             DSpaceObject dSpaceObject = dSpaceObjectIterator.next();
@@ -216,10 +218,12 @@ public class StoreViewDownloadsCrisMetrics extends
             count++;
             if (count == 20) {
                 context.commit();
+                context.clear();
             }
         }
-        handler.logInfo("Found " + countFoundItems + type);
+        handler.logInfo("Found " + countFoundItems + " " + Constants.typeText[type]);
         handler.logInfo("Added " + countAddedItems + " metrics");
+        handler.logInfo("Updated " + countUpdatedItems + " metrics");
         handler.logInfo("Update end");
         context.commit();
     }
