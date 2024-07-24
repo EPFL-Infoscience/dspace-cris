@@ -97,7 +97,7 @@ public class DiscoveryExportController {
             sorting,
             scope,
             buildFilters(searchFilters),
-            (Math.max(0,pageNumber - 1)) * limit,
+            (Math.max(0, p - 1)) * limit,
             limit);
 
         try {
