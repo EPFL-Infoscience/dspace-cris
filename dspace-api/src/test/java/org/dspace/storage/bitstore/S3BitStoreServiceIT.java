@@ -88,6 +88,7 @@ public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
         amazonS3Client = createAmazonS3Client();
 
         s3BitStoreService = new S3BitStoreService(amazonS3Client);
+        s3BitStoreService.setEnabled(true);
 
         context.turnOffAuthorisationSystem();
 
