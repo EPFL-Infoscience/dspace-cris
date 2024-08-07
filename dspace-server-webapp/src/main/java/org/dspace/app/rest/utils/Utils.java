@@ -1054,7 +1054,7 @@ public class Utils {
             log.warn("urlIsPrefixOf(dspaceUrl, uri) = {}", urlIsPrefixOf(dspaceUrl, uri));
             log.warn("StringUtils.isBlank(dspaceSSRUrl) = {}", StringUtils.isBlank(dspaceSSRUrl));
             log.warn("urlIsPrefixOf(dspaceSSRUrl, uri) = {}", urlIsPrefixOf(dspaceSSRUrl, uri));
-            log.warn("dspaceUrl = {}", dspaceSSRUrl);
+            log.warn("dspaceUrl = {}", dspaceUrl);
             log.warn("dspaceSSRUrl = {}", dspaceSSRUrl);
             log.warn("uri = {}", uri);
             throw new IllegalArgumentException("the supplied uri is not ours: " + uri);
