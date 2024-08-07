@@ -1050,13 +1050,6 @@ public class Utils {
         // Check whether the URI could be valid.
         if (!urlIsPrefixOf(dspaceUrl, uri) && (StringUtils.isBlank(dspaceSSRUrl) ||
             !urlIsPrefixOf(dspaceSSRUrl, uri))) {
-
-            log.warn("urlIsPrefixOf(dspaceUrl, uri) = {}", urlIsPrefixOf(dspaceUrl, uri));
-            log.warn("StringUtils.isBlank(dspaceSSRUrl) = {}", StringUtils.isBlank(dspaceSSRUrl));
-            log.warn("urlIsPrefixOf(dspaceSSRUrl, uri) = {}", urlIsPrefixOf(dspaceSSRUrl, uri));
-            log.warn("dspaceUrl = {}", dspaceUrl);
-            log.warn("dspaceSSRUrl = {}", dspaceSSRUrl);
-            log.warn("uri = {}", uri);
             throw new IllegalArgumentException("the supplied uri is not ours: " + uri);
         }
 
