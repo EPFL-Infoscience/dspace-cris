@@ -10,10 +10,12 @@ package org.dspace.content.security;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.authorize.AuthorizeException;
@@ -34,6 +36,7 @@ import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Integration tests for {@link CrisSecurityService}.
@@ -437,7 +440,6 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         EPerson fourthUser = EPersonBuilder.createEPerson(context)
             .withEmail("user4@mail.it")
-            .withGroupMembership(thirdGroup)
             .build();
 
         Item item = ItemBuilder.createItem(context, collection)
@@ -461,7 +463,13 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
         assertThat(crisSecurityService.hasAccess(context, item, firstUser, accessMode), is(true));
         assertThat(crisSecurityService.hasAccess(context, item, secondUser, accessMode), is(false));
         assertThat(crisSecurityService.hasAccess(context, item, thirdUser, accessMode), is(true));
+        // mock the context so that we will list group3 in the special groups
+        context = spy(context);
+        Mockito.when(context.getSpecialGroups()).thenReturn(List.of(thirdGroup));
+        Mockito.when(context.getSpecialGroupUuids()).thenReturn(Set.of(thirdGroup.getID()));
         assertThat(crisSecurityService.hasAccess(context, item, fourthUser, accessMode), is(true));
+        // without a user the check should fail
+        assertThat(crisSecurityService.hasAccess(context, item, null, accessMode), is(false));
     }
 
     @Test

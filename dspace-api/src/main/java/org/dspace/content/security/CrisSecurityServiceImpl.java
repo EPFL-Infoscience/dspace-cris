@@ -10,11 +10,12 @@ package org.dspace.content.security;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
@@ -125,11 +126,11 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             return false;
         }
 
-        List<Group> specialGroups = context.getSpecialGroups();
+        Set<UUID> specialGroups = context.getSpecialGroupUuids();
         if (!CollectionUtils.isEmpty(specialGroups)) {
-            for (Group group : specialGroups) {
+            for (UUID group : specialGroups) {
                 for (String groupMetadataField : groupMetadataFields) {
-                    if (anyMetadataHasAuthorityEqualsTo(item, groupMetadataField, group.getID())) {
+                    if (anyMetadataHasAuthorityEqualsTo(item, groupMetadataField, group)) {
                         return true;
                     }
                 }
@@ -203,50 +204,23 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
 
     }
 
-    private boolean hasAccessByGroup(Context context, EPerson user, List<String> groups) {
+    private boolean hasAccessByGroup(Context context, EPerson user, List<String> groups) throws SQLException {
         if (CollectionUtils.isEmpty(groups)) {
             return false;
         }
 
-        List<Group> userGroups = user.getGroups();
-        if (CollectionUtils.isEmpty(userGroups)) {
+        if (user == null) {
             return false;
         }
 
+        List<Group> specialGroups = context.getSpecialGroups();
+        List<Group> userGroups = user.getGroups();
         return groups.stream()
-                     .map(group -> findGroupOrSpecialGroups(context, group))
-                     .filter(group -> Objects.nonNull(group))
-                     .anyMatch(group -> userGroups.contains(group));
+                     .anyMatch(group -> isInGroupList(group, specialGroups) || isInGroupList(group, userGroups));
     }
 
-    private Group findGroupOrSpecialGroups(Context context, String group) {
-        return Optional.ofNullable(findGroupByNameOrUUID(context, group))
-            .or(() -> Optional.ofNullable(findInSpecialGroups(context, group)))
-            .orElse(null);
-    }
-
-    private Group findInSpecialGroups(Context context, String group) {
-        try {
-            return context.getSpecialGroups()
-                .stream()
-                .filter(specialGroup ->
-                    specialGroup.getName().equals(group) ||
-                    specialGroup.getID().toString().equals(group)
-                )
-                .findFirst()
-                .orElse(null);
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e.getMessage(), e);
-        }
-    }
-
-    private Group findGroupByNameOrUUID(Context context, String group) {
-        try {
-            UUID groupUUID = UUIDUtils.fromString(group);
-            return groupUUID != null ? groupService.find(context, groupUUID) : groupService.findByName(context, group);
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
-        }
+    private boolean isInGroupList(String group, List<Group> groups) {
+        return groups.stream().anyMatch(g -> StringUtils.containsAny(group, g.getName(), g.getID().toString()));
     }
 
     private boolean isUserInSubmitterGroup(Context context, Item item, EPerson user) throws SQLException {
