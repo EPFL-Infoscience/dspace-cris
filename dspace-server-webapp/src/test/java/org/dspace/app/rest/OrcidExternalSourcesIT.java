@@ -57,7 +57,8 @@ public class OrcidExternalSourcesIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void findOneExternalSourcesExistingSources() throws Exception {
-        getClient().perform(get("/api/integration/externalsources/orcid"))
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get("/api/integration/externalsources/orcid"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$", Matchers.allOf(
                            hasJsonPath("$.id", is("orcid")),
@@ -72,7 +73,8 @@ public class OrcidExternalSourcesIT extends AbstractControllerIntegrationTest {
         // this test will query the real ORCID API if configured in the CI otherwise will be skipped
         onlyRunIfConfigExists();
         String entry = "0000-0002-9029-1854";
-        getClient().perform(get("/api/integration/externalsources/orcid/entryValues/" + entry))
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get("/api/integration/externalsources/orcid/entryValues/" + entry))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$", Matchers.allOf(
                            hasJsonPath("$.id", is(entry)),
@@ -91,8 +93,9 @@ public class OrcidExternalSourcesIT extends AbstractControllerIntegrationTest {
     public void findOneExternalSourceEntriesApplicableQueryTest() throws Exception {
         // this test will query the real ORCID API if configured in the CI otherwise will be skipped
         onlyRunIfConfigExists();
+        String token = getAuthToken(eperson.getEmail(), password);
         String q = "orcid:0000-0002-9029-1854";
-        getClient().perform(get("/api/integration/externalsources/orcid/entries")
+        getClient(token).perform(get("/api/integration/externalsources/orcid/entries")
                    .param("query", q))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$._embedded.externalSourceEntries[0]", Matchers.allOf(
@@ -116,8 +119,9 @@ public class OrcidExternalSourcesIT extends AbstractControllerIntegrationTest {
     public void findOneExternalSourceEntriesApplicableQueryFamilyNameAndGivenNamesTest() throws Exception {
         // this test will query the real ORCID API if configured in the CI otherwise will be skipped
         onlyRunIfConfigExists();
+        String token = getAuthToken(eperson.getEmail(), password);
         String q = "family-name:bollini AND given-names:andrea";
-        getClient().perform(get("/api/integration/externalsources/orcid/entries")
+        getClient(token).perform(get("/api/integration/externalsources/orcid/entries")
                    .param("query", q))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$._embedded.externalSourceEntries", Matchers.hasItem(
@@ -158,7 +162,8 @@ public class OrcidExternalSourcesIT extends AbstractControllerIntegrationTest {
                 });
 
         String entry = "0000-0002-9029-1854";
-        getClient().perform(get("/api/integration/externalsources/orcid/entryValues/" + entry))
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get("/api/integration/externalsources/orcid/entryValues/" + entry))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$", Matchers.allOf(
                            hasJsonPath("$.id", is(entry)),
@@ -200,7 +205,8 @@ public class OrcidExternalSourcesIT extends AbstractControllerIntegrationTest {
                         }
                     });
             String q = "orcid:0000-0002-9029-1854";
-            getClient().perform(get("/api/integration/externalsources/orcid/entries")
+            String token = getAuthToken(eperson.getEmail(), password);
+            getClient(token).perform(get("/api/integration/externalsources/orcid/entries")
                        .param("query", q))
                        .andExpect(status().isOk())
                        .andExpect(jsonPath("$._embedded.externalSourceEntries[0]", Matchers.allOf(
@@ -253,7 +259,8 @@ public class OrcidExternalSourcesIT extends AbstractControllerIntegrationTest {
                         }
                     });
             String q = "family-name:bollini AND given-names:andrea";
-            getClient().perform(get("/api/integration/externalsources/orcid/entries")
+            String token = getAuthToken(eperson.getEmail(), password);
+            getClient(token).perform(get("/api/integration/externalsources/orcid/entries")
                        .param("query", q))
                        .andExpect(status().isOk())
                        .andExpect(jsonPath("$._embedded.externalSourceEntries", Matchers.hasItem(

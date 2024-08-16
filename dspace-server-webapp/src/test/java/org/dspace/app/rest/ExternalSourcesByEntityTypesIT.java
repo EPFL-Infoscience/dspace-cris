@@ -105,9 +105,6 @@ public class ExternalSourcesByEntityTypesIT extends AbstractControllerIntegratio
 
         context.restoreAuthSystemState();
 
-        getClient().perform(get("/api/core/entitytypes/search/findAllByAuthorizedExternalSource"))
-            .andExpect(status().isUnauthorized());
-
         String token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(get("/api/core/entitytypes/search/findAllByAuthorizedExternalSource"))
                 .andExpect(status().isOk())

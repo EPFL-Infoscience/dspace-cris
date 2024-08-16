@@ -28,7 +28,8 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      */
     @Test
     public void findOneOpenAIREFundingExternalSourceTest() throws Exception {
-        getClient().perform(get("/api/integration/externalsources")).andExpect(status().isOk())
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get("/api/integration/externalsources")).andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.externalsources", Matchers.hasItem(
                         ExternalSourceMatcher.matchExternalSource("openAIREFunding", "openAIREFunding", false))));
     }
@@ -40,8 +41,9 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      */
     @Test
     public void findOneOpenAIREFundingExternalSourceEntriesEmptyWithQueryTest() throws Exception {
-
-        getClient().perform(get("/api/integration/externalsources/openAIREFunding/entries").param("query", "empty"))
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token)
+                .perform(get("/api/integration/externalsources/openAIREFunding/entries").param("query", "empty"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.page.number", is(0)));
     }
 
@@ -53,10 +55,11 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      */
     @Test
     public void findOneOpenAIREFundingExternalSourceEntriesWithQueryMultipleKeywordsTest() throws Exception {
-
-        getClient()
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token)
                 .perform(
-                        get("/api/integration/externalsources/openAIREFunding/entries").param("query", "empty+results"))
+                        get("/api/integration/externalsources/openAIREFunding/entries")
+                            .param("query", "empty+results"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.page.number", is(0)));
     }
 
@@ -67,7 +70,9 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      */
     @Test
     public void findOneOpenAIREFundingExternalSourceEntriesWithQueryTest() throws Exception {
-        getClient().perform(get("/api/integration/externalsources/openAIREFunding/entries").param("query", "mushroom"))
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token)
+                .perform(get("/api/integration/externalsources/openAIREFunding/entries").param("query", "mushroom"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.externalSourceEntries",
                         Matchers.hasItem(ExternalSourceEntryMatcher.matchExternalSourceEntry(
@@ -84,13 +89,13 @@ public class OpenAIREFundingExternalSourcesIT extends AbstractControllerIntegrat
      */
     @Test
     public void findOneOpenAIREFundingExternalSourceEntryValueTest() throws Exception {
-
+        String token = getAuthToken(eperson.getEmail(), password);
         // "info:eu-repo/grantAgreement/mock/mock/mock/mock" base64 encoded
         String projectID = "aW5mbzpldS1yZXBvL2dyYW50QWdyZWVtZW50L0ZDVC81ODc2LVBQQ0RUSS8xMTAwNjIvUFQ=";
         String projectName = "Portuguese Wild Mushrooms: Chemical characterization and functional study"
                 + " of antiproliferative and proapoptotic properties in cancer cell lines";
 
-        getClient().perform(get("/api/integration/externalsources/openAIREFunding/entryValues/" + projectID))
+        getClient(token).perform(get("/api/integration/externalsources/openAIREFunding/entryValues/" + projectID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$",
                         Matchers.allOf(hasJsonPath("$.id", is(projectID)), hasJsonPath("$.display", is(projectName)),
