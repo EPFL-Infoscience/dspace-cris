@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,6 +45,7 @@ public class ExternalSourceEntityTypeLinkRepository extends AbstractDSpaceRestRe
     @Autowired
     private ExternalDataService externalDataService;
 
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public Page<EntityTypeRest> getSupportedEntityTypes(@Nullable HttpServletRequest request,
                                                                   String externalSourceName,
                                                         @Nullable Pageable pageable,
