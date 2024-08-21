@@ -9,41 +9,56 @@
 package org.dspace.app.rest;
 
 import static org.apache.commons.lang.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
-import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.Semaphore;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.model.SearchResultsRest;
 import org.dspace.app.rest.parameter.SearchFilter;
-import org.dspace.app.rest.scripts.handler.impl.RestDSpaceRunnableHandler;
 import org.dspace.app.rest.utils.ContextUtil;
-import org.dspace.app.rest.utils.HttpHeadersInitializer;
-import org.dspace.content.Bitstream;
-import org.dspace.content.ProcessStatus;
-import org.dspace.content.service.BitstreamService;
+import org.dspace.app.rest.utils.RestDiscoverQueryBuilder;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMapper;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-import org.dspace.scripts.DSpaceCommandLineParameter;
-import org.dspace.scripts.DSpaceRunnable;
-import org.dspace.scripts.Process;
-import org.dspace.scripts.configuration.ScriptConfiguration;
-import org.dspace.scripts.service.ScriptService;
+import org.dspace.core.Context.Mode;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.configuration.DiscoveryConfiguration;
+import org.dspace.discovery.configuration.DiscoveryConfigurationService;
+import org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration;
+import org.dspace.discovery.indexobject.IndexableClaimedTask;
+import org.dspace.discovery.indexobject.IndexableCollection;
+import org.dspace.discovery.indexobject.IndexableCommunity;
+import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexablePoolTask;
+import org.dspace.discovery.indexobject.IndexableWorkflowItem;
+import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,17 +72,56 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/" + SearchResultsRest.CATEGORY)
 public class DiscoveryExportController {
 
-    private static final int BUFFER_SIZE = 4096 * 10;
-    @Autowired
-    private ScriptService scriptService;
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(DiscoveryExportController.class);
 
     @Autowired
-    private BitstreamService bitstreamService;
+    private CollectionService collectionService;
+    @Autowired
+    private CommunityService communityService;
+    @Autowired
+    private ItemService itemService;
     @Autowired
     private ConfigurationService configurationService;
+    @Autowired
+    private AuthorizeService authorizeService;
+    @Autowired
+    private DiscoveryConfigurationService discoveryConfigurationService;
+    @Autowired
+    private RestDiscoverQueryBuilder restDiscoverQueryBuilder;
+    @Autowired
+    private GroupService groupService;
+
+    private Semaphore lowUsageSemaphore;
+    private Semaphore highUsageSemaphore;
+    private Semaphore highUsageAuthenticatedSemaphore;
+    private Semaphore lowUsageAuthenticatedSemaphore;
+
+    @Value("${discover-export.concurrent.lowUsage:10}")
+    public void setLowUsageSemaphore(int lowUsageSemaphore) {
+        this.lowUsageSemaphore = new Semaphore(lowUsageSemaphore);
+    }
+
+    @Value("${discover-export.concurrent.highUsage:3}")
+    public void setHighUsageSemaphore(int highUsageSemaphore) {
+        this.highUsageSemaphore = new Semaphore(highUsageSemaphore);
+    }
+
+    @Value("${discover-export.concurrent.lowAuthenticatedUsage:20}")
+    public void setLowUsageAuthenticatedSemaphore(int lowUsageAuthenticatedSemaphore) {
+        this.lowUsageAuthenticatedSemaphore = new Semaphore(lowUsageAuthenticatedSemaphore);
+    }
+
+    @Value("${discover-export.concurrent.highAuthenticatedUsage:5}")
+    public void setHighUsageAuthenticatedSemaphore(int highUsageAuthenticatedSemaphore) {
+        this.highUsageAuthenticatedSemaphore = new Semaphore(highUsageAuthenticatedSemaphore);
+    }
+
+    private StreamDisseminationCrosswalk streamDisseminationCrosswalk =
+            new DSpace().getSingletonService(StreamDisseminationCrosswalkMapper.class)
+                .getByType("epfl-publication-marc-xml");
 
     @GetMapping(produces = "application/xml", path = "/export")
-    public ResponseEntity export(HttpServletRequest request, HttpServletResponse response,
+    public void export(HttpServletRequest request, HttpServletResponse response,
                                  @RequestParam(value = "query", required = false) String query,
                                  @RequestParam(value = "scope", required = false) String scope,
                                  @RequestParam(value = "spc.sf", required = false) String sort,
@@ -78,192 +132,157 @@ public class DiscoveryExportController {
                                  List<SearchFilter> searchFilters,
                                  Pageable page) {
 
-        // FIXME: try to reuse as much parameter as possible as in original discovery request, all parameter set,
-        //  mapping search page frontend request could be handled in a different way.
-
-        ScriptConfiguration scriptToExecute = scriptService.getScriptConfiguration("bulk-item-export");
         Context context = ContextUtil.obtainContext(request);
-        EPerson user = context.getCurrentUser();
-
-        String sorting = defaultIfBlank(sort, "dc.title") + "," +
-            defaultIfBlank(sortDirection, "ASC");
-
+        context.setMode(Mode.READ_ONLY);
+        sort = defaultIfBlank(sort, "dc.title");
+        sortDirection = defaultIfBlank(sortDirection, "ASC");
         int limit = resultsPerPage != null ? resultsPerPage.intValue() : page.getPageSize();
         int p = pageNumber != null ? pageNumber.intValue() : page.getPageNumber();
 
-        List<DSpaceCommandLineParameter> dSpaceCommandLineParameters = parameters(
-            defaultIfBlank(query, "*"),
-            defaultIfBlank(configuration, "default"),
-            sorting,
-            scope,
-            buildFilters(searchFilters),
-            (Math.max(0, p - 1)) * limit,
-            limit);
+        if (streamDisseminationCrosswalk == null) {
+            throw new IllegalStateException("No dissemination configured for format epfl-publication-marc-xml");
+        }
 
+        boolean acquired = false;
+        Semaphore semaphore;
+        int limitThreshold = configurationService.getIntProperty("discover-export.limit.threshold", 100);
+        if (context.getCurrentUser() != null) {
+            if (limit > limitThreshold) {
+                semaphore = highUsageAuthenticatedSemaphore;
+            } else {
+                semaphore = lowUsageAuthenticatedSemaphore;
+            }
+        } else {
+            if (limit > limitThreshold) {
+                semaphore = highUsageSemaphore;
+            } else {
+                semaphore = lowUsageSemaphore;
+            }
+        }
         try {
-            RestDSpaceRunnableHandler restDSpaceRunnableHandler = new RestDSpaceRunnableHandler(
-                user,
-                scriptToExecute.getName(),
-                dSpaceCommandLineParameters,
-                context.getSpecialGroups(),
-                context.getCurrentLocale()
-            );
-            List<String> args = constructArgs(dSpaceCommandLineParameters);
-            Process process = runProcess(scriptToExecute, context, user, restDSpaceRunnableHandler, args);
-            if (ProcessStatus.FAILED.equals(process.getProcessStatus())) {
-                throw new RuntimeException("An error occurred during export");
+            acquired = semaphore.tryAcquire();
+            if (!acquired) {
+                response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(),
+                        "Too much concurrent export request at this time, try again later");
+                return;
             }
-            Bitstream bitstream = responseFromBitstreams(context, process.getBitstreams());
-            if (Objects.isNull(bitstream)) {
-                throw new RuntimeException("Process did not produce any output");
-            }
-            return toResponseEntity(context, bitstream, request, response);
 
+            int maxResults = maxResults(context, limit);
+            if (maxResults == 0) {
+                throw new AuthorizeException("You are not allowed to run the export process");
+            }
+            //sort, sortDirection, p, limit
+            if (p > 0) {
+                p--;
+            }
+            Pageable correctedPage = PageRequest.of(p, limit, Sort.by(Direction.valueOf(sortDirection), sort));
+            DiscoverResultItemIterator itemsIterator = searchItemsToExport(context, scope, configuration,
+                    query, searchFilters, correctedPage, maxResults,
+                    streamDisseminationCrosswalk.isPubliclyReadable());
+            final long totalSearchResults = itemsIterator.getTotalSearchResults();
+            final long reqItemsToExport = totalSearchResults - correctedPage.getOffset();
+            log.info("Found {} items to export", reqItemsToExport);
+            if (reqItemsToExport > maxResults) {
+                log.info("Export will be limited to {} items.", maxResults);
+            }
+            streamDisseminationCrosswalk.disseminate(context, itemsIterator, response.getOutputStream());
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private List<DSpaceCommandLineParameter> parameters(String query, String configuration,
-                                                        String sorting, String scope, String filters,
-                                                        Integer offset, Integer limit) {
-        List<DSpaceCommandLineParameter> result = new LinkedList<>();
-        result.add(new DSpaceCommandLineParameter("-f", "epfl-publication-marc-xml"));
-        result.add(new DSpaceCommandLineParameter("-q", query));
-        result.add(new DSpaceCommandLineParameter("-c", configuration));
-        result.add(new DSpaceCommandLineParameter("-so", sorting));
-        result.add(new DSpaceCommandLineParameter("-o", String.valueOf(offset)));
-
-        if (StringUtils.isNotBlank(scope)) {
-            result.add(new DSpaceCommandLineParameter("-s", scope));
-        }
-
-        if (StringUtils.isNotBlank(filters)) {
-            result.add(new DSpaceCommandLineParameter("-sf", filters));
-        }
-
-        if (limit > 0) {
-            result.add(new DSpaceCommandLineParameter("-l", String.valueOf(limit)));
-        }
-
-        return result;
-    }
-
-    private String buildFilters(List<SearchFilter> searchFilters) {
-        return searchFilters.stream()
-            .map(sf -> sf.getName() + "=" + sf.getValue() + "," + sf.getOperator())
-            .collect(Collectors.joining("&"));
-    }
-
-    private Bitstream responseFromBitstreams(Context context, List<Bitstream> bitstreams)
-        throws SQLException {
-
-        Bitstream bitstream = findExport(context, bitstreams);
-        if (Objects.isNull(bitstream)) {
-            throw new RuntimeException("Export did not produce any output");
-        }
-        return bitstream;
-    }
-
-    private Bitstream findExport(Context context, List<Bitstream> bitstreams) throws SQLException {
-        for (Bitstream bitstream : bitstreams) {
-            if (MediaType.TEXT_XML.equals(bitstream.getFormat(context).getMIMEType())) {
-                return bitstream;
+            log.error(e.getMessage(), e);
+        } finally {
+            if (acquired) {
+                semaphore.release();
             }
         }
-        return null;
     }
 
-    private ResponseEntity toResponseEntity(Context context, Bitstream bitstream, HttpServletRequest request,
-                                            HttpServletResponse response) throws SQLException, IOException {
+    private int maxResults(Context context, int limit) throws SQLException {
 
-        //FIXME: part of this logic is similar to one in org.dspace.app.rest.BitstreamRestController, as further step it
-        // might be centralized and refactored.
-
-        HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
-            .withBufferSize(BUFFER_SIZE)
-            .withFileName(bitstream.getName())
-            .withChecksum(bitstream.getChecksum())
-            .withLength(bitstream.getSizeBytes())
-            .withMimetype(bitstream.getFormat(context).getMIMEType())
-            .with(request)
-            .with(response);
-
-        Long lastModified = bitstreamService.getLastModified(bitstream);
-        if (lastModified != null) {
-            httpHeadersInitializer.withLastModified(lastModified);
+        StringBuilder property = new StringBuilder("discover-export.limit.");
+        if (authorizeService.isAdmin(context) || authorizeService.isComColAdmin(context)) {
+            property.append("admin");
+        } else {
+            property.append(Optional.ofNullable(context.getCurrentUser()).map(ignored -> "loggedIn")
+                                .orElse("notLoggedIn"));
         }
-
-        EPerson currentUser = context.getCurrentUser();
-        org.dspace.app.rest.utils.BitstreamResource bitstreamResource =
-            new org.dspace.app.rest.utils.BitstreamResource(
-            bitstream.getName(), bitstream.getID(), currentUser != null ? currentUser.getID() : null,
-            context.getSpecialGroupUuids(), false, false);
-
-        context.complete();
-
-        //Send the data
-        if (httpHeadersInitializer.isValid()) {
-            HttpHeaders httpHeaders = httpHeadersInitializer.initialiseHeaders();
-            return ResponseEntity.ok().headers(httpHeaders).body(bitstreamResource);
+        int maxByUserCategory = configurationService.getIntProperty(property.toString(), -1);
+        if (maxByUserCategory > 0 && limit > 0) {
+            return Optional.ofNullable(limit)
+                .map(l -> Math.min(l, maxByUserCategory))
+                .orElse(maxByUserCategory);
+        } else if (maxByUserCategory == -1  && limit > 0) {
+            return limit;
+        } else {
+            return maxByUserCategory;
         }
-        throw new RuntimeException("Invalid headers for response");
     }
 
-    private Process runProcess(ScriptConfiguration scriptToExecute, Context context, EPerson user,
-                               RestDSpaceRunnableHandler restDSpaceRunnableHandler, List<String> args)
-        throws InterruptedException, InstantiationException, IllegalAccessException {
-        runDSpaceScript(user, scriptToExecute, restDSpaceRunnableHandler, args);
-        Process process = restDSpaceRunnableHandler.getProcess(context);
-        int attempts = 1;
-        while (notFinished(process) && attempts++ <= 50) {
-            Thread.sleep(1000L);
-            process = restDSpaceRunnableHandler.getProcess(context);
-        }
+    private DiscoverResultItemIterator searchItemsToExport(Context context, String scope, String configuration,
+            String query, List<SearchFilter> searchFilters, Pageable page, int maxResults, boolean onlyPublic)
+            throws SearchServiceException, SQLException {
+        IndexableObject<?, ?> scopeObject = resolveScope(context, scope);
+        DiscoveryConfiguration discoveryConfiguration = discoveryConfigurationService
+            .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
-        return process;
-    }
+        boolean isRelatedItem = discoveryConfiguration != null &&
+            discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration;
 
-    private static boolean notFinished(Process process) {
-        return Stream.of(ProcessStatus.RUNNING, ProcessStatus.SCHEDULED)
-            .anyMatch(p -> p.equals(process.getProcessStatus()));
-    }
+        List<String> dsoTypes = List.of(IndexableItem.TYPE, IndexableWorkspaceItem.TYPE, IndexableWorkflowItem.TYPE,
+                IndexablePoolTask.TYPE, IndexableClaimedTask.TYPE);
 
-    private void runDSpaceScript(EPerson user,
-                                 ScriptConfiguration scriptToExecute,
-                                 RestDSpaceRunnableHandler restDSpaceRunnableHandler,
-                                 List<String> args)
-        throws InstantiationException, IllegalAccessException {
-        DSpaceRunnable dSpaceRunnable = scriptService.createDSpaceRunnableForScriptConfiguration(scriptToExecute);
-        try {
-            dSpaceRunnable.initialize(args.toArray(new String[0]), restDSpaceRunnableHandler, user);
-//            restDSpaceRunnableHandler.schedule(dSpaceRunnable);
-            dSpaceRunnable.run();
-        } catch (ParseException e) {
-            dSpaceRunnable.printHelp();
+        DiscoverQuery discoverQuery = restDiscoverQueryBuilder.buildQuery(context, scopeObject,
+                discoveryConfiguration, query, searchFilters, dsoTypes, page);
+        // force the iterator to use a pagination of 20 items, we are only interested in the start
+        // offset of the original query
+        discoverQuery.setMaxResults(20);
+        if (onlyPublic) {
+            Group anonymous = null;
             try {
-                restDSpaceRunnableHandler.handleException(
-                    "Failed to parse the arguments given to the script with name: "
-                        + scriptToExecute.getName() + " and args: " + args, e
-                );
-            } catch (Exception re) {
-                // ignore re-thrown exception
+                anonymous = groupService.findByName(context, Group.ANONYMOUS);
+            } catch (SQLException e) {
+                throw new RuntimeException("Cannot find anonymous group!", e);
             }
+            discoverQuery.addFilterQueries("read:g" + anonymous.getID().toString());
+        }
+
+        if (isRelatedItem) {
+            return new DiscoverResultItemIterator(context, discoverQuery, maxResults);
+        } else {
+            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery, maxResults);
         }
     }
 
-    private List<String> constructArgs(List<DSpaceCommandLineParameter> dSpaceCommandLineParameters) {
-        List<String> args = new ArrayList<>();
-        for (DSpaceCommandLineParameter parameter : dSpaceCommandLineParameters) {
-            args.add(parameter.getName());
-            if (parameter.getValue() != null) {
-                args.add(parameter.getValue());
-            }
+    private IndexableObject<?, ?> resolveScope(Context context, String scope) {
+        IndexableObject<?, ?> scopeObj = null;
+        if (StringUtils.isBlank(scope)) {
+            return scopeObj;
         }
-        return args;
+
+        try {
+
+            UUID uuid = UUID.fromString(scope);
+            scopeObj = new IndexableCommunity(communityService.find(context, uuid));
+            if (scopeObj.getIndexedObject() == null) {
+                scopeObj = new IndexableCollection(collectionService.find(context, uuid));
+            }
+            if (scopeObj.getIndexedObject() == null) {
+                scopeObj = new IndexableItem(itemService.find(context, uuid));
+            }
+
+        } catch (IllegalArgumentException ex) {
+            String message = "The given scope string " + trimToEmpty(scope) + " is not a UUID";
+            log.warn(message);
+        } catch (SQLException ex) {
+            String message = "Unable to retrieve DSpace Object with ID " + trimToEmpty(scope) + " from the database";
+            log.warn(message, ex);
+        }
+        return scopeObj;
     }
 
-
-
+    /**
+     * Don't use, available just for mocking purpose
+     * @param streamDisseminationCrosswalk
+     */
+    public void setStreamDisseminationCrosswalk(StreamDisseminationCrosswalk streamDisseminationCrosswalk) {
+        this.streamDisseminationCrosswalk = streamDisseminationCrosswalk;
+    }
 }
