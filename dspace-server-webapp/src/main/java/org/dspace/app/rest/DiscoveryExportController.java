@@ -53,6 +53,7 @@ import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -90,10 +91,30 @@ public class DiscoveryExportController {
     @Autowired
     private GroupService groupService;
 
-    private final Semaphore lowUsageSemaphore = new Semaphore(10); // Limit to 5 concurrent requests
-    private final Semaphore highUsageSemaphore = new Semaphore(3); // Limit to 5 concurrent requests
-    private final Semaphore highUsageAuthenticatedSemaphore = new Semaphore(5); // Limit to 5 concurrent requests
-    private final Semaphore lowUsageAuthenticatedSemaphore = new Semaphore(20); // Limit to 5 concurrent requests
+    private Semaphore lowUsageSemaphore;
+    private Semaphore highUsageSemaphore;
+    private Semaphore highUsageAuthenticatedSemaphore;
+    private Semaphore lowUsageAuthenticatedSemaphore;
+
+    @Value("${discover-export.concurrent.lowUsage:10}")
+    public void setLowUsageSemaphore(int lowUsageSemaphore) {
+        this.lowUsageSemaphore = new Semaphore(lowUsageSemaphore);
+    }
+
+    @Value("${discover-export.concurrent.highUsage:3}")
+    public void setHighUsageSemaphore(int highUsageSemaphore) {
+        this.highUsageSemaphore = new Semaphore(highUsageSemaphore);
+    }
+
+    @Value("${discover-export.concurrent.lowAuthenticatedUsage:20}")
+    public void setLowUsageAuthenticatedSemaphore(int lowUsageAuthenticatedSemaphore) {
+        this.lowUsageAuthenticatedSemaphore = new Semaphore(lowUsageAuthenticatedSemaphore);
+    }
+
+    @Value("${discover-export.concurrent.highAuthenticatedUsage:5}")
+    public void setHighUsageAuthenticatedSemaphore(int highUsageAuthenticatedSemaphore) {
+        this.highUsageAuthenticatedSemaphore = new Semaphore(highUsageAuthenticatedSemaphore);
+    }
 
     private StreamDisseminationCrosswalk streamDisseminationCrosswalk =
             new DSpace().getSingletonService(StreamDisseminationCrosswalkMapper.class)
@@ -124,14 +145,15 @@ public class DiscoveryExportController {
 
         boolean acquired = false;
         Semaphore semaphore;
+        int limitThreshold = configurationService.getIntProperty("discover-export.limit.threshold", 100);
         if (context.getCurrentUser() != null) {
-            if (limit > 100) {
+            if (limit > limitThreshold) {
                 semaphore = highUsageAuthenticatedSemaphore;
             } else {
                 semaphore = lowUsageAuthenticatedSemaphore;
             }
         } else {
-            if (limit > 100) {
+            if (limit > limitThreshold) {
                 semaphore = highUsageSemaphore;
             } else {
                 semaphore = lowUsageSemaphore;
@@ -149,13 +171,18 @@ public class DiscoveryExportController {
             if (maxResults == 0) {
                 throw new AuthorizeException("You are not allowed to run the export process");
             }
-            //sort, sortDirection, p, limit,
+            //sort, sortDirection, p, limit
+            if (p > 0) {
+                p--;
+            }
             Pageable correctedPage = PageRequest.of(p, limit, Sort.by(Direction.valueOf(sortDirection), sort));
             DiscoverResultItemIterator itemsIterator = searchItemsToExport(context, scope, configuration,
                     query, searchFilters, correctedPage, maxResults,
                     streamDisseminationCrosswalk.isPubliclyReadable());
-            log.info("Found {} items to export", itemsIterator.getTotalSearchResults());
-            if (maxResults > 0) {
+            final long totalSearchResults = itemsIterator.getTotalSearchResults();
+            final long reqItemsToExport = totalSearchResults - correctedPage.getOffset();
+            log.info("Found {} items to export", reqItemsToExport);
+            if (reqItemsToExport > maxResults) {
                 log.info("Export will be limited to {} items.", maxResults);
             }
             streamDisseminationCrosswalk.disseminate(context, itemsIterator, response.getOutputStream());
@@ -251,4 +278,11 @@ public class DiscoveryExportController {
         return scopeObj;
     }
 
+    /**
+     * Don't use, available just for mocking purpose
+     * @param streamDisseminationCrosswalk
+     */
+    public void setStreamDisseminationCrosswalk(StreamDisseminationCrosswalk streamDisseminationCrosswalk) {
+        this.streamDisseminationCrosswalk = streamDisseminationCrosswalk;
+    }
 }
