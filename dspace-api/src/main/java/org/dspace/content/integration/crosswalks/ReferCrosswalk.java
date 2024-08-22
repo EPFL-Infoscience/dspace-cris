@@ -187,14 +187,14 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             throw new AuthorizeException("The current user is not allowed to perform a zip item export");
         }
 
-        List<String> lines = new ArrayList<String>();
-
+        List<String> multiLines = new ArrayList<String>();
         for (TemplateLine line : multipleItemsTemplateLines) {
 
             if (line.isTemplateField()) {
-
+                writeLines(out, multiLines);
+                multiLines.clear();
                 while (dsoIterator.hasNext()) {
-
+                    List<String> lines = new ArrayList<String>();
                     DSpaceObject dso = dsoIterator.next();
                     if (!canDisseminate(context, dso)) {
                         throw new CrosswalkObjectNotSupported(
@@ -205,20 +205,14 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
                     for (String singleTemplateLine : singleTemplateLines) {
                         lines.add(line.getBeforeField() + singleTemplateLine);
                     }
-
+                    writeLines(out, lines);
                 }
 
             } else {
-                lines.add(line.getBeforeField());
+                multiLines.add(line.getBeforeField());
             }
         }
-
-        if (linesPostProcessor != null) {
-            linesPostProcessor.accept(lines);
-        }
-
-        writeLines(out, lines);
-
+        writeLines(out, multiLines);
     }
 
     @Override
@@ -536,6 +530,9 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     private void writeLines(OutputStream out, List<String> lines) throws IOException {
         try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
             BufferedWriter writer = new BufferedWriter(osw)) {
+            if (linesPostProcessor != null) {
+                linesPostProcessor.accept(lines);
+            }
             for (String line : lines) {
                 writer.write(line);
                 writer.newLine();
