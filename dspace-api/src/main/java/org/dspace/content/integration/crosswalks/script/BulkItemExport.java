@@ -15,7 +15,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.integration.crosswalks.FileNameDisseminator;
@@ -220,9 +218,11 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         return serviceManager.getServiceByName("bulk-item-export", BulkItemExportScriptConfiguration.class);
     }
 
-    private void performExport(Iterator<Item> itemsIterator, StreamDisseminationCrosswalk crosswalk) throws Exception {
+    private void performExport(DiscoverResultItemIterator itemsIterator, StreamDisseminationCrosswalk crosswalk)
+            throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        crosswalk.disseminate(context, itemsIterator, out);
+        crosswalk.disseminate(context, itemsIterator, (int) itemsIterator.getTotalSearchResults(), offset, maxResults(),
+                out);
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         String name = getFileName(crosswalk);
         context.setMode(Context.Mode.READ_WRITE);
