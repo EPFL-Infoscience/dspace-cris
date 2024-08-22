@@ -41,9 +41,10 @@ public class StreamDisseminationCrosswalkDelegator extends SelfNamedPlugin
     }
 
     @Override
-    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
+    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, Integer total,
+            Integer offset, Integer size, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException {
-        getStreamDisseminationCrosswalk().disseminate(context, dsoIterator, out);
+        getStreamDisseminationCrosswalk().disseminate(context, dsoIterator, total, offset, size, out);
     }
 
     @Override

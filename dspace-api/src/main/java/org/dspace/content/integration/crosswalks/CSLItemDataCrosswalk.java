@@ -72,12 +72,13 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
     @Override
     public void disseminate(Context context, DSpaceObject dso, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException {
-        this.disseminate(context, Arrays.asList(dso).iterator(), out);
+        this.disseminate(context, Arrays.asList(dso).iterator(), null, null, null, out);
     }
 
     @Override
-    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
-        throws CrosswalkException, IOException, SQLException, AuthorizeException {
+    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, Integer total,
+            Integer offset, Integer size, OutputStream out)
+            throws CrosswalkException, IOException, SQLException, AuthorizeException {
 
         DSpaceListItemDataProvider itemDataProvider = createItemDataProvider(context, dsoIterator);
 

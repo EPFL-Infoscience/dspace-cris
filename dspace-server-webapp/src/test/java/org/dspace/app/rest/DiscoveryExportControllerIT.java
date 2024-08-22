@@ -348,7 +348,8 @@ public class DiscoveryExportControllerIT extends AbstractControllerIntegrationTe
                     return crosswalk.getFileName();
                 }
                 @Override
-                public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
+                public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, Integer total,
+                        Integer offset, Integer size, OutputStream out)
                         throws CrosswalkException, IOException, SQLException, AuthorizeException {
                     try {
                         Thread.sleep(1000L + 200L * counter++);
@@ -360,7 +361,7 @@ public class DiscoveryExportControllerIT extends AbstractControllerIntegrationTe
                         // make sure that the requests would take enough time so that our controller would
                         // see the incoming requests as concurrent
                     }
-                    crosswalk.disseminate(context, dsoIterator, out);
+                    crosswalk.disseminate(context, dsoIterator, total, offset, size, out);
                 }
                 @Override
                 public String getMIMEType() {

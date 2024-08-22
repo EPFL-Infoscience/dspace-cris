@@ -185,7 +185,8 @@ public class DiscoveryExportController {
             if (reqItemsToExport > maxResults) {
                 log.info("Export will be limited to {} items.", maxResults);
             }
-            streamDisseminationCrosswalk.disseminate(context, itemsIterator, response.getOutputStream());
+            streamDisseminationCrosswalk.disseminate(context, itemsIterator, (int) totalSearchResults,
+                    (int) correctedPage.getOffset(), maxResults, response.getOutputStream());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         } finally {

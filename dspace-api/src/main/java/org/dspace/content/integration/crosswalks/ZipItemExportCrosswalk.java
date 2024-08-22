@@ -103,12 +103,13 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
     @Override
     public void disseminate(Context context, DSpaceObject dso, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException {
-        this.disseminate(context, Arrays.asList(dso).iterator(), out);
+        this.disseminate(context, Arrays.asList(dso).iterator(), null, null, null, out);
     }
 
     @Override
-    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
-        throws CrosswalkException, IOException, SQLException, AuthorizeException {
+    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, Integer total,
+            Integer offset, Integer size, OutputStream out)
+            throws CrosswalkException, IOException, SQLException, AuthorizeException {
 
         Assert.notNull(metadataFileName, "The name of the metadata file is required to perform a bulk item export");
         Assert.notNull(crosswalk, "An instance of DisseminationCrosswalk is required to perform a bulk item export");

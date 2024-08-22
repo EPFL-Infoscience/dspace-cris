@@ -75,6 +75,10 @@ import org.springframework.core.convert.converter.Converter;
  */
 public class ReferCrosswalk implements ItemExportCrosswalk {
 
+    private static final String COUNTER_FIELD = "#items.counter#";
+    private static final String TOTAL_FIELD = "#items.total#";
+    private static final String OFFSET_FIELD = "#items.offset#";
+
     private static Logger log = LogManager.getLogger(ReferCrosswalk.class);
 
     private static final Pattern FIELD_PATTERN = Pattern.compile("@(.*)@");
@@ -102,6 +106,13 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private Converter<String, String> converter;
 
+    /**
+     * Post processor applied to the generated output for an individual item.
+     * When multiple items are exported via {@link #disseminate(Context, Iterator, OutputStream)}
+     * no post processing is invoked on the template lines not related to the single item.
+     * This allow to give flexibility in the generation of the template without preventing us to
+     * output the results progressively as soon as an individual item has been worked on
+     */
     private Consumer<List<String>> linesPostProcessor;
 
     private String multipleItemsTemplateFileName;
@@ -168,12 +179,14 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
                 BufferedWriter writer = new BufferedWriter(osw)) {
             List<String> lines = getItemLines(context, dso, true);
             writeLines(writer, lines);
+            writer.newLine();
             writer.flush();
         }
     }
 
     @Override
-    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
+    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, Integer total,
+            Integer offset, Integer size, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException {
 
         if (CollectionUtils.isEmpty(multipleItemsTemplateLines)) {
@@ -187,30 +200,73 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
                 BufferedWriter writer = new BufferedWriter(osw)) {
             List<String> multiLines = new ArrayList<String>();
+            boolean itemProcessed = false;
             for (TemplateLine line : multipleItemsTemplateLines) {
                 if (line.isTemplateField()) {
-                    writeLines(writer, multiLines);
+                    if (multiLines.size() > 0) {
+                        if (itemProcessed) {
+                            writer.newLine();
+                            itemProcessed = false;
+                        }
+                        writeLines(writer, multiLines);
+                        writer.newLine();
+                    }
                     multiLines.clear();
+                    boolean first = true;
+                    boolean afterPreviousItem = false;
                     while (dsoIterator.hasNext()) {
-                        List<String> lines = new ArrayList<String>();
                         DSpaceObject dso = dsoIterator.next();
                         if (!canDisseminate(context, dso)) {
                             throw new CrosswalkObjectNotSupported(
                                 "Can only crosswalk items with the configured type: " + entityType);
                         }
-                        List<String> singleTemplateLines = getSingleItemLines(context, dso, line);
-                        for (String singleTemplateLine : singleTemplateLines) {
-                            lines.add(line.getBeforeField() + singleTemplateLine);
+                        List<String> lines = getSingleItemLines(context, dso, line);
+                        if (lines.size() > 0) {
+                            if (afterPreviousItem && StringUtils.isNotBlank(line.getAfterField())) {
+                                lines.add(0, line.getAfterField());
+                            } else if (itemProcessed) {
+                                writer.newLine();
+                            }
+                            if (first) {
+                                first = false;
+                            } else if (StringUtils.isNotBlank(line.getBeforeField())) {
+                                lines.add(line.getBeforeField());
+                            }
+                            itemProcessed = true;
+                        }
+                        if (dsoIterator.hasNext()) {
+                            afterPreviousItem = true;
                         }
                         writeLines(writer, lines);
                     }
                 } else {
-                    multiLines.add(line.getBeforeField());
+                    multiLines.add(transformMultiTemplateLine(dsoIterator, total, offset, size, line.getBeforeField()));
                 }
             }
-            writeLines(writer, multiLines);
+            if (itemProcessed) {
+                writer.newLine();
+            }
+            if (multiLines.size() > 0) {
+                writeLines(writer, multiLines);
+                writer.newLine();
+            }
             writer.flush();
         }
+    }
+
+    private String transformMultiTemplateLine(Iterator<? extends DSpaceObject> dsoIterator, Integer total,
+            Integer offset, Integer size, String beforeField) {
+        String output = beforeField;
+        if (total != null) {
+            output = output.replace(TOTAL_FIELD, String.valueOf(total));
+        }
+        if (offset != null) {
+            output = output.replace(OFFSET_FIELD, String.valueOf(offset));
+        }
+        if (size != null) {
+            output = output.replace(COUNTER_FIELD, String.valueOf(size));
+        }
+        return output;
     }
 
     @Override
@@ -285,13 +341,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     private List<String> getSingleItemLines(Context context, DSpaceObject dso, TemplateLine line)
         throws CrosswalkObjectNotSupported, IOException {
 
-        List<String> singleItemLines = getItemLines(context, dso, this.findRelatedItems);
-        if (singleItemLines.size() > 0) {
-            String lastLine = singleItemLines.get(singleItemLines.size() - 1);
-            singleItemLines.set(singleItemLines.size() - 1, lastLine + line.getAfterField());
-        }
-
-        return singleItemLines;
+        return getItemLines(context, dso, this.findRelatedItems);
     }
 
     private void appendLines(Context context, Item item, Iterator<TemplateLine> iterator, List<String> lines,
@@ -529,10 +579,15 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         if (linesPostProcessor != null) {
             linesPostProcessor.accept(lines);
         }
-        for (String line : lines) {
-            writer.write(line);
-            writer.newLine();
-        }
+        lines.stream().limit(lines.size() - 1).forEachOrdered(line -> {
+            try {
+                writer.write(line);
+                writer.newLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        writer.write(lines.get(lines.size() - 1));
     }
 
     private Item findById(Context context, UUID id) {

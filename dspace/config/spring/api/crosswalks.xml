@@ -217,7 +217,6 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/epfl-publications-marc-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
-		<property name="linesPostProcessor" ref="xmlMarcCounterPostProcessor" />
 		<property name="publiclyReadable" value="true"/>
 		<property name="findRelatedItems" value="true"/>
 		<property name="entityType" value="all"/>
@@ -748,9 +747,6 @@
 	<bean class="org.dspace.content.integration.crosswalks.converter.JsonValueConverter" id="jsonValueConverter" />
 	
 	<bean class="org.dspace.content.integration.crosswalks.postprocessors.JsonPostProcessor" id="jsonPostProcessor" />
-	<bean class="org.dspace.content.integration.crosswalks.postprocessors.ItemsCounterPostProcessor" id="xmlMarcCounterPostProcessor">
-		<constructor-arg name="itemLineIdentifier" value="&lt;record"/>
-	</bean>
 
 	<!-- VIRTUAL FIELDS CONFIGURATION -->
 	

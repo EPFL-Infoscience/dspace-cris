@@ -2369,7 +2369,8 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(referCrossWalkHtml, notNullValue());
 
         ByteArrayOutputStream outHtml = new ByteArrayOutputStream();
-        referCrossWalkHtml.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), outHtml);
+        referCrossWalkHtml.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), 2, 0, 2,
+                outHtml);
 
         try (FileInputStream fis = getFileInputStream("epfl-publications.html")) {
             String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
@@ -2380,7 +2381,8 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(referCrossWalkMarc, notNullValue());
 
         ByteArrayOutputStream outMarc = new ByteArrayOutputStream();
-        referCrossWalkMarc.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), outMarc);
+        referCrossWalkMarc.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), 2, 0, 2,
+                outMarc);
 
         try (FileInputStream fis = getFileInputStream("epfl-publications-marc.xml")) {
             String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());

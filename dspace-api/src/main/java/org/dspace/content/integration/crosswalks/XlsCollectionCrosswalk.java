@@ -90,8 +90,9 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     }
 
     @Override
-    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
-        throws CrosswalkException, IOException, SQLException, AuthorizeException {
+    public void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, Integer total,
+            Integer offset, Integer size, OutputStream out)
+            throws CrosswalkException, IOException, SQLException, AuthorizeException {
 
         if (!dsoIterator.hasNext()) {
             throw new IllegalArgumentException("At least one object must be provided to perform xsl export");

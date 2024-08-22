@@ -61,19 +61,53 @@ public interface StreamDisseminationCrosswalk {
     /**
      * Execute crosswalk on the given objects, sending output to the stream.
      *
-     * @param context the DSpace context
-     * @param dsoIterator  an iterator over the DSpace object to export
-     * @param out     output stream to write to
-     * @throws CrosswalkInternalException  (<code>CrosswalkException</code>) failure of the crosswalk itself.
-     * @throws CrosswalkObjectNotSupported (<code>CrosswalkException</code>) Cannot crosswalk this kind of DSpace
-     *                                     object.
+     * @param context     the DSpace context
+     * @param dsoIterator an iterator over the DSpace object to export
+     * @param total       if the iterator represent a subset of a larger set you can
+     *                    provide the information about how large is the full set.
+     *                    Use <code>null</code> if this is not applicable or unknown
+     * @param offset      if the iterator represent a subset of a larger set you can
+     *                    provide the information about the offset applied to the
+     *                    iterator. Use <code>null</code> if this is not applicable
+     *                    or unknown
+     * @param size        You can provide the information about how many objects are
+     *                    included in the iterator before hand Use <code>null</code>
+     *                    if this is not applicable or unknown
+     * @param out         output stream to write to
+     * @throws CrosswalkInternalException  (<code>CrosswalkException</code>) failure
+     *                                     of the crosswalk itself.
+     * @throws CrosswalkObjectNotSupported (<code>CrosswalkException</code>) Cannot
+     *                                     crosswalk this kind of DSpace object.
      * @throws IOException                 I/O failure in services this calls
      * @throws SQLException                Database failure in services this calls
-     * @throws AuthorizeException          current user not authorized for this operation.
+     * @throws AuthorizeException          current user not authorized for this
+     *                                     operation.
      */
-    public default void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
+    public default void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator,
+            Integer total, Integer offset, Integer size, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException {
         throw new UnsupportedOperationException("Crosswalk on multiple DSpace object not supported");
+    }
+
+    /**
+     * See
+     * {@link #disseminate(Context, Iterator, Integer, Integer, Integer, OutputStream)}
+     * with total, offset and size all <code>null</call>
+     * &#64;param context     the DSpace context
+     * &#64;param dsoIterator an iterator over the DSpace object to export
+     * &#64;param out         output stream to write to
+     * @throws CrosswalkInternalException  (<code>CrosswalkException</code>) failure
+     *                                     of the crosswalk itself.
+     * @throws CrosswalkObjectNotSupported (<code>CrosswalkException</code>) Cannot
+     *                                     crosswalk this kind of DSpace object.
+     * @throws IOException                 I/O failure in services this calls
+     * @throws SQLException                Database failure in services this calls
+     * @throws AuthorizeException          current user not authorized for this
+     *                                     operation.
+     */
+    public default void disseminate(Context context, Iterator<? extends DSpaceObject> dsoIterator, OutputStream out)
+            throws CrosswalkException, IOException, SQLException, AuthorizeException {
+        disseminate(context, dsoIterator, null, null, null, out);
     }
 
     /**
