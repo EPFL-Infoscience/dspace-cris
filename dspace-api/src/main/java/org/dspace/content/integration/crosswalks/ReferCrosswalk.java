@@ -164,15 +164,12 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         if (!isAuthorized(context)) {
             throw new AuthorizeException("The current user is not allowed to perform a zip item export");
         }
-
-        List<String> lines = getItemLines(context, dso, true);
-
-        if (linesPostProcessor != null) {
-            linesPostProcessor.accept(lines);
+        try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
+                BufferedWriter writer = new BufferedWriter(osw)) {
+            List<String> lines = getItemLines(context, dso, true);
+            writeLines(writer, lines);
+            writer.flush();
         }
-
-        writeLines(out, lines);
-
     }
 
     @Override
@@ -187,32 +184,33 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             throw new AuthorizeException("The current user is not allowed to perform a zip item export");
         }
 
-        List<String> multiLines = new ArrayList<String>();
-        for (TemplateLine line : multipleItemsTemplateLines) {
-
-            if (line.isTemplateField()) {
-                writeLines(out, multiLines);
-                multiLines.clear();
-                while (dsoIterator.hasNext()) {
-                    List<String> lines = new ArrayList<String>();
-                    DSpaceObject dso = dsoIterator.next();
-                    if (!canDisseminate(context, dso)) {
-                        throw new CrosswalkObjectNotSupported(
-                            "Can only crosswalk items with the configured type: " + entityType);
+        try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
+                BufferedWriter writer = new BufferedWriter(osw)) {
+            List<String> multiLines = new ArrayList<String>();
+            for (TemplateLine line : multipleItemsTemplateLines) {
+                if (line.isTemplateField()) {
+                    writeLines(writer, multiLines);
+                    multiLines.clear();
+                    while (dsoIterator.hasNext()) {
+                        List<String> lines = new ArrayList<String>();
+                        DSpaceObject dso = dsoIterator.next();
+                        if (!canDisseminate(context, dso)) {
+                            throw new CrosswalkObjectNotSupported(
+                                "Can only crosswalk items with the configured type: " + entityType);
+                        }
+                        List<String> singleTemplateLines = getSingleItemLines(context, dso, line);
+                        for (String singleTemplateLine : singleTemplateLines) {
+                            lines.add(line.getBeforeField() + singleTemplateLine);
+                        }
+                        writeLines(writer, lines);
                     }
-
-                    List<String> singleTemplateLines = getSingleItemLines(context, dso, line);
-                    for (String singleTemplateLine : singleTemplateLines) {
-                        lines.add(line.getBeforeField() + singleTemplateLine);
-                    }
-                    writeLines(out, lines);
+                } else {
+                    multiLines.add(line.getBeforeField());
                 }
-
-            } else {
-                multiLines.add(line.getBeforeField());
             }
+            writeLines(writer, multiLines);
+            writer.flush();
         }
-        writeLines(out, multiLines);
     }
 
     @Override
@@ -527,17 +525,13 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         lines.add(line.getBeforeField() + valueToAdd + line.getAfterField());
     }
 
-    private void writeLines(OutputStream out, List<String> lines) throws IOException {
-        try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
-            BufferedWriter writer = new BufferedWriter(osw)) {
-            if (linesPostProcessor != null) {
-                linesPostProcessor.accept(lines);
-            }
-            for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
-            }
-            writer.flush();
+    private void writeLines(BufferedWriter writer, List<String> lines) throws IOException {
+        if (linesPostProcessor != null) {
+            linesPostProcessor.accept(lines);
+        }
+        for (String line : lines) {
+            writer.write(line);
+            writer.newLine();
         }
     }
 
