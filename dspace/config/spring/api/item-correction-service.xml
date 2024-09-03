@@ -7,81 +7,54 @@
 
 
     <!-- Submission correction Service Application. Autowired at this time. -->
-    <bean id="org.dspace.versioning.ItemCorrectionService"
-          class="org.dspace.versioning.ItemCorrectionService"
-          scope="singleton">
-       <constructor-arg name="correctionRelationshipName" value="isCorrectionOfItem" />
+    <bean id="org.dspace.versioning.ItemCorrectionService" class="org.dspace.versioning.ItemCorrectionService" scope="singleton">
+        <constructor-arg name="correctionRelationshipName" value="isCorrectionOfItem" />
     </bean>
 
     <!-- Correction Item Provider, defines behavior for replicating
-         Item, Metadata, Budles and Bitstreams. Autowired at this time. -->
+        Item, Metadata, Budles and Bitstreams. Autowired at this time. -->
     <bean class="org.dspace.versioning.ItemCorrectionProvider">
-        <property name="ignoredMetadataFields" >
+        <property name="ignoredMetadataFields">
             <set>
-				<value>dc.date.accessioned</value>
-				<value>dc.date.available</value>
-				<value>dspace.entity.type</value>
+                <value>dc.date.accessioned</value>
+                <value>dc.date.available</value>
+                <value>dspace.entity.type</value>
             </set>
         </property>
-        <property name="ignoredMetadataFieldsOfCreation" >
-            <set>
-            </set>
-        </property>
-        <property name="ignoredMetadataFieldsOfMerging" >
+        <property name="ignoredMetadataFieldsOfCreation">
             <set>
             </set>
         </property>
-		<property name="bundles" >
-			<set>
-				<value>ORIGINAL</value>
-			</set>
-		</property>
+        <property name="ignoredMetadataFieldsOfMerging">
+            <set>
+            </set>
+        </property>
+        <property name="bundles">
+            <set>
+                <value>ORIGINAL</value>
+            </set>
+        </property>
     </bean>
-    
-	<util:map id="correctItemModesMap" map-class="java.util.HashMap" key-type="java.lang.String" value-type="java.util.List"> 
-		<entry key="Publication">
-			<list>
-                <bean class="org.dspace.content.edit.CorrectItemMode">
-                    <property name="security">
-                        <value type="org.dspace.content.security.CrisSecurity">GROUP</value>
-                    </property>
-                    <property name="groups">
-                       <list>
-                           <value>Administrator</value>
-                           <value>Curators</value>
-                       </list>
-                    </property>
-                </bean>
-                <bean class="org.dspace.content.edit.CorrectItemMode">
-                    <property name="security">
-                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
-                    </property>
-                    <property name="items">
-                        <list>
-                            <value>dc.contributor.author</value>
-                            <value>dc.contributor.editor</value>
-                        </list>
-                    </property>
-                </bean>
-                <bean class="org.dspace.content.edit.CorrectItemMode">
-                    <property name="security">
-                        <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
-                    </property>
-                </bean>
-			</list>
-		</entry> 
-        <entry key="Product">
+
+    <util:map id="correctItemModesMap" map-class="java.util.HashMap" key-type="java.lang.String" value-type="java.util.List">
+        <entry key="Publication">
             <list>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">GROUP</value>
                     </property>
                     <property name="groups">
-                       <list>
-                           <value>Administrator</value>
-                           <value>Curators</value>
-                       </list>
+                        <list>
+                            <value>Administrator</value>
+                            <value>Curators</value>
+                        </list>
                     </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items" ref="itemsMetadata" />
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
@@ -90,26 +63,66 @@
                 </bean>
             </list>
         </entry>
-		<entry key="Patent">
-			<list>
+        <entry key="Product">
+            <list>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">GROUP</value>
                     </property>
                     <property name="groups">
-                       <list>
-                           <value>Administrator</value>
-                           <value>Curators</value>
-                       </list>
+                        <list>
+                            <value>Administrator</value>
+                            <value>Curators</value>
+                        </list>
                     </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items" ref="itemsMetadata" />
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
                     </property>
                 </bean>
-			</list>
-		</entry>
-	</util:map>
-           
+            </list>
+        </entry>
+        <entry key="Patent">
+            <list>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">GROUP</value>
+                    </property>
+                    <property name="groups">
+                        <list>
+                            <value>Administrator</value>
+                            <value>Curators</value>
+                        </list>
+                    </property>
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items" ref="itemsMetadata" />
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
+                    </property>
+                </bean>
+            </list>
+        </entry>
+    </util:map>
+
+    <util:list id="itemsMetadata" value-type="java.lang.String">
+        <value>dc.contributor.author</value>
+        <value>dc.contributor.editor</value>
+        <value>dc.contributor.scientificeditor</value>
+        <value>dc.contributor.advisor</value>
+        <value>cris.virtual.unitManager</value>
+    </util:list>
+
 </beans>
