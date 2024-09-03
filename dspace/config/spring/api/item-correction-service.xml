@@ -56,12 +56,7 @@
                     <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
                     </property>
-                    <property name="items">
-                        <list>
-                            <value>dc.contributor.author</value>
-                            <value>dc.contributor.editor</value>
-                        </list>
-                    </property>
+                    <property name="items" ref="itemsMetadata" />
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
@@ -85,6 +80,12 @@
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items" ref="itemsMetadata" />
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
                     </property>
                 </bean>
@@ -105,6 +106,12 @@
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items" ref="itemsMetadata" />
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
                     </property>
                 </bean>
@@ -112,4 +119,12 @@
 		</entry>
 	</util:map>
            
+    <util:list id="itemsMetadata" value-type="java.lang.String">
+        <value>dc.contributor.author</value>
+        <value>dc.contributor.editor</value>
+        <value>dc.contributor.scientificeditor</value>
+        <value>dc.contributor.advisor</value>
+        <value>cris.virtual.unitManager</value>
+    </util:list>
+
 </beans>
