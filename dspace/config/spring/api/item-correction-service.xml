@@ -118,13 +118,5 @@
 			</list>
 		</entry>
 	</util:map>
-           
-    <util:list id="itemsMetadata" value-type="java.lang.String">
-        <value>dc.contributor.author</value>
-        <value>dc.contributor.editor</value>
-        <value>dc.contributor.scientificeditor</value>
-        <value>dc.contributor.advisor</value>
-        <value>cris.virtual.unitManager</value>
-    </util:list>
 
 </beans>
