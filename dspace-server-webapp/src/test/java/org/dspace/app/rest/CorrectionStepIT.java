@@ -409,6 +409,53 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
     }
 
+    /**
+     * Requested by EPFL
+     * @see https://4science.atlassian.net/browse/RHD-13730
+     * @see https://4science.atlassian.net/browse/CST-16510
+     * @throws Exception
+     */
+    @Test
+    public void checkCorrectionWithChangeOfCollection() throws Exception {
+        String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
+
+        //create a correction item
+        getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
+                .param("owningCollection", collection.getID().toString())
+                .param("relationship", "isCorrectionOfItem")
+                .param("item", itemToBeCorrected.getID().toString())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+        context.turnOffAuthorisationSystem();
+
+        Collection newCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("New Collection")
+                .withEntityType("Publication")
+                .withWorkflowGroup("editor", admin)
+                .withSubmitterGroup(eperson)
+                .withSubmissionDefinition("traditional")
+                .withCorrectionSubmissionDefinition("traditional-with-correction")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        operations.add(new ReplaceOperation("/sections/collection", newCollection.getID().toString()));
+        String patchBody = getPatchContent(operations);
+        getClient(tokenSubmitter).perform(patch("/api/submission/workspaceitems/" + workspaceItemIdRef.get())
+                        .content(patchBody)
+                        .contentType("application/json-patch+json"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist());
+
+        getClient(tokenSubmitter).perform(get("/api/submission/workspaceitems/" + workspaceItemIdRef.get()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.collection", is(newCollection.getID().toString())));
+
+    }
+
     private static Matcher<?> matchMetadataCorrection(String value) {
         return Matchers.anyOf(
                 hasJsonPath("$.newValues[0]", equalTo(value)),
