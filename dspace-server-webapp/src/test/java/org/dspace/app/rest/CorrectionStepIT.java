@@ -98,6 +98,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
     private WorkspaceItemService workspaceItemService;
 
     private Collection collection;
+    private Collection newCollection;
 
     private Item itemToBeCorrected;
 
@@ -125,6 +126,15 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
         collection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection")
+                .withEntityType("Publication")
+                .withWorkflowGroup("editor", admin)
+                .withSubmitterGroup(eperson)
+                .withSubmissionDefinition("traditional")
+                .withCorrectionSubmissionDefinition("traditional-with-correction")
+                .build();
+
+        newCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("New Collection")
                 .withEntityType("Publication")
                 .withWorkflowGroup("editor", admin)
                 .withSubmitterGroup(eperson)
@@ -429,20 +439,6 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
-
-        context.turnOffAuthorisationSystem();
-
-        // create a new collection
-        Collection newCollection = CollectionBuilder.createCollection(context, parentCommunity)
-                .withName("New Collection")
-                .withEntityType("Publication")
-                .withWorkflowGroup("editor", admin)
-                .withSubmitterGroup(eperson)
-                .withSubmissionDefinition("traditional")
-                .withCorrectionSubmissionDefinition("traditional-with-correction")
-                .build();
-
-        context.restoreAuthSystemState();
 
         // move the correction item to the new collection
         List<Operation> operations = new ArrayList<Operation>();
