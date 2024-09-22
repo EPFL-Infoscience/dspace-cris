@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,6 +66,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.mock.web.MockMultipartFile;
 
 /**
  * Integration tests for {@link CorrectionStep}.
@@ -419,7 +421,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
     public void checkCorrectionWithChangeOfCollection() throws Exception {
         String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
 
-        //create a correction item
+        // create a correction item
         getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
                 .param("owningCollection", collection.getID().toString())
                 .param("relationship", "isCorrectionOfItem")
@@ -430,6 +432,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
         context.turnOffAuthorisationSystem();
 
+        // create a new collection
         Collection newCollection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("New Collection")
                 .withEntityType("Publication")
@@ -441,6 +444,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
+        // move the correction item to the new collection
         List<Operation> operations = new ArrayList<Operation>();
         operations.add(new ReplaceOperation("/sections/collection", newCollection.getID().toString()));
         String patchBody = getPatchContent(operations);
@@ -450,10 +454,44 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.errors").doesNotExist());
 
+        // check that the correction item belongs to the new collection
         getClient(tokenSubmitter).perform(get("/api/submission/workspaceitems/" + workspaceItemIdRef.get()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sections.collection", is(newCollection.getID().toString())));
 
+    }
+
+    /**
+     * Requested by EPFL
+     * @see https://4science.atlassian.net/browse/RHD-13730
+     * @see https://4science.atlassian.net/browse/CST-16510
+     * @throws Exception
+     */
+    @Test
+    public void checkCorrectionWithAdditionOfBitstream() throws Exception {
+        String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
+
+        // create a correction item
+        getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
+                .param("owningCollection", collection.getID().toString())
+                .param("relationship", "isCorrectionOfItem")
+                .param("item", itemToBeCorrected.getID().toString())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+        context.turnOffAuthorisationSystem();
+
+        final MockMultipartFile pdfFile = new MockMultipartFile("file", "/local/path/simple-article.pdf",
+                "application/pdf", simpleArticle.getInputStream());
+
+        context.restoreAuthSystemState();
+
+        // upload the file in our workspaceitem
+        getClient(tokenSubmitter).perform(multipart("/api/submission/workspaceitems/" + workspaceItemIdRef.get())
+                .file(pdfFile))
+                .andExpect(status().isCreated())
+        ;
     }
 
     private static Matcher<?> matchMetadataCorrection(String value) {
