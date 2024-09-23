@@ -527,6 +527,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="article-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="article_type" />
@@ -539,9 +540,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="article-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="article_type" />
       <step id="alternative_identifiers" />
       <step id="article_details" />
@@ -563,6 +566,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="media-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="media_details" />
@@ -570,9 +574,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="media-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="media_details" />
       <step id="additional_fields" />
       <step id="related_works" />
@@ -587,8 +593,10 @@
       <step id="related_works" />
       <step id="detect-duplicate" />
       <step id="license" />
+      <step id="collection" />
     </submission-process>
     <submission-process name="other-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="other_details" />
@@ -596,9 +604,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="other-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="media_details" />
       <step id="additional_fields" />
       <step id="related_works" />
@@ -619,6 +629,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="dataset-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-product" />
       <step id="dataset_details" />
@@ -630,14 +641,18 @@
       <step id="ctb-bitstream-metadata" />
     </submission-process>
     <submission-process name="dataset-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="notes-for-reviewer" />
+      <step id="upload-product" />
       <step id="correction" />
       <step id="dataset_details" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
       <step id="related_event" />
+      <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
     </submission-process>
     <submission-process name="patent">
       <step id="collection" />
@@ -651,6 +666,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="patent-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-patent" />
       <step id="patent" />
@@ -658,9 +674,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="patent-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-patent" />
       <step id="patent" />
       <step id="additional_fields" />
       <step id="related_works" />
@@ -718,6 +736,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="student-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="student_type" />
@@ -731,6 +750,7 @@
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="student_type" />
       <step id="thesis_details" />
       <step id="additional_fields" />
@@ -757,6 +777,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="conference-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="conference_details" />
@@ -769,9 +790,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="conference-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="conference_details" />
       <step id="bookcontainer_details" />
       <step id="journalcontainer_details" />
@@ -794,6 +817,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="report-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="report_details" />
@@ -802,9 +826,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="report-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="report_details" />
       <step id="additional_fields" />
       <step id="grants" />
@@ -822,6 +848,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="design-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="design_details" />
@@ -829,9 +856,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="design-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="extractionstep" />
       <step id="design_details" />
       <step id="additional_fields" />
@@ -853,6 +882,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="preprint-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="preprint_type" />
@@ -863,9 +893,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="preprint-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="preprint_type" />
       <step id="alternative_identifiers" />
       <step id="preprint_details" />
@@ -886,6 +918,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="teaching-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="teaching_details" />
@@ -894,9 +927,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="teaching-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="teaching_details" />
       <step id="additional_fields" />
       <step id="related_event" />
@@ -917,6 +952,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="book-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="book_details" />
@@ -926,9 +962,11 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="book-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
       <step id="book_details" />
       <step id="bookcontainer_details" />
       <step id="additional_fields" />
@@ -957,6 +995,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="publication-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-publication" />
       <step id="itemAccessConditions" />
@@ -973,9 +1012,13 @@
       <step id="related_works" />
     </submission-process>
     <submission-process name="publication-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="correction" />
       <step id="notes-for-reviewer" />
+      <step id="upload-publication" />
+      <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
       <step id="publication_type" />
       <step id="alternative_identifiers" />
       <step id="basic_information" />
@@ -1005,6 +1048,7 @@
       <step id="license" />
     </submission-process>
     <submission-process name="product-edit">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="upload-product" />
       <step id="itemAccessConditions" />
@@ -1019,8 +1063,12 @@
       <step id="additional_fields" />
     </submission-process>
     <submission-process name="product-correction">
+      <step id="collection" />
       <step id="extractionstep" />
       <step id="notes-for-reviewer" />
+      <step id="upload-product" />
+      <step id="itemAccessConditions" />
+      <step id="ctb-bitstream-metadata" />
       <step id="correction" />
       <step id="product_type" />
       <step id="alternative_identifiers" />

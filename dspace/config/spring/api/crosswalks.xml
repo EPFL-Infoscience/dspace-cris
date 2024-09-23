@@ -914,6 +914,7 @@
 		<property name="converterNameFile" value="mapConverter-publicationTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value=""/>
+		<property name="useAuthority" value="true" />
 	</bean>
 
 	<bean name="mapConverterCoarToPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">

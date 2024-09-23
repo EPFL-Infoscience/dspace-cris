@@ -56,12 +56,7 @@
                     <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
                     </property>
-                    <property name="items">
-                        <list>
-                            <value>dc.contributor.author</value>
-                            <value>dc.contributor.editor</value>
-                        </list>
-                    </property>
+                    <property name="items" ref="itemsMetadata" />
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
@@ -85,6 +80,12 @@
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items" ref="itemsMetadata" />
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
                     </property>
                 </bean>
@@ -105,11 +106,17 @@
                 </bean>
                 <bean class="org.dspace.content.edit.CorrectItemMode">
                     <property name="security">
+                        <value type="org.dspace.content.security.CrisSecurity">CUSTOM</value>
+                    </property>
+                    <property name="items" ref="itemsMetadata" />
+                </bean>
+                <bean class="org.dspace.content.edit.CorrectItemMode">
+                    <property name="security">
                         <value type="org.dspace.content.security.CrisSecurity">SUBMITTER</value>
                     </property>
                 </bean>
 			</list>
 		</entry>
 	</util:map>
-           
+
 </beans>
