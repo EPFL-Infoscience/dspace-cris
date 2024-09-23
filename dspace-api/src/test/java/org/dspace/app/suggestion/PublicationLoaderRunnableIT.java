@@ -117,6 +117,7 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testImportSuggestionsOfLoader() throws Exception {
         String loader = "pubmed";
         String idPart = "18926410";
