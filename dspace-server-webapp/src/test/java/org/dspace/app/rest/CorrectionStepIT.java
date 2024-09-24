@@ -39,6 +39,7 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.RelationshipTypeBuilder;
@@ -53,6 +54,7 @@ import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
+import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
@@ -103,6 +105,8 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
     private Item itemToBeCorrected;
 
     private EntityType publicationType;
+    private EntityType productType;
+    private EntityType patentType;
 
     private String date;
     private String title;
@@ -157,9 +161,19 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .build();
 
         publicationType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+        productType = EntityTypeBuilder.createEntityTypeBuilder(context, "Product").build();
+        patentType = EntityTypeBuilder.createEntityTypeBuilder(context, "Patent").build();
 
         RelationshipTypeBuilder.createRelationshipTypeBuilder(
             context, publicationType, publicationType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, productType, productType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
+        ).build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(
+            context, patentType, patentType, "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1
         ).build();
 
         context.setCurrentUser(eperson);
@@ -419,6 +433,175 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
             .andExpect(jsonPath("$.sections.correction.metadata", empty()))
             .andExpect(jsonPath("$.sections.correction.empty", is(true)));
 
+    }
+
+    @Test
+    public void checkCorrectionOfProduct() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .withEntityType("Product")
+                .withWorkflowGroup("editor", admin, eperson)
+                .withSubmitterGroup(eperson)
+                .withSubmissionDefinition("traditional")
+                .withCorrectionSubmissionDefinition("traditional-with-correction")
+                .build();
+
+        Item productToBeCorrected = ItemBuilder.createItem(context, collection)
+                .withTitle("Product tile")
+                .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", simpleArticle.getInputStream())
+                .withIssueDate(date)
+                .withSubject("Product subject")
+                .withType("Product")
+                .grantLicense()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        AtomicReference<Integer> productWorkspaceItemIdRef = new AtomicReference<Integer>();
+        String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
+
+        // create a correction item
+        getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
+                .param("owningCollection", collection.getID().toString())
+                .param("relationship", "isCorrectionOfItem")
+                .param("item", productToBeCorrected.getID().toString())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> productWorkspaceItemIdRef.set(
+                        read(result.getResponse().getContentAsString(), "$.id")));
+
+        //make a change on the title
+        Map<String, String> value = new HashMap<String, String>();
+        final String newTitle = "Product New Title";
+        value.put("value", newTitle);
+        List<Operation> addGrant = new ArrayList<Operation>();
+        addGrant.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
+        String patchBody = getPatchContent(addGrant);
+        getClient(tokenSubmitter).perform(patch("/api/submission/workspaceitems/" + productWorkspaceItemIdRef.get())
+            .content(patchBody)
+            .contentType("application/json-patch+json"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist());
+
+    }
+
+    @Test
+    public void checkCorrectionOfPatent() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .withEntityType("Product")
+                .withWorkflowGroup("editor", admin)
+                .withSubmitterGroup(eperson)
+                .withSubmissionDefinition("traditional")
+                .withCorrectionSubmissionDefinition("traditional-with-correction")
+                .build();
+
+        Item patentToBeCorrected = ItemBuilder.createItem(context, collection)
+                .withTitle("Patent title")
+                .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", simpleArticle.getInputStream())
+                .withIssueDate(date)
+                .withSubject("Patent subject")
+                .withType("Patent")
+                .grantLicense()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        AtomicReference<Integer> patentWorkspaceItemIdRef = new AtomicReference<Integer>();
+        String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
+
+        // create a correction item
+        getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
+                .param("owningCollection", collection.getID().toString())
+                .param("relationship", "isCorrectionOfItem")
+                .param("item", patentToBeCorrected.getID().toString())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> patentWorkspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+        //make a change on the title
+        Map<String, String> value = new HashMap<String, String>();
+        final String newTitle = "Patent New Title";
+        value.put("value", newTitle);
+        List<Operation> addGrant = new ArrayList<Operation>();
+        addGrant.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
+        String patchBody = getPatchContent(addGrant);
+        getClient(tokenSubmitter).perform(patch("/api/submission/workspaceitems/" + patentWorkspaceItemIdRef.get())
+            .content(patchBody)
+            .contentType("application/json-patch+json"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist());
+
+    }
+
+    @Test
+    public void checkCorrectionFromOrgUnitMembers() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        configurationService.setProperty("item-correction.permit-all", false);
+
+        Collection profiles = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Profile Collection")
+                .withEntityType("Person")
+                .build();
+
+        EPerson unitManager = EPersonBuilder.createEPerson(context)
+                .withEmail("direttore@test.it")
+                .withPassword(password)
+                .withNetId("888888")
+                .build();
+
+        Item unitManagerProfile = ItemBuilder.createItem(context, profiles)
+                .withTitle("Unit Manager")
+                .withMetadata("epfl", "sciperId", null, "888888")
+                .withMetadata("dspace", "object", "owner", null, unitManager.getEmail(),
+                        unitManager.getID().toString(), 600)
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .withEntityType("Publication")
+                .withWorkflowGroup("editor", admin)
+                .withSubmitterGroup(admin, unitManager)
+                .withSubmissionDefinition("traditional")
+                .withCorrectionSubmissionDefinition("traditional-with-correction")
+                .build();
+
+        Item publicationToBeCorrected = ItemBuilder.createItem(context, collection)
+                .withTitle("Publication title")
+                .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", simpleArticle.getInputStream())
+                .withIssueDate(date)
+                .withSubject("Publication subject")
+                .withType("Publication")
+                .withMetadata("cris", "virtual", "unitManager", null, "Unit Manager",
+                        unitManagerProfile.getID().toString(), 600)
+                .grantLicense()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        AtomicReference<Integer> wsItemIdRef = new AtomicReference<Integer>();
+        String tokenSubmitter = getAuthToken(unitManager.getEmail(), password);
+
+        getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
+                .param("owningCollection", collection.getID().toString())
+                .param("relationship", "isCorrectionOfItem")
+                .param("item", publicationToBeCorrected.getID().toString())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> wsItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+        context.turnOffAuthorisationSystem();
+
+        configurationService.setProperty("item-correction.permit-all", true);
+
+        context.restoreAuthSystemState();
     }
 
     /**
