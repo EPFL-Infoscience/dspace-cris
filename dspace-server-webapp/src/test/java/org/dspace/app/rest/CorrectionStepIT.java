@@ -552,7 +552,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .build();
 
         EPerson unitManager = EPersonBuilder.createEPerson(context)
-                .withEmail("direttore@test.it")
+                .withEmail("unitManager@test.it")
                 .withPassword(password)
                 .withNetId("888888")
                 .build();
@@ -564,17 +564,43 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                         unitManager.getID().toString(), 600)
                 .build();
 
+        EPerson scientificEditor = EPersonBuilder.createEPerson(context)
+                .withEmail("scientificEditor@test.it")
+                .withPassword(password)
+                .withNetId("888889")
+                .build();
+
+        Item scienticEditorProfile = ItemBuilder.createItem(context, profiles)
+                .withTitle("Scientific Editor")
+                .withMetadata("epfl", "sciperId", null, "888889")
+                .withMetadata("dspace", "object", "owner", null, scientificEditor.getEmail(),
+                        scientificEditor.getID().toString(), 600)
+                .build();
+
+        EPerson advisor = EPersonBuilder.createEPerson(context)
+                .withEmail("contributorAdvisor@test.it")
+                .withPassword(password)
+                .withNetId("888890")
+                .build();
+
+        Item advisorProfile = ItemBuilder.createItem(context, profiles)
+                .withTitle("Advisor")
+                .withMetadata("epfl", "sciperId", null, "888890")
+                .withMetadata("dspace", "object", "owner", null, advisor.getEmail(),
+                        advisor.getID().toString(), 600)
+                .build();
+
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection")
                 .withEntityType("Publication")
                 .withWorkflowGroup("editor", admin)
-                .withSubmitterGroup(admin, unitManager)
+                .withSubmitterGroup(admin, unitManager, scientificEditor, advisor)
                 .withSubmissionDefinition("traditional")
                 .withCorrectionSubmissionDefinition("traditional-with-correction")
                 .build();
 
-        Item publicationToBeCorrected = ItemBuilder.createItem(context, collection)
-                .withTitle("Publication title")
+        Item publicationToBeCorrectedByUnitManager = ItemBuilder.createItem(context, collection)
+                .withTitle("Publication title for unit manager")
                 .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", simpleArticle.getInputStream())
                 .withIssueDate(date)
                 .withSubject("Publication subject")
@@ -584,18 +610,64 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .grantLicense()
                 .build();
 
+        Item publicationToBeCorrectedByScientificEditor = ItemBuilder.createItem(context, collection)
+                .withTitle("Publication title for scientific editor")
+                .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", simpleArticle.getInputStream())
+                .withIssueDate(date)
+                .withSubject("Publication subject")
+                .withType("Publication")
+                .withMetadata("dc", "contributor", "scientificeditor", null, "Scientific Editor",
+                        scienticEditorProfile.getID().toString(), 600)
+                .grantLicense()
+                .build();
+
+        Item publicationToBeCorrectedByAdvisor = ItemBuilder.createItem(context, collection)
+                .withTitle("Publication title for advisor")
+                .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", simpleArticle.getInputStream())
+                .withIssueDate(date)
+                .withSubject("Publication subject")
+                .withType("Publication")
+                .withMetadata("dc", "contributor", "advisor", null, "Advisor",
+                        advisorProfile.getID().toString(), 600)
+                .grantLicense()
+                .build();
+
         context.restoreAuthSystemState();
 
-        AtomicReference<Integer> wsItemIdRef = new AtomicReference<Integer>();
-        String tokenSubmitter = getAuthToken(unitManager.getEmail(), password);
+        AtomicReference<Integer> wsItemForUnitManagerIdRef = new AtomicReference<Integer>();
+        String tokenUnitManager = getAuthToken(unitManager.getEmail(), password);
 
-        getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
+        getClient(tokenUnitManager).perform(post("/api/submission/workspaceitems")
                 .param("owningCollection", collection.getID().toString())
                 .param("relationship", "isCorrectionOfItem")
-                .param("item", publicationToBeCorrected.getID().toString())
+                .param("item", publicationToBeCorrectedByUnitManager.getID().toString())
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andDo(result -> wsItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+                .andDo(result -> wsItemForUnitManagerIdRef.set(
+                        read(result.getResponse().getContentAsString(), "$.id")));
+
+        AtomicReference<Integer> wsItemForScientificEditorIdRef = new AtomicReference<Integer>();
+        String tokenScientificEditor = getAuthToken(scientificEditor.getEmail(), password);
+
+        getClient(tokenScientificEditor).perform(post("/api/submission/workspaceitems")
+                .param("owningCollection", collection.getID().toString())
+                .param("relationship", "isCorrectionOfItem")
+                .param("item", publicationToBeCorrectedByScientificEditor.getID().toString())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> wsItemForScientificEditorIdRef.set(
+                        read(result.getResponse().getContentAsString(), "$.id")));
+
+        AtomicReference<Integer> wsItemForAdvisorIdRef = new AtomicReference<Integer>();
+        String tokenAdvisor = getAuthToken(advisor.getEmail(), password);
+
+        getClient(tokenAdvisor).perform(post("/api/submission/workspaceitems")
+                .param("owningCollection", collection.getID().toString())
+                .param("relationship", "isCorrectionOfItem")
+                .param("item", publicationToBeCorrectedByAdvisor.getID().toString())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> wsItemForAdvisorIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
         context.turnOffAuthorisationSystem();
 
