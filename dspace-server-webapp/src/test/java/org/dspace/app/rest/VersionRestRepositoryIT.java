@@ -1673,6 +1673,203 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
             )));
     }
 
+    @Test
+    public void testContributorsCanRequestNewVersions() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection profiles = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Profile Collection")
+                .withEntityType("Person")
+                .build();
+
+        EPerson author = EPersonBuilder.createEPerson(context)
+                .withEmail("author@test.it")
+                .withPassword(password)
+                .withNetId("888887")
+                .build();
+
+        Item authorProfile = ItemBuilder.createItem(context, profiles)
+                .withTitle("Author")
+                .withMetadata("epfl", "sciperId", null, "888890")
+                .withMetadata("dspace", "object", "owner", null, author.getEmail(),
+                        author.getID().toString(), 600)
+                .build();
+
+        EPerson scientificEditor = EPersonBuilder.createEPerson(context)
+                .withEmail("scientificEditor@test.it")
+                .withPassword(password)
+                .withNetId("888889")
+                .build();
+
+        Item scienticEditorProfile = ItemBuilder.createItem(context, profiles)
+                .withTitle("Scientific Editor")
+                .withMetadata("epfl", "sciperId", null, "888889")
+                .withMetadata("dspace", "object", "owner", null, scientificEditor.getEmail(),
+                        scientificEditor.getID().toString(), 600)
+                .build();
+
+        EPerson advisor = EPersonBuilder.createEPerson(context)
+                .withEmail("contributorAdvisor@test.it")
+                .withPassword(password)
+                .withNetId("888890")
+                .build();
+
+        Item advisorProfile = ItemBuilder.createItem(context, profiles)
+                .withTitle("Advisor")
+                .withMetadata("epfl", "sciperId", null, "888890")
+                .withMetadata("dspace", "object", "owner", null, advisor.getEmail(),
+                        advisor.getID().toString(), 600)
+                .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection")
+                .withEntityType("Publication")
+                .withWorkflowGroup("editor", admin)
+                .withSubmitterGroup(admin, author, scientificEditor, advisor)
+                .withSubmissionDefinition("traditional")
+                .build();
+
+        Item publicationToBeVersionedByAuthor = ItemBuilder.createItem(context, collection)
+                .withTitle("Publication title for author")
+                .withSubject("Publication subject")
+                .withType("Publication")
+                .withMetadata("dc", "contributor", "author", null, "Author",
+                        authorProfile.getID().toString(), 600)
+                .grantLicense()
+                .build();
+
+        Item publicationToBeVersionedByScientificEditor = ItemBuilder.createItem(context, collection)
+                .withTitle("Publication title for scientific editor")
+                .withSubject("Publication subject")
+                .withType("Publication")
+                .withMetadata("dc", "contributor", "scientificeditor", null, "Scientific Editor",
+                        scienticEditorProfile.getID().toString(), 600)
+                .grantLicense()
+                .build();
+
+        Item publicationToBeVersionedByAdvisor = ItemBuilder.createItem(context, collection)
+                .withTitle("Publication title for advisor")
+                .withSubject("Publication subject")
+                .withType("Publication")
+                .withMetadata("dc", "contributor", "advisor", null, "Advisor",
+                        advisorProfile.getID().toString(), 600)
+                .grantLicense()
+                .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        // Author
+
+        String tokenAuthor = getAuthToken(author.getEmail(), password);
+
+        getClient(tokenAuthor).perform(get("/api/core/items/" + publicationToBeVersionedByAuthor.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", allOf(
+                hasJsonPath("$.['dc.title']", containsInAnyOrder(
+                    hasJsonPath("$.value", is("Publication title for author"))
+                )),
+                hasJsonPath("$.['dspace.entity.type']", containsInAnyOrder(
+                    hasJsonPath("$.value", is("Publication"))
+                ))
+            )));
+
+        AtomicReference<Integer> idRefPublicationToBeVersionedByAuthor = new AtomicReference<Integer>();
+
+        try {
+            getClient(tokenAuthor).perform(post("/api/versioning/versions")
+                                 .param("summary", "summary author")
+                                 .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
+                                 .content("/api/core/items/" + publicationToBeVersionedByAuthor.getID()))
+                                 .andExpect(status().isCreated())
+                                 .andExpect(jsonPath("$", Matchers.allOf(
+                                            hasJsonPath("$.version", is(2)),
+                                            hasJsonPath("$.summary", is("summary author")),
+                                            hasJsonPath("$.type", is("version"))
+                                            )))
+                                 .andDo(result -> idRefPublicationToBeVersionedByAuthor.set(
+                                         read(result.getResponse().getContentAsString(), "$.id")));
+        } finally {
+            if (idRefPublicationToBeVersionedByAuthor.get() != null) {
+                VersionBuilder.delete(idRefPublicationToBeVersionedByAuthor.get());
+            }
+        }
+
+        // Scientific editor
+
+        String tokenScientificEditor = getAuthToken(scientificEditor.getEmail(), password);
+
+        getClient(tokenScientificEditor).perform(get("/api/core/items/" +
+            publicationToBeVersionedByScientificEditor.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", allOf(
+                hasJsonPath("$.['dc.title']", containsInAnyOrder(
+                    hasJsonPath("$.value", is("Publication title for scientific editor"))
+                )),
+                hasJsonPath("$.['dspace.entity.type']", containsInAnyOrder(
+                    hasJsonPath("$.value", is("Publication"))
+                ))
+            )));
+
+        AtomicReference<Integer> idRefPublicationToBeVersionedByScientificEditor = new AtomicReference<Integer>();
+
+        try {
+            getClient(tokenScientificEditor).perform(post("/api/versioning/versions")
+                                 .param("summary", "summary scientific editor")
+                                 .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
+                                 .content("/api/core/items/" + publicationToBeVersionedByScientificEditor.getID()))
+                                 .andExpect(status().isCreated())
+                                 .andExpect(jsonPath("$", Matchers.allOf(
+                                            hasJsonPath("$.version", is(2)),
+                                            hasJsonPath("$.summary", is("summary scientific editor")),
+                                            hasJsonPath("$.type", is("version"))
+                                            )))
+                                 .andDo(result -> idRefPublicationToBeVersionedByScientificEditor.set(
+                                         read(result.getResponse().getContentAsString(), "$.id")));
+        } finally {
+            if (idRefPublicationToBeVersionedByScientificEditor.get() != null) {
+                VersionBuilder.delete(idRefPublicationToBeVersionedByScientificEditor.get());
+            }
+        }
+
+        // Advisor
+
+        String tokenAdvisor = getAuthToken(advisor.getEmail(), password);
+
+        getClient(tokenAdvisor).perform(get("/api/core/items/" + publicationToBeVersionedByAdvisor.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.metadata", allOf(
+                hasJsonPath("$.['dc.title']", containsInAnyOrder(
+                    hasJsonPath("$.value", is("Publication title for advisor"))
+                )),
+                hasJsonPath("$.['dspace.entity.type']", containsInAnyOrder(
+                    hasJsonPath("$.value", is("Publication"))
+                ))
+            )));
+
+        AtomicReference<Integer> idRefPublicationToBeVersionedByAdvisor = new AtomicReference<Integer>();
+
+        try {
+            getClient(tokenAdvisor).perform(post("/api/versioning/versions")
+                                 .param("summary", "summary advisor")
+                                 .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
+                                 .content("/api/core/items/" + publicationToBeVersionedByAdvisor.getID()))
+                                 .andExpect(status().isCreated())
+                                 .andExpect(jsonPath("$", Matchers.allOf(
+                                            hasJsonPath("$.version", is(2)),
+                                            hasJsonPath("$.summary", is("summary advisor")),
+                                            hasJsonPath("$.type", is("version"))
+                                            )))
+                                 .andDo(result -> idRefPublicationToBeVersionedByAdvisor.set(
+                                         read(result.getResponse().getContentAsString(), "$.id")));
+        } finally {
+            if (idRefPublicationToBeVersionedByAdvisor.get() != null) {
+                VersionBuilder.delete(idRefPublicationToBeVersionedByAdvisor.get());
+            }
+        }
+    }
+
     protected Item createNewVersion(Item oldItem, String newTitle) throws Exception {
         context.turnOffAuthorisationSystem();
 
