@@ -15,7 +15,6 @@
                     <value>ADMIN</value>
                     <value>CUSTOM</value>
                     <value>GROUP</value>
-                    <value>SUBMITTER</value>
                 </list>
             </property>
             <property name="items" ref="itemsMetadata" />
