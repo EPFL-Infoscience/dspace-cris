@@ -382,16 +382,6 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void createFirstVersionItemForbiddenTest() throws Exception {
-        String epersonToken = getAuthToken(eperson.getEmail(), password);
-        getClient(epersonToken).perform(post("/api/versioning/versions")
-                               .param("summary", "test summary!")
-                               .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
-                               .content("/api/core/items/" + item.getID()))
-                               .andExpect(status().isForbidden());
-    }
-
-    @Test
     public void createFirstVersionItemUnauthorizedTest() throws Exception {
         getClient().perform(post("/api/versioning/versions")
                    .param("summary", "test summary!")
@@ -720,12 +710,13 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
+        // eperson can create a version, being the item submitter
         String epersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(epersonToken).perform(post("/api/versioning/versions")
                                .param("summary", "test summary!")
                                .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
                                .content("/api/core/items/" + itemA.getID()))
-                               .andExpect(status().isForbidden());
+                               .andExpect(status().isCreated());
     }
 
     @Test
