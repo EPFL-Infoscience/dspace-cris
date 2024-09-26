@@ -961,7 +961,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
 
         getClient(getAuthToken(secondUser.getEmail(), password))
             .perform(get("/api/core/edititems/" + item.getID() + ":AUTHOR-CUSTOM"))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isOk());
 
         getClient(getAuthToken(thirdUser.getEmail(), password))
             .perform(get("/api/core/edititems/" + item.getID() + ":AUTHOR-CUSTOM"))

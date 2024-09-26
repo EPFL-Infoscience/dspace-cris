@@ -105,18 +105,6 @@ public class CanCreateVersionFeatureIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void epersonHasNotAccessTest() throws Exception {
-        String epersonToken = getAuthToken(eperson.getEmail(), password);
-        getClient(epersonToken).perform(get("/api/authz/authorizations/search/object")
-                               .param("embed", "feature")
-                               .param("feature", feature)
-                               .param("uri", utils.linkToSingleResource(itemARest, "self").getHref()))
-                            .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.page.totalElements", is(0)))
-                            .andExpect(jsonPath("$._embedded").doesNotExist());
-    }
-
-    @Test
     public void adminItemSuccessTest() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(get("/api/authz/authorizations/search/object")
@@ -186,12 +174,14 @@ public class CanCreateVersionFeatureIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void submitterItemWithPropertySubmitterCanCreateNewVersionIsFalseTest() throws Exception {
+    public void submitterItemWithPropertySubmitterCanCreateNewVersionTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         itemA.setSubmitter(user);
 
         context.restoreAuthSystemState();
+
+        // the item submitter must be able to create new versions
 
         String userToken = getAuthToken(user.getEmail(), password);
         getClient(userToken).perform(get("/api/authz/authorizations/search/object")
@@ -199,8 +189,8 @@ public class CanCreateVersionFeatureIT extends AbstractControllerIntegrationTest
                             .param("feature", feature)
                             .param("uri", utils.linkToSingleResource(itemARest, "self").getHref()))
                          .andExpect(status().isOk())
-                         .andExpect(jsonPath("$.page.totalElements", is(0)))
-                         .andExpect(jsonPath("$._embedded").doesNotExist());
+                         .andExpect(jsonPath("$.page.totalElements", greaterThan(0)))
+                         .andExpect(jsonPath("$._embedded").exists());
     }
 
     @Test
@@ -383,8 +373,11 @@ public class CanCreateVersionFeatureIT extends AbstractControllerIntegrationTest
         getClient(tokenUser).perform(get("/api/authz/authorizations/" + user2ItemA.getID()))
                             .andExpect(status().isNotFound());
 
+        //eperson is the submitter, this user is authorized to create a new version
         getClient(tokenEPerson).perform(get("/api/authz/authorizations/" + eperson2ItemA.getID()))
-                               .andExpect(status().isNotFound());
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$", Matchers.is(
+                                        AuthorizationMatcher.matchAuthorization(eperson2ItemA))));
     }
 
     @Test
