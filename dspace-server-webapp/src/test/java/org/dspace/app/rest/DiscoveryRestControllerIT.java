@@ -764,7 +764,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void discoverFacetsWithInvalidQuery() throws Exception {
-        getClient().perform(get("/api/discover/facets").param("query", "title:"))
+        getClient().perform(get("/api/discover/search/facets").param("query", "title:"))
                 .andExpect(status().isUnprocessableEntity());
 
         getClient().perform(get("/api/discover/facets/author_editor").param("query", "title:"))
