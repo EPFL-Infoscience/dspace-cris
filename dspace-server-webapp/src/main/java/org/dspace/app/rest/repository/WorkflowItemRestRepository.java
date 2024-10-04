@@ -214,7 +214,10 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
     public void patch(Context context, HttpServletRequest request, String apiCategory, String model, Integer id,
                       Patch patch) throws SQLException, AuthorizeException {
         List<Operation> operations = patch.getOperations();
-        WorkflowItemRest wsi = findOne(context, id);
+        WorkflowItemRest wfi = findOne(context, id);
+        if (wfi == null) {
+            throw new ResourceNotFoundException("WorkflowItem ID " + id + " not found");
+        }
         XmlWorkflowItem source = wis.find(context, id);
 
         this.checkIfEditMetadataAllowedInCurrentStep(context, source);
@@ -224,7 +227,7 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
             String[] path = op.getPath().substring(1).split("/", 3);
             if (OPERATION_PATH_SECTIONS.equals(path[0])) {
                 String section = path[1];
-                submissionService.evaluatePatchToInprogressSubmission(context, request, source, wsi, section, op);
+                submissionService.evaluatePatchToInprogressSubmission(context, request, source, wfi, section, op);
             } else {
                 throw new DSpaceBadRequestException(
                     "Patch path operation need to starts with '" + OPERATION_PATH_SECTIONS + "'");

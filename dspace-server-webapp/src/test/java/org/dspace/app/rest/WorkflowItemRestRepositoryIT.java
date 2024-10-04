@@ -686,6 +686,10 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
         getClient(token).perform(delete("/api/workflow/workflowitems/" + witem.getID()))
                     .andExpect(status().is(204));
 
+        // Delete the workflowitem a second time should result in 404
+        getClient(token).perform(delete("/api/workflow/workflowitems/" + witem.getID()))
+                    .andExpect(status().is(404));
+
         // Trying to get deleted workflowitem should fail with 404
         getClient(token).perform(get("/api/workflow/workflowitems/" + witem.getID()))
                    .andExpect(status().is(404));
@@ -1032,6 +1036,24 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
             .andExpect(jsonPath("$.errors[?(@.message=='error.validation.test')]", allOf(
                 contains(hasJsonPath("$.paths[0]", is("/sections/traditionalpageone/dc.title"))),
                 contains(hasJsonPath("$.paths[1]", is("/sections/traditionalpageone/dc.identifier.doi"))))));
+    }
+
+    @Test
+    public void patchNotExistingWorkflowItemTest() throws Exception {
+        List<Operation> update = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "Title");
+        values.add(value);
+        update.add(new AddOperation("/sections/traditionalpageone/dc.title", values));
+
+        String patchBody = getPatchContent(update);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/workflow/workflowitems/" + Integer.MAX_VALUE)
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isNotFound());
+
     }
 
     @Test
