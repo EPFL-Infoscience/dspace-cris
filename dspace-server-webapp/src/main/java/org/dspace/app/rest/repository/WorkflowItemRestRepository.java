@@ -196,6 +196,15 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
         Context context = obtainContext();
         WorkflowItemRest wsi = findOne(context, id);
         XmlWorkflowItem source = wis.find(context, id);
+        if (wsi == null) {
+            // we need to check the source as the rest resource could be null due to lack of authorization permission
+            if (source == null) {
+                throw new ResourceNotFoundException("WorkflowItem ID " + id + " not found");
+            } else {
+                throw new RESTAuthorizationException(
+                        "WorkflowItem ID " + id + " cannot be accessed by the current user");
+            }
+        }
 
         this.checkIfEditMetadataAllowedInCurrentStep(context, source);
         List<ErrorRest> errors = submissionService.uploadFileToInprogressSubmission(context, request, wsi, source,
@@ -215,10 +224,16 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
                       Patch patch) throws SQLException, AuthorizeException {
         List<Operation> operations = patch.getOperations();
         WorkflowItemRest wfi = findOne(context, id);
-        if (wfi == null) {
-            throw new ResourceNotFoundException("WorkflowItem ID " + id + " not found");
-        }
         XmlWorkflowItem source = wis.find(context, id);
+        if (wfi == null) {
+            // we need to check the source as the rest resource could be null due to lack of authorization permission
+            if (source == null) {
+                throw new ResourceNotFoundException("WorkflowItem ID " + id + " not found");
+            } else {
+                throw new RESTAuthorizationException(
+                        "WorkflowItem ID " + id + " cannot be accessed by the current user");
+            }
+        }
 
         this.checkIfEditMetadataAllowedInCurrentStep(context, source);
 
@@ -271,14 +286,14 @@ public class WorkflowItemRestRepository extends DSpaceRestRepository<WorkflowIte
             ClaimedTask claimedTask = claimedTaskService.findByWorkflowIdAndEPerson(context, xmlWorkflowItem,
                 context.getCurrentUser());
             if (claimedTask == null) {
-                throw new UnprocessableEntityException("WorkflowItem with id " + xmlWorkflowItem.getID()
+                throw new RESTAuthorizationException("WorkflowItem with id " + xmlWorkflowItem.getID()
                     + " has not been claimed yet.");
             }
             Workflow workflow = workflowFactory.getWorkflow(claimedTask.getWorkflowItem().getCollection());
             Step step = workflow.getStep(claimedTask.getStepID());
             WorkflowActionConfig currentActionConfig = step.getActionConfig(claimedTask.getActionID());
             if (!currentActionConfig.getProcessingAction().getOptions().contains(SUBMIT_EDIT_METADATA)) {
-                throw new UnprocessableEntityException(SUBMIT_EDIT_METADATA + " is not a valid option on this " +
+                throw new RESTAuthorizationException(SUBMIT_EDIT_METADATA + " is not a valid option on this " +
                     "action (" + currentActionConfig.getProcessingAction().getClass() + ").");
             }
         } catch (SQLException e) {

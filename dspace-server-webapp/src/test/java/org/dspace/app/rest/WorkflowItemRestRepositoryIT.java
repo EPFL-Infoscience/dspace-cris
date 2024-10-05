@@ -77,7 +77,6 @@ import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RestMediaTypes;
@@ -1126,7 +1125,6 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
     }
 
     @Test
-    @Ignore(value = "This demonstrate the bug logged in DS-4179")
     /**
      * Verify that update of metadata is forbidden in step 1.
      *
@@ -1181,7 +1179,7 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
             .andExpect(status().isOk())
             .andExpect(jsonPath("$",
                     Matchers.is(WorkflowItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(witem,
-                            "New Title", "2017-10-17", "ExtraEntry"))))
+                            "Workflow Item 1", "2017-10-17", "ExtraEntry"))))
         ;
     }
 
