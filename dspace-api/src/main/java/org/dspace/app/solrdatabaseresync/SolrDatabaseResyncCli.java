@@ -24,6 +24,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.dspace.core.Context;
+import org.dspace.core.Context.Mode;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.SearchServiceException;
@@ -85,14 +86,14 @@ public class SolrDatabaseResyncCli extends DSpaceRunnable<SolrDatabaseResyncCliS
         timeUntilReindex = getTimeUntilReindex();
         maxTime = getMaxTime();
 
-        Context context = new Context();
+        Context context = new Context(Mode.READ_ONLY);
 
         try {
             context.turnOffAuthorisationSystem();
             performStatusUpdate(context);
         } finally {
             context.restoreAuthSystemState();
-            context.complete();
+            context.abort();
         }
     }
 
@@ -165,11 +166,9 @@ public class SolrDatabaseResyncCli extends DSpaceRunnable<SolrDatabaseResyncCliS
 
     private void logInfoAndOut(String message) {
         log.info(message);
-        System.out.println(message);
     }
 
     private void logDebugAndOut(String message) {
         log.debug(message);
-        System.out.println(message);
     }
 }
