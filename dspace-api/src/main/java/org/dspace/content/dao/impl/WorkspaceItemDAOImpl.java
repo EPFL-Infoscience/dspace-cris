@@ -41,10 +41,17 @@ public class WorkspaceItemDAOImpl extends AbstractHibernateDAO<WorkspaceItem> im
 
     @Override
     public List<WorkspaceItem> findByEPerson(Context context, EPerson ep) throws SQLException {
-        Query query = createQuery(context,
+        Query query;
+        if (ep != null) {
+            query = createQuery(context,
                                   "from WorkspaceItem ws where ws.item.submitter = :submitter order by " +
                                       "workspaceItemId");
-        query.setParameter("submitter", ep);
+            query.setParameter("submitter", ep);
+        } else {
+            query = createQuery(context,
+                    "from WorkspaceItem ws where ws.item.submitter is null order by " +
+                        "workspaceItemId");
+        }
         return list(query);
     }
 
@@ -55,7 +62,13 @@ public class WorkspaceItemDAOImpl extends AbstractHibernateDAO<WorkspaceItem> im
         CriteriaQuery criteriaQuery = getCriteriaQuery(criteriaBuilder, WorkspaceItem.class);
         Root<WorkspaceItem> workspaceItemRoot = criteriaQuery.from(WorkspaceItem.class);
         criteriaQuery.select(workspaceItemRoot);
-        criteriaQuery.where(criteriaBuilder.equal(workspaceItemRoot.get(WorkspaceItem_.item).get("submitter"), ep));
+        if (ep != null) {
+            criteriaQuery.where(
+                    criteriaBuilder.equal(workspaceItemRoot.get(WorkspaceItem_.item).get("submitter"), ep));
+        } else {
+            criteriaQuery.where(
+                    criteriaBuilder.isNull(workspaceItemRoot.get(WorkspaceItem_.item).get("submitter")));
+        }
         criteriaQuery.orderBy(criteriaBuilder.asc(workspaceItemRoot.get(WorkspaceItem_.workspaceItemId)));
         return list(context, criteriaQuery, false, WorkspaceItem.class, limit, offset);
     }
@@ -118,9 +131,15 @@ public class WorkspaceItemDAOImpl extends AbstractHibernateDAO<WorkspaceItem> im
 
     @Override
     public int countRows(Context context, EPerson ep) throws SQLException {
-        Query query = createQuery(context,
-                                  "SELECT count(*) from WorkspaceItem ws where ws.item.submitter = :submitter");
-        query.setParameter("submitter", ep);
+        Query query;
+        if (ep != null) {
+            query = createQuery(context,
+                                "SELECT count(*) from WorkspaceItem ws where ws.item.submitter = :submitter");
+            query.setParameter("submitter", ep);
+        } else {
+            query = createQuery(context,
+                    "SELECT count(*) from WorkspaceItem ws where ws.item.submitter is null");
+        }
         return count(query);
     }
 
