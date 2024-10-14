@@ -33,9 +33,8 @@ public class RelatedItemEnhancerUpdatePoller {
 
     @Scheduled(fixedDelayString = "${related-item-enhancer-poller.delay}")
     public void pollItemToUpdateAndProcess() {
-        try {
+        try (Context context = new Context();) {
             log.debug("item enhancer poller executed");
-            Context context = new Context();
             context.turnOffAuthorisationSystem();
             UUID extractedUuid;
             while ((extractedUuid = itemEnhancerService.pollItemToUpdate(context)) != null) {
