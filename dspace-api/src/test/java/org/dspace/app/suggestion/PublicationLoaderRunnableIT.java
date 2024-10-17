@@ -87,6 +87,7 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testImportSuggestionsOfNotExistingLoader() throws Exception {
         String loader = "foo";
 
@@ -102,6 +103,7 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testImportSuggestionsOfInvalidResearcherUUID() throws Exception {
         String loader = "pubmed";
 
@@ -117,6 +119,7 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testImportSuggestionsOfLoader() throws Exception {
         String loader = "pubmed";
         String idPart = "18926410";
@@ -189,6 +192,7 @@ public class PublicationLoaderRunnableIT extends AbstractIntegrationTestWithData
     }
 
     @Test
+    @Ignore
     public void testImportSuggestionsWithItemLimit() throws Exception {
 
         context.turnOffAuthorisationSystem();

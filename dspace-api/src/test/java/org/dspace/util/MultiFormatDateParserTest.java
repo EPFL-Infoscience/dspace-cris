@@ -81,6 +81,7 @@ public class MultiFormatDateParserTest {
             {"Should parse: yyyyMM", "195701", "yyyyMM", true},
             {"Should parse: yyyy", "1957", "yyyy", true},
             {"Should parse: yyyy-MM-dd'T'HH:mm:ss'Z'", "1957-01-27T12:34:56Z", "yyyy-MM-dd'T'HH:mm:ss'Z'", true},
+            {"Should parse: yyyy-MM-dd'T'HH:mm:ss'Z'", "1957-01-27T12:34:56", "yyyy-MM-dd'T'HH:mm:ss", true},
             {"Should parse: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "1957-01-27T12:34:56.789Z", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
                 true},
             {"Shouldn't parse: yyyy/MM/ddHH:mm:ss", "1957/01/2720:06:20", "yyyy/MM/ddHH:mm:ss", false}
@@ -121,6 +122,7 @@ public class MultiFormatDateParserTest {
         formats.put("\\d{4}/\\d{1,2}/\\d{1,2}\\s\\d{1,2}:\\d{2}:\\d{2}", "yyyy/MM/dd HH:mm:ss");
         formats.put("\\d{1,2}\\s[a-z]{3}\\s\\d{4}\\s\\d{1,2}:\\d{2}:\\d{2}", "dd MMM yyyy HH:mm:ss");
         formats.put("\\d{1,2}\\s[a-z]{4,}\\s\\d{4}\\s\\d{1,2}:\\d{2}:\\d{2}", "dd MMMM yyyy HH:mm:ss");
+        formats.put("\\d{4}-\\d{1,2}-\\d{1,2}T\\d{1,2}:\\d{2}:\\d{2}", "yyyy-MM-dd'T'HH:mm:ss");
         formats.put("\\d{4}-\\d{1,2}-\\d{1,2}T\\d{1,2}:\\d{2}:\\d{2}Z", "yyyy-MM-dd'T'HH:mm:ss'Z'");
         formats.put("\\d{4}-\\d{1,2}-\\d{1,2}T\\d{1,2}:\\d{2}:\\d{2}\\.\\d{3}Z", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 

@@ -27,6 +27,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.SearchService;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.discovery.indexobject.IndexableWorkflowItem;
 import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
@@ -46,6 +47,9 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private SearchService searchService;
 
     @Override
     public Item search(Context context, String searchParam, Item source) {
@@ -107,7 +111,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
         discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
-        discoverQuery.addFilterQueries("cris.sourceId:" + crisSourceId.replace("::", "\\:\\:"));
+        discoverQuery.addFilterQueries("cris.sourceId:" + searchService.escapeQueryChars(crisSourceId));
         return new DiscoverResultItemIterator(context, discoverQuery);
     }
 

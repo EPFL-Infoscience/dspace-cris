@@ -147,12 +147,15 @@ public class ItemCorrectionFeatureRestIT extends AbstractControllerIntegrationTe
 
         String token = getAuthToken(eperson.getEmail(), password);
 
+        // eperson can correct the item as the user is a SUBMITTER
+        Authorization expectedAuthorization = new Authorization(eperson, canCorrectItem, itemRest);
+
         getClient(token).perform(get("/api/authz/authorizations/search/object")
             .param("uri", getItemUri(itemRest))
             .param("eperson", String.valueOf(eperson.getID()))
             .param("feature", ItemCorrectionFeature.NAME))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.authorizations").doesNotExist());
+            .andExpect(jsonPath("$._embedded.authorizations", hasItem(matchAuthorization(expectedAuthorization))));
 
     }
 

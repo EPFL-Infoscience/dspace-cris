@@ -175,8 +175,9 @@
         <property name="sourceItemMetadataFields" ref="parentOrganizationsSourceMetadata" />
         <property name="relatedItemMetadataFields">
             <list>
-                <value>person.affiliation.name</value>
+                <!-- <value>person.affiliation.name</value> -->
                 <!-- this metadata is generated on Person and OrgUnit Items -->
+                <value>organization.parentOrganization</value>
                 <value>cris.virtual.parent-organization</value>
             </list>
         </property>
@@ -184,7 +185,7 @@
     </bean>
 
     <util:list id="parentOrganizationsSourceMetadata" value-type="java.lang.String">
-        <value>oairecerif.author.affiliation</value>
+        <!-- <value>oairecerif.author.affiliation</value>
         <value>oairecerif.editor.affiliation</value>
         <value>oairecerif.scientificeditor.affiliation</value>
         <value>oairecerif.advisor.affiliation</value>
@@ -192,8 +193,13 @@
         <value>dc.contributor.author</value>
         <value>dc.contributor.editor</value>
         <value>dc.contributor.scientificeditor</value>
-        <value>dc.contributor.advisor</value>
+        <value>dc.contributor.advisor</value> -->
         <value>dc.description.sponsorship</value>
+        <value>epfl.thesis.faculty</value>
+        <value>epfl.thesis.section</value>
+        <value>epfl.thesis.institute</value>
+        <value>epfl.thesis.originalUnit</value>
+        <value>epfl.thesis.doctoralSchool</value>
     </util:list>
 
 </beans>

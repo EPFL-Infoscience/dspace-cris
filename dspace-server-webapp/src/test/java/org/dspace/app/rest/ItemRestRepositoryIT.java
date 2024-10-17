@@ -1906,6 +1906,11 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                    .andExpect(status().isNotFound());
     }
 
+    /**
+     * As RHD-13730, only admins and curators have the right to delete a version.
+     * Authors and submitter can no longer delete a version
+     * @throws Exception
+     */
     @Test
     public void deleteVersionAsSubmitter() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -1918,13 +1923,13 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         String submitterToken = getAuthToken(eperson.getEmail(), password);
 
         getClient(submitterToken).perform(delete("/api/core/items/" + version.getItem().getID()))
-                             .andExpect(status().isNoContent());
+                             .andExpect(status().isForbidden());
 
         getClient().perform(get("/api/core/items/" + item.getID()))
                    .andExpect(status().isOk());
 
         getClient().perform(get("/api/core/items/" + version.getItem().getID()))
-                   .andExpect(status().isNotFound());
+                   .andExpect(status().isOk());
     }
 
     // delete version as unauthorized returns 403
@@ -5635,6 +5640,14 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient(token).perform(get("/api/core/items/search/findByCustomURL")
             .param("q", UUID.randomUUID().toString()))
             .andExpect(status().isNoContent());
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+                .param("q", "http://example.com/sample"))
+                .andExpect(status().isNoContent());
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+                .param("q", ""))
+                .andExpect(status().isNoContent());
 
     }
 

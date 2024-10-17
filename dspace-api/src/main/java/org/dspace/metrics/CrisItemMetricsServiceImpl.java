@@ -124,7 +124,8 @@ public class CrisItemMetricsServiceImpl implements CrisItemMetricsService {
         if (StringUtils.startsWith(metricId, STORED_METRIC_ID_PREFIX)) {
             CrisMetrics crisMetrics = crisMetricsService.find(context,
                     Integer.parseInt(metricId.substring(STORED_METRIC_ID_PREFIX.length())));
-            if (checkPermissionsOfMetricsByBox(context, itemFromMetricId(context, metricId), crisMetrics)) {
+            if (crisMetrics != null &&
+                    checkPermissionsOfMetricsByBox(context, itemFromMetricId(context, metricId), crisMetrics)) {
                 return crisMetrics;
             }
             return null;

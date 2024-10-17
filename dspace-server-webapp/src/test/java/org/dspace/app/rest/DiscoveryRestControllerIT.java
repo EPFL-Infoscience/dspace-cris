@@ -763,6 +763,15 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void discoverFacetsWithInvalidQuery() throws Exception {
+        getClient().perform(get("/api/discover/search/facets").param("query", "title:"))
+                .andExpect(status().isUnprocessableEntity());
+
+        getClient().perform(get("/api/discover/facets/author_editor").param("query", "title:"))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
     public void discoverFacetsDateTest() throws Exception {
         //We turn off the authorization system in order to create the structure defined below
         context.turnOffAuthorisationSystem();

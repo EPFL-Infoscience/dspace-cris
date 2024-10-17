@@ -14,14 +14,21 @@
                 <list>
                     <value>ADMIN</value>
                     <value>CUSTOM</value>
+                    <value>GROUP</value>
+                    <value>SUBMITTER</value>
                 </list>
             </property>
             <property name="items" ref="itemsMetadata" />
+            <property name="groups" ref="groupList" />
         </bean>
     </util:list>
 
     <util:list id="itemsMetadata" value-type="java.lang.String">
         <value>dc.contributor.author</value>
+        <value>dc.contributor.editor</value>
+        <value>dc.contributor.scientificeditor</value>
+        <value>dc.contributor.advisor</value>
+        <value>cris.virtual.unitManager</value>
     </util:list>
 
     <util:list id="groupList" value-type="java.lang.String">
@@ -35,10 +42,8 @@
                     <value>ADMIN</value>
                     <value>CUSTOM</value>
                     <value>GROUP</value>
-                    <value>SUBMITTER</value>
                 </list>
             </property>
-            <property name="items" ref="itemsMetadata" />
             <property name="groups" ref="groupList" />
         </bean>
     </util:list>

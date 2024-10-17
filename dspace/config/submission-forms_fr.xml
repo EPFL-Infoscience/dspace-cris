@@ -1894,7 +1894,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -2179,6 +2179,16 @@
           <style>col-xs-12 col-md-4</style>
           <hint />
         </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <label>Éditeur</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-6</style>
+          <hint />
+        </field>
       </row>
       <row>
         <field>
@@ -2243,7 +2253,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -2453,7 +2463,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -2778,7 +2788,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -3093,7 +3103,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -3415,7 +3425,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -3737,7 +3747,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -3987,6 +3997,16 @@
           <style>col-xs-12 col-md-4</style>
           <hint />
         </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <label>Éditeur</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-6</style>
+          <hint />
+        </field>
       </row>
       <row>
         <field>
@@ -4063,7 +4083,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -4256,7 +4276,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -4418,13 +4438,23 @@
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <label>Source/Éditeur</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <style>col-xs-12 col-md-6</style>
+          <hint>Exemple : bioRxiv, arXiv</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>language</dc-element>
           <dc-qualifier>iso</dc-qualifier>
           <label>Langue</label>
           <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
           <repeatable>true</repeatable>
           <required />
-          <style>col-xs-12 col-md-3</style>
+          <style>col-xs-12 col-md-6</style>
           <hint />
         </field>
       </row>
@@ -4436,7 +4466,6 @@
           <input-type>tag</input-type>
           <repeatable>true</repeatable>
           <required />
-          <style>col-xs-12 col-md-6</style>
           <hint>Astuce : Vous pouvez directement coller une liste de termes séparés par une virgule ou un point-virgule</hint>
         </field>
       </row>
@@ -4455,7 +4484,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -4629,7 +4658,6 @@
           <input-type>tag</input-type>
           <repeatable>true</repeatable>
           <required />
-          <style>col-xs-12 col-md-6</style>
           <hint>Astuce : Vous pouvez directement coller une liste de termes séparés par une virgule ou un point-virgule</hint>
         </field>
       </row>
@@ -4648,7 +4676,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>
@@ -4903,7 +4931,7 @@
         <field>
           <dc-schema>epfl</dc-schema>
           <dc-element>writtenAt</dc-element>
-          <label>Rédigé en étant affilié à l'EPFL</label>
+          <label>Produit en étant affilié à l'EPFL.</label>
           <input-type value-pairs-name="epfl_written_at">dropdown</input-type>
           <repeatable>false</repeatable>
           <required>Veuillez préciser si ce travail a été réalisé en tant que membre affilié de l'EPFL</required>

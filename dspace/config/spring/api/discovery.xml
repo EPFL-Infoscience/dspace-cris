@@ -4664,10 +4664,11 @@
         <property name="indexFieldName" value="organizationHierarchy"/>
         <property name="metadataFields">
             <list>
-                <value>person.affiliation.name</value>
-                <value>oairecerif.author.affiliation</value>
-                <value>oairecerif.scientificeditor.affiliation</value>
-                <value>oairecerif.advisor.affiliation</value>
+                <value>epfl.thesis.faculty</value>
+                <value>epfl.thesis.section</value>
+                <value>epfl.thesis.institute</value>
+                <value>epfl.thesis.originalUnit</value>
+                <value>epfl.thesis.doctoralSchool</value>
                 <value>dc.description.sponsorship</value>
                 <value>cris.virtual.parent-organization</value>
             </list>

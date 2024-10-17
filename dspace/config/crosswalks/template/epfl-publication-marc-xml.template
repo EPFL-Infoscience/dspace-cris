@@ -51,6 +51,11 @@
         <subfield code="a">@dc.identifier.epo@</subfield>
     </datafield>
     @group.dc-identifier-epo.end@
+    @group.cris-legacyId.start@
+    <datafield tag="035" ind1=" " ind2=" ">
+        <subfield code="a">@cris.legacyId@</subfield>
+    </datafield>
+    @group.cris-legacyId.end@
     @if.metadata.epfl-legacy-submissionform.start@
     <datafield tag="037" ind1=" " ind2=" ">
         <subfield code="a">@epfl.legacy.submissionform@</subfield>
@@ -242,6 +247,12 @@
         <subfield code="z">@virtual.bitstreamData.original.metadata.dc-file-type@</subfield>
     </datafield>
     @group.bundle-original.end@
+    @group.bundle-thumbnail.start@
+    <datafield tag="856" ind1="4" ind2="2">
+        <subfield code="0">@virtual.bitstreamData.thumbnail.metadata.dc-description@</subfield>
+        <subfield code="u">@virtual.bitstreamData.thumbnail.download-path@</subfield>
+    </datafield>
+    @group.bundle-thumbnail.end@
     @group.epfl-url.start@
     <datafield tag="856" ind1="4" ind2="1">
         <subfield code="u">@epfl.url@</subfield>
@@ -254,6 +265,7 @@
     <datafield tag="909" ind1="C" ind2="0">
             <subfield code="p">@oairecerif.acronym@</subfield>
             <subfield code="x">U@virtual.epfl-unit-code@</subfield>
+            <subfield code="m">@crisou.director@</subfield>
             <subfield code="0">@virtual.id@</subfield>
     </datafield>
     @relation.dc-description-sponsorship.end@
@@ -263,9 +275,7 @@
             <subfield code="o">@dspace.legacy.oai-identifier@</subfield>
     </datafield>
     @if.metadata.epfl-oai-currentset.end@
-    @group.epfl-relation-orgunit.start@
-      @group.epfl-relation-orgunit.end@
-     @group.epfl-thesis-faculty.start@
+    @group.epfl-thesis-faculty.start@
     <datafield tag="918" ind1=" " ind2=" ">
             <subfield code="a">@epfl.thesis.faculty@</subfield>
             <subfield code="b">@epfl.thesis.section@</subfield>
