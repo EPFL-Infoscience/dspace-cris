@@ -194,8 +194,10 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
         // query can consist of orcid id and search query itself (i.e. "0000-0000-1234-1234 text")
         // and if orcid id is present then search is performed only by orcid id
         if (querySource instanceof CrossRefImportMetadataSourceServiceImpl) {
-            String id = ((CrossRefImportMetadataSourceServiceImpl) querySource).getID(query);
-            return StringUtils.isNotBlank(id) ? id : query;
+            CrossRefImportMetadataSourceServiceImpl crossRefSourceService =
+                    ((CrossRefImportMetadataSourceServiceImpl) querySource);
+            String id = crossRefSourceService.getID(query);
+            return StringUtils.isNotBlank(id) ? id : crossRefSourceService.getQuery(query);
         }
         return query;
     }

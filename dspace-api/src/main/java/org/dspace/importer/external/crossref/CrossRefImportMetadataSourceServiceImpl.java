@@ -72,6 +72,9 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
     @Override
     public int getRecordsCount(String query) throws MetadataSourceException {
         String id = getID(query);
+        if (StringUtils.isBlank(id)) {
+            id = getQuery(query);
+        }
         return StringUtils.isNotBlank(id) ? retry(new DoiCheckCallable(id)) : retry(new CountByQueryCallable(query));
     }
 
@@ -84,6 +87,9 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
     @Override
     public Collection<ImportRecord> getRecords(String query, int start, int count) throws MetadataSourceException {
         String id = getID(query);
+        if (StringUtils.isBlank(id)) {
+            id = getQuery(query.toString());
+        }
         return StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id, count, start))
                                           : retry(new SearchByQueryCallable(query, count, start));
     }
@@ -91,6 +97,9 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
     @Override
     public Collection<ImportRecord> getRecords(Query query) throws MetadataSourceException {
         String id = getID(query.toString());
+        if (StringUtils.isNotBlank(id)) {
+            id = getQuery(query.toString());
+        }
         if (StringUtils.isNotBlank(id)) {
             return retry(new SearchByIdCallable(id));
         }
@@ -100,16 +109,22 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
     @Override
     public ImportRecord getRecord(Query query) throws MetadataSourceException {
         String id = getID(query.toString());
-        List<ImportRecord> records = StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id))
-                                                                : retry(new SearchByIdCallable(query));
+        if (StringUtils.isBlank(id)) {
+            id = getQuery(query.toString());
+        }
+        List<ImportRecord> records = retry(new SearchByIdCallable(id));
         return CollectionUtils.isEmpty(records) ? null : records.get(0);
     }
 
     @Override
     public Collection<ImportRecord> findMatchingRecords(Query query) throws MetadataSourceException {
         String id = getID(query.toString());
-        return StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id))
-                                          : retry(new FindMatchingRecordCallable(query));
+        if (StringUtils.isNotBlank(id)) {
+            return retry(new SearchByIdCallable(id));
+        } else {
+            id = getQuery(query.toString());
+            return retry(new FindMatchingRecordCallable(query));
+        }
     }
 
     @Override
@@ -118,6 +133,14 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
     }
 
     public String getID(String query) {
+        // Workaround for encoded slashes.
+        if (query.contains("%252F")) {
+            query = query.replace("%252F", "/");
+        }
+        return DoiCheck.isDoi(query) ? query : StringUtils.EMPTY;
+    }
+
+    public String getQuery(String query) {
         StringBuilder idBuilder = new StringBuilder();
 
         query = query.trim();
@@ -218,16 +241,24 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             String separator = ID.contains("filter=") ? "?" : "/";
             URIBuilder uriBuilder = new URIBuilder(url + separator + ID);
 
-            Optional.ofNullable(query.getParameterAsClass("count", Integer.class))
-                    .ifPresent(count -> uriBuilder.addParameter("rows", count.toString()));
-            Optional.ofNullable(query.getParameterAsClass("start", Integer.class))
-                    .ifPresent(start -> uriBuilder.addParameter("offset", start.toString()));
+            // if the query is a single doi, we expect a single result and cannot use parameters
+            if (!DoiCheck.isDoi(ID)) {
+                Optional.ofNullable(query.getParameterAsClass("count", Integer.class))
+                        .ifPresent(count -> uriBuilder.addParameter("rows", count.toString()));
+                Optional.ofNullable(query.getParameterAsClass("start", Integer.class))
+                        .ifPresent(start -> uriBuilder.addParameter("offset", start.toString()));
+            }
 
             String response = liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
             if (StringUtils.isNotEmpty(response)) {
-                convertStringJsonToJsonNode(response)
-                    .at("/message/items")
-                    .forEach(node -> results.add(transformSourceRecords(node.toString())));
+                JsonNode tree = convertStringJsonToJsonNode(response);
+                // work is for a single result, work-list for multiple results
+                if ("work".equals(tree.get("message-type").asText())) {
+                    results.add(transformSourceRecords(tree.get("message").toString()));
+                } else {
+                    tree.at("/message/items")
+                        .forEach(node -> results.add(transformSourceRecords(node.toString())));
+                }
             }
             return results;
         }
@@ -344,7 +375,13 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             URIBuilder uriBuilder = new URIBuilder(url + separator + id);
             String responseString =
                 liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
-            return convertStringJsonToJsonNode(responseString).at("/message/total-results").asInt();
+            JsonNode tree = convertStringJsonToJsonNode(responseString);
+            // work is for a single result, work-list for multiple results
+            if ("work".equals(tree.get("message-type").asText())) {
+                return tree.has("message") && tree.get("message").has("indexed") ? 1 : 0;
+            } else {
+                return tree.at("/message/total-results").asInt();
+            }
         }
     }
 

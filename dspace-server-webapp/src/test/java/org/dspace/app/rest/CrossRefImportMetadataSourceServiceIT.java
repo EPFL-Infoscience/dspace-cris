@@ -93,11 +93,10 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
 
     @Test
     public void crossRefImportMetadataGetRecordByIdTest() throws Exception {
-        context.turnOffAuthorisationSystem();
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
 
-        try (InputStream crossRefResp = getClass().getResourceAsStream("crossRef-by-id.json")) {
+        try (InputStream crossRefResp = getClass().getResourceAsStream("crossRef-by-id-direct.json")) {
 
             String crossRefRespXmlResp = IOUtils.toString(crossRefResp, Charset.defaultCharset());
 
@@ -105,7 +104,6 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
             CloseableHttpResponse response = mockResponse(crossRefRespXmlResp, 200, "OK");
             when(httpClient.execute(ArgumentMatchers.any())).thenReturn(response);
 
-            context.restoreAuthSystemState();
             ArrayList<ImportRecord> collection2match = getRecords();
             collection2match.remove(1);
             ImportRecord recordImported = crossRefServiceImpl.getRecord("10.26693/jmbs01.02.184");
