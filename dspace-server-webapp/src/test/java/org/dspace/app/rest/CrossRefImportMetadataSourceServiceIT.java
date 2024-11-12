@@ -50,7 +50,6 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
 
     @Test
     public void crossRefImportMetadataGetRecordsTest() throws Exception {
-        context.turnOffAuthorisationSystem();
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         try (InputStream crossRefResp = getClass().getResourceAsStream("crossRef-test.json")) {
@@ -61,7 +60,6 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
             CloseableHttpResponse response = mockResponse(crossRefRespXmlResp, 200, "OK");
             when(httpClient.execute(ArgumentMatchers.any())).thenReturn(response);
 
-            context.restoreAuthSystemState();
             ArrayList<ImportRecord> collection2match = getRecords();
             Collection<ImportRecord> recordsImported = crossRefServiceImpl.getRecords("test query", 0, 2);
             assertEquals(2, recordsImported.size());
@@ -73,7 +71,6 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
 
     @Test
     public void crossRefImportMetadataGetRecordsCountTest() throws Exception {
-        context.turnOffAuthorisationSystem();
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         try (InputStream crossRefResp = getClass().getResourceAsStream("crossRef-test.json")) {
@@ -83,7 +80,6 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
             CloseableHttpResponse response = mockResponse(crossRefRespXmlResp, 200, "OK");
             when(httpClient.execute(ArgumentMatchers.any())).thenReturn(response);
 
-            context.restoreAuthSystemState();
             int tot = crossRefServiceImpl.getRecordsCount("test query");
             assertEquals(10, tot);
         } finally {

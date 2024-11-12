@@ -78,7 +78,6 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
 
     @Test
     public void dataCiteImportMetadataGetRecordsCountTest() throws Exception {
-        context.turnOffAuthorisationSystem();
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         try (InputStream dataciteResp = getClass().getResourceAsStream("dataCite-test.json")) {
@@ -88,7 +87,6 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
             CloseableHttpResponse response = mockResponse(dataciteTextResp, 200, "OK");
             when(httpClient.execute(ArgumentMatchers.any())).thenReturn(response);
 
-            context.restoreAuthSystemState();
             int tot = dataCiteServiceImpl.getRecordsCount("10.48550/arxiv.2207.04779");
             assertEquals(1, tot);
         } finally {
