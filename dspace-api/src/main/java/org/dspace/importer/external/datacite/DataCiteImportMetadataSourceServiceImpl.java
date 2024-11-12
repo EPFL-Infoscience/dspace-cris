@@ -87,16 +87,9 @@ public class DataCiteImportMetadataSourceServiceImpl
     @Override
     public Collection<ImportRecord> getRecords(String query, int start, int count) throws MetadataSourceException {
         List<ImportRecord> records = new ArrayList<>();
-        String id = getID(query);
-        Map<String, Map<String, String>> params = new HashMap<>();
-        Map<String, String> uriParameters = new HashMap<>();
-        params.put("uriParameters", uriParameters);
-        if (StringUtils.isBlank(id)) {
-            id = query;
-        }
-        uriParameters.put("query", id);
         int timeoutMs = configurationService.getIntProperty("datacite.timeout", 180000);
-        String url = configurationService.getProperty("datacite.url", "https://api.datacite.org/dois/");
+        String url = getUrl(query);
+        Map<String, Map<String, String>> params = getParams(query);
         String responseString = liveImportClient.executeHttpGetRequest(timeoutMs, url, params);
         JsonNode jsonNode = convertStringJsonToJsonNode(responseString);
         if (jsonNode == null) {
@@ -117,6 +110,29 @@ public class DataCiteImportMetadataSourceServiceImpl
         }
 
         return records;
+    }
+
+    public String getUrl(String query) {
+        String url = configurationService.getProperty("datacite.url", "https://api.datacite.org/dois/");
+        String id = getID(query);
+        // as output of getID, id is a doi or a blank string
+        if (StringUtils.isNotBlank(id)) {
+            // id is a doi, it will be part of the url
+            url += id;
+        }
+        return url;
+    }
+
+    private Map<String, Map<String, String>> getParams(String query) {
+        Map<String, Map<String, String>> params = new HashMap<>();
+        Map<String, String> uriParameters = new HashMap<>();
+        params.put("uriParameters", uriParameters);
+        // as output of getID, id is a doi or a blank string
+        if (StringUtils.isBlank(getID(query))) {
+            // query is not a doi, it will be used as a query parameter
+            uriParameters.put("query", query);
+        }
+        return params;
     }
 
     private JsonNode convertStringJsonToJsonNode(String json) {
