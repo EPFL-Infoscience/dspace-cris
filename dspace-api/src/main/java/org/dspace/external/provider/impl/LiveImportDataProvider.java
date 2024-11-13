@@ -196,8 +196,7 @@ public class LiveImportDataProvider extends AbstractExternalDataProvider {
         if (querySource instanceof CrossRefImportMetadataSourceServiceImpl) {
             CrossRefImportMetadataSourceServiceImpl crossRefSourceService =
                     ((CrossRefImportMetadataSourceServiceImpl) querySource);
-            String id = crossRefSourceService.getID(query);
-            return StringUtils.isNotBlank(id) ? id : crossRefSourceService.getQuery(query);
+            return crossRefSourceService.getSelector(query);
         }
         return query;
     }

@@ -7,9 +7,8 @@
  */
 package org.dspace.importer.external.crossref;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,68 +62,57 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
 
     @Override
     public ImportRecord getRecord(String recordId) throws MetadataSourceException {
-        String id = getID(recordId);
-        List<ImportRecord> records = StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id))
-                                                                : retry(new SearchByIdCallable(recordId));
-        return CollectionUtils.isEmpty(records) ? null : records.get(0);
-    }
-
-    @Override
-    public int getRecordsCount(String query) throws MetadataSourceException {
-        String id = getID(query);
-        if (StringUtils.isNotBlank(id)) {
-            return retry(new DoiCheckCallable(id));
-        } else {
-            id = getQuery(query);
-            return retry(new CountByQueryCallable(id));
-        }
-    }
-
-    @Override
-    public int getRecordsCount(Query query) throws MetadataSourceException {
-        String id = getID(query.toString());
-        return StringUtils.isNotBlank(id) ? retry(new DoiCheckCallable(id)) : retry(new CountByQueryCallable(query));
-    }
-
-    @Override
-    public Collection<ImportRecord> getRecords(String query, int start, int count) throws MetadataSourceException {
-        String id = getID(query);
-        if (StringUtils.isBlank(id)) {
-            id = getQuery(query.toString());
-        }
-        return StringUtils.isNotBlank(id) ? retry(new SearchByIdCallable(id, count, start))
-                                          : retry(new SearchByQueryCallable(query, count, start));
-    }
-
-    @Override
-    public Collection<ImportRecord> getRecords(Query query) throws MetadataSourceException {
-        String id = getID(query.toString());
-        if (StringUtils.isNotBlank(id)) {
-            id = getQuery(query.toString());
-        }
-        if (StringUtils.isNotBlank(id)) {
-            return retry(new SearchByIdCallable(id));
-        }
-        return retry(new SearchByQueryCallable(query));
-    }
-
-    @Override
-    public ImportRecord getRecord(Query query) throws MetadataSourceException {
-        String id = getID(query.toString());
-        if (StringUtils.isBlank(id)) {
-            id = getQuery(query.toString());
-        }
+        final String id = getSelector(recordId);
         List<ImportRecord> records = retry(new SearchByIdCallable(id));
         return CollectionUtils.isEmpty(records) ? null : records.get(0);
     }
 
     @Override
-    public Collection<ImportRecord> findMatchingRecords(Query query) throws MetadataSourceException {
-        String id = getID(query.toString());
+    public int getRecordsCount(String query) throws MetadataSourceException {
+        final String selector = getSelector(query);
+        return retry(new DoiCheckCallable(selector));
+    }
+
+    @Override
+    public int getRecordsCount(Query query) throws MetadataSourceException {
+        final String id = getSelector(query.toString());
+        return StringUtils.isNotBlank(id) ? retry(new DoiCheckCallable(id)) : retry(new CountByQueryCallable(query));
+    }
+
+    @Override
+    public Collection<ImportRecord> getRecords(String query, int start, int count) throws MetadataSourceException {
+        final String selector = getSelector(query);
+        return retry(new SearchByIdCallable(selector, count, start));
+    }
+
+    @Override
+    public Collection<ImportRecord> getRecords(Query query) throws MetadataSourceException {
+        final String id = getSelector(query.toString());
         if (StringUtils.isNotBlank(id)) {
             return retry(new SearchByIdCallable(id));
         } else {
-            id = getQuery(query.toString());
+            return retry(new SearchByQueryCallable(query));
+        }
+    }
+
+    @Override
+    public ImportRecord getRecord(Query query) throws MetadataSourceException {
+        List<ImportRecord> records;
+        final String id = getSelector(query.toString());
+        if (StringUtils.isNotBlank(id)) {
+            records = retry(new SearchByIdCallable(id));
+        } else {
+            records = retry(new SearchByQueryCallable(query));
+        }
+        return CollectionUtils.isEmpty(records) ? null : records.get(0);
+    }
+
+    @Override
+    public Collection<ImportRecord> findMatchingRecords(Query query) throws MetadataSourceException {
+        final String id = getSelector(query.toString());
+        if (StringUtils.isNotBlank(id)) {
+            return retry(new SearchByIdCallable(id));
+        } else {
             return retry(new FindMatchingRecordCallable(query));
         }
     }
@@ -134,33 +122,44 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
         throw new MethodNotFoundException("This method is not implemented for CrossRef");
     }
 
-    public String getID(String query) {
+    /**
+     * This method builds the second part of the url to append to the crossref host.
+     * According to the crossref specifications, it can be a path for a single
+     * resource (like a doi) or a query for multiple resources
+     * @return
+     */
+    public String getSelector(String selector) {
+
+        selector = selector.trim();
+
         // Workaround for encoded slashes.
-        if (query.contains("%252F")) {
-            query = query.replace("%252F", "/");
+        if (selector.contains("%252F")) {
+            selector = selector.replace("%252F", "/");
         }
-        return DoiCheck.isDoi(query) ? query : StringUtils.EMPTY;
-    }
 
-    public String getQuery(String query) {
-        StringBuilder idBuilder = new StringBuilder();
+        // if it's a doi, it can be used directly
+        if (DoiCheck.isDoi(selector)) {
+            return "/" + selector;
+        }
 
-        query = query.trim();
-        String id = query.split("\\s")[0];
-        String extraQuery = query.length() > id.length()
-            ? query.substring(id.length()).trim()
+        StringBuilder sb = new StringBuilder();
+
+        String firstToken = selector.split("\\s")[0];
+        String extraQuery = selector.length() > firstToken.length()
+            ? selector.substring(firstToken.length()).trim()
             : null;
 
-        if (DoiCheck.isDoi(id)) {
-            idBuilder.append("filter=doi:").append(id);
+        // if the first token is an orcid, it will be used as filter
+        if (OrcidCheck.isOrcid(firstToken)) {
+            sb.append("?filter=orcid:").append(firstToken);
+            if (StringUtils.isNotEmpty(extraQuery)) {
+                sb.append("&query=").append(URLEncoder.encode(extraQuery, StandardCharsets.UTF_8));
+            }
+        } else {
+            sb.append("?query=").append(URLEncoder.encode(selector, StandardCharsets.UTF_8));
         }
-        if (OrcidCheck.isOrcid(id)) {
-            idBuilder.append("filter=orcid:").append(id);
-        }
-        if (StringUtils.isNotEmpty(extraQuery)) {
-            idBuilder.append("&query=").append(extraQuery);
-        }
-        return idBuilder.toString();
+
+        return sb.toString();
     }
 
     /**
@@ -236,15 +235,23 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             query.addParameter("start", start);
         }
 
+        /**
+         * This method handles two cases. The first case is when a single record is requested: the request does not
+         * contain any parameter, the response contains one json object. The second case is when a query is performed,
+         * with 0 to N results: the request contains parameters, the response contains a json array
+         */
         @Override
         public List<ImportRecord> call() throws Exception {
             List<ImportRecord> results = new ArrayList<>();
-            String ID = URLDecoder.decode(query.getParameterAsClass("id", String.class), UTF_8);
-            String separator = ID.contains("filter=") ? "?" : "/";
-            URIBuilder uriBuilder = new URIBuilder(url + separator + ID);
+            String selector = query.getParameterAsClass("id", String.class);
+            boolean isDoi = DoiCheck.isDoi(selector);
+            if (isDoi) {
+                selector = DoiCheck.purgeDoiValue(selector);
+            }
+            URIBuilder uriBuilder = new URIBuilder(url + selector);
 
             // if the query is a single doi, we expect a single result and cannot use parameters
-            if (!DoiCheck.isDoi(ID)) {
+            if (!isDoi) {
                 Optional.ofNullable(query.getParameterAsClass("count", Integer.class))
                         .ifPresent(count -> uriBuilder.addParameter("rows", count.toString()));
                 Optional.ofNullable(query.getParameterAsClass("start", Integer.class))
@@ -372,9 +379,8 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
 
         @Override
         public Integer call() throws Exception {
-            String id = query.getParameterAsClass("id", String.class);
-            String separator = id.contains("filter=") ? "?" : "/";
-            URIBuilder uriBuilder = new URIBuilder(url + separator + id);
+            String selector = query.getParameterAsClass("id", String.class);
+            URIBuilder uriBuilder = new URIBuilder(url + selector);
             String responseString =
                 liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
             JsonNode tree = convertStringJsonToJsonNode(responseString);

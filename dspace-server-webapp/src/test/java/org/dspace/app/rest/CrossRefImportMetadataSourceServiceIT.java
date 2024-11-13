@@ -70,6 +70,29 @@ public class CrossRefImportMetadataSourceServiceIT extends AbstractLiveImportInt
     }
 
     @Test
+    public void crossRefImportMetadataGetRecordsFilteredByOrcidTest() throws Exception {
+        CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        try (InputStream crossRefResp = getClass().getResourceAsStream("crossRef-test.json")) {
+
+            String crossRefRespXmlResp = IOUtils.toString(crossRefResp, Charset.defaultCharset());
+
+            liveImportClientImpl.setHttpClient(httpClient);
+            CloseableHttpResponse response = mockResponse(crossRefRespXmlResp, 200, "OK");
+            when(httpClient.execute(ArgumentMatchers.argThat(
+                    request -> request.getURI().toString().contains("filter=orcid")))
+                    ).thenReturn(response);
+            ArrayList<ImportRecord> collection2match = getRecords();
+            Collection<ImportRecord> recordsImported =
+                    crossRefServiceImpl.getRecords("0000-0001-5109-3700 query", 0, 2);
+            assertEquals(2, recordsImported.size());
+            matchRecords(new ArrayList<ImportRecord>(recordsImported), collection2match);
+        } finally {
+            liveImportClientImpl.setHttpClient(originalHttpClient);
+        }
+    }
+
+    @Test
     public void crossRefImportMetadataGetRecordsCountTest() throws Exception {
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
