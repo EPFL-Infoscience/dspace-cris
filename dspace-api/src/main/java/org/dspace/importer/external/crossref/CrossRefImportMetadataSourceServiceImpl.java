@@ -72,10 +72,12 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
     @Override
     public int getRecordsCount(String query) throws MetadataSourceException {
         String id = getID(query);
-        if (StringUtils.isBlank(id)) {
+        if (StringUtils.isNotBlank(id)) {
+            return retry(new DoiCheckCallable(id));
+        } else {
             id = getQuery(query);
+            return retry(new CountByQueryCallable(id));
         }
-        return StringUtils.isNotBlank(id) ? retry(new DoiCheckCallable(id)) : retry(new CountByQueryCallable(query));
     }
 
     @Override
