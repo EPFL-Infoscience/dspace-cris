@@ -139,7 +139,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
 
         // if it's a doi, it can be used directly
         if (DoiCheck.isDoi(selector)) {
-            return "/" + selector;
+            return selector;
         }
 
         StringBuilder sb = new StringBuilder();
@@ -246,7 +246,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
             String selector = query.getParameterAsClass("id", String.class);
             boolean isDoi = DoiCheck.isDoi(selector);
             if (isDoi) {
-                selector = DoiCheck.purgeDoiValue(selector);
+                selector = "/" + DoiCheck.purgeDoiValue(selector);
             }
             URIBuilder uriBuilder = new URIBuilder(url + selector);
 
@@ -380,7 +380,7 @@ public class CrossRefImportMetadataSourceServiceImpl extends AbstractImportMetad
         @Override
         public Integer call() throws Exception {
             String selector = query.getParameterAsClass("id", String.class);
-            URIBuilder uriBuilder = new URIBuilder(url + selector);
+            URIBuilder uriBuilder = new URIBuilder(url + "/" + selector);
             String responseString =
                 liveImportClient.executeHttpGetRequest(1000, uriBuilder.toString(), new HashMap<>());
             JsonNode tree = convertStringJsonToJsonNode(responseString);
