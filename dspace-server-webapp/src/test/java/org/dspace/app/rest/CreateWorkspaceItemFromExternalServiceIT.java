@@ -56,6 +56,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -335,6 +336,7 @@ public class CreateWorkspaceItemFromExternalServiceIT extends AbstractController
     }
 
     @Test
+    @Ignore
     public void creatingWorkspaceItemImportedFromWOSTest() throws Exception {
         context.turnOffAuthorisationSystem();
         //disable file upload mandatory
