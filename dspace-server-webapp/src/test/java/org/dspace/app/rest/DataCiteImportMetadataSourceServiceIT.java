@@ -28,6 +28,7 @@ import org.dspace.importer.external.datacite.DataCiteImportMetadataSourceService
 import org.dspace.importer.external.datamodel.ImportRecord;
 import org.dspace.importer.external.liveimportclient.service.LiveImportClientImpl;
 import org.dspace.importer.external.metadatamapping.MetadatumDTO;
+import org.dspace.services.ConfigurationService;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -47,9 +48,11 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
     @Autowired
     private DataCiteImportMetadataSourceServiceImpl dataCiteServiceImpl;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     @Test
     public void dataCiteImportMetadataGetRecordsTest() throws Exception {
-        context.turnOffAuthorisationSystem();
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         try (InputStream dataCiteResp = getClass().getResourceAsStream("dataCite-test.json")) {
@@ -59,10 +62,13 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
             CloseableHttpResponse response = mockResponse(dataCiteRespXmlResp, 200, "OK");
             when(httpClient.execute(ArgumentMatchers.any())).thenReturn(response);
 
-            context.restoreAuthSystemState();
+            String doi = "10.48550/arxiv.2207.04779";
+            assertEquals(configurationService.getProperty("datacite.url", "https://api.datacite.org/dois/") + doi,
+                    dataCiteServiceImpl.getUrl(doi));
+            assertEquals(configurationService.getProperty("datacite.url", "https://api.datacite.org/dois/"),
+                    dataCiteServiceImpl.getUrl("not-a-doi"));
             ArrayList<ImportRecord> collection2match = getRecords();
-            Collection<ImportRecord> recordsImported = dataCiteServiceImpl.getRecords("10.48550/arxiv.2207.04779",
-                    0, -1);
+            Collection<ImportRecord> recordsImported = dataCiteServiceImpl.getRecords(doi, 0, -1);
             assertEquals(1, recordsImported.size());
             matchRecords(new ArrayList<>(recordsImported), collection2match);
         } finally {
@@ -72,7 +78,6 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
 
     @Test
     public void dataCiteImportMetadataGetRecordsCountTest() throws Exception {
-        context.turnOffAuthorisationSystem();
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         try (InputStream dataciteResp = getClass().getResourceAsStream("dataCite-test.json")) {
@@ -82,7 +87,6 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
             CloseableHttpResponse response = mockResponse(dataciteTextResp, 200, "OK");
             when(httpClient.execute(ArgumentMatchers.any())).thenReturn(response);
 
-            context.restoreAuthSystemState();
             int tot = dataCiteServiceImpl.getRecordsCount("10.48550/arxiv.2207.04779");
             assertEquals(1, tot);
         } finally {
