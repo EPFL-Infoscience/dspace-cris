@@ -41,6 +41,7 @@ import org.dspace.discovery.indexobject.IndexableInProgressSubmission;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.discovery.indexobject.IndexableWorkflowItem;
 import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -62,6 +63,9 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
     @Autowired
     private ChoiceAuthorityService choiceAuthorityService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     private ThreadLocal<Map<String, UUID>> valuesToItemIds = ThreadLocal.withInitial(() -> new HashMap<>());
 
     private ThreadLocal<MultiValuedMap<String, UUID>> referenceResolutionAttempts =
@@ -70,6 +74,8 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
     private final String metadata;
 
     private final String authorityPrefix;
+
+    private int maxAuthoritiesPerSolrQuery = 0;
 
     private static Logger log = LogManager.getLogger(ItemSearcherByMetadata.class);
 
@@ -170,21 +176,48 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
         List<String> authorities = metadataValues.stream()
             .map(MetadataValue::getValue)
+            .filter(value -> !value.contains("PLACEHOLDER_PARENT_METADATA_VALUE"))
             .map(value -> AuthorityValueService.REFERENCE + authorityPrefix + "::" + value)
             .collect(Collectors.toList());
 
-        Iterator<Item> itemsIterator =
-                      itemService.findRelatedItemsByAuthorityControlledFields(context, item, authorities);
+        if (authorities.size() > 0) {
 
-        Iterator<Item> cachedItemsIterator = getItemsFromResolutionAttemptsCache(context, metadataValues);
+            if (maxAuthoritiesPerSolrQuery == 0) {
+                maxAuthoritiesPerSolrQuery = configurationService
+                        .getIntProperty("item-searcher.by-metadata.maxauthoritiespersolrquery", 100);
+            }
 
-        Iterator<Item> itemsWithReferenceIterator = chainedIterator(itemsIterator, cachedItemsIterator);
+            if (maxAuthoritiesPerSolrQuery <= 0) {
+                throw new IllegalStateException(
+                        "item-searcher.by-metadata.maxauthoritiespersolrquery must be greater than zero");
+            }
 
-        while (itemsWithReferenceIterator.hasNext()) {
-            Item itemWithReference = itemsWithReferenceIterator.next();
-            updateReferences(context, itemWithReference, item, authorities);
+            authorities = authorities.stream().distinct().collect(Collectors.toList()); // remove duplicates
+
+            int totalAuthorities = authorities.size();
+
+            for (int i = 0; i < totalAuthorities; i += maxAuthoritiesPerSolrQuery) {
+                List<String> subList = getAuthoritySubList(authorities, totalAuthorities, i);
+
+                Iterator<Item> itemsIterator =
+                        itemService.findRelatedItemsByAuthorityControlledFields(context, item, subList);
+
+                Iterator<Item> cachedItemsIterator = getItemsFromResolutionAttemptsCache(context, metadataValues);
+
+                Iterator<Item> itemsWithReferenceIterator = chainedIterator(itemsIterator, cachedItemsIterator);
+
+                while (itemsWithReferenceIterator.hasNext()) {
+                    Item itemWithReference = itemsWithReferenceIterator.next();
+                    updateReferences(context, itemWithReference, item, subList);
+                }
+            }
         }
+    }
 
+    public List<String> getAuthoritySubList(List<String> authorities, int totalAuthorities, int i) {
+        int end = Math.min(i + maxAuthoritiesPerSolrQuery, totalAuthorities);
+        List<String> subList = authorities.subList(i, end);
+        return subList;
     }
 
     private Iterator<Item> getItemsFromResolutionAttemptsCache(Context context, List<MetadataValue> metadataValues) {
@@ -226,4 +259,19 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
         return authorityPrefix;
     }
 
+    public int getMaxAuthoritiesPerSolrQuery() {
+        return maxAuthoritiesPerSolrQuery;
+    }
+
+    public void setMaxAuthoritiesPerSolrQuery(int maxAuthoritiesPerSolrQuery) {
+        this.maxAuthoritiesPerSolrQuery = maxAuthoritiesPerSolrQuery;
+    }
+
+    public ItemService getItemService() {
+        return itemService;
+    }
+
+    public void setItemService(ItemService itemService) {
+        this.itemService = itemService;
+    }
 }
