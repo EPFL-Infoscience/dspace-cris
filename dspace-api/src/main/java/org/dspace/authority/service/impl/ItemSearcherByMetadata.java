@@ -75,8 +75,6 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     private final String authorityPrefix;
 
-    private int maxAuthoritiesPerSolrQuery = 0;
-
     private static Logger log = LogManager.getLogger(ItemSearcherByMetadata.class);
 
     public ItemSearcherByMetadata(String metadata, String authorityPrefix) {
@@ -182,42 +180,20 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
         if (authorities.size() > 0) {
 
-            if (maxAuthoritiesPerSolrQuery == 0) {
-                maxAuthoritiesPerSolrQuery = configurationService
-                        .getIntProperty("item-searcher.by-metadata.maxauthoritiespersolrquery", 100);
-            }
-
-            if (maxAuthoritiesPerSolrQuery <= 0) {
-                throw new IllegalStateException(
-                        "item-searcher.by-metadata.maxauthoritiespersolrquery must be greater than zero");
-            }
-
             authorities = authorities.stream().distinct().collect(Collectors.toList()); // remove duplicates
 
-            int totalAuthorities = authorities.size();
+            Iterator<Item> itemsIterator =
+                        itemService.findRelatedItemsByAuthorityControlledFields(context, item, authorities);
 
-            for (int i = 0; i < totalAuthorities; i += maxAuthoritiesPerSolrQuery) {
-                List<String> subList = getAuthoritySubList(authorities, totalAuthorities, i);
+            Iterator<Item> cachedItemsIterator = getItemsFromResolutionAttemptsCache(context, metadataValues);
 
-                Iterator<Item> itemsIterator =
-                        itemService.findRelatedItemsByAuthorityControlledFields(context, item, subList);
+            Iterator<Item> itemsWithReferenceIterator = chainedIterator(itemsIterator, cachedItemsIterator);
 
-                Iterator<Item> cachedItemsIterator = getItemsFromResolutionAttemptsCache(context, metadataValues);
-
-                Iterator<Item> itemsWithReferenceIterator = chainedIterator(itemsIterator, cachedItemsIterator);
-
-                while (itemsWithReferenceIterator.hasNext()) {
-                    Item itemWithReference = itemsWithReferenceIterator.next();
-                    updateReferences(context, itemWithReference, item, subList);
-                }
+            while (itemsWithReferenceIterator.hasNext()) {
+                Item itemWithReference = itemsWithReferenceIterator.next();
+                updateReferences(context, itemWithReference, item, authorities);
             }
         }
-    }
-
-    public List<String> getAuthoritySubList(List<String> authorities, int totalAuthorities, int i) {
-        int end = Math.min(i + maxAuthoritiesPerSolrQuery, totalAuthorities);
-        List<String> subList = authorities.subList(i, end);
-        return subList;
     }
 
     private Iterator<Item> getItemsFromResolutionAttemptsCache(Context context, List<MetadataValue> metadataValues) {
@@ -257,14 +233,6 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     public String getAuthorityPrefix() {
         return authorityPrefix;
-    }
-
-    public int getMaxAuthoritiesPerSolrQuery() {
-        return maxAuthoritiesPerSolrQuery;
-    }
-
-    public void setMaxAuthoritiesPerSolrQuery(int maxAuthoritiesPerSolrQuery) {
-        this.maxAuthoritiesPerSolrQuery = maxAuthoritiesPerSolrQuery;
     }
 
     public ItemService getItemService() {

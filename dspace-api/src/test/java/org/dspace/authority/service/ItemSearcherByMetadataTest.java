@@ -7,11 +7,11 @@
  */
 package org.dspace.authority.service;
 
-import static org.mockito.Mockito.any;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +27,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 /**
@@ -52,44 +53,6 @@ public class ItemSearcherByMetadataTest extends AbstractUnitTest {
     }
 
     /**
-     * This test verifies that itemService.resolveReferences will split the discovery in serveral
-     * calls towards solr, depending on maxAuthoritiesPerSolrQuery configuration value
-     */
-    @Test
-    public void testResolveReferencesSplitCalls() {
-
-        ItemService currentItemService = itemSearcherByORCID.getItemService();
-        int currentMaxAuthoritiesPerSolrQuery = itemSearcherByORCID.getMaxAuthoritiesPerSolrQuery();
-
-        try {
-
-            String[] orcids = {"0000-0000-0000-0001", "0000-0000-0000-0002", "0000-0000-0000-0003",
-                    "0000-0000-0000-0004", "0000-0000-0000-0005"};
-
-            List<MetadataValue> metadataValues = new ArrayList<MetadataValue>();
-            for (int i = 0; i < 5; i++) {
-                MetadataValue metadataValue = mock(MetadataValue.class);
-                when(metadataValue.getValue()).thenReturn(orcids[i]);
-                metadataValues.add(metadataValue);
-            }
-            when(itemService.getMetadataByMetadataString(item, "person.identifier.orcid")).thenReturn(metadataValues);
-            when(itemService.findRelatedItemsByAuthorityControlledFields(eq(context), eq(item), anyList()))
-                .thenReturn(Collections.emptyIterator());
-            itemSearcherByORCID.setItemService(itemService);
-
-            itemSearcherByORCID.setMaxAuthoritiesPerSolrQuery(2);
-
-            itemSearcherByORCID.resolveReferences(context, item);
-
-            verify(itemService, times(3))
-                .findRelatedItemsByAuthorityControlledFields(eq(context), any(Item.class), anyList());
-        } finally {
-            itemSearcherByORCID.setItemService(currentItemService);
-            itemSearcherByORCID.setMaxAuthoritiesPerSolrQuery(currentMaxAuthoritiesPerSolrQuery);
-        }
-    }
-
-    /**
      * This test verifies that itemService.resolveReferences will not take in consideration
      * the placeholder PLACEHOLDER_PARENT_METADATA_VALUE, avoiding useless clauses towards solr
      */
@@ -97,19 +60,16 @@ public class ItemSearcherByMetadataTest extends AbstractUnitTest {
     public void testResolveReferencesFilterPlaceholderMetadataValue() {
 
         ItemService currentItemService = itemSearcherByORCID.getItemService();
-        int currentMaxAuthoritiesPerSolrQuery = itemSearcherByORCID.getMaxAuthoritiesPerSolrQuery();
 
         try {
 
-            String[] orcids = {"0000-0000-0000-0001", "0000-0000-0000-0002", "0000-0000-0000-0003",
-                    "0000-0000-0000-0004", "0000-0000-0000-0005"};
+            String orcid = "0000-0000-0000-0001";
 
             List<MetadataValue> metadataValues = new ArrayList<MetadataValue>();
-            for (int i = 0; i < 5; i++) {
-                MetadataValue metadataValue = mock(MetadataValue.class);
-                when(metadataValue.getValue()).thenReturn(orcids[i]);
-                metadataValues.add(metadataValue);
-            }
+            MetadataValue metadataValueOrcid = mock(MetadataValue.class);
+            when(metadataValueOrcid.getValue()).thenReturn(orcid);
+            metadataValues.add(metadataValueOrcid);
+
             for (int i = 0; i < 5; i++) {
                 MetadataValue metadataValue = mock(MetadataValue.class);
                 when(metadataValue.getValue()).thenReturn("#PLACEHOLDER_PARENT_METADATA_VALUE#");
@@ -120,17 +80,19 @@ public class ItemSearcherByMetadataTest extends AbstractUnitTest {
                 .thenReturn(Collections.emptyIterator());
             itemSearcherByORCID.setItemService(itemService);
 
-            itemSearcherByORCID.setMaxAuthoritiesPerSolrQuery(5);
-
             itemSearcherByORCID.resolveReferences(context, item);
 
-            verify(itemService, times(1))
-                .findRelatedItemsByAuthorityControlledFields(eq(context), any(Item.class), anyList());
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
+
+            verify(itemService).findRelatedItemsByAuthorityControlledFields(eq(context), eq(item), captor.capture());
+            List<String> capturedAuthorities = captor.getValue();
+            assertEquals(1, capturedAuthorities.size());
+            assertTrue(capturedAuthorities.contains("will be referenced::ORCID::" + orcid));
+
         } finally {
             itemSearcherByORCID.setItemService(currentItemService);
-            itemSearcherByORCID.setMaxAuthoritiesPerSolrQuery(currentMaxAuthoritiesPerSolrQuery);
         }
-
     }
 
     /**
@@ -140,14 +102,15 @@ public class ItemSearcherByMetadataTest extends AbstractUnitTest {
     public void testResolveReferencesAvoidDuplicates() {
 
         ItemService currentItemService = itemSearcherByORCID.getItemService();
-        int currentMaxAuthoritiesPerSolrQuery = itemSearcherByORCID.getMaxAuthoritiesPerSolrQuery();
 
         try {
+
+            String orcid = "0000-0000-0000-0001";
 
             List<MetadataValue> metadataValues = new ArrayList<MetadataValue>();
             for (int i = 0; i < 5; i++) {
                 MetadataValue metadataValue = mock(MetadataValue.class);
-                when(metadataValue.getValue()).thenReturn("0000-0000-0000-0001");
+                when(metadataValue.getValue()).thenReturn(orcid);
                 metadataValues.add(metadataValue);
             }
             when(itemService.getMetadataByMetadataString(item, "person.identifier.orcid")).thenReturn(metadataValues);
@@ -155,16 +118,18 @@ public class ItemSearcherByMetadataTest extends AbstractUnitTest {
                 .thenReturn(Collections.emptyIterator());
             itemSearcherByORCID.setItemService(itemService);
 
-            itemSearcherByORCID.setMaxAuthoritiesPerSolrQuery(1);
-
             itemSearcherByORCID.resolveReferences(context, item);
 
-            verify(itemService, times(1))
-                .findRelatedItemsByAuthorityControlledFields(eq(context), any(Item.class), anyList());
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
+
+            verify(itemService).findRelatedItemsByAuthorityControlledFields(eq(context), eq(item), captor.capture());
+            List<String> capturedAuthorities = captor.getValue();
+            assertEquals(1, capturedAuthorities.size());
+            assertTrue(capturedAuthorities.contains("will be referenced::ORCID::" + orcid));
+
         } finally {
             itemSearcherByORCID.setItemService(currentItemService);
-            itemSearcherByORCID.setMaxAuthoritiesPerSolrQuery(currentMaxAuthoritiesPerSolrQuery);
         }
-
     }
 }
