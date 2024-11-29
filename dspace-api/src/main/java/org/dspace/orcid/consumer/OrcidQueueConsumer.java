@@ -153,6 +153,10 @@ public class OrcidQueueConsumer implements Consumer {
 
         for (MetadataValue metadata : metadataValues) {
 
+            if (!isAllowedForOrcid(metadata)) {
+                continue;
+            }
+
             String authority = metadata.getAuthority();
 
             if (isNestedMetadataPlaceholder(metadata) || shouldBeIgnoredForOrcid(metadata)) {
@@ -328,6 +332,15 @@ public class OrcidQueueConsumer implements Consumer {
     private boolean shouldBeIgnoredForOrcid(MetadataValue metadata) {
         String[] metadataFieldToIgnore = configurationService.getArrayProperty("orcid.linkable-metadata-fields.ignore");
         return ArrayUtils.contains(metadataFieldToIgnore, metadata.getMetadataField().toString('.'));
+    }
+
+    private boolean isAllowedForOrcid(MetadataValue metadata) {
+        String[] allowedMetadataFields =
+                configurationService.getArrayProperty("orcid.linkable-metadata-fields.allowed");
+        if (allowedMetadataFields == null || allowedMetadataFields.length == 0) {
+            return true;
+        }
+        return ArrayUtils.contains(allowedMetadataFields, metadata.getMetadataField().toString('.'));
     }
 
     private String getMetadataValue(Item item, String metadataField) {

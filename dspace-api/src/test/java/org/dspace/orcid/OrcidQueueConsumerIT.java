@@ -1312,6 +1312,80 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    /**
+     * Checks that, if orcid.linkable-metadata-fields.allow is set and the publication has that metadatum,
+     * then it gets queued
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testOrcidQueueRecordCreationWithAllowedMetadata() throws Exception {
+
+        configurationService.addPropertyValue("orcid.linkable-metadata-fields.allowed", "dc.contributor.author");
+
+        context.turnOffAuthorisationSystem();
+
+        Item profile = ItemBuilder.createItem(context, profileCollection)
+                .withTitle("Test User")
+                .withOrcidIdentifier("0000-0000-0012-2345")
+                .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
+                .withOrcidSynchronizationFundingsPreference(ALL)
+                .withOrcidSynchronizationPublicationsPreference(ALL)
+                .withOrcidSynchronizationProductsPreference(ALL)
+                .withOrcidSynchronizationPatentsPreference(ALL)
+                .build();
+
+        Collection publicationCollection = createCollection("Publications", "Publication");
+
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+                .withTitle("Test publication")
+                .withAuthor("Test User", profile.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        List<OrcidQueue> queueRecords = orcidQueueService.findAll(context);
+        assertThat(queueRecords, hasSize(1));
+        assertThat(queueRecords, hasItem(matches(profile, publication, "Publication", null, INSERT)));
+    }
+
+    /**
+     * Checks that, if orcid.linkable-metadata-fields.allow is set and the publication does not have
+     * that metadatum, then it won't be put in the queue
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testOrcidQueueRecordCreationWithoutAllowedMetadata() throws Exception {
+
+        configurationService.addPropertyValue("orcid.linkable-metadata-fields.allowed", "dc.contributor.editor");
+
+        context.turnOffAuthorisationSystem();
+
+        Item profile = ItemBuilder.createItem(context, profileCollection)
+                .withTitle("Test User")
+                .withOrcidIdentifier("0000-0000-0012-2345")
+                .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
+                .withOrcidSynchronizationFundingsPreference(ALL)
+                .withOrcidSynchronizationPublicationsPreference(ALL)
+                .withOrcidSynchronizationProductsPreference(ALL)
+                .withOrcidSynchronizationPatentsPreference(ALL)
+                .build();
+
+        Collection publicationCollection = createCollection("Publications", "Publication");
+
+        ItemBuilder.createItem(context, publicationCollection)
+                .withTitle("Test publication")
+                .withAuthor("Test User", profile.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        assertThat(orcidQueueService.findAll(context), empty());
+    }
+
     private void addMetadata(Item item, String schema, String element, String qualifier, String value,
         String authority) throws Exception {
         context.turnOffAuthorisationSystem();
