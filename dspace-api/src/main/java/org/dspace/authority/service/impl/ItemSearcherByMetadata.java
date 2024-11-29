@@ -41,7 +41,6 @@ import org.dspace.discovery.indexobject.IndexableInProgressSubmission;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.discovery.indexobject.IndexableWorkflowItem;
 import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
-import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -63,9 +62,6 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
     @Autowired
     private ChoiceAuthorityService choiceAuthorityService;
 
-    @Autowired
-    private ConfigurationService configurationService;
-
     private ThreadLocal<Map<String, UUID>> valuesToItemIds = ThreadLocal.withInitial(() -> new HashMap<>());
 
     private ThreadLocal<MultiValuedMap<String, UUID>> referenceResolutionAttempts =
@@ -75,11 +71,14 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     private final String authorityPrefix;
 
+    private final List<String> allowedEntityTypes;
+
     private static Logger log = LogManager.getLogger(ItemSearcherByMetadata.class);
 
-    public ItemSearcherByMetadata(String metadata, String authorityPrefix) {
+    public ItemSearcherByMetadata(String metadata, String authorityPrefix, List<String> allowedEntityTypes) {
         this.metadata = metadata;
         this.authorityPrefix = authorityPrefix;
+        this.allowedEntityTypes = allowedEntityTypes;
     }
 
     @Override
@@ -225,6 +224,12 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
     public void clearCache() {
         valuesToItemIds.get().clear();
         referenceResolutionAttempts.get().clear();
+    }
+
+    @Override
+    public boolean isApplicableFor(Context context, Item item) {
+        String entityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", null);
+        return allowedEntityTypes.contains(entityType);
     }
 
     public String getMetadata() {

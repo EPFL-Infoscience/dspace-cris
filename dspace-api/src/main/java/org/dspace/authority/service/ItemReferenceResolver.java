@@ -31,4 +31,14 @@ public interface ItemReferenceResolver {
      * Clears the resolver cache if any is used
      */
     void clearCache();
+
+    /**
+     * Checks if the item entity type is suitable for the particular resolver
+     *
+     * @param context
+     * @param item
+     */
+    default boolean isApplicableFor(Context context, Item item) {
+        return false;
+    }
 }

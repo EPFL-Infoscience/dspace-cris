@@ -178,65 +178,134 @@
             <bean class="org.dspace.authority.service.impl.ItemSearcherById"></bean>
         </constructor-arg>
     </bean>
-	  <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByAcronym">
-	    <constructor-arg value="oairecerif.acronym" />
-	    <constructor-arg value="ACRONYM" />
-	  </bean>
-    
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByORCID">
-        <constructor-arg value="person.identifier.orcid"></constructor-arg>
-        <constructor-arg value="ORCID"></constructor-arg>
+        <constructor-arg value="person.identifier.orcid" />
+        <constructor-arg value="ORCID" />
+        <constructor-arg>
+            <list>
+                <value>Person</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByRID">
-        <constructor-arg value="person.identifier.rid"></constructor-arg>
-        <constructor-arg value="RID"></constructor-arg>
+        <constructor-arg value="person.identifier.rid" />
+        <constructor-arg value="RID" />
+        <constructor-arg>
+            <list>
+                <value>Person</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByDOI">
-        <constructor-arg value="dc.identifier.doi"></constructor-arg>
-        <constructor-arg value="DOI"></constructor-arg>
+        <constructor-arg value="dc.identifier.doi" />
+        <constructor-arg value="DOI" />
+        <constructor-arg>
+            <list>
+                <value>Publication</value>
+                <value>Patent</value>
+                <value>Product</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByURL">
-        <constructor-arg value="oairecerif.identifier.url"></constructor-arg>
-        <constructor-arg value="URL"></constructor-arg>
+        <constructor-arg value="oairecerif.identifier.url" />
+        <constructor-arg value="URL" />
+        <constructor-arg>
+            <list>
+                <value>Person</value>
+                <value>OrgUnit</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByISNI">
-        <constructor-arg value="person.identifier.isni"></constructor-arg>
-        <constructor-arg value="ISNI"></constructor-arg>
+        <constructor-arg value="person.identifier.isni" />
+        <constructor-arg value="ISNI" />
+        <constructor-arg>
+            <list>
+                <value>Person</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByISSN">
-        <constructor-arg value="dc.identifier.issn"></constructor-arg>
-        <constructor-arg value="ISSN"></constructor-arg>
+        <constructor-arg value="dc.identifier.issn" />
+        <constructor-arg value="ISSN" />
+        <constructor-arg>
+            <list>
+                <value>Publication</value>
+                <value>Journal</value>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByAcronym">
+        <constructor-arg value="oairecerif.acronym" />
+        <constructor-arg value="ACRONYM" />
+        <constructor-arg>
+            <list>
+                <value>Publication</value>
+                <value>OrgUnit</value>
+                <value>Product</value>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherBySciper">
+        <constructor-arg value="epfl.sciperId" />
+        <constructor-arg value="SCIPER-ID" />
+        <constructor-arg>
+            <list>
+                <value>Person</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByOpenaireProjectId">
-        <constructor-arg value="oairecerif.funding.identifier"></constructor-arg>
-        <constructor-arg value="OPENAIRE-PROJECT-ID"></constructor-arg>
+        <constructor-arg value="oairecerif.funding.identifier" />
+        <constructor-arg value="OPENAIRE-PROJECT-ID" />
+        <constructor-arg>
+            <list>
+                <value>Funding</value>
+            </list>
+        </constructor-arg>
     </bean>
 
-  <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherBySciper">
-    <constructor-arg value="epfl.sciperId" />
-    <constructor-arg value="SCIPER-ID" />
-  </bean>
-
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByLegacyId">
-        <constructor-arg value="cris.legacyId"></constructor-arg>
-        <constructor-arg value="LEGACY-ID"></constructor-arg>
+        <constructor-arg value="cris.legacyId" />
+        <constructor-arg value="LEGACY-ID" />
+        <constructor-arg>
+            <list>
+                <value>Patent</value>
+                <value>Publication</value>
+                <value>OrgUnit</value>
+                <value>Product</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByScopusAuthorId">
-        <constructor-arg value="person.identifier.scopus-author-id"></constructor-arg>
-        <constructor-arg value="SCOPUS-AUTHOR-ID"></constructor-arg>
+        <constructor-arg value="person.identifier.scopus-author-id" />
+        <constructor-arg value="SCOPUS-AUTHOR-ID" />
+        <constructor-arg>
+            <list>
+                <value>Person</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByRorId">
         <constructor-arg value="organization.identifier.ror" />
         <constructor-arg value="ROR-ID" />
+        <constructor-arg>
+            <list>
+                <value>OrgUnit</value>
+            </list>
+        </constructor-arg>
     </bean>
 
     <bean class="org.dspace.authority.service.impl.ItemSearchServiceImpl" name="org.dspace.authority.service.ItemSearchService"/>
