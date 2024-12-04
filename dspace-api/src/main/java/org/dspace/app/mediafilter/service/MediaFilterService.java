@@ -35,8 +35,8 @@ public interface MediaFilterService {
     //for MediaFilters which extend SelfNamedPlugin (\034 is "file separator" char)
     public static final String FILTER_PLUGIN_SEPARATOR = "\034";
 
-
-    void applyFiltersAllItems(Context context, boolean updateLastModified) throws Exception;
+    public void applyFiltersAllItems(Context context, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception;
 
     void applyFiltersCommunity(Context context, Community community, boolean updateLastModified) throws Exception;
 
