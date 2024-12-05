@@ -687,7 +687,7 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                 .withMetadata("oairecerif", "acronym", null, "en", "COSEC-STI", null, -1)
                 .build();
 
-        ItemBuilder.createItem(context, orgUnits)
+        Item ptmhGe = ItemBuilder.createItem(context, orgUnits)
                 .withMetadata("dc", "title", null, "fr",
                         "Plateforme technologique machines hydrauliques - Gestion", null, -1)
                 .withMetadata("dc", "title", null, "en", "Hydraulic Machines Platform - Administration", null, -1)
@@ -728,8 +728,11 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
 
         profile = researcherProfile.getItem();
 
-        assertThat(profile.getMetadata(), hasItem(
-                with("dc.title", "Vina, Louis")));
+        assertThat(profile.getMetadata(), hasItem(with("dc.title", "Vina, Louis")));
+        assertThat(profile.getMetadata(),
+                hasItem(with("oairecerif.person.affiliation", "COSEC-STI", cosecSti.getID().toString(), 0, 600)));
+        assertThat(profile.getMetadata(),
+                hasItem(with("oairecerif.person.affiliation", "PTMH-GE", ptmhGe.getID().toString(), 1, 600)));
 
         context.restoreAuthSystemState();
     }
