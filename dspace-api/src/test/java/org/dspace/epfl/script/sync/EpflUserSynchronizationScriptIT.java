@@ -674,6 +674,66 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
     }
 
+    @Test
+    public void testProfileCreationDcTitle()
+            throws SQLException, InstantiationException, IllegalAccessException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+
+        Item cosecSti = ItemBuilder.createItem(context, orgUnits)
+                .withMetadata("dc", "title", null, "fr", "COSEC - STI", null, -1)
+                .withMetadata("dc", "title", null, "en", "COSEC - STI", null, -1)
+                .withMetadata("dc", "type", null, null, "DIVERS", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "fr", "COSEC-STI", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "en", "COSEC-STI", null, -1)
+                .build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                .withMetadata("dc", "title", null, "fr",
+                        "Plateforme technologique machines hydrauliques - Gestion", null, -1)
+                .withMetadata("dc", "title", null, "en", "Hydraulic Machines Platform - Administration", null, -1)
+                .withMetadata("dc", "type", null, null, "CENTRE", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "fr", "PTMH-GE", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "en", "PTMH-GE", null, -1)
+                .build();
+
+        context.commit();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Louis", "Vina")
+                .withEmail("louis.vina@epfl.ch")
+                .withNetId("251859@epfl.ch")
+                .build();
+
+        Item profile = ItemBuilder.createItem(context, profiles)
+                .withMetadata("epfl", "sciperId", null, "251859")
+                .withMetadata("oairecerif", "affiliation", "endDate", "#PLACEHOLDER_PARENT_METADATA_VALUE#")
+                .withMetadata("oairecerif", "affiliation", "startDate", "2024-07-09")
+                .withMetadata("oairecerif", "affiliation", "role", "Safety Delegate")
+                .withMetadata("oairecerif", "person", "affiliation",
+                        null, "COSEC-STI", cosecSti.getID().toString(), 600)
+                .build();
+
+        context.commit();
+
+        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail(), "-q", "251859"};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
+
+        profile = researcherProfile.getItem();
+
+        assertThat(profile.getMetadata(), hasItem(
+                with("dc.title", "Vina, Louis")));
+
+        context.restoreAuthSystemState();
+    }
+
     private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {
         List<ResourcePolicy> resourcePolicies = resourcePolicyService.find(context, researcherProfile.getItem());
         boolean visible = resourcePolicies

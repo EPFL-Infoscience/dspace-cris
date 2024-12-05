@@ -804,7 +804,8 @@ public class ProfileInitializer {
             Optional<MetadataValue> mvOptional = itemService.getMetadata(item, metadataValue.getSchema(),
                             metadataValue.getElement(), metadataValue.getQualifier(), metadataValue.getLanguage())
                                           .stream()
-                                          .filter(value -> Objects.equals(value.getPlace(), metadataValue.getPlace()))
+                                          .filter(value -> Objects.equals(value.getValue(), metadataValue.getValue()) ||
+                                                  Objects.equals(value.getPlace(), metadataValue.getPlace()))
                                           .findFirst();
             MetadataValue mv;
 
