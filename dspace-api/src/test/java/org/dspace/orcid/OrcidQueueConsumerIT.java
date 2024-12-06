@@ -1380,10 +1380,17 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
                 .withAuthor("Test User", profile.getID().toString())
                 .build();
 
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+                .withTitle("Test publication")
+                .withEditor("Test User", profile.getID().toString())
+                .build();
+
         context.restoreAuthSystemState();
         context.commit();
 
-        assertThat(orcidQueueService.findAll(context), empty());
+        List<OrcidQueue> queueRecords = orcidQueueService.findAll(context);
+        assertThat(queueRecords, hasSize(1));
+        assertThat(queueRecords, hasItem(matches(profile, publication, "Publication", null, INSERT)));
     }
 
     private void addMetadata(Item item, String schema, String element, String qualifier, String value,
