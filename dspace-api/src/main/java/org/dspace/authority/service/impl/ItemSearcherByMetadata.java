@@ -175,11 +175,10 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
             .map(MetadataValue::getValue)
             .filter(value -> !value.contains("PLACEHOLDER_PARENT_METADATA_VALUE"))
             .map(value -> AuthorityValueService.REFERENCE + authorityPrefix + "::" + value)
+            .distinct()
             .collect(Collectors.toList());
 
         if (authorities.size() > 0) {
-
-            authorities = authorities.stream().distinct().collect(Collectors.toList()); // remove duplicates
 
             Iterator<Item> itemsIterator =
                         itemService.findRelatedItemsByAuthorityControlledFields(context, item, authorities);
@@ -228,8 +227,12 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     @Override
     public boolean isApplicableFor(Context context, Item item) {
-        String entityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", null);
-        return allowedEntityTypes.contains(entityType);
+        if (allowedEntityTypes != null && allowedEntityTypes.size() > 0) {
+            String entityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", null);
+            return allowedEntityTypes.contains(entityType);
+        }
+        // all entity types are supported if no limitations are specified
+        return true;
     }
 
     public String getMetadata() {

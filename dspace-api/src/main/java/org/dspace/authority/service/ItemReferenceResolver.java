@@ -35,8 +35,8 @@ public interface ItemReferenceResolver {
     /**
      * Checks if the item entity type is suitable for the particular resolver
      *
-     * @param context
-     * @param item
+     * @param context the DSpace Context
+     * @param item    the item to check to verify if the resolver is applicable
      */
     default boolean isApplicableFor(Context context, Item item) {
         return false;
