@@ -1080,14 +1080,14 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
 
         Collection productCollection = createCollection("Products", "Product");
 
-        Item firstProduct = ItemBuilder.createItem(context, productCollection)
+        ItemBuilder.createItem(context, productCollection)
             .withTitle("Test product")
             .withAuthor("Test User", profile.getID().toString())
             .build();
 
         Collection patentCollection = createCollection("Patents", "Patent");
 
-        Item firstPatent = ItemBuilder.createItem(context, patentCollection)
+        ItemBuilder.createItem(context, patentCollection)
             .withTitle("Test patent")
             .withAuthor("Test User", profile.getID().toString())
             .build();
@@ -1328,6 +1328,10 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
             configurationService.setProperty("orcid.linkable-metadata-fields.allowed",
                     new String[] { "dc.contributor.author" });
 
+            assertThat(List.of(configurationService.getArrayProperty("orcid.linkable-metadata-fields.allowed")),
+                    hasSize(1));
+            assertThat(orcidQueueService.findAll(context), empty());
+
             context.turnOffAuthorisationSystem();
 
             Item profile = ItemBuilder.createItem(context, profileCollection)
@@ -1374,6 +1378,10 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
 
             configurationService.setProperty("orcid.linkable-metadata-fields.allowed",
                     new String[] { "dc.contributor.editor" });
+
+            assertThat(List.of(configurationService.getArrayProperty("orcid.linkable-metadata-fields.allowed")),
+                    hasSize(1));
+            assertThat(orcidQueueService.findAll(context), empty());
 
             context.turnOffAuthorisationSystem();
 
