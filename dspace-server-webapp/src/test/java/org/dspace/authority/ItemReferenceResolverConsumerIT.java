@@ -11,6 +11,7 @@ import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -662,6 +663,57 @@ public class ItemReferenceResolverConsumerIT extends AbstractControllerIntegrati
         getClient(authToken).perform(get(BASE_REST_SERVER_URL + "/api/core/items/{id}", secondWsItem.getItem().getID()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.metadata['dc.contributor.author'][0].authority", is(authorUUID)));
+    }
+
+    /**
+     * Checks that if an item has a metadatum that should not be resolved, the referenceconsumer will skip it.
+     * For example, an item with entity type Publication should not be resolved with an orcid
+     *
+     * @throws SQLException
+     */
+    @Test
+    public void testItemReferenceConsumerForWrongReference() throws SQLException {
+
+        context.turnOffAuthorisationSystem();
+
+        // creation of a publication with a will be referenced orcid
+
+        String orcid = "0000-0002-1825-0097";
+        String orcidAuthority = formatWillBeReferencedAuthority("ORCID", orcid);
+
+        Item firstItem = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("First Item")
+            .withAuthor("Author", orcidAuthority)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        firstItem = context.reloadEntity(firstItem);
+        assertThat(firstItem.getMetadata(), hasItem(with("dc.contributor.author", "Author", null,
+            orcidAuthority, 0, -1)));
+
+        context.turnOffAuthorisationSystem();
+
+        // creation of a second publication, with an orcid identifier.
+        // since it's not a person item, this must not be considered
+
+        Item itemWithOrcid = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Publication with Orcid")
+            .withOrcidIdentifier(orcid)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        firstItem = context.reloadEntity(firstItem);
+
+        // check that the first item must not have the reference resolved with the second item
+        assertThat(firstItem.getMetadata(), not(hasItem(with("dc.contributor.author", "Author", null,
+            itemWithOrcid.getID().toString(), 0, 600))));
+
+        // check also that the metadatum is still the same as before the second item was created
+        assertThat(firstItem.getMetadata(), hasItem(with("dc.contributor.author", "Author", null,
+                orcidAuthority, 0, -1)));
+
     }
 
     private Collection createCollection(String name, String entityType) throws Exception {
