@@ -62,6 +62,7 @@ import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWithDatabase {
@@ -456,6 +457,7 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
     }
 
     @Test
+    @Ignore // ignored because the update of the affiliation is not needed anymore
     public void testUpdateAffiliationsWithProfileHavingWrongAffiliationName()
         throws SQLException, AuthorizeException, InstantiationException, IllegalAccessException {
 
@@ -711,6 +713,75 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                 .withMetadata("oairecerif", "affiliation", "role", "Safety Delegate")
                 .withMetadata("oairecerif", "person", "affiliation",
                         null, "COSEC-STI", cosecSti.getID().toString(), 600)
+                .build();
+
+        context.commit();
+
+        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail(), "-q", "251859"};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+        assertVisible(researcherProfile);
+
+        profile = researcherProfile.getItem();
+
+        assertThat(profile.getMetadata(), hasItem(with("dc.title", "Vina, Louis")));
+        assertThat(profile.getMetadata(),
+                hasItem(with("oairecerif.person.affiliation", "COSEC-STI", cosecSti.getID().toString(), 0, 600)));
+        assertThat(profile.getMetadata(),
+                hasItem(with("oairecerif.person.affiliation", "PTMH-GE", ptmhGe.getID().toString(), 1, 600)));
+
+        context.restoreAuthSystemState();
+    }
+
+    @Test
+    public void testProfileCreationDcTitleWithTwoAffiliations()
+            throws SQLException, InstantiationException, IllegalAccessException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+
+        Item cosecSti = ItemBuilder.createItem(context, orgUnits)
+                .withMetadata("dc", "title", null, "fr", "COSEC - STI", null, -1)
+                .withMetadata("dc", "title", null, "en", "COSEC - STI", null, -1)
+                .withMetadata("dc", "type", null, null, "DIVERS", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "fr", "COSEC-STI", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "en", "COSEC-STI", null, -1)
+                .build();
+
+        Item ptmhGe = ItemBuilder.createItem(context, orgUnits)
+                .withMetadata("dc", "title", null, "fr",
+                        "Plateforme technologique machines hydrauliques - Gestion", null, -1)
+                .withMetadata("dc", "title", null, "en", "Hydraulic Machines Platform - Administration", null, -1)
+                .withMetadata("dc", "type", null, null, "CENTRE", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "fr", "PTMH-GE", null, -1)
+                .withMetadata("oairecerif", "acronym", null, "en", "PTMH-GE", null, -1)
+                .build();
+
+        context.commit();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Louis", "Vina")
+                .withEmail("louis.vina@epfl.ch")
+                .withNetId("251859@epfl.ch")
+                .build();
+
+        Item profile = ItemBuilder.createItem(context, profiles)
+                .withMetadata("dc", "title", null, "Vina, Louis")
+                .withMetadata("epfl", "sciperId", null, "251859")
+                .withMetadata("oairecerif", "affiliation", "endDate", "#PLACEHOLDER_PARENT_METADATA_VALUE#")
+                .withMetadata("oairecerif", "affiliation", "startDate", "2024-07-09")
+                .withMetadata("oairecerif", "affiliation", "role", "Safety Delegate")
+                .withMetadata("oairecerif", "person", "affiliation",
+                        null, "COSEC-STI", cosecSti.getID().toString(), 600)
+                .withMetadata("oairecerif", "affiliation", "endDate", "#PLACEHOLDER_PARENT_METADATA_VALUE#")
+                .withMetadata("oairecerif", "affiliation", "startDate", "2024-07-09")
+                .withMetadata("oairecerif", "affiliation", "role", "Safety Delegate")
+                .withMetadata("oairecerif", "person", "affiliation",
+                        null, "PTMH-GE", ptmhGe.getID().toString(), 600)
                 .build();
 
         context.commit();

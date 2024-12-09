@@ -580,10 +580,6 @@ public class ProfileInitializer {
         addEndDateToExpiredAccreds(context, item, affiliationsToClosePositions);
         List<PersonAffiliation> alreadySetAffiliations =
             alreadyPresentAffiliations(personAffiliations, apiAffiliations);
-        // update oairecerif.person.affiliation value in case it is unit's name instead of acronym
-        metadataValues.stream().filter(mv -> isAlreadySetAffiliation(mv, alreadySetAffiliations))
-                      .filter(mv -> "oairecerif.person.affiliation".equals(mv.getMetadataField()))
-                      .forEach(metadataValue -> updateMetadataValue(context, item, metadataValue));
         metadataValues.stream().filter(mv -> !isAlreadySetAffiliation(mv, alreadySetAffiliations))
                       .forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
     }
@@ -799,6 +795,10 @@ public class ProfileInitializer {
         }
     }
 
+    /**
+     * Previously called by replaceMetadataValues to update already present affiliations
+     */
+    @SuppressWarnings("unused")
     private void updateMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
         try {
             Optional<MetadataValue> mvOptional = itemService.getMetadata(item, metadataValue.getSchema(),
