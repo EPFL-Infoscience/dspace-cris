@@ -795,34 +795,6 @@ public class ProfileInitializer {
         }
     }
 
-    /**
-     * Previously called by replaceMetadataValues to update already present affiliations
-     */
-    @SuppressWarnings("unused")
-    private void updateMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
-        try {
-            Optional<MetadataValue> mvOptional = itemService.getMetadata(item, metadataValue.getSchema(),
-                            metadataValue.getElement(), metadataValue.getQualifier(), metadataValue.getLanguage())
-                                          .stream()
-                                          .filter(value -> Objects.equals(value.getValue(), metadataValue.getValue()) ||
-                                                  Objects.equals(value.getPlace(), metadataValue.getPlace()))
-                                          .findFirst();
-            MetadataValue mv;
-
-            if (mvOptional.isPresent()) {
-                mv = mvOptional.get();
-            } else {
-                throw new RuntimeException("Could not find metadata value for " +
-                        metadataValue.getMetadataField() + " with place " + metadataValue.getPlace());
-            }
-
-            mv.setValue(metadataValue.getValue());
-            context.reloadEntity(mv);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void clearMetadataValues(Context context, Item item) {
 
         personApiService.getMetadataFields()
