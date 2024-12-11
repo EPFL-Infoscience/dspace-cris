@@ -62,7 +62,6 @@ import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWithDatabase {
@@ -454,103 +453,6 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
 
 
-    }
-
-    @Test
-    @Ignore // ignored because the update of the affiliation is not needed anymore
-    public void testUpdateAffiliationsWithProfileHavingWrongAffiliationName()
-        throws SQLException, AuthorizeException, InstantiationException, IllegalAccessException {
-
-        context.turnOffAuthorisationSystem();
-
-
-        Item sensAff = ItemBuilder.createItem(context, orgUnits)
-                                  .withTitle("Laboratory of Sensing and Networking Systems")
-                                  .withAcronym("SENS").build();
-
-        Item ssc = ItemBuilder.createItem(context, orgUnits)
-                              .withTitle("SSC - Teaching")
-                              .withAcronym("SSC-ENS").build();
-
-        Item sin = ItemBuilder.createItem(context, orgUnits)
-                              .withTitle("SIN - Teaching")
-                              .withAcronym("SIN-ENS").build();
-
-        Item closedAff = ItemBuilder.createItem(context, orgUnits)
-                                    .withTitle("SIN - closed")
-                                    .withAcronym("SIN-CLS").build();
-
-        EPerson eperson = EPersonBuilder.createEPerson(context)
-                                        .withNameInMetadata("Test", "User")
-                                        .withEmail("test@user.it")
-                                        .withNetId("352234@epfl.ch")
-                                        .build();
-
-        Item existingProfile = ItemBuilder
-            .createItem(context, profiles)
-            .withDspaceObjectOwner(eperson)
-            .withTitle("User, Test")
-            .withPersonAffiliation("Laboratory of Sensing and Networking Systems", sensAff.getID().toString())
-            .withPersonAffiliationStartDate("2022-01-01")
-            .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE).build();
-
-        context.restoreAuthSystemState();
-
-        // run script
-        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail()};
-        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
-
-        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
-        assertThat(handler.getErrorMessages(), empty());
-        assertThat(handler.getWarningMessages(), empty());
-        assertThat(handler.getInfoMessages(), contains(
-                       is("EPerson with uuid: " + eperson.getID().toString() + ", sciperId: 352234 was updated"),
-                       is("Changes:"),
-                       is("Number of created epersons: 0"),
-                       is("Number of updated epersons: 1")
-                   )
-        );
-
-        eperson = context.reloadEntity(eperson);
-        assertThat(eperson.getFirstName(), equalTo("Haitham"));
-        assertThat(eperson.getLastName(), equalTo("Al Hassanieh"));
-        assertThat(eperson.getEmail(), equalTo("haitham.alhassanieh@epfl.ch"));
-        assertThat(eperson.getNetid(), equalTo("352234@epfl.ch"));
-
-        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
-        assertThat(researcherProfile, notNullValue());
-        assertVisible(researcherProfile);
-        assertThat(researcherProfile.getItem().getID(), is(existingProfile.getID()));
-
-        Item profile = researcherProfile.getItem();
-        String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
-        assertThat(profile.getMetadata(), hasItems(
-            with("dc.title", "Al Hassanieh, Haitham"),
-            with("person.givenName", "Haitham"),
-            with("person.familyName", "Al Hassanieh"),
-            with("person.email", "haitham.alhassanieh@epfl.ch"),
-            with("epfl.sciper.active", "true"),
-            with("epfl.sciperId", "352234"),
-            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
-            with("oairecerif.affiliation.role", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
-            with("oairecerif.person.affiliation", "SENS", sensAff.getID().toString(), 0, Choices.CF_ACCEPTED),
-            with("oairecerif.affiliation.startDate", "2022-01-01", 0),
-            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
-            with("oairecerif.affiliation.role", "Associate Professor", 1),
-            with("oairecerif.person.affiliation", "SSC-ENS", ssc.getID().toString(), 1, Choices.CF_ACCEPTED),
-            with("oairecerif.affiliation.startDate", yesterday, 1),
-            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1),
-            with("oairecerif.affiliation.role", "Associate Professor", 2),
-            with("oairecerif.person.affiliation", "SIN-ENS", sin.getID().toString(), 2, Choices.CF_ACCEPTED),
-            with("oairecerif.affiliation.startDate", yesterday, 2),
-            with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 2)));
-
-        List<MetadataValue> affiliations = getMetadataValuesByMetadataString(profile, "oairecerif_person_affiliation");
-        assertEquals(3, affiliations.size());
-
-        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
-        assertThat(picture, notNullValue());
-        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
     }
 
     @Test
