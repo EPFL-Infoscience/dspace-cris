@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ViewEventRest;
+import org.dspace.app.rest.model.wrapper.SavedHttpServletRequestWrapper;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.DSpaceObjectService;
@@ -66,7 +67,12 @@ public class ViewEventRestRepository extends AbstractDSpaceRestRepository {
         }
         final String referrer = viewEventRest.getReferrer();
         eventService.fireAsyncEvent(
-            () -> UsageEvent.createUsageEvent(context, req, dSpaceObjectService, targetId, referrer)
+                () -> UsageEvent.createUsageEvent(
+                        new Context(Context.Mode.READ_ONLY),
+                        new SavedHttpServletRequestWrapper(req),
+                        dSpaceObjectService,
+                        targetId,
+                        referrer)
         );
         return viewEventRest;
     }
