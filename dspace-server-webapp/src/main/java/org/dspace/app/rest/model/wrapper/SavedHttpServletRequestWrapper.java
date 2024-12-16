@@ -6,12 +6,17 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest.model.wrapper;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpSession;
 
-import java.util.*;
+
 
 /**
  * A custom {@link HttpServletRequestWrapper} that allows to access to request fields in async way,
@@ -19,7 +24,7 @@ import java.util.*;
  */
 public class SavedHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private final Map<String, List<String>> headers;
-    private final HttpSession session;
+    private final Map<Boolean, SavedHttpSessionWrapper> sessions;
     private final String requestURI;
     private final String remoteAddr;
     private final String remoteHost;
@@ -27,16 +32,26 @@ public class SavedHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * Create an instance of {@link SavedHttpServletRequestWrapper}
+     *
      * @param request the original request
      */
     public SavedHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
         headers = initHeaders(request);
-        session = super.getSession(false);
+        sessions = initSessions();
         requestURI = super.getRequestURI();
         remoteAddr = super.getRemoteAddr();
         remoteHost = super.getRemoteHost();
         queryString = super.getQueryString();
+    }
+
+    private Map<Boolean, SavedHttpSessionWrapper> initSessions() {
+        HttpSession session = super.getSession(false);
+        SavedHttpSessionWrapper savedHttpSession = new SavedHttpSessionWrapper(session);
+        sessions.put(Boolean.FALSE, session != null ? savedHttpSession : null);
+        sessions.put(Boolean.TRUE,
+                session == null ? new SavedHttpSessionWrapper(super.getSession(true)) : savedHttpSession);
+        return sessions;
     }
 
     private Map<String, List<String>> initHeaders(HttpServletRequest request) {
@@ -61,7 +76,12 @@ public class SavedHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public HttpSession getSession(boolean create) {
-        return create ? super.getSession(true) : session;
+        return sessions.get(create);
+    }
+
+    @Override
+    public HttpSession getSession() {
+        return getSession(true);
     }
 
     @Override
