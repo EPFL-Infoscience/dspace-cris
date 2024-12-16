@@ -34,7 +34,9 @@ public class ItemReferenceResolverServiceImpl implements ItemReferenceResolverSe
 
     @Override
     public void resolveReferences(Context context, Item item) {
-        resolvers.forEach(resolver -> resolver.resolveReferences(context, item));
+        resolvers.stream()
+            .filter(resolver -> resolver.isApplicableFor(context, item))
+            .forEach(resolver -> resolver.resolveReferences(context, item));
     }
 
     @Override

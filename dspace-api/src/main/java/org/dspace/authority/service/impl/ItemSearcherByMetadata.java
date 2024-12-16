@@ -71,11 +71,14 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     private final String authorityPrefix;
 
+    private final List<String> allowedEntityTypes;
+
     private static Logger log = LogManager.getLogger(ItemSearcherByMetadata.class);
 
-    public ItemSearcherByMetadata(String metadata, String authorityPrefix) {
+    public ItemSearcherByMetadata(String metadata, String authorityPrefix, List<String> allowedEntityTypes) {
         this.metadata = metadata;
         this.authorityPrefix = authorityPrefix;
+        this.allowedEntityTypes = allowedEntityTypes;
     }
 
     @Override
@@ -170,21 +173,25 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
         List<String> authorities = metadataValues.stream()
             .map(MetadataValue::getValue)
+            .filter(value -> !value.contains("PLACEHOLDER_PARENT_METADATA_VALUE"))
             .map(value -> AuthorityValueService.REFERENCE + authorityPrefix + "::" + value)
+            .distinct()
             .collect(Collectors.toList());
 
-        Iterator<Item> itemsIterator =
-                      itemService.findRelatedItemsByAuthorityControlledFields(context, item, authorities);
+        if (authorities.size() > 0) {
 
-        Iterator<Item> cachedItemsIterator = getItemsFromResolutionAttemptsCache(context, metadataValues);
+            Iterator<Item> itemsIterator =
+                        itemService.findRelatedItemsByAuthorityControlledFields(context, item, authorities);
 
-        Iterator<Item> itemsWithReferenceIterator = chainedIterator(itemsIterator, cachedItemsIterator);
+            Iterator<Item> cachedItemsIterator = getItemsFromResolutionAttemptsCache(context, metadataValues);
 
-        while (itemsWithReferenceIterator.hasNext()) {
-            Item itemWithReference = itemsWithReferenceIterator.next();
-            updateReferences(context, itemWithReference, item, authorities);
+            Iterator<Item> itemsWithReferenceIterator = chainedIterator(itemsIterator, cachedItemsIterator);
+
+            while (itemsWithReferenceIterator.hasNext()) {
+                Item itemWithReference = itemsWithReferenceIterator.next();
+                updateReferences(context, itemWithReference, item, authorities);
+            }
         }
-
     }
 
     private Iterator<Item> getItemsFromResolutionAttemptsCache(Context context, List<MetadataValue> metadataValues) {
@@ -218,6 +225,16 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
         referenceResolutionAttempts.get().clear();
     }
 
+    @Override
+    public boolean isApplicableFor(Context context, Item item) {
+        if (allowedEntityTypes != null && allowedEntityTypes.size() > 0) {
+            String entityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", null);
+            return allowedEntityTypes.contains(entityType);
+        }
+        // all entity types are supported if no limitations are specified
+        return true;
+    }
+
     public String getMetadata() {
         return metadata;
     }
@@ -226,4 +243,11 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
         return authorityPrefix;
     }
 
+    public ItemService getItemService() {
+        return itemService;
+    }
+
+    public void setItemService(ItemService itemService) {
+        this.itemService = itemService;
+    }
 }

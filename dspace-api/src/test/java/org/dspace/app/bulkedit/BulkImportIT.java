@@ -1358,11 +1358,13 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         Collection publications = createCollection(context, community)
             .withSubmissionDefinition("publication")
+            .withEntityType("Publication")
             .withAdminGroup(eperson)
             .build();
 
         Collection persons = createCollection(context, community)
             .withSubmissionDefinition("person")
+            .withEntityType("Person")
             .withAdminGroup(eperson)
             .build();
 
