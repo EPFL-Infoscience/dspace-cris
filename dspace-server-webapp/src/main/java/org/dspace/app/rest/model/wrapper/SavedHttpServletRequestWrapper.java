@@ -24,7 +24,7 @@ import jakarta.servlet.http.HttpSession;
  */
 public class SavedHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private final Map<String, List<String>> headers;
-    private final Map<Boolean, SavedHttpSessionWrapper> sessions;
+    private final Map<Boolean, SavedHttpSessionWrapper> sessionCache;
     private final String requestURI;
     private final String remoteAddr;
     private final String remoteHost;
@@ -38,20 +38,21 @@ public class SavedHttpServletRequestWrapper extends HttpServletRequestWrapper {
     public SavedHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
         headers = initHeaders(request);
-        sessions = initSessions();
+        sessionCache = initSessionCache();
         requestURI = super.getRequestURI();
         remoteAddr = super.getRemoteAddr();
         remoteHost = super.getRemoteHost();
         queryString = super.getQueryString();
     }
 
-    private Map<Boolean, SavedHttpSessionWrapper> initSessions() {
+    private Map<Boolean, SavedHttpSessionWrapper> initSessionCache() {
+        Map<Boolean, SavedHttpSessionWrapper> savedSessionCache = new HashMap<>();
         HttpSession session = super.getSession(false);
         SavedHttpSessionWrapper savedHttpSession = new SavedHttpSessionWrapper(session);
-        sessions.put(Boolean.FALSE, session != null ? savedHttpSession : null);
-        sessions.put(Boolean.TRUE,
+        savedSessionCache.put(Boolean.FALSE, session != null ? savedHttpSession : null);
+        savedSessionCache.put(Boolean.TRUE,
                 session == null ? new SavedHttpSessionWrapper(super.getSession(true)) : savedHttpSession);
-        return sessions;
+        return savedSessionCache;
     }
 
     private Map<String, List<String>> initHeaders(HttpServletRequest request) {
@@ -76,7 +77,7 @@ public class SavedHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public HttpSession getSession(boolean create) {
-        return sessions.get(create);
+        return sessionCache.get(create);
     }
 
     @Override
