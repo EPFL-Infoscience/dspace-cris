@@ -29,6 +29,8 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.services.EventService;
 import org.dspace.usage.UsageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +39,8 @@ public class ViewEventRestRepository extends AbstractDSpaceRestRepository {
 
     @Autowired
     private EventService eventService;
+
+    private static final Logger log = LoggerFactory.getLogger(ViewEventRestRepository.class);
 
     private final List<String> typeList = Arrays.asList(Constants.typeText);
 
@@ -67,13 +71,15 @@ public class ViewEventRestRepository extends AbstractDSpaceRestRepository {
         }
         final String referrer = viewEventRest.getReferrer();
         SavedHttpServletRequestWrapper requestWrapper = new SavedHttpServletRequestWrapper(req);
-        eventService.fireAsyncEvent(
-                () -> UsageEvent.createUsageEvent(
-                        new Context(Context.Mode.READ_ONLY),
-                        requestWrapper,
-                        dSpaceObjectService,
-                        targetId,
-                        referrer)
+        eventService.consumeAsyncEvent(
+                (fn) -> {
+                    try (Context ctx = new Context()) {
+                        fn.accept(UsageEvent.createUsageEvent(ctx, requestWrapper, dSpaceObjectService, targetId, referrer));
+                        ctx.complete();
+                    } catch (SQLException e) {
+                        log.error("Cannot persist the ViewEvent!", e);
+                    }
+                }
         );
         return viewEventRest;
     }
