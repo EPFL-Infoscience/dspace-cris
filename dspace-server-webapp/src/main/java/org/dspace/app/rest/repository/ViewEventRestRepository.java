@@ -74,7 +74,11 @@ public class ViewEventRestRepository extends AbstractDSpaceRestRepository {
         eventService.consumeAsyncEvent(
                 (fn) -> {
                     try (Context ctx = new Context()) {
-                        fn.accept(UsageEvent.createUsageEvent(ctx, requestWrapper, dSpaceObjectService, targetId, referrer));
+                        fn.accept(UsageEvent.createUsageEvent(ctx,
+                                requestWrapper,
+                                dSpaceObjectService,
+                                targetId,
+                                referrer));
                         ctx.complete();
                     } catch (SQLException e) {
                         log.error("Cannot persist the ViewEvent!", e);
