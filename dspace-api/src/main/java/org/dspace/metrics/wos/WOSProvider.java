@@ -10,11 +10,11 @@ import java.util.Objects;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
-import net.minidev.json.JSONArray;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.metrics.scopus.CrisMetricDTO;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
