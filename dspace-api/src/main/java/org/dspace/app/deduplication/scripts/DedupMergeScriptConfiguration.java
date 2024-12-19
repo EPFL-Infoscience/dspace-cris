@@ -7,8 +7,8 @@
  */
 package org.dspace.app.deduplication.scripts;
 
-import java.util.List;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.commons.cli.Options;
 import org.dspace.authorize.service.AuthorizeService;
