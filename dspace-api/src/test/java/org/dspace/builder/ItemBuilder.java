@@ -982,7 +982,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         item.setSubmitter(eperson);
         return this;
     }
-    
+
     public ItemBuilder withJournalAnce(String ance) {
         return addMetadataValue(item, "miur", "journal", "ance", ance);
     }

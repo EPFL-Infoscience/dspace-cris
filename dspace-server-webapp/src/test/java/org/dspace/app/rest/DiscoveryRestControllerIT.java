@@ -82,7 +82,6 @@ import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
-import org.dspace.content.service.ItemService;
 import org.dspace.core.CrisConstants;
 import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.SearchService;
