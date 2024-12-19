@@ -9,7 +9,6 @@ package org.dspace.epfl.script.service.impl;
 
 import static org.apache.commons.lang3.ArrayUtils.contains;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -49,7 +48,7 @@ public class OrgUnitTSVParserImpl implements OrgUnitTSVParser {
     private List<String> readLines(InputStream inputStream) {
         try {
             return IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

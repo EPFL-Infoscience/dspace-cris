@@ -280,5 +280,5 @@ public interface SolrSuggestionStorageService {
      * @throws IOException
      */
     SuggestionTarget findTarget(Context context, String source, UUID target) throws SolrServerException, IOException;
-   
+
 }
