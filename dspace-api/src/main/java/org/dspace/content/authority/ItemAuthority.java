@@ -89,6 +89,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
     // map of field key to presentation type
     protected Map<String, String> externalSource = new HashMap<String, String>();
 
+    public static final String DEFAULT = "local";
+
     // punt!  this is a poor implementation..
     @Override
     public Choices getBestMatch(String text, String locale) {
@@ -214,65 +216,33 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
         boolean onlyExactMatches, int start, int limit) {
         return results
             .stream()
-            .flatMap(doc -> {
 
-                String title;
-                String titleDisplay;
+            .map(doc -> {
+                String title = searchTitle;
+                List<String> objectNames = List.of();
                 if (onlyExactMatches && isForceInternalTitle() || !onlyExactMatches) {
-                    Object fieldValueStored = doc.getFieldValue(getTitleStoredField());
-                    title = fieldValueStored instanceof String ? (String) fieldValueStored
-                        : ((ArrayList<String>) fieldValueStored).get(0);
-                    Object fieldValueDisplay = doc.getFieldValue(getTitleDisplayField());
-                    titleDisplay = fieldValueDisplay instanceof String ? (String) fieldValueDisplay
-                        : ((ArrayList<String>) fieldValueDisplay).get(0);
-                } else {
-                    title = searchTitle;
-                    titleDisplay = searchTitle;
+                    Object fieldValue = doc.getFieldValue("objectname");
+                    if (fieldValue != null) {
+                        if (fieldValue instanceof String) {
+                            title = (String) fieldValue;
+                        } else {
+                            objectNames = (ArrayList<String>) fieldValue;
+                            title = objectNames.get(0);
+                        }
+                    } else {
+                        title = ((ArrayList<String>) doc.getFieldValue("dc.title"))
+                            .stream()
+                            .findFirst()
+                            .orElse(searchTitle);
+                    }
                 }
-
-                return getChoicesFromDocument(doc, title, titleDisplay).stream();
-
-            })
-            .skip(start)
-            .limit(limit)
-            .collect(Collectors.toList());
-    }
-
-    private String getTitleStoredField() {
-        return configurationService.getProperty("cris.ItemAuthority." + authorityName + ".title_field_stored",
-                "dc.title");
-    }
-
-    private String getTitleDisplayField() {
-        return configurationService.getProperty("cris.ItemAuthority." + authorityName + ".title_field_displayed",
-                "dc.title");
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Choice> getChoicesFromDocument(SolrDocument document, String titleStored, String titleDisplay) {
-
-        List<Choice> choices = new ArrayList<Choice>();
-
-        Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(), document);
-
-        String authority = (String) document.getFieldValue("search.resourceid");
-
-        choices.add(new Choice(authority, titleDisplay, titleStored, extras));
-
-        Object fieldValue = document.getFieldValue("crisrp.name.variant");
-
-        if (fieldValue != null && fieldValue instanceof List) {
-
-            Map<String, String> variantsExtra = new LinkedHashMap<String, String>();
-            variantsExtra.put("variant", titleDisplay);
-            variantsExtra.putAll(extras);
-
-            ((List<String>) fieldValue).stream()
-                .map(variant -> new Choice(authority, variant, variant, variantsExtra))
-                .forEach(choices::add);
-        }
-
-        return choices;
+                String uuid = (String) doc.getFieldValue("search.resourceid");
+                Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(),
+                    doc, objectNames, uuid);
+                return new Choice(uuid,
+                    title,
+                    title, extras);
+            }).collect(Collectors.toList());
     }
 
     @Override
@@ -436,4 +406,10 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
         Context context = ContextUtil.obtainCurrentRequestContext();
         return context != null ? context : new Context();
     }
+
+    protected String getSource() {
+        return configurationService.getProperty(
+            "cris.ItemAuthority." + authorityName + ".source", DEFAULT);
+    }
+
 }

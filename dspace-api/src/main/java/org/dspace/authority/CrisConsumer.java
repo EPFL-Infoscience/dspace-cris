@@ -142,6 +142,8 @@ public class CrisConsumer implements Consumer {
 
     private void consumeItem(Context context, Item item) throws Exception {
 
+        addEntityTypeIfNotExist(context, item);
+
         for (MetadataValue metadata : item.getMetadata()) {
 
             String fieldKey = getFieldKey(metadata);
@@ -191,8 +193,20 @@ public class CrisConsumer implements Consumer {
 
     }
 
-    private Item search(Context context, Item item, String entityType, String crisSourceId) throws SQLException {
+    private void addEntityTypeIfNotExist(Context context, Item item) throws SQLException {
+        String entityType = itemService.getEntityType(item);
+        if (StringUtils.isBlank(entityType)) {
+            Collection collection = item.getOwningCollection();
+            if (collection != null) {
+                String collectionEntityType = collectionService.getEntityType(collection);
+                if (StringUtils.isNotBlank(collectionEntityType)) {
+                    itemService.addMetadata(context, item, "dspace", "entity", "type", null, collectionEntityType);
+                }
+            }
+        }
+    }
 
+    private Item search(Context context, Item item, String entityType, String crisSourceId) throws SQLException {
         Item relatedItem = null;
         if (valuesToItemIds.get().containsKey(crisSourceId)) {
             relatedItem = context.reloadEntity(itemService.find(context, valuesToItemIds.get().get(crisSourceId)));

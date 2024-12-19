@@ -13,6 +13,7 @@ import static org.dspace.app.suggestion.SuggestionUtils.getFirstEntryByMetadatum
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -35,16 +36,16 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class OAIREPublicationLoader extends SolrSuggestionProvider {
 
-    private List<String> names;
+    protected List<String> names;
 
-    private ExternalDataProvider primaryProvider;
+    protected ExternalDataProvider primaryProvider;
 
-    private List<ExternalDataProvider> otherProviders;
+    protected List<ExternalDataProvider> otherProviders;
 
     @Autowired
-    private ConfigurationService configurationService;
+    protected ConfigurationService configurationService;
 
-    private List<EvidenceScorer> pipeline;
+    protected List<EvidenceScorer> pipeline;
 
     public void setPrimaryProvider(ExternalDataProvider primaryProvider) {
         this.primaryProvider = primaryProvider;
@@ -105,26 +106,14 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
      * @throws IOException
      */
     @Override
-    public int importAuthorRecords(Context context, Item researcher)
-            throws SolrServerException, IOException {
-        return saveRecordsInSolr(researcher, getImportRecords(researcher));
-    }
-
-    @Override
-    public int importAuthorRecords(Context context, Item researcher, String extraQuery)
-        throws SolrServerException, IOException {
-        return saveRecordsInSolr(researcher, getImportRecords(researcher, extraQuery));
-    }
-
-    private int saveRecordsInSolr(Item researcher, List<ExternalDataObject> metadata)
-        throws SolrServerException, IOException {
-
+    public void importRecords(Context context, Item researcher, String additionalQuery)
+            throws Exception {
+        List<ExternalDataObject> metadata = getImportRecords(researcher, additionalQuery);
         List<Suggestion> records = reduceAndTransform(researcher, metadata);
         for (Suggestion record : records) {
             solrSuggestionStorageService.addSuggestion(record, false, false);
         }
         solrSuggestionStorageService.commit();
-        return records.size();
     }
 
     /**
@@ -173,20 +162,16 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
      * @param researcher item to extract metadata from
      * @return list of ImportRecord
      */
-    private List<ExternalDataObject> getImportRecords(Item researcher) {
+    private List<ExternalDataObject> getImportRecords(Item researcher, String additionalQuery) {
         List<String> searchValues = searchMetadataValues(researcher);
+        if (StringUtils.isNotBlank(additionalQuery)) {
+            searchValues = searchValues.stream()
+                .map(value -> StringUtils.join(new String[] {value, additionalQuery}, " "))
+                .collect(Collectors.toList());
+        }
         List<ExternalDataObject> matchingRecords = new ArrayList<>();
         for (String searchValue : searchValues) {
             matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue, 0, 9999));
-        }
-        return removeDuplicates(matchingRecords);
-    }
-
-    private List<ExternalDataObject> getImportRecords(Item researcher, String extraQuery) {
-        List<String> searchValues = searchMetadataValues(researcher);
-        List<ExternalDataObject> matchingRecords = new ArrayList<>();
-        for (String searchValue : searchValues) {
-            matchingRecords.addAll(primaryProvider.searchExternalDataObjects(searchValue + " " +  extraQuery, 0, 9999));
         }
         return removeDuplicates(matchingRecords);
     }
@@ -238,7 +223,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
      * @param researcher DSpace item
      * @return list of metadata values
      */
-    protected List<String> searchMetadataValues(Item researcher) {
+    public List<String> searchMetadataValues(Item researcher) {
         List<String> authors = new ArrayList<String>();
         for (String name : names) {
             String value = itemService.getMetadata(researcher, name);
@@ -259,6 +244,11 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public void importRecords(Context context, String query) throws Exception {
+        throw new UnsupportedOperationException("This operation is not supported by OAIRE loader");
     }
 
 }

@@ -6639,7 +6639,6 @@
     <property name="pageSize" value="10"/>
   </bean>
 
-
   <bean id="searchFilterEpflParentOrganization" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
     <property name="indexFieldName" value="parentOrganization"/>
     <property name="metadataFields">
@@ -6697,5 +6696,20 @@
     <property name="isOpenByDefault" value="true"/>
     <property name="pageSize" value="10"/>
   </bean>
+
+    <bean id="searchFilterDepartment" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="department"/>
+        <property name="metadataFields">
+            <list>
+                <value>cris.virtual.department</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="5"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+        <property name="isOpenByDefault" value="true"/>
+        <property name="pageSize" value="10"/>
+        <property name="exposeMinAndMaxValue" value="true"/>
+    </bean>
 
 </beans>

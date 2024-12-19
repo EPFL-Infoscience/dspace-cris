@@ -6,6 +6,7 @@
  * http://www.dspace.org/license/
  */
 package org.dspace.app.rest.repository;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
@@ -109,10 +110,7 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
             throw new UnprocessableEntityException("The given URI list could not be properly parsed to one result");
         }
 
-        boolean isAdmin = authorizeService.isAdmin(context);
-        boolean canCreateVersion = isAdmin || versioningService.canCreateVersion(context, item);
-
-        if (!canCreateVersion) {
+        if (!itemService.canCreateNewVersion(context, item)) {
             throw new AuthorizeException("The logged user doesn't have the rights to create a new version.");
         }
 

@@ -44,6 +44,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
  */
 public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegrationTest {
 
+    // The total number of expected submission definitions is referred to in multiple tests and assertions as
+    // is the last page (totalDefinitions - 1)
+    // This integer should be maintained along with any changes to item-submissions.xml
+    private static final int totalDefinitions = 22;
+
     @Test
     public void findAll() throws Exception {
         //When we call the root endpoint as anonymous user
@@ -327,6 +332,7 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
                 .andExpect(jsonPath("$.page.totalPages", is(23)))
                 .andExpect(jsonPath("$.page.number", is(0)));
 
+
         getClient(tokenAdmin).perform(get("/api/config/submissiondefinitions")
                 .param("size", "1")
                 .param("page", "1"))
@@ -376,9 +382,9 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
             //The array of browse index should have a size greater or equals to 1
             .andExpect(jsonPath("$._embedded.submissiondefinitions", hasSize(greaterThanOrEqualTo(1))))
             .andDo(result ->
-                jsonArrayRef.set(
-                    read(result.getResponse().getContentAsString(), "$._embedded.submissiondefinitions")
-                ));
+                       jsonArrayRef.set(
+                           read(result.getResponse().getContentAsString(), "$._embedded.submissiondefinitions")
+                       ));
 
         List<SubmissionDefinitionRest> submissionDefinitionRests =
             jsonArrayRef.get().stream().collect(Collectors.toList())
@@ -398,12 +404,12 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
 
         assertTrue(
             isSorted(submissionDefinitionRests,
-                Comparator.comparing(SubmissionDefinitionRest::getName))
+                     Comparator.comparing(SubmissionDefinitionRest::getName))
         );
 
         assertTrue(
             isSorted(submissionDefinitionRests,
-                Comparator.comparing(SubmissionDefinitionRest::getId))
+                     Comparator.comparing(SubmissionDefinitionRest::getId))
         );
 
     }

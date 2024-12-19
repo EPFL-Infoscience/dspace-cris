@@ -181,7 +181,6 @@ public class SolrBrowseDAO implements BrowseDAO {
         if (sResponse == null) {
             DiscoverQuery query = new DiscoverQuery();
             addLocationScopeFilter(query);
-            addStatusFilter(query);
             addExtraFilter(query);
             addDefaultFilterQueries(query);
             if (distinct) {

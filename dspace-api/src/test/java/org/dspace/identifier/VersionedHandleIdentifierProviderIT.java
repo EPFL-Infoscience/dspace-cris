@@ -55,6 +55,7 @@ public class VersionedHandleIdentifierProviderIT extends AbstractIntegrationTest
                 .build();
         collection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Collection")
+                .withEntityType("Publication")
                 .build();
     }
 

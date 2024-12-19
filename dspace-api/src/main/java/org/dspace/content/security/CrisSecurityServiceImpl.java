@@ -216,7 +216,7 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         List<Group> specialGroups = context.getSpecialGroups();
         List<Group> userGroups = user.getGroups();
         return groups.stream()
-                     .anyMatch(group -> isInGroupList(group, specialGroups) || isInGroupList(group, userGroups));
+                .anyMatch(group -> isInGroupList(group, specialGroups) || isInGroupList(group, userGroups));
     }
 
     private boolean isInGroupList(String group, List<Group> groups) {

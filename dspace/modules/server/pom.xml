@@ -7,12 +7,11 @@
     <parent>
         <artifactId>modules</artifactId>
         <groupId>org.dspace</groupId>
-        <version>cris-2023.02.03</version>
+        <version>cris-2023.02.06</version>
         <relativePath>..</relativePath>
     </parent>
 
     <properties>
-        <dspace.version>cris-2023.02.02-SNAPSHOT</dspace.version>
         <!-- This is the path to the root [dspace-src] directory. -->
         <root.basedir>${basedir}/../../..</root.basedir>
     </properties>
@@ -256,6 +255,22 @@
                     <artifactId>dspace-server-webapp</artifactId>
                     <type>test-jar</type>
                     <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>addon-networklab</id>
+            <activation>
+                <property>
+                    <name>nl.on</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>it.4science.dspace</groupId>
+                    <artifactId>addon-networklab</artifactId>
+                    <version>${addon-networklab.version}</version>
+                    <type>jar</type>
                 </dependency>
             </dependencies>
         </profile>
