@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import de.undercouch.citeproc.helper.oauth.UnauthorizedException;
 import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -90,9 +89,6 @@ public class VersioningServiceImpl implements VersioningService {
     @Override
     public Version createNewVersion(Context c, Item item, String summary) {
         try {
-            if (!itemService.canCreateNewVersion(c, item)) {
-                throw new UnauthorizedException("Current User is not allowed to create a new version of this item");
-            }
             VersionHistory vh = versionHistoryService.findByItem(c, item);
             if (vh == null) {
                 // first time: create 2 versions: old and new one
@@ -220,11 +216,8 @@ public class VersioningServiceImpl implements VersioningService {
 
     @Override
     public Version createNewVersion(Context context, VersionHistory history, Item item, String summary, Date date,
-                                    int versionNumber) throws UnauthorizedException {
+                                    int versionNumber) {
         try {
-            if (!itemService.canCreateNewVersion(context, item)) {
-                throw new UnauthorizedException("Current User is not allowed to create a new version of this item");
-            }
             Version version = versionDAO.create(context, new Version());
             if (versionNumber > 0 && !isVersionExist(context, item, versionNumber)) {
                 version.setVersionNumber(versionNumber);
@@ -326,7 +319,7 @@ public class VersioningServiceImpl implements VersioningService {
     // **** PROTECTED METHODS!!
 
     protected Version createVersion(Context c, VersionHistory vh, Item item, String summary, Date date)
-        throws SQLException, UnauthorizedException {
+        throws SQLException {
         return createNewVersion(c, vh, item, summary, date, getNextVersionNumer(c, vh));
     }
 
