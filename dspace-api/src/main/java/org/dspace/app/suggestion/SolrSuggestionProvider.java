@@ -149,7 +149,7 @@ public abstract class SolrSuggestionProvider implements SuggestionProvider {
      * @throws SolrServerException
      * @throws IOException
      */
-    public abstract void importRecords(Context context, Item item, String additionalQuery) throws Exception;
+    public abstract int importRecords(Context context, Item item, String additionalQuery) throws Exception;
 
     /**
      * Save a List of ImportRecord into Solr.

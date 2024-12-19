@@ -106,7 +106,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
      * @throws IOException
      */
     @Override
-    public void importRecords(Context context, Item researcher, String additionalQuery)
+    public int importRecords(Context context, Item researcher, String additionalQuery)
             throws Exception {
         List<ExternalDataObject> metadata = getImportRecords(researcher, additionalQuery);
         List<Suggestion> records = reduceAndTransform(researcher, metadata);
@@ -114,6 +114,7 @@ public class OAIREPublicationLoader extends SolrSuggestionProvider {
             solrSuggestionStorageService.addSuggestion(record, false, false);
         }
         solrSuggestionStorageService.commit();
+        return records.size();
     }
 
     /**
