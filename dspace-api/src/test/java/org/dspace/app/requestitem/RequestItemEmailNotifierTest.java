@@ -218,26 +218,23 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
 
         Bitstream bitstreamWithGroupPolicy = createBitstream(bundle, "Bitstream with group policy");
         authorizeService.removePoliciesActionFilter(context, bitstreamWithGroupPolicy, READ);
-        ResourcePolicyBuilder.createResourcePolicy(context)
+        ResourcePolicyBuilder.createResourcePolicy(context, null, group)
                 .withAction(READ)
-                .withGroup(group)
                 .withDspaceObject(bitstreamWithGroupPolicy)
                 .build();
 
         Bitstream bitstreamWithEPersonPolicy = createBitstream(bundle, "Bitstream with eperson policy");
         authorizeService.removePoliciesActionFilter(context, bitstreamWithEPersonPolicy, READ);
-        ResourcePolicyBuilder.createResourcePolicy(context)
+        ResourcePolicyBuilder.createResourcePolicy(context, eperson, null)
                 .withAction(READ)
-                .withUser(eperson)
                 .withDspaceObject(bitstreamWithEPersonPolicy)
                 .build();
 
         Bitstream bitstreamEmbargoed = createBitstream(bundle, "Bitstream embargoed");
         authorizeService.removePoliciesActionFilter(context, bitstreamEmbargoed, READ);
-        ResourcePolicyBuilder.createResourcePolicy(context)
+        ResourcePolicyBuilder.createResourcePolicy(context, null, anonymousGroup)
                 .withName("embargo")
                 .withAction(READ)
-                .withGroup(anonymousGroup)
                 .withDspaceObject(bitstreamEmbargoed)
                 .withStartDate(
                         new GregorianCalendar(2200, Calendar.DECEMBER, 31).getTime()

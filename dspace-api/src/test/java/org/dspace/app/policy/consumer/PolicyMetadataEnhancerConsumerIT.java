@@ -73,7 +73,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
     private SearchService searchService = SearchUtils.getSearchService();
 
     @Before
-    public void setup() {
+    public void setup() throws SQLException {
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
@@ -147,8 +147,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                 .createBitstream(context, item, new StringInputStream("test"))
                 .build();
 
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-        .withUser(admin).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null).withDspaceObject(bitstream)
+            .withAction(Constants.READ)
+            .build();
 
         context.restoreAuthSystemState();
         context.commit();
@@ -185,8 +186,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Item item = ItemBuilder.createItem(context, collection).build();
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
 
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-        .withUser(admin).withPolicyType(TYPE_CUSTOM).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null).withDspaceObject(bitstream)
+            .withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM)
+            .build();
 
         context.restoreAuthSystemState();
         context.commit();
@@ -246,9 +249,12 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Item item = ItemBuilder.createItem(context, collection).build();
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
 
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName(PolicyMetadataEnhancerConsumer.ACCESS_OPEN)
-                .build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+            .withDspaceObject(bitstream)
+            .withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM)
+            .withName(PolicyMetadataEnhancerConsumer.ACCESS_OPEN)
+            .build();
 
         context.restoreAuthSystemState();
         context.commit();
@@ -274,9 +280,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
 
         String embargoDate = "2022-08-16";
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("embargo")
-                .withStartDate(dateFormat.parse(embargoDate)).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+             .withDspaceObject(bitstream).withAction(Constants.READ)
+             .withPolicyType(TYPE_CUSTOM).withName("embargo")
+             .withStartDate(dateFormat.parse(embargoDate)).build();
 
         context.restoreAuthSystemState();
         context.commit();
@@ -303,10 +310,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
         String embargoDate = "2022-08-16";
         ResourcePolicyBuilder
-            .createResourcePolicy(context)
+            .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream)
             .withAction(Constants.READ)
-            .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName("embargo")
             .withStartDate(dateFormat.parse(embargoDate))
@@ -354,10 +360,9 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
         String embargoDate = "2022-08-16";
         ResourcePolicyBuilder
-            .createResourcePolicy(context)
+            .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream)
             .withAction(Constants.READ)
-            .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName("embargo")
             .withStartDate(dateFormat.parse(embargoDate))
@@ -420,19 +425,17 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
 
         String embargoDate = "2022-08-16";
         ResourcePolicyBuilder
-            .createResourcePolicy(context)
+            .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream)
             .withAction(Constants.READ)
-            .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName("embargo")
             .withStartDate(dateFormat.parse(embargoDate))
             .build();
         ResourcePolicyBuilder
-            .createResourcePolicy(context)
+            .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream2)
             .withAction(Constants.READ)
-            .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName(PolicyMetadataEnhancerConsumer.ACCESS_OPEN)
             .build();
@@ -482,19 +485,17 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         this.resourcePolicyService.delete(context, resourcePolicy);
 
         ResourcePolicyBuilder
-            .createResourcePolicy(context)
+            .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream)
             .withAction(Constants.READ)
-            .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName(PolicyMetadataEnhancerConsumer.ACCESS_RESTRICTED)
             .build();
 
         ResourcePolicyBuilder
-            .createResourcePolicy(context)
+            .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream2)
             .withAction(Constants.READ)
-            .withUser(admin)
             .withPolicyType(TYPE_CUSTOM)
             .withName("embargo")
             .withStartDate(dateFormat.parse(embargoDate))
@@ -645,9 +646,10 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                 .build();
 
         String embargoDate = "2022-08-16";
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("restricted")
-                .withStartDate(dateFormat.parse(embargoDate)).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+            .withDspaceObject(bitstream).withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM).withName("restricted")
+            .withStartDate(dateFormat.parse(embargoDate)).build();
 
         context.restoreAuthSystemState();
         context.commit();
@@ -673,14 +675,16 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                 .build();
 
         String embargoDate = "2022-08-16";
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("openaccess")
-                .withStartDate(dateFormat.parse(embargoDate)).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+            .withDspaceObject(bitstream).withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM).withName("openaccess")
+            .withStartDate(dateFormat.parse(embargoDate)).build();
 
         context.commit();
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream2).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("restricted")
-                .withStartDate(dateFormat.parse(embargoDate)).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+            .withDspaceObject(bitstream2).withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM).withName("restricted")
+            .withStartDate(dateFormat.parse(embargoDate)).build();
         context.commit();
 
         context.restoreAuthSystemState();
@@ -709,19 +713,22 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
                 .build();
 
         String embargoDate = "2022-08-16";
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("openaccess")
-                .withStartDate(dateFormat.parse(embargoDate)).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+            .withDspaceObject(bitstream).withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM).withName("openaccess")
+            .withStartDate(dateFormat.parse(embargoDate)).build();
         context.commit();
 
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream2).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("restricted")
-                .withStartDate(dateFormat.parse(embargoDate)).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+            .withDspaceObject(bitstream2).withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM).withName("restricted")
+            .withStartDate(dateFormat.parse(embargoDate)).build();
         context.commit();
 
-        ResourcePolicyBuilder.createResourcePolicy(context).withDspaceObject(bitstream3).withAction(Constants.READ)
-                .withUser(admin).withPolicyType(TYPE_CUSTOM).withName("openaccess")
-                .withStartDate(dateFormat.parse(embargoDate)).build();
+        ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
+            .withDspaceObject(bitstream3).withAction(Constants.READ)
+            .withPolicyType(TYPE_CUSTOM).withName("openaccess")
+            .withStartDate(dateFormat.parse(embargoDate)).build();
         context.commit();
         context.restoreAuthSystemState();
 
