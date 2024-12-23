@@ -48,6 +48,7 @@ import org.dspace.identifier.doi.DOIIdentifierException;
 import org.dspace.identifier.doi.DOIIdentifierNotApplicableException;
 import org.dspace.identifier.factory.IdentifierServiceFactory;
 import org.dspace.identifier.generators.DoiGenerationStrategy;
+import org.dspace.identifier.generators.FixedConfigurationValueNamespaceGenerator;
 import org.dspace.identifier.service.DOIService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -85,6 +86,8 @@ public class DOIIdentifierProviderTest
     protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
     protected List<DoiGenerationStrategy> doiGenerationStrategies = new DSpace().getServiceManager()
             .getServicesByType(DoiGenerationStrategy.class);
+    protected FixedConfigurationValueNamespaceGenerator fixedNsGenerator = new DSpace().getServiceManager()
+            .getServiceByName("defaultValueNamespace", FixedConfigurationValueNamespaceGenerator.class);
 
     private static Community community;
     private static Collection collection;
@@ -126,6 +129,7 @@ public class DOIIdentifierProviderTest
             config.setProperty(DOIIdentifierProvider.CFG_PREFIX, PREFIX);
             config.setProperty(CFG_NAMESPACE_SEPARATOR,
                                NAMESPACE_SEPARATOR);
+            fixedNsGenerator.setConfigurationValue(NAMESPACE_SEPARATOR);
 
             connector = mock(DOIConnector.class);
 
