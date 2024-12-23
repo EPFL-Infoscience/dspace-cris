@@ -3420,6 +3420,8 @@
         <ref bean="searchFilterJournal"/>
         <ref bean="searchFilterDoi"/>
 
+        <!-- here for org.dspace.app.rest.DiscoveryRestControllerIT.discoverFilterBasedOnVirtualMetadata() -->
+        <ref bean="searchFilterDepartment"/>
       </list>
     </property>
     <!--The sort filters for the discovery search-->
