@@ -351,7 +351,7 @@ public class DOIIdentifierProviderTest
     public void testGet_DOI_Belongs_To_Community() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        community = communityService.create(null, context, "123456789/9");
+        community = communityService.create(null, context, "123456789/communityCond");
         communityService.setMetadataSingleValue(context, community,
             CommunityService.MD_NAME, null, "A Test Community");
         communityService.update(context, community);
@@ -389,7 +389,7 @@ public class DOIIdentifierProviderTest
             CommunityService.MD_NAME, null, "A Test Community");
         communityService.update(context, community);
 
-        collection = collectionService.create(context, community, "123456789/7520");
+        collection = collectionService.create(context, community, "123456789/collectionCond");
         collectionService.setMetadataSingleValue(context, collection,
             CollectionService.MD_NAME, null, "A Test Collection");
         collectionService.update(context, collection);
@@ -431,7 +431,7 @@ public class DOIIdentifierProviderTest
             CommunityService.MD_NAME, null, "A Test Community");
         communityService.update(context, community);
 
-        collection = collectionService.create(context, community, "123456789/7520");
+        collection = collectionService.create(context, community, "123456789/collectionCond");
         collectionService.setMetadataSingleValue(context, collection,
             CollectionService.MD_NAME, null, "A Test Collection");
         collectionService.update(context, collection);
@@ -468,7 +468,7 @@ public class DOIIdentifierProviderTest
     public void testGet_DOI_Belongs_To_GenericCollection() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        collection = collectionService.create(context, community, "123456789/9000");
+        collection = collectionService.create(context, community, "123456789/inCollectionHandleCondition");
         collectionService.setMetadataSingleValue(
             context, collection, CollectionService.MD_NAME, null,
             "A Test Collection With Generic Handles"

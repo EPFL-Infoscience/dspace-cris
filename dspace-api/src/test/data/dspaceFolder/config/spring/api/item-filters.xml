@@ -369,7 +369,7 @@
             <map>
                 <entry key="collections">
                     <list>
-                        <value>123456789/7520</value>
+                        <value>123456789/collectionCond</value>
                     </list>
                 </entry>
             </map>
@@ -385,7 +385,7 @@
             <map>
                 <entry key="communities">
                     <list>
-                        <value>123456789/9</value>
+                        <value>123456789/communityCond</value>
                     </list>
                 </entry>
             </map>
@@ -399,7 +399,7 @@
     <bean id="inCollectionHandleCondition" class="org.dspace.content.logic.condition.InHandlesCondition">
         <constructor-arg name="handles">
             <set>
-                <value>123456789/9000</value>
+                <value>123456789/inCollectionHandleCondition</value>
             </set>
         </constructor-arg>
         <constructor-arg
