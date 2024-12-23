@@ -580,10 +580,6 @@ public class ProfileInitializer {
         addEndDateToExpiredAccreds(context, item, affiliationsToClosePositions);
         List<PersonAffiliation> alreadySetAffiliations =
             alreadyPresentAffiliations(personAffiliations, apiAffiliations);
-        // update oairecerif.person.affiliation value in case it is unit's name instead of acronym
-        metadataValues.stream().filter(mv -> isAlreadySetAffiliation(mv, alreadySetAffiliations))
-                      .filter(mv -> "oairecerif.person.affiliation".equals(mv.getMetadataField()))
-                      .forEach(metadataValue -> updateMetadataValue(context, item, metadataValue));
         metadataValues.stream().filter(mv -> !isAlreadySetAffiliation(mv, alreadySetAffiliations))
                       .forEach(metadataValue -> addMetadataValue(context, item, metadataValue));
     }
@@ -795,29 +791,6 @@ public class ProfileInitializer {
                 metadataValue.getQualifier(), metadataValue.getLanguage(), metadataValue.getValue(),
                 metadataValue.getAuthority(), metadataValue.getConfidence(), metadataValue.getSecurityLevel());
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void updateMetadataValue(Context context, Item item, MetadataValueDTO metadataValue) {
-        try {
-            Optional<MetadataValue> mvOptional = itemService.getMetadata(item, metadataValue.getSchema(),
-                            metadataValue.getElement(), metadataValue.getQualifier(), metadataValue.getLanguage())
-                                          .stream()
-                                          .filter(value -> Objects.equals(value.getPlace(), metadataValue.getPlace()))
-                                          .findFirst();
-            MetadataValue mv;
-
-            if (mvOptional.isPresent()) {
-                mv = mvOptional.get();
-            } else {
-                throw new RuntimeException("Could not find metadata value for " +
-                        metadataValue.getMetadataField() + " with place " + metadataValue.getPlace());
-            }
-
-            mv.setValue(metadataValue.getValue());
-            context.reloadEntity(mv);
-        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
