@@ -5831,7 +5831,7 @@
 
     <bean id="sortOrganizationAddressCountryDesc"
           class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.address.addressCountry"/>
+        <property name="metadataField" value="organization.address.addressCountry"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
@@ -5843,7 +5843,7 @@
 
     <bean id="sortOrganizationAddressLocalityDesc"
           class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.address.addressLocality"/>
+        <property name="metadataField" value="organization.address.addressLocality"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
@@ -5854,7 +5854,7 @@
     </bean>
 
     <bean id="sortOrganizationFoundingDateAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.foundingDate"/>
+        <property name="metadataField" value="organization.foundingDate"/>
         <property name="type" value="date"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
