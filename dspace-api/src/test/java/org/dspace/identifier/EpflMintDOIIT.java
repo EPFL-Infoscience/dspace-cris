@@ -22,6 +22,7 @@ import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.identifier.factory.IdentifierServiceFactory;
+import org.dspace.identifier.generators.FixedConfigurationValueNamespaceGenerator;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
@@ -39,6 +40,9 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
 
     ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
+    protected FixedConfigurationValueNamespaceGenerator fixedNsGenerator = new DSpace().getServiceManager()
+            .getServiceByName("defaultValueNamespace", FixedConfigurationValueNamespaceGenerator.class);
+
     List<IdentifierProvider> originalProviders;
 
     IdentifierServiceImpl identifierService;
@@ -49,6 +53,8 @@ public class EpflMintDOIIT extends AbstractIntegrationTestWithDatabase {
         configurationService.setProperty(DOIIdentifierProvider.CFG_PREFIX, PREFIX);
         configurationService.setProperty(DOIIdentifierProvider.CFG_NAMESPACE_SEPARATOR,
                            "");
+        fixedNsGenerator.setConfigurationValue(
+                configurationService.getProperty(DOIIdentifierProvider.CFG_NAMESPACE_SEPARATOR));
         identifierService = (IdentifierServiceImpl) IdentifierServiceFactory.getInstance().getIdentifierService();
         originalProviders = identifierService.getProviders();
         List<IdentifierProvider> epflProviders = new ArrayList<IdentifierProvider>();

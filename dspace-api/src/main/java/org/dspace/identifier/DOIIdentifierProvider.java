@@ -1049,6 +1049,24 @@ public class DOIIdentifierProvider extends FilteredIdentifierProvider {
                 return doiService.DOIFromExternalFormat(id.getValue());
             }
         }
+
+        // FIXME: this should be a return null.
+        // The called method below and the part above should be used as a custom strategy
+        return getDOIOutOfObject(dso, metadata);
+    }
+
+    public String getDOIOutOfObject(DSpaceObject dso, List<MetadataValue> metadata) {
+        String leftPart = DOI.SCHEME + getPrefix() + SLASH + configurationService.getProperty(CFG_NAMESPACE_SEPARATOR);
+        for (MetadataValue id : metadata) {
+            try {
+                final String valueFormatted = doiService.formatIdentifier(id.getValue());
+                if (StringUtils.startsWith(valueFormatted, leftPart)) {
+                    return valueFormatted;
+                }
+            } catch (DOIIdentifierException e) {
+                // do nothing, if the identifier is not proper formatted it is not a DSpace minted DOI
+            }
+        }
         return null;
     }
 
