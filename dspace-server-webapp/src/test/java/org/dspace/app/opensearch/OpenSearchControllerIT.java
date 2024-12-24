@@ -313,7 +313,6 @@ public class OpenSearchControllerIT extends AbstractControllerIntegrationTest {
         getClient().perform(get("/opensearch/search")
                    .param("scope", testUUID)
                    .param("query", "*"))
-                   .andExpect(status().isOk())
-                   .andExpect(xpath("feed/totalResults").string("1"));
+                   .andExpect(status().isUnprocessableEntity());
     }
 }
