@@ -79,6 +79,8 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     private ChoiceAuthorityService choiceAuthorityService;
 
     private final Logger log = org.apache.logging.log4j.LogManager.getLogger(CrisLayoutBoxServiceImpl.class);
+
+    @Autowired
     private VersionHistoryService versionHistoryService;
 
     public CrisLayoutBoxServiceImpl() {
