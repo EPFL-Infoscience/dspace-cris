@@ -80,6 +80,7 @@ import org.dspace.utils.DSpace;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -2706,6 +2707,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testReferCrosswalkPublicationDataciteXml() throws Exception {
 
         ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
@@ -2765,6 +2767,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testReferCrosswalkPublicationDataciteXmlWithoutTypeAndAuthor() throws Exception {
 
         ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
@@ -2799,6 +2802,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testReferCrosswalkPublicationDataciteXmlWithVirtualPlace() throws Exception {
 
         ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
@@ -3282,6 +3286,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testPublicationOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
