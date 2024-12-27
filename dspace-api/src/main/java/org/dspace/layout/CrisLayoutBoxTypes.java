@@ -15,5 +15,7 @@ public enum CrisLayoutBoxTypes {
     RELATION,
     METRICS,
     COLLECTIONS,
-    HIERARCHY
+    HIERARCHY,
+    VERSIONING,
+    NETWORKLAB
 }

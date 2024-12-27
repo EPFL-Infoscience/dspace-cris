@@ -263,10 +263,9 @@ public class DefaultAccessStatusHelperTest  extends AbstractUnitTest {
         bitstream.setName(context, "primary");
         bundle.setPrimaryBitstreamID(bitstream);
         List<ResourcePolicy> policies = new ArrayList<>();
-        ResourcePolicy policy = resourcePolicyService.create(context);
-        policy.setRpName("Embargo");
         Group group = groupService.findByName(context, Group.ANONYMOUS);
-        policy.setGroup(group);
+        ResourcePolicy policy = resourcePolicyService.create(context, null, group);
+        policy.setRpName("Embargo");
         policy.setAction(Constants.READ);
         policy.setStartDate(new LocalDate(9999, 12, 31).toDate());
         policies.add(policy);
@@ -292,10 +291,9 @@ public class DefaultAccessStatusHelperTest  extends AbstractUnitTest {
         bitstream.setName(context, "primary");
         bundle.setPrimaryBitstreamID(bitstream);
         List<ResourcePolicy> policies = new ArrayList<>();
-        ResourcePolicy policy = resourcePolicyService.create(context);
-        policy.setRpName("Restriction");
         Group group = groupService.findByName(context, Group.ANONYMOUS);
-        policy.setGroup(group);
+        ResourcePolicy policy = resourcePolicyService.create(context, null, group);
+        policy.setRpName("Restriction");
         policy.setAction(Constants.READ);
         policy.setStartDate(new LocalDate(10000, 1, 1).toDate());
         policies.add(policy);
@@ -319,10 +317,9 @@ public class DefaultAccessStatusHelperTest  extends AbstractUnitTest {
         bitstream.setName(context, "primary");
         bundle.setPrimaryBitstreamID(bitstream);
         List<ResourcePolicy> policies = new ArrayList<>();
-        ResourcePolicy policy = resourcePolicyService.create(context);
-        policy.setRpName("Restriction");
         Group group = groupService.findByName(context, Group.ADMIN);
-        policy.setGroup(group);
+        ResourcePolicy policy = resourcePolicyService.create(context, null, group);
+        policy.setRpName("Restriction");
         policy.setAction(Constants.READ);
         policies.add(policy);
         authorizeService.removeAllPolicies(context, bitstream);
@@ -382,10 +379,9 @@ public class DefaultAccessStatusHelperTest  extends AbstractUnitTest {
                 new ByteArrayInputStream("1".getBytes(StandardCharsets.UTF_8)));
         bundle.setPrimaryBitstreamID(primaryBitstream);
         List<ResourcePolicy> policies = new ArrayList<>();
-        ResourcePolicy policy = resourcePolicyService.create(context);
-        policy.setRpName("Embargo");
         Group group = groupService.findByName(context, Group.ANONYMOUS);
-        policy.setGroup(group);
+        ResourcePolicy policy = resourcePolicyService.create(context, null, group);
+        policy.setRpName("Embargo");
         policy.setAction(Constants.READ);
         policy.setStartDate(new LocalDate(9999, 12, 31).toDate());
         policies.add(policy);
@@ -413,10 +409,9 @@ public class DefaultAccessStatusHelperTest  extends AbstractUnitTest {
         Bitstream anotherBitstream = bitstreamService.create(context, bundle,
                 new ByteArrayInputStream("1".getBytes(StandardCharsets.UTF_8)));
         List<ResourcePolicy> policies = new ArrayList<>();
-        ResourcePolicy policy = resourcePolicyService.create(context);
-        policy.setRpName("Embargo");
         Group group = groupService.findByName(context, Group.ANONYMOUS);
-        policy.setGroup(group);
+        ResourcePolicy policy = resourcePolicyService.create(context, null, group);
+        policy.setRpName("Embargo");
         policy.setAction(Constants.READ);
         policy.setStartDate(new LocalDate(9999, 12, 31).toDate());
         policies.add(policy);

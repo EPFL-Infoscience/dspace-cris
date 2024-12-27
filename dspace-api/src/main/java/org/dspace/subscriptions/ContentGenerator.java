@@ -89,6 +89,7 @@ public class ContentGenerator {
                     out.write((entry.getKey() + " - " + entry.getValue()).getBytes(UTF_8));
                 }
             }
+            out.close();
             return out.toString();
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -139,15 +139,31 @@ public abstract class SolrSuggestionProvider implements SuggestionProvider {
     protected abstract boolean isExternalDataObjectPotentiallySuggested(Context context,
             ExternalDataObject externalDataObject);
 
-    public int importAuthorRecords(Context context,
-                                   Item researcher) throws SolrServerException, IOException {
 
-        return 0;
+    /**
+     * Save a List of ImportRecord into Solr.
+     * ImportRecord will be translate into a SolrDocument by the method translateImportRecordToSolrDocument.
+     *
+     * @param context the DSpace Context
+     * @param item a DSpace Item
+     * @throws SolrServerException
+     * @throws IOException
+     */
+    public abstract int importRecords(Context context, Item item, String additionalQuery) throws Exception;
+
+    /**
+     * Save a List of ImportRecord into Solr.
+     * ImportRecord will be translate into a SolrDocument by the method translateImportRecordToSolrDocument.
+     *
+     * @param context the DSpace Context
+     * @param query the query to be run
+     * @throws SolrServerException
+     * @throws IOException
+     */
+    public abstract void importRecords(Context context, String query) throws Exception;
+
+    public boolean isSupportingQuery() {
+        return false;
     }
 
-    public int importAuthorRecords(Context context,
-                                   Item researcher, String extraQuery) throws SolrServerException, IOException {
-
-        return 0;
-    }
 }

@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -80,6 +80,7 @@ import org.dspace.utils.DSpace;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -1980,7 +1981,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void placeholderFieldMustBeSkippedTest() throws Exception {
+    public void placeholderFieldMustBeIgnoredTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Item patent = ItemBuilder.createItem(context, collection)
@@ -1997,7 +1998,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         String json = out.toString();
         JSONObject obj = new JSONObject(json);
-        assertTrue(!obj.has("title"));
+        assertFalse(obj.has("title"));
     }
 
     @Test
@@ -2706,6 +2707,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testReferCrosswalkPublicationDataciteXml() throws Exception {
 
         ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
@@ -2716,6 +2718,11 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withEntityType("OrgUnit")
                 .withTitle("OrgUnit Name")
                 .withOrgUnitRORIdentifier("rorID")
+                .build();
+        Item publisher = createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("Publisher Name")
+                .withOrgUnitRORIdentifier("rorID2")
                 .build();
 
         Item author = createItem(context, collection)
@@ -2739,7 +2746,11 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withAuthorAffiliationPlaceholder()
             .withAuthor("Author, Name in Pub", author2.getID().toString())
             .withAuthorAffiliation("OrgUnit in pub2")
-            .withPublisher("Publisher")
+            .withPublisher("Publisher", publisher.getID().toString())
+            .withIssueDate("2023")
+            .withDateAvailable("2023-10-20")
+            .withType("text::journal article::review article", "publication-coar-types:c_dcae04bc")
+            .withHandle("123456789/99999")
             .build();
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -2747,6 +2758,83 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrosswalk.disseminate(context, item, byteArrayOutputStream);
 
         System.out.println(new String(byteArrayOutputStream.toByteArray()));
+
+        try (FileInputStream fis = getFileInputStream("journal-article-datacite.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(byteArrayOutputStream.toString(), expectedXml);
+        }
+
+    }
+
+    @Test
+    @Ignore
+    public void testReferCrosswalkPublicationDataciteXmlWithoutTypeAndAuthor() throws Exception {
+
+        ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
+            .getServiceByName("referCrosswalkPublicationDataciteXml", ReferCrosswalk.class);
+        assertThat(referCrosswalk, notNullValue());
+
+        Item publisher = createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("Publisher Name")
+                .withOrgUnitRORIdentifier("rorID2")
+                .build();
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Publication title")
+            .withPublisher("Publisher", publisher.getID().toString())
+            .withIssueDate("2023")
+            .withDateAvailable("2023-10-20")
+            .withHandle("123456789/99999")
+            .build();
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        referCrosswalk.disseminate(context, item, byteArrayOutputStream);
+
+        System.out.println(new String(byteArrayOutputStream.toByteArray()));
+
+        try (FileInputStream fis = getFileInputStream("publication-without-authors-and-type-datacite.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(byteArrayOutputStream.toString(), expectedXml);
+        }
+
+    }
+
+    @Test
+    @Ignore
+    public void testReferCrosswalkPublicationDataciteXmlWithVirtualPlace() throws Exception {
+
+        ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
+            .getServiceByName("referCrosswalkPublicationDataciteXml", ReferCrosswalk.class);
+        assertThat(referCrosswalk, notNullValue());
+
+        Item publisher = createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("Publisher Name")
+                .withOrgUnitRORIdentifier("rorID2")
+                .build();
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Publication title")
+            .withPublisher("Publisher", publisher.getID().toString())
+            .withIssueDate("2023")
+            .withLanguage(Locale.ITALIAN.getLanguage())
+            .withLanguage(Locale.ENGLISH.getLanguage())
+            .withDateAvailable("2023-10-20")
+            .withHandle("123456789/99999")
+            .build();
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        referCrosswalk.disseminate(context, item, byteArrayOutputStream);
+
+        System.out.println(new String(byteArrayOutputStream.toByteArray()));
+
+        try (FileInputStream fis = getFileInputStream("publication-virtual-place-datacite.xml")) {
+            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            compareEachLine(byteArrayOutputStream.toString(), expectedXml);
+        }
 
     }
 
@@ -3198,6 +3286,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testPublicationOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();

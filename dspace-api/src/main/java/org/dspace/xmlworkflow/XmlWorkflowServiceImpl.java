@@ -1334,7 +1334,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
     public String getEPersonName(EPerson ePerson) {
         String submitter = ePerson.getFullName();
 
-        submitter = submitter + "(" + ePerson.getEmail() + ")";
+        submitter = submitter + " (" + ePerson.getEmail() + ")";
 
         return submitter;
     }

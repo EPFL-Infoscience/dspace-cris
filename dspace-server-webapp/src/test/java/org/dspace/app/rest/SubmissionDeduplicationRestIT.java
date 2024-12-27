@@ -988,7 +988,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(submitterTocken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
 
         // execute the patch
         getClient(reviewerToken)
@@ -1056,7 +1056,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(submitterTocken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
 
         // patch operation
         getClient(reviewerToken)
@@ -1218,7 +1218,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
 
         // check security
         getClient(submitterToken).perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
-                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON)).andExpect(status().isUnprocessableEntity());
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON)).andExpect(status().isForbidden());
 
         // make patch
         getClient(reviewerToken)
@@ -1291,7 +1291,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(submitterToken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
 
         getClient(reviewerToken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID())
@@ -1456,7 +1456,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(authToken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
 
         // Ask for a patch with a number as UUID
         patchBody = null;
@@ -1468,7 +1468,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(authToken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
 
         // Ask for a patch with an invalid operation
         value.clear();
@@ -1483,7 +1483,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(authToken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
 
         // Ask for a patch with wrong type
         value.clear();
@@ -1498,7 +1498,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(authToken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
 
         // Ask for a patch with the wrong decision type
         value.clear();
@@ -1512,7 +1512,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
         getClient(authToken)
                 .perform(patch("/api/workflow/workflowitems/" + witem.getID()).content(patchBody)
                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isForbidden());
     }
 
     @Test

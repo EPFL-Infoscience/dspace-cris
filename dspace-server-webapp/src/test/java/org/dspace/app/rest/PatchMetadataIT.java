@@ -1631,18 +1631,19 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
      */
     private void patchAddEntireArray(List<MetadataValue> metadataValues) throws Exception {
         List<Operation> ops = new ArrayList<Operation>();
-        List<MetadataValueRest> value = new ArrayList<MetadataValueRest>();
-
         // generates the MetadataValueRest list
-        metadataValues.stream().forEach(mv -> {
-            MetadataValueRest mrv = new MetadataValueRest();
-            value.add(mrv);
-            mrv.setValue(mv.getValue());
-            if (mv.getAuthority() != null && mv.getAuthority().startsWith("virtual::")) {
-                mrv.setAuthority(mv.getAuthority());
-                mrv.setConfidence(mv.getConfidence());
-            }
-        });
+        List<MetadataValueRest> value =
+            metadataValues.stream()
+                          .map(mv -> {
+                              MetadataValueRest mrv = new MetadataValueRest();
+                              mrv.setValue(mv.getValue());
+                              if (mv.getAuthority() != null && mv.getAuthority().startsWith("virtual::")) {
+                                  mrv.setAuthority(mv.getAuthority());
+                                  mrv.setConfidence(mv.getConfidence());
+                              }
+                              return mrv;
+                          })
+                          .collect(Collectors.toList());
 
         AddOperation add = new AddOperation("/sections/traditionalpageone/dc.contributor.author", value);
         ops.add(add);

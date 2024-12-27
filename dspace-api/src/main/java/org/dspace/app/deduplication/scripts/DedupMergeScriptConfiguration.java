@@ -8,10 +8,12 @@
 package org.dspace.app.deduplication.scripts;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.commons.cli.Options;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
+import org.dspace.scripts.DSpaceCommandLineParameter;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,7 +42,7 @@ public class DedupMergeScriptConfiguration<T extends DedupMergeRunnable> extends
     }
 
     @Override
-    public boolean isAllowedToExecute(Context context) {
+    public boolean isAllowedToExecute(Context context, List<DSpaceCommandLineParameter> commandLineParameters) {
         try {
             return authorizeService.isAdmin(context);
         } catch (SQLException e) {

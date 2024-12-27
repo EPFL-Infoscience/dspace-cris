@@ -89,6 +89,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
     // map of field key to presentation type
     protected Map<String, String> externalSource = new HashMap<String, String>();
 
+    public static final String DEFAULT = "local";
+
     // punt!  this is a poor implementation..
     @Override
     public Choices getBestMatch(String text, String locale) {
@@ -215,7 +217,6 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
         return results
             .stream()
             .flatMap(doc -> {
-
                 String title;
                 String titleDisplay;
                 if (onlyExactMatches && isForceInternalTitle() || !onlyExactMatches) {
@@ -229,9 +230,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
                     title = searchTitle;
                     titleDisplay = searchTitle;
                 }
-
                 return getChoicesFromDocument(doc, title, titleDisplay).stream();
-
             })
             .skip(start)
             .limit(limit)
@@ -245,7 +244,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
 
     private String getTitleDisplayField() {
         return configurationService.getProperty("cris.ItemAuthority." + authorityName + ".title_field_displayed",
-                "dc.title");
+               "dc.title");
     }
 
     @SuppressWarnings("unchecked")
@@ -253,7 +252,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
 
         List<Choice> choices = new ArrayList<Choice>();
 
-        Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(), document);
+        Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(), document, List.of(), null);
 
         String authority = (String) document.getFieldValue("search.resourceid");
 
@@ -436,4 +435,10 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
         Context context = ContextUtil.obtainCurrentRequestContext();
         return context != null ? context : new Context();
     }
+
+    protected String getSource() {
+        return configurationService.getProperty(
+            "cris.ItemAuthority." + authorityName + ".source", DEFAULT);
+    }
+
 }

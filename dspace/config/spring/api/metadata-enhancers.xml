@@ -62,7 +62,6 @@
         <property name="virtualQualifier" value="orcid" />
     </bean>
 
-
     <bean class="org.dspace.content.enhancer.impl.RelatedEntityItemEnhancer" >
         <property name="sourceEntityTypes" ref="researchOutputsEntityTypes" />
         <property name="sourceItemMetadataFields" ref="contributorsMetadataList" />
@@ -201,5 +200,4 @@
         <value>epfl.thesis.originalUnit</value>
         <value>epfl.thesis.doctoralSchool</value>
     </util:list>
-
 </beans>

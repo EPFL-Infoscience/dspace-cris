@@ -141,4 +141,10 @@
 		<property name="description" value="Import the OrgUnits present in the given XML file" />
 		<property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitXMLImportScript" />
 	</bean>
+
+    <bean id="filter-media" class="org.dspace.app.mediafilter.MediaFilterScriptConfiguration">
+        <property name="description" value="Perform the media filtering to extract full text from documents and to create thumbnails"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
+    </bean>
+
 </beans>

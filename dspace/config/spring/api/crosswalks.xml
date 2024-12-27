@@ -484,7 +484,7 @@
 
     <bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkPersonCv">
         <property name="templateFileName" value="crosswalks/template/person-cv-template.xsl"/>
-        <property name="fileName" value="person.pdf"/>
+        <property name="fileName" value="person-cv.pdf"/>
         <property name="mimeType" value="application/pdf"/>
         <property name="entityType" value="Person"/>
         <property name="referCrosswalk" ref="referCrosswalkPersonCvXml"/>
@@ -956,7 +956,7 @@
 	<bean name="mapConverterScopusToCoarPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-scopusToCoarPublicationTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value=""/>
+		<property name="defaultValue" value="other"/>
 	</bean>
 
     <bean name="mapConverterDataciteToPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">

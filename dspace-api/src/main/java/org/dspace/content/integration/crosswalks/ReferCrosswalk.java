@@ -483,7 +483,6 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
                 if (isNotBlank(metadataValue) && !PLACEHOLDER_PARENT_METADATA_VALUE.equals(metadataValue)) {
                     appendLine(lines, line, metadataValue);
                 }
-
             }
         }
 
@@ -503,7 +502,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         while (relatedItems.hasNext()) {
             Item relatedItem = relatedItems.next();
             Iterator<TemplateLine> lineIterator = groupLines.iterator();
-            appendLines(context, relatedItem, lineIterator, lines, findRelatedItems, -1);
+            appendLines(context, relatedItem, lineIterator, lines, findRelatedItems, pos);
         }
 
     }
