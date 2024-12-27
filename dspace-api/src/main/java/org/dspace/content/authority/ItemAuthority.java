@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.customurl.service.CustomUrlServiceImpl;
@@ -214,33 +216,62 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority, 
         boolean onlyExactMatches, int start, int limit) {
         return results
             .stream()
-
-            .map(doc -> {
-                String title = searchTitle;
-                List<String> objectNames = List.of();
+            .flatMap(doc -> {
+                String title;
+                String titleDisplay;
                 if (onlyExactMatches && isForceInternalTitle() || !onlyExactMatches) {
-                    Object fieldValue = doc.getFieldValue("objectname");
-                    if (fieldValue != null) {
-                        if (fieldValue instanceof String) {
-                            title = (String) fieldValue;
-                        } else {
-                            objectNames = (ArrayList<String>) fieldValue;
-                            title = objectNames.get(0);
-                        }
-                    } else {
-                        title = ((ArrayList<String>) doc.getFieldValue("dc.title"))
-                            .stream()
-                            .findFirst()
-                            .orElse(searchTitle);
-                    }
+                    Object fieldValueStored = doc.getFieldValue(getTitleStoredField());
+                    title = fieldValueStored instanceof String ? (String) fieldValueStored
+                        : ((ArrayList<String>) fieldValueStored).get(0);
+                    Object fieldValueDisplay = doc.getFieldValue(getTitleDisplayField());
+                    titleDisplay = fieldValueDisplay instanceof String ? (String) fieldValueDisplay
+                        : ((ArrayList<String>) fieldValueDisplay).get(0);
+                } else {
+                    title = searchTitle;
+                    titleDisplay = searchTitle;
                 }
-                String uuid = (String) doc.getFieldValue("search.resourceid");
-                Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(),
-                    doc, objectNames, uuid);
-                return new Choice(uuid,
-                    title,
-                    title, extras);
-            }).collect(Collectors.toList());
+                return getChoicesFromDocument(doc, title, titleDisplay).stream();
+            })
+            .skip(start)
+            .limit(limit)
+            .collect(Collectors.toList());
+    }
+
+    private String getTitleStoredField() {
+        return configurationService.getProperty("cris.ItemAuthority." + authorityName + ".title_field_stored",
+                "dc.title");
+    }
+
+    private String getTitleDisplayField() {
+        return configurationService.getProperty("cris.ItemAuthority." + authorityName + ".title_field_displayed",
+               "dc.title");
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Choice> getChoicesFromDocument(SolrDocument document, String titleStored, String titleDisplay) {
+
+        List<Choice> choices = new ArrayList<Choice>();
+
+        Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(), document, List.of(), null);
+
+        String authority = (String) document.getFieldValue("search.resourceid");
+
+        choices.add(new Choice(authority, titleDisplay, titleStored, extras));
+
+        Object fieldValue = document.getFieldValue("crisrp.name.variant");
+
+        if (fieldValue != null && fieldValue instanceof List) {
+
+            Map<String, String> variantsExtra = new LinkedHashMap<String, String>();
+            variantsExtra.put("variant", titleDisplay);
+            variantsExtra.putAll(extras);
+
+            ((List<String>) fieldValue).stream()
+                .map(variant -> new Choice(authority, variant, variant, variantsExtra))
+                .forEach(choices::add);
+        }
+
+        return choices;
     }
 
     @Override

@@ -110,6 +110,7 @@ public class ItemSimpleAuthorityMetadataGenerator implements ItemAuthorityExtraM
 
     protected void buildSingleExtraByMetadata(MetadataValueDTO metadataValue, Map<String, String> extras) {
         if (metadataValue == null) {
+            putValueInExtras(extras, "");
             return;
         }
         if (isDuplicatedValue(metadataValue, extras)) {
