@@ -28,7 +28,7 @@ public interface EventService {
      *
      * @param eventConsumer
      */
-    void consumeAsyncEvent(Consumer<Consumer<Event>> eventConsumer);
+    void scheduleAsyncEventConsumer(Consumer<Consumer<Event>> eventConsumer);
     /**
      * Fires an event immediately (does not add it to the queue).
      *
