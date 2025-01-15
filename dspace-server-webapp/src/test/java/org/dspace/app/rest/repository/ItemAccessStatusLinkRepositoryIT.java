@@ -16,6 +16,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -23,9 +27,15 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.event.factory.EventServiceFactory;
+import org.dspace.event.service.EventService;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.hamcrest.Matchers;
 import org.joda.time.LocalDate;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -35,6 +45,10 @@ import org.junit.Test;
  */
 public class ItemAccessStatusLinkRepositoryIT extends AbstractControllerIntegrationTest {
 
+    private static ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    private static final EventService eventService = EventServiceFactory.getInstance().getEventService();
+
+    private static String[] consumers;
     private Community parentCommunity;
     private Collection collection1;
     private Item item;
@@ -50,6 +64,34 @@ public class ItemAccessStatusLinkRepositoryIT extends AbstractControllerIntegrat
                 .withName("Collection 1")
                 .build();
         context.restoreAuthSystemState();
+    }
+
+    /**
+     * This method will be run before the first test as per @BeforeClass. It will
+     * configure the event.dispatcher.default.consumers property to remove the
+     * PolicyMetadataEnhancerConsumer. This because that consumer changes the default
+     * behaviour and will invalidate some of the tests that belong to this class.
+     * The new behaviour is described in the test class for the consumer, so it is already
+     * checked {@link PolicyMetadataEnhancerConsumerIT}
+     */
+    @BeforeClass
+    public static void initConsumers() {
+        consumers = configService.getArrayProperty("event.dispatcher.default.consumers");
+        Set<String> consumersSet = new HashSet<String>(Arrays.asList(consumers));
+        if (consumersSet.contains("policymetadataenhancer")) {
+            consumersSet.remove("policymetadataenhancer");
+            configService.setProperty("event.dispatcher.default.consumers", consumersSet.toArray());
+            eventService.reloadConfiguration();
+        }
+    }
+
+    /**
+     * Reset the event.dispatcher.default.consumers property value.
+     */
+    @AfterClass
+    public static void resetDefaultConsumers() {
+        configService.setProperty("event.dispatcher.default.consumers", consumers);
+        eventService.reloadConfiguration();
     }
 
     @Test
