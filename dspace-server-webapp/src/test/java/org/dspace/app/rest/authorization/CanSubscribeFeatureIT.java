@@ -289,6 +289,7 @@ public class CanSubscribeFeatureIT extends AbstractControllerIntegrationTest {
 
     private void setPermissions(DSpaceObject dSpaceObject, Group group, Integer permissions) {
         try {
+            dSpaceObject = context.reloadEntity(dSpaceObject);
             ResourcePolicyBuilder.createResourcePolicy(context, null, group)
                                  .withDspaceObject(dSpaceObject)
                                  .withAction(permissions)
