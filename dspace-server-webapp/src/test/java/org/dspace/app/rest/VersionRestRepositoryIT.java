@@ -406,6 +406,7 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore // ignored since it relies on a logic that was removed (groups on ItemServiceImpl.canCreateNewVersion)
     public void createFirstVersionItemWithUserInAllowedGroupsTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
