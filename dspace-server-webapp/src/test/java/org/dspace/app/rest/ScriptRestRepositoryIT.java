@@ -1849,20 +1849,18 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                 assertThat(
                     getRowValues(sheet.getRow(0), 19),
                     contains(
-                        "ID", "DISCOVERABLE", "dc.title",
+                        "ID", "DISCOVERABLE", "SUBMITTER", "dc.title",
                         "dcterms.dateAccepted", "dc.date.issued", "dc.contributor.author", "dcterms.rightsHolder",
                         "dc.publisher", "dc.identifier.patentno", "dc.identifier.patentnumber", "dc.type",
                         "dc.identifier.applicationnumber", "dc.date.filled", "dc.language.iso",
-                        "dc.subject", "dc.description.abstract", "dc.relation", "dc.relation.patent",
-                        "dc.relation.references"
+                        "dc.subject", "dc.description.abstract", "dc.relation", "dc.relation.patent"
                     )
                 );
                 assertThat(
                     getRowValues(sheet.getRow(1), 19),
                     contains(
-                        item.getID().toString(), "Y", "Test patent", "",
-                        "2020-01-01", "White, Walter", "", "", "", "", "", "", "", "it", "test||export", "", "", "",
-                        ""
+                        item.getID().toString(), "Y", "test@email.com", "Test patent", "",
+                        "2020-01-01", "White, Walter", "", "", "", "", "", "", "", "it", "test||export", "", "", ""
                     )
                 );
 
