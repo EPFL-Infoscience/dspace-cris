@@ -166,6 +166,8 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                         .andExpect(jsonPath("$.page.totalElements", Matchers.is(3)));
     }
     @Test
+    @Ignore // ignored as we don't use alternative names while building the otherInformation node
+            // (see org.dspace.content.authority.ItemAuthority.getChoicesFromDocument(SolrDocument, String, String))
     public void alternativeNamesAuthorityTest() throws Exception {
         context.turnOffAuthorisationSystem();
 

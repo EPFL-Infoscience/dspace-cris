@@ -38,6 +38,7 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ReloadableEntity;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase {
@@ -525,6 +526,7 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    @Ignore // ignored as journal ance is not used
     public void testSingleMetadataJournalAnceEnhancement() throws Exception {
 
         context.turnOffAuthorisationSystem();

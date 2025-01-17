@@ -201,7 +201,12 @@ public class CanCreateVersionFeatureIT extends AbstractControllerIntegrationTest
 
         context.turnOffAuthorisationSystem();
 
-        itemA.setSubmitter(user);
+        EPerson newUser = EPersonBuilder.createEPerson(context)
+                .withEmail("newUserEmail@test.com")
+                .withPassword(password).build();
+
+        // setting a new user as a submitter ensures that there are no other ways to get the authorizations
+        itemA.setSubmitter(newUser);
 
         context.restoreAuthSystemState();
 

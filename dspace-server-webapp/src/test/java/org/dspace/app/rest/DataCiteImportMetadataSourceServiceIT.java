@@ -55,7 +55,7 @@ public class DataCiteImportMetadataSourceServiceIT extends AbstractLiveImportInt
     public void dataCiteImportMetadataGetRecordsTest() throws Exception {
         CloseableHttpClient originalHttpClient = liveImportClientImpl.getHttpClient();
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
-        try (InputStream dataCiteResp = getClass().getResourceAsStream("dataCite-test.json")) {
+        try (InputStream dataCiteResp = getClass().getResourceAsStream("dataCite-test-preprint.json")) {
             String dataCiteRespXmlResp = IOUtils.toString(dataCiteResp, Charset.defaultCharset());
 
             liveImportClientImpl.setHttpClient(httpClient);

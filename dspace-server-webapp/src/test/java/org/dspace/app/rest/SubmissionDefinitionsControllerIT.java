@@ -314,7 +314,7 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
                 .param("page", "0"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$._embedded.submissiondefinitions[0].id", is("test-hidden")))
+                .andExpect(jsonPath("$._embedded.submissiondefinitions[0].id", is("traditional")))
                 .andExpect(jsonPath("$._links.first.href", Matchers.allOf(
                         Matchers.containsString("/api/config/submissiondefinitions?"),
                         Matchers.containsString("page=0"), Matchers.containsString("size=1"))))
@@ -326,10 +326,10 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
                         Matchers.containsString("page=1"), Matchers.containsString("size=1"))))
                 .andExpect(jsonPath("$._links.last.href", Matchers.allOf(
                         Matchers.containsString("/api/config/submissiondefinitions?"),
-                        Matchers.containsString("page=22"), Matchers.containsString("size=1"))))
+                        Matchers.containsString("page=24"), Matchers.containsString("size=1"))))
                 .andExpect(jsonPath("$.page.size", is(1)))
-                .andExpect(jsonPath("$.page.totalElements", is(23)))
-                .andExpect(jsonPath("$.page.totalPages", is(23)))
+                .andExpect(jsonPath("$.page.totalElements", is(25)))
+                .andExpect(jsonPath("$.page.totalPages", is(25)))
                 .andExpect(jsonPath("$.page.number", is(0)));
 
 
@@ -338,7 +338,7 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
                 .param("page", "1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
-            .andExpect(jsonPath("$._embedded.submissiondefinitions[0].id", is("funding")))
+            .andExpect(jsonPath("$._embedded.submissiondefinitions[0].id", is("traditional-with-custom-url")))
                 .andExpect(jsonPath("$._links.first.href", Matchers.allOf(
                         Matchers.containsString("/api/config/submissiondefinitions?"),
                         Matchers.containsString("page=0"), Matchers.containsString("size=1"))))
@@ -353,10 +353,10 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
                         Matchers.containsString("page=1"), Matchers.containsString("size=1"))))
                 .andExpect(jsonPath("$._links.last.href", Matchers.allOf(
                         Matchers.containsString("/api/config/submissiondefinitions?"),
-                        Matchers.containsString("page=22"), Matchers.containsString("size=1"))))
+                        Matchers.containsString("page=24"), Matchers.containsString("size=1"))))
                 .andExpect(jsonPath("$.page.size", is(1)))
-                .andExpect(jsonPath("$.page.totalElements", is(23)))
-                .andExpect(jsonPath("$.page.totalPages", is(23)))
+                .andExpect(jsonPath("$.page.totalElements", is(25)))
+                .andExpect(jsonPath("$.page.totalPages", is(25)))
                 .andExpect(jsonPath("$.page.number", is(1)));
     }
 

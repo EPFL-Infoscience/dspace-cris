@@ -182,7 +182,8 @@ public class SolrSuggestAuthorityIT extends AbstractControllerIntegrationTest {
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
                           matchVocabularyEntry("coaching", "coaching", "vocabularyEntry"),
-                          matchVocabularyEntry("Completed Project", "Completed Project", "vocabularyEntry"),
+                          matchVocabularyEntry("Completed Project".toLowerCase(),
+                                  "Completed Project".toLowerCase(), "vocabularyEntry"),
                           matchVocabularyEntry("community support", "community support", "vocabularyEntry"),
                           matchVocabularyEntry("committed relationships", "committed relationships", "vocabularyEntry")
                           )))

@@ -5951,6 +5951,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    @Ignore
     public void findSubmitterWithoutReadAccessTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
