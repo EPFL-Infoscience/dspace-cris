@@ -53,11 +53,6 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.scripts.TypeConversionTestScript"/>
     </bean>
 
-    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeScriptConfiguration">
-        <property name="description" value="merge items into target item" />
-        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnable"/>
-    </bean>
-
     <bean id="import" class="org.dspace.app.itemimport.ItemImportScriptConfiguration" primary="true">
         <property name="description" value="Batch Import from Simple Archive Format (SAF)" />
         <property name="dspaceRunnableClass" value="org.dspace.app.itemimport.ItemImport"/>
