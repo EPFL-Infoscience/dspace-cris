@@ -16,6 +16,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.dspace.importer.external.datamodel.ImportRecord;
 import org.dspace.importer.external.exception.FileMultipleOccurencesException;
 import org.dspace.importer.external.exception.FileSourceException;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * This interface declare the base methods to work with files containing metadata.
@@ -74,6 +75,19 @@ public interface FileSource extends MetadataSource {
      */
     public default boolean canImportMultipleRecords() {
         return false;
+    }
+
+    /**
+     * This method checks if a file is not too large to be processed
+     *
+     * @param fileSize the size of the file in bytes
+     * @return true if the file can be accepted, false otherwise
+     */
+    public default boolean isFileSizeAccepted(long fileSize) {
+        long defaultMaxFileSize = 10 * 1024 * 1024; // 10 MB
+        long maxFileSize = DSpaceServicesFactory.getInstance()
+                .getConfigurationService().getLongProperty("grobid.max-file-size-accepted", defaultMaxFileSize);
+        return fileSize < maxFileSize;
     }
 
 }
