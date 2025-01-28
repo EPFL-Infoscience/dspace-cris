@@ -40,6 +40,7 @@ import org.junit.Test;
  */
 public class ImportServiceTest extends AbstractDSpaceIntegrationTest {
 
+    private static final String MAX_FILE_SIZE_ACCEPTED_KEY = "filesource.max-file-size-accepted";
     private static final String SIMPLE_ARTICLE = "simple-article.pdf";
 
     protected ConfigurationService configurationService;
@@ -60,9 +61,9 @@ public class ImportServiceTest extends AbstractDSpaceIntegrationTest {
 
     @Test
     public void testGetRecord_FileSizeAccepted() throws Exception {
-        maxFileLength = configurationService.getLongProperty("grobid.max-file-size-accepted", 10 * 1024 * 1024); // 10Mb
+        maxFileLength = configurationService.getLongProperty(MAX_FILE_SIZE_ACCEPTED_KEY, 10 * 1024 * 1024); // 10Mb
         try {
-            configurationService.setProperty("grobid.max-file-size-accepted", 100 * 1024 * 1024L); // 100Mb
+            configurationService.setProperty(MAX_FILE_SIZE_ACCEPTED_KEY, 100 * 1024 * 1024L); // 100Mb
 
             ImportRecord mockRecord = mock(ImportRecord.class);
             FileSource fileSource = spy(new GrobidImportMetadataSourceServiceImpl());
@@ -80,15 +81,15 @@ public class ImportServiceTest extends AbstractDSpaceIntegrationTest {
             assertTrue(actualFileSource.isFileSizeAccepted(simpleArticle.length()));
 
         } finally {
-            configurationService.setProperty("grobid.max-file-size-accepted", maxFileLength);
+            configurationService.setProperty(MAX_FILE_SIZE_ACCEPTED_KEY, maxFileLength);
         }
     }
 
     @Test
     public void testGetRecord_FileSizeNotAccepted() throws Exception {
-        maxFileLength = configurationService.getLongProperty("grobid.max-file-size-accepted", 10 * 1024 * 1024); // 10Mb
+        maxFileLength = configurationService.getLongProperty(MAX_FILE_SIZE_ACCEPTED_KEY, 10 * 1024 * 1024); // 10Mb
         try {
-            configurationService.setProperty("grobid.max-file-size-accepted", 1L); // 1b
+            configurationService.setProperty(MAX_FILE_SIZE_ACCEPTED_KEY, 1L); // 1b
             ImportRecord result = importService.getRecord(simpleArticle, SIMPLE_ARTICLE);
             assertNull(result);
 
@@ -96,7 +97,7 @@ public class ImportServiceTest extends AbstractDSpaceIntegrationTest {
                     importService.getFileSource(new FileInputStream(simpleArticle), SIMPLE_ARTICLE);
             assertFalse(actualFileSource.isFileSizeAccepted(simpleArticle.length()));
         } finally {
-            configurationService.setProperty("grobid.max-file-size-accepted", maxFileLength);
+            configurationService.setProperty(MAX_FILE_SIZE_ACCEPTED_KEY, maxFileLength);
         }
     }
 }

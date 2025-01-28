@@ -86,7 +86,7 @@ public interface FileSource extends MetadataSource {
     public default boolean isFileSizeAccepted(long fileSize) {
         long defaultMaxFileSize = 10 * 1024 * 1024; // 10 MB
         long maxFileSize = DSpaceServicesFactory.getInstance()
-                .getConfigurationService().getLongProperty("grobid.max-file-size-accepted", defaultMaxFileSize);
+                .getConfigurationService().getLongProperty("filesource.max-file-size-accepted", defaultMaxFileSize);
         return fileSize < maxFileSize;
     }
 
