@@ -10,37 +10,22 @@
   <datacite:identifier identifierType="Handle">SKIP-IN-COMPARING</datacite:identifier>
   <datacite:creators>
         <datacite:creator>
-            <datacite:creatorName>Known Author</datacite:creatorName>
+            <datacite:creatorName>Author Test</datacite:creatorName>
             <datacite:affiliation
-            >MyOrg</datacite:affiliation>
-      </datacite:creator>
-        <datacite:creator>
-            <datacite:creatorName>External Author</datacite:creatorName>
-      </datacite:creator>
-        <datacite:creator>
-            <datacite:creatorName>Known Author2</datacite:creatorName>
-            <datacite:affiliation
-            >MyOrg</datacite:affiliation>
+            >English title</datacite:affiliation>
       </datacite:creator>
     </datacite:creators>
   <datacite:titles>
-    <datacite:title>Test Publication</datacite:title>
+    <datacite:title>THP I.III.6 Maison Ritz</datacite:title>
   </datacite:titles>
-  <dc:publisher>Publication publisher</dc:publisher>
   <datacite:dates>
-    <datacite:date dateType="Issued">2020-01-01</datacite:date>
     <datacite:date dateType="Available">SKIP-IN-COMPARING</datacite:date>
   </datacite:dates>
-  <resourceType 
-    resourceTypeGeneral="literature"
-    uri="http://purl.org/coar/resource_type/c_5794">
-  conference paper
+  <resourceType resourceTypeGeneral="other research product" uri="http://purl.org/coar/resource_type/c_1843">
+  other
   </resourceType>
   <datacite:alternateIdentifiers>
-    <datacite:alternateIdentifier alternateIdentifierType="doi">https://doi.org/10.xxxx/yyyy</datacite:alternateIdentifier>
   </datacite:alternateIdentifiers>
-  <citationVolume>V.01</citationVolume>
-  <citationIssue>Issue</citationIssue>
   <datacite:relatedIdentifiers>
   </datacite:relatedIdentifiers>
   <datacite:rights rightsURI="http://purl.org/coar/access_right/c_14cb">
