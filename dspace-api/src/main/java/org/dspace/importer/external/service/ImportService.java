@@ -322,6 +322,10 @@ public class ImportService implements Destroyable {
         try (InputStream fileInputStream = new FileInputStream(file)) {
             FileSource fileSource = this.getFileSource(fileInputStream, originalName);
             try {
+                if (!fileSource.isFileSizeAccepted(file.length())) {
+                    log.debug("A too large file was provided, length in bytes: " + file.length());
+                    return null;
+                }
                 if (fileSource.isValidSourceForFile(originalName)) {
                     return fileSource.getRecord(fileInputStream);
                 }
