@@ -8220,6 +8220,65 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void testVirtualCollectionConditions() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+
+        final Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("Publication")
+                .build();
+
+        final Collection virtualCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("VirtualCollection")
+                .build();
+
+        final Collection people = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("Person")
+                .build();
+
+        Item virtualCollectionItem = ItemBuilder.createItem(context, virtualCollection)
+                .withTitle("My VC")
+                .withMetadata("epfl", "virtualCollection", "query", "John Doe")
+                .withMetadata("epfl", "virtualCollection", "head", "White, Walter")
+                .build();
+
+        Item person = ItemBuilder.createItem(context, people)
+                .withTitle("Doe, John").build();
+
+        Item publicationOfJohnDoe = ItemBuilder.createItem(context, publications)
+                .withTitle("Publication by John Doe")
+                .withAuthor("John Doe", person.getID().toString())
+                .build();
+
+        Item publicationOfSomeoneElse  = ItemBuilder.createItem(context, publications)
+                .withTitle("Publication by Someone Else")
+                .withAuthor("Someone Else")
+                .withMetadata("epfl", "virtualCollection", null , null,
+                        "My VC", virtualCollectionItem.getID().toString(), -1)
+                .build();
+
+        context.restoreAuthSystemState();
+
+        final String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/discover/search/objects")
+                    .param("configuration", "RELATION.VirtualCollection.publications")
+                    .param("scope", virtualCollectionItem.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.configuration", is("RELATION.VirtualCollection.publications")))
+            .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)))
+            .andExpect(
+                    jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.name",
+                            is("Publication by John Doe")))
+            .andExpect(
+                    jsonPath("$._embedded.searchResult._embedded.objects[1]._embedded.indexableObject.name",
+                            is("Publication by Someone Else")));
+    }
+
+    @Test
     public void testLatestVersionForVirtualCollectionRelation() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
