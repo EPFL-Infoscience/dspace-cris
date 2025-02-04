@@ -79,6 +79,8 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.data.rest.webmvc.RestMediaTypes;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -101,6 +103,9 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
     @Autowired
     private WorkspaceItemService workspaceItemService;
+
+    @Value("classpath:org/dspace/app/rest/simple-article.pdf")
+    private Resource simpleArticle;
 
     @Before
     @Override
@@ -2886,4 +2891,123 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
                         is("12312")));;
     }
 
+    /**
+     * This test comes from this scenario:
+     * - the submitter submits a workspaceitem
+     * - the admin sends an email to ask for modifications
+     * - the submitter sees the "additional information required" label on that item and handles it
+     * - the admin then approves the item
+     * - another actor, like the author, asks for a correction or for a new version of the new published item
+     * - the new item appears directly with the "additional information required" label, even before submitting it
+     * This bug is due to the epfl.workflow.additionalInformation metadatum, that gets added to the item
+     * when the mail is sent, but it's never removed, so any copy of the item (like a new version) comes with that
+     * metadatum from the beginning. This test proves this situation and expects, after the approval, that
+     * epfl.workflow.additionalInformation is not present anymore
+     *
+     * @throws Exception
+     */
+    @Test
+    public void workflowAdditionalInformationRequired() throws Exception {
+
+        AtomicReference<Integer> workflowItemIdRef = new AtomicReference<Integer>();
+        AtomicReference<String> itemIdRef = new AtomicReference<String>();
+
+        try {
+            context.turnOffAuthorisationSystem();
+
+            parentCommunity = CommunityBuilder.createCommunity(context)
+                    .withName("Parent Community")
+                    .build();
+
+            Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                    .withName("Collection")
+                    .withEntityType("Publication")
+                    .withWorkflow("epflWorkflow")
+                    .withWorkflowGroup("epflreviewer", admin)
+                    .withSubmitterGroup(admin, eperson)
+                    .withSubmissionDefinition("traditional")
+                    .build();
+
+            WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                    .withTitle("Publication title")
+                    .withIssueDate("2017-10-17")
+                    .withFulltext("simple-article.pdf",
+                            "/local/path/simple-article.pdf", simpleArticle.getInputStream())
+                    .withSubject("Publication subject")
+                    .withType("Publication")
+                    .withSubmitter(eperson)
+                    .grantLicense()
+                    .build();
+
+            context.restoreAuthSystemState();
+
+            String adminAuthToken = getAuthToken(admin.getEmail(), password);
+
+            // submit the workspaceitem
+            getClient(adminAuthToken).perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                    .content("/api/submission/workspaceitems/" + workspaceItem.getID()).contentType(textUriContentType))
+                    .andExpect(status().isCreated())
+                    .andDo(result -> workflowItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+            // get the tasks pool
+            AtomicReference<Integer> taskId = new AtomicReference<Integer>();
+            getClient(adminAuthToken).perform(get("/api/workflow/pooltasks/search/findByUser")
+                    .param("uuid", admin.getID().toString()))
+                .andExpect(status().isOk())
+                .andDo(r -> taskId.set(read(r.getResponse().getContentAsString(), "$._embedded.pooltasks[0].id")));
+
+            // claim
+            getClient(adminAuthToken).perform(post("/api/workflow/claimedtasks")
+                .contentType(RestMediaTypes.TEXT_URI_LIST)
+                .content("/api/workflow/pooltasks/" + taskId.get()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$", Matchers.allOf(hasJsonPath("$.type", is("claimedtask")))));
+
+            // the task is now claimed
+            getClient(adminAuthToken).perform(get("/api/workflow/claimedtasks/search/findByUser")
+                .param("uuid", admin.getID().toString()))
+                .andExpect(status().isOk())
+                .andDo(r -> taskId.set(read(r.getResponse().getContentAsString(), "$._embedded.claimedtasks[0].id")));
+
+            // send the email (this will set epfl.workflow.additionalInformation)
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+            params.add("submit_mail", "true");
+            params.add("content", "content");
+            params.add("subject", "subject");
+            getClient(adminAuthToken).perform(post("/api/workflow/claimedtasks/{id}", taskId.get())
+                .contentType("application/x-www-form-urlencoded")
+                .params(params))
+                .andExpect(status().isNoContent());
+
+            // check that after the email, epfl.workflow.additionalInformation is set to true
+            getClient(adminAuthToken).perform(get("/api/workflow/workflowitems/" + workflowItemIdRef.get())
+                    .param("projection", "full"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$._embedded.item.metadata['epfl.workflow.additionalInformation'][0].value",
+                                    is("true")))
+                    .andDo(r -> itemIdRef.set(read(r.getResponse().getContentAsString(), "$._embedded.item.id")));
+
+            // now the wf item get approved
+            params = new LinkedMultiValueMap<String, String>();
+            params.add("submit_approve", "true");
+            getClient(adminAuthToken).perform(post("/api/workflow/claimedtasks/{id}", taskId.get())
+                    .contentType("application/x-www-form-urlencoded")
+                    .params(params))
+                    .andExpect(status().isNoContent());
+
+            // retrieve the item, epfl.workflow.additionalInformation should be gone
+            getClient(adminAuthToken).perform(get("/api/core/items/" + itemIdRef.get())
+                    .param("projection", "full"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath
+                            ("$._embedded.item.metadata['epfl.workflow.additionalInformation'][0]").doesNotExist());
+        } finally {
+            WorkflowItemBuilder.deleteWorkflowItem(workflowItemIdRef.get());
+            try {
+                ItemBuilder.deleteItem(UUID.fromString(itemIdRef.get()));
+            } catch (Exception e) {
+                // itemIdRef couldn't make it to be a UUID
+            }
+        }
+    }
 }

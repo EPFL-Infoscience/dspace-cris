@@ -15,6 +15,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.Context;
 import org.dspace.versioning.ItemCorrectionService;
 import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
@@ -42,6 +45,9 @@ public class AcceptEditRejectAction extends ProcessingAction {
 
     @Autowired
     protected ItemCorrectionService itemCorrectionService;
+
+    @Autowired
+    protected MetadataValueService metadataValueService;
 
     @Override
     public void activate(Context c, XmlWorkflowItem wf) {
@@ -77,11 +83,26 @@ public class AcceptEditRejectAction extends ProcessingAction {
     }
 
     public ActionResult processAccept(Context c, XmlWorkflowItem wfi)
-            throws SQLException, AuthorizeException {
+            throws SQLException, AuthorizeException, IOException {
         //Delete the tasks
         super.addApprovedProvenance(c, wfi);
+        removeAdditionalInformationMetadata(c, wfi);
 
         return new ActionResult(ActionResult.TYPE.TYPE_OUTCOME, ActionResult.OUTCOME_COMPLETE);
+    }
+
+    private void removeAdditionalInformationMetadata(Context context, XmlWorkflowItem wfi)
+            throws SQLException, AuthorizeException, IOException {
+        Item item = wfi.getItem();
+        if (item != null) {
+            List<MetadataValue> metadataValues =
+                    itemService.getMetadata(item,"epfl", "workflow", "additionalInformation", "*");
+            if (metadataValues.size() > 0) {
+                MetadataValue metadataValue = metadataValueService.find(context, metadataValues.get(0).getID());
+                itemService.removeMetadataValues(context, item, List.of(metadataValue));
+                itemService.update(context, item);
+            }
+        }
     }
 
     public ActionResult processRejectPage(Context c, XmlWorkflowItem wfi, HttpServletRequest request)

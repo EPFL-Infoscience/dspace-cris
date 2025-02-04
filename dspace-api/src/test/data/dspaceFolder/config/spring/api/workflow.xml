@@ -10,12 +10,10 @@
     <bean name="xmlWorkflowFactory" class="org.dspace.xmlworkflow.XmlWorkflowFactoryImpl">
         <property name="workflowMapping">
             <util:map>
-                <entry key="defaultWorkflow"
-                       value-ref="defaultWorkflow"/>
-                <entry key="123456789/workflow-test-1"
-                       value-ref="selectSingleReviewer"/>
-                <entry key='123456789/curation-test-1'
-                       value-ref='nullWorkflow'/>
+                <entry key="defaultWorkflow" value-ref="defaultWorkflow"/>
+                <entry key="epflWorkflow" value-ref="epflWorkflow"/>
+                <entry key="123456789/workflow-test-1" value-ref="selectSingleReviewer"/>
+                <entry key='123456789/curation-test-1' value-ref='nullWorkflow'/>
             </util:map>
         </property>
     </bean>
@@ -36,6 +34,41 @@
                 <ref bean="checkcorrectionstep"/>
             </util:list>
         </property>
+    </bean>
+
+    <!--EPFL workflow-->
+    <bean name="epflWorkflow" class="org.dspace.xmlworkflow.state.Workflow">
+        <property name="firstStep" ref="epflstep"/>
+        <property name="steps">
+            <util:list>
+                <ref bean="epflstep"/>
+                <ref bean="reviewstep"/>
+                <ref bean="checkcorrectionstep"/>
+            </util:list>
+        </property>
+    </bean>
+
+    <bean name="epflstep" class="org.dspace.xmlworkflow.state.Step">
+        <property name="userSelectionMethod" ref="claimaction"/>
+        <property name="role" ref="epflreviewer"/>
+        <property name="outcomes">
+            <util:map>
+                <entry key="#{ T(org.dspace.xmlworkflow.state.actions.ActionResult).OUTCOME_COMPLETE}"
+                       value-ref="reviewstep"/>
+            </util:map>
+        </property>
+        <property name="actions">
+            <util:list>
+                <ref bean="epflaction"/>
+            </util:list>
+        </property>
+    </bean>
+
+    <bean id="epflreviewer" class="org.dspace.xmlworkflow.Role">
+        <property name="scope" value="#{ T(org.dspace.xmlworkflow.Role.Scope).COLLECTION}"/>
+        <property name="name" value="EPFLReviewer"/>
+        <property name="description"
+                  value="The people responsible for this step are able to edit the incoming submissions, and then accept or reject them sending custom email messages."/>
     </bean>
 
     <bean name="reviewstep" class="org.dspace.xmlworkflow.state.Step">
