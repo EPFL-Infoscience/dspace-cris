@@ -66,7 +66,7 @@
         <addon-ocr.version>${addons.version}</addon-ocr.version>
         <addon-docviewer.version>${addons.version}</addon-docviewer.version>
         <addon-analytics.version>${addons.version}</addon-analytics.version>
-        <addon-dataquality.version>${addons.version}</addon-dataquality.version>
+        <addon-dataquality.version>[cris-2023.02.07-SNAPSHOT,cris-2023.02.07.9999-SNAPSHOT)</addon-dataquality.version>
         <addon-networklab.version>${addons.version}</addon-networklab.version>
         <addon-orchestrator.version>${addons.version}</addon-orchestrator.version>
         <addon-loginmiur.version>${addons.version}</addon-loginmiur.version>
