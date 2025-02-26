@@ -15,7 +15,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.alerts.service.SystemWideAlertService;
 import org.dspace.app.audit.AuditService;
-import org.dspace.app.deduplication.utils.DedupUtils;
 import org.dspace.app.metrics.service.CrisMetricsService;
 import org.dspace.app.nbevent.service.NBEventService;
 import org.dspace.app.requestitem.factory.RequestItemServiceFactory;
@@ -44,8 +43,6 @@ import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
-import org.dspace.deduplication.factory.DeduplicationServiceFactory;
-import org.dspace.deduplication.service.DeduplicationService;
 import org.dspace.discovery.IndexingService;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
@@ -134,8 +131,6 @@ public abstract class AbstractBuilder<T, S> {
     static SubscribeService subscribeService;
     static RequestItemService requestItemService;
     static VersioningService versioningService;
-    static DeduplicationService deduplicationService;
-    static DedupUtils dedupUtils;
     static OrcidHistoryService orcidHistoryService;
     static OrcidQueueService orcidQueueService;
     static OrcidTokenService orcidTokenService;
@@ -193,9 +188,6 @@ public abstract class AbstractBuilder<T, S> {
         requestItemService = RequestItemServiceFactory.getInstance().getRequestItemService();
         versioningService = DSpaceServicesFactory.getInstance().getServiceManager()
                                  .getServiceByName(VersioningService.class.getName(), VersioningService.class);
-        deduplicationService = DeduplicationServiceFactory.getInstance().getDeduplicationService();
-        dedupUtils = DSpaceServicesFactory.getInstance().getServiceManager()
-                .getServiceByName("dedupUtils", DedupUtils.class);
 
         // Temporarily disabled
         claimedTaskService = XmlWorkflowServiceFactory.getInstance().getClaimedTaskService();
@@ -268,9 +260,6 @@ public abstract class AbstractBuilder<T, S> {
         subscribeService = null;
         requestItemService = null;
         versioningService = null;
-        deduplicationService = null;
-        dedupUtils = null;
-
         orcidTokenService = null;
         systemWideAlertService = null;
         submissionConfigService = null;

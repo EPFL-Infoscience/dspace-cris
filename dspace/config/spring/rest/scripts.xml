@@ -115,13 +115,6 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.itemexport.ItemExport"/>
     </bean>
 
-    <bean id="deduplication-merge-items"
-          class="org.dspace.app.deduplication.scripts.DedupMergeScriptConfiguration" primary="true">
-        <property name="description" value="merge items into target item" />
-        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnable"/>
-    </bean>
-
-
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->

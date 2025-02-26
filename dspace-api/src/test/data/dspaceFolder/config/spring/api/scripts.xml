@@ -179,11 +179,6 @@
         <property name="dspaceRunnableClass" value="org.dspace.subscriptions.SubscriptionEmailNotificationCli"/>
     </bean>
 
-    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeCliScriptConfiguration">
-        <property name="description" value="merge items into target item" />
-        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnableCli"/>
-    </bean>
-
     <bean id="orgunit-tsv-import" class="org.dspace.epfl.script.OrgUnitTSVImportScriptConfiguration" primary="true">
         <property name="description" value="Import the OrgUnits present in the given TSV file"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitTSVImportScript"/>
