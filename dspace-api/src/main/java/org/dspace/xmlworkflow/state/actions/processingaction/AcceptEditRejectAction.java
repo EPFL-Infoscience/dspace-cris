@@ -98,8 +98,7 @@ public class AcceptEditRejectAction extends ProcessingAction {
             List<MetadataValue> metadataValues =
                     itemService.getMetadata(item,"epfl", "workflow", "additionalInformation", "*");
             if (metadataValues.size() > 0) {
-                MetadataValue metadataValue = metadataValueService.find(context, metadataValues.get(0).getID());
-                itemService.removeMetadataValues(context, item, List.of(metadataValue));
+                itemService.removeMetadataValues(context, item, metadataValues);
                 itemService.update(context, item);
             }
         }
