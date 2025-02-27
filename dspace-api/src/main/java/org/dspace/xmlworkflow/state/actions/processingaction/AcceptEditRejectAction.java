@@ -17,7 +17,6 @@ import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.Context;
 import org.dspace.versioning.ItemCorrectionService;
 import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
@@ -45,9 +44,6 @@ public class AcceptEditRejectAction extends ProcessingAction {
 
     @Autowired
     protected ItemCorrectionService itemCorrectionService;
-
-    @Autowired
-    protected MetadataValueService metadataValueService;
 
     @Override
     public void activate(Context c, XmlWorkflowItem wf) {
