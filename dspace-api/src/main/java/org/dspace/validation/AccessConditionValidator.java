@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Class that executes the validation for the item access conditions
- * 
+ *
  * @author Daniele Ninfo (daniele.ninfo at 4science.com)
  */
 public class AccessConditionValidator implements SubmissionStepValidator {
@@ -52,7 +52,7 @@ public class AccessConditionValidator implements SubmissionStepValidator {
                     accessConditionConfigurationService.getAccessConfigurationById(config.getId());
             return performValidation(context, obj.getItem(), config);
         } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
+            throw new SQLRuntimeException("Failed to get access configuration for step " + config.getId(), e);
         }
     }
 
@@ -77,10 +77,13 @@ public class AccessConditionValidator implements SubmissionStepValidator {
     }
 
     private List<String> getOptionsNames() {
-        return accessConditionConfiguration.getOptions()
-                .stream()
-                .map(AccessConditionOption::getName)
-                .collect(Collectors.toList());
+        List<AccessConditionOption> options = accessConditionConfiguration.getOptions();
+        if (options == null) {
+            return new ArrayList<>();
+        }
+        return options.stream()
+            .map(AccessConditionOption::getName)
+            .collect(Collectors.toList());
     }
 
     public void setAccessConditionConfigurationService(
