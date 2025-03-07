@@ -2642,6 +2642,7 @@
           <repeatable>true</repeatable>
           <required />
           <hint>Add any identifier (e.g., DOI), if available</hint>
+          <language value-pairs-name="supported_languages">true</language>
         </field>
       </row>
       <row>
