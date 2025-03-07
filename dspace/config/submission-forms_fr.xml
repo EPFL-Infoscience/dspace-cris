@@ -2512,7 +2512,7 @@
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>affiliation</dc-element>
+          <dc-element>author</dc-element>
           <dc-qualifier>orgunit</dc-qualifier>
           <label>Unité ou Laboratoire</label>
           <input-type>onebox</input-type>
@@ -2524,7 +2524,7 @@
       <row>
         <field>
           <dc-schema>person</dc-schema>
-          <dc-element>identifier</dc-element>
+          <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
           <input-type>onebox</input-type>
@@ -2573,7 +2573,7 @@
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>affiliation</dc-element>
+          <dc-element>contributor</dc-element>
           <dc-qualifier>orgunit</dc-qualifier>
           <label>Unité ou Laboratoire</label>
           <input-type>onebox</input-type>
@@ -2585,7 +2585,7 @@
       <row>
         <field>
           <dc-schema>person</dc-schema>
-          <dc-element>identifier</dc-element>
+          <dc-element>contributor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
           <input-type>onebox</input-type>
@@ -3165,7 +3165,7 @@
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>affiliation</dc-element>
+          <dc-element>author</dc-element>
           <dc-qualifier>orgunit</dc-qualifier>
           <label>Unité ou Laboratoire</label>
           <input-type>onebox</input-type>
@@ -3177,7 +3177,7 @@
       <row>
         <field>
           <dc-schema>person</dc-schema>
-          <dc-element>identifier</dc-element>
+          <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
           <input-type>onebox</input-type>
@@ -3215,7 +3215,7 @@
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>affiliation</dc-element>
+          <dc-element>advisor</dc-element>
           <dc-qualifier>orgunit</dc-qualifier>
           <label>Unité ou Laboratoire</label>
           <input-type>onebox</input-type>
@@ -3227,7 +3227,7 @@
       <row>
         <field>
           <dc-schema>person</dc-schema>
-          <dc-element>identifier</dc-element>
+          <dc-element>advisor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
           <input-type>onebox</input-type>
@@ -4713,7 +4713,7 @@
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>affiliation</dc-element>
+          <dc-element>author</dc-element>
           <dc-qualifier>orgunit</dc-qualifier>
           <label>Unité ou Laboratoire</label>
           <input-type>onebox</input-type>
@@ -4725,7 +4725,7 @@
       <row>
         <field>
           <dc-schema>person</dc-schema>
-          <dc-element>identifier</dc-element>
+          <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
           <input-type>onebox</input-type>
@@ -4968,7 +4968,7 @@
       <row>
         <field>
           <dc-schema>oairecerif</dc-schema>
-          <dc-element>affiliation</dc-element>
+          <dc-element>scientificeditor</dc-element>
           <dc-qualifier>orgunit</dc-qualifier>
           <label>Unité ou Laboratoire</label>
           <input-type>onebox</input-type>
@@ -4980,7 +4980,7 @@
       <row>
         <field>
           <dc-schema>person</dc-schema>
-          <dc-element>identifier</dc-element>
+          <dc-element>scientificeditor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
           <input-type>onebox</input-type>
