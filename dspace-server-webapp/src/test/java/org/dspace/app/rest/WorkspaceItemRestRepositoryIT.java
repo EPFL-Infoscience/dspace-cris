@@ -9336,8 +9336,8 @@ ResourcePolicyBuilder.createResourcePolicy(context, null, adminGroup)
 
             context.turnOffAuthorisationSystem();
 
-            RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
-                    "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+//            RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
+//                    "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
 
             parentCommunity = CommunityBuilder.createCommunity(context)
                     .withName("Parent Community")
