@@ -234,7 +234,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         adminGroup = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ADMIN);
 
-	accessConditionConfiguration = DSpaceServicesFactory.getInstance().getServiceManager()
+        accessConditionConfiguration = DSpaceServicesFactory.getInstance().getServiceManager()
                 .getServiceByName("accessConditionConfigurationDefault", AccessConditionConfiguration.class);
 
         context.restoreAuthSystemState();
