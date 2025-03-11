@@ -22,6 +22,15 @@ public class AccessConditionConfiguration {
     private List<AccessConditionOption> options;
     private boolean singleAccessCondition = false;
     private boolean onlyForOriginalBundle;
+    private boolean required;
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
+    }
 
     public String getName() {
         return name;
