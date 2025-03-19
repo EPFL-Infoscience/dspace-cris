@@ -11,6 +11,9 @@ import java.util.Date;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 /**
  * The AccessConditionDTO is a partial representation of the DSpace
@@ -95,6 +98,13 @@ public class AccessConditionDTO  {
 
     public static AccessConditionDTO fromJson(String json) {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-        return gson.fromJson(json, AccessConditionDTO.class);
+        JsonElement jsonElement = JsonParser.parseString(json);
+        if (jsonElement.isJsonArray()) {
+            return gson.fromJson(jsonElement.getAsJsonArray().get(0), AccessConditionDTO.class);
+        } else if (jsonElement.isJsonObject()) {
+            return gson.fromJson(json, AccessConditionDTO.class);
+        } else {
+            throw new JsonSyntaxException("Unexpected JSON type: " + jsonElement.getClass().getSimpleName());
+        }
     }
 }
