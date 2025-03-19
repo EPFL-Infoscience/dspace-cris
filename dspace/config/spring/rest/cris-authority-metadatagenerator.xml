@@ -23,15 +23,6 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="AuthorAuthority"/>
-        <property name="keyId" value="oairecerif_affiliation_orgunit"/>
-        <property name="schema" value="person"/>
-        <property name="element" value="affiliation"/>
-        <property name="qualifier" value="name"/>
-        <property name="singleResultOnAggregate" value="false"/>
-     </bean>
-
-    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
-        <property name="authorityName" value="AuthorAuthority"/>
         <property name="keyId" value="oairecerif_author_affiliation"/>
         <property name="schema" value="person"/>
         <property name="element" value="affiliation"/>
@@ -41,7 +32,18 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="AuthorAuthority"/>
-        <property name="keyId" value="person_identifier_orcid"/>
+        <property name="keyId" value="oairecerif_author_orgunit"/>
+        <property name="useForDisplay" value="true"/>
+        <property name="useAsData" value="true"/>
+        <property name="schema" value="person"/>
+        <property name="element" value="affiliation"/>
+        <property name="qualifier" value="name"/>
+        <property name="singleResultOnAggregate" value="false"/>
+    </bean>
+
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+        <property name="authorityName" value="AuthorAuthority"/>
+        <property name="keyId" value="person_author_orcid"/>
         <property name="useForDisplay" value="true"/>
         <property name="useAsData" value="true"/>
         <property name="schema" value="person"/>
@@ -50,7 +52,7 @@
         <property name="singleResultOnAggregate" value="true"/>
     </bean>
 
-    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="ScientificEditorAuthority"/>
         <property name="keyId" value="oairecerif_scientificeditor_affiliation"/>
         <property name="schema" value="person"/>
@@ -61,7 +63,9 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="ScientificEditorAuthority"/>
-        <property name="keyId" value="oairecerif_affiliation_orgunit"/>
+        <property name="keyId" value="oairecerif_scientificeditor_orgunit"/>
+        <property name="useForDisplay" value="true"/>
+        <property name="useAsData" value="true"/>
         <property name="schema" value="person"/>
         <property name="element" value="affiliation"/>
         <property name="qualifier" value="name"/>
@@ -70,7 +74,7 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="ScientificEditorAuthority"/>
-        <property name="keyId" value="person_identifier_orcid"/>
+        <property name="keyId" value="person_scientificeditor_orcid"/>
         <property name="useForDisplay" value="true"/>
         <property name="useAsData" value="true"/>
         <property name="schema" value="person"/>
@@ -79,7 +83,7 @@
         <property name="singleResultOnAggregate" value="true"/>
     </bean>
 
-    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="ContributorAuthority"/>
         <property name="keyId" value="oairecerif_contributor_affiliation"/>
         <property name="schema" value="person"/>
@@ -90,7 +94,9 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="ContributorAuthority"/>
-        <property name="keyId" value="oairecerif_affiliation_orgunit"/>
+        <property name="keyId" value="oairecerif_contributor_orgunit"/>
+        <property name="useForDisplay" value="true"/>
+        <property name="useAsData" value="true"/>
         <property name="schema" value="person"/>
         <property name="element" value="affiliation"/>
         <property name="qualifier" value="name"/>
@@ -99,7 +105,7 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="ContributorAuthority"/>
-        <property name="keyId" value="person_identifier_orcid"/>
+        <property name="keyId" value="person_contributor_orcid"/>
         <property name="useForDisplay" value="true"/>
         <property name="useAsData" value="true"/>
         <property name="schema" value="person"/>
@@ -108,7 +114,7 @@
         <property name="singleResultOnAggregate" value="true"/>
     </bean>
 
-    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
+    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="AdvisorAuthority"/>
         <property name="keyId" value="oairecerif_advisor_affiliation"/>
         <property name="schema" value="person"/>
@@ -119,7 +125,9 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="AdvisorAuthority"/>
-        <property name="keyId" value="oairecerif_affiliation_orgunit"/>
+        <property name="keyId" value="oairecerif_advisor_orgunit"/>
+        <property name="useForDisplay" value="true"/>
+        <property name="useAsData" value="true"/>
         <property name="schema" value="person"/>
         <property name="element" value="affiliation"/>
         <property name="qualifier" value="name"/>
@@ -128,7 +136,7 @@
 
     <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
         <property name="authorityName" value="AdvisorAuthority"/>
-        <property name="keyId" value="person_identifier_orcid"/>
+        <property name="keyId" value="person_advisor_orcid"/>
         <property name="useForDisplay" value="true"/>
         <property name="useAsData" value="true"/>
         <property name="schema" value="person"/>
