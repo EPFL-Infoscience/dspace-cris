@@ -902,52 +902,11 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
                         .andExpect(jsonPath("$._embedded.entries[0].value", is("Walter White")))
                         .andExpect(jsonPath("$._embedded.entries[0].otherInformation.person_author_orcid",
                                 is("0000-1111-2222-3333")))
+                        .andExpect(jsonPath("$._embedded.entries[0].otherInformation.oairecerif_author_orgunit",
+                                is("OrgUnit_1::" + orgUnit_1.getID())))
                         .andExpect(jsonPath("$.page.size", Matchers.is(20)))
                         .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
                         .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
-        /*
-        getClient(token).perform(get("/api/submission/vocabularies/AdvisorAuthority/entries")
-                .param("metadata", "dc.contributor.advisor")
-                .param("collection", col1.getID().toString())
-                .param("filter", "Walter White")
-                .param("exact", "false"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entries[0].authority", is(author_1.getID().toString())))
-                .andExpect(jsonPath("$._embedded.entries[0].value", is("Walter White")))
-                .andExpect(jsonPath("$._embedded.entries[0].otherInformation.person_advisor_orcid",
-                        is("0000-1111-2222-3333")))
-                .andExpect(jsonPath("$.page.size", Matchers.is(20)))
-                .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
-
-        getClient(token).perform(get("/api/submission/vocabularies/ContributorAuthority/entries")
-                .param("metadata", "dc.contributor")
-                .param("collection", col1.getID().toString())
-                .param("filter", "Walter White")
-                .param("exact", "false"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entries[0].authority", is(author_1.getID().toString())))
-                .andExpect(jsonPath("$._embedded.entries[0].value", is("Walter White")))
-                .andExpect(jsonPath("$._embedded.entries[0].otherInformation.person_contributor_orcid",
-                        is("0000-1111-2222-3333")))
-                .andExpect(jsonPath("$.page.size", Matchers.is(20)))
-                .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
-
-        getClient(token).perform(get("/api/submission/vocabularies/ScientificEditorAuthority/entries")
-                .param("metadata", "dc.contributor.author")
-                .param("collection", col1.getID().toString())
-                .param("filter", "Walter White")
-                .param("exact", "false"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entries[0].authority", is(author_1.getID().toString())))
-                .andExpect(jsonPath("$._embedded.entries[0].value", is("Walter White")))
-                .andExpect(jsonPath("$._embedded.entries[0].otherInformation.person_scientificeditor_orcid",
-                        is("0000-1111-2222-3333")))
-                .andExpect(jsonPath("$.page.size", Matchers.is(20)))
-                .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
-                */
     }
 
     private ExpandedSearch buildExpandedSearchFromSublist(List<ExpandedResult> totalResults, int start, int rows) {
