@@ -11,6 +11,7 @@ import java.util.Date;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -92,19 +93,33 @@ public class AccessConditionDTO  {
     }
 
     public String toJson() {
-        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-        return gson.toJson(this);
+        return getGson().toJson(this);
     }
 
     public static AccessConditionDTO fromJson(String json) {
-        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-        JsonElement jsonElement = JsonParser.parseString(json);
+        JsonElement jsonElement = parseJson(json);
+        String jsonObject = extractJsonObject(jsonElement);
+        return getGson().fromJson(jsonObject, AccessConditionDTO.class);
+    }
+
+    private static Gson getGson() {
+        return new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+    }
+
+    private static JsonElement parseJson(String json) {
+        return JsonParser.parseString(json);
+    }
+
+    private static String extractJsonObject(JsonElement jsonElement) {
         if (jsonElement.isJsonArray()) {
-            return gson.fromJson(jsonElement.getAsJsonArray().get(0), AccessConditionDTO.class);
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
+            if (jsonArray.size() == 0) {
+                throw new JsonSyntaxException("Empty JSON array is not allowed");
+            }
+            return jsonArray.get(0).toString();
         } else if (jsonElement.isJsonObject()) {
-            return gson.fromJson(json, AccessConditionDTO.class);
-        } else {
-            throw new JsonSyntaxException("Unexpected JSON type: " + jsonElement.getClass().getSimpleName());
+            return jsonElement.toString();
         }
+        throw new JsonSyntaxException("Unexpected JSON type: " + jsonElement.getClass().getSimpleName());
     }
 }
