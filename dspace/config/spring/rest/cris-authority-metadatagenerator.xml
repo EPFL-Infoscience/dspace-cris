@@ -21,7 +21,7 @@
 
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
-    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
         <property name="authorityName" value="AuthorAuthority"/>
         <property name="keyId" value="oairecerif_author_affiliation"/>
         <property name="schema" value="person"/>
@@ -52,7 +52,7 @@
         <property name="singleResultOnAggregate" value="true"/>
     </bean>
 
-    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
         <property name="authorityName" value="ScientificEditorAuthority"/>
         <property name="keyId" value="oairecerif_scientificeditor_affiliation"/>
         <property name="schema" value="person"/>
@@ -83,7 +83,7 @@
         <property name="singleResultOnAggregate" value="true"/>
     </bean>
 
-    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
         <property name="authorityName" value="ContributorAuthority"/>
         <property name="keyId" value="oairecerif_contributor_affiliation"/>
         <property name="schema" value="person"/>
@@ -114,7 +114,7 @@
         <property name="singleResultOnAggregate" value="true"/>
     </bean>
 
-    <bean class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
+    <bean class="org.dspace.content.authority.ItemEpflAuthorityMetadataGenerator">
         <property name="authorityName" value="AdvisorAuthority"/>
         <property name="keyId" value="oairecerif_advisor_affiliation"/>
         <property name="schema" value="person"/>
