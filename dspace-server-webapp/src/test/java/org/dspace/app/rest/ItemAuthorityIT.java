@@ -144,8 +144,6 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                                     + orgUnit_1.getID(),
                                     "oairecerif_author_orgunit", "OrgUnit_1::"
                                         + orgUnit_1.getID(),
-                                    "oairecerif_author_affiliation", "OrgUnit_1::" + orgUnit_1.getID(),
-                                    "data-oairecerif_author_affiliation", "OrgUnit_1::" + orgUnit_1.getID(),
                                     "data-person_author_orcid", "",
                                     "person_author_orcid", "")),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_2.getID().toString(),
@@ -154,8 +152,6 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                                     + orgUnit_1.getID(),
                                     "oairecerif_author_orgunit", "OrgUnit_1::"
                                         + orgUnit_1.getID(),
-                                    "oairecerif_author_affiliation", "OrgUnit_1::" + orgUnit_1.getID(),
-                                    "data-oairecerif_author_affiliation", "OrgUnit_1::" + orgUnit_1.getID(),
                                     "data-person_author_orcid", "",
                                     "person_author_orcid", "")),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_3.getID().toString(),
@@ -164,8 +160,6 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                                     + orgUnit_2.getID(),
                                     "oairecerif_author_orgunit", "OrgUnit_2::"
                                         + orgUnit_2.getID(),
-                                    "oairecerif_author_affiliation", "OrgUnit_2::" + orgUnit_2.getID(),
-                                    "data-oairecerif_author_affiliation", "OrgUnit_2::" + orgUnit_2.getID(),
                                     "data-person_author_orcid", "",
                                     "person_author_orcid", ""))
                         )))
@@ -351,11 +345,9 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                            ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_1.getID().toString(),
                                 "Author 1", "Author 1", "vocabularyEntry",
                                 Map.of("data-oairecerif_author_orgunit", "",
-                                       "oairecerif_author_orgunit", "",
-                                       "data-oairecerif_author_affiliation", "",
-                                       "oairecerif_author_affiliation", "",
-                                       "data-person_author_orcid", "",
-                                       "person_author_orcid", ""))
+                                        "oairecerif_author_orgunit", "",
+                                        "data-person_author_orcid", "",
+                                        "person_author_orcid", ""))
                        )))
                        .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
     }
