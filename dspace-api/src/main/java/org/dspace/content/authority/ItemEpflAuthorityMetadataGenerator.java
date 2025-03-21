@@ -33,24 +33,22 @@ public class ItemEpflAuthorityMetadataGenerator extends ItemSimpleAuthorityMetad
         Context context = new Context();
         List<MetadataValueDTO> parentOrgUnitMetadata =
                 getMetadataValueDTOsFromSolr(getSchema(), getElement(), getQualifier(), solrDocument);
-        String epflOrgUnitUuid = configurationService.getProperty("epfl.head-orgunit.uuid", "dummy");
-        String epflOrgUnitAcronym;
-        try {
-            Iterator<Item> items = itemService.findByIds(context, List.of(epflOrgUnitUuid));
-            if (items.hasNext()) {
-                epflOrgUnitAcronym = items.next()
-                    .getMetadata().stream()
-                    .filter(metadataValue -> "oairecerif_acronym".equals(metadataValue.getMetadataField().toString()))
-                    .findFirst().get().getValue();
-            } else {
-                return;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
         if (!parentOrgUnitMetadata.isEmpty()) {
-            if (isPersonInternal(context, parentOrgUnitMetadata.get(0).getAuthority(), epflOrgUnitUuid)) {
-                buildSingleExtraByMetadata(new MetadataValueDTO("organization.parentOrganization",
+            String epflOrgUnitUuid = configurationService.getProperty("epfl.head-orgunit.uuid", "dummy");
+            String epflOrgUnitAcronym = null;
+            try {
+                Item epflOrgUnit = itemService.findByIdOrLegacyId(context, epflOrgUnitUuid);
+                if (epflOrgUnit != null) {
+                    epflOrgUnitAcronym =
+                            itemService.getMetadataFirstValue(epflOrgUnit, "oairecerif", "acronym", null, "*");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (StringUtils.isNotBlank(epflOrgUnitAcronym) &&
+                    isPersonInternal(context, parentOrgUnitMetadata.get(0).getAuthority(), epflOrgUnitUuid)) {
+                buildSingleExtraByMetadata(new MetadataValueDTO(getKeyId().replace("_", "."),
                         epflOrgUnitAcronym, epflOrgUnitUuid, 0, 0), extras);
             }
         }

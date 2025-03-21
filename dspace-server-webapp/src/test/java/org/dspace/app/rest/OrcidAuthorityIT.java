@@ -11,6 +11,7 @@ import static org.dspace.authority.service.AuthorityValueService.GENERATE;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -816,17 +817,17 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
                             // source should be local
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_1.getID().toString(),
                                 "Author 1", "Author 1", "vocabularyEntry",
-                                Map.of("oairecerif_affiliation_orgunit", "OrgUnit_1::" + orgUnit_1.getID(),
-                                        "data-person_identifier_orcid", "",
-                                        "data-oairecerif_affiliation_orgunit", "OrgUnit_1::" + orgUnit_1.getID(),
-                                        "person_identifier_orcid", ""),
+                                Map.of("oairecerif_author_orgunit", "OrgUnit_1::" + orgUnit_1.getID(),
+                                        "data-person_author_orcid", "",
+                                        "data-oairecerif_author_orgunit", "OrgUnit_1::" + orgUnit_1.getID(),
+                                        "person_author_orcid", ""),
                                 ItemAuthority.DEFAULT),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_2.getID().toString(),
                                 "Author 2", "Author 2", "vocabularyEntry",
-                                Map.of("oairecerif_affiliation_orgunit", "OrgUnit_2::" + orgUnit_2.getID(),
-                                        "data-person_identifier_orcid", "",
-                                        "data-oairecerif_affiliation_orgunit", "OrgUnit_2::" + orgUnit_2.getID(),
-                                        "person_identifier_orcid", ""),
+                                Map.of("oairecerif_author_orgunit", "OrgUnit_2::" + orgUnit_2.getID(),
+                                        "data-person_author_orcid", "",
+                                        "data-oairecerif_author_orgunit", "OrgUnit_2::" + orgUnit_2.getID(),
+                                        "person_author_orcid", ""),
                                 ItemAuthority.DEFAULT),
                             // source should be orcid as configured
                             orcidEntry("From Orcid 1 Author", REFERENCE, "0000-1111-2222-3333", getSource()),
@@ -859,6 +860,49 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
         verify(orcidClientMock).getReadPublicAccessToken();
         verify(orcidClientMock).expandedSearch(READ_PUBLIC_TOKEN, expectedQuery, 0, 20);
         verifyNoMoreInteractions(orcidClientMock);
+    }
+
+    @Test
+    public void testWithRoles() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).build();
+
+        Item orgUnit_1 = ItemBuilder.createItem(context, col1)
+                                    .withTitle("OrgUnit_1")
+                                    .withEntityType("orgunit")
+                                    .build();
+
+        Item author_1 = ItemBuilder.createItem(context, col1)
+                                   .withTitle("Walter White")
+                                   .withPersonMainAffiliation(orgUnit_1.getName(), orgUnit_1.getID().toString())
+                                   .withPersonAffiliation(orgUnit_1.getName(), orgUnit_1.getID().toString())
+                                   .withMetadata("oairecerif", "affiliation", "orgunit", null,
+                                           "OrgUnit_1", orgUnit_1.getID().toString(), 600)
+                                   .withEntityType("person")
+                                   .withOrcidIdentifier("0000-1111-2222-3333")
+                                   .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+        getClient(token).perform(get("/api/submission/vocabularies/AuthorAuthority/entries")
+                        .param("metadata", "dc.contributor.author")
+                        .param("collection", col1.getID().toString())
+                        .param("filter", "Walter White")
+                        .param("exact", "false"))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$._embedded.entries[0].authority", is(author_1.getID().toString())))
+                        .andExpect(jsonPath("$._embedded.entries[0].value", is("Walter White")))
+                        .andExpect(jsonPath("$._embedded.entries[0].otherInformation.person_author_orcid",
+                                is("0000-1111-2222-3333")))
+                        .andExpect(jsonPath("$._embedded.entries[0].otherInformation.oairecerif_author_orgunit",
+                                is("OrgUnit_1::" + orgUnit_1.getID())))
+                        .andExpect(jsonPath("$.page.size", Matchers.is(20)))
+                        .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
+                        .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
     }
 
     private ExpandedSearch buildExpandedSearchFromSublist(List<ExpandedResult> totalResults, int start, int rows) {
@@ -921,10 +965,10 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
     private Matcher<? super Object> affiliationEntry(Item item, String title, String otherInfoValue) {
         return ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(id(item), title,
             title, "vocabularyEntry", Map.of(
-                "data-oairecerif_affiliation_orgunit", otherInfoValue,
-                "oairecerif_affiliation_orgunit", otherInfoValue,
-                "data-" + ORCID_INFO, "",
-                ORCID_INFO, ""));
+                "data-oairecerif_author_orgunit", otherInfoValue,
+                "oairecerif_author_orgunit", otherInfoValue,
+                "data-person_author_orcid", "",
+                "person_author_orcid", ""));
     }
 
     private Matcher<? super Object> orcidEntry(String title, String authorityPrefix, String orcid) {

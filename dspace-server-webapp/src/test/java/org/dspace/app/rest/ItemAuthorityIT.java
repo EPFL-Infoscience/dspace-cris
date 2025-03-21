@@ -140,28 +140,28 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                         .andExpect(jsonPath("$._embedded.entries", Matchers.containsInAnyOrder(
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_1.getID().toString(),
                                 "Author 1", "Author 1", "vocabularyEntry",
-                                Map.of("data-oairecerif_affiliation_orgunit", "OrgUnit_1::"
+                                Map.of("data-oairecerif_author_orgunit", "OrgUnit_1::"
                                     + orgUnit_1.getID(),
-                                    "oairecerif_affiliation_orgunit", "OrgUnit_1::"
+                                    "oairecerif_author_orgunit", "OrgUnit_1::"
                                         + orgUnit_1.getID(),
-                                    "data-person_identifier_orcid", "",
-                                    "person_identifier_orcid", "")),
+                                    "data-person_author_orcid", "",
+                                    "person_author_orcid", "")),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_2.getID().toString(),
                                 "Author 2", "Author 2", "vocabularyEntry",
-                                Map.of("data-oairecerif_affiliation_orgunit", "OrgUnit_1::"
+                                Map.of("data-oairecerif_author_orgunit", "OrgUnit_1::"
                                     + orgUnit_1.getID(),
-                                    "oairecerif_affiliation_orgunit", "OrgUnit_1::"
+                                    "oairecerif_author_orgunit", "OrgUnit_1::"
                                         + orgUnit_1.getID(),
-                                    "data-person_identifier_orcid", "",
-                                    "person_identifier_orcid", "")),
+                                    "data-person_author_orcid", "",
+                                    "person_author_orcid", "")),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_3.getID().toString(),
                                 "Author 3", "Author 3", "vocabularyEntry",
-                                Map.of("data-oairecerif_affiliation_orgunit", "OrgUnit_2::"
+                                Map.of("data-oairecerif_author_orgunit", "OrgUnit_2::"
                                     + orgUnit_2.getID(),
-                                    "oairecerif_affiliation_orgunit", "OrgUnit_2::"
+                                    "oairecerif_author_orgunit", "OrgUnit_2::"
                                         + orgUnit_2.getID(),
-                                    "data-person_identifier_orcid", "",
-                                    "person_identifier_orcid", ""))
+                                    "data-person_author_orcid", "",
+                                    "person_author_orcid", ""))
                         )))
                         .andExpect(jsonPath("$.page.totalElements", Matchers.is(3)));
     }
@@ -344,10 +344,10 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                        .andExpect(jsonPath("$._embedded.entries", Matchers.contains(
                            ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_1.getID().toString(),
                                 "Author 1", "Author 1", "vocabularyEntry",
-                                Map.of("data-oairecerif_affiliation_orgunit", "",
-                                       "oairecerif_affiliation_orgunit", "",
-                                       "data-person_identifier_orcid", "",
-                                       "person_identifier_orcid", ""))
+                                Map.of("data-oairecerif_author_orgunit", "",
+                                        "oairecerif_author_orgunit", "",
+                                        "data-person_author_orcid", "",
+                                        "person_author_orcid", ""))
                        )))
                        .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
     }
