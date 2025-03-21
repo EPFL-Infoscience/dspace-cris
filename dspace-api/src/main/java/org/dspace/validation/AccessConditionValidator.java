@@ -19,6 +19,7 @@ import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.submit.model.AccessConditionConfiguration;
@@ -42,6 +43,9 @@ public class AccessConditionValidator implements SubmissionStepValidator {
 
     @Autowired
     private AuthorizeService authorizeService;
+
+    @Autowired
+    private ItemService itemService;
 
     private String name;
 
@@ -70,6 +74,9 @@ public class AccessConditionValidator implements SubmissionStepValidator {
     }
 
     private boolean isAccessConditionPresent(Context context, Item item) throws SQLException {
+        if (itemService.getMetadataFirstValue(item, "ctb", "accessconditions", "value", "*") != null) {
+            return true;
+        }
         List<String> optionsNames = getOptionsNames();
         return authorizeService.getPolicies(context, item)
                                .stream()
