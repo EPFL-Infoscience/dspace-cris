@@ -424,6 +424,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/research-outputs-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
+		<property name="findRelatedItems" value="true"/>
 		<property name="publiclyReadable" value="true"/>
 		<property name="linesPostProcessor" ref="jsonPostProcessor" />
 	</bean>
@@ -777,10 +778,18 @@
 				<entry key="sciperId" value-ref="virtualFieldToEnhancedMetadata"></entry>
 				<entry key="orcid" value-ref="virtualFieldToEnhancedMetadata"></entry>
 				<entry key="uniqueTitle" value-ref="virtualFieldUniqueTitle"></entry>
+				<entry key="uniqueAcronym" value-ref="virtualFieldUniqueAcronym"></entry>
+				<entry key="uniqueUnitCode" value-ref="virtualFieldUniqueUnitCode"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
 
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldUniqueMetadata" id="virtualFieldUniqueAcronym">
+        <property name="metadatum" value="oairecerif.acronym" />
+    </bean>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldUniqueMetadata" id="virtualFieldUniqueUnitCode">
+        <property name="metadatum" value="epfl.unit.code" />
+    </bean>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldUniqueTitle"
         id="virtualFieldUniqueTitle" />
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldToEnhancedMetadata"
