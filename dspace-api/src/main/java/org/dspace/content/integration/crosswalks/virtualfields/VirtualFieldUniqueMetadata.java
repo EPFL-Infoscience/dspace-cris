@@ -39,13 +39,7 @@ public class VirtualFieldUniqueMetadata implements VirtualField {
     public String[] getMetadata(Context context, Item item, String fieldName) {
         String defaultLocale = configurationService.getProperty("default.locale");
         List<MetadataValue> metadata = itemService.getMetadataByMetadataString(item, metadatum);
-        Optional<String> uniqueValue = Optional.empty();
-        if (StringUtils.isNotBlank(defaultLocale)) {
-            uniqueValue = metadata.stream()
-                .filter(mv -> StringUtils.equalsIgnoreCase(defaultLocale, mv.getLanguage()))
-                .map(mv -> mv.getValue())
-                .findFirst();
-        }
+        Optional<String> uniqueValue = findValueForLanguage(metadata, defaultLocale);
         String[] resultValues;
         if (uniqueValue.isPresent()) {
             resultValues = new String[] {uniqueValue.get()};
@@ -55,6 +49,16 @@ public class VirtualFieldUniqueMetadata implements VirtualField {
             resultValues = new String[0];
         }
         return resultValues;
+    }
+
+    private Optional<String> findValueForLanguage(List<MetadataValue> metadata, String language) {
+        if (StringUtils.isBlank(language)) {
+            return Optional.empty();
+        }
+        return metadata.stream()
+            .filter(mv -> StringUtils.equalsIgnoreCase(language, mv.getLanguage()))
+            .map(MetadataValue::getValue)
+            .findFirst();
     }
 
     public String getMetadatum() {
