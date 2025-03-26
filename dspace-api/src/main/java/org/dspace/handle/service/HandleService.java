@@ -169,17 +169,6 @@ public interface HandleService {
         throws SQLException;
 
     /**
-     * Finds the handle associated with a given DSpace object.
-     *
-     * @param context The DSpace context.
-     * @param dso The DSpace object for which to retrieve the handle.
-     * @return The handle as a string, or {@code null} if no handle is found.
-     * @throws SQLException If a database error occurs while retrieving the handle.
-     */
-    String findHandleByObjId(Context context, DSpaceObject dso)
-        throws SQLException;
-
-    /**
      * Return all the handles which start with prefix.
      *
      * @param context DSpace context
