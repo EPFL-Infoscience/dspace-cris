@@ -20,7 +20,8 @@ public class JsonValueConverter implements Converter<String, String> {
 
     @Override
     public String convert(String source) {
-        return StringEscapeUtils.escapeJson(source);
+        String escapedValue = StringEscapeUtils.escapeJson(source);
+        return escapedValue.replace("\\/", "/");
     }
 
 }

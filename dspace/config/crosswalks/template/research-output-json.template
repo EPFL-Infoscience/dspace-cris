@@ -35,7 +35,11 @@
     @if.metadata.oaire-citation-startPage.end@
 	  "Num": "@oaire.citation.issue@",
 	  "Vol": "@oaire.citation.volume@",
-	  "Issn": "@dc.relation.issn@",
+	  @if.metadata.dc-relation-issn.start@
+	  "Issn": [
+	      "@dc.relation.issn@",
+	      ],
+	  @if.metadata.dc-relation-issn.end@
 	  "Isbn": "@dc.relation.isbn@",
 	},
 	"Persons": [
@@ -68,20 +72,18 @@
   ],
 	"Meeting": {
 	  "Name": "@dc.relation.conference@",
-	  @relation.dc-relation-conference.start@
-            "Place": "@oairecerif.event.place@",
-            "Date": "@oairecerif.event.startDate@",
-      @relation.dc-relation-conference.end@
 	  "Place": "@oaire.citation.conferencePlace@",
 	  "Date": "@oaire.citation.conferenceDate@",
 	},
 	"Units": [
 	@relation.dc-description-sponsorship.start@
-	        "uni-acronym": "@oairecerif.acronym@",
+	    {
+	        "unit": "@virtual.uniqueTitle@",
+	        "unit-acronym": "@virtual.uniqueAcronym@",
 	        "unit-code": "@epfl.unit.code@",
-	        "unit-authid": "@virtual.id@",
+	        "unit-authid": "@virtual.id@"
+	    },
 	@relation.dc-description-sponsorship.end@
-	"unit": "@dc.description.sponsorship@",
 	],
 	"Resources": [
 	  @group.bundle-original.start@
