@@ -3270,6 +3270,14 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withRelationConference("The best Conference")
             .withOaireCitationConferencePlace("test Place")
             .withOaireCitationConferenceDate("testDate")
+            .withDescriptionAbstract("Abstract 1")
+            .withDescriptionAbstract("Abstract 2")
+            .withIsbnIdentifier("ISBN1")
+            .withIsbnIdentifier("ISBN2")
+            .withDescriptionNotes("note1")
+            .withDescriptionNotes("note2")
+            .withRelationIsbn("isbn-rel-1")
+            .withRelationIsbn("isbn-rel-2")
             .build();
 
         context.restoreAuthSystemState();

@@ -1,6 +1,18 @@
 {
   "Title": "Test Publication",
+  "Isbn": [
+    "ISBN1",
+    "ISBN2"
+  ],
   "DoiType": "doi",
+  "Notes": [
+    "note1",
+    "note2"
+  ],
+  "Abstract": [
+    "Abstract 1",
+    "Abstract 2"
+  ],
   "Keywords":[
   ],
   "Distribution": {
@@ -10,7 +22,11 @@
   },
   "Host": {
     "Name": "test isparOf",
-    "JournalName": "Nature Synthesis"
+    "JournalName": "Nature Synthesis",
+    "Isbn": [
+      "isbn-rel-1",
+      "isbn-rel-2"
+    ]
   },
   "Persons": [
   ],

@@ -1,13 +1,19 @@
 {
   "Type": "@dc.type@",
 	"Title": "@dc.title@",
-	"Isbn": "@dc.relation.isbn@",
+	"Isbn": [
+	    "@dc.identifier.isbn@",
+	    ],
 	"Doi": "@dc.identifier.doi@",
 	"DoiType": "doi",
 	"Language": "@dc.language.iso@",
 	"Year": "@dc.date.issued@",
-	"Notes": "@dc.description.notes@",
-	"Abstract": "@dc.description.abstract@",
+	"Notes": [
+	    "@dc.description.notes@",
+	    ],
+	"Abstract": [
+	    "@dc.description.abstract@",
+	    ],
 	"Keywords":[
 	    "@dc.subject@",
 	    ],
@@ -40,7 +46,11 @@
 	      "@dc.relation.issn@",
 	      ],
 	  @if.metadata.dc-relation-issn.end@
-	  "Isbn": "@dc.relation.isbn@",
+	  @if.metadata.dc-relation-isbn.start@
+	  "Isbn": [
+	      "@dc.relation.isbn@",
+	      ],
+	  @if.metadata.dc-relation-isbn.end@
 	},
 	"Persons": [
 	@group.dc-contributor-author.start@
