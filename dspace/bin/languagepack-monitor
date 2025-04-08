@@ -1,0 +1,208 @@
+#!/bin/bash
+###########################################################################
+# The contents of this file are subject to the license and copyright
+# detailed in the LICENSE and NOTICE files at the root of the source
+# tree and available online at
+#
+# http://www.dspace.org/license/
+###########################################################################
+# 'dspace' script
+# This is a Unix shell script for running a command-line DSpace tool.
+# It sets the CLASSPATH appropriately before invoking Java.
+
+# Assume that this script is in the bin subdirectory of the DSpace installation directory.
+# the script assumes three folder to exist in the dspace dir
+# - temp                      : to be used to temporary clone git repository to save changes
+# - language-packs            : where the REST API upload the file files provided by the user (.json5 and the
+#                               generated .json)
+# - language-packs-processed  : a folder shared among all the application nodes (REST and Angular) with the
+#                               current .json file. This is a sym link to an EFS storage
+#
+# The following properties MUST be defined in the dspace cfg files
+# languagepack.git.repo                   : the name of the git repository containing the angular sources
+# languagepack.git.branch                 : the branch of the git repository used to deploy the application
+#                                           on the current env
+# languagepack.cloudfront-distribution-id : The ID of the CloudFront Distribution used by the angular application
+
+BINDIR=`dirname $0`
+DSPACEDIR=`cd "$BINDIR/.." ; pwd`
+PROCESSED_DIR="$DSPACEDIR/language-packs-processed"
+WATCH_DIR="$DSPACEDIR/language-packs"
+
+# Git repository configuration
+GIT_REPO=`$BINDIR/dspace dsprop --property languagepack.git.repo`
+GIT_BRANCH=`$BINDIR/dspace dsprop --property languagepack.git.branch`
+TEMP_BASE_DIR="$DSPACEDIR/temp/languagepack-updates"  # Configurable base directory for temporary checkouts
+
+CLOUDFRONT_DISTRIBUTION_ID=`$BINDIR/dspace dsprop --property languagepack.cloudfront-distribution-id`
+CLOUDFRONT_PATH='/assets/i18n/'
+GIT_PATH='assets/i18n/'
+
+
+# Function definitions
+
+# get_utc_timestamp: Returns current UTC timestamp in ISO 8601 format
+# Returns:
+#   Current UTC timestamp in format: YYYY-MM-DDTHH:MM:SSZ
+get_utc_timestamp() {
+    date -u +"%Y-%m-%dT%H:%M:%SZ"
+}
+
+# archive_file: Moves a file to the archive directory after successful Git commit
+# Parameters:
+#   $1 - dir: The source directory containing the file
+#   $2 - file: The name of the file to move
+# Returns:
+#   0 on success, 1 on failure
+move_to_processed() {
+    local dir=$1
+    local file=$2
+
+    echo "[$(get_utc_timestamp)] Moving $file to processed directory..."
+    mv "${dir}${file}" "${PROCESSED_DIR}/${file}"
+
+    if [ $? -eq 0 ]; then
+        echo "[$(get_utc_timestamp)] Successfully moved $file to processed directory"
+        return 0
+    else
+        echo "[$(get_utc_timestamp)] Failed to move $file to processed directory"
+        return 1
+    fi
+}
+
+# update_git_repo: Updates a file in a Git repository using sparse checkout
+# Parameters:
+#   $1 - directory: The source directory containing the file to update
+#   $2 - filename: The name of the file to update in the repository
+#   $3 - git_repo: The URL of the Git repository
+#   $4 - git_branch: The branch name to update
+#   $5 - temp_base_dir: Base directory for temporary Git operations
+# Description:
+#   Creates a temporary directory, clones only the specific file using sparse checkout,
+#   updates the file, commits and pushes the changes, then cleans up
+update_git_repo() {
+    local directory=$1
+    local filename=$2
+    local git_repo=$3
+    local git_branch=$4
+    local temp_base_dir=$5
+
+    # Create a unique temporary directory for this operation
+    local temp_dir="${temp_base_dir}/$(date +%s)"
+    mkdir -p "$temp_dir"
+    
+    echo "[$(get_utc_timestamp)] Created temporary directory: $temp_dir"
+    
+    # Clone the specific file from the repository
+    cd "$temp_dir"
+    git init
+    git remote add origin "$git_repo"
+    git config core.sparsecheckout true
+    git config user.name "4Science"
+    git config user.email "devops@4science.com"
+    echo "$GIT_PATH$filename" > .git/info/sparse-checkout
+    git pull --depth 1 origin "$git_branch"
+    
+    if [ $? -eq 0 ]; then
+        echo "[$(get_utc_timestamp)] Successfully checked out $filename from repository"
+        
+        # Copy the updated file to the temporary directory
+        cp "${directory}${filename}" "$temp_dir/$GIT_PATH"
+        
+        # Stage, commit and push the changes
+        git add "$GIT_PATH/$filename"
+        git commit -m "Update $filename via languagepack-monitor"
+        git push origin "HEAD:$git_branch"
+        
+        if [ $? -eq 0 ]; then
+            echo "[$(get_utc_timestamp)] Successfully pushed changes to repository"
+        else
+            echo "[$(get_utc_timestamp)] Failed to push changes to repository"
+        fi
+    else
+        echo "[$(get_utc_timestamp)] Failed to check out file from repository"
+    fi
+    
+    # Clean up
+    rm -rf "$temp_dir"
+    echo "[$(get_utc_timestamp)] Cleaned up temporary directory"
+}
+
+# invalidate_cloudfront_cache: Invalidates the CloudFront cache for a specific file
+# Parameters:
+#   $1 - filename: The name of the file whose cache needs to be invalidated
+# Description:
+#   Uses AWS CLI to create a CloudFront invalidation for the specified file path
+#   Requires CLOUDFRONT_DISTRIBUTION_ID and CLOUDFRONT_PATH environment variables to be set
+invalidate_cloudfront_cache() {
+    local filename=$1
+    aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths "${CLOUDFRONT_PATH}${filename}"
+    if [ $? -eq 0 ]; then
+        echo "[$(get_utc_timestamp)] Successfully invalidated CloudFront cache for ${filename}"
+    else
+        echo "[$(get_utc_timestamp)] Failed to invalidate CloudFront cache for ${filename}"
+    fi
+}
+
+############################ MAIN FLOW #############################################
+# Define PID file path
+PID_FILE="${DSPACEDIR}/languagepack-monitor.pid"
+
+# Check if PID file exists
+if [ -f "$PID_FILE" ]; then
+    echo "[$(get_utc_timestamp)] Found PID file ${PID_FILE}, another instance of the script is already running. Exiting."
+    exit 1
+fi
+
+# Create PID file
+echo $$ > "$PID_FILE"
+
+# Ensure PID file is removed on script exit
+cleanup() {
+    rm -f "$PID_FILE"
+    echo "[$(get_utc_timestamp)] Removed PID file"
+    exit
+}
+
+# Set up trap to call cleanup function on script exit or termination
+trap cleanup EXIT SIGTERM SIGINT SIGHUP
+
+# Make sure the directory exists
+if [ ! -d "$WATCH_DIR" ]; then
+    echo "[$(get_utc_timestamp)] Directory $WATCH_DIR does not exist!"
+    exit 1
+fi
+
+# Install inotify-tools if not already installed
+if ! command -v inotifywait &> /dev/null; then
+    echo "[$(get_utc_timestamp)] Installing inotify-tools..."
+    sudo apt-get update && sudo apt-get install -y inotify-tools
+fi
+
+echo "[$(get_utc_timestamp)] Starting to monitor $WATCH_DIR for changes..."
+
+# Monitor the directory for create, modify, and close_write events
+inotifywait -m "$WATCH_DIR" -e create -e modify -e close_write |
+while read -r directory events filename; do
+    # Check if the event is close_write (file content has been written/flushed to disk)
+    if [[ "$events" == *"CLOSE_WRITE"* ]]; then
+        echo "[$(get_utc_timestamp)] File $filename has been modified and closed"
+        
+        # Check if the file has .json5 extension
+        if [[ "$filename" == *.json5 ]]; then
+            echo "[$(get_utc_timestamp)] $filename needs to be pushed to the git repository"
+            
+            # Call the function with parameters
+            update_git_repo "$directory" "$filename" "$GIT_REPO" "$GIT_BRANCH" "$TEMP_BASE_DIR"
+        else
+            if [[ "$filename" == *.json ]]; then
+                echo "[$(get_utc_timestamp)] File $filename is the generated JSON file, moving to processed directory and invalidating CloudFront cache"
+                # move the file to the processed directory
+                move_to_processed "$directory" "$filename"
+                invalidate_cloudfront_cache "$filename"
+            else
+                echo "[$(get_utc_timestamp)] Ignoring unknown file $filename"
+            fi
+        fi
+    fi
+done
