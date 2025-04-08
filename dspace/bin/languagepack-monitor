@@ -63,6 +63,14 @@ move_to_processed() {
 
     if [ $? -eq 0 ]; then
         echo "[$(get_utc_timestamp)] Successfully moved $file to processed directory"
+        gzip -f -k "${PROCESSED_DIR}/${file}"
+        if [ $? -eq 0 ]; then
+            echo "[$(get_utc_timestamp)] Successfully created $file.gz in the processed directory"
+        fi
+        brotli -f -o "${PROCESSED_DIR}/${file}.br" "${PROCESSED_DIR}/${file}"
+        if [ $? -eq 0 ]; then
+            echo "[$(get_utc_timestamp)] Successfully created $file.br in the processed directory"
+        fi
         return 0
     else
         echo "[$(get_utc_timestamp)] Failed to move $file to processed directory"
@@ -174,10 +182,13 @@ if [ ! -d "$WATCH_DIR" ]; then
 fi
 
 # Install inotify-tools if not already installed
-if ! command -v inotifywait &> /dev/null; then
-    echo "[$(get_utc_timestamp)] Installing inotify-tools..."
-    sudo apt-get update && sudo apt-get install -y inotify-tools
-fi
+#if ! command -v inotifywait &> /dev/null; then
+#    echo "[$(get_utc_timestamp)] Installing inotify-tools..."
+#    sudo apt-get update && sudo apt-get install -y inotify-tools
+#fi
+
+# install brotli
+# sudo apt-get install brotli
 
 echo "[$(get_utc_timestamp)] Starting to monitor $WATCH_DIR for changes..."
 
