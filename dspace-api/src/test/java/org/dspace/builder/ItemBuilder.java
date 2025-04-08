@@ -926,6 +926,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "description", null, description);
     }
 
+    public ItemBuilder withDescriptionNotes(String notes) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "description", "notes", notes);
+    }
+
     public ItemBuilder withUriIdentifier(String uri) {
         return addMetadataValue(item, "dc", "identifier", "uri", uri);
     }
