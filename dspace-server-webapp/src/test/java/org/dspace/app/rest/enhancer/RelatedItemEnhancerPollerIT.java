@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
@@ -336,6 +337,91 @@ public class RelatedItemEnhancerPollerIT extends AbstractIntegrationTestWithData
                     withNoPlace("cris.virtualsource.orcid", person2Id),
                     withNoPlace("cris.virtualsource.orcid", person3Id)));
 
+    }
+
+    @Test
+    public void testConsumingWillBeReferencedAndWillBeGeneratedOnUnrelatedUnits() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        String ouEPFLAcro = "EPFL";
+        Item ouEPFL = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle(ouEPFLAcro)
+                .withMetadata("oairecerif", "acronym", null, ouEPFLAcro)
+                .withMetadata("epfl", "unit", "code", "111")
+                .build();
+
+        String ouCRPPAcro = "CRPP";
+        Item ouCRPP = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle(ouCRPPAcro)
+                .withMetadata("oairecerif", "acronym", null, ouCRPPAcro)
+                .withMetadata("epfl", "unit", "code", "222")
+                .withParentOrganization("UHD", "will be referenced::ACRONYM::UHD")
+                .withMetadata("epfl", "orgUnit", "active", "false")
+                .build();
+
+        String ouSPCAcro = "SPC";
+        Item ouSPC = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle(ouSPCAcro)
+                .withMetadata("oairecerif", "acronym", null, ouSPCAcro)
+                .withMetadata("epfl", "unit", "code", "333")
+                .withParentOrganization(ouEPFLAcro, ouEPFL.getID().toString())
+                .build();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+                .withTitle("Test publication")
+                .withEntityType("Publication")
+                .withSponsorship(ouCRPPAcro, ouCRPP.getID().toString())
+                .withSponsorship(ouSPCAcro, ouSPC.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+
+        List<String> parentOrganizationsVirtualSources =
+                itemService.getMetadataByMetadataString(publication, "cris.virtualsource.parent-organization")
+                .stream()
+                .map(MetadataValue::getValue)
+                .collect(Collectors.toList());
+
+        assertThat(parentOrganizationsVirtualSources, containsInAnyOrder(
+                ouSPC.getID().toString(),
+                ouSPC.getID().toString(),
+                ouCRPP.getID().toString()));
+
+        String lastModified = itemService.getMetadataFirstValue(publication, "dc", "date", "modified", "*");
+
+        context.turnOffAuthorisationSystem();
+        itemService.setMetadataSingleValue(context, ouSPC, "dc", "title", null, null, "modified orgunit title");
+        itemService.update(context, ouSPC);
+
+        context.commit();
+
+        // setting the real enhancer service
+        poller.setItemEnhancerService(itemEnhancerService);
+
+        // launching the enhancement to create virtual metadata
+        poller.pollItemToUpdateAndProcess();
+
+        // restoring the mock for following tests
+        poller.setItemEnhancerService(spyItemEnhancerService);
+
+        publication = context.reloadEntity(publication);
+        context.restoreAuthSystemState();
+
+        parentOrganizationsVirtualSources =
+                itemService.getMetadataByMetadataString(publication, "cris.virtualsource.parent-organization")
+                .stream()
+                .map(MetadataValue::getValue)
+                .collect(Collectors.toList());
+
+        assertThat(parentOrganizationsVirtualSources, containsInAnyOrder(
+                ouSPC.getID().toString(),
+                ouSPC.getID().toString(),
+                ouCRPP.getID().toString()));
+
+        assertThat(itemService.getMetadataFirstValue(publication, "dc", "date", "modified", "*"), is(lastModified));
     }
 
     @Test
