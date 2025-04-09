@@ -1720,7 +1720,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2022,7 +2022,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2475,7 +2475,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2524,7 +2524,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>contributor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2764,7 +2764,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3092,7 +3092,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3130,7 +3130,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>advisor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3455,7 +3455,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3752,7 +3752,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3999,7 +3999,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4180,7 +4180,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4376,7 +4376,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4556,7 +4556,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4799,7 +4799,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>scientificeditor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -5649,7 +5649,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
