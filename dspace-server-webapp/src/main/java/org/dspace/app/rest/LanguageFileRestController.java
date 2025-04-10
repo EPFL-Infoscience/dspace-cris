@@ -81,6 +81,7 @@ public class LanguageFileRestController {
 
     private void convertToJson(MultipartFile file, File languageFile) throws IOException {
         JsonReader jsonReader = new JsonReader(new InputStreamReader(file.getInputStream()));
+        jsonReader.setLenient(true);
         Gson gson = new Gson();
         String json = gson.toJson(gson.<Object>fromJson(jsonReader, Object.class));
         try (FileWriter fw = new FileWriter(languageFile)) {
