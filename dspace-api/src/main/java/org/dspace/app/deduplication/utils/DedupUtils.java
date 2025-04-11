@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -186,7 +188,7 @@ public class DedupUtils implements IDedupUtils {
 
         findDuplicateBySignature.addFilterQuery(filter);
 
-        findDuplicateBySignature.setFields("dedup.ids", "dedup.note", "dedup.flag");
+        findDuplicateBySignature.setFields("dedup.ids", "dedup.id", "dedup.note", "dedup.flag");
         findDuplicateBySignature.setRows(Integer.MAX_VALUE);
 
         if (configurationService.getBooleanProperty("deduplication.tool.duplicatechecker.ignorewithdrawn")) {
@@ -228,6 +230,22 @@ public class DedupUtils implements IDedupUtils {
                             info.setDecision(DuplicateDecisionType.WORKFLOW, DuplicateDecisionValue.VERIFY);
                         } else if (SolrDedupServiceImpl.DeduplicationFlag.REJECTWF.getDescription().equals(flag)) {
                             info.setDecision(DuplicateDecisionType.WORKFLOW, DuplicateDecisionValue.REJECT);
+                        } else if (DeduplicationFlag.MATCH.getDescription().equals(flag)) {
+                            // FIXME: temporary solution to find previous decisions taken by other actors
+                            SolrQuery decisionsQuery = new SolrQuery();
+                            decisionsQuery.setQuery("dedup.id:" + solrDocument.getFieldValue("dedup.id"));
+                            decisionsQuery.setFields("dedup.note", "dedup.flag");
+                            decisionsQuery.setFilterQueries(Stream.of(DeduplicationFlag.VERIFYWS,
+                                                                      DeduplicationFlag.REJECTWS,
+                                                                      DeduplicationFlag.VERIFYWF,
+                                                                      DeduplicationFlag.REJECTWF)
+                                                                .map(DeduplicationFlag::getDescription)
+                                                                .map(v -> "dedup.flag: " + v)
+                                                                .collect(Collectors.joining(" OR ")));
+                            QueryResponse search = dedupService.search(decisionsQuery);
+                            search.getResults().forEach(doc -> {
+                                addDecisionsToInfo(info, doc);
+                            });
                         }
                         dupsInfo.add(info);
                         break;
@@ -238,6 +256,24 @@ public class DedupUtils implements IDedupUtils {
 
         return dupsInfo;
 
+    }
+
+    private static void addDecisionsToInfo(DuplicateItemInfo info, SolrDocument doc) {
+        String f = (String) doc.getFieldValue("dedup.flag");
+        if (DeduplicationFlag.VERIFYWS.getDescription().equals(f)) {
+            info.setNote(DuplicateDecisionType.WORKSPACE,
+                         (String) doc.getFieldValue("dedup.note"));
+            info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.VERIFY);
+        } else if (DeduplicationFlag.REJECTWS.getDescription().equals(f)) {
+            info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.REJECT);
+        } else if (DeduplicationFlag.VERIFYWF.getDescription().equals(f)) {
+            info.setNote(DuplicateDecisionType.WORKFLOW,
+                         (String) doc.getFieldValue("dedup.note"));
+            info.setDecision(DuplicateDecisionType.WORKFLOW, DuplicateDecisionValue.VERIFY);
+        } else if (DeduplicationFlag.REJECTWF.getDescription().equals(f)) {
+            info.setDecision(DuplicateDecisionType.WORKFLOW,
+                             DuplicateDecisionValue.REJECT);
+        }
     }
 
     private boolean hasStoredDecision(UUID firstItemID, UUID secondItemID, DuplicateDecisionType decisionType)
