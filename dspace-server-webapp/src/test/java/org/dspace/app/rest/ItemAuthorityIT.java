@@ -144,24 +144,24 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                                     + orgUnit_1.getID(),
                                     "oairecerif_author_orgunit", "OrgUnit_1::"
                                         + orgUnit_1.getID(),
-                                    "data-person_author_orcid", "",
-                                    "person_author_orcid", "")),
+                                    "data-epfl_author_orcid", "",
+                                    "epfl_author_orcid", "")),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_2.getID().toString(),
                                 "Author 2", "Author 2", "vocabularyEntry",
                                 Map.of("data-oairecerif_author_orgunit", "OrgUnit_1::"
                                     + orgUnit_1.getID(),
                                     "oairecerif_author_orgunit", "OrgUnit_1::"
                                         + orgUnit_1.getID(),
-                                    "data-person_author_orcid", "",
-                                    "person_author_orcid", "")),
+                                    "data-epfl_author_orcid", "",
+                                    "epfl_author_orcid", "")),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_3.getID().toString(),
                                 "Author 3", "Author 3", "vocabularyEntry",
                                 Map.of("data-oairecerif_author_orgunit", "OrgUnit_2::"
                                     + orgUnit_2.getID(),
                                     "oairecerif_author_orgunit", "OrgUnit_2::"
                                         + orgUnit_2.getID(),
-                                    "data-person_author_orcid", "",
-                                    "person_author_orcid", ""))
+                                    "data-epfl_author_orcid", "",
+                                    "epfl_author_orcid", ""))
                         )))
                         .andExpect(jsonPath("$.page.totalElements", Matchers.is(3)));
     }
@@ -346,8 +346,8 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
                                 "Author 1", "Author 1", "vocabularyEntry",
                                 Map.of("data-oairecerif_author_orgunit", "",
                                         "oairecerif_author_orgunit", "",
-                                        "data-person_author_orcid", "",
-                                        "person_author_orcid", ""))
+                                        "data-epfl_author_orcid", "",
+                                        "epfl_author_orcid", ""))
                        )))
                        .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
     }

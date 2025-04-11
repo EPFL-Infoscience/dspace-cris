@@ -1720,19 +1720,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2034,19 +2022,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2287,18 +2263,6 @@
           <hint>The institution as stated on the publication</hint>
         </field>
       </row>
-      <row>
-        <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
     </form>
     <form name="other_details-dc-contributor">
       <row>
@@ -2511,19 +2475,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2572,19 +2524,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>contributor</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>contributor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -2642,7 +2582,6 @@
           <repeatable>true</repeatable>
           <required />
           <hint>Add any identifier (e.g., DOI), if available</hint>
-          <language value-pairs-name="supported_languages">true</language>
         </field>
       </row>
       <row>
@@ -2825,19 +2764,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3165,19 +3092,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3215,19 +3130,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>advisor</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>advisor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3552,19 +3455,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -3861,19 +3752,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4120,19 +3999,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4313,19 +4180,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4521,19 +4376,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4713,19 +4556,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -4968,19 +4799,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>scientificeditor</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>scientificeditor</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>
@@ -5830,19 +5649,7 @@
       </row>
       <row>
         <field>
-          <dc-schema>oairecerif</dc-schema>
-          <dc-element>author</dc-element>
-          <dc-qualifier>orgunit</dc-qualifier>
-          <label>Unit or Lab</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The unit or laboratory as stated on the publication</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>person</dc-schema>
+          <dc-schema>epfl</dc-schema>
           <dc-element>author</dc-element>
           <dc-qualifier>orcid</dc-qualifier>
           <label>ORCID</label>

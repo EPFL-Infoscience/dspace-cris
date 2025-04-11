@@ -27,34 +27,6 @@
 
     <dc-type>
         <schema>oairecerif</schema>
-        <element>scientificeditor</element>
-        <qualifier>orgunit</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>oairecerif</schema>
-        <element>author</element>
-        <qualifier>orgunit</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>oairecerif</schema>
-        <element>contributor</element>
-        <qualifier>orgunit</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>oairecerif</schema>
-        <element>advisor</element>
-        <qualifier>orgunit</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-
-    <dc-type>
-        <schema>oairecerif</schema>
         <element>identifier</element>
         <qualifier>url</qualifier>
         <scope_note></scope_note>

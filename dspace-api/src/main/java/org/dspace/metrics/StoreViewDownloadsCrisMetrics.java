@@ -216,7 +216,7 @@ public class StoreViewDownloadsCrisMetrics extends
                 }
             }
             count++;
-            if (count == 20) {
+            if (count % 20 == 0) {
                 context.commit();
                 context.clear();
             }
