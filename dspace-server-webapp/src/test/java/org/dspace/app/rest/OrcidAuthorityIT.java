@@ -818,16 +818,16 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_1.getID().toString(),
                                 "Author 1", "Author 1", "vocabularyEntry",
                                 Map.of("oairecerif_author_orgunit", "OrgUnit_1::" + orgUnit_1.getID(),
-                                        "data-person_author_orcid", "",
+                                        "data-epfl_author_orcid", "",
                                         "data-oairecerif_author_orgunit", "OrgUnit_1::" + orgUnit_1.getID(),
-                                        "person_author_orcid", ""),
+                                        "epfl_author_orcid", ""),
                                 ItemAuthority.DEFAULT),
                             ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations(author_2.getID().toString(),
                                 "Author 2", "Author 2", "vocabularyEntry",
                                 Map.of("oairecerif_author_orgunit", "OrgUnit_2::" + orgUnit_2.getID(),
-                                        "data-person_author_orcid", "",
+                                        "data-epfl_author_orcid", "",
                                         "data-oairecerif_author_orgunit", "OrgUnit_2::" + orgUnit_2.getID(),
-                                        "person_author_orcid", ""),
+                                        "epfl_author_orcid", ""),
                                 ItemAuthority.DEFAULT),
                             // source should be orcid as configured
                             orcidEntry("From Orcid 1 Author", REFERENCE, "0000-1111-2222-3333", getSource()),
@@ -896,7 +896,7 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$._embedded.entries[0].authority", is(author_1.getID().toString())))
                         .andExpect(jsonPath("$._embedded.entries[0].value", is("Walter White")))
-                        .andExpect(jsonPath("$._embedded.entries[0].otherInformation.person_author_orcid",
+                        .andExpect(jsonPath("$._embedded.entries[0].otherInformation.epfl_author_orcid",
                                 is("0000-1111-2222-3333")))
                         .andExpect(jsonPath("$._embedded.entries[0].otherInformation.oairecerif_author_orgunit",
                                 is("OrgUnit_1::" + orgUnit_1.getID())))
@@ -967,8 +967,8 @@ public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
             title, "vocabularyEntry", Map.of(
                 "data-oairecerif_author_orgunit", otherInfoValue,
                 "oairecerif_author_orgunit", otherInfoValue,
-                "data-person_author_orcid", "",
-                "person_author_orcid", ""));
+                "data-epfl_author_orcid", "",
+                "epfl_author_orcid", ""));
     }
 
     private Matcher<? super Object> orcidEntry(String title, String authorityPrefix, String orcid) {
