@@ -576,7 +576,9 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
     private void updateItem(Context context, Item item) {
         try {
             context.turnOffAuthorisationSystem();
-            indexService.indexContent(context, new IndexableItem(item), true);
+            if (item.isArchived()) {
+                indexService.indexContent(context, new IndexableItem(item), true);
+            }
             indexService.commit();
             itemService.update(context, item);
         } catch (SQLException | AuthorizeException | SearchServiceException e) {

@@ -99,7 +99,9 @@ public class FileTypeMetadataEnhancerConsumer implements Consumer {
         bitstreamAlreadyProcessed.clear();
         for (Item item : this.itemsToProcess) {
             this.handleItemConsumer(ctx, item);
-            indexService.indexContent(ctx, new IndexableItem(item), true);
+            if (item.isArchived()) {
+                indexService.indexContent(ctx, new IndexableItem(item), true);
+            }
             indexService.commit();
         }
         itemsToProcess.clear();
