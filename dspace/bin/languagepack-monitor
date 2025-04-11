@@ -182,7 +182,7 @@ start() {
     # Git repository configuration
     GIT_REPO=`$BINDIR/dspace dsprop --property languagepack.git.repo`
     GIT_BRANCH=`$BINDIR/dspace dsprop --property languagepack.git.branch`
-    GIT_PATH='assets/i18n/'
+    GIT_PATH='src/assets/i18n/'
 
     # CloudFront configuration
     CLOUDFRONT_DISTRIBUTION_ID=`$BINDIR/dspace dsprop --property languagepack.cloudfront-distribution-id`
