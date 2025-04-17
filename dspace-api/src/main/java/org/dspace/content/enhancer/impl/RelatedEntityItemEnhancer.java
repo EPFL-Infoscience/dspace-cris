@@ -155,7 +155,11 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
                 && StringUtils.equals(metadataValue.getMetadataField().getElement(), metadataValueDTO.getElement())
                 && StringUtils.equals(metadataValue.getMetadataField().getQualifier(), metadataValueDTO.getQualifier())
                 && StringUtils.equals(metadataValue.getValue(), metadataValueDTO.getValue())
-                && StringUtils.equals(metadataValue.getAuthority(), metadataValueDTO.getAuthority());
+                && (StringUtils.equals(metadataValue.getAuthority(), metadataValueDTO.getAuthority()) ||
+                        (metadataValue.getAuthority() == null
+                                && (metadataValueDTO.getAuthority().startsWith(AuthorityValueService.GENERATE)
+                                        || metadataValueDTO.getAuthority().startsWith(AuthorityValueService.REFERENCE)))
+                );
     }
 
     private Map<String, List<MetadataValueDTO>> getToBeVirtualMetadata(Context context, Item item) {

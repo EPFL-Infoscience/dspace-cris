@@ -17,7 +17,7 @@
    <parent>
       <groupId>org.dspace</groupId>
       <artifactId>modules</artifactId>
-      <version>cris-2023.02.03</version>
+      <version>cris-2023.02.06</version>
       <relativePath>..</relativePath>
    </parent>
 
@@ -321,6 +321,60 @@
             </dependency>
          </dependencies>
       </profile>
+
+      <!-- Builds LoginMIUR addon for DSpace -->
+        <profile>
+            <id>addon-loginmiur</id>
+             <activation>
+                <property>
+                   <name>loginmiur.on</name>
+                </property>
+             </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>it.4science.dspace</groupId>
+                    <artifactId>addon-loginmiur-api</artifactId>
+                    <version>${addon-loginmiur.version}</version>
+                    <type>jar</type>
+                </dependency>
+            </dependencies>
+        </profile>
+
+       <profile>
+           <id>addon-networklab</id>
+           <activation>
+               <property>
+                   <name>nl.on</name>
+               </property>
+           </activation>
+           <dependencies>
+               <dependency>
+                   <groupId>it.4science.dspace</groupId>
+                   <artifactId>addon-networklab</artifactId>
+                   <version>${addon-networklab.version}</version>
+                   <type>jar</type>
+               </dependency>
+           </dependencies>
+       </profile>
+
+       <!-- Builds Import plus addon for DSpace -->
+        <profile>
+            <id>addon-importplus</id>
+             <activation>
+                <property>
+                   <name>importplus.on</name>
+                </property>
+             </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>it.4science.dspace</groupId>
+                    <artifactId>addon-importplus</artifactId>
+                    <version>${addon-importplus.version}</version>
+                    <type>jar</type>
+                </dependency>
+            </dependencies>
+        </profile>
+
    </profiles>
 
    <!--
@@ -396,7 +450,7 @@
       </dependency>
       <dependency>
          <groupId>org.hamcrest</groupId>
-         <artifactId>hamcrest-core</artifactId>
+         <artifactId>hamcrest</artifactId>
          <scope>test</scope>
       </dependency>
       <dependency>

@@ -424,6 +424,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/research-outputs-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
+		<property name="findRelatedItems" value="true"/>
 		<property name="publiclyReadable" value="true"/>
 		<property name="linesPostProcessor" ref="jsonPostProcessor" />
 	</bean>
@@ -484,7 +485,7 @@
 
     <bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkPersonCv">
         <property name="templateFileName" value="crosswalks/template/person-cv-template.xsl"/>
-        <property name="fileName" value="person.pdf"/>
+        <property name="fileName" value="person-cv.pdf"/>
         <property name="mimeType" value="application/pdf"/>
         <property name="entityType" value="Person"/>
         <property name="referCrosswalk" ref="referCrosswalkPersonCvXml"/>
@@ -777,10 +778,18 @@
 				<entry key="sciperId" value-ref="virtualFieldToEnhancedMetadata"></entry>
 				<entry key="orcid" value-ref="virtualFieldToEnhancedMetadata"></entry>
 				<entry key="uniqueTitle" value-ref="virtualFieldUniqueTitle"></entry>
+				<entry key="uniqueAcronym" value-ref="virtualFieldUniqueAcronym"></entry>
+				<entry key="uniqueUnitCode" value-ref="virtualFieldUniqueUnitCode"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
 
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldUniqueMetadata" id="virtualFieldUniqueAcronym">
+        <property name="metadatum" value="oairecerif.acronym" />
+    </bean>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldUniqueMetadata" id="virtualFieldUniqueUnitCode">
+        <property name="metadatum" value="epfl.unit.code" />
+    </bean>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldUniqueTitle"
         id="virtualFieldUniqueTitle" />
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldToEnhancedMetadata"
@@ -956,7 +965,7 @@
 	<bean name="mapConverterScopusToCoarPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-scopusToCoarPublicationTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value=""/>
+		<property name="defaultValue" value="other"/>
 	</bean>
 
     <bean name="mapConverterDataciteToPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">

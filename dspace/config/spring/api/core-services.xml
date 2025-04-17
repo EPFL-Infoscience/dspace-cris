@@ -34,6 +34,9 @@
     <bean class="org.dspace.authority.AuthorityValueServiceImpl"/>
     <bean class="org.dspace.authority.AuthorityServiceImpl"/>
 
+    <bean class="org.dspace.browse.ItemCounter"/>
+    <bean id="itemCountDAO" class="org.dspace.browse.ItemCountDAOSolr" scope="prototype"/>
+
     <bean class="org.dspace.checker.ChecksumHistoryServiceImpl"/>
     <bean class="org.dspace.checker.ChecksumResultServiceImpl"/>
     <bean class="org.dspace.checker.MostRecentChecksumServiceImpl"/>
@@ -106,7 +109,6 @@
     <bean class="org.dspace.access.status.AccessStatusServiceImpl" init-method="init"/>
 
     <bean class="org.dspace.deduplication.DeduplicationServiceImpl"/>
-    <bean class="org.dspace.deduplication.service.impl.DeduplicationSetMergeServiceImpl"/>
 
     <bean class="org.dspace.eperson.AccountServiceImpl"/>
     <bean class="org.dspace.eperson.EPersonServiceImpl"/>
@@ -114,9 +116,9 @@
     <bean class="org.dspace.eperson.RegistrationDataServiceImpl"/>
     <bean class="org.dspace.eperson.RegistrationDataMetadataServiceImpl"/>
     <bean class="org.dspace.eperson.SubscribeServiceImpl"/>
-    
+
     <bean class="org.dspace.eperson.SubscribeParameterServiceImpl"/>
-    
+
     <bean class="org.dspace.eperson.CaptchaServiceImpl"/>
     <bean class="org.dspace.event.EventServiceImpl"/>
 
@@ -189,6 +191,7 @@
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolValidatorImpl"/>
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolParserImpl"/>
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolConverterImpl"/>
+
 
     <bean id="org.dspace.app.customurl.CustomUrlService" class="org.dspace.app.customurl.service.CustomUrlServiceImpl"/>
 

@@ -68,7 +68,14 @@ public abstract class IndexFactoryImpl<T extends IndexableObject, S> implements 
 
         //Do any additional indexing, depends on the plugins
         for (SolrServiceIndexPlugin solrServiceIndexPlugin : ListUtils.emptyIfNull(solrServiceIndexPlugins)) {
-            solrServiceIndexPlugin.additionalIndex(context, indexableObject, doc);
+            try {
+                solrServiceIndexPlugin.additionalIndex(context, indexableObject, doc);
+            } catch (Exception e) {
+                log.error("An error occurred while indexing additional fields. " +
+                        "Could not fully index item with UUID: {}. Plugin: {}",
+                    indexableObject.getUniqueIndexID(), solrServiceIndexPlugin.getClass().getSimpleName());
+
+            }
         }
 
         return doc;
@@ -86,7 +93,7 @@ public abstract class IndexFactoryImpl<T extends IndexableObject, S> implements 
             writeDocument(solrInputDocument, null);
         } catch (Exception e) {
             log.error("Error occurred while writing SOLR document for {} object {}",
-                      indexableObject.getType(), indexableObject.getID(), e);
+                indexableObject.getType(), indexableObject.getID(), e);
         }
     }
 
@@ -122,6 +129,7 @@ public abstract class IndexFactoryImpl<T extends IndexableObject, S> implements 
             }
             // Add document to index
             solr.add(doc);
+
         }
     }
 

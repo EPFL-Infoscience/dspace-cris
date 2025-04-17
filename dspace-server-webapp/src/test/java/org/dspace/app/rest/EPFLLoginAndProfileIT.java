@@ -137,6 +137,7 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
 
         Item profile = researcherProfile.getItem();
         String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().minusDays(1L));
+
         assertThat(profile.getMetadata(), hasItems(
             with("dc.title", "Al Hassanieh, Haitham"),
             with("person.givenName", "Haitham"),
@@ -144,7 +145,7 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
             with("person.email", "haitham.alhassanieh@epfl.ch"),
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
-            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
+            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh", "https://people.epfl.ch/haitham.alhassanieh", 600),
             with("oairecerif.affiliation.role", "Associate Professor"),
             with("oairecerif.person.affiliation", "SENS", sens.getID().toString(), Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday),
@@ -234,7 +235,7 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
             with("person.birthDate", "1992-06-26"), // existing extra metadata are preserved
             with("epfl.sciper.active", "true"),
             with("epfl.sciperId", "352234"),
-            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh"),
+            with("oairecerif.identifier.url", "https://people.epfl.ch/haitham.alhassanieh", "https://people.epfl.ch/haitham.alhassanieh", 600),
             with("oairecerif.affiliation.role", "Associate Professor"),
             with("oairecerif.person.affiliation", "SENS", sens.getID().toString(), Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday),

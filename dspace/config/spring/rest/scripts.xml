@@ -115,13 +115,6 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.itemexport.ItemExport"/>
     </bean>
 
-    <bean id="deduplication-merge-items"
-          class="org.dspace.app.deduplication.scripts.DedupMergeScriptConfiguration" primary="true">
-        <property name="description" value="merge items into target item" />
-        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnable"/>
-    </bean>
-
-
 <!--    <bean id="legacy-data-to-solr" class="org.dspace.migration.script.LegacyDataToSolrScriptConfiguration">-->
 <!--        <property name="description" value="Script to import legacy data to a solr core"/>-->
 <!--        <property name="dspaceRunnableClass" value="org.dspace.migration.script.LegacyDataToSolrScript"/>-->
@@ -141,4 +134,10 @@
 		<property name="description" value="Import the OrgUnits present in the given XML file" />
 		<property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitXMLImportScript" />
 	</bean>
+
+    <bean id="filter-media" class="org.dspace.app.mediafilter.MediaFilterScriptConfiguration">
+        <property name="description" value="Perform the media filtering to extract full text from documents and to create thumbnails"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
+    </bean>
+
 </beans>

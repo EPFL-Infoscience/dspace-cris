@@ -168,10 +168,9 @@ public class FileTypeMetadataEnhancerConsumerIT extends AbstractIntegrationTestW
                 .build();
 
         ResourcePolicyBuilder
-            .createResourcePolicy(context)
+            .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream)
             .withAction(Constants.READ)
-            .withUser(admin)
             .build();
 
         context.restoreAuthSystemState();

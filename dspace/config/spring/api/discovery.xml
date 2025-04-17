@@ -23,6 +23,9 @@
     default-autowire-candidates="*Service,*DAO,javax.sql.DataSource,*Plugin,sharedWorkspaceAuthorMetadataFields" default-lazy-init="true">
 
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
+    
+    <!-- Uncomment the following entry to enable the indexing for LoginMIUR -->
+    <!--<bean id="rPSourceIDSolrIndexPlugin" class="org.dspace.discovery.RPSourceIDSolrIndexer"/>-->
 
     <bean id="solrServiceResourceIndexPlugin" class="org.dspace.discovery.SolrServiceResourceRestrictionPlugin" scope="prototype"/>
     <bean id="solrServiceWorkspaceWorkflowPlugin" class="org.dspace.discovery.SolrServiceWorkspaceWorkflowRestrictionPlugin" scope="prototype"/>
@@ -942,6 +945,7 @@
                 <ref bean="searchFilterObjectNamedType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1017,6 +1021,7 @@
                 <ref bean="searchFilterObjectNamedType" />
                 <ref bean="searchFilterType" />
                 <ref bean="searchFilterIssued" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -1911,7 +1916,7 @@
         <property name="defaultFilterQueries">
             <list>
                 <!--Only find related items. The placeholder {0} will be replaced with scope (UUID of item)-->
-                <value>epfl.virtualCollection_authority:{0} OR epfl.virtualCollection.query_query</value>
+                <value>epfl.virtualCollection_authority:{0} OR ( epfl.virtualCollection.query_query )</value>
                 <value>search.resourcetype:Item AND (entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent)</value>
                 <value>-withdrawn:true AND -discoverable:false AND latestVersion:true</value>
             </list>
@@ -3198,7 +3203,7 @@
         <!-- When true a "did you mean" example will be displayed, value can be true or false -->
         <property name="spellCheckEnabled" value="true"/>
     </bean>
-
+	
     <bean id="projectRelationships" class="org.dspace.discovery.configuration.DiscoveryConfiguration" scope="prototype">
         <property name="id" value="project"/>
         <property name="indexAlways" value="true"/>
@@ -3274,6 +3279,7 @@
                 <ref bean="searchFilterInvestigators"/>
                 <ref bean="searchFilterProjectOrgUnits"/>
                 <ref bean="searchFilterIdentifier"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3510,6 +3516,7 @@
             <list>
                 <ref bean="searchFilterEquipmentOwner"/>
                 <ref bean="searchFilterEquipmentOrgUnit"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3571,6 +3578,7 @@
                 <ref bean="searchFilterCreativeWorkKeywords"/>
                 <ref bean="searchFilterCreativeWorkDatePublished"/>
                 <ref bean="searchFilterIsPublicationOfJournalIssueRelation"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -3635,6 +3643,7 @@
                 <ref bean="searchFilterCreativeWorkDatePublished"/>
                 <ref bean="searchFilterIsIssueOfJournalVolumeRelation"/>
                 <ref bean="searchFilterIsJournalVolumeRelation"/>
+                <ref bean="searchFilterEntityType"/>
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -5816,36 +5825,36 @@
     </bean>
     <bean id="sortOrganizationAddressCountry"
           class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.address.addressCountry"/>
+        <property name="metadataField" value="organization.address.addressCountry"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <bean id="sortOrganizationAddressCountryDesc"
           class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.address.addressCountry"/>
+        <property name="metadataField" value="organization.address.addressCountry"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
     <bean id="sortOrganizationAddressLocality"
           class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.address.addressLocality"/>
+        <property name="metadataField" value="organization.address.addressLocality"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>
 
     <bean id="sortOrganizationAddressLocalityDesc"
           class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.address.addressLocality"/>
+        <property name="metadataField" value="organization.address.addressLocality"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
     <bean id="sortOrganizationFoundingDate" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.foundingDate"/>
+        <property name="metadataField" value="organization.foundingDate"/>
         <property name="type" value="date"/>
         <property name="defaultSortOrder" value="desc"/>
     </bean>
 
     <bean id="sortOrganizationFoundingDateAsc" class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
-        <property name="metadataField" value="organisation.foundingDate"/>
+        <property name="metadataField" value="organization.foundingDate"/>
         <property name="type" value="date"/>
         <property name="defaultSortOrder" value="asc"/>
     </bean>

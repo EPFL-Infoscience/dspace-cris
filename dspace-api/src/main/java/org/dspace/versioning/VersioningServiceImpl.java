@@ -266,11 +266,11 @@ public class VersioningServiceImpl implements VersioningService {
         boolean submitterCanCreateNewVersion =
             configurationService.getBooleanProperty("versioning.submitterCanCreateNewVersion", false);
 
-        if (submitterCanCreateNewVersion) {
-            boolean isSubmitter = context.getCurrentUser().equals(item.getSubmitter());
+        if (submitterCanCreateNewVersion && context.getCurrentUser() != null
+                && context.getCurrentUser().equals(item.getSubmitter())) {
             log.info("{} has the same submitter of context's user {}", item.getID(),
                      item.getSubmitter().getID());
-            return isSubmitter;
+            return true;
         }
 
         return createVersionAccessModes.stream()

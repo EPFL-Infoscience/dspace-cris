@@ -10,15 +10,16 @@ package org.dspace.app.rest;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,9 +81,12 @@ public class LanguageFileRestController {
     }
 
     private void convertToJson(MultipartFile file, File languageFile) throws IOException {
-        JsonReader jsonReader = new JsonReader(new InputStreamReader(file.getInputStream()));
-        Gson gson = new Gson();
-        String json = gson.toJson(gson.<Object>fromJson(jsonReader, Object.class));
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true);
+        mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+        String content = new String(file.getBytes(), StandardCharsets.UTF_8);
+        JsonNode jsonNode = mapper.readTree(content);
+        String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode);
         try (FileWriter fw = new FileWriter(languageFile)) {
             fw.write(json);
         }

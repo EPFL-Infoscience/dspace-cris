@@ -12,16 +12,19 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -153,6 +156,76 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
         assertEquals(item.getMetadata().stream().filter(metadataValue ->
                 metadataValue.getMetadataField().toString().equals("dc_language_iso"))
                 .map(MetadataValue::getValue).findFirst().get(), "en");
+    }
+
+    /**
+     * This test checks that, for metadata with sciper as authority, the link to the
+     * person profile is correctly created
+     */
+    @Test
+    public void testSciperAsAuthority() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection collectionForTest = CollectionBuilder.createCollection(context, community)
+                .withName("CollectionForTest")
+                .withEntityType("Publication")
+                .build();
+
+        Collection profiles = CollectionBuilder.createCollection(context, community)
+                .withName("Profile Collection")
+                .withEntityType("Person")
+                .build();
+
+        Item profileDupuis = ItemBuilder.createItem(context, profiles)
+                .withTitle("Dupuis, Different name from file")
+                .withMetadata("epfl", "sciperId", null, "186919")
+                .build();
+
+        Item profileDietz = ItemBuilder.createItem(context, profiles)
+                .withTitle("Dietz, TEST Dieter")
+                .withMetadata("epfl", "sciperId", null, "173997")
+                .build();
+
+        Item profileCitton = ItemBuilder.createItem(context, profiles)
+                .withTitle("Citton, Yves")
+                .withMetadata("epfl", "sciperId", null, "325534")
+                .build();
+
+        Group adminGroup = collectionService.createAdministrators(context, collectionForTest);
+        groupService.addMember(context, adminGroup, context.getCurrentUser());
+        context.restoreAuthSystemState();
+
+        String fileLocation = getFilePath("IS-Academia-file.xml");
+        String[] args = new String[]{"is-academia-xml-import", "-c",
+                collectionForTest.getID().toString(), "-f", fileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        Item item = itemService.findAllByCollection(context, collectionForTest).next();
+
+        List<MetadataValue> metadataAuthor = itemService.getMetadata(item, "dc", "contributor", "author", "*", false);
+        metadataAuthor.stream()
+            .filter(mv -> mv.getValue().startsWith("Dupuis"))
+            .forEach(mv -> {
+                assertThat(mv.getValue(), is("Dupuis, Aurélie"));
+                assertThat(mv.getAuthority(), is(profileDupuis.getID().toString()));
+            });
+
+        List<MetadataValue> metadataAdvisor = itemService.getMetadata(item, "dc", "contributor", "advisor", "*", false);
+        metadataAdvisor.stream()
+            .filter(mv -> mv.getValue().startsWith("Dietz") || mv.getValue().startsWith("Citton"))
+            .forEach(mv -> {
+                if (mv.getValue().startsWith("Dietz")) {
+                    assertThat(mv.getValue(), is("Dietz, Dieter"));
+                    assertThat(mv.getAuthority(), is(profileDietz.getID().toString()));
+                } else if (mv.getValue().startsWith("Citton")) {
+                    assertThat(mv.getValue(), is("Citton, Yves"));
+                    assertThat(mv.getAuthority(), is(profileCitton.getID().toString()));
+                }
+            });
     }
 
     private String getFilePath(String name) {

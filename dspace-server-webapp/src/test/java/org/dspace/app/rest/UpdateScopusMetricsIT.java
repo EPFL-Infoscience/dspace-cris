@@ -51,6 +51,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.utils.DSpace;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -168,6 +169,74 @@ public class UpdateScopusMetricsIT extends AbstractControllerIntegrationTest {
             assertThat("last import _dt should be set in solr",
                     searchDocument.getSearchFieldValues("cris.lastimport.scopus_dt") != null);
 
+        } finally {
+            CrisMetricsBuilder.deleteCrisMetrics(itemA);
+            scopusRestConnector.setHttpClient(originalHttpClient);
+        }
+    }
+
+    @Test
+    public void testUpdateScopusMetricsWithNullRemark() throws Exception {
+
+        Item itemA = null;
+        CloseableHttpClient originalHttpClient = scopusRestConnector.getHttpClient();
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+
+        scopusRestConnector.setHttpClient(httpClient);
+
+        BasicHttpEntity basicHttpEntity = new BasicHttpEntity();
+        basicHttpEntity.setChunked(true);
+        basicHttpEntity.setContent(null);
+
+        CloseableHttpResponse response = mock(CloseableHttpResponse.class);
+        when(response.getStatusLine())
+            .thenReturn(statusLine(new ProtocolVersion("http", 1, 1), 200, "OK"));
+        when(response.getEntity()).thenReturn(basicHttpEntity);
+
+        when(httpClient.execute(ArgumentMatchers.any())).thenReturn(response);
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity =
+            CommunityBuilder.createCommunity(context)
+                            .withName("Parent Community").build();
+
+        Collection col1 =
+            CollectionBuilder.createCollection(context, parentCommunity)
+                             .withEntityType("Publication")
+                             .withName("Collection 1").build();
+
+        itemA =
+            ItemBuilder.createItem(context, col1)
+                       .withDoiIdentifier("10.1016/j.gene.2009.04.019")
+                       .withTitle("Title item A").build();
+
+        crisMetrics =
+            CrisMetricsBuilder.createCrisMetrics(context, itemA)
+                              .withMetricType(UpdateScopusMetrics.SCOPUS_CITATION)
+                              .withMetricCount(4)
+                              .isLast(true).build();
+
+        context.restoreAuthSystemState();
+
+        try {
+            String[] args = new String[]{"update-metrics", "-s", "scopus"};
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+            int status = handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+
+            assertEquals(0, status);
+
+            CrisMetrics metrics =
+                crisMetriscService.findLastMetricByResourceIdAndMetricsTypes(
+                    context, UpdateScopusMetrics.SCOPUS_CITATION, itemA.getID()
+                );
+
+            assertEquals(UpdateScopusMetrics.SCOPUS_CITATION, metrics.getMetricType());
+
+            assertThat(metrics.getRemark(), Matchers.is(Matchers.emptyOrNullString()));
+            assertNull(metrics.getDeltaPeriod1());
+            assertNull(metrics.getDeltaPeriod2());
         } finally {
             CrisMetricsBuilder.deleteCrisMetrics(itemA);
             scopusRestConnector.setHttpClient(originalHttpClient);

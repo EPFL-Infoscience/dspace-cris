@@ -92,6 +92,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
                 "date", "issued", new DCDate(issueDate).toString());
     }
 
+    public ItemBuilder withDateAvailable(final String dateAvailable) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(),
+                "date", "available", new DCDate(dateAvailable).toString());
+    }
+
     public ItemBuilder withIdentifierOther(final String identifierOther) {
         return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "identifier", "other", identifierOther);
     }
@@ -506,6 +511,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "epfl", "writtenAt", null, publisher);
     }
 
+    public ItemBuilder withPublisher(String publisher, String authority) {
+        return addMetadataValue(item, "dc", "publisher", null, null, publisher, authority, 600);
+    }
+
     public ItemBuilder withRelationPublication(String publication) {
         return addMetadataValue(item, "dc", "relation", "publication", publication);
     }
@@ -917,6 +926,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "description", null, description);
     }
 
+    public ItemBuilder withDescriptionNotes(String notes) {
+        return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "description", "notes", notes);
+    }
+
     public ItemBuilder withUriIdentifier(String uri) {
         return addMetadataValue(item, "dc", "identifier", "uri", uri);
     }
@@ -972,6 +985,18 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     public ItemBuilder withSubmitter(EPerson eperson) {
         item.setSubmitter(eperson);
         return this;
+    }
+
+    public ItemBuilder withJournalAnce(String ance) {
+        return addMetadataValue(item, "miur", "journal", "ance", ance);
+    }
+
+    public ItemBuilder withDataCiteRights(String rights) {
+        return addMetadataValue(item, "datacite", "rights", null, rights);
+    }
+
+    public ItemBuilder withDataCiteAvailable(String available) {
+        return addMetadataValue(item, "datacite", "available", null, available);
     }
 
     @Override

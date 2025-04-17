@@ -19,6 +19,7 @@ import org.dspace.core.Context;
 import org.dspace.external.provider.impl.LiveImportDataProvider;
 import org.dspace.external.service.ExternalDataService;
 import org.dspace.kernel.ServiceManager;
+import org.dspace.scripts.DSpaceCommandLineParameter;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class CreateWorkspaceItemWithExternalSourceScriptConfiguration<T extends 
     private AuthorizeService authorizeService;
 
     @Override
-    public boolean isAllowedToExecute(Context context) {
+    public boolean isAllowedToExecute(Context context, List<DSpaceCommandLineParameter> commandLineParameters) {
         try {
             return authorizeService.isAdmin(context) || authorizeService.isCollectionAdmin(context);
         } catch (SQLException e) {

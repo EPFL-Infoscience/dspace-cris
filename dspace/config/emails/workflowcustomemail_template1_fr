@@ -8,7 +8,7 @@
  ## {5} Email of the rejector
  ## {6} Link to 'My DSpace' page
  ##
- #set($subject = 'Infoscience : Demande d'informations complémentaires')
+ #set($subject = "Infoscience : Demande d'informations complémentaires")
  Bonjour ${params[2]},
  
  Nous avons besoin d'informations complémentaires concernant la notice : ${params[0]} que vous avez soumise dans la collection ${params[1]}.

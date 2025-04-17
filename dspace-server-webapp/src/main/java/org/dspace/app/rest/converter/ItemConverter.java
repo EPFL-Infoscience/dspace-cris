@@ -113,7 +113,7 @@ public class ItemConverter
         try {
             if (context != null &&
                 (authorizeService.isAdmin(context, item) || sameSubmitter(item, context))) {
-                EPerson submitter = item.getSubmitter();
+                EPerson submitter = itemService.find(context, item.getID()).getSubmitter();
                 if (submitter != null) {
                     itemRest.setSubmitterName(submitter.getFullName());
                     itemRest.setSubmitterEmail(submitter.getEmail());

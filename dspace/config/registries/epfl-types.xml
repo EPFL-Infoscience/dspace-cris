@@ -511,4 +511,28 @@
         <qualifier>conferenceEndDate</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>author</element>
+        <qualifier>orcid</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>advisor</element>
+        <qualifier>orcid</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>scientificeditor</element>
+        <qualifier>orcid</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>contributor</element>
+        <qualifier>orcid</qualifier>
+    </dc-type>
+
 </dspace-dc-types>

@@ -3,12 +3,12 @@
   <identifier identifierType="DOI">@virtual.primary-doi.dc-identifier-doi@</identifier>
   <creators>
       @group.dc-contributor-author.start@
-	    <creator>
-	  		  <creatorName>@dc.contributor.author@</creatorName>
-	  	    @relation.dc-contributor-author.start@
-	  	    <nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org/">@person.identifier.orcid@</nameIdentifier>
-			@relation.dc-contributor-author.end@
-			@relation.oairecerif-author-affiliation.start@
+        <creator>
+              <creatorName>@dc.contributor.author@</creatorName>
+            @relation.dc-contributor-author.start@
+            <nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org/">@person.identifier.orcid@</nameIdentifier>
+            @relation.dc-contributor-author.end@
+            @relation.oairecerif-author-affiliation.start@
             <affiliation
                 affiliationIdentifier="@organization.identifier.ror@" affiliationIdentifierScheme="ROR"
             >@virtual.uniqueTitle@</affiliation>
@@ -17,7 +17,7 @@
             <affiliation>@oairecerif.author.affiliation@</affiliation>
             @if.not.authority.oairecerif-author-affiliation.end@
       </creator>
-   	  @group.dc-contributor-author.end@
+      @group.dc-contributor-author.end@
     </creators>
   <titles>
     <title>@dc.title@</title>

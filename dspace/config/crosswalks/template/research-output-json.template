@@ -1,13 +1,19 @@
 {
   "Type": "@dc.type@",
 	"Title": "@dc.title@",
-	"Isbn": "@dc.relation.isbn@",
+	"Isbn": [
+	    "@dc.identifier.isbn@",
+	    ],
 	"Doi": "@dc.identifier.doi@",
 	"DoiType": "doi",
 	"Language": "@dc.language.iso@",
 	"Year": "@dc.date.issued@",
-	"Notes": "@dc.description.notes@",
-	"Abstract": "@dc.description.abstract@",
+	"Notes": [
+	    "@dc.description.notes@",
+	    ],
+	"Abstract": [
+	    "@dc.description.abstract@",
+	    ],
 	"Keywords":[
 	    "@dc.subject@",
 	    ],
@@ -35,8 +41,16 @@
     @if.metadata.oaire-citation-startPage.end@
 	  "Num": "@oaire.citation.issue@",
 	  "Vol": "@oaire.citation.volume@",
-	  "Issn": "@dc.relation.issn@",
-	  "Isbn": "@dc.relation.isbn@",
+	  @if.metadata.dc-relation-issn.start@
+	  "Issn": [
+	      "@dc.relation.issn@",
+	      ],
+	  @if.metadata.dc-relation-issn.end@
+	  @if.metadata.dc-relation-isbn.start@
+	  "Isbn": [
+	      "@dc.relation.isbn@",
+	      ],
+	  @if.metadata.dc-relation-isbn.end@
 	},
 	"Persons": [
 	@group.dc-contributor-author.start@
@@ -68,20 +82,18 @@
   ],
 	"Meeting": {
 	  "Name": "@dc.relation.conference@",
-	  @relation.dc-relation-conference.start@
-            "Place": "@oairecerif.event.place@",
-            "Date": "@oairecerif.event.startDate@",
-      @relation.dc-relation-conference.end@
 	  "Place": "@oaire.citation.conferencePlace@",
 	  "Date": "@oaire.citation.conferenceDate@",
 	},
 	"Units": [
 	@relation.dc-description-sponsorship.start@
-	        "uni-acronym": "@oairecerif.acronym@",
+	    {
+	        "unit": "@virtual.uniqueTitle@",
+	        "unit-acronym": "@virtual.uniqueAcronym@",
 	        "unit-code": "@epfl.unit.code@",
-	        "unit-authid": "@virtual.id@",
+	        "unit-authid": "@virtual.id@"
+	    },
 	@relation.dc-description-sponsorship.end@
-	"unit": "@dc.description.sponsorship@",
 	],
 	"Resources": [
 	  @group.bundle-original.start@

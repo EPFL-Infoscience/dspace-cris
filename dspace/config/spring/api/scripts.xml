@@ -145,9 +145,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.content.enhancer.script.ItemEnhancerScript"/>
     </bean>
 
-    <bean id="filter-media" class="org.dspace.app.mediafilter.MediaFilterScriptConfiguration">
+    <bean id="filter-media" class="org.dspace.app.mediafilter.MediaFilterCliScriptConfiguration">
         <property name="description" value="Perform the media filtering to extract full text from documents and to create thumbnails"/>
-        <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterCliScript"/>
     </bean>
 
     <bean id="solr-database-resync" class="org.dspace.app.solrdatabaseresync.SolrDatabaseResyncCliScriptConfiguration">
@@ -170,22 +170,15 @@
         <property name="dspaceRunnableClass" value="org.dspace.subscriptions.SubscriptionEmailNotificationCli"/>
     </bean>
 
-
-    <bean id="deduplication-merge-items" class="org.dspace.app.deduplication.scripts.DedupMergeCliScriptConfiguration">
-        <property name="description" value="merge items into target item" />
-        <property name="dspaceRunnableClass" value="org.dspace.app.deduplication.scripts.DedupMergeRunnableCli"/>
-    </bean>
-
-
     <bean id="orgunit-tsv-import" class="org.dspace.epfl.script.OrgUnitTSVImportScriptConfiguration" primary="true">
         <property name="description" value="Import the OrgUnits present in the given TSV file"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.OrgUnitTSVImportScript"/>
     </bean>
 
-    <bean id="items-import-from-s3" class="org.dspace.epfl.script.ItemsImportFromS3ScriptConfiguration" primary="true">
+    <!-- <bean id="items-import-from-s3" class="org.dspace.epfl.script.ItemsImportFromS3ScriptConfiguration" primary="true">
         <property name="description" value="Import items from S3"/>
         <property name="dspaceRunnableClass" value="org.dspace.epfl.script.ItemsImportFromS3Script"/>
-    </bean>
+    </bean> -->
 
     <bean id="epfl-user-synchronization" class="org.dspace.epfl.script.sync.EpflUserSynchronizationScriptConfiguration" primary="true">
         <property name="description" value="Synchronize users between DSpace-CRIS and epfl, if no parameters are set, all existing researcher profiles having a sciper id will

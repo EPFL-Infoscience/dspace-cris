@@ -380,6 +380,18 @@ public class Email {
         ConfigurationService config
                 = DSpaceServicesFactory.getInstance().getConfigurationService();
 
+        String templateName = getTemplateFileName(template);
+
+        // Retrieve the property value (defaults to false if not set)
+        boolean isTemplateDisabled = config.getBooleanProperty(
+            String.format("mail.template.%s.disabled", templateName), false);
+
+        // If the template is disabled, log a warning and return
+        if (isTemplateDisabled) {
+            LOG.warn("The email template '{}' is disabled and will not be sent.", templateName);
+            return;
+        }
+
         // Get the mail configuration properties
         String from = config.getProperty("mail.from.address");
         boolean disabled = config.getBooleanProperty("mail.server.disabled", false);
@@ -453,7 +465,7 @@ public class Email {
         for (String headerName : templateHeaders) {
             String headerValue = (String) vctx.get(headerName);
             if ("subject".equalsIgnoreCase(headerName)) {
-                if (null != headerValue) {
+                if ((subject == null || subject.isEmpty()) && null != headerValue) {
                     subject = headerValue;
                 }
             } else if ("charset".equalsIgnoreCase(headerName)) {
@@ -553,6 +565,13 @@ public class Email {
     public boolean isHtmlContent() {
         return StringUtils.containsIgnoreCase(content, "<html>")
             && StringUtils.containsIgnoreCase(content, "</html>");
+    }
+
+    private String getTemplateFileName(Template template) {
+        if (template == null || template.getName() == null) {
+            return null;
+        }
+        return new File(template.getName()).getName();
     }
 
     /**

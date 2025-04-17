@@ -18,7 +18,11 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.AbstractIntegrationTestWithDatabase;
+import org.dspace.app.launcher.ScriptLauncher;
+import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
@@ -33,6 +37,7 @@ import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.jdom2.Document;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,6 +47,9 @@ import org.junit.Test;
  * @author Andrea Bollini <andrea.bollini at 4science.com>
  */
 public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
+
+    private static final Logger log = LogManager
+            .getLogger(MediaFilterIT.class);
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
@@ -315,5 +323,32 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         item2_1_a = context.reloadEntity(item2_1_a);
         item2_1_b = context.reloadEntity(item2_1_b);
 
+    }
+
+    @Override
+    public int runDSpaceScript(String... args) throws Exception {
+        try {
+            // Load up the ScriptLauncher's configuration
+            Document commandConfigs = ScriptLauncher.getConfig(kernelImpl);
+
+            // Check that there is at least one argument (if not display command options)
+            if (args.length < 1) {
+                log.error("You must provide at least one command argument");
+            }
+
+            // Look up command in the configuration, and execute.
+            TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
+            int status =
+                    ScriptLauncher.handleScript(args, commandConfigs, testDSpaceRunnableHandler, kernelImpl, admin);
+            if (testDSpaceRunnableHandler.getException() != null) {
+                throw testDSpaceRunnableHandler.getException();
+            } else {
+                return status;
+            }
+        } finally {
+            if (!context.isValid()) {
+                setUp();
+            }
+        }
     }
 }

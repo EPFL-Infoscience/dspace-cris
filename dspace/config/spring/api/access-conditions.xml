@@ -64,6 +64,7 @@
                 <entry key="upload-project" value-ref="uploadConfigurationProject" />
                 <entry key="upload-funding" value-ref="uploadConfigurationFunding" />
                 <entry key="upload-content" value-ref="uploadConfigurationContent" />
+                <entry key="upload-equipment" value-ref="uploadConfigurationEquipment" />
             </map>
         </property>
     </bean>
@@ -76,6 +77,7 @@
         <property name="canChangeDiscoverable" value="false" />
         <property name="singleAccessCondition" value="true" />
         <property name="onlyForOriginalBundle" value="true" />
+        <property name="required" value="true"></property>
         <property name="options">
             <list>
                 <ref bean="openAccess"/>
@@ -213,6 +215,19 @@
 
     <bean id="uploadConfigurationContent" class="org.dspace.submit.model.UploadConfiguration">
         <property name="name" value="upload-publication" />
+        <property name="metadata" value="bitstream-metadata-content" />
+        <property name="singleAccessCondition" value="true" />
+        <property name="options">
+            <list>
+                <ref bean="openAccess"/>
+                <ref bean="embargoed" />
+                <ref bean="restricted"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="uploadConfigurationEquipment" class="org.dspace.submit.model.UploadConfiguration">
+        <property name="name" value="upload-equipment" />
         <property name="metadata" value="bitstream-metadata-content" />
         <property name="singleAccessCondition" value="true" />
         <property name="options">

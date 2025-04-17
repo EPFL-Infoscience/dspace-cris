@@ -98,19 +98,15 @@ public class PersonAuthority extends ItemAuthority {
 
         switch (authorityName) {
             case "AuthorAuthority":
-                buildBasicAuthorExtras(extras, accred);
                 buildAffiliationAuthorExtras(extras, DATA_AUTHOR_AFFILIATION, AUTHOR_AFFILIATION);
                 break;
             case "ScientificEditorAuthority":
-                buildBasicAuthorExtras(extras, accred);
                 buildAffiliationAuthorExtras(extras, DATA_SCIENTIFIC_EDITOR_AFFILIATION, SCIENTIFIC_EDITOR_AFFILIATION);
                 break;
             case "AdvisorAuthority":
-                buildBasicAuthorExtras(extras, accred);
                 buildAffiliationAuthorExtras(extras, DATA_ADVISOR_AFFILIATION, ADVISOR_AFFILIATION);
                 break;
             case "ContributorAuthority":
-                buildBasicAuthorExtras(extras, accred);
                 buildAffiliationAuthorExtras(extras, DATA_CONTRIBUTOR_AFFILIATION, CONTRIBUTOR_AFFILIATION);
                 break;
             case "EditorAuthority":
@@ -121,10 +117,6 @@ public class PersonAuthority extends ItemAuthority {
         }
 
         return extras;
-    }
-    private void buildBasicAuthorExtras(Map<String, String> extras, Accred accred) {
-        extras.put(DATA_AUTHOR_ORGUNIT, composePersonAffiliationValue(accred));
-        extras.put(AUTHOR_ORGUNIT, accred.getName());
     }
 
     private void buildAffiliationAuthorExtras(Map<String, String> extras,

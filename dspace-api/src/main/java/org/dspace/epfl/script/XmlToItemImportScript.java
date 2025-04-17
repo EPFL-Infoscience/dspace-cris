@@ -183,9 +183,9 @@ public class XmlToItemImportScript extends DSpaceRunnable<XmlToItemImportScriptC
                 metadataFieldService.create(context, metadataSchema, element, qualifier, null);
                 handler.logInfo("metadataFiled " + metadataValue.getMetadataField() + " is created");
             }
-            itemService.addMetadata(context, item, metadataValue.getSchema(),
-                    metadataValue.getElement(), metadataValue.getQualifier(),
-                    metadataValue.getLanguage(), metadataValue.getValue());
+            itemService.addMetadata(context, item, schema, element, qualifier,
+                    metadataValue.getLanguage(), metadataValue.getValue(),
+                    metadataValue.getAuthority(), metadataValue.getConfidence());
             handler.logInfo(metadataValue + " is added");
         } catch (SQLException | AuthorizeException | NonUniqueMetadataException e) {
             handler.logInfo("ERROR: adding metadata to item failed");

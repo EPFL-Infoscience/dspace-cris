@@ -7,6 +7,7 @@
   xmlns="http://namespace.openaire.eu/schema/oaire/"
   xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
   <datacite:identifier identifierType="URL">@virtual.item-ui-url@</datacite:identifier>
+  <datacite:identifier identifierType="Handle">@virtual.handle@</datacite:identifier>
   <datacite:creators>
       @group.dc-contributor-author.start@
         <datacite:creator>
@@ -19,7 +20,7 @@
             @relation.oairecerif-author-affiliation.start@
             <datacite:affiliation
                 affiliationIdentifier="@organization.identifier.ror@" affiliationIdentifierScheme="ROR"
-            >@dc.title@</datacite:affiliation>
+            >@virtual.uniqueTitle@</datacite:affiliation>
             @relation.oairecerif-author-affiliation.end@
             @if.not.authority.oairecerif-author-affiliation.start@
             <datacite:affiliation>@oairecerif.author.affiliation@</datacite:affiliation>

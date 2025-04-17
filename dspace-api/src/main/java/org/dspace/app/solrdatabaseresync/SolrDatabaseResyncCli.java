@@ -24,7 +24,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.dspace.core.Context;
-import org.dspace.core.Context.Mode;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.SearchServiceException;
@@ -86,7 +85,7 @@ public class SolrDatabaseResyncCli extends DSpaceRunnable<SolrDatabaseResyncCliS
         timeUntilReindex = getTimeUntilReindex();
         maxTime = getMaxTime();
 
-        Context context = new Context(Mode.READ_ONLY);
+        Context context = new Context(Context.Mode.READ_ONLY);
 
         try {
             context.turnOffAuthorisationSystem();
@@ -106,40 +105,57 @@ public class SolrDatabaseResyncCli extends DSpaceRunnable<SolrDatabaseResyncCliS
         solrQuery.addFilterQuery(dateRangeFilter);
         solrQuery.addField(SearchUtils.RESOURCE_ID_FIELD);
         solrQuery.addField(SearchUtils.RESOURCE_UNIQUE_ID);
+        solrQuery.setRows(0);
         QueryResponse response = solrSearchCore.getSolr().query(solrQuery, solrSearchCore.REQUEST_METHOD);
-
-        if (response != null) {
-            logInfoAndOut(response.getResults().size() + " items found to process");
-
-            for (SolrDocument doc : response.getResults()) {
-                String uuid = (String) doc.getFirstValue(SearchUtils.RESOURCE_ID_FIELD);
-                String uniqueId = (String) doc.getFirstValue(SearchUtils.RESOURCE_UNIQUE_ID);
-                logDebugAndOut("Processing item with UUID: " + uuid);
-
-                Optional<IndexableObject> indexableObject = Optional.empty();
-                try {
-                    indexableObject = indexObjectServiceFactory
-                            .getIndexableObjectFactory(uniqueId).findIndexableObject(context, uuid);
-                } catch (SQLException e) {
-                    log.warn("An exception occurred when attempting to retrieve item with UUID \"" + uuid +
-                            "\" from the database, removing related solr document", e);
-                }
-
-                try {
-                    if (indexableObject.isPresent()) {
-                        logDebugAndOut("Item exists in DB, updating solr document");
-                        updateItem(context, indexableObject.get());
-                    } else {
-                        logDebugAndOut("Item doesn't exist in DB, removing solr document");
-                        removeItem(context, uniqueId);
-                    }
-                } catch (SQLException | IOException e) {
-                    log.error(e.getMessage(), e);
+        if (response != null && response.getResults() != null) {
+            long nrOfPreDBResults = response.getResults().getNumFound();
+            if (nrOfPreDBResults > 0) {
+                logInfoAndOut(nrOfPreDBResults + " items found to process");
+                int batchSize = configurationService.getIntProperty("script.solr-database-resync.batch-size", 100);
+                for (int start = 0; start < nrOfPreDBResults; start += batchSize) {
+                    solrQuery.setStart(start);
+                    solrQuery.setRows(batchSize);
+                    performStatusUpdateOnNextBatch(context, solrQuery);
                 }
             }
         }
 
         indexingService.commit();
+    }
+
+    private void performStatusUpdateOnNextBatch(Context context, SolrQuery solrQuery)
+        throws SolrServerException, IOException {
+        QueryResponse response = solrSearchCore.getSolr().query(solrQuery, solrSearchCore.REQUEST_METHOD);
+
+        logInfoAndOut(response.getResults().size() + " items found to process");
+
+        for (SolrDocument doc : response.getResults()) {
+            String uuid = (String) doc.getFirstValue(SearchUtils.RESOURCE_ID_FIELD);
+            String uniqueId = (String) doc.getFirstValue(SearchUtils.RESOURCE_UNIQUE_ID);
+            logDebugAndOut("Processing item with UUID: " + uuid);
+
+            Optional<IndexableObject> indexableObject = Optional.empty();
+            try {
+                indexableObject =
+                    indexObjectServiceFactory.getIndexableObjectFactory(uniqueId).findIndexableObject(context, uuid);
+            } catch (SQLException e) {
+                log.warn("An exception occurred when attempting to retrieve item with UUID \"" + uuid +
+                        "\" from the database, removing related solr document", e);
+            }
+
+            try {
+                if (indexableObject.isPresent()) {
+                    logDebugAndOut("Item exists in DB, updating solr document");
+                    updateItem(context, indexableObject.get());
+                    context.uncacheEntity(indexableObject.get().getIndexedObject());
+                } else {
+                    logDebugAndOut("Item doesn't exist in DB, removing solr document");
+                    removeItem(context, uniqueId);
+                }
+            } catch (SQLException | IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
     }
 
     private void updateItem(Context context, IndexableObject indexableObject) throws SolrServerException, IOException {

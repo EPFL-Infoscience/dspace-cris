@@ -65,11 +65,7 @@ public class CanCreateVersionFeature implements AuthorizationFeature {
             }
             Item item = itemService.find(context, UUID.fromString(((ItemRest) object).getUuid()));
             if (Objects.nonNull(item)) {
-                if (authorizeService.isAdmin(context, item)) {
-                    log.info("{} is admin of item {}", context.getCurrentUser().getID(), item.getID());
-                    return true;
-                }
-                return versioningService.canCreateVersion(context, item);
+                return itemService.canCreateNewVersion(context, item);
             }
         }
         return false;

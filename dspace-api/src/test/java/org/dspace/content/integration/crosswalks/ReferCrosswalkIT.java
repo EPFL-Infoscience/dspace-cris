@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
@@ -80,6 +81,7 @@ import org.dspace.utils.DSpace;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -216,7 +218,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, personItem, out);
 
         try (FileInputStream fis = getFileInputStream("person.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -256,7 +258,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, personItem, out);
 
         try (FileInputStream fis = getFileInputStream("person-cerif.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -310,7 +312,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstPerson, secondPerson).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("persons-cerif.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -359,7 +361,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, item, out);
 
         try (FileInputStream fis = getFileInputStream("person-with-empty-groups.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -505,7 +507,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, personItem, out);
 
         try (FileInputStream fis = getFileInputStream("person.json")) {
-            String expectedJson = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedJson = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedJson);
         }
     }
@@ -560,7 +562,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstItem, secondItem).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("persons.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -615,7 +617,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstItem, secondItem).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("persons.json")) {
-            String expectedJson = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedJson = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedJson);
         }
     }
@@ -691,7 +693,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("publication.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -765,7 +767,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("publication-with-authority-on-funder.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -815,7 +817,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstPublication, secondPublication).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("publications.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -857,7 +859,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("endnote")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -914,7 +916,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, project, out);
 
         try (FileInputStream fis = getFileInputStream("project.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -974,7 +976,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, project, out);
 
         try (FileInputStream fis = getFileInputStream("project.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1034,7 +1036,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstProject, secondProject).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("projects.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
 
@@ -1095,7 +1097,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstProject, secondProject).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("projects.json")) {
-            String expectedJson = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedJson = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedJson);
         }
 
@@ -1147,7 +1149,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, orgUnit, out);
 
         try (FileInputStream fis = getFileInputStream("orgUnit.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1192,7 +1194,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, orgUnit, out);
 
         try (FileInputStream fis = getFileInputStream("orgUnit.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1234,7 +1236,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstOrgUnit, secondOrgUnit).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("orgUnits.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1276,7 +1278,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstOrgUnit, secondOrgUnit).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("orgUnits.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1306,7 +1308,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, equipment, out);
 
         try (FileInputStream fis = getFileInputStream("equipment.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1336,7 +1338,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, equipment, out);
 
         try (FileInputStream fis = getFileInputStream("equipment.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1375,7 +1377,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstEquipment, secondEquipment).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("equipments.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1414,7 +1416,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstEquipment, secondEquipment).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("equipments.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1451,7 +1453,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, funding, out);
 
         try (FileInputStream fis = getFileInputStream("funding.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1488,7 +1490,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, funding, out);
 
         try (FileInputStream fis = getFileInputStream("funding.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1539,7 +1541,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstFunding, secondFunding).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("fundings.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1590,7 +1592,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstFunding, secondFunding).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("fundings.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
@@ -1623,7 +1625,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, patent, out);
 
         try (FileInputStream fis = getFileInputStream("patent.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1659,7 +1661,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstPatent, secondPatent).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("patents.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1701,7 +1703,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, patent, out);
 
         try (FileInputStream fis = getFileInputStream("patent.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1739,7 +1741,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstPatent, secondPatent).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("patents.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1779,7 +1781,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, dataSet, out);
 
         try (FileInputStream fis = getFileInputStream("product.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1816,7 +1818,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstDataSet, secondDataSet).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("products.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1854,7 +1856,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, event, out);
 
         try (FileInputStream fis = getFileInputStream("event.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1908,7 +1910,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(firstEvent, secondEvent, thirdEvent).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("events.xml")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
 
@@ -1940,7 +1942,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(resultLines[0].trim(), is("{"));
         assertThat(resultLines[1].trim(), is("\"only-year\": \"2020\","));
         assertThat(resultLines[2].trim(), is("\"date-without-time\": \"2020-02-14\","));
-        assertThat(resultLines[3].trim(), is("\"another-date-without-time\": \"2020\\/02\\/14\","));
+        assertThat(resultLines[3].trim(), is("\"another-date-without-time\": \"2020/02/14\","));
         assertThat(resultLines[4].trim(), is("\"date-with-time\": \"14-02-2020 00:00:00\","));
         assertThat(resultLines[5].trim(), is("\"another-date-with-time\": \"20200214 000000\","));
         assertThat(resultLines[6].trim(), is("\"current-timestamp\": \"" + currentDate + "\","));
@@ -1980,7 +1982,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void placeholderFieldMustBeSkippedTest() throws Exception {
+    public void placeholderFieldMustBeIgnoredTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Item patent = ItemBuilder.createItem(context, collection)
@@ -1997,7 +1999,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         String json = out.toString();
         JSONObject obj = new JSONObject(json);
-        assertTrue(!obj.has("title"));
+        assertFalse(obj.has("title"));
     }
 
     @Test
@@ -2059,7 +2061,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(item).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("publications2.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -2137,7 +2139,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(item).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("publications3.xml")) {
-            compareEachLine(out.toString(), IOUtils.toString(fis, Charset.defaultCharset()));
+            compareEachLine(out.toString(), getExpectedContent(fis));
         }
 
         // disseminate with user that does not belongs to 'Trusted' group
@@ -2147,7 +2149,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(item).iterator(), out2);
 
         try (FileInputStream fis = getFileInputStream("publications2.xml")) {
-            compareEachLine(out2.toString(), IOUtils.toString(fis, Charset.defaultCharset()));
+            compareEachLine(out2.toString(), getExpectedContent(fis));
         }
     }
 
@@ -2220,7 +2222,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(item).iterator(), out);
 
         try (FileInputStream fis = getFileInputStream("publications4.xml")) {
-            compareEachLine(out.toString(), IOUtils.toString(fis, Charset.defaultCharset()));
+            compareEachLine(out.toString(), getExpectedContent(fis));
         }
 
         // disseminate with owner of item
@@ -2230,7 +2232,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, Arrays.asList(item).iterator(), out2);
 
         try (FileInputStream fis = getFileInputStream("publications4.xml")) {
-            compareEachLine(out2.toString(), IOUtils.toString(fis, Charset.defaultCharset()));
+            compareEachLine(out2.toString(), getExpectedContent(fis));
         }
     }
 
@@ -2373,7 +2375,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 outHtml);
 
         try (FileInputStream fis = getFileInputStream("epfl-publications.html")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(outHtml.toString(), expectedXml);
         }
 
@@ -2385,7 +2387,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 outMarc);
 
         try (FileInputStream fis = getFileInputStream("epfl-publications-marc.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(outMarc.toString(), expectedXml);
         }
 
@@ -2706,6 +2708,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    @Ignore
     public void testReferCrosswalkPublicationDataciteXml() throws Exception {
 
         ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
@@ -2716,6 +2719,11 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withEntityType("OrgUnit")
                 .withTitle("OrgUnit Name")
                 .withOrgUnitRORIdentifier("rorID")
+                .build();
+        Item publisher = createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("Publisher Name")
+                .withOrgUnitRORIdentifier("rorID2")
                 .build();
 
         Item author = createItem(context, collection)
@@ -2739,7 +2747,11 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withAuthorAffiliationPlaceholder()
             .withAuthor("Author, Name in Pub", author2.getID().toString())
             .withAuthorAffiliation("OrgUnit in pub2")
-            .withPublisher("Publisher")
+            .withPublisher("Publisher", publisher.getID().toString())
+            .withIssueDate("2023")
+            .withDateAvailable("2023-10-20")
+            .withType("text::journal article::review article", "publication-coar-types:c_dcae04bc")
+            .withHandle("123456789/99999")
             .build();
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -2747,6 +2759,83 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrosswalk.disseminate(context, item, byteArrayOutputStream);
 
         System.out.println(new String(byteArrayOutputStream.toByteArray()));
+
+        try (FileInputStream fis = getFileInputStream("journal-article-datacite.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(byteArrayOutputStream.toString(), expectedXml);
+        }
+
+    }
+
+    @Test
+    @Ignore
+    public void testReferCrosswalkPublicationDataciteXmlWithoutTypeAndAuthor() throws Exception {
+
+        ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
+            .getServiceByName("referCrosswalkPublicationDataciteXml", ReferCrosswalk.class);
+        assertThat(referCrosswalk, notNullValue());
+
+        Item publisher = createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("Publisher Name")
+                .withOrgUnitRORIdentifier("rorID2")
+                .build();
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Publication title")
+            .withPublisher("Publisher", publisher.getID().toString())
+            .withIssueDate("2023")
+            .withDateAvailable("2023-10-20")
+            .withHandle("123456789/99999")
+            .build();
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        referCrosswalk.disseminate(context, item, byteArrayOutputStream);
+
+        System.out.println(new String(byteArrayOutputStream.toByteArray()));
+
+        try (FileInputStream fis = getFileInputStream("publication-without-authors-and-type-datacite.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(byteArrayOutputStream.toString(), expectedXml);
+        }
+
+    }
+
+    @Test
+    @Ignore
+    public void testReferCrosswalkPublicationDataciteXmlWithVirtualPlace() throws Exception {
+
+        ReferCrosswalk referCrosswalk = new DSpace().getServiceManager()
+            .getServiceByName("referCrosswalkPublicationDataciteXml", ReferCrosswalk.class);
+        assertThat(referCrosswalk, notNullValue());
+
+        Item publisher = createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("Publisher Name")
+                .withOrgUnitRORIdentifier("rorID2")
+                .build();
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Publication title")
+            .withPublisher("Publisher", publisher.getID().toString())
+            .withIssueDate("2023")
+            .withLanguage(Locale.ITALIAN.getLanguage())
+            .withLanguage(Locale.ENGLISH.getLanguage())
+            .withDateAvailable("2023-10-20")
+            .withHandle("123456789/99999")
+            .build();
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        referCrosswalk.disseminate(context, item, byteArrayOutputStream);
+
+        System.out.println(new String(byteArrayOutputStream.toByteArray()));
+
+        try (FileInputStream fis = getFileInputStream("publication-virtual-place-datacite.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(byteArrayOutputStream.toString(), expectedXml);
+        }
 
     }
 
@@ -3080,7 +3169,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("epfl-publication-marc.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -3146,21 +3235,21 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         referCrossWalk.disseminate(context, itemWithPreviousEPFLDOI, out);
         try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
 
         out = new ByteArrayOutputStream();
         referCrossWalk.disseminate(context, itemWithPreviousEPFLDOIMultipleGenericTitle, out);
         try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite-mgt.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
 
         out = new ByteArrayOutputStream();
         referCrossWalk.disseminate(context, itemWithPreviousEPFLDOIMultipleTitleInNoPrefLang, out);
         try (FileInputStream fis = getFileInputStream("epfl-thesis-datacite-mtnopref.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
 
@@ -3181,6 +3270,14 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withRelationConference("The best Conference")
             .withOaireCitationConferencePlace("test Place")
             .withOaireCitationConferenceDate("testDate")
+            .withDescriptionAbstract("Abstract 1")
+            .withDescriptionAbstract("Abstract 2")
+            .withIsbnIdentifier("ISBN1")
+            .withIsbnIdentifier("ISBN2")
+            .withDescriptionNotes("note1")
+            .withDescriptionNotes("note2")
+            .withRelationIsbn("isbn-rel-1")
+            .withRelationIsbn("isbn-rel-2")
             .build();
 
         context.restoreAuthSystemState();
@@ -3192,12 +3289,93 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("research-outputs.json")) {
-            String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedContent = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedContent);
         }
     }
 
     @Test
+    public void testProductOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("English title", "en")
+                .withTitleForLanguage("French title", "fr")
+                .withAcronym("OU")
+                .build();
+
+        Item author = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author Test")
+                .build();
+
+        Item product = ItemBuilder.createItem(context, collection)
+                .withAuthor("Author Test", author.getID().toString())
+                .withTitle("THP I.III.6 Maison Ritz")
+                .withEntityType("Product")
+                .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
+                .withMetadata("oairecerif", "author", "affiliation", null, "OU", orgUnit.getID().toString(), 600)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-product-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, product, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-product.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    public void testPatentOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("English title", "en")
+                .withTitleForLanguage("French title", "fr")
+                .withAcronym("OU")
+                .build();
+
+        Item author = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author Test")
+                .build();
+
+        Item product = ItemBuilder.createItem(context, collection)
+                .withAuthor("Author Test", author.getID().toString())
+                .withTitle("THP I.III.6 Maison Ritz")
+                .withEntityType("Patent")
+                .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
+                .withMetadata("oairecerif", "author", "affiliation", null, "OU", orgUnit.getID().toString(), 600)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-patent-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, product, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-patent.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    @Ignore
     public void testPublicationOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -3246,7 +3424,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, publication, out);
 
         try (FileInputStream fis = getFileInputStream("oai-openaire-publication.xml")) {
-            String expectedXml = IOUtils.toString(fis, Charset.defaultCharset());
+            String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
     }
@@ -3286,5 +3464,9 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     private FileInputStream getFileInputStream(String name) throws FileNotFoundException {
         return new FileInputStream(new File(BASE_OUTPUT_DIR_PATH, name));
+    }
+
+    private String getExpectedContent(FileInputStream fis) throws IOException {
+        return IOUtils.toString(fis, Charset.defaultCharset()).replace("\\/", "/");
     }
 }

@@ -134,11 +134,7 @@ public class PublicationLoaderRunnable
                     + researcher.getID());
                 handler.logInfo("Extra query: " + extraQuery);
                 int createdSuggestions = 0;
-                if (StringUtils.isBlank(extraQuery)) {
-                    createdSuggestions = publicationLoader.importAuthorRecords(context, researcher);
-                } else {
-                    createdSuggestions = publicationLoader.importAuthorRecords(context, researcher, extraQuery);
-                }
+                createdSuggestions = publicationLoader.importRecords(context, researcher, extraQuery);
                 handler.logInfo(createdSuggestions + " suggestions created for author " + researcher.getName() +
                                     " id: " + researcher.getID());
                 setLastImportMetadataValue(researcher);
