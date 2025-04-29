@@ -15,11 +15,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.InProgressSubmission;
@@ -69,6 +71,7 @@ public class UploadValidator implements SubmissionStepValidator {
         }
 
         bitstreams.forEach(bitstream -> validateMetadata(bitstream, config.getId(), uploadConfig, errors));
+        bitstreams.forEach(bitstream -> validateAccessConditions(bitstream, config.getId(), errors));
         return errors;
     }
 
@@ -85,6 +88,23 @@ public class UploadValidator implements SubmissionStepValidator {
                     validateMetadataValues(metadataValues, input, configId, errors);
                 }
             );
+    }
+
+    private void validateAccessConditions(Bitstream bitstream, String configId, List<ValidationError> errors) {
+        boolean foundAccessCondition = false;
+        for (ResourcePolicy rp : bitstream.getResourcePolicies()) {
+            if(StringUtils.isNotBlank(rp.getRpName()) && ResourcePolicy.TYPE_CUSTOM.equals(rp.getRpType())) {
+                foundAccessCondition = true;
+                break;
+            }
+        }
+
+        if (!foundAccessCondition) {
+            addError(
+                    errors, ERROR_VALIDATION_REQUIRED,
+                    "/" + OPERATION_PATH_SECTIONS + "/" + configId + "/accessConditions"
+                );
+        }
     }
 
     private void validateMetadataValues(List<MetadataValue> metadataValues, DCInput input,
