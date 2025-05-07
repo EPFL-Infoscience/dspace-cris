@@ -37,9 +37,14 @@ import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.discovery.IndexingService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.jdom2.Document;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Tests of {@link MediaFilterScript}.
@@ -51,8 +56,13 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
     private static final Logger log = LogManager
             .getLogger(MediaFilterIT.class);
 
+    private static final long HALF_YEAR_TIME = 180l * 24l * 60l * 60000l;
+    private static final long ONE_YEAR_TIME = 360l * 24l * 60l * 60000l;
+
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+    private IndexingService indexingService = DSpaceServicesFactory.getInstance().getServiceManager()
+            .getServiceByName(IndexingService.class.getName(), IndexingService.class);
     protected Community topComm1;
     protected Community topComm2;
     protected Community childComm1_1;
@@ -80,8 +90,12 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
     protected Item item2_1_b;
     protected long setupEndTime;
 
+    final long nowTime = new Date().getTime();
+    final Date oldestModifiedDate = new Date(nowTime - ONE_YEAR_TIME);
+    final Date midModifiedDate = new Date(new Date().getTime() - HALF_YEAR_TIME);
+
     @Before
-    public void setup() throws IOException, SQLException, AuthorizeException {
+    public void setup() throws IOException, SQLException, AuthorizeException, SearchServiceException {
         context.turnOffAuthorisationSystem();
         topComm1 = CommunityBuilder.createCommunity(context).withName("Parent Community1").build();
         topComm2 = CommunityBuilder.createCommunity(context).withName("Parent Community2").build();
@@ -118,8 +132,12 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
                 .build();
         item1_2_2_b = ItemBuilder.createItem(context, col1_2_2).withTitle("Item 1_2_2_b").withIssueDate("2017-10-17")
                 .build();
-        item2_1_a = ItemBuilder.createItem(context, col2_1).withTitle("Item 2_1_a").withIssueDate("2017-10-17").build();
-        item2_1_b = ItemBuilder.createItem(context, col2_1).withTitle("Item 2_1_b").withIssueDate("2017-10-17").build();
+        item2_1_a = ItemBuilder.createItem(context, col2_1).withTitle("Item 2_1_a").withIssueDate("2017-10-17")
+                .build();
+        item2_1_b = ItemBuilder.createItem(context, col2_1).withTitle("Item 2_1_b").withIssueDate("2017-10-17")
+                .build();
+        item2_1_a = Mockito.spy(item2_1_a);
+        item2_1_b = Mockito.spy(item2_1_b);
         addBitstream(item1_1_a, "test.csv");
         addBitstream(item1_1_b, "test.txt");
         addBitstream(item1_2_a, "test.csv");
@@ -134,12 +152,21 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         addBitstream(item1_2_2_b, "test.txt");
         addBitstream(item2_1_a, "test.csv");
         addBitstream(item2_1_b, "test.txt");
+
+        // alter the last modified date for two items in the solr index
+        Mockito.when(item2_1_a.getLastModified()).thenReturn(midModifiedDate);
+        Mockito.when(item2_1_b.getLastModified()).thenReturn(oldestModifiedDate);
+        indexingService.indexContent(context, new IndexableItem(item2_1_a), true);
+        indexingService.indexContent(context, new IndexableItem(item2_1_b), true);
+        indexingService.commit();
+
         setupEndTime = new Date().getTime();
         try {
                 Thread.sleep(100);
         } catch (InterruptedException e) {
             // nothing to do
         }
+
         context.restoreAuthSystemState();
     }
 
@@ -150,7 +177,7 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
 
     @Test
     public void mediaFilterScriptAllItemsTest() throws Exception {
-        performMediaFilterScript(null, true);
+        performMediaFilterScript((Item) null, true);
         Iterator<Item> items = itemService.findAll(context);
         while (items.hasNext()) {
             Item item = items.next();
@@ -166,6 +193,84 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
             Item item = items.next();
             checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item);
         }
+    }
+
+    @Test
+    public void mediaFilterScriptAllItemsLastUpdatedTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        BitstreamBuilder.createBitstream(context, item1_1_a, IOUtils.toInputStream("placeholder"), "TEXT")
+                .withName("placeholder.txt").guessFormat().build();
+        BitstreamBuilder.createBitstream(context, item1_1_b, IOUtils.toInputStream("placeholder"), "THUMBNAIL")
+                .withName("placeholder.txt").guessFormat().build();
+        context.restoreAuthSystemState();
+        // we expect the item2_1_b to be skipped
+        performMediaFilterScript(String.valueOf(180 + 10));
+        checkItemHasBeenNotProcessed(item2_1_b);
+        checkItemHasBeenProcessedInternal(item2_1_a);
+        // run the script again considering a large time period
+        // we expect now also item2_1_b to be processed
+        performMediaFilterScript(String.valueOf(360 + 10));
+        checkItemHasBeenProcessedInternal(item2_1_b);
+    }
+
+    @Test
+    public void mediaFilterScriptAllItemsSkipBundleTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        BitstreamBuilder.createBitstream(context, item1_1_a, IOUtils.toInputStream("placeholder"), "TEXT")
+                .withName("placeholder.txt").guessFormat().build();
+        BitstreamBuilder.createBitstream(context, item1_1_b, IOUtils.toInputStream("placeholder"), "THUMBNAIL")
+                .withName("placeholder.txt").guessFormat().build();
+        context.restoreAuthSystemState();
+        performMediaFilterScript("TEXT", "THUMBNAIL");
+        Iterator<Item> items = itemService.findAll(context);
+        while (items.hasNext()) {
+            Item item = items.next();
+            String bundlePlaceholder = null;
+            if (StringUtils.equals(item.getName(), "Item 1_1_a")) {
+                bundlePlaceholder = "TEXT";
+            } else if (StringUtils.equals(item.getName(), "Item 1_1_b")) {
+                bundlePlaceholder = "THUMBNAIL";
+            }
+            if (bundlePlaceholder != null) {
+                checkItemHasDerivativePlaceholder(item, bundlePlaceholder);
+            } else {
+                checkItemHasBeenProcessedInternal(item);
+            }
+        }
+    }
+
+    @Test
+    public void mediaFilterScriptAllItemsSkipBundleLastModifiedTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        BitstreamBuilder.createBitstream(context, item1_1_a, IOUtils.toInputStream("placeholder"), "TEXT")
+                .withName("placeholder.txt").guessFormat().build();
+        BitstreamBuilder.createBitstream(context, item1_1_b, IOUtils.toInputStream("placeholder"), "THUMBNAIL")
+                .withName("placeholder.txt").guessFormat().build();
+        context.restoreAuthSystemState();
+        // we expect the item2_1_b to be skipped
+        performMediaFilterScript(String.valueOf(180 + 10), "TEXT", "THUMBNAIL");
+        Iterator<Item> items = itemService.findAll(context);
+        while (items.hasNext()) {
+            Item item = items.next();
+            String bundlePlaceholder = null;
+            if (StringUtils.equals(item.getName(), "Item 1_1_a")) {
+                bundlePlaceholder = "TEXT";
+            } else if (StringUtils.equals(item.getName(), "Item 1_1_b")) {
+                bundlePlaceholder = "THUMBNAIL";
+            }
+
+            if (StringUtils.equals(item.getName(), "Item 2_1_b")) {
+                checkItemHasBeenNotProcessed(item);
+            } else if (bundlePlaceholder != null) {
+                checkItemHasDerivativePlaceholder(item, bundlePlaceholder);
+            } else {
+                checkItemHasBeenProcessedInternal(item);
+            }
+        }
+        // run the script again considering a large time period
+        // we expect now also item2_1_b to be processed
+        performMediaFilterScript(String.valueOf(360 + 10), "TEXT", "THUMBNAIL");
+        checkItemHasBeenProcessedInternal(item2_1_b);
     }
 
     @Test
@@ -277,13 +382,28 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         String expectedFileName = StringUtils.endsWith(item.getName(), "_a") ? "test.csv.txt" : "test.txt.txt";
         String expectedContent = StringUtils.endsWith(item.getName(), "_a") ? "data3,3" : "quick brown fox";
         List<Bundle> textBundles = item.getBundles("TEXT");
-        assertTrue("The item " + item.getName() + " has NOT the TEXT bundle", textBundles.size() == 1);
+        assertTrue("The item " + item.getName() + " has the TEXT bundle", textBundles.size() == 1);
         List<Bitstream> bitstreams = textBundles.get(0).getBitstreams();
-        assertTrue("The item " + item.getName() + " has NOT exactly 1 bitstream in the TEXT bundle",
+        assertTrue("The item " + item.getName() + " has exactly 1 bitstream in the TEXT bundle",
                 bitstreams.size() == 1);
-        assertTrue("The text bistream in the " + item.getName() + " is NOT named properly [" + expectedFileName + "]",
+        assertTrue("The text bistream in the " + item.getName() + " is named properly [" + expectedFileName + "]",
                 StringUtils.equals(bitstreams.get(0).getName(), expectedFileName));
-        assertTrue("The text bistream in the " + item.getName() + " doesn't contain the proper content ["
+        assertTrue("The text bistream in the " + item.getName() + " contains the proper content ["
+                + expectedContent + "]", StringUtils.contains(getContent(bitstreams.get(0)), expectedContent));
+    }
+
+    private void checkItemHasDerivativePlaceholder(Item item, String placeholder)
+            throws IOException, SQLException, AuthorizeException {
+        String expectedFileName = "placeholder.txt";
+        String expectedContent = "placeholder";
+        List<Bundle> textBundles = item.getBundles(placeholder);
+        assertTrue("The item " + item.getName() + " has the placeholder bundle", textBundles.size() == 1);
+        List<Bitstream> bitstreams = textBundles.get(0).getBitstreams();
+        assertTrue("The item " + item.getName() + " has exactly 1 bitstream in the " + placeholder + " bundle",
+                bitstreams.size() == 1);
+        assertTrue("The text bistream in the " + item.getName() + " is named properly [" + expectedFileName + "]",
+                StringUtils.equals(bitstreams.get(0).getName(), expectedFileName));
+        assertTrue("The text bistream in the " + item.getName() + " contains the proper content ["
                 + expectedContent + "]", StringUtils.contains(getContent(bitstreams.get(0)), expectedContent));
     }
 
@@ -291,6 +411,23 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         try (InputStream input = bitstreamService.retrieve(context, bitstream)) {
             return IOUtils.toString(input, "UTF-8");
         }
+    }
+
+    private void performMediaFilterScript(String updatedSincedays) throws Exception {
+        runDSpaceScript("filter-media", "-l", updatedSincedays);
+        reloadAllItems();
+    }
+
+    private void performMediaFilterScript(String updatedSincedays, String skipBundle1, String skipBundle2)
+            throws Exception {
+        runDSpaceScript("filter-media", "-l", updatedSincedays, "-b", skipBundle1, "-b", skipBundle2);
+        reloadAllItems();
+    }
+
+    private void performMediaFilterScript(String skipBundle1, String skipBundle2) throws Exception {
+        runDSpaceScript("filter-media", "-b", skipBundle1, "-b", skipBundle2);
+        reloadAllItems();
+
     }
 
     private void performMediaFilterScript(DSpaceObject dso, boolean updateLastModified) throws Exception {
@@ -307,6 +444,11 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
                 runDSpaceScript("filter-media");
             }
         }
+        reloadAllItems();
+
+    }
+
+    private void reloadAllItems() throws SQLException {
         // reload our items to see the changes
         item1_1_a = context.reloadEntity(item1_1_a);
         item1_1_b = context.reloadEntity(item1_1_b);
@@ -322,7 +464,6 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         item1_2_2_b = context.reloadEntity(item1_2_2_b);
         item2_1_a = context.reloadEntity(item2_1_a);
         item2_1_b = context.reloadEntity(item2_1_b);
-
     }
 
     @Override
