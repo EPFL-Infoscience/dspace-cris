@@ -19,11 +19,12 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 import javax.mail.Transport;
 
 import org.dspace.AbstractUnitTest;
 import org.dspace.app.metrics.CrisMetrics;
-import org.dspace.content.DSpaceObject;
+import org.dspace.core.Constants;
 import org.dspace.core.Email;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -119,11 +120,9 @@ public class StatisticsGeneratorTest extends AbstractUnitTest {
     }
 
     private List<CrisMetrics> getMockedCrisMetricsList() {
-        DSpaceObject resource = mock(DSpaceObject.class);
-        when(resource.getName()).thenReturn("Resource Name");
-
         CrisMetrics crisMetrics = mock(CrisMetrics.class);
-        when(crisMetrics.getResource()).thenReturn(resource);
+        when(crisMetrics.getResource()).thenReturn(UUID.randomUUID());
+        when(crisMetrics.getResourceType()).thenReturn(Constants.ITEM);
         when(crisMetrics.getMetricType()).thenReturn("Metric Type");
         when(crisMetrics.getMetricCount()).thenReturn(100d);
         when(crisMetrics.getDeltaPeriod1()).thenReturn(10d);

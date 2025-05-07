@@ -41,7 +41,8 @@ public class SolrServiceMetricsIndexPlugin implements SolrServiceIndexPlugin {
             Item item = ((IndexableItem) idxObj).getIndexedObject();
             if (Objects.nonNull(item)) {
                 try {
-                    List<CrisMetrics> metrics = crisMetricsService.findAllByDSO(context, item);
+                    List<CrisMetrics> metrics = crisMetricsService.findLastMetricsByResourceId(context, item.getID(),
+                            -1, -1);
                     for (CrisMetrics metric : metrics) {
                         String lastImport = itemService.getMetadataFirstValue(item,
                                 "cris", "lastimport", metric.getMetricType(), Item.ANY);
