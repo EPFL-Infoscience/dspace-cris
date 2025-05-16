@@ -38,9 +38,11 @@ public interface MediaFilterService {
     public void applyFiltersAllItems(Context context, boolean updateLastModified,
             int sinceLastDays, String[] skipBundles) throws Exception;
 
-    void applyFiltersCommunity(Context context, Community community, boolean updateLastModified) throws Exception;
+    void applyFiltersCommunity(Context context, Community community, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception;
 
-    void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified) throws Exception;
+    void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception;
 
     void applyFiltersItem(Context c, Item item, boolean updateLastModified) throws Exception;
 
