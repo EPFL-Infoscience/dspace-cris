@@ -137,14 +137,14 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         Request currentRequest = requestService.getCurrentRequest();
         final String cacheName = preventBoxSecurityCheck ? "securityMetadataCache.preventBoxSecurityCheck"
                 : "securityMetadataCache";
-        EPerson currUser = context.getCurrentUser();
+        EPerson currUser = context != null ? context.getCurrentUser() : null;
         UUID currUserUUID = currUser != null ? currUser.getID() : null;
         UUID cacheUserUUID = (UUID) currentRequest.getAttribute("securityMetadataCache.eperson");
         Map<UUID, List<MetadataValue>> cache = (Map<UUID, List<MetadataValue>>) currentRequest
                 .getAttribute(cacheName);
 
         if (cache != null) {
-            if (cacheUserUUID != currUserUUID) {
+            if (!Objects.equals(cacheUserUUID, currUserUUID)) {
                 // cache is invalid as it was generated for a different user
                 cache.clear();
                 currentRequest.setAttribute("securityMetadataCache.eperson", currUserUUID);
