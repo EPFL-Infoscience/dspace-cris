@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -125,83 +124,21 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     @Override
     public void applyFiltersAllItems(Context context, boolean updateLastModified,
             int sinceLastDays, String[] skipBundles) throws Exception {
-        if (skipList != null) {
-            //if a skip-list exists, we need to filter community-by-community
-            //so we can respect what is in the skip-list
-            List<Community> topLevelCommunities = communityService.findAllTop(context);
-
-            for (Community topLevelCommunity : topLevelCommunities) {
-                applyFiltersCommunity(context, topLevelCommunity, updateLastModified);
-            }
-        } else {
-            //otherwise, just find every item and process
-            SolrQuery discoverQuery = new SolrQuery();
-            discoverQuery.setQuery("search.resourcetype:Item AND archived:true");
-            discoverQuery.setFields("search.resourceid");
-            discoverQuery.setRows(100);
-            if (skipBundles != null && skipBundles.length > 0) {
-                discoverQuery.addFilterQuery("-bundleName_s:" + StringUtils.join(skipBundles, " OR -bundleName_s:"));
-            }
-            if (sinceLastDays > 0) {
-                discoverQuery.addFilterQuery("lastModified_dt:[NOW-" + sinceLastDays + "DAYS/DAY TO *]");
-            }
-            final SolrClient solr = SearchUtils.getSearchService().getSolrSearchCore().getSolr();
-            QueryResponse response = solr.query(discoverQuery);
-            int currPos = 0;
-            List<UUID> results = new ArrayList<UUID>((int) response.getResults().getNumFound());
-            while (response.getResults().getNumFound() > currPos) {
-                SolrDocumentList solrDocList = response.getResults();
-                for (SolrDocument doc : solrDocList) {
-                    UUID uuid = UUID.fromString((String) doc.getFirstValue("search.resourceid"));
-                    results.add(uuid);
-                }
-                currPos += 100;
-                discoverQuery.setStart(currPos);
-                response = solr.query(discoverQuery);
-            }
-            UUIDIterator<Item> itemIterator = new UUIDIterator<Item>(context, results, Item.class,
-                    (ItemDAOImpl) itemDAO);
-            while (itemIterator.hasNext() && processed < max2Process) {
-                applyFiltersItem(context, itemIterator.next(), updateLastModified);
-            }
-        }
+        applyFilters(context, null, updateLastModified, sinceLastDays, skipBundles);
     }
 
     @Override
-    public void applyFiltersCommunity(Context context, Community community, boolean updateLastModified)
-            throws Exception { //only apply filters if community not in skip-list
-        // ensure that the community is attached to the current hibernate session
-        // as we are committing after each item (handles, sub-communties and
-        // collections are lazy attributes)
-        community = context.reloadEntity(community);
-        if (!inSkipList(community.getHandle())) {
-            List<Community> subcommunities = community.getSubcommunities();
-            for (Community subcommunity : subcommunities) {
-                applyFiltersCommunity(context, subcommunity, updateLastModified);
-            }
-            // ensure that the community is attached to the current hibernate session
-            // as we are committing after each item
-            community = context.reloadEntity(community);
-            List<Collection> collections = community.getCollections();
-            for (Collection collection : collections) {
-                applyFiltersCollection(context, collection, updateLastModified);
-            }
-        }
+    public void applyFiltersCommunity(Context context, Community community, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception {
+        applyFilters(context, "location.comm:" + community.getID().toString(), updateLastModified, sinceLastDays,
+                skipBundles);
     }
 
     @Override
-    public void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified)
-            throws Exception {
-        // ensure that the collection is attached to the current hibernate session
-        // as we are committing after each item (handles are lazy attributes)
-        collection = context.reloadEntity(collection);
-        //only apply filters if collection not in skip-list
-        if (!inSkipList(collection.getHandle())) {
-            Iterator<Item> itemIterator = itemService.findAllByCollection(context, collection);
-            while (itemIterator.hasNext() && processed < max2Process) {
-                applyFiltersItem(context, itemIterator.next(), updateLastModified);
-            }
-        }
+    public void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception {
+        applyFilters(context, "location.coll:" + collection.getID().toString(), updateLastModified, sinceLastDays,
+                skipBundles);
     }
 
     @Override
@@ -221,6 +158,47 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             // commit after each item to release DB resources
             c.commit();
             currentItem = null;
+        }
+    }
+
+
+    private void applyFilters(Context context, String filterScope, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception {
+        //otherwise, just find every item and process
+        SolrQuery discoverQuery = new SolrQuery();
+        discoverQuery.setQuery("search.resourcetype:Item AND archived:true AND bundleName_s:ORIGINAL");
+        discoverQuery.setFields("search.resourceid");
+        discoverQuery.setRows(100);
+        if (StringUtils.isNotBlank(filterScope)) {
+            discoverQuery.addFilterQuery(filterScope);
+        }
+        if (skipBundles != null && skipBundles.length > 0) {
+            discoverQuery.addFilterQuery("-bundleName_s:" + StringUtils.join(skipBundles, " OR -bundleName_s:"));
+        }
+        if (sinceLastDays > 0) {
+            discoverQuery.addFilterQuery("lastModified_dt:[NOW-" + sinceLastDays + "DAYS/DAY TO *]");
+        }
+        final SolrClient solr = SearchUtils.getSearchService().getSolrSearchCore().getSolr();
+        QueryResponse response = solr.query(discoverQuery);
+        int currPos = 0;
+        List<UUID> results = new ArrayList<UUID>((int) response.getResults().getNumFound());
+        while (response.getResults().getNumFound() > currPos) {
+            SolrDocumentList solrDocList = response.getResults();
+            for (SolrDocument doc : solrDocList) {
+                UUID uuid = UUID.fromString((String) doc.getFirstValue("search.resourceid"));
+                results.add(uuid);
+            }
+            currPos += 100;
+            discoverQuery.setStart(currPos);
+            response = solr.query(discoverQuery);
+        }
+        UUIDIterator<Item> itemIterator = new UUIDIterator<Item>(context, results, Item.class,
+                (ItemDAOImpl) itemDAO);
+        while (itemIterator.hasNext() && processed < max2Process) {
+            Item item = itemIterator.next();
+            if (!inSkipList(item.getHandle())) {
+                applyFiltersItem(context, item, updateLastModified);
+            }
         }
     }
 

@@ -266,10 +266,12 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
 
                 switch (dso.getType()) {
                     case Constants.COMMUNITY:
-                        mediaFilterService.applyFiltersCommunity(c, (Community) dso, updateLastModified);
+                        mediaFilterService.applyFiltersCommunity(c, (Community) dso, updateLastModified,
+                                modifiedSinceDays, bundleNamesToSkip);
                         break;
                     case Constants.COLLECTION:
-                        mediaFilterService.applyFiltersCollection(c, (Collection) dso, updateLastModified);
+                        mediaFilterService.applyFiltersCollection(c, (Collection) dso, updateLastModified,
+                                modifiedSinceDays, bundleNamesToSkip);
                         break;
                     case Constants.ITEM:
                         mediaFilterService.applyFiltersItem(c, (Item) dso, updateLastModified);
