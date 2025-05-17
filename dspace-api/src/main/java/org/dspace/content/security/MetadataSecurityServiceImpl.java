@@ -135,36 +135,43 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
     private List<MetadataValue> getAllAllowedMetadata(Context context, Item item,
             List<MetadataValue> metadataValues, boolean preventBoxSecurityCheck) {
         Request currentRequest = requestService.getCurrentRequest();
-        final String cacheName = preventBoxSecurityCheck ? "securityMetadataCache.preventBoxSecurityCheck"
-                : "securityMetadataCache";
-        EPerson currUser = context != null ? context.getCurrentUser() : null;
-        UUID currUserUUID = currUser != null ? currUser.getID() : null;
-        UUID cacheUserUUID = (UUID) currentRequest.getAttribute("securityMetadataCache.eperson");
-        Map<UUID, List<MetadataValue>> cache = (Map<UUID, List<MetadataValue>>) currentRequest
-                .getAttribute(cacheName);
+        Map<UUID, List<MetadataValue>> cache = null;
+        // this is almost always true but could be null in thread started manually with a scheduler, etc.
+        if (currentRequest != null) {
+            final String cacheName = preventBoxSecurityCheck ? "securityMetadataCache.preventBoxSecurityCheck"
+                    : "securityMetadataCache";
+            EPerson currUser = context != null ? context.getCurrentUser() : null;
+            UUID currUserUUID = currUser != null ? currUser.getID() : null;
+            UUID cacheUserUUID = (UUID) currentRequest.getAttribute("securityMetadataCache.eperson");
+            cache = (Map<UUID, List<MetadataValue>>) currentRequest
+                    .getAttribute(cacheName);
 
-        if (cache != null) {
-            if (!Objects.equals(cacheUserUUID, currUserUUID)) {
-                // cache is invalid as it was generated for a different user
-                cache.clear();
+            if (cache != null) {
+                if (!Objects.equals(cacheUserUUID, currUserUUID)) {
+                    // cache is invalid as it was generated for a different user
+                    cache.clear();
+                    currentRequest.setAttribute("securityMetadataCache.eperson", currUserUUID);
+                } else if (cache.get(item.getID()) != null) {
+                    return cache.get(item.getID());
+                } else if (cache.size() > 50) {
+                    // we only want to cache in the current thread a maximum amount of items
+                    // a single thread could check metadata of different items going back and
+                    // forward among them when traversing a graph, i.e. during the export of
+                    // an item fetching related items
+                    cache.clear();
+                }
+            } else {
+                cache = new HashMap<UUID, List<MetadataValue>>();
+                currentRequest.setAttribute(cacheName, cache);
                 currentRequest.setAttribute("securityMetadataCache.eperson", currUserUUID);
-            } else if (cache.get(item.getID()) != null) {
-                return cache.get(item.getID());
-            } else if (cache.size() > 50) {
-                // we only want to cache in the current thread a maximum amount of items
-                // a single thread could check metadata of different items going back and
-                // forward among them when traversing a graph, i.e. during the export of
-                // an item fetching related items
-                cache.clear();
             }
-        } else {
-            cache = new HashMap<UUID, List<MetadataValue>>();
-            currentRequest.setAttribute(cacheName, cache);
-            currentRequest.setAttribute("securityMetadataCache.eperson", currUserUUID);
         }
+
         if (item.isWithdrawn() && isNotAdmin(context, item)) {
             List<MetadataValue> result = new ArrayList<MetadataValue>();
-            cache.put(item.getID(), result);
+            if (cache != null) {
+                cache.put(item.getID(), result);
+            }
             return result;
         }
 
@@ -174,7 +181,9 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         if (inputs.isPresent()) {
             List<MetadataValue> result = getFromSubmission(context, boxes, item, inputs.get(), metadataValues,
                     preventBoxSecurityCheck);
-            cache.put(item.getID(), result);
+            if (cache != null) {
+                cache.put(item.getID(), result);
+            }
             return result;
         }
 
@@ -182,7 +191,9 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
                 .filter(value -> isMetadataValueVisible(context, boxes, item, value, preventBoxSecurityCheck))
                 .filter(value -> isMetadataValueReturnAllowed(context, item, value))
                 .collect(Collectors.toList());
-        cache.put(item.getID(), result);
+        if (cache != null) {
+            cache.put(item.getID(), result);
+        }
         return result;
     }
 
