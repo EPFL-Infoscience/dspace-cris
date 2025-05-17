@@ -44,6 +44,7 @@ import org.dspace.layout.service.CrisLayoutBoxAccessService;
 import org.dspace.layout.service.CrisLayoutBoxService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
+import org.dspace.services.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -53,8 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Luca Giamminonni (4science.it)
  */
 public class MetadataSecurityServiceImpl implements MetadataSecurityService {
-
-    private static Map<String, Object> threadCache = new HashMap<String, Object>();
 
     @Resource(name = "securityLevelsMap")
     private final Map<String, MetadataSecurityEvaluation> securityLevelsMap = new HashMap<>();
@@ -135,18 +134,20 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
 
     private List<MetadataValue> getAllAllowedMetadata(Context context, Item item,
             List<MetadataValue> metadataValues, boolean preventBoxSecurityCheck) {
+        Request currentRequest = requestService.getCurrentRequest();
         final String cacheName = preventBoxSecurityCheck ? "securityMetadataCache.preventBoxSecurityCheck"
                 : "securityMetadataCache";
         EPerson currUser = context != null ? context.getCurrentUser() : null;
         UUID currUserUUID = currUser != null ? currUser.getID() : null;
-        UUID cacheUserUUID = (UUID) threadCache.get("securityMetadataCache.eperson");
-        Map<UUID, List<MetadataValue>> cache = (Map<UUID, List<MetadataValue>>) threadCache.get(cacheName);
+        UUID cacheUserUUID = (UUID) currentRequest.getAttribute("securityMetadataCache.eperson");
+        Map<UUID, List<MetadataValue>> cache = (Map<UUID, List<MetadataValue>>) currentRequest
+                .getAttribute(cacheName);
 
         if (cache != null) {
             if (!Objects.equals(cacheUserUUID, currUserUUID)) {
                 // cache is invalid as it was generated for a different user
                 cache.clear();
-                threadCache.put("securityMetadataCache.eperson", currUserUUID);
+                currentRequest.setAttribute("securityMetadataCache.eperson", currUserUUID);
             } else if (cache.get(item.getID()) != null) {
                 return cache.get(item.getID());
             } else if (cache.size() > 50) {
@@ -158,8 +159,8 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
             }
         } else {
             cache = new HashMap<UUID, List<MetadataValue>>();
-            threadCache.put(cacheName, cache);
-            threadCache.put("securityMetadataCache.eperson", currUserUUID);
+            currentRequest.setAttribute(cacheName, cache);
+            currentRequest.setAttribute("securityMetadataCache.eperson", currUserUUID);
         }
         if (item.isWithdrawn() && isNotAdmin(context, item)) {
             List<MetadataValue> result = new ArrayList<MetadataValue>();
