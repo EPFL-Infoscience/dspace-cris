@@ -14,6 +14,7 @@ import org.dspace.content.Item;
 import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.services.RequestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,10 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty("related-item-enhancer-poller.enabled")
 public class RelatedItemEnhancerUpdatePoller {
     private static final Logger log = LoggerFactory.getLogger(RelatedItemEnhancerUpdatePoller.class);
+
+    @Autowired
+    private RequestService requestService;
+
     @Autowired
     private ItemEnhancerService itemEnhancerService;
 
@@ -33,6 +38,7 @@ public class RelatedItemEnhancerUpdatePoller {
 
     @Scheduled(fixedDelayString = "${related-item-enhancer-poller.delay}")
     public void pollItemToUpdateAndProcess() {
+        requestService.startRequest();
         try (Context context = new Context();) {
             log.debug("item enhancer poller executed");
             context.setDispatcher(RelatedItemEnhancerUpdatePoller.class.getSimpleName());
@@ -50,8 +56,10 @@ public class RelatedItemEnhancerUpdatePoller {
             }
             context.restoreAuthSystemState();
             context.complete();
+            requestService.endRequest(null);
         } catch (SQLException e) {
             log.error("Error polling items to update for metadata enrichment", e);
+            requestService.endRequest(e);
         }
     }
 
