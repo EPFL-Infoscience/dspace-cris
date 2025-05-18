@@ -149,7 +149,8 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         }
 
         List<CrisLayoutBox> boxes = findBoxes(context, item, preventBoxSecurityCheck);
-        List<MetadataValue> metadataValues = item.getMetadata();
+        List<MetadataValue> metadataValues = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY,
+                true);
         Optional<List<DCInputSet>> inputs = submissionDefinitionInputs();
         if (inputs.isPresent()) {
             List<MetadataValue> result = getFromSubmission(context, boxes, item, inputs.get(), metadataValues,
