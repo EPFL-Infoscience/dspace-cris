@@ -71,7 +71,7 @@ public class MetadataSecurityCacheServiceImpl implements MetadataSecurityCacheSe
     public List<MetadataValue> getCache(Context context, Item item,
             boolean preventBoxSecurityCheck) {
         Request currentRequest = requestService.getCurrentRequest();
-        Map<UUID, List<MetadataValue>> cache = null;
+        Map<String, List<MetadataValue>> cache = null;
         // this is almost always true but could be null in thread started manually with a scheduler, etc.
         if (currentRequest != null) {
             final String cacheName = preventBoxSecurityCheck ? SECURITY_METADATA_CACHE_PREVENT_BOX_SECURITY_CHECK
@@ -79,21 +79,24 @@ public class MetadataSecurityCacheServiceImpl implements MetadataSecurityCacheSe
             EPerson currUser = context != null ? context.getCurrentUser() : null;
             UUID currUserUUID = currUser != null ? currUser.getID() : null;
             UUID cacheUserUUID = (UUID) currentRequest.getAttribute(SECURITY_METADATA_CACHE_EPERSON);
-            cache = (Map<UUID, List<MetadataValue>>) currentRequest
+            cache = (Map<String, List<MetadataValue>>) currentRequest
                     .getAttribute(cacheName);
 
             if (cache != null) {
                 if (!Objects.equals(cacheUserUUID, currUserUUID)) {
                     // cache is invalid as it was generated for a different user
                     cache.clear();
-                } else if (cache.get(item.getID()) != null) {
-                    return cache.get(item.getID());
-                } else if (cache.size() > SECURITY_METADATA_CACHE_MAX_ITEMS) {
-                    // we only want to cache in the current thread a maximum amount of items
-                    // a single thread could check metadata of different items going back and
-                    // forward among them when traversing a graph, i.e. during the export of
-                    // an item fetching related items
-                    cache.clear();
+                } else {
+                    String cacheKey = getCacheKey(item);
+                    if (cache.get(cacheKey) != null) {
+                        return cache.get(cacheKey);
+                    } else if (cache.size() > SECURITY_METADATA_CACHE_MAX_ITEMS) {
+                        // we only want to cache in the current thread a maximum amount of items
+                        // a single thread could check metadata of different items going back and
+                        // forward among them when traversing a graph, i.e. during the export of
+                        // an item fetching related items
+                        cache.clear();
+                    }
                 }
             }
         }
@@ -106,15 +109,20 @@ public class MetadataSecurityCacheServiceImpl implements MetadataSecurityCacheSe
         Request currentRequest = requestService.getCurrentRequest();
         // this is almost always true but could be null in thread started manually with a scheduler, etc.
         if (currentRequest != null) {
-            Map<UUID, List<MetadataValue>> cache = new HashMap<UUID, List<MetadataValue>>();
+            Map<String, List<MetadataValue>> cache = new HashMap<String, List<MetadataValue>>();
             final String cacheName = preventBoxSecurityCheck ? SECURITY_METADATA_CACHE_PREVENT_BOX_SECURITY_CHECK
                     : SECURITY_METADATA_CACHE;
             EPerson currUser = context != null ? context.getCurrentUser() : null;
             UUID currUserUUID = currUser != null ? currUser.getID() : null;
-            cache.put(item.getID(), valuesToCache);
+            cache.put(getCacheKey(item), valuesToCache);
             currentRequest.setAttribute(cacheName, cache);
             currentRequest.setAttribute(SECURITY_METADATA_CACHE_EPERSON, currUserUUID);
         }
+    }
+
+    private String getCacheKey(Item item) {
+        String cacheKey = item.getID() + String.valueOf(item.getLastModified().getTime());
+        return cacheKey;
     }
 
 }

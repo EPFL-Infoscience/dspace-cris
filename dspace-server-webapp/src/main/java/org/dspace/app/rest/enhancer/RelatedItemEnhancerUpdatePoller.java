@@ -15,6 +15,7 @@ import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.services.RequestService;
+import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,7 @@ import org.springframework.stereotype.Component;
 public class RelatedItemEnhancerUpdatePoller {
     private static final Logger log = LoggerFactory.getLogger(RelatedItemEnhancerUpdatePoller.class);
 
-    @Autowired
-    private RequestService requestService;
+    private RequestService requestService = new DSpace().getRequestService();
 
     @Autowired
     private ItemEnhancerService itemEnhancerService;
