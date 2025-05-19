@@ -25,6 +25,8 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.handler.DSpaceRunnableHandler;
+import org.dspace.services.RequestService;
+import org.dspace.utils.DSpace;
 
 /**
  * This is the class that should be extended for each Script. This class will contain the logic needed to run and it'll
@@ -157,12 +159,34 @@ public abstract class DSpaceRunnable<T extends ScriptConfiguration> implements R
      */
     @Override
     public void run() {
+        RequestService requestService = new DSpace().getRequestService();
+        if (requestService == null) {
+            throw new IllegalStateException(
+                "Could not get the DSpace RequestService to start the request transaction");
+        }
+        boolean requestStarted = false;
         try {
             handler.start();
+            // we could have already a dspace request going on in the thread if
+            // the DSpaceRunnable is executed in the same thread where the process
+            // was initially requested. This is the case of our IT or if a current thread
+            // executor is used
+            if (requestService.getCurrentRequest() == null) {
+                requestStarted = true;
+                // Establish a request related to the current session
+                // that will trigger the various request listeners
+                requestService.startRequest();
+            }
             internalRun();
             handler.handleCompletion();
+            if (requestStarted) {
+                requestService.endRequest(null);
+            }
         } catch (Exception e) {
             handler.handleException(e);
+            if (requestStarted) {
+                requestService.endRequest(e);
+            }
         }
     }
 

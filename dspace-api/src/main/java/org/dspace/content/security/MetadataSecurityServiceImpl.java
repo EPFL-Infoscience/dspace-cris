@@ -29,6 +29,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.security.service.MetadataSecurityCacheService;
 import org.dspace.content.security.service.MetadataSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataSecurityEvaluation;
@@ -67,6 +68,9 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
 
     @Autowired
     private MetadataExposureService metadataExposureService;
+
+    @Autowired
+    private MetadataSecurityCacheService metadataSecurityCacheService;
 
     @Autowired
     private CrisLayoutBoxAccessService crisLayoutBoxAccessService;
@@ -125,23 +129,42 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
 
     private List<MetadataValue> getPermissionFilteredMetadata(Context context, Item item,
         List<MetadataValue> metadataValues, boolean preventBoxSecurityCheck) {
+        List<MetadataValue> allowedMetadata = getAllAllowedMetadata(context, item,
+                preventBoxSecurityCheck);
+        return metadataValues.stream().filter(v -> allowedMetadata.contains(v)).collect(Collectors.toList());
+    }
+
+    private List<MetadataValue> getAllAllowedMetadata(Context context, Item item,
+            boolean preventBoxSecurityCheck) {
+        List<MetadataValue> cache = metadataSecurityCacheService.getCache(context, item, preventBoxSecurityCheck);
+        // this is almost always true but could be null in thread started manually with a scheduler, etc.
+        if (cache != null) {
+            return cache;
+        }
 
         if (item.isWithdrawn() && isNotAdmin(context, item)) {
-            return new ArrayList<MetadataValue>();
+            List<MetadataValue> result = new ArrayList<MetadataValue>();
+            metadataSecurityCacheService.storeCache(context, item, preventBoxSecurityCheck, result);
+            return result;
         }
 
         List<CrisLayoutBox> boxes = findBoxes(context, item, preventBoxSecurityCheck);
-
+        List<MetadataValue> metadataValues = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY,
+                true);
         Optional<List<DCInputSet>> inputs = submissionDefinitionInputs();
         if (inputs.isPresent()) {
-            return getFromSubmission(context, boxes, item, inputs.get(), metadataValues, preventBoxSecurityCheck);
+            List<MetadataValue> result = getFromSubmission(context, boxes, item, inputs.get(), metadataValues,
+                    preventBoxSecurityCheck);
+            metadataSecurityCacheService.storeCache(context, item, preventBoxSecurityCheck, result);
+            return result;
         }
 
-        return metadataValues.stream()
-            .filter(value -> isMetadataValueVisible(context, boxes, item, value, preventBoxSecurityCheck))
-            .filter(value -> isMetadataValueReturnAllowed(context, item, value))
-            .collect(Collectors.toList());
-
+        List<MetadataValue> result = metadataValues.stream()
+                .filter(value -> isMetadataValueVisible(context, boxes, item, value, preventBoxSecurityCheck))
+                .filter(value -> isMetadataValueReturnAllowed(context, item, value))
+                .collect(Collectors.toList());
+        metadataSecurityCacheService.storeCache(context, item, preventBoxSecurityCheck, result);
+        return result;
     }
 
     private boolean canEditItem(Context context, Item item) {

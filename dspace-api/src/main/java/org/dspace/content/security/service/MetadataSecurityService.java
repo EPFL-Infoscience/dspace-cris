@@ -96,4 +96,5 @@ public interface MetadataSecurityService {
      *                                 otherwise
      */
     boolean checkMetadataFieldVisibility(Context context, Item item, MetadataField metadataField);
+
 }

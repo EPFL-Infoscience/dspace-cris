@@ -30,6 +30,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.security.service.MetadataSecurityCacheService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -67,6 +68,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
 
     @Autowired
+    private MetadataSecurityCacheService metadataSecurityCacheService;
+
+    @Autowired
     private CrisItemMetricsService crisMetricService;
 
     @Autowired
@@ -92,6 +96,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             throw new AuthorizeException(
                 "You must be an admin to create a Box");
         }
+        metadataSecurityCacheService.invalidateRequestCache();
         return dao.create(context, new CrisLayoutBox());
     }
 
@@ -111,6 +116,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             throw new AuthorizeException(
                 "You must be an admin to update a Box");
         }
+        metadataSecurityCacheService.invalidateRequestCache();
         if (CollectionUtils.isNotEmpty(boxList)) {
             for (CrisLayoutBox box : boxList) {
                 dao.save(context, box);
@@ -124,6 +130,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             throw new AuthorizeException(
                 "You must be an admin to delete a Box");
         }
+        metadataSecurityCacheService.invalidateRequestCache();
         box.getMetric2box().clear();
         dao.delete(context, box);
     }
@@ -134,6 +141,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             throw new AuthorizeException(
                 "You must be an admin to create a Box");
         }
+        metadataSecurityCacheService.invalidateRequestCache();
         return dao.create(context, box);
     }
 
@@ -144,6 +152,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             throw new AuthorizeException(
                 "You must be an admin to create a Box");
         }
+        metadataSecurityCacheService.invalidateRequestCache();
         CrisLayoutBox box = new CrisLayoutBox();
         box.setEntitytype(eType);
         box.setCollapsed(collapsed);
