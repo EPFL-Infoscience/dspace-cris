@@ -115,8 +115,7 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
                 String element = relationshipType.getLeftwardType();
                 List<ItemUuidAndRelationshipId> data = relationshipService
                     .findByLatestItemAndRelationshipType(context, item, relationshipType, true);
-                mdvs.addAll(constructLatestForDiscoveryMetadataValues(context, schema, element, qualifier, item,
-                        data));
+                mdvs.addAll(constructLatestForDiscoveryMetadataValues(context, schema, element, qualifier, data));
             }
 
             // item is on right side of this relationship type
@@ -129,8 +128,7 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
                 String element = relationshipType.getRightwardType();
                 List<ItemUuidAndRelationshipId> data = relationshipService
                     .findByLatestItemAndRelationshipType(context, item, relationshipType, false);
-                mdvs.addAll(constructLatestForDiscoveryMetadataValues(context, schema, element, qualifier, item,
-                        data));
+                mdvs.addAll(constructLatestForDiscoveryMetadataValues(context, schema, element, qualifier, data));
             }
         }
 
@@ -143,12 +141,11 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
      * @param schema the schema for all metadata values.
      * @param element the element for all metadata values.
      * @param qualifier the qualifier for all metadata values.
-     * @param item the item holding the RelationshipMetadataValue(s)
      * @param data a POJO containing the item uuid and relationship id.
      * @return a list (may be empty) of metadata values of type relation.*.latestForDiscovery.
      */
-    protected List<RelationshipMetadataValue> constructLatestForDiscoveryMetadataValues(Context context, String schema,
-            String element, String qualifier, Item item, List<ItemUuidAndRelationshipId> data
+    protected List<RelationshipMetadataValue> constructLatestForDiscoveryMetadataValues(
+        Context context, String schema, String element, String qualifier, List<ItemUuidAndRelationshipId> data
     ) {
         String mdf = new MetadataFieldName(schema, element, qualifier).toString();
 
@@ -158,7 +155,7 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
                 if (mdv == null) {
                     return null;
                 }
-                mdv.setDSpaceObject(item);
+
                 mdv.setAuthority(Constants.VIRTUAL_AUTHORITY_PREFIX + datum.getRelationshipId());
                 mdv.setValue(datum.getItemUuid().toString());
                 // NOTE: place has no meaning for relation.*.latestForDiscovery metadata fields
@@ -219,7 +216,7 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
                                                                                     relationship, place, isLeftwards));
         }
         RelationshipMetadataValue relationMetadataFromOtherItem =
-            getRelationMetadataFromOtherItem(context, item, otherItem, relationName, relationship.getID(), place);
+            getRelationMetadataFromOtherItem(context, otherItem, relationName, relationship.getID(), place);
         if (relationMetadataFromOtherItem != null) {
             resultingMetadataValueList.add(relationMetadataFromOtherItem);
         }
@@ -367,14 +364,13 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
 
     // This method will create the Relationship Metadatavalue that describes the relationship type and has the ID
     // of the other item as value
-    private RelationshipMetadataValue getRelationMetadataFromOtherItem(Context context, Item item, Item otherItem,
+    private RelationshipMetadataValue getRelationMetadataFromOtherItem(Context context, Item otherItem,
                                                                        String relationName,
                                                                        Integer relationshipId, int place) {
         RelationshipMetadataValue metadataValue = constructMetadataValue(context,
             MetadataSchemaEnum.RELATION
                 .getName() + "." + relationName);
         if (metadataValue != null) {
-            metadataValue.setDSpaceObject(item);
             metadataValue.setAuthority(Constants.VIRTUAL_AUTHORITY_PREFIX + relationshipId);
             metadataValue.setValue(otherItem.getID().toString());
             metadataValue.setPlace(place);

@@ -145,7 +145,6 @@
 
     <bean class="org.dspace.util.FrontendUrlService"/>
 
-    <bean class="org.dspace.content.security.MetadataSecurityCacheServiceImpl"/>
     <bean class="org.dspace.content.security.MetadataSecurityServiceImpl"/>
     <bean class="org.dspace.metricsSecurity.BoxMetricsLayoutConfigurationService"/>
 

@@ -18,7 +18,6 @@ import java.util.TimeZone;
 import org.apache.logging.log4j.Logger;
 import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
-import org.dspace.services.RequestService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -89,17 +88,6 @@ public class AbstractDSpaceTest {
                 // For example: by using <systemPropertyVariables> of maven-surefire-plugin or maven-failsafe-plugin
                 kernelImpl.start(getDspaceDir()); // init the kernel
             }
-            // Establish the request service startup
-            RequestService requestService = kernelImpl.getServiceManager().getServiceByName(
-                RequestService.class.getName(), RequestService.class);
-            if (requestService == null) {
-                throw new IllegalStateException(
-                    "Could not get the DSpace RequestService to start the request transaction");
-            }
-
-            // Establish a request related to the current session
-            // that will trigger the various request listeners
-            requestService.startRequest();
         } catch (IOException ex) {
             log.error("Error initializing tests", ex);
             fail("Error initializing tests: " + ex.getMessage());
@@ -116,11 +104,6 @@ public class AbstractDSpaceTest {
         //we clear the properties
         testProps.clear();
         testProps = null;
-
-        // ensure we close out the request (happy request)
-        RequestService requestService = kernelImpl.getServiceManager().getServiceByName(
-                RequestService.class.getName(), RequestService.class);
-        requestService.endRequest(null);
 
         //Also clear out the kernel & nullify (so JUnit will clean it up)
         if (kernelImpl != null) {

@@ -68,10 +68,6 @@ public class ContextUtil {
         }
     }
 
-    public static Context obtainContext(ServletRequest request) {
-        return obtainCurrentRequestContext();
-    }
-
     /**
      * Obtain a new context object. If a context object has already been created
      * for this HTTP request, it is re-used, otherwise it is created.
@@ -79,12 +75,12 @@ public class ContextUtil {
      * @param request the servlet request object
      * @return a context object
      */
-    public static Context obtainContext(Request request) {
+    public static Context obtainContext(ServletRequest request) {
         Context context = (Context) request.getAttribute(DSPACE_CONTEXT);
 
         if (context == null) {
             try {
-                context = ContextUtil.initializeContext(request);
+                context = ContextUtil.initializeContext((HttpServletRequest) request);
             } catch (SQLException e) {
                 log.error("Unable to initialize context", e);
                 return null;
@@ -96,7 +92,7 @@ public class ContextUtil {
         // this need to be verified each time that the context is extracted from the request
         // as some call happen before that the login process is completed and user settings can
         // change the locale
-        Locale currentLocale = getLocale(context, request.getHttpServletRequest());
+        Locale currentLocale = getLocale(context, (HttpServletRequest) request);
         context.setCurrentLocale(currentLocale);
         return context;
     }
@@ -112,7 +108,7 @@ public class ContextUtil {
         RequestService requestService = new DSpace().getRequestService();
         Request currentRequest = requestService.getCurrentRequest();
         if (currentRequest != null) {
-            context = ContextUtil.obtainContext(currentRequest);
+            context = ContextUtil.obtainContext(currentRequest.getHttpServletRequest());
         }
         return context;
     }
@@ -122,7 +118,7 @@ public class ContextUtil {
         Locale supportedLocale = null;
 
         // Locales requested from client
-        String locale = request != null ? request.getHeader("Accept-Language") : null;
+        String locale = request.getHeader("Accept-Language");
         if (StringUtils.isNotBlank(locale)) {
             Enumeration<Locale> locales = request.getLocales();
             if (locales != null) {
@@ -154,9 +150,8 @@ public class ContextUtil {
      * @return a DSpace Context Object
      * @throws SQLException
      */
-    private static Context initializeContext(Request request) throws SQLException {
-        return requestShouldBeInReadOnlyMode(request.getHttpServletRequest()) ? new Context(Mode.READ_ONLY)
-                : new Context();
+    private static Context initializeContext(HttpServletRequest request) throws SQLException {
+        return requestShouldBeInReadOnlyMode(request) ? new Context(Mode.READ_ONLY) : new Context();
     }
 
     /**
@@ -186,7 +181,7 @@ public class ContextUtil {
 
     private static boolean requestShouldBeInReadOnlyMode(HttpServletRequest request) {
 
-        if (request == null || !request.getMethod().equals(HttpMethod.GET.name())) {
+        if (!request.getMethod().equals(HttpMethod.GET.name())) {
             return false;
         }
 

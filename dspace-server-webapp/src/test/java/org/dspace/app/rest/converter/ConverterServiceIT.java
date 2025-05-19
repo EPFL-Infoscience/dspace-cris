@@ -32,6 +32,7 @@ import org.dspace.app.rest.model.hateoas.MockObjectResource;
 import org.dspace.app.rest.projection.MockProjection;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.core.Context;
 import org.dspace.services.RequestService;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,6 +77,7 @@ public class ConverterServiceIT extends AbstractControllerIntegrationTest {
         // Request. This Request isn't available through tests on itself and thus we have to mock it here to avoid
         // the PermissionEvaluator from crashing because of this.
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        mockHttpServletRequest.setAttribute("dspace.context", new Context());
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
         requestService.startRequest(mockHttpServletRequest, mockHttpServletResponse);
         Authentication authentication = mock(Authentication.class);

@@ -21,10 +21,7 @@ import org.dspace.builder.AbstractBuilder;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.servicemanager.DSpaceKernelImpl;
 import org.dspace.servicemanager.DSpaceKernelInit;
-import org.dspace.services.RequestService;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 
 /**
@@ -91,29 +88,6 @@ public class AbstractDSpaceIntegrationTest {
             log.error("Error initializing tests", ex);
             fail("Error initializing tests: " + ex.getMessage());
         }
-    }
-
-    @Before
-    public void startDSpaceRequest() {
-        // Establish the request service startup
-        RequestService requestService = kernelImpl.getServiceManager().getServiceByName(
-            RequestService.class.getName(), RequestService.class);
-        if (requestService == null) {
-            throw new IllegalStateException(
-                "Could not get the DSpace RequestService to start the request transaction");
-        }
-
-        // Establish a request related to the current session
-        // that will trigger the various request listeners
-        requestService.startRequest();
-    }
-
-    @After
-    public void endDSpaceRequest() {
-        // ensure we close out the request (happy request)
-        RequestService requestService = kernelImpl.getServiceManager().getServiceByName(
-                RequestService.class.getName(), RequestService.class);
-        requestService.endRequest(null);
     }
 
     /**
