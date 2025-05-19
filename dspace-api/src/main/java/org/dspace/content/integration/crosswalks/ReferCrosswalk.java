@@ -137,6 +137,8 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private boolean findRelatedItems = false;
 
+    private boolean fastMetadataSecurity = false;
+
     @PostConstruct
     private void postConstruct() throws IOException {
         String parent = configurationService.getProperty("dspace.dir") + File.separator + "config" + File.separator;
@@ -417,7 +419,8 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             return values != null ? Arrays.asList(values) : Collections.emptyList();
         }
 
-        return metadataSecurityService.getPermissionFilteredMetadataValues(context, item, line.getField()).stream()
+        return metadataSecurityService
+                .getPermissionFilteredMetadataValues(context, item, line.getField(), fastMetadataSecurity).stream()
             .map(MetadataValue::getValue)
             .collect(Collectors.toList());
 
@@ -685,4 +688,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         this.findRelatedItems = findRelatedItems;
     }
 
+    public void setFastMetadataSecurity(boolean fastMetadataSecurity) {
+        this.fastMetadataSecurity = fastMetadataSecurity;
+    }
 }
