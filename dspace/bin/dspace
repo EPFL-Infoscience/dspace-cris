@@ -13,6 +13,7 @@
 # Assume that this script is in the bin subdirectory of the DSpace installation directory.
 BINDIR=`dirname $0`
 DSPACEDIR=`cd "$BINDIR/.." ; pwd`
+TIKACFG=$DSPACEDIR/config/tika-config.xml
 
 # Get the JARs in $DSPACEDIR/lib
 JARS="$DSPACEDIR/lib/*"
@@ -35,8 +36,8 @@ fi
 
 #Allow user to specify java options through JAVA_OPTS variable
 if [ "$JAVA_OPTS" = "" ]; then
-  #Default Java to use 4096m of memory
-  JAVA_OPTS="-Xmx4096m -Dfile.encoding=UTF-8"
+  #Default Java to use 4096MB of memory
+  JAVA_OPTS="-Xmx4096m -Dfile.encoding=UTF-8 -Dtika.config=$TIKACFG"
 fi
 
 # Now invoke Java

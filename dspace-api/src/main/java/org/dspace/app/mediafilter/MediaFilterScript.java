@@ -62,6 +62,8 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
     private boolean isVerbose = false;
     private boolean isQuiet = false;
     private boolean isForce = false; // default to not forced
+    private String[] bundleNamesToSkip; // skip all items that seems to have been already processed
+    private int modifiedSinceDays = -1; // only process item modified in the last days
     private String identifier = null; // object scope limiter
     private int max2Process = Integer.MAX_VALUE;
     private String[] filterNames;
@@ -86,6 +88,13 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
 
         if (commandLine.hasOption('u')) {
             updateLastModified = true;
+        }
+
+        if (commandLine.hasOption('b')) {
+            bundleNamesToSkip = commandLine.getOptionValues('b');
+        }
+        if (commandLine.hasOption('l')) {
+            modifiedSinceDays = Integer.parseInt(commandLine.getOptionValue('l'));
         }
 
         isQuiet = commandLine.hasOption('q');
@@ -246,7 +255,7 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
 
             // now apply the filters
             if (identifier == null) {
-                mediaFilterService.applyFiltersAllItems(c, updateLastModified);
+                mediaFilterService.applyFiltersAllItems(c, updateLastModified, modifiedSinceDays, bundleNamesToSkip);
             } else {
                 // restrict application scope to identifier
                 DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(c, identifier);
@@ -257,10 +266,12 @@ public class MediaFilterScript extends DSpaceRunnable<MediaFilterScriptConfigura
 
                 switch (dso.getType()) {
                     case Constants.COMMUNITY:
-                        mediaFilterService.applyFiltersCommunity(c, (Community) dso, updateLastModified);
+                        mediaFilterService.applyFiltersCommunity(c, (Community) dso, updateLastModified,
+                                modifiedSinceDays, bundleNamesToSkip);
                         break;
                     case Constants.COLLECTION:
-                        mediaFilterService.applyFiltersCollection(c, (Collection) dso, updateLastModified);
+                        mediaFilterService.applyFiltersCollection(c, (Collection) dso, updateLastModified,
+                                modifiedSinceDays, bundleNamesToSkip);
                         break;
                     case Constants.ITEM:
                         mediaFilterService.applyFiltersItem(c, (Item) dso, updateLastModified);
