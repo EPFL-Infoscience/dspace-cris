@@ -452,6 +452,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     @Override
+    public List<UUID> findAllItemIds(Context context) throws SQLException {
+        return itemDAO.findAllItemIds(context, true, true);
+    }
+
+    @Override
     public Iterator<Item> findAllRegularItems(Context context) throws SQLException {
         return itemDAO.findAllRegularItems(context);
     }

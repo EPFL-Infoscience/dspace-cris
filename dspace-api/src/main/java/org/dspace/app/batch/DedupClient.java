@@ -100,6 +100,8 @@ public class DedupClient {
             System.exit(1);
         }
 
+        log.info("Starting index-deduplication");
+
         /** Acquire from dspace-services in future */
         /**
          * new

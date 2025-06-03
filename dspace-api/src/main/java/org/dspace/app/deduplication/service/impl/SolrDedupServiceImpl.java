@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.logging.log4j.LogManager;
@@ -761,24 +760,23 @@ public class SolrDedupServiceImpl implements DedupService {
         int numThreads = configurationService.getIntProperty("deduplication.indexer.items.threads", 5);
 
         if (ids == null) {
-            ids = new ArrayList<>();
-            Iterator<Item> items = itemService.findAllUnfiltered(context);
-            for (Item item : ImmutableList.copyOf(items)) {
-                ids.add(item.getID());
-            }
+            ids = itemService.findAllItemIds(context);
         }
         List<UUID>[] arrayIDList = Util.splitList(ids, numThreads);
         List<IndexerThread> threads = new ArrayList<IndexerThread>();
+        log.info("Indexing " + ids.size() + " item with " + arrayIDList.length + " threads");
         for (List<UUID> hl : arrayIDList) {
             IndexerThread thread = new IndexerThread(hl, onlyFake);
             thread.start();
             threads.add(thread);
         }
-        boolean finished = false;
-        while (!finished) {
-            finished = true;
-            for (IndexerThread thread : threads) {
-                finished = finished && !thread.isAlive();
+
+        for (IndexerThread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Interrupted thread: " + thread.getName());
             }
         }
     }
@@ -797,14 +795,15 @@ public class SolrDedupServiceImpl implements DedupService {
         public void run() {
             Context context = null;
             try {
-                context = new Context();
+                context = new Context(Context.Mode.READ_ONLY);
                 context.turnOffAuthorisationSystem();
                 int idx = 1;
                 final String head = this.getName() + "#" + this.getId();
                 final int size = itemids.size();
+                Item item = null;
                 for (UUID id : itemids) {
                     try {
-                        Item item = ContentServiceFactory.getInstance().getItemService().find(context, id);
+                        item = ContentServiceFactory.getInstance().getItemService().find(context, id);
                         Map<String, List<String>> tmpMapFilter = new HashMap<String, List<String>>();
                         List<String> tmpFilter = new ArrayList<String>();
                         fillSignature(context, (DSpaceObject) item, tmpMapFilter, tmpFilter);
@@ -823,6 +822,10 @@ public class SolrDedupServiceImpl implements DedupService {
                     } catch (Exception ex) {
                         System.out.println("ERROR: identifier item:" + id + " identifier thread:" + head + " error:"
                                 + ex.getMessage());
+                    } finally {
+                        if (item != null) {
+                            context.uncacheEntity(item);
+                        }
                     }
                     System.out.println(head + ":" + (idx++) + " / " + size);
                 }
