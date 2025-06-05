@@ -45,12 +45,12 @@ import org.dspace.app.deduplication.service.SolrDedupServiceIndexPlugin;
 import org.dspace.app.deduplication.utils.DuplicateItemInfo;
 import org.dspace.app.deduplication.utils.IDedupUtils;
 import org.dspace.app.deduplication.utils.Signature;
-import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -62,6 +62,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.dspace.versioning.service.VersioningService;
+import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -162,6 +163,12 @@ public class SolrDedupServiceImpl implements DedupService {
 
     @Autowired(required = true)
     protected ItemService itemService;
+
+    @Autowired(required = true)
+    protected WorkspaceItemService workspaceItemService;
+
+    @Autowired(required = true)
+    protected WorkflowItemService workflowItemService;
 
     @Autowired(required = true)
     private DeduplicationService deduplicationService;
@@ -651,9 +658,9 @@ public class SolrDedupServiceImpl implements DedupService {
     }
 
     @Override
-    public void indexContent(Context context, List<UUID> ids, boolean force) {
+    public void indexContent(Context context, List<String> ids, boolean force) {
         try {
-            startMultiThreadIndex(context, force, ids);
+            indexItemList(context, force, ids);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -662,9 +669,9 @@ public class SolrDedupServiceImpl implements DedupService {
     @Override
     public void updateIndex(Context context, boolean force) {
         try {
-            startMultiThreadIndex(context, true, null);
+            indexItemList(context, true, null);
             commit();
-            startMultiThreadIndex(context, false, null);
+            indexItemList(context, false, null);
             commit();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -756,88 +763,65 @@ public class SolrDedupServiceImpl implements DedupService {
         }
     }
 
-    private void startMultiThreadIndex(Context context, boolean onlyFake, List<UUID> ids) throws SQLException {
-        int numThreads = configurationService.getIntProperty("deduplication.indexer.items.threads", 5);
-
-        if (ids == null) {
-            ids = itemService.findAllItemIds(context);
-        }
-        List<UUID>[] arrayIDList = Util.splitList(ids, numThreads);
-        List<IndexerThread> threads = new ArrayList<IndexerThread>();
-        log.info("Indexing " + ids.size() + " item with " + arrayIDList.length + " threads");
-        for (List<UUID> hl : arrayIDList) {
-            IndexerThread thread = new IndexerThread(hl, onlyFake);
-            thread.start();
-            threads.add(thread);
-        }
-
-        for (IndexerThread thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.error("Interrupted thread: " + thread.getName());
+    private void indexItemList(Context context, boolean onlyFake, List<String> ids) throws SQLException {
+        Iterator<Item> items;
+        try {
+            context.turnOffAuthorisationSystem();
+            // if a list of ids is provided, index the relative items, otherwise index all items
+            if (ids != null) {
+                items = itemService.findByIds(context, ids);
+                indexItems(context, onlyFake, items);
+            } else {
+                items = itemService.findAll(context);
+                indexItems(context, onlyFake, items);
+                //items = workspaceItemService.findAll(context);
+            }
+        } finally {
+            if (context != null) {
+                context.restoreAuthSystemState();
             }
         }
     }
 
-    class IndexerThread extends Thread {
-        private boolean onlyFake;
-
-        private List<UUID> itemids;
-
-        public IndexerThread(List<UUID> itemids, boolean onlyFake) {
-            this.onlyFake = onlyFake;
-            this.itemids = itemids;
-        }
-
-        @Override
-        public void run() {
-            Context context = null;
+    private void indexItems(Context context, boolean onlyFake, Iterator<Item> items) throws SQLException {
+        items.forEachRemaining(item -> {
             try {
-                context = new Context(Context.Mode.READ_ONLY);
-                context.turnOffAuthorisationSystem();
-                int idx = 1;
-                final String head = this.getName() + "#" + this.getId();
-                final int size = itemids.size();
-                Item item = null;
-                for (UUID id : itemids) {
-                    try {
-                        item = ContentServiceFactory.getInstance().getItemService().find(context, id);
-                        Map<String, List<String>> tmpMapFilter = new HashMap<String, List<String>>();
-                        List<String> tmpFilter = new ArrayList<String>();
-                        fillSignature(context, (DSpaceObject) item, tmpMapFilter, tmpFilter);
-                        if (!tmpFilter.isEmpty()) {
-                            // retrieve all search plugin to build search document in the same index
-                            SearchDeduplication searchSignature = dspace.getServiceManager().getServiceByName(
-                                    "item".toUpperCase() + "SearchDeduplication", SearchDeduplication.class);
-                            if (onlyFake) {
-                                buildFromDedupReject(context, item, tmpMapFilter, tmpFilter, searchSignature);
-                                build(context, item.getID(), item.getID(), DeduplicationFlag.FAKE, tmpMapFilter,
-                                        searchSignature, null);
-                            } else {
-                                buildPotentialMatch(context, item, tmpMapFilter, tmpFilter, searchSignature);
-                            }
-                        }
-                    } catch (Exception ex) {
-                        System.out.println("ERROR: identifier item:" + id + " identifier thread:" + head + " error:"
-                                + ex.getMessage());
-                    } finally {
-                        if (item != null) {
-                            context.uncacheEntity(item);
-                        }
-                    }
-                    System.out.println(head + ":" + (idx++) + " / " + size);
+                indexItem(context, onlyFake, item);
+            } catch (SQLException e) {
+                log.error("Error indexing item " + item.getID(), e);
+            }
+        });
+    }
+
+    private void indexItem(Context context, boolean onlyFake, Item item) throws SQLException {
+        try {
+            log.info("Indexing item " + item.getID());
+            System.out.println("Indexing item " + item.getID());
+            Map<String, List<String>> tmpMapFilter = new HashMap<String, List<String>>();
+            List<String> tmpFilter = new ArrayList<String>();
+            fillSignature(context, (DSpaceObject) item, tmpMapFilter, tmpFilter);
+            if (!tmpFilter.isEmpty()) {
+                // retrieve all search plugin to build search document in the same index
+                SearchDeduplication searchSignature = dspace.getServiceManager().getServiceByName(
+                        "item".toUpperCase() + "SearchDeduplication", SearchDeduplication.class);
+                if (onlyFake) {
+                    buildFromDedupReject(context, item, tmpMapFilter, tmpFilter, searchSignature);
+                    build(context, item.getID(), item.getID(), DeduplicationFlag.FAKE, tmpMapFilter,
+                            searchSignature, null);
+                } else {
+                    buildPotentialMatch(context, item, tmpMapFilter, tmpFilter, searchSignature);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (context != null) {
-                    context.abort();
-                }
+            }
+        } catch (Exception ex) {
+            log.error("Error while indexing item: " + item.getID() + " message:" + ex.getMessage(), ex);
+        } finally {
+            if (item != null) {
+                context.uncacheEntity(item);
             }
         }
     }
+
+
 
     private void buildFromDedupReject(Context ctx, DSpaceObject iu, Map<String, List<String>> tmpMapFilter,
             List<String> tmpFilter, SearchDeduplication searchSignature) {

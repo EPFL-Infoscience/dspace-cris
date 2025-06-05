@@ -36,17 +36,6 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item> {
     public Iterator<Item> findAll(Context context, boolean archived, boolean withdrawn) throws SQLException;
 
     /**
-     * Find a list of UUIDs of items, filtered by archived and withdrawn status
-     *
-     * @param context the DSpace context.
-     * @param archived true for archived items, false otherwise
-     * @param withdrawn true for withdrawn items, false otherwise
-     * @return a List of the items' UUID
-     * @throws SQLException
-     */
-    public List<UUID> findAllItemIds(Context context, boolean archived, boolean withdrawn) throws SQLException;
-
-    /**
      * Find all items that are:
      * - NOT in the workspace
      * - NOT in the workflow

@@ -130,16 +130,6 @@ public interface ItemService
     public Iterator<Item> findAllUnfiltered(Context context) throws SQLException;
 
     /**
-     * Get all "final" items in the archive, both archived ("in archive" flag) or
-     * withdrawn items are included. The order of the list is indeterminate.
-     *
-     * @param context DSpace context object
-     * @return a List of the items' UUID
-     * @throws SQLException if database error
-     */
-    public List<UUID> findAllItemIds(Context context) throws SQLException;
-
-    /**
      * Find all items that are:
      * - NOT in the workspace
      * - NOT in the workflow

@@ -88,17 +88,6 @@ public class ItemDAOImpl extends AbstractHibernateDSODAO<Item> implements ItemDA
     }
 
     @Override
-    public List<UUID> findAllItemIds(Context context, boolean archived, boolean withdrawn) throws SQLException {
-        Query query = createQuery(context,
-                "SELECT i.id FROM Item i WHERE inArchive=:in_archive or withdrawn=:withdrawn ORDER BY id");
-        query.setParameter("in_archive", archived);
-        query.setParameter("withdrawn", withdrawn);
-        @SuppressWarnings("unchecked")
-        List<UUID> uuids = query.getResultList();
-        return uuids;
-    }
-
-    @Override
     public Iterator<Item> findAllRegularItems(Context context) throws SQLException {
         // NOTE: This query includes archived items, withdrawn items and older versions of items.
         //       It does not include workspace, workflow or template items.
