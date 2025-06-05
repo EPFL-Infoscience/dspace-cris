@@ -101,6 +101,8 @@ public class DedupClient {
         }
 
         log.info("Starting index-deduplication");
+        long startTime = System.currentTimeMillis();
+
 
         /** Acquire from dspace-services in future */
         /**
@@ -165,7 +167,8 @@ public class DedupClient {
             context.abort();
         }
 
-        log.info("Done with indexing");
+        long timeElapsed = System.currentTimeMillis() - startTime;
+        log.info("Done with indexing. Time elapsed: " + timeElapsed / 1000 + " seconds");
+        System.out.println("Done with indexing. Time elapsed: " + timeElapsed / 1000 + " seconds");
     }
-
 }

@@ -48,6 +48,7 @@ import org.dspace.app.deduplication.utils.Signature;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -62,6 +63,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.dspace.versioning.service.VersioningService;
+import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -669,9 +671,9 @@ public class SolrDedupServiceImpl implements DedupService {
     @Override
     public void updateIndex(Context context, boolean force) {
         try {
-            indexItemList(context, true, null);
+            indexAllItems(context, true);
             commit();
-            indexItemList(context, false, null);
+            indexAllItems(context, false);
             commit();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -763,19 +765,45 @@ public class SolrDedupServiceImpl implements DedupService {
         }
     }
 
+    /**
+     * Indexes a list of items in a Solr instance.
+     *
+     * @param context   The context of the current operation, providing access to services and authorization control.
+     * @param onlyFake  A flag indicating if only "fake" items should be indexed.
+     * @param ids       A list of identifiers for the items to be indexed.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
     private void indexItemList(Context context, boolean onlyFake, List<String> ids) throws SQLException {
-        Iterator<Item> items;
+        if (ids != null && !ids.isEmpty()) {
+            try {
+                context.turnOffAuthorisationSystem();
+                Iterator<Item> items = itemService.findByIds(context, ids);
+                indexItems(context, onlyFake, items);
+            } finally {
+                if (context != null) {
+                    context.restoreAuthSystemState();
+                }
+            }
+        }
+    }
+
+    /**
+     * Indexes all items within the repository, including regular items,
+     * workspace items, and workflow items. Allows for selective indexing
+     * of "fake" items if specified.
+     *
+     * @param context   The operational context, which includes authorization
+     *                  and service access.
+     * @param onlyFake  A flag indicating whether to index only "fake" items
+     *                  (true for only "fake" items, false for all items).
+     * @throws SQLException If an error occurs during the database operation.
+     */
+    private void indexAllItems(Context context, boolean onlyFake) throws SQLException {
         try {
             context.turnOffAuthorisationSystem();
-            // if a list of ids is provided, index the relative items, otherwise index all items
-            if (ids != null) {
-                items = itemService.findByIds(context, ids);
-                indexItems(context, onlyFake, items);
-            } else {
-                items = itemService.findAll(context);
-                indexItems(context, onlyFake, items);
-                //items = workspaceItemService.findAll(context);
-            }
+            indexItems(context, onlyFake, itemService.findAll(context));
+            indexWorkspaceItems(context, onlyFake, workspaceItemService.findAll(context));
+            indexWorkflowItems(context, onlyFake, workflowItemService.findAll(context));
         } finally {
             if (context != null) {
                 context.restoreAuthSystemState();
@@ -793,6 +821,38 @@ public class SolrDedupServiceImpl implements DedupService {
         });
     }
 
+    private void indexWorkspaceItems(Context context, boolean onlyFake, List<WorkspaceItem> items) throws SQLException {
+        items.forEach(workspaceItem -> {
+            try {
+                indexItem(context, onlyFake, workspaceItem.getItem());
+            } catch (SQLException e) {
+                log.error("Error indexing workspaceitem " + workspaceItem.getID(), e);
+            }
+        });
+    }
+
+    private void indexWorkflowItems(Context context, boolean onlyFake, List<WorkflowItem> items) throws SQLException {
+        items.forEach(workflowItem -> {
+            try {
+                indexItem(context, onlyFake, workflowItem.getItem());
+            } catch (SQLException e) {
+                log.error("Error indexing workflowitem " + workflowItem.getID(), e);
+            }
+        });
+    }
+
+    /**
+     * Indexes a specific item into the Solr index. Supports selective processing
+     * based on the "onlyFake" flag to determine how the item should be indexed.
+     * Handles potential matches or fake signatures during the indexing process.
+     *
+     * @param context   The context of the current operation, providing access
+     *                  to services and authorization control.
+     * @param onlyFake  A flag indicating whether to process only "fake" items
+     *                  (true for only "fake" items, false to handle regular indexing).
+     * @param item      The item to be indexed in the Solr instance.
+     * @throws SQLException If an SQL error occurs while performing database operations.
+     */
     private void indexItem(Context context, boolean onlyFake, Item item) throws SQLException {
         try {
             log.info("Indexing item " + item.getID());
