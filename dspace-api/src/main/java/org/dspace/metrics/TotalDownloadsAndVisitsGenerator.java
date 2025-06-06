@@ -16,7 +16,6 @@ import java.util.UUID;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.core.Constants;
-import org.dspace.servicemanager.config.DSpaceConfigurationService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.SolrLoggerServiceImpl;

@@ -22,6 +22,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.IndexingService;
 import org.dspace.metrics.MetricsExternalServices;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,6 +41,9 @@ public class UpdateScopusPersonMetrics extends MetricsExternalServices {
 
     @Autowired
     private CrisMetricsService crisMetricsService;
+
+    @Autowired
+    private IndexingService indexingService;
 
     @Override
     public List<String> getFilters() {
@@ -98,6 +102,8 @@ public class UpdateScopusPersonMetrics extends MetricsExternalServices {
         newMetric.setAcquisitionDate(new Date());
         newMetric.setDeltaPeriod1(deltaPeriod1);
         newMetric.setDeltaPeriod2(deltaPeriod2);
+
+        indexingService.updateMetrics(context, newMetric);
     }
 
     private Double getDeltaPeriod(CrisMetricDTO currentMetric, Optional<CrisMetrics> metric) {
