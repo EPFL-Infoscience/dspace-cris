@@ -51,6 +51,32 @@ public class TitleWithDigitAndYearSignature extends MD5ValueSignature {
         }
     }
 
+    @Override
+    protected String normalize(DSpaceObject item, String value) {
+        String result = value;
+        if (StringUtils.isEmpty(value)) {
+            if (StringUtils.isNotEmpty(prefix)) {
+                result = prefix + item.getID();
+            } else {
+                result = "entity:" + item.getID();
+            }
+        } else {
+            for (String prefix : ignorePrefix) {
+                if (value.startsWith(prefix)) {
+                    result = value.substring(prefix.length());
+                    break;
+                }
+            }
+            String year = Objects.nonNull(item) ? getYear((Item) item) : StringUtils.EMPTY;
+            result = StringUtils.isNotBlank(year) ? year + " " + result : result;
+            if (StringUtils.isNotEmpty(prefix)) {
+                result = prefix + result;
+            }
+        }
+
+        return result;
+    }
+
     private String getYear(Item item) {
         String value = itemService.getMetadata(item, metadataYear);
         return StringUtils.isNotBlank(value) ? StringUtils.substring(value, 0, 4) : StringUtils.EMPTY;

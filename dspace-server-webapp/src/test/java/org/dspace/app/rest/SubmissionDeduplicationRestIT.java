@@ -68,7 +68,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author fcadili (francecso.cadili at 4science.it)
  *
  */
-@Ignore
 public class SubmissionDeduplicationRestIT extends AbstractControllerIntegrationTest {
 
     @Autowired
@@ -99,12 +98,12 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
                                           .withName("Root community").build();
 
         submitter = EPersonBuilder.createEPerson(context)
-                                  .withEmail("submitter.em@test.com")
+                                  .withEmail(UUID.randomUUID().toString() + "submitter.em@test.com")
                                   .withPassword(password)
                                   .build();
 
         editor = EPersonBuilder.createEPerson(context)
-                               .withEmail("editor@example.com")
+                               .withEmail(UUID.randomUUID().toString() + "editor@example.com")
                                .withPassword(password).build();
 
         collection = CollectionBuilder.createCollection(context, parentCommunity)
@@ -1856,6 +1855,7 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
     }
 
     @Test
+    @Ignore
     public void testNewVersionsInherentDuplicateDecisions() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1912,6 +1912,72 @@ public class SubmissionDeduplicationRestIT extends AbstractControllerIntegration
                 is(itemV2.getID().toString())))
             .andExpect(jsonPath("$.sections['detect-duplicate'].matches['" + itemV2.getID() + "'].submitterDecision",
                 is("reject")));
+
+        context.restoreAuthSystemState();
+
+    }
+
+    @Test
+    public void testDuplicateWithTitleAndYear() throws Exception {
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        // base item
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Item for dedup")
+            .withIssueDate("2020-01-01")
+            .grantLicense()
+            .withFulltext("test.txt", "test", InputStream.nullInputStream())
+            .build();
+
+        // workspace item with same title but without a date
+        WorkspaceItem wsItem1 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                .withTitle("Item for dedup")
+                .withType("Article")
+                .grantLicense()
+                .withFulltext("test.txt", "test", InputStream.nullInputStream())
+                .build();
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + wsItem1.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.detect-duplicate')]").doesNotExist());
+
+        // workspace item with same title but different date
+        WorkspaceItem wsItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                .withTitle("Item for dedup")
+                .withIssueDate("2025-01-01")
+                .withType("Article")
+                .grantLicense()
+                .withFulltext("test.txt", "test", InputStream.nullInputStream())
+                .build();
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + wsItem2.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.detect-duplicate')]").doesNotExist());
+
+        // workspace item with same title and same date
+        WorkspaceItem wsItem3 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                .withTitle("Item for dedup")
+                .withIssueDate("2020-01-01")
+                .withType("Article")
+                .grantLicense()
+                .withFulltext("test.txt", "test", InputStream.nullInputStream())
+                .build();
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + wsItem3.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.detect-duplicate')]",
+                    contains(hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/detect-duplicate")))))))
+            .andExpect(jsonPath("$.sections['detect-duplicate'].matches['" + item.getID() + "'].matchObject.id",
+                    is(item.getID().toString())))
+            .andExpect(jsonPath("$.sections['detect-duplicate'].matches['" + item.getID() + "'].submitterDecision")
+                    .doesNotExist());
 
         context.restoreAuthSystemState();
 
