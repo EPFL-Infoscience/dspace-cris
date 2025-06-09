@@ -7,7 +7,6 @@
  */
 package org.dspace.authenticate;
 
-
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.net.URLEncoder.encode;
@@ -17,21 +16,27 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authenticate.oidc.OidcClient;
 import org.dspace.authenticate.oidc.model.OidcTokenResponseDTO;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.services.ConfigurationService;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +60,41 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
     private static final Logger LOGGER = LoggerFactory.getLogger(OidcAuthenticationBean.class);
 
     private static final String OIDC_AUTHENTICATED = "oidc.authenticated";
+
+    protected static final int NAME_MAX_SIZE = 64;
+
+    /**
+     * User information recovery modes. With some providers, the userinfo call can be
+     * avoided by retrieving the information through the ID Token.
+     */
+    protected enum UserInfoRecoveryMode {
+        // Default: retrieve information through userinfo call to the OpenID Connect Provider
+        USERINFO_CALL(0),
+        // Retrieve information through claims, detected through ID Token
+        MERGE_CLAIMS(1),
+        // Performs both methods, giving priority to the claims
+        BOTH(2);
+
+        private final int value;
+
+        UserInfoRecoveryMode(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public boolean requiresUserInfoCall() {
+            return this == USERINFO_CALL || this == BOTH;
+        }
+
+        public boolean requiresClaimsMerge() {
+            return this == MERGE_CLAIMS || this == BOTH;
+        }
+
+    }
+
 
     @Autowired
     private ConfigurationService configurationService;
@@ -124,28 +164,207 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
             return NO_SUCH_USER;
         }
 
-        Map<String, Object> userInfo = getOidcUserInfo(accessToken.getAccessToken());
+        Map<String, Object> userInfo = getUserDetails(accessToken);
 
+        EPerson ePerson = null;
+
+        // 1 - check by netId
+        String netId = getAttributeAsString(userInfo, getNetIdAttribute());
+        if (StringUtils.isNotBlank(netId)) {
+            ePerson = ePersonService.findByNetid(context, netId);
+            if (ePerson != null) {
+                LOGGER.debug("Identified EPerson based upon Oidc unique id: '{}'", netId);
+                if (ePerson.canLogIn()) {
+                    request.setAttribute(OIDC_AUTHENTICATED, true);
+                    try {
+                        updateEPerson(context, ePerson, userInfo);
+                    } catch (SQLException | AuthorizeException ex) {
+                        LOGGER.error("An error occurs updating the EPerson", ex);
+                        return NO_SUCH_USER;
+                    }
+                    return logInEPerson(context, ePerson);
+                } else {
+                    LOGGER.warn("EPerson with netid '{}' is not allowed to log in", netId);
+                    return BAD_ARGS;
+                }
+            } else {
+                LOGGER.info("Unable to identify EPerson based upon Oidc unique id: '{}'", netId);
+            }
+        }
+
+        // 2 - check by email (if self registration is enabled)
         String email = getAttributeAsString(userInfo, getEmailAttribute());
-        if (StringUtils.isBlank(email)) {
+        if (isBlank(email)) {
             LOGGER.warn("No email found in the user info attributes");
             return NO_SUCH_USER;
         }
 
-        EPerson ePerson = ePersonService.findByEmail(context, email);
+        ePerson = ePersonService.findByEmail(context, email);
         if (ePerson != null) {
-            request.setAttribute(OIDC_AUTHENTICATED, true);
-            return ePerson.canLogIn() ? logInEPerson(context, ePerson) : BAD_ARGS;
+            LOGGER.info("Identified EPerson based upon Shibboleth email {}", email);
+            if (ePerson.canLogIn()) {
+                request.setAttribute(OIDC_AUTHENTICATED, true);
+                try {
+                    updateEPerson(context, ePerson, userInfo);
+                } catch (SQLException | AuthorizeException ex) {
+                    LOGGER.error("An error occurs updating the EPerson", ex);
+                    return NO_SUCH_USER;
+                }
+                return logInEPerson(context, ePerson);
+            } else {
+                LOGGER.warn("EPerson with email '{}' is not allowed to log in", email);
+                return BAD_ARGS;
+            }
+        } else {
+            LOGGER.info("Unable to identify EPerson based upon Oidc email {}", email);
         }
 
         // if self registration is disabled, warn about this failure to find a matching eperson
-        if (! canSelfRegister()) {
-            LOGGER.warn("Self registration is currently disabled for OIDC, and no ePerson could be found for email: {}",
-                email);
+        if (!canSelfRegister()) {
+            LOGGER.warn("Self registration is currently disabled for OIDC, " +
+                    "and no ePerson could be found for email: {}", email);
         }
 
         return canSelfRegister() ? registerNewEPerson(context, userInfo, email) : NO_SUCH_USER;
+
     }
+
+    /**
+     * Retrieves the user details from the OIDC token response.
+     *
+     * @param accessToken OIDC token response
+     * @return Map containing user details, empty if no user details could be retrieved
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getUserDetails(OidcTokenResponseDTO accessToken) {
+        Map<String, Object> info = new HashMap<>();
+        UserInfoRecoveryMode recoveryMode = getUserInfoRecoveryMode();
+        if (recoveryMode.requiresUserInfoCall()) {
+            info.putAll(getOidcUserInfo(accessToken.getAccessToken()));
+        }
+        if (recoveryMode.requiresClaimsMerge()) {
+            info.putAll(Objects.requireNonNull(getClaims(accessToken.getIdToken())));
+        }
+        return info;
+    }
+
+    /**
+     * Retrieves the UserInfoRecoveryMode from configuration.
+     * Default value is USERINFO_CALL (0) if not configured.
+     *
+     * @return the configured UserInfoRecoveryMode
+     * @throws RuntimeException if the configured value is invalid
+     */
+    private UserInfoRecoveryMode getUserInfoRecoveryMode() {
+        int configuredValue = configurationService.getIntProperty("authentication-oidc.user-info-recovery-mode", 0);
+        return Stream.of(UserInfoRecoveryMode.values())
+                .filter(mode -> mode.getValue() == configuredValue)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "Invalid value for authentication-oidc.user-info-recovery-mode: " + configuredValue +
+                                ". Allowed values are: 0 (USERINFO_CALL), 1 (MERGE_CLAIMS), 2 (BOTH)"));
+    }
+
+    /**
+     * Extracts all claims from JWT token into a Map
+     *
+     * @param token JWT token to decode
+     * @return Map containing all claims as key-value pairs, null if decoding fails
+     */
+    private Map<String, Object> getClaims(String token) {
+        try {
+            JSONObject jsonObject = decodeJWTToken(token);
+            if (jsonObject == null) {
+                return null;
+            }
+
+            Map<String, Object> claims = new HashMap<>();
+            for (String key : jsonObject.keySet()) {
+                claims.put(key, jsonObject.get(key));
+            }
+            return claims;
+
+        } catch (Exception e) {
+            LOGGER.error("Error extracting claims from token: {}", e.getMessage());
+            return null;
+        }
+    }
+
+
+    /**
+     * Decodes JWT token payload without signature verification
+     *
+     * @param token JWT token to decode
+     * @return JSONObject containing token claims, null if parsing fails
+     */
+    private JSONObject decodeJWTToken(String token) {
+        try {
+            if (isBlank(token)) {
+                return null;
+            }
+
+            // Split token into parts
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) {
+                LOGGER.error("Invalid token format");
+                return null;
+            }
+
+            // Decode payload (second part of token)
+            Base64.Decoder decoder = Base64.getUrlDecoder();
+            String payload = new String(decoder.decode(parts[1]));
+
+            return new JSONObject(payload);
+
+        } catch (Exception e) {
+            LOGGER.error("Error decoding token: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Updates the provided EPerson object with the user information retrieved from a Map of userInfo data.
+     * This includes updating attributes such as first name, last name, email, and net ID. If the size of
+     * the first name or last name exceeds the maximum allowed length, it will be truncated.
+     * The changes are persisted using the context and ePersonService.
+     *
+     * @param context the DSpace context in which this operation is performed
+     * @param ePerson the EPerson object to be updated
+     * @param userInfo a map containing user information, including attributes such as first name,
+     *                 last name, email, and net ID
+     * @throws SQLException if an SQL database error occurs during the operation
+     * @throws AuthorizeException if the current user is not authorized to perform the update
+     */
+    private void updateEPerson(Context context, EPerson ePerson, Map<String, Object> userInfo)
+            throws SQLException, AuthorizeException {
+        String firstName = getAttributeAsString(userInfo, getFirstNameAttribute());
+        String lastName = getAttributeAsString(userInfo, getLastNameAttribute());
+        String email = getAttributeAsString(userInfo, getEmailAttribute());
+        String netId = getAttributeAsString(userInfo, getNetIdAttribute());
+
+        if (StringUtils.isNotBlank(firstName) && firstName.length() > NAME_MAX_SIZE) {
+            LOGGER.warn(
+                    "Truncating eperson's first name because it is longer than {}: {}", NAME_MAX_SIZE, firstName);
+            firstName = firstName.substring(0, NAME_MAX_SIZE);
+        }
+
+        if (StringUtils.isNotBlank(lastName) && lastName.length() > NAME_MAX_SIZE) {
+            LOGGER.warn(
+                    "Truncating eperson's last name because it is longer than {}: {}", NAME_MAX_SIZE, lastName);
+            lastName = lastName.substring(0, NAME_MAX_SIZE);
+        }
+
+        ePerson.setFirstName(context, firstName);
+        ePerson.setLastName(context, lastName);
+        ePerson.setEmail(email);
+        ePerson.setNetid(netId);
+
+        context.turnOffAuthorisationSystem();
+        ePersonService.update(context, ePerson);
+        context.dispatchEvents();
+        context.restoreAuthSystemState();
+    }
+
 
     @Override
     public String loginPageURL(Context context, HttpServletRequest request, HttpServletResponse response) {
@@ -199,16 +418,29 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
 
             EPerson eperson = ePersonService.create(context);
 
-            eperson.setNetid(email);
+            String netId = getAttributeAsString(userInfo, getNetIdAttribute());
+            eperson.setNetid(StringUtils.isNotBlank(netId) ? netId : email);
             eperson.setEmail(email);
 
             String firstName = getAttributeAsString(userInfo, getFirstNameAttribute());
-            if (firstName != null) {
+            if (StringUtils.isNotBlank(firstName)) {
+                if (firstName.length() > NAME_MAX_SIZE) {
+                    LOGGER.warn(
+                            "Truncating new e-person's first name because it is longer than {}: {}",
+                            NAME_MAX_SIZE, firstName);
+                    firstName = firstName.substring(0, NAME_MAX_SIZE);
+                }
                 eperson.setFirstName(context, firstName);
             }
 
             String lastName = getAttributeAsString(userInfo, getLastNameAttribute());
-            if (lastName != null) {
+            if (StringUtils.isNotBlank(lastName)) {
+                if (lastName.length() > NAME_MAX_SIZE) {
+                    LOGGER.warn(
+                            "Truncating new e-person's last name because it is longer than {}: {}",
+                            NAME_MAX_SIZE, lastName);
+                    lastName = lastName.substring(0, NAME_MAX_SIZE);
+                }
                 eperson.setLastName(context, lastName);
             }
 
@@ -253,6 +485,10 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
             return null;
         }
         return userInfo.containsKey(attribute) ? String.valueOf(userInfo.get(attribute)) : null;
+    }
+
+    private String getNetIdAttribute() {
+        return configurationService.getProperty("authentication-oidc.user-info.netid", "uniqueid");
     }
 
     private String getEmailAttribute() {
