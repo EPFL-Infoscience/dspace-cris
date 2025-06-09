@@ -279,7 +279,7 @@ public class StatisticsDatasetDisplay {
 
     //Creates query for usage raport generator
     public String composeQueryWithInverseRelation(DSpaceObject dSpaceObject, List<String> default_queries, int type) {
-        return composeQueryWithInverseRelation(dSpaceObject, default_queries, "id");
+        return composeQueryWithInverseRelation(dSpaceObject, default_queries, "owningItem");
     }
     public String composeQueryWithInverseRelation(DSpaceObject dSpaceObject, List<String> default_queries,
                                                   String joinField ) {

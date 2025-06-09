@@ -20,6 +20,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.IndexingService;
 import org.dspace.metrics.MetricsExternalServices;
 import org.dspace.metrics.scopus.CrisMetricDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public abstract class AbstractUpdateWOSMetrics extends MetricsExternalServices {
 
     @Autowired
     protected CrisMetricsService crisMetricsService;
+
+    @Autowired
+    private IndexingService indexingService;
 
     protected boolean updateWosMetric(Context context, Item currentItem, CrisMetricDTO metricDTO) {
         try {
@@ -73,6 +77,8 @@ public abstract class AbstractUpdateWOSMetrics extends MetricsExternalServices {
         newWosMetric.setAcquisitionDate(new Date());
         newWosMetric.setDeltaPeriod1(deltaPeriod1);
         newWosMetric.setDeltaPeriod2(deltaPeriod2);
+
+        indexingService.updateMetrics(context, newWosMetric);
     }
 
     protected Double getDeltaPeriod(CrisMetricDTO currentMetric, Optional<CrisMetrics> metric) {
