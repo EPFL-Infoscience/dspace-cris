@@ -285,7 +285,7 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
             return claims;
 
         } catch (Exception e) {
-            LOGGER.error("Error extracting claims from token: {}", e.getMessage());
+            LOGGER.error("Error extracting claims from token", e);
             return null;
         }
     }
@@ -295,7 +295,7 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
      * Decodes JWT token payload without signature verification
      *
      * @param token JWT token to decode
-     * @return JSONObject containing token claims, null if parsing fails
+     * @return JSONObject containing token claims, null for blank tokens or if parsing fails
      */
     private JSONObject decodeJWTToken(String token) {
         try {
@@ -337,29 +337,18 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
      */
     private void updateEPerson(Context context, EPerson ePerson, Map<String, Object> userInfo)
             throws SQLException, AuthorizeException {
-        String firstName = getAttributeAsString(userInfo, getFirstNameAttribute());
-        String lastName = getAttributeAsString(userInfo, getLastNameAttribute());
+        String firstName = getFirstName(userInfo);
+        String lastName = getLastName(userInfo);
         String email = getAttributeAsString(userInfo, getEmailAttribute());
         String netId = getAttributeAsString(userInfo, getNetIdAttribute());
 
-        if (StringUtils.isNotBlank(firstName) && firstName.length() > NAME_MAX_SIZE) {
-            LOGGER.warn(
-                    "Truncating eperson's first name because it is longer than {}: {}", NAME_MAX_SIZE, firstName);
-            firstName = firstName.substring(0, NAME_MAX_SIZE);
-        }
-
-        if (StringUtils.isNotBlank(lastName) && lastName.length() > NAME_MAX_SIZE) {
-            LOGGER.warn(
-                    "Truncating eperson's last name because it is longer than {}: {}", NAME_MAX_SIZE, lastName);
-            lastName = lastName.substring(0, NAME_MAX_SIZE);
-        }
+        context.turnOffAuthorisationSystem();
 
         ePerson.setFirstName(context, firstName);
         ePerson.setLastName(context, lastName);
         ePerson.setEmail(email);
         ePerson.setNetid(netId);
 
-        context.turnOffAuthorisationSystem();
         ePersonService.update(context, ePerson);
         context.dispatchEvents();
         context.restoreAuthSystemState();
@@ -422,25 +411,13 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
             eperson.setNetid(StringUtils.isNotBlank(netId) ? netId : email);
             eperson.setEmail(email);
 
-            String firstName = getAttributeAsString(userInfo, getFirstNameAttribute());
+            String firstName = getFirstName(userInfo);
             if (StringUtils.isNotBlank(firstName)) {
-                if (firstName.length() > NAME_MAX_SIZE) {
-                    LOGGER.warn(
-                            "Truncating new e-person's first name because it is longer than {}: {}",
-                            NAME_MAX_SIZE, firstName);
-                    firstName = firstName.substring(0, NAME_MAX_SIZE);
-                }
                 eperson.setFirstName(context, firstName);
             }
 
-            String lastName = getAttributeAsString(userInfo, getLastNameAttribute());
+            String lastName = getLastName(userInfo);
             if (StringUtils.isNotBlank(lastName)) {
-                if (lastName.length() > NAME_MAX_SIZE) {
-                    LOGGER.warn(
-                            "Truncating new e-person's last name because it is longer than {}: {}",
-                            NAME_MAX_SIZE, lastName);
-                    lastName = lastName.substring(0, NAME_MAX_SIZE);
-                }
                 eperson.setLastName(context, lastName);
             }
 
@@ -460,6 +437,28 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
         } finally {
             context.restoreAuthSystemState();
         }
+    }
+
+    private String getLastName(Map<String, Object> userInfo) {
+        String lastName = getAttributeAsString(userInfo, getLastNameAttribute());
+        if (StringUtils.isNotBlank(lastName) && lastName.length() > NAME_MAX_SIZE) {
+            LOGGER.warn(
+                    "Truncating new e-person's last name because it is longer than {}: {}",
+                    NAME_MAX_SIZE, lastName);
+            lastName = lastName.substring(0, NAME_MAX_SIZE);
+        }
+        return lastName;
+    }
+
+    private String getFirstName(Map<String, Object> userInfo) {
+        String firstName = getAttributeAsString(userInfo, getFirstNameAttribute());
+        if (StringUtils.isNotBlank(firstName) && firstName.length() > NAME_MAX_SIZE) {
+            LOGGER.warn(
+                    "Truncating new e-person's first name because it is longer than {}: {}",
+                    NAME_MAX_SIZE, firstName);
+            firstName = firstName.substring(0, NAME_MAX_SIZE);
+        }
+        return firstName;
     }
 
     private OidcTokenResponseDTO getOidcAccessToken(String code) {
