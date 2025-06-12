@@ -17,17 +17,17 @@ import java.util.UUID;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.core.Constants;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class TotalDownloadsAndVisitsGenerator {
     protected final SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
 
-    @Autowired
-    private ConfigurationService configurationService;
+    protected final ConfigurationService configurationService =
+            DSpaceServicesFactory.getInstance().getConfigurationService();
 
     /**
      * Create stat points of the items over views and downloads
