@@ -26,6 +26,7 @@ public class UploadConfiguration {
     private Boolean required;
     private String name;
     private boolean singleAccessCondition = false;
+    private boolean accessConditionsRequired = false;
 
     /**
      * Construct a bitstream uploading configuration.
@@ -131,5 +132,17 @@ public class UploadConfiguration {
 
     public void setSingleAccessCondition(boolean singleAccessCondition) {
         this.singleAccessCondition = singleAccessCondition;
+    }
+
+    /**
+     * Set whether the access conditions are required for this upload configuration.
+     * @param accessConditionsRequired true if the access conditions are required.
+     */
+    public void setAccessConditionsRequired(boolean accessConditionsRequired) {
+        this.accessConditionsRequired = accessConditionsRequired;
+    }
+
+    public boolean isAccessConditionsRequired() {
+        return accessConditionsRequired;
     }
 }
