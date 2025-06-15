@@ -35,7 +35,7 @@ public interface DedupService {
 
     public void cleanIndex(boolean force) throws IOException, SQLException, SearchServiceException;
 
-    public void indexContent(Context context, List<UUID> ids, boolean force);
+    public void indexContent(Context context, List<String> ids, boolean force);
 
     public void updateIndex(Context context, boolean b);
 

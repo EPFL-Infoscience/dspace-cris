@@ -3375,7 +3375,6 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testPublicationOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();

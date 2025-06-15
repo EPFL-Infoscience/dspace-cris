@@ -28,6 +28,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.IndexingService;
 import org.dspace.importer.external.service.DoiCheck;
 import org.dspace.metrics.MetricsExternalServices;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,9 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
 
     @Autowired
     private CrisMetricsService crisMetricsService;
+
+    @Autowired
+    private IndexingService indexingService;
 
     @Override
     public String getServiceName() {
@@ -253,6 +257,8 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
         newScopusMetrics.setRemark(parseScopusMetricRemark(scopusMetric));
         newScopusMetrics.setDeltaPeriod1(deltaPeriod1);
         newScopusMetrics.setDeltaPeriod2(deltaPeriod2);
+
+        indexingService.updateMetrics(context, newScopusMetrics);
     }
 
     private static String parseScopusMetricRemark(CrisMetricDTO scopusMetric) {

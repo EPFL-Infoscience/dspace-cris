@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.logging.log4j.LogManager;
@@ -46,12 +45,13 @@ import org.dspace.app.deduplication.service.SolrDedupServiceIndexPlugin;
 import org.dspace.app.deduplication.utils.DuplicateItemInfo;
 import org.dspace.app.deduplication.utils.IDedupUtils;
 import org.dspace.app.deduplication.utils.Signature;
-import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -63,6 +63,8 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.dspace.versioning.service.VersioningService;
+import org.dspace.workflow.WorkflowItem;
+import org.dspace.workflow.WorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -163,6 +165,12 @@ public class SolrDedupServiceImpl implements DedupService {
 
     @Autowired(required = true)
     protected ItemService itemService;
+
+    @Autowired(required = true)
+    protected WorkspaceItemService workspaceItemService;
+
+    @Autowired(required = true)
+    protected WorkflowItemService workflowItemService;
 
     @Autowired(required = true)
     private DeduplicationService deduplicationService;
@@ -652,9 +660,9 @@ public class SolrDedupServiceImpl implements DedupService {
     }
 
     @Override
-    public void indexContent(Context context, List<UUID> ids, boolean force) {
+    public void indexContent(Context context, List<String> ids, boolean force) {
         try {
-            startMultiThreadIndex(context, force, ids);
+            indexItemList(context, force, ids);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -663,9 +671,9 @@ public class SolrDedupServiceImpl implements DedupService {
     @Override
     public void updateIndex(Context context, boolean force) {
         try {
-            startMultiThreadIndex(context, true, null);
+            indexAllItems(context, true);
             commit();
-            startMultiThreadIndex(context, false, null);
+            indexAllItems(context, false);
             commit();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -757,84 +765,123 @@ public class SolrDedupServiceImpl implements DedupService {
         }
     }
 
-    private void startMultiThreadIndex(Context context, boolean onlyFake, List<UUID> ids) throws SQLException {
-        int numThreads = configurationService.getIntProperty("deduplication.indexer.items.threads", 5);
-
-        if (ids == null) {
-            ids = new ArrayList<>();
-            Iterator<Item> items = itemService.findAllUnfiltered(context);
-            for (Item item : ImmutableList.copyOf(items)) {
-                ids.add(item.getID());
-            }
-        }
-        List<UUID>[] arrayIDList = Util.splitList(ids, numThreads);
-        List<IndexerThread> threads = new ArrayList<IndexerThread>();
-        for (List<UUID> hl : arrayIDList) {
-            IndexerThread thread = new IndexerThread(hl, onlyFake);
-            thread.start();
-            threads.add(thread);
-        }
-        boolean finished = false;
-        while (!finished) {
-            finished = true;
-            for (IndexerThread thread : threads) {
-                finished = finished && !thread.isAlive();
-            }
-        }
-    }
-
-    class IndexerThread extends Thread {
-        private boolean onlyFake;
-
-        private List<UUID> itemids;
-
-        public IndexerThread(List<UUID> itemids, boolean onlyFake) {
-            this.onlyFake = onlyFake;
-            this.itemids = itemids;
-        }
-
-        @Override
-        public void run() {
-            Context context = null;
+    /**
+     * Indexes a list of items in a Solr instance.
+     *
+     * @param context   The context of the current operation, providing access to services and authorization control.
+     * @param onlyFake  A flag indicating if only "fake" items should be indexed.
+     * @param ids       A list of identifiers for the items to be indexed.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
+    private void indexItemList(Context context, boolean onlyFake, List<String> ids) throws SQLException {
+        if (ids != null && !ids.isEmpty()) {
             try {
-                context = new Context();
                 context.turnOffAuthorisationSystem();
-                int idx = 1;
-                final String head = this.getName() + "#" + this.getId();
-                final int size = itemids.size();
-                for (UUID id : itemids) {
-                    try {
-                        Item item = ContentServiceFactory.getInstance().getItemService().find(context, id);
-                        Map<String, List<String>> tmpMapFilter = new HashMap<String, List<String>>();
-                        List<String> tmpFilter = new ArrayList<String>();
-                        fillSignature(context, (DSpaceObject) item, tmpMapFilter, tmpFilter);
-                        if (!tmpFilter.isEmpty()) {
-                            // retrieve all search plugin to build search document in the same index
-                            SearchDeduplication searchSignature = dspace.getServiceManager().getServiceByName(
-                                    "item".toUpperCase() + "SearchDeduplication", SearchDeduplication.class);
-                            if (onlyFake) {
-                                buildFromDedupReject(context, item, tmpMapFilter, tmpFilter, searchSignature);
-                                build(context, item.getID(), item.getID(), DeduplicationFlag.FAKE, tmpMapFilter,
-                                        searchSignature, null);
-                            } else {
-                                buildPotentialMatch(context, item, tmpMapFilter, tmpFilter, searchSignature);
-                            }
-                        }
-                    } catch (Exception ex) {
-                        System.out.println("ERROR: identifier item:" + id + " identifier thread:" + head + " error:"
-                                + ex.getMessage());
-                    }
-                    System.out.println(head + ":" + (idx++) + " / " + size);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+                Iterator<Item> items = itemService.findByIds(context, ids);
+                indexItems(context, onlyFake, items);
             } finally {
                 if (context != null) {
-                    context.abort();
+                    context.restoreAuthSystemState();
                 }
             }
         }
     }
+
+    /**
+     * Indexes all items within the repository, including regular items,
+     * workspace items, and workflow items. Allows for selective indexing
+     * of "fake" items if specified.
+     *
+     * @param context   The operational context, which includes authorization
+     *                  and service access.
+     * @param onlyFake  A flag indicating whether to index only "fake" items
+     *                  (true for only "fake" items, false for all items).
+     * @throws SQLException If an error occurs during the database operation.
+     */
+    private void indexAllItems(Context context, boolean onlyFake) throws SQLException {
+        try {
+            context.turnOffAuthorisationSystem();
+            indexItems(context, onlyFake, itemService.findAll(context));
+            indexWorkspaceItems(context, onlyFake, workspaceItemService.findAll(context));
+            indexWorkflowItems(context, onlyFake, workflowItemService.findAll(context));
+        } finally {
+            if (context != null) {
+                context.restoreAuthSystemState();
+            }
+        }
+    }
+
+    private void indexItems(Context context, boolean onlyFake, Iterator<Item> items) throws SQLException {
+        items.forEachRemaining(item -> {
+            try {
+                indexItem(context, onlyFake, item);
+            } catch (SQLException e) {
+                log.error("Error indexing item " + item.getID(), e);
+            }
+        });
+    }
+
+    private void indexWorkspaceItems(Context context, boolean onlyFake, List<WorkspaceItem> items) throws SQLException {
+        items.forEach(workspaceItem -> {
+            try {
+                indexItem(context, onlyFake, workspaceItem.getItem());
+            } catch (SQLException e) {
+                log.error("Error indexing workspaceitem " + workspaceItem.getID(), e);
+            }
+        });
+    }
+
+    private void indexWorkflowItems(Context context, boolean onlyFake, List<WorkflowItem> items) throws SQLException {
+        items.forEach(workflowItem -> {
+            try {
+                indexItem(context, onlyFake, workflowItem.getItem());
+            } catch (SQLException e) {
+                log.error("Error indexing workflowitem " + workflowItem.getID(), e);
+            }
+        });
+    }
+
+    /**
+     * Indexes a specific item into the Solr index. Supports selective processing
+     * based on the "onlyFake" flag to determine how the item should be indexed.
+     * Handles potential matches or fake signatures during the indexing process.
+     *
+     * @param context   The context of the current operation, providing access
+     *                  to services and authorization control.
+     * @param onlyFake  A flag indicating whether to process only "fake" items
+     *                  (true for only "fake" items, false to handle regular indexing).
+     * @param item      The item to be indexed in the Solr instance.
+     * @throws SQLException If an SQL error occurs while performing database operations.
+     */
+    private void indexItem(Context context, boolean onlyFake, Item item) throws SQLException {
+        try {
+            log.info("Indexing item " + item.getID());
+            System.out.println("Indexing item " + item.getID());
+            Map<String, List<String>> tmpMapFilter = new HashMap<String, List<String>>();
+            List<String> tmpFilter = new ArrayList<String>();
+            fillSignature(context, (DSpaceObject) item, tmpMapFilter, tmpFilter);
+            if (!tmpFilter.isEmpty()) {
+                // retrieve all search plugin to build search document in the same index
+                SearchDeduplication searchSignature = dspace.getServiceManager().getServiceByName(
+                        "item".toUpperCase() + "SearchDeduplication", SearchDeduplication.class);
+                if (onlyFake) {
+                    buildFromDedupReject(context, item, tmpMapFilter, tmpFilter, searchSignature);
+                    build(context, item.getID(), item.getID(), DeduplicationFlag.FAKE, tmpMapFilter,
+                            searchSignature, null);
+                } else {
+                    buildPotentialMatch(context, item, tmpMapFilter, tmpFilter, searchSignature);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("Error while indexing item: " + item.getID() + " message:" + ex.getMessage(), ex);
+        } finally {
+            if (item != null) {
+                context.uncacheEntity(item);
+            }
+        }
+    }
+
+
 
     private void buildFromDedupReject(Context ctx, DSpaceObject iu, Map<String, List<String>> tmpMapFilter,
             List<String> tmpFilter, SearchDeduplication searchSignature) {

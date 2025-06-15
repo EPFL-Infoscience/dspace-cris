@@ -219,6 +219,7 @@
 		<property name="converter" ref="xmlValueConverter" />
 		<property name="publiclyReadable" value="true"/>
 		<property name="findRelatedItems" value="true"/>
+		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="all"/>
 	</bean>
 
@@ -229,6 +230,7 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 		<property name="publiclyReadable" value="true"/>
 		<property name="findRelatedItems" value="true"/>
+		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Publication"/>
         <property name="converter" ref="xmlValueConverter" />
 	</bean>
@@ -240,6 +242,7 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 		<property name="publiclyReadable" value="true"/>
 		<property name="findRelatedItems" value="true"/>
+		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Product"/>
         <property name="converter" ref="xmlValueConverter" />
 	</bean>
@@ -251,6 +254,7 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 		<property name="publiclyReadable" value="true"/>
 		<property name="findRelatedItems" value="true"/>
+		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Patent"/>
         <property name="converter" ref="xmlValueConverter" />
 	</bean>

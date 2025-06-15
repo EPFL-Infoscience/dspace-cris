@@ -12,12 +12,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -28,6 +33,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DCDate;
 import org.dspace.content.Item;
+import org.dspace.content.dao.ItemDAO;
+import org.dspace.content.dao.impl.ItemDAOImpl;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -37,6 +44,8 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.SelfNamedPlugin;
+import org.dspace.core.UUIDIterator;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.scripts.handler.DSpaceRunnableHandler;
@@ -71,6 +80,8 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     protected GroupService groupService;
     @Autowired(required = true)
     protected ItemService itemService;
+    @Autowired(required = true)
+    protected ItemDAO itemDAO;
     @Autowired(required = true)
     protected ConfigurationService configurationService;
 
@@ -111,59 +122,23 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     @Override
-    public void applyFiltersAllItems(Context context, boolean updateLastModified) throws Exception {
-        if (skipList != null) {
-            //if a skip-list exists, we need to filter community-by-community
-            //so we can respect what is in the skip-list
-            List<Community> topLevelCommunities = communityService.findAllTop(context);
-
-            for (Community topLevelCommunity : topLevelCommunities) {
-                applyFiltersCommunity(context, topLevelCommunity, updateLastModified);
-            }
-        } else {
-            //otherwise, just find every item and process
-            Iterator<Item> itemIterator = itemService.findAll(context);
-            while (itemIterator.hasNext() && processed < max2Process) {
-                applyFiltersItem(context, itemIterator.next(), updateLastModified);
-            }
-        }
+    public void applyFiltersAllItems(Context context, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception {
+        applyFilters(context, null, updateLastModified, sinceLastDays, skipBundles);
     }
 
     @Override
-    public void applyFiltersCommunity(Context context, Community community, boolean updateLastModified)
-            throws Exception { //only apply filters if community not in skip-list
-        // ensure that the community is attached to the current hibernate session
-        // as we are committing after each item (handles, sub-communties and
-        // collections are lazy attributes)
-        community = context.reloadEntity(community);
-        if (!inSkipList(community.getHandle())) {
-            List<Community> subcommunities = community.getSubcommunities();
-            for (Community subcommunity : subcommunities) {
-                applyFiltersCommunity(context, subcommunity, updateLastModified);
-            }
-            // ensure that the community is attached to the current hibernate session
-            // as we are committing after each item
-            community = context.reloadEntity(community);
-            List<Collection> collections = community.getCollections();
-            for (Collection collection : collections) {
-                applyFiltersCollection(context, collection, updateLastModified);
-            }
-        }
+    public void applyFiltersCommunity(Context context, Community community, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception {
+        applyFilters(context, "location.comm:" + community.getID().toString(), updateLastModified, sinceLastDays,
+                skipBundles);
     }
 
     @Override
-    public void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified)
-            throws Exception {
-        // ensure that the collection is attached to the current hibernate session
-        // as we are committing after each item (handles are lazy attributes)
-        collection = context.reloadEntity(collection);
-        //only apply filters if collection not in skip-list
-        if (!inSkipList(collection.getHandle())) {
-            Iterator<Item> itemIterator = itemService.findAllByCollection(context, collection);
-            while (itemIterator.hasNext() && processed < max2Process) {
-                applyFiltersItem(context, itemIterator.next(), updateLastModified);
-            }
-        }
+    public void applyFiltersCollection(Context context, Collection collection, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception {
+        applyFilters(context, "location.coll:" + collection.getID().toString(), updateLastModified, sinceLastDays,
+                skipBundles);
     }
 
     @Override
@@ -183,6 +158,47 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             // commit after each item to release DB resources
             c.commit();
             currentItem = null;
+        }
+    }
+
+
+    private void applyFilters(Context context, String filterScope, boolean updateLastModified,
+            int sinceLastDays, String[] skipBundles) throws Exception {
+        //otherwise, just find every item and process
+        SolrQuery discoverQuery = new SolrQuery();
+        discoverQuery.setQuery("search.resourcetype:Item AND archived:true AND bundleName_s:ORIGINAL");
+        discoverQuery.setFields("search.resourceid");
+        discoverQuery.setRows(100);
+        if (StringUtils.isNotBlank(filterScope)) {
+            discoverQuery.addFilterQuery(filterScope);
+        }
+        if (skipBundles != null && skipBundles.length > 0) {
+            discoverQuery.addFilterQuery("-bundleName_s:" + StringUtils.join(skipBundles, " OR -bundleName_s:"));
+        }
+        if (sinceLastDays > 0) {
+            discoverQuery.addFilterQuery("lastModified_dt:[NOW-" + sinceLastDays + "DAYS/DAY TO *]");
+        }
+        final SolrClient solr = SearchUtils.getSearchService().getSolrSearchCore().getSolr();
+        QueryResponse response = solr.query(discoverQuery);
+        int currPos = 0;
+        List<UUID> results = new ArrayList<UUID>((int) response.getResults().getNumFound());
+        while (response.getResults().getNumFound() > currPos) {
+            SolrDocumentList solrDocList = response.getResults();
+            for (SolrDocument doc : solrDocList) {
+                UUID uuid = UUID.fromString((String) doc.getFirstValue("search.resourceid"));
+                results.add(uuid);
+            }
+            currPos += 100;
+            discoverQuery.setStart(currPos);
+            response = solr.query(discoverQuery);
+        }
+        UUIDIterator<Item> itemIterator = new UUIDIterator<Item>(context, results, Item.class,
+                (ItemDAOImpl) itemDAO);
+        while (itemIterator.hasNext() && processed < max2Process) {
+            Item item = itemIterator.next();
+            if (!inSkipList(item.getHandle())) {
+                applyFiltersItem(context, item, updateLastModified);
+            }
         }
     }
 
@@ -531,15 +547,15 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             bundles = Collections.EMPTY_LIST;
         }
         StringBuilder sb = new StringBuilder("ERROR filtering, skipping bitstream:\n");
-        sb.append("\tItem Handle: ").append(itemHandle);
+        sb.append("    Item Handle: ").append(itemHandle);
         for (Bundle bundle : bundles) {
-            sb.append("\tBundle Name: ").append(bundle.getName());
+            sb.append("    Bundle Name: ").append(bundle.getName());
         }
-        sb.append("\tFile Size: ").append(bitstream.getSizeBytes());
-        sb.append("\tChecksum: ").append(bitstream.getChecksum())
+        sb.append("    File Size: ").append(bitstream.getSizeBytes());
+        sb.append("    Checksum: ").append(bitstream.getChecksum())
                 .append(" (").append(bitstream.getChecksumAlgorithm()).append(')');
-        sb.append("\tAsset Store: ").append(bitstream.getStoreNumber());
-        sb.append("\tInternal ID: ").append(bitstream.getInternalId());
+        sb.append("    Asset Store: ").append(bitstream.getStoreNumber());
+        sb.append("    Internal ID: ").append(bitstream.getInternalId());
         return sb.toString();
     }
 
