@@ -94,21 +94,16 @@ public class UploadValidator implements SubmissionStepValidator {
 
     private void validateAccessConditions(Bitstream bitstream, String configId,
                                           UploadConfiguration uploadConfig, List<ValidationError> errors) {
-        if (uploadConfig.isAccessConditionsRequired()) {
-            boolean foundAccessCondition = false;
-            for (ResourcePolicy rp : bitstream.getResourcePolicies()) {
-                if (StringUtils.isNotBlank(rp.getRpName()) && ResourcePolicy.TYPE_CUSTOM.equals(rp.getRpType())) {
-                    foundAccessCondition = true;
-                    break;
-                }
-            }
 
-            if (!foundAccessCondition) {
-                addError(
-                        errors, ERROR_VALIDATION_REQUIRED,
-                        "/" + OPERATION_PATH_SECTIONS + "/" + configId + "/accessConditions"
-                );
-            }
+        if (uploadConfig.isAccessConditionsRequired() &&
+                bitstream.getResourcePolicies().stream()
+                        .noneMatch(rp -> StringUtils.isNotBlank(rp.getRpName()) &&
+                                ResourcePolicy.TYPE_CUSTOM.equals(rp.getRpType()))) {
+            addError(
+                    errors,
+                    ERROR_VALIDATION_REQUIRED,
+                    "/" + OPERATION_PATH_SECTIONS + "/" + configId + "/accessConditions/" + bitstream.getID()
+            );
         }
     }
 
