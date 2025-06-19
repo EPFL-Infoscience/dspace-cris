@@ -245,7 +245,14 @@
             <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
         </analyzer>
     </fieldType>
- </types>
+
+      <fieldType name="text_nocharfilter" class="solr.TextField" positionIncrementGap="100">
+          <analyzer>
+              <tokenizer class="solr.StandardTokenizerFactory"/>
+          </analyzer>
+      </fieldType>
+
+  </types>
 
 
  <fields>
@@ -328,6 +335,9 @@
 
      <!-- The database status of the current item -->
      <field name="database_status" type="string" indexed="true" stored="true" omitNorms="true" docValues="true" />
+
+     <field name="graphpubldate" type="text_nocharfilter" indexed="true" stored="true" multiValued="false"/>
+
 
      <!-- Dynamic field used to store the relation metadata as a keywordFilter -->
      <dynamicField name="relation.*" type="keywordFilter" indexed="true" stored="true" omitNorms="true" multiValued="true"/>
