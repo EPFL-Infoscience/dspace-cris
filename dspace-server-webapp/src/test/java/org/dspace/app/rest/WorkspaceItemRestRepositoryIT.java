@@ -121,10 +121,12 @@ import org.dspace.importer.external.openaire.service.OpenAireProjectImportMetada
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.model.AccessConditionConfiguration;
+import org.dspace.submit.model.UploadConfiguration;
 import org.dspace.supervision.SupervisionOrder;
 import org.dspace.util.UUIDUtils;
 import org.dspace.validation.CclicenseValidator;
 import org.dspace.validation.LicenseValidator;
+import org.dspace.validation.UploadValidator;
 import org.dspace.versioning.ItemCorrectionProvider;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -174,10 +176,14 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     @Autowired
     private SubmissionService submissionService;
 
+    @Autowired
+    private UploadValidator uploadValidator;
+
     @Mock
     private SubmissionService mockedSubmissionService;
 
     private AccessConditionConfiguration accessConditionConfiguration;
+
     private GroupService groupService;
 
     private Group embargoedGroups;
@@ -9422,6 +9428,100 @@ ResourcePolicyBuilder.createResourcePolicy(context, null, adminGroup)
         } finally {
             accessConditionConfiguration.setRequired(isAccessConditionRequired);
             configurationService.setProperty("webui.submit.upload.required", isUploadRequired);
+        }
+    }
+
+    @Test
+    public void testBitstreamAccessConditionRequirement() throws Exception {
+        UploadConfiguration uploadConfiguration =
+                uploadValidator.getUploadConfigurationService().getMap().get("upload");
+        boolean accessConditionsRequired = uploadConfiguration.isAccessConditionsRequired();
+
+        try {
+
+            context.turnOffAuthorisationSystem();
+
+            Community community = CommunityBuilder.createCommunity(context).withName("Com").build();
+            Collection collection = CollectionBuilder.createCollection(context, community).withName("Col").build();
+
+            // Create item
+            WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                    .withTitle("Workspace Item")
+                    .withIssueDate("2019-01-01")
+                    .grantLicense()
+                    .build();
+
+            // Add a bitstream to the item
+            String bitstreamContent = "ThisIsSomeDummyText";
+            Bitstream bitstream = null;
+            try (InputStream is = IOUtils.toInputStream(bitstreamContent, StandardCharsets.UTF_8)) {
+                bitstream = BitstreamBuilder.createBitstream(context, witem.getItem(), is)
+                        .withName("Bitstream")
+                        .withMimeType("text/plain").build();
+            }
+
+            // Create a second item
+            WorkspaceItem witem2 = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                    .withTitle("Workspace Item number 2")
+                    .withIssueDate("2019-01-01")
+                    .grantLicense()
+                    .build();
+
+            // Add a bitstream to the second item
+            Bitstream bitstream2 = null;
+            try (InputStream is2 = IOUtils.toInputStream(bitstreamContent, StandardCharsets.UTF_8)) {
+                bitstream2 = BitstreamBuilder.createBitstream(context, witem2.getItem(), is2)
+                        .withName("Bitstream")
+                        .withMimeType("text/plain").build();
+            }
+
+            context.restoreAuthSystemState();
+
+            String adminToken = getAuthToken(admin.getEmail(), password);
+            Group anonymousGroup = groupService.findByName(context, Group.ANONYMOUS);
+
+            // First check: if the access conditions are not required, i must be able to submit the item without them
+            uploadConfiguration.setAccessConditionsRequired(false);
+
+            // Deposit the item without any access conditions on the bitstream
+            getClient(adminToken).perform(post("/api/workflow/workflowitems")
+                    .content("/api/submission/workspaceitems/" + witem.getID())
+                    .contentType(textUriContentType))
+                    .andExpect(status().isCreated());
+
+            // Second check: access conditions required, i won't be able to submit the item without them
+            uploadConfiguration.setAccessConditionsRequired(true);
+
+            // Deposit the second item
+            getClient(adminToken).perform(post("/api/workflow/workflowitems")
+                    .content("/api/submission/workspaceitems/" + witem2.getID())
+                    .contentType(textUriContentType))
+                    .andExpect(status().isUnprocessableEntity());
+
+            // Third check: access conditions required, i will be able to submit the item with them
+
+            // Create access condition
+            Map<String, String> accessCondition = new HashMap<>();
+            accessCondition.put("name", "openaccess");
+
+            // Add access condition
+            List<Operation> addAccessCondition = new ArrayList<>();
+            addAccessCondition.add(new AddOperation("/sections/upload/files/0/accessConditions/-", accessCondition));
+
+            String patchBody = getPatchContent(addAccessCondition);
+            getClient(adminToken).perform(patch("/api/submission/workspaceitems/" + witem2.getID())
+                    .content(patchBody)
+                    .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                    .andExpect(status().isOk());
+
+            // Deposit second the item
+            getClient(adminToken).perform(post("/api/workflow/workflowitems")
+                    .content("/api/submission/workspaceitems/" + witem2.getID())
+                    .contentType(textUriContentType))
+                    .andExpect(status().isCreated());
+
+        } finally {
+            uploadConfiguration.setAccessConditionsRequired(accessConditionsRequired);
         }
     }
 
