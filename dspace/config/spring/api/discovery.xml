@@ -1454,6 +1454,7 @@
 
     <!-- publications of an author -->
     <bean id="relationAuthorResearchOutputsConfiguration" class="org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration">
+        <property name="indexAlways" value="true" />
         <!--Which sidebar facets are to be displayed-->
         <property name="sidebarFacets">
             <list>
