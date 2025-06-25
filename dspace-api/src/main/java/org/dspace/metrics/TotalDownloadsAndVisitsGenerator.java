@@ -16,6 +16,8 @@ import java.util.UUID;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.core.Constants;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
@@ -23,6 +25,9 @@ import org.dspace.statistics.service.SolrLoggerService;
 
 public class TotalDownloadsAndVisitsGenerator {
     protected final SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
+
+    protected final ConfigurationService configurationService =
+            DSpaceServicesFactory.getInstance().getConfigurationService();
 
     /**
      * Create stat points of the items over views and downloads
@@ -42,6 +47,11 @@ public class TotalDownloadsAndVisitsGenerator {
         StringBuilder filterQuery = new StringBuilder();
         filterQuery.append("(statistics_type:").append(SolrLoggerServiceImpl.StatisticsType.VIEW
                 .text()).append(")");
+        // statistics view reports MUST not include view performed by bots (isBot=true in the SOLR Statistics document)
+        boolean isBot = configurationService.getBooleanProperty("solr-statistics.query.filter.isBot", true);
+        if (isBot) {
+            filterQuery.append(" AND -isBot:true");
+        }
         ObjectCount[] topCounts = solrLoggerService
                                       .queryFacetField(query,
                                                        filterQuery.toString(),

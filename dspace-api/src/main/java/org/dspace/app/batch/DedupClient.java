@@ -56,7 +56,7 @@ public class DedupClient {
     public static void main(String[] args)
             throws SQLException, IOException, SearchServiceException, SolrServerException {
 
-        Context context = new Context();
+        Context context = new Context(Context.Mode.READ_ONLY);
         context.turnOffAuthorisationSystem();
 
         String usage = "./dspace index-deduplication [-chfueo[r <item handle/uuid>]]"
@@ -100,6 +100,10 @@ public class DedupClient {
             System.exit(1);
         }
 
+        log.info("Starting index-deduplication");
+        long startTime = System.currentTimeMillis();
+
+
         /** Acquire from dspace-services in future */
         /**
          * new
@@ -137,18 +141,22 @@ public class DedupClient {
                 DataInputStream in = new DataInputStream(fstream);
                 BufferedReader br = new BufferedReader(new InputStreamReader(in));
                 String strLine;
-                // Read File Line By Line
 
-                UUID item_id = null;
-                List<UUID> ids = new ArrayList<UUID>();
+                List<String> ids = new ArrayList<String>();
 
                 while ((strLine = br.readLine()) != null) {
-                    item_id = UUID.fromString(strLine.trim());
-                    ids.add(item_id);
+                    String id = strLine.trim();
+                    try {
+                        UUID.fromString(id); // verify that's a UUID
+                        ids.add(id);
+                    } catch (IllegalArgumentException e) {
+                        log.error("Not a UUID, skipping: " + id + ". " + e.getMessage());
+                    }
                 }
 
                 in.close();
                 indexer.indexContent(context, ids, line.hasOption("f"));
+                context.abort();
             } catch (Exception e) {
                 log.error("Error: " + e.getMessage());
             }
@@ -156,9 +164,11 @@ public class DedupClient {
             log.info("Updating and Cleaning Index");
             indexer.cleanIndex(line.hasOption("f"));
             indexer.updateIndex(context, line.hasOption("f"));
+            context.abort();
         }
 
-        log.info("Done with indexing");
+        long timeElapsed = System.currentTimeMillis() - startTime;
+        log.info("Done with indexing. Time elapsed: " + timeElapsed / 1000 + " seconds");
+        System.out.println("Done with indexing. Time elapsed: " + timeElapsed / 1000 + " seconds");
     }
-
 }
