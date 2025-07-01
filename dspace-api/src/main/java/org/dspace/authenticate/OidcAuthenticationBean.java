@@ -16,6 +16,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,9 +33,11 @@ import org.dspace.authenticate.oidc.OidcClient;
 import org.dspace.authenticate.oidc.model.OidcTokenResponseDTO;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
+import org.dspace.core.LogHelper;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -103,6 +106,9 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
     private OidcClient oidcClient;
 
     @Autowired
+    private GroupService groupService;
+
+    @Autowired
     private EPersonService ePersonService;
 
     @Override
@@ -126,6 +132,54 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
 
     @Override
     public List<Group> getSpecialGroups(Context context, HttpServletRequest request) throws SQLException {
+        if (Objects.isNull(request)) {
+            return List.of();
+        }
+
+        if (Objects.isNull(request.getAttribute(OIDC_AUTH_ATTRIBUTE))) {
+            return List.of();
+        }
+
+        String code = (String) request.getParameter("code");
+        if (StringUtils.isEmpty(code)) {
+            return List.of();
+        }
+
+        OidcTokenResponseDTO accessToken = getOidcAccessToken(code);
+        if (Objects.isNull(accessToken)) {
+            return List.of();
+        }
+
+        Map<String, Object> userInfo = getOidcUserInfo(accessToken.getAccessToken());
+        String email = getAttributeAsString(userInfo, getEmailAttribute());
+        if (StringUtils.isBlank(email)) {
+            LOGGER.warn("No email found in the user info attributes");
+            return List.of();
+        }
+
+        EPerson currentUser = ePersonService.findByEmail(context, email);
+        if (Objects.isNull(currentUser)) {
+            LOGGER.warn("No eperson found into the system with email: {}", email);
+            return List.of();
+        }
+
+        String specialGroupName = configurationService.getProperty("authentication-oidc.login.specialgroup");
+        if (StringUtils.isNotBlank(specialGroupName)) {
+            Group specialGroup = groupService.findByName(context, specialGroupName.trim());
+            if (Objects.isNull(specialGroup)) {
+                // Oops - the group isn't there.
+                LOGGER.warn(LogHelper.getHeader(context,"oidc_specialgroup",
+                    "Group defined in modules/authentication-oidc.cfg login" + ".specialgroup does not exist"));
+                return List.of();
+            } else if (groupService.isMember(context, currentUser, specialGroup)) {
+                return Arrays.asList(specialGroup);
+            } else {
+                groupService.addMember(context, specialGroup, currentUser);
+                return Arrays.asList(specialGroup);
+            }
+        } else {
+            LOGGER.warn("The property 'authentication-oidc.login.specialgroup' for special group was't configured");
+        }
         return List.of();
     }
 
