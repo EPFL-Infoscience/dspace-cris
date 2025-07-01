@@ -33,6 +33,8 @@ import org.dspace.authenticate.oidc.OidcClientException;
 import org.dspace.authenticate.oidc.model.OidcTokenResponseDTO;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.ThrowingSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -41,6 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public class OidcClientImpl implements OidcClient {
+
+    private static final Logger log = LoggerFactory.getLogger(OidcClientImpl.class);
 
     @Autowired
     private ConfigurationService configurationService;
@@ -93,9 +97,9 @@ public class OidcClientImpl implements OidcClient {
             if (isNotSuccessfull(response)) {
                 throw new OidcClientException(getStatusCode(response), formatErrorMessage(response));
             }
-
-            return objectMapper.readValue(getContent(response), clazz);
-
+            String content = getContent(response);
+            log.info("OIDC Response: " + content);
+            return objectMapper.readValue(content, clazz);
         });
 
     }

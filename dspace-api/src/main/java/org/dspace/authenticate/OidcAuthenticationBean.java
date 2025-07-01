@@ -159,7 +159,7 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
                 return Arrays.asList(specialGroup);
             }
         } else {
-            LOGGER.debug("The property 'authentication-oidc.login.specialgroup' for special group was't configured");
+            LOGGER.debug("The property 'authentication-oidc.login.specialgroup' for special group was not configured");
         }
         LOGGER.error("OIDC sg: No special group configured!");
         return List.of();
@@ -237,7 +237,7 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
 
         ePerson = ePersonService.findByEmail(context, email);
         if (ePerson != null) {
-            LOGGER.info("Identified EPerson based upon Shibboleth email {}", email);
+            LOGGER.info("Identified EPerson based upon OIDC email {}", email);
             if (ePerson.canLogIn()) {
                 request.setAttribute(OIDC_AUTHENTICATED, true);
                 try {
