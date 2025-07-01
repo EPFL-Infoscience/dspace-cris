@@ -133,33 +133,18 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
     @Override
     public List<Group> getSpecialGroups(Context context, HttpServletRequest request) throws SQLException {
         if (Objects.isNull(request)) {
+            LOGGER.error("OIDC sg: the request was null!");
             return List.of();
         }
 
-        if (Objects.isNull(request.getAttribute(OIDC_AUTH_ATTRIBUTE))) {
-            return List.of();
-        }
+        // TODO currently strangely the request.getAttribute(OIDC_AUTH_ATTRIBUTE) return null
+        //if (Objects.isNull(request.getAttribute(OIDC_AUTH_ATTRIBUTE))) {
+        //    LOGGER.error("OIDC sg: the attribute oidc was absent!");
+        //    return List.of();
+        //}
 
-        String code = (String) request.getParameter("code");
-        if (StringUtils.isEmpty(code)) {
-            return List.of();
-        }
-
-        OidcTokenResponseDTO accessToken = getOidcAccessToken(code);
-        if (Objects.isNull(accessToken)) {
-            return List.of();
-        }
-
-        Map<String, Object> userInfo = getOidcUserInfo(accessToken.getAccessToken());
-        String email = getAttributeAsString(userInfo, getEmailAttribute());
-        if (StringUtils.isBlank(email)) {
-            LOGGER.warn("No email found in the user info attributes");
-            return List.of();
-        }
-
-        EPerson currentUser = ePersonService.findByEmail(context, email);
-        if (Objects.isNull(currentUser)) {
-            LOGGER.warn("No eperson found into the system with email: {}", email);
+        if (Objects.isNull(context.getCurrentUser())) {
+            LOGGER.error("OIDC sg: the user was null!");
             return List.of();
         }
 
@@ -167,7 +152,6 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
         if (StringUtils.isNotBlank(specialGroupName)) {
             Group specialGroup = groupService.findByName(context, specialGroupName.trim());
             if (Objects.isNull(specialGroup)) {
-                // Oops - the group isn't there.
                 LOGGER.warn(LogHelper.getHeader(context,"oidc_specialgroup",
                     "Group defined in modules/authentication-oidc.cfg login" + ".specialgroup does not exist"));
                 return List.of();
@@ -175,8 +159,9 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
                 return Arrays.asList(specialGroup);
             }
         } else {
-            LOGGER.warn("The property 'authentication-oidc.login.specialgroup' for special group was't configured");
+            LOGGER.debug("The property 'authentication-oidc.login.specialgroup' for special group was't configured");
         }
+        LOGGER.error("OIDC sg: No special group configured!");
         return List.of();
     }
 
