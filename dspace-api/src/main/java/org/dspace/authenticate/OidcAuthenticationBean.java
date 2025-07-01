@@ -171,10 +171,7 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
                 LOGGER.warn(LogHelper.getHeader(context,"oidc_specialgroup",
                     "Group defined in modules/authentication-oidc.cfg login" + ".specialgroup does not exist"));
                 return List.of();
-            } else if (groupService.isMember(context, currentUser, specialGroup)) {
-                return Arrays.asList(specialGroup);
             } else {
-                groupService.addMember(context, specialGroup, currentUser);
                 return Arrays.asList(specialGroup);
             }
         } else {
