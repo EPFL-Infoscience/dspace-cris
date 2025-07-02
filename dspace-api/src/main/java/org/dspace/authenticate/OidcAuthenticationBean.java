@@ -161,7 +161,6 @@ public class OidcAuthenticationBean implements AuthenticationMethod {
         } else {
             LOGGER.debug("The property 'authentication-oidc.login.specialgroup' for special group was not configured");
         }
-        LOGGER.error("OIDC sg: No special group configured!");
         return List.of();
     }
 

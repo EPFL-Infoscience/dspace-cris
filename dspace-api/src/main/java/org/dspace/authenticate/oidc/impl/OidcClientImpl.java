@@ -98,7 +98,7 @@ public class OidcClientImpl implements OidcClient {
                 throw new OidcClientException(getStatusCode(response), formatErrorMessage(response));
             }
             String content = getContent(response);
-            log.info("OIDC Response: " + content);
+            log.debug("OIDC Response: " + content);
             return objectMapper.readValue(content, clazz);
         });
 
