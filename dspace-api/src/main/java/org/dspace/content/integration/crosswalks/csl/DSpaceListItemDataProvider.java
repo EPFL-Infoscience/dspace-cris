@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import com.google.gson.GsonBuilder;
 import de.undercouch.citeproc.ListItemDataProvider;
@@ -208,7 +209,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(originalPublisher, item, value -> itemBuilder.originalPublisher(value));
         consumeMetadataIfNotBlank(originalPublisherPlace, item, value -> itemBuilder.originalPublisherPlace(value));
         consumeMetadataIfNotBlank(originalTitle, item, value -> itemBuilder.originalTitle(value));
-        consumePageMetadataIfNotBlank(pageFirst, page, item, value -> itemBuilder.page(value));
+        setPageValues(page, item, itemBuilder);
         consumeMetadataIfNotBlank(PMCID, item, value -> itemBuilder.PMCID(value));
         consumeMetadataIfNotBlank(PMID, item, value -> itemBuilder.PMID(value));
         consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
@@ -227,6 +228,19 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(yearSuffix, item, value -> itemBuilder.yearSuffix(value));
 
         return itemBuilder;
+    }
+
+    private void setPageValues(String page, Item item, CSLItemDataBuilder itemBuilder) {
+        String metadataFirstValue = getMetadataFirstValue(item, page);
+        if (StringUtils.isNotBlank(metadataFirstValue)) {
+            String[] pageParts = metadataFirstValue.split(Pattern.quote("-"));
+            if (pageParts.length == 2) {
+                itemBuilder.page(pageParts[0].trim(), pageParts[1].trim());
+            } else {
+                LOGGER.warn("Invalid page format: '{}'. Expected format is 'page' or 'pageFirst-page'.", page,
+                        metadataFirstValue);
+            }
+        }
     }
 
     protected CSLItemDataBuilder handleCslNameFields(Item item, CSLItemDataBuilder itemBuilder) {
