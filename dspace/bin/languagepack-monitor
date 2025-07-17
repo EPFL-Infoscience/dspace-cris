@@ -62,6 +62,7 @@ move_to_processed() {
 
     echo "[$(get_utc_timestamp)] Moving $file to processed directory..."
     mv "${dir}${file}" "${PROCESSED_DIR}/${file}"
+    chmod a+rw "${PROCESSED_DIR}/${file}"
 
     if [ $? -eq 0 ]; then
         echo "[$(get_utc_timestamp)] Successfully moved $file to processed directory"
