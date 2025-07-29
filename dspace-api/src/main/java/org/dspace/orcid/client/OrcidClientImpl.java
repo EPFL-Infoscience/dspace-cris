@@ -45,7 +45,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.dspace.app.util.XMLUtils;
-import org.dspace.orcid.OrcidToken;
 import org.dspace.orcid.exception.OrcidClientException;
 import org.dspace.orcid.model.OrcidEntityType;
 import org.dspace.orcid.model.OrcidProfileSectionType;
