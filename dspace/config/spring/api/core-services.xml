@@ -119,7 +119,10 @@
 
     <bean class="org.dspace.eperson.SubscribeParameterServiceImpl"/>
 
-    <bean class="org.dspace.eperson.CaptchaServiceImpl"/>
+    <!-- Use CaptchaServiceImpl for Google ReCaptcha -->
+    <bean class="org.dspace.eperson.CaptchaServiceImpl" id="googleCaptchaService"/>
+    <!-- Use AltchaCaptchaServiceImpl for ALTCHA captcha -->
+    <bean class="org.dspace.eperson.AltchaCaptchaServiceImpl" id="altchaCaptchaService"/>
     <bean class="org.dspace.event.EventServiceImpl"/>
 
     <bean class="org.dspace.handle.HandleServiceImpl"/>
@@ -211,7 +214,7 @@
     <bean class="org.dspace.authorize.RegexPasswordValidator" />
 
     <bean class="org.dspace.supervision.SupervisionOrderServiceImpl"/>
-    
+
     <bean id="com.science4.webcache.WebServerCache" class="com.science4.webcache.NGinxWebServerCache" init-method="initialize"/>
 
     <bean class="org.dspace.ror.client.RORApiClientImpl" />
