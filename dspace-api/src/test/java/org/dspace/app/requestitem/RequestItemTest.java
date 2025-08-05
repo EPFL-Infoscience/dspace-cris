@@ -282,8 +282,8 @@ public class RequestItemTest extends AbstractUnitTest {
 
         RequestItem found = requestItemService.findByToken(context, request.getToken());
         assertTrue(found.isAccept_request());
-        assertEquals(decisionDate, found.getDecision_date());
-        assertEquals(expectedExpiryDate, found.getAccess_expiry());
+        assertEquals(decisionDate.truncatedTo(ChronoUnit.MILLIS), found.getDecision_date().toInstant());
+        assertEquals(expectedExpiryDate.truncatedTo(ChronoUnit.MILLIS), found.getAccess_expiry());
     }
 
     @Test
@@ -339,7 +339,7 @@ public class RequestItemTest extends AbstractUnitTest {
         requestItemService.update(context, request);
 
         RequestItem found = requestItemService.findByToken(context, request.getToken());
-        assertEquals(expectedExpiryDate, found.getAccess_expiry());
+        assertEquals(expectedExpiryDate.truncatedTo(ChronoUnit.MILLIS), found.getAccess_expiry());
         assertTrue(found.isAccept_request());
         assertTrue(found.isAllfiles());
     }
