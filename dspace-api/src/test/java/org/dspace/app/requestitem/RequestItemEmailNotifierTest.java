@@ -115,6 +115,7 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
         requestItemEmailNotifier.configurationService = configurationService;
         requestItemEmailNotifier.handleService = handleService;
         requestItemEmailNotifier.requestItemService = requestItemService;
+        requestItemEmailNotifier.ePersonService = ePersonService;
     }
 
     @AfterClass
