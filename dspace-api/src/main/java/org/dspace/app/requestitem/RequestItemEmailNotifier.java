@@ -8,6 +8,8 @@
 
 package org.dspace.app.requestitem;
 
+import static org.dspace.core.Constants.READ;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.ZoneId;
@@ -248,13 +250,14 @@ public class RequestItemEmailNotifier {
                 } else {
                     if (ri.isAllfiles()) {
                         Item item = ri.getItem();
+                        EPerson ePerson = ePersonService.findByEmail(context, ri.getReqEmail());
                         List<Bundle> bundles = item.getBundles("ORIGINAL");
                         for (Bundle bundle : bundles) {
                             List<Bitstream> bitstreams = bundle.getBitstreams();
                             for (Bitstream bitstream : bitstreams) {
                                 if (!bitstream.getFormat(context).isInternal() &&
-                                        requestItemService.isRestricted(context,
-                                                bitstream)) {
+                                        !authorizeService.authorizeActionBoolean(
+                                                context, ePerson, bitstream, READ, true)) {
                                     // #8636 Anyone receiving the email can respond to the
                                     // request without authenticating into DSpace
                                     context.turnOffAuthorisationSystem();

@@ -290,6 +290,7 @@ public class RequestItemEmailNotifierTest extends AbstractUnitTest {
         requestItemEmailNotifier.handleService = handleService;
         requestItemEmailNotifier.authorizeService = authorizeService;
         requestItemEmailNotifier.ePersonService = ePersonService;
+        requestItemEmailNotifier.requestItemService = requestItemService;
 
         // Test the unit.  Template supplies the Subject: value
         requestItemEmailNotifier.sendResponse(context, ri, null, TEST_MESSAGE);

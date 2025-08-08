@@ -193,19 +193,15 @@ public class BitstreamRestController {
                 bitstreamResource =
                         new org.dspace.app.rest.utils.BitstreamResource(name, uuid,
                                 currentUser != null ? currentUser.getID() : null,
-                                context.getSpecialGroupUuids(), citationEnabledForBitstream, false);
+                                context.getSpecialGroupUuids(), citationEnabledForBitstream, true);
             }
-
-            // We have all the data we need, close the connection to the database so that it doesn't stay open during
-            // download/streaming
-            context.complete();
 
             // Set http headers
             HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
                     .withBufferSize(BUFFER_SIZE)
                     .withFileName(name)
-                    .withChecksum(bitstreamResource.getChecksum())
-                    .withLength(bitstreamResource.contentLength())
+                    .withChecksum(bit.getChecksum())
+                    .withLength(bit.getSizeBytes())
                     .withMimetype(mimetype)
                     .with(request)
                     .with(response);
@@ -223,6 +219,10 @@ public class BitstreamRestController {
                     || checkFormatForContentDisposition(format)) {
                 httpHeadersInitializer.withDisposition(HttpHeadersInitializer.CONTENT_DISPOSITION_ATTACHMENT);
             }
+
+            // We have all the data we need, close the connection to the database so that it doesn't stay open during
+            // download/streaming
+            context.complete();
 
             // Send the data
             if (httpHeadersInitializer.isValid()) {
