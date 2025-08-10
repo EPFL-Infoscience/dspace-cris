@@ -965,7 +965,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         //2. A public item with a bitstream
         File originalPdf = new File(testProps.getProperty("test.bitstream"));
 
-
         try (InputStream is = new FileInputStream(originalPdf)) {
 
             Item publicItem1 = ItemBuilder.createItem(context, col1)
@@ -1008,13 +1007,16 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             // manually counted + 1 citation cover page
             assertEquals(65,getNumberOfPdfPages(content));
 
+            var etagHeader = getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                .andReturn().getResponse().getHeader("ETag");
+
             //A If-None-Match HEAD request on the ETag must tell is the bitstream is not modified
             getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                    .header("If-None-Match", bitstream.getChecksum()))
+                    .header("If-None-Match", etagHeader))
                     .andExpect(status().isNotModified());
 
             //The download and head request should also be logged as a statistics record
-            checkNumberOfStatsRecords(bitstream, 2);
+            checkNumberOfStatsRecords(bitstream, 3);
     }
 
     private String extractPDFText(byte[] content) throws IOException {

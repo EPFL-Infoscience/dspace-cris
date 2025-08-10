@@ -200,8 +200,8 @@ public class BitstreamRestController {
             HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
                     .withBufferSize(BUFFER_SIZE)
                     .withFileName(name)
-                    .withChecksum(bit.getChecksum())
-                    .withLength(bit.getSizeBytes())
+                    .withChecksum(bitstreamResource.getChecksum())
+                    .withLength(bitstreamResource.contentLength())
                     .withMimetype(mimetype)
                     .with(request)
                     .with(response);
