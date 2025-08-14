@@ -371,7 +371,7 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
         RegistrationRest registrationRest = new RegistrationRest();
         registrationRest.setEmail(eperson.getEmail());
 
-        // when reCAPTCHA enabled and request doesn't contain "X-Recaptcha-Token” header
+        // when reCAPTCHA enabled and request doesn't contain "x-captcha-payload” header
         getClient().perform(post("/api/eperson/registrations")
                             .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
                    .content(mapper.writeValueAsBytes(registrationRest))
@@ -393,10 +393,10 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
         registrationRest.setEmail(eperson.getEmail());
 
         String captchaToken = "invalid-captcha-Token";
-        // when reCAPTCHA enabled and request contains Invalid "X-Recaptcha-Token” header
+        // when reCAPTCHA enabled and request contains Invalid "x-captcha-payload” header
         getClient().perform(post("/api/eperson/registrations")
                    .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
-                   .header("X-Recaptcha-Token", captchaToken)
+                   .header("x-captcha-payload", captchaToken)
                    .content(mapper.writeValueAsBytes(registrationRest))
                    .contentType(contentType))
                    .andExpect(status().isForbidden());
@@ -430,17 +430,17 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
         RegistrationRest registrationRest = new RegistrationRest();
         registrationRest.setEmail(eperson.getEmail());
         try {
-            // will throw InvalidReCaptchaException because 'X-Recaptcha-Token' not equal captchaToken
+            // will throw InvalidReCaptchaException because 'x-captcha-payload' not equal captchaToken
             getClient().perform(post("/api/eperson/registrations")
                        .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
-                       .header("X-Recaptcha-Token", captchaToken1)
+                       .header("x-captcha-payload", captchaToken1)
                        .content(mapper.writeValueAsBytes(registrationRest))
                        .contentType(contentType))
                        .andExpect(status().isForbidden());
 
             getClient().perform(post("/api/eperson/registrations")
                        .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
-                       .header("X-Recaptcha-Token", captchaToken)
+                       .header("x-captcha-payload", captchaToken)
                        .content(mapper.writeValueAsBytes(registrationRest))
                        .contentType(contentType))
                        .andExpect(status().isCreated());
@@ -453,7 +453,7 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
             registrationRest.setEmail(newEmail);
             getClient().perform(post("/api/eperson/registrations")
                        .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
-                       .header("X-Recaptcha-Token", captchaToken)
+                       .header("x-captcha-payload", captchaToken)
                        .content(mapper.writeValueAsBytes(registrationRest))
                        .contentType(contentType))
                        .andExpect(status().isCreated());
@@ -469,7 +469,7 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
             registrationRest.setEmail(newEmail);
             getClient().perform(post("/api/eperson/registrations")
                        .param(TYPE_QUERY_PARAM, TYPE_REGISTER)
-                       .header("X-Recaptcha-Token", captchaToken)
+                       .header("x-captcha-payload", captchaToken)
                        .content(mapper.writeValueAsBytes(registrationRest))
                        .contentType(contentType))
                        .andExpect(status().is(HttpServletResponse.SC_UNAUTHORIZED));
