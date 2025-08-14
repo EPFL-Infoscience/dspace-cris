@@ -512,11 +512,12 @@ public final class Utils {
 
     /**
      * Get the maximum timestamp that can be stored in a PostgreSQL database with hibernate,
-     * for our "distant future" access expiry date.
-     * @return the maximum timestamp that can be stored with Postgres + Hibernate
+     * for our "distant future" access expiry date. That timestamp is lowered by 6 years to
+     * deal with limit problems that might arise in local installations (year 294276 to 294270)
+     * @return the maximum timestamp that can be stored with Postgres + Hibernate lowered by 6 years
      */
     public static Instant getMaxTimestamp() {
-        return LocalDateTime.of(294276, 12, 31, 23, 59, 59)
+        return LocalDateTime.of(294270, 12, 31, 23, 59, 59)
                 .toInstant(ZoneOffset.UTC);
     }
 
