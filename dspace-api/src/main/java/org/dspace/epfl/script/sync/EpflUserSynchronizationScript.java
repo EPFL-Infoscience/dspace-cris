@@ -72,17 +72,17 @@ public class EpflUserSynchronizationScript
     @SuppressWarnings("unchecked")
     public EpflUserSynchronizationScriptConfiguration<EpflUserSynchronizationScript> getScriptConfiguration() {
         return new DSpace().getServiceManager().getServiceByName("epfl-user-synchronization",
-                                                                 EpflUserSynchronizationScriptConfiguration.class);
+                EpflUserSynchronizationScriptConfiguration.class);
     }
 
     @Override
     public void setup() throws ParseException {
         ePersonService = new DSpace().getServiceManager()
-                                     .getServiceByName("org.dspace.eperson.EPersonServiceImpl",
-                                                       EPersonServiceImpl.class);
+                .getServiceByName("org.dspace.eperson.EPersonServiceImpl",
+                        EPersonServiceImpl.class);
         epflApiClient = new DSpace().getServiceManager()
-                                    .getServiceByName("org.dspace.epfl.client.EpflApiClientImpl",
-                                                      EpflApiClientImpl.class);
+                .getServiceByName("org.dspace.epfl.client.EpflApiClientImpl",
+                        EpflApiClientImpl.class);
         profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         inputFile = commandLine.getOptionValue('f');
@@ -133,6 +133,12 @@ public class EpflUserSynchronizationScript
         for (int idx = 0; idx < numIter; idx++) {
             List<EPerson> ePersonList = ePersonService.findAll(context, EPerson.NETID, pageSize, idx * pageSize);
             for (EPerson ePerson : ePersonList) {
+                if (!profileInitializer.isNotDeactivated(context, ePerson)) {
+                    logInfo(
+                            "EPerson with uuid: " + ePerson.getID() + ", netId: " + ePerson.getNetid()
+                                    + " was skipped because already deactivated");
+                    continue;
+                }
                 Optional<String> sciper = profileInitializer.getSciperId(ePerson);
                 if (sciper.isPresent()) {
                     try {
@@ -146,8 +152,8 @@ public class EpflUserSynchronizationScript
                                                 + " was updated");
                             } else {
                                 logInfo(
-                                    "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get() +
-                                        " does not need to be updated");
+                                        "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get() +
+                                                " does not need to be updated");
                             }
                         } else {
                             profileInitializer.closeAffiliations(context, ePerson, sciper.get());

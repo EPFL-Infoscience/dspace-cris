@@ -834,4 +834,20 @@ public class ProfileInitializer {
             this.endDate = endDate;
         }
     }
+
+    public boolean isNotDeactivated(Context context, EPerson ePerson) {
+        Optional<ResearcherProfile> rpOpt = findProfile(context, ePerson);
+        if (!rpOpt.isPresent()) {
+            return true;
+        }
+
+        Item personItem = rpOpt.get().getItem();
+        String val = itemService.getMetadataFirstValue(
+                personItem, new MetadataFieldName("epfl.sciper.active"), Item.ANY);
+
+        // Process if missing/empty/true; skip only if "false".
+        return val == null || val.trim().isEmpty() || !val.trim().equalsIgnoreCase("false");
+    }
+
+
 }
