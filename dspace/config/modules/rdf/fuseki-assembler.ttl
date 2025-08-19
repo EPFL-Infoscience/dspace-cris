@@ -2,6 +2,8 @@
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix tdb:     <http://jena.hpl.hp.com/2008/tdb#> .
+@prefix tdb2:    <http://jena.apache.org/2016/tdb#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix ja:      <http://jena.hpl.hp.com/2005/11/Assembler#> .
 @prefix :        <#> .
 
@@ -39,7 +41,7 @@ tdb:GraphTDB    rdfs:subClassOf  ja:Model .
 ### Service 1 ###
 #################
 <#service1> rdf:type fuseki:Service ;
-    fuseki:name                       "${rdf.fuseki.name}" ;    # http://host:port/dspace
+    fuseki:name                       "server" ;    # http://host:port/dspace
     fuseki:serviceQuery               "sparql" ;   # SPARQL query service
     fuseki:serviceReadWriteGraphStore "data" ;     # SPARQL Graph store protocol (read and write)
     # A separate read-only graph store endpoint:
@@ -51,8 +53,8 @@ tdb:GraphTDB    rdfs:subClassOf  ja:Model .
     fuseki:dataset                   <#dspace-triplestore> ;
     .
 
-<#dspace-triplestore>  rdf:type    tdb:DatasetTDB ;
-    tdb:location "${dspace.dir}/triplestore" ;
+<#dspace-triplestore>  rdf:type    tdb2:DatasetTDB ;
+    tdb2:location "/opt/triplestore-fuseki" ;
     # Make the default graph be the union of all named graphs.
-    tdb:unionDefaultGraph true ;
+    tdb2:unionDefaultGraph true ;
     .
