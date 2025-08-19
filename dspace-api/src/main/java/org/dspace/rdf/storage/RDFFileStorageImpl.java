@@ -9,13 +9,19 @@
 package org.dspace.rdf.storage;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.logging.log4j.Logger;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Andrea Bollini (andrea.bollini at 4science.com)
  */
-public class RDFFileStorageImpl implements RDFStorage {
+public class RDFFileStorageImpl extends RDFStorageImpl {
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(RDFFileStorageImpl.class);
 
     private OutputStream out;
@@ -40,8 +46,11 @@ public class RDFFileStorageImpl implements RDFStorage {
         this.configurationService = configurationService;
         String fileStorage = configurationService.getProperty("rdf.filestorage.location");
         try {
-            out = new FileOutputStream(new File(fileStorage));
-        } catch (FileNotFoundException e) {
+            File file = new File(fileStorage);
+            Path path = Paths.get(file.getParent());
+            Files.createDirectories(path);
+            out = new FileOutputStream(file, true);
+        } catch (IOException e) {
             log.error("Invalid file storage location", e);
         }
     }
@@ -49,7 +58,9 @@ public class RDFFileStorageImpl implements RDFStorage {
     @Override
     public void store(String uri, Model model) {
         try {
-            model.write(out, "TTL");
+            Dataset dataset = DatasetFactory.create();
+            dataset.addNamedModel(uri, model);
+            RDFDataMgr.write(out, dataset, Lang.NQUADS);
             out.flush();
         } catch (IOException e) {
             log.error("Fail to store the model ", e);
@@ -83,7 +94,12 @@ public class RDFFileStorageImpl implements RDFStorage {
             String fileStorage = configurationService.getProperty("rdf.filestorage.location");
             out.close();
             File file = new File(fileStorage);
-            file.delete();
+            if (file.exists()) {
+                file.delete();
+            }
+            Path path = Paths.get(file.getParent());
+            Files.createDirectories(path);
+            file = new File(fileStorage);
             out = new FileOutputStream(file);
         } catch (IOException e) {
             log.error("Invalid file storage location", e);
