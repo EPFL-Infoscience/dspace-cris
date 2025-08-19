@@ -344,11 +344,11 @@ public class RDFizer {
         }
 
         if (isProcessed(dso)) {
-            log.debug(
-                "Skipping processing of " + contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso) + " "
-                    + dso.getID() + " (handle " + dso.getHandle()
-                    + "), already processed.");
-            return;
+            if (log.isDebugEnabled()) {
+                log.debug("Skipping processing of " + contentServiceFactory.getDSpaceObjectService(dso)
+                    .getTypeText(dso) + " " + dso.getID() + " (handle " + dso.getHandle() + "), already processed.");
+                return;
+            }
         }
         markProcessed(dso);
         // this is useful to debug depth first search, but it is really noisy.
@@ -420,6 +420,7 @@ public class RDFizer {
             while (items.hasNext()) {
                 Item item = items.next();
                 this.dspaceDFS(item, callback, check, false);
+                context.uncacheEntity(item);
             }
         }
 
