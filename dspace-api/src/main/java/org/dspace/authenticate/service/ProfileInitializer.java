@@ -143,6 +143,7 @@ public class ProfileInitializer {
                     Optional.of(epflPerson));
             setSynchronizationMetadata(context, ePerson, researcherProfile);
             epersonService.update(context, ePerson);
+            itemService.update(context, researcherProfile.getItem());
         }
         return needsToBEUpdated;
     }
@@ -183,6 +184,7 @@ public class ProfileInitializer {
             }
         }
         setSynchronizationMetadata(context, ePerson, researcherProfile);
+        itemService.update(context, researcherProfile.getItem());
     }
 
     public EPerson findPerson(Context context, PersonDTO epflPerson) throws SQLException {
