@@ -133,6 +133,9 @@ public class EpflUserSynchronizationScript
         for (int idx = 0; idx < numIter; idx++) {
             List<EPerson> ePersonList = ePersonService.findAll(context, EPerson.NETID, pageSize, idx * pageSize);
             for (EPerson ePerson : ePersonList) {
+                if (StringUtils.isBlank(ePerson.getNetid())) {
+                    continue;
+                }
                 Optional<String> sciper = profileInitializer.getSciperId(ePerson);
                 if (sciper.isPresent()) {
                     try {
