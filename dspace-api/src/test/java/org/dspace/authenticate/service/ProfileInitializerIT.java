@@ -623,7 +623,7 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testRemoveFromSubmitters() throws SQLException {
+    public void testRemoveFromSubmitters() throws SQLException, AuthorizeException {
         context.turnOffAuthorisationSystem();
 
         EPerson eperson = EPersonBuilder.createEPerson(context)
@@ -642,6 +642,8 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         context.restoreAuthSystemState();
 
         profileInitializer.createOrUpdateProfile(context, eperson);
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(itemService.getMetadata(researcherProfile.getItem(), "epfl.sciper.active"), is("true"));
 
         assertThat(groupService.allMemberGroupsSet(context, eperson)
                 .stream().anyMatch(g -> g.getName().equals(submitters.getName())), is(false));
