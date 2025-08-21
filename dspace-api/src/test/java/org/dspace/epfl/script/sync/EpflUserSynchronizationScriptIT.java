@@ -49,6 +49,10 @@ import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.IndexingService;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -87,7 +91,8 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
 
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
     private EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
-
+    private SearchService searchService = new DSpace().getSingletonService(SearchService.class);
+    private IndexingService indexingService = new DSpace().getSingletonService(IndexingService.class);
     private Collection profiles;
 
     private Collection orgUnits;
@@ -712,6 +717,48 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                 hasItem(with("oairecerif.person.affiliation", "PTMH-GE", ptmhGe.getID().toString(), 1, 600)));
 
         context.restoreAuthSystemState();
+    }
+
+    @Test
+    public void testProfileDeactivation() throws SQLException, AuthorizeException, SearchServiceException,
+            InstantiationException, IllegalAccessException {
+        context.turnOffAuthorisationSystem();
+
+        // sciperId 1 doesn't exist at 2025 08 20
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+                .withNameInMetadata("Test", "User")
+                .withEmail("test@user.it")
+                .withNetId("1@epfl.ch")
+                .build();
+
+        ItemBuilder.createItem(context, profiles)
+                .withDspaceObjectOwner(eperson)
+                .withTitle("My User")
+                .withBirthDate("1992-06-26")
+                .withMetadata("epfl", "sciperId", null, "1")
+                .withMetadata("epfl", "sciper", "active", "true")
+                .build();
+
+        groupService.addMember(context, submitters, eperson);
+        context.restoreAuthSystemState();
+
+        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail()};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        // force events to be dispatched
+        context.dispatchEvents();
+        indexingService.commit();
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        // the profile should be deactivated
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(itemService.getMetadata(researcherProfile.getItem(), "epfl.sciper.active"), is("false"));
+        DiscoverQuery query = new DiscoverQuery();
+        query.setQuery("epfl.sciperId:1 AND epfl.sciper.active:false");
+        assertThat(searchService.search(context, query).getTotalSearchResults(), is(1l));
     }
 
     private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {

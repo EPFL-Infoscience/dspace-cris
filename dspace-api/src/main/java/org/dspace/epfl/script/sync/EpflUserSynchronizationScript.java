@@ -133,10 +133,7 @@ public class EpflUserSynchronizationScript
         for (int idx = 0; idx < numIter; idx++) {
             List<EPerson> ePersonList = ePersonService.findAll(context, EPerson.NETID, pageSize, idx * pageSize);
             for (EPerson ePerson : ePersonList) {
-                if (!profileInitializer.isNotDeactivated(context, ePerson)) {
-                    logInfo(
-                            "EPerson with uuid: " + ePerson.getID() + ", netId: " + ePerson.getNetid()
-                                    + " was skipped because already deactivated");
+                if (StringUtils.isBlank(ePerson.getNetid())) {
                     continue;
                 }
                 Optional<String> sciper = profileInitializer.getSciperId(ePerson);
@@ -156,6 +153,12 @@ public class EpflUserSynchronizationScript
                                                 " does not need to be updated");
                             }
                         } else {
+                            if (profileInitializer.isDeactivated(context, ePerson)) {
+                                logInfo(
+                                        "EPerson with uuid: " + ePerson.getID() + ", netId: " + ePerson.getNetid()
+                                                + " was skipped because already deactivated");
+                                continue;
+                            }
                             profileInitializer.closeAffiliations(context, ePerson, sciper.get());
                             logInfo("Person with sciper: " + sciper
                                     + " is not active anymore, affiliations have been set as ended.");
@@ -164,6 +167,11 @@ public class EpflUserSynchronizationScript
                     } catch (Exception e) {
                         logError("Unable to sync profile " + sciper.get() + ": " + e.getMessage());
                     }
+                } else {
+                    logInfo(
+                            "EPerson with uuid: " + ePerson.getID() + ", netId: " + ePerson.getNetid()
+                                    + " was skipped because it is not a valid sciper");
+                    continue;
                 }
             }
             context.commit();

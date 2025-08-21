@@ -143,6 +143,9 @@ public class ProfileInitializer {
                     Optional.of(epflPerson));
             setSynchronizationMetadata(context, ePerson, researcherProfile);
             epersonService.update(context, ePerson);
+            if (researcherProfile != null) {
+                itemService.update(context, researcherProfile.getItem());
+            }
         }
         return needsToBEUpdated;
     }
@@ -163,26 +166,26 @@ public class ProfileInitializer {
 
         int affiliations =
             itemService.getMetadata(person, "oairecerif.person.affiliation", Item.ANY).size();
-        if (affiliations == 0) {
-            return;
-        }
-        String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                                            .format(LocalDate.now().minusDays(1L));
-        Map<Integer, MetadataValue> affiliationEndDates =
-            itemService.getMetadata(person, "oairecerif.affiliation.endDate", Item.ANY)
-                       .stream().collect(Collectors.toMap(MetadataValue::getPlace, Function.identity()));
+        if (affiliations != 0) {
+            String yesterday = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                                                .format(LocalDate.now().minusDays(1L));
+            Map<Integer, MetadataValue> affiliationEndDates =
+                itemService.getMetadata(person, "oairecerif.affiliation.endDate", Item.ANY)
+                           .stream().collect(Collectors.toMap(MetadataValue::getPlace, Function.identity()));
 
-        for (int i = 0; i < affiliations; i++) {
-            MetadataValue metadataValue = affiliationEndDates.get(i);
+            for (int i = 0; i < affiliations; i++) {
+                MetadataValue metadataValue = affiliationEndDates.get(i);
 
-            if (metadataValue == null
-                || StringUtils.isBlank(metadataValue.getValue())
-                || CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE.equals(metadataValue.getValue())) {
-                itemService.replaceMetadata(context, researcherProfile.getItem(), "oairecerif", "affiliation",
-                                            "endDate", null, yesterday, null, -1, i);
+                if (metadataValue == null
+                    || StringUtils.isBlank(metadataValue.getValue())
+                    || CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE.equals(metadataValue.getValue())) {
+                    itemService.replaceMetadata(context, researcherProfile.getItem(), "oairecerif", "affiliation",
+                                                "endDate", null, yesterday, null, -1, i);
+                }
             }
         }
         setSynchronizationMetadata(context, ePerson, researcherProfile);
+        itemService.update(context, researcherProfile.getItem());
     }
 
     public EPerson findPerson(Context context, PersonDTO epflPerson) throws SQLException {
@@ -835,7 +838,7 @@ public class ProfileInitializer {
         }
     }
 
-    public boolean isNotDeactivated(Context context, EPerson ePerson) {
+    public boolean isDeactivated(Context context, EPerson ePerson) {
         Optional<ResearcherProfile> rpOpt = findProfile(context, ePerson);
         if (!rpOpt.isPresent()) {
             return true;
@@ -845,8 +848,7 @@ public class ProfileInitializer {
         String val = itemService.getMetadataFirstValue(
                 personItem, new MetadataFieldName("epfl.sciper.active"), Item.ANY);
 
-        // Process if missing/empty/true; skip only if "false".
-        return val == null || val.trim().isEmpty() || !val.trim().equalsIgnoreCase("false");
+        return StringUtils.equalsIgnoreCase(val, "false");
     }
 
 
