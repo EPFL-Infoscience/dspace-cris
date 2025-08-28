@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.model;
 
+import java.time.Instant;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,6 +54,14 @@ public class RequestItemRest
     protected boolean acceptRequest;
 
     protected boolean allfiles;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    protected String accessToken;
+
+    protected Instant accessExpiry;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    protected boolean accessExpired;
 
     /**
      * @return the bitstream requested.
@@ -208,6 +217,41 @@ public class RequestItemRest
         this.allfiles = allfiles;
     }
 
+    /**
+     * @return the unique access token to be used by the requester. This is separate to the approval token ('token')
+     */
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    /**
+     * @param accessToken the access token to be used by the requester (not settable through JSON update)
+     */
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    /**
+     * @return the date the access token expires.
+     */
+    public Instant getAccessExpiry() {
+        return this.accessExpiry;
+    }
+
+    /**
+     * @param accessExpiry the date the access token expires.
+     */
+    public void setAccessExpiry(Instant accessExpiry) {
+        this.accessExpiry = accessExpiry;
+    }
+
+    public boolean isAccessExpired() {
+        return accessExpired;
+    }
+
+    public void setAccessExpired(boolean accessExpired) {
+        this.accessExpired = accessExpired;
+    }
     /*
      * Common REST object methods.
      */

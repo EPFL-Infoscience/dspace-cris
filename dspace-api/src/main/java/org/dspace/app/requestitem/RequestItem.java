@@ -7,6 +7,7 @@
  */
 package org.dspace.app.requestitem;
 
+import java.time.Instant;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -77,6 +78,12 @@ public class RequestItem implements ReloadableEntity<Integer> {
     @Column(name = "accept_request")
     private boolean accept_request;
 
+    @Column(name = "access_token", unique = true, length = 48)
+    private String access_token = null;
+
+    @Column(name = "access_expiry")
+    private Instant access_expiry = null;
+
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.app.requestitem.service.RequestItemService#createRequest(
@@ -90,7 +97,7 @@ public class RequestItem implements ReloadableEntity<Integer> {
         return requestitem_id;
     }
 
-    void setAllfiles(boolean allfiles) {
+    public void setAllfiles(boolean allfiles) {
         this.allfiles = allfiles;
     }
 
@@ -139,7 +146,8 @@ public class RequestItem implements ReloadableEntity<Integer> {
     }
 
     /**
-     * @return a unique request identifier which can be emailed.
+     * @return a unique request identifier which can be emailed to the *approver* of the request.
+     * This is not the same as the access token, which is used by the requester to access the item after approval.
      */
     public String getToken() {
         return token;
@@ -191,5 +199,39 @@ public class RequestItem implements ReloadableEntity<Integer> {
 
     void setRequest_date(Date request_date) {
         this.request_date = request_date;
+    }
+
+    /**
+     * @return A unique token to be used by the requester when granted access to the resource, which
+     * can be emailed upon approval
+     */
+    public String getAccess_token() {
+        return access_token;
+    }
+
+    public void setAccess_token(String access_token) {
+        this.access_token = access_token;
+    }
+
+    /**
+     * @return The date and time when the access token expires.
+     */
+    public Instant getAccess_expiry() {
+        return access_expiry;
+    }
+    public void setAccess_expiry(Instant access_expiry) {
+        this.access_expiry = access_expiry;
+    }
+
+    /**
+     * Sanitize personal information and the approval token, to be used when returning a RequestItem
+     * to Angular, especially for users clicking on the secure link
+     */
+    public void sanitizePersonalData() {
+        setReqEmail("sanitized");
+        setReqName("sanitized");
+        setReqMessage("sanitized");
+        // Even though [approval] token is not a name, it can be used to access the original object
+        setToken("sanitized");
     }
 }

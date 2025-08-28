@@ -43,6 +43,7 @@ import org.dspace.eperson.Group;
 import org.dspace.eperson.InvalidReCaptchaException;
 import org.dspace.eperson.RegistrationData;
 import org.dspace.eperson.RegistrationTypeEnum;
+import org.dspace.eperson.factory.CaptchaServiceFactory;
 import org.dspace.eperson.service.AccountService;
 import org.dspace.eperson.service.CaptchaService;
 import org.dspace.eperson.service.EPersonService;
@@ -55,6 +56,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 /**
@@ -82,8 +84,7 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
     @Autowired
     private RequestService requestService;
 
-    @Autowired
-    private CaptchaService captchaService;
+    private CaptchaService captchaService = CaptchaServiceFactory.getInstance().getCaptchaService();
 
     @Autowired
     private ConfigurationService configurationService;
@@ -103,7 +104,11 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
     @Autowired
     private ResourcePatch<RegistrationData> resourcePatch;
 
+    @Autowired
+    private ObjectMapper mapper;
+
     @Override
+    @PreAuthorize("permitAll()")
     public RegistrationRest findOne(Context context, Integer integer) {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");
     }
@@ -118,7 +123,7 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
         HttpServletRequest request = requestService.getCurrentRequest().getHttpServletRequest();
         ObjectMapper mapper = new ObjectMapper();
         RegistrationRest registrationRest;
-        String captchaToken = request.getHeader("X-Recaptcha-Token");
+        String captchaToken = request.getHeader("x-captcha-payload");
         boolean verificationEnabled = configurationService.getBooleanProperty("registration.verification.enabled");
 
         if (verificationEnabled) {
