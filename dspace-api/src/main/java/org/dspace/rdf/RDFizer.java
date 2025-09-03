@@ -461,6 +461,9 @@ public class RDFizer {
 
     protected void markProcessed(DSpaceObject dso) {
         this.processed.add(dso.getID());
+        if (this.verbose) {
+            System.out.println("processed #" + processed.size());
+        }
     }
 
     protected void report(String message) {
