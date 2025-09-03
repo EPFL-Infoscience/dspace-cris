@@ -147,21 +147,29 @@ public class RequestItemTest extends AbstractUnitTest {
 
     @Test
     public void testAccessTokenGenerationWithSmallFile() throws Exception {
-        // Create small file under the default threshold of 20MB
-        byte[] bytes = new byte[1 * 1024 * 1024]; // 1MB
-        InputStream is = new ByteArrayInputStream(bytes);
-        Bitstream smallBitstream = BitstreamBuilder
-                .createBitstream(context, item, is)
-                .withName("SmallBitstream")
-                .build();
+        int limitFileSize = configurationService.getIntProperty("request.item.grant.link.filesize", 20);
+        try {
+            configurationService.setProperty("request.item.grant.link.filesize", 20);
 
-        RequestItem request = RequestItemBuilder
-                .createRequestItem(context, item, smallBitstream)
-                .build();
+            // Create small file under the default threshold of 20MB
+            byte[] bytes = new byte[1 * 1024 * 1024]; // 1MB
+            InputStream is = new ByteArrayInputStream(bytes);
+            Bitstream smallBitstream = BitstreamBuilder
+                    .createBitstream(context, item, is)
+                    .withName("SmallBitstream")
+                    .build();
 
-        // Since we are under the threshold, the token should be null and
-        // the item will be sent via email attachment
-        assertNull("Request token should be null", request.getAccess_token());
+            RequestItem request = RequestItemBuilder
+                    .createRequestItem(context, item, smallBitstream)
+                    .build();
+
+            // Since we are under the threshold, the token should be null and
+            // the item will be sent via email attachment
+            assertNull("Request token should be null", request.getAccess_token());
+        } finally {
+            configurationService.setProperty("request.item.grant.link.filesize", limitFileSize);
+        }
+
     }
 
     @Test
