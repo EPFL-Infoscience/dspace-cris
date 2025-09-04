@@ -639,6 +639,17 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 
     }
 
+    @Override
+    public void deletePersonalPicture(Context context, Item item) {
+        try {
+            Bundle bundle = getOriginalBundle(context, item);
+            getPersonalPicture(bundle)
+                .ifPresent(bitstream -> deleteBitstream(context, bitstream));
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void deleteBitstream(Context context, Bitstream bitstream) {
         try {
             delete(context, bitstream);

@@ -159,7 +159,7 @@ public class EpflUserSynchronizationScript
                                                 + " was skipped because already deactivated");
                                 continue;
                             }
-                            profileInitializer.closeAffiliations(context, ePerson, sciper.get());
+                            profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciper.get());
                             logInfo("Person with sciper: " + sciper
                                     + " is not active anymore, affiliations have been set as ended.");
                             updatedPersonCount++;
