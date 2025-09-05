@@ -9,7 +9,13 @@ package org.dspace.app.mediafilter;
 
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -336,7 +342,8 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     }
 
     @Override
-    public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter) throws Exception {
+    public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter)
+            throws Exception {
         return false;
     }
 
