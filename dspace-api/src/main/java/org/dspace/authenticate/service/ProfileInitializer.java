@@ -178,7 +178,7 @@ public class ProfileInitializer {
         itemService.clearMetadata(context, person, "person", "affiliation", "name", "*");
         itemService.clearMetadata(context, person, "person", "email", null, "*");
 
-        bitstreamService.deletePersonalPicture(context, person);
+        bitstreamService.deletePersonalPictureAndThumbnail(context, person);
 
         int affiliations =
             itemService.getMetadata(person, "oairecerif.person.affiliation", Item.ANY).size();

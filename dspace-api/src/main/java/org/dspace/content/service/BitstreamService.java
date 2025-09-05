@@ -268,7 +268,7 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
 
     void replacePersonalPicture(Context context, Item item, String name, InputStream content);
 
-    void deletePersonalPicture(Context context, Item item);
+    void deletePersonalPictureAndThumbnail(Context context, Item item);
 
     boolean isOriginalBitstream(DSpaceObject dso) throws SQLException;
 
