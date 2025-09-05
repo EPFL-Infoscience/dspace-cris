@@ -179,6 +179,7 @@ public class PolicyMetadataEnhancerConsumer implements Consumer {
         List<Item> bitstreamItems = List.of();
         try {
             consume(ctx, bitstream, event);
+            bitstreamService.updateThumbnailResourcePolicies(ctx, bitstream);
             bitstreamItems = bitstream.getBundles()
                 .stream()
                 .filter(bundle -> "ORIGINAL".equals(bundle.getName()))
