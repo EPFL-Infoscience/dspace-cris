@@ -9,15 +9,16 @@ package org.dspace.app.mediafilter;
 
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.app.policy.PolicyUpdater;
 import org.dspace.authorize.AuthorizeException;
@@ -332,6 +333,11 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     public boolean filterBitstream(Context context, Item myItem,
                                    Bitstream myBitstream) throws Exception {
         return filterBitstream(context, myItem, myBitstream, true);
+    }
+
+    @Override
+    public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter) throws Exception {
+        return false;
     }
 
     public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter,
