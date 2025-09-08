@@ -2115,7 +2115,7 @@ public class BulkAccessControlIT extends AbstractIntegrationTestWithDatabase {
         };
 
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
+        ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl, admin);
 
         assertThat(testDSpaceRunnableHandler.getErrorMessages(), empty());
         assertThat(testDSpaceRunnableHandler.getWarningMessages(), empty());
