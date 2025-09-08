@@ -13,6 +13,8 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.suggestion.orcid.OrcidPublicationLoader;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
@@ -32,10 +34,15 @@ public class RetrieveOrcidPublicationAction implements OrcidWebhookAction {
     @Autowired
     private OrcidPublicationLoader orcidPublicationLoader;
 
+    private final ConfigurationService configurationService
+            = DSpaceServicesFactory.getInstance().getConfigurationService();
+
     @Override
     public void perform(Context context, Item profile, String orcid) {
         try {
-            orcidPublicationLoader.importWorks(context, profile, orcid);
+            if (configurationService.getBooleanProperty("orcid.webhook.suggest-publications.enabled", false)) {
+                orcidPublicationLoader.importWorks(context, profile, orcid);
+            }
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
