@@ -7,7 +7,6 @@
  */
 package org.dspace.app.sherpa.submit;
 
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -69,27 +68,33 @@ public class SHERPASubmitService {
      * @return          SHERPA v2 API response (policy data)
      */
     public SHERPAResponse searchRelatedJournals(Context context, Item item) {
-        Set<String> issns = getISSNs(context, item);
-        if (issns == null || issns.size() == 0) {
+        Set<String> rawIssns = getISSNs(context, item);
+        if (rawIssns == null || rawIssns.isEmpty()) {
             return null;
-        } else {
-            // SHERPA v2 API no longer supports "OR'd" ISSN search, perform individual searches instead
-            Iterator<String> issnIterator = issns.iterator();
-            while (issnIterator.hasNext()) {
-                String issn = issnIterator.next();
-                SHERPAResponse response = sherpaService.searchByJournalISSN(issn);
-                if (response.isError()) {
-                    // Continue with loop
-                    log.warn("Failed to look up SHERPA ROMeO result for ISSN: " + issn
-                        + ": " + response.getMessage());
-                    return response;
-                } else if (!response.getJournals().isEmpty()) {
-                    // return this response, if it is not empty
-                    return response;
+        }
+        Set<String> issns = new LinkedHashSet<>();
+        for (String raw : rawIssns) {
+            if (raw != null && !raw.trim().isEmpty()) {
+                String[] parts = raw.split("\\|\\|\\|");
+                for (String part : parts) {
+                    String cleaned = part.trim();
+                    if (!cleaned.isEmpty()) {
+                        issns.add(cleaned);
+                    }
                 }
             }
-            return new SHERPAResponse();
         }
+        for (String issn : issns) {
+            SHERPAResponse response = sherpaService.searchByJournalISSN(issn);
+            if (response.isError()) {
+                log.warn("Failed to look up SHERPA ROMeO result for ISSN: " + issn
+                        + ": " + response.getMessage());
+                return response;
+            } else if (!response.getJournals().isEmpty()) {
+                return response;
+            }
+        }
+        return new SHERPAResponse();
     }
 
     /**
