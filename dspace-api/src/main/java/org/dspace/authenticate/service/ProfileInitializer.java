@@ -150,7 +150,18 @@ public class ProfileInitializer {
         return needsToBEUpdated;
     }
 
-    public void closeAffiliations(Context context, EPerson ePerson, String sciper)
+    /**
+     * Closes affiliations and deactivates the profile of a given ePerson in the system. It sets the relevant
+     * metadata to indicate the profile is inactive, clears associated metadata like email and affiliations,
+     * removes the ePerson from relevant groups, and performs additional cleanup tasks.
+     *
+     * @param context The DSpace context object used for accessing services and managing operations.
+     * @param ePerson The ePerson for whom the profile should be deactivated and affiliations closed.
+     * @param sciper A unique identifier (sciper) for the ePerson.
+     * @throws SQLException If a database error occurs during the operation.
+     * @throws AuthorizeException If the current user does not have authorization to perform the operation.
+     */
+    public void closeAffiliationsAndDeactivateProfile(Context context, EPerson ePerson, String sciper)
             throws SQLException, AuthorizeException {
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, ePerson.getID());
         Group submitters = groupService.findByName(context, SUBMITTERS);
@@ -159,10 +170,15 @@ public class ProfileInitializer {
             return;
         }
         Item person = researcherProfile.getItem();
-        itemService.setMetadataSingleValue(context, researcherProfile.getItem(),
+        itemService.setMetadataSingleValue(context, person,
                                            "epfl", "sciper",
                                            "active", null,
                                            "false");
+        itemService.clearMetadata(context, person, "oairecerif", "identifier", "url", "*");
+        itemService.clearMetadata(context, person, "person", "affiliation", "name", "*");
+        itemService.clearMetadata(context, person, "person", "email", null, "*");
+
+        bitstreamService.deletePersonalPictureAndThumbnail(context, person);
 
         int affiliations =
             itemService.getMetadata(person, "oairecerif.person.affiliation", Item.ANY).size();
