@@ -16,7 +16,6 @@ import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
@@ -28,7 +27,6 @@ import org.springframework.core.annotation.Order;
  *
  */
 @Order(Ordered.LOWEST_PRECEDENCE)
-@ConditionalOnProperty("orcid.webhook.suggest-publications.enabled")
 public class RetrieveOrcidPublicationAction implements OrcidWebhookAction {
 
     @Autowired
