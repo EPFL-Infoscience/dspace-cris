@@ -89,6 +89,7 @@ public class PolicyMetadataUtils {
 
     public static final String ACCESS_RESTRICTED = "restricted";
     public static final String ACCESS_OPEN = "openaccess";
+    public static final String EMBARGO = "embargo";
     public static final String METADATA_ONLY = "metadata-only";
     public static final String MAIN_DOC_TYPE = "main document";
     public static final String METADATA_DC_TYPE = "dc.type";
@@ -176,6 +177,7 @@ public class PolicyMetadataUtils {
         List<Item> bitstreamItems = List.of();
         try {
             handleBitstream(ctx, bitstream, event);
+
             bitstreamItems = bitstream.getBundles()
                     .stream()
                     .filter(bundle -> "ORIGINAL".equals(bundle.getName()))
@@ -216,9 +218,11 @@ public class PolicyMetadataUtils {
 
         if (customPolicy.isPresent()) {
             ResourcePolicy customPolicyValue = customPolicy.get();
-            policyValue = Optional.ofNullable(customPolicyValue.getRpName())
-                    .orElse(policyValue);
-            endDate = customPolicyValue.getStartDate();
+            if (isNotExpiredEmbargo(customPolicyValue)) {
+                policyValue = Optional.ofNullable(customPolicyValue.getRpName())
+                        .orElse(policyValue);
+                endDate = customPolicyValue.getStartDate();
+            }
         }
 
         String formattedDate =
@@ -530,6 +534,19 @@ public class PolicyMetadataUtils {
                 ctx.restoreAuthSystemState();
             }
         }
+    }
+
+    /**
+     * Determines if a given resource policy does not correspond to an expired embargo.
+     * An active embargo is identified by a policy name equal to "EMBARGO" and a start date
+     * set in the future relative to the current date, since the date represents when the
+     * object will become publicly accessible.
+     *
+     * @param resourcePolicy the ResourcePolicy object to be evaluated
+     * @return true if the resource policy is not associated with an active embargo, false otherwise
+     */
+    private static boolean isNotExpiredEmbargo(ResourcePolicy resourcePolicy) {
+        return  !(EMBARGO.equals(resourcePolicy.getRpName()) && resourcePolicy.getStartDate().before(new Date()));
     }
 
     private static <T extends DSpaceObject> void addOrRemoveMetadataWithValue(

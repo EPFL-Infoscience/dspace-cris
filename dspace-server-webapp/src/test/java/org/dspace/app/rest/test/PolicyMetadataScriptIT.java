@@ -40,6 +40,9 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -55,6 +58,8 @@ public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase 
 
     private BitstreamService bitstreamService;
 
+    private Group anonymousGroup;
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -62,6 +67,8 @@ public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase 
         context.turnOffAuthorisationSystem();
         itemService = ContentServiceFactory.getInstance().getItemService();
         bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        anonymousGroup = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
+
         submitter = EPersonBuilder.createEPerson(context)
                 .withEmail("submitter@example.com")
                 .withPassword(password)
@@ -219,7 +226,7 @@ public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase 
                     .build();
         }
 
-        String embargoDateAsString = "2025-01-01";
+        String embargoDateAsString = "2050-01-01";
         ResourcePolicyBuilder
                 .createResourcePolicy(context, admin, null)
                 .withDspaceObject(bitstream)
@@ -251,6 +258,57 @@ public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase 
         Date embargoBitstreamParsed = parseEmbargoDate(embargoDateBitstream);
         assertThat(embargoDateParsed, is(embargoParsed));
         assertThat(embargoDateParsed, is(embargoBitstreamParsed));
+    }
+
+    @Test
+    public void testExpiredEmbargo() throws Exception {
+        String[] args = new String[] { "access-status-metadata" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        context.turnOffAuthorisationSystem();
+
+        publicationCollection = context.reloadEntity(publicationCollection);
+
+        Item embargoItem = ItemBuilder.createItem(context, publicationCollection)
+                .withTitle("Test Publication expired embargo")
+                .build();
+
+        // Add a bitstream to an item
+        Bitstream bitstream = null;
+        try (InputStream is = IOUtils.toInputStream("content", CharEncoding.UTF_8)) {
+            bitstream = BitstreamBuilder.createBitstream(context, embargoItem, is)
+                    .withName("Bitstream")
+                    .withDescription("description")
+                    .withMimeType("text/plain")
+                    .build();
+        }
+
+        String embargoDateAsString = "2020-01-01";
+        ResourcePolicyBuilder
+                .createResourcePolicy(context, null, anonymousGroup)
+                .withDspaceObject(bitstream)
+                .withAction(Constants.READ)
+                .withPolicyType("TYPE_CUSTOM")
+                .withName("embargo")
+                .withStartDate((new java.text.SimpleDateFormat("yyyy-MM-dd")).parse(embargoDateAsString))
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        embargoItem = context.reloadEntity(embargoItem);
+        bitstream = context.reloadEntity(bitstream);
+
+        assertThat(itemService.getMetadata(embargoItem, dataciteRightsMetadata.toString()),
+                is(PolicyMetadataUtils.ACCESS_OPEN));
+        assertThat(bitstreamService.getMetadata(bitstream, dataciteRightsMetadata.toString()),
+                is(PolicyMetadataUtils.ACCESS_OPEN));
+
+        String embargoDate = itemService.getMetadata(embargoItem, dataciteAvailableMetadata.toString());
+        String embargoDateBitstream = bitstreamService.getMetadata(bitstream, dataciteAvailableMetadata.toString());
+
+        Assert.assertNull(embargoDate);
+        Assert.assertNull(embargoDateBitstream);
     }
 
     private Date getCurrentDatePlus3Months() {
@@ -317,7 +375,7 @@ public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase 
                     .build();
         }
 
-        String embargoDateAsString = "2025-01-01";
+        String embargoDateAsString = "2050-01-01";
         ResourcePolicyBuilder
                 .createResourcePolicy(context, admin, null)
                 .withDspaceObject(bitstreamEmb)

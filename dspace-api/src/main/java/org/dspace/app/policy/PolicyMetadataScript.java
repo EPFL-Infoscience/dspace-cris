@@ -102,7 +102,6 @@ public class PolicyMetadataScript extends DSpaceRunnable<PolicyMetadataScriptCon
 
     private void updateItem(Item item) {
         handler.logInfo("Updating item " + item.getID());
-        //PolicyMetadataUtils.handleItem(context, item, false);
         List<Bundle> bundles = item.getBundles();
         if (CollectionUtils.isNotEmpty(bundles)) {
             bundles.stream()
@@ -110,6 +109,7 @@ public class PolicyMetadataScript extends DSpaceRunnable<PolicyMetadataScriptCon
                     .flatMap(Collection::stream)
                     .forEach(bitstream -> {
                         try {
+                            handler.logInfo("Updating bitstream " + bitstream.getID() + " of item " + item.getID());
                             PolicyMetadataUtils.handleBitstream(context, bitstream, false);
                         } catch (Exception e) {
                             throw new RuntimeException("an error occurred", e);

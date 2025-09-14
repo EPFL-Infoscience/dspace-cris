@@ -280,7 +280,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Item item = ItemBuilder.createItem(context, collection).build();
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
 
-        String embargoDate = "2022-08-16";
+        String embargoDate = "2050-01-01";
         ResourcePolicyBuilder.createResourcePolicy(context, admin, null)
              .withDspaceObject(bitstream).withAction(Constants.READ)
              .withPolicyType(TYPE_CUSTOM).withName("embargo")
@@ -359,7 +359,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Item item = ItemBuilder.createItem(context, collection).build();
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
 
-        String embargoDate = "2022-08-16";
+        String embargoDate = "2050-01-01";
         ResourcePolicyBuilder
             .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream)
@@ -424,7 +424,7 @@ public class PolicyMetadataEnhancerConsumerIT extends AbstractIntegrationTestWit
         Bitstream bitstream = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test")).build();
         Bitstream bitstream2 = BitstreamBuilder.createBitstream(context, item, new StringInputStream("test2")).build();
 
-        String embargoDate = "2022-08-16";
+        String embargoDate = "2050-01-01";
         ResourcePolicyBuilder
             .createResourcePolicy(context, admin, null)
             .withDspaceObject(bitstream)
