@@ -177,7 +177,7 @@ public class PolicyMetadataUtils {
         List<Item> bitstreamItems = List.of();
         try {
             handleBitstream(ctx, bitstream, event);
-
+            bitstreamService.updateThumbnailResourcePolicies(ctx, bitstream);
             bitstreamItems = bitstream.getBundles()
                     .stream()
                     .filter(bundle -> "ORIGINAL".equals(bundle.getName()))

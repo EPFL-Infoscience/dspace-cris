@@ -223,5 +223,8 @@
     <!-- Submission Config Service -->
     <bean class="org.dspace.submit.service.SubmissionConfigServiceImpl"/>
 
+    <bean class="org.dspace.app.policy.PolicyUpdaterServiceImpl" />
+    <bean class="org.dspace.app.policy.MediaFilterRelatedPolicyUpdater" />
+
 </beans>
 

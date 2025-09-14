@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -637,6 +638,28 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public void deletePersonalPictureAndThumbnail(Context context, Item item) {
+        try {
+            Optional<Bitstream> personalPicture = getPersonalPicture(getOriginalBundle(context, item));
+            if (personalPicture.isPresent()) {
+                String picName = personalPicture.get().getName();
+
+                // Deletes bitstreams in thumbnails and previews bundles related to the personal picture
+                item.getBundles().stream()
+                        .filter(b -> Arrays.asList("THUMBNAIL", "BRANDED_PREVIEW").contains(b.getName()))
+                        .forEach(b -> b.getBitstreams().stream()
+                                .filter(bs -> !bs.getName().isEmpty() && bs.getName().contains(picName))
+                                .forEach(bs -> deleteBitstream(context, bs)));
+
+                // Deletes the bitstream from the original bundle
+                deleteBitstream(context, personalPicture.get());
+            }
+        } catch (Exception e) {
+            log.error("Unable to delete the personal picture for item " + item.getID(), e);
+        }
     }
 
     private void deleteBitstream(Context context, Bitstream bitstream) {

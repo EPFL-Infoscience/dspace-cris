@@ -77,7 +77,7 @@ public class EPFLResearcherProfileAutomaticClaim implements PostLoggedInAction {
                                 " does not need to be updated");
                     }
                 } else {
-                    profileInitializer.closeAffiliations(context, currentUser, sciper.get());
+                    profileInitializer.closeAffiliationsAndDeactivateProfile(context, currentUser, sciper.get());
                     LOGGER.info("Person with sciper: " + sciper
                             + " is not active anymore, affiliations have been set as ended.");
                 }
