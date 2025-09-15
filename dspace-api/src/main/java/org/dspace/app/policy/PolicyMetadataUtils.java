@@ -122,7 +122,6 @@ public class PolicyMetadataUtils {
 
         try {
             Item loadedItem = getItemService().find(ctx, item.getID());
-            boolean updated = false;
             Map<MetadataField, List<String>> grouped =
                     Optional.ofNullable(loadedItem)
                             .map(i -> i.getBundles("ORIGINAL"))
@@ -147,12 +146,11 @@ public class PolicyMetadataUtils {
                             throwingConsumerWrapper(
                                     entry -> getItemService().addMetadata(ctx,
                                             loadedItem, entry.getKey(), null, entry.getValue())));
-                    updated = true;
                 }
             } finally {
                 ctx.restoreAuthSystemState();
             }
-            updated = handleDateAvailableMetadata(ctx, item) || updated;
+            boolean updated = handleDateAvailableMetadata(ctx, item);
             if (!skipUpdate && updated) {
                 updateItem(ctx, loadedItem);
             }
