@@ -12,10 +12,14 @@ import static org.dspace.app.policy.PolicyMetadataUtils.dataciteAvailableMetadat
 import static org.dspace.app.policy.PolicyMetadataUtils.dataciteRightsMetadata;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.ibm.icu.text.SimpleDateFormat;
 import org.apache.commons.codec.CharEncoding;
@@ -42,6 +46,10 @@ import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.event.factory.EventServiceFactory;
+import org.dspace.event.service.EventService;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,14 +57,13 @@ import org.junit.Test;
 public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase {
 
     private EPerson submitter;
-
     private Collection publicationCollection;
-
     private Community subCommunity;
 
     private ItemService itemService;
-
     private BitstreamService bitstreamService;
+    private ConfigurationService configurationService;
+    private EventService eventService;
 
     private Group anonymousGroup;
 
@@ -67,6 +74,8 @@ public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase 
         context.turnOffAuthorisationSystem();
         itemService = ContentServiceFactory.getInstance().getItemService();
         bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        eventService = EventServiceFactory.getInstance().getEventService();
         anonymousGroup = EPersonServiceFactory.getInstance().getGroupService().findByName(context, Group.ANONYMOUS);
 
         submitter = EPersonBuilder.createEPerson(context)
@@ -418,6 +427,79 @@ public class PolicyMetadataScriptIT extends AbstractIntegrationTestWithDatabase 
                 is(PolicyMetadataUtils.ACCESS_OPEN));
         assertThat(bitstreamService.getMetadata(openAccessBitstream, dataciteRightsMetadata.toString()),
                 is(PolicyMetadataUtils.ACCESS_OPEN));
+    }
+
+    @Test
+    public void testOnlyEmbargo() throws Exception {
+        String[] consumers = configurationService.getArrayProperty("event.dispatcher.default.consumers");
+        try {
+
+            Set<String> consumersSet = new HashSet<String>(Arrays.asList(consumers));
+            consumersSet.remove("policymetadataenhancer");
+            configurationService.setProperty("event.dispatcher.default.consumers", consumersSet.toArray());
+            eventService.reloadConfiguration();
+
+            String[] args = new String[]{"access-status-metadata", "-m", "embargo"};
+            TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+            context.turnOffAuthorisationSystem();
+
+            publicationCollection = context.reloadEntity(publicationCollection);
+
+            Item metadataOnlyItem = ItemBuilder.createItem(context, publicationCollection)
+                    .withTitle("Test Publication")
+                    .build();
+
+            Item embargoItem = ItemBuilder.createItem(context, publicationCollection)
+                    .withTitle("Publication expired embargo")
+                    .withMetadata("datacite", "rights", null ,"embargo")
+                    .build();
+
+            // Add a bitstream to an item
+            Bitstream bitstreamForEmbargoItem = null;
+            try (InputStream is = IOUtils.toInputStream("content", CharEncoding.UTF_8)) {
+                bitstreamForEmbargoItem = BitstreamBuilder.createBitstream(context, embargoItem, is)
+                        .withName("Bitstream")
+                        .withDescription("description")
+                        .withMimeType("text/plain")
+                        .build();
+            }
+
+            String embargoDateAsString = "2020-01-01";
+            ResourcePolicyBuilder
+                    .createResourcePolicy(context, null, anonymousGroup)
+                    .withDspaceObject(bitstreamForEmbargoItem)
+                    .withAction(Constants.READ)
+                    .withPolicyType("TYPE_CUSTOM")
+                    .withName("embargo")
+                    .withStartDate((new java.text.SimpleDateFormat("yyyy-MM-dd")).parse(embargoDateAsString))
+                    .build();
+
+            context.restoreAuthSystemState();
+            context.commit();
+
+            handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+            embargoItem = context.reloadEntity(embargoItem);
+            bitstreamForEmbargoItem = context.reloadEntity(bitstreamForEmbargoItem);
+            metadataOnlyItem = context.reloadEntity(metadataOnlyItem);
+
+            assertThat(itemService.getMetadata(metadataOnlyItem, dataciteRightsMetadata.toString()),
+                    nullValue());
+            assertThat(itemService.getMetadata(embargoItem, dataciteRightsMetadata.toString()),
+                    is(PolicyMetadataUtils.ACCESS_OPEN));
+            assertThat(bitstreamService.getMetadata(bitstreamForEmbargoItem, dataciteRightsMetadata.toString()),
+                    is(PolicyMetadataUtils.ACCESS_OPEN));
+
+            String embargoDate = itemService.getMetadata(embargoItem, dataciteAvailableMetadata.toString());
+            String embargoDateBitstream =
+                    bitstreamService.getMetadata(bitstreamForEmbargoItem, dataciteAvailableMetadata.toString());
+
+            Assert.assertNull(embargoDate);
+            Assert.assertNull(embargoDateBitstream);
+        } finally {
+            configurationService.setProperty("event.dispatcher.default.consumers", consumers);
+            eventService.reloadConfiguration();
+        }
     }
 
     @Override

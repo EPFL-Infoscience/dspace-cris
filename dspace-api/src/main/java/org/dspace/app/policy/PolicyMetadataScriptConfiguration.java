@@ -45,6 +45,11 @@ public class PolicyMetadataScriptConfiguration<T extends PolicyMetadataScript> e
             options.getOption("ps").setType(Integer.class);
             options.getOption("ps").setRequired(false);
 
+            options.addOption("m", "metadata", true,
+                    "optional value of the datacite.rights metadatum to filter the items to elaborate");
+            options.getOption("m").setType(String.class);
+            options.getOption("m").setRequired(false);
+
             super.options = options;
         }
         return options;
