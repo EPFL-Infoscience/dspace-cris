@@ -38,7 +38,7 @@ public class RetrieveOrcidPublicationAction implements OrcidWebhookAction {
     @Override
     public void perform(Context context, Item profile, String orcid) {
         try {
-            if (configurationService.getBooleanProperty("orcid.webhook.suggest-publications.enabled", false)) {
+            if (configurationService.getBooleanProperty("orcid.webhook.suggest-publications.enabled", true)) {
                 orcidPublicationLoader.importWorks(context, profile, orcid);
             }
         } catch (SolrServerException | IOException e) {
