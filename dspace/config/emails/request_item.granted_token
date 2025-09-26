@@ -12,12 +12,13 @@
 ##  {7} expiration date of the granted access (timestamp, formatted in requestitem.cfg)
 
 #set($subject = 'Request for Copy of Restricted Document is Granted')
-Dear ${params[0]}:
+Dear ${params[0]},
 
-English version:
+Your request for a copy of the file(s) from the document: ${params[2]} (${params[1]}) has been approved.
 
-Your request for a copy of the file(s) from the below document has been approved.
 The following link will grant access to the files you requested.
+Secure link: ${params[6]}
+
 The content of this document is subject to certain strict conditions of use, which you agree to comply with once you have been granted temporary access.
 In particular, you agree:
 	• to respect copyright (more specifically: no part of may be reproduced without the author's written permission)
@@ -26,34 +27,12 @@ In particular, you agree:
 	• not to modify the content
 	• to clearly name the author and source when quoting
 We hope you receive this document in good order and remain at your disposal should you have any questions.
-Secure link: ${params[6]}
-
-
-Version française:
-
-Votre demande de copie du ou des fichier(s) du document ci-dessous a été approuvée.
-Le lien suivant vous donnera accès aux fichiers que vous avez demandés.
-Le contenu de ce document est soumis à certaines conditions strictes d’utilisation, que vous acceptez de respecter dès lors que vous avez obtenu un accès temporaire.
-En particulier, vous vous engagez:
-	• à respecter le droit d’auteur (plus précisément : aucune partie ne peut être reproduite sans l’autorisation écrite de l’auteur)
-	• à limiter son utilisation exclusivement à des fins privées et non commerciales
-	• à ne pas distribuer les documents, que ce soit à titre onéreux ou gratuit
-	• à ne pas modifier le contenu
-	• à citer clairement l’auteur et la source lors de toute citation
-Nous espérons que vous recevrez ce document en bon état et restons à votre disposition pour toute question.
-Lien sécurisé: ${params[6]}
-
-    ${params[2]}
-    ${params[1]}
 
 #if( $params[7] )
-
 
 Your access will last until ${params[7]}.
 #end
 #if( $params[5] )
-
-
 
 An additional message from the approver follows:
 
@@ -62,3 +41,35 @@ ${params[5]}
 
 Best regards,
 The ${config.get('dspace.name')} Team
+
+Pour la version française, voir ci-dessous :
+
+Bonjour ${params[0]},
+
+Votre demande de copie du ou des fichier(s) du document : ${params[2]} (${params[1]}) a été approuvée.
+
+Le lien suivant vous donnera accès aux fichiers que vous avez demandés.
+Lien sécurisé: ${params[6]}
+
+Le contenu de ce document est soumis à certaines conditions strictes d’utilisation, que vous acceptez de respecter dès lors que vous avez obtenu un accès temporaire.
+En particulier, vous vous engagez:
+	• à respecter le droit d’auteur (plus précisément : aucune partie ne peut être reproduite sans l’autorisation écrite de l’auteur)
+	• à limiter son utilisation exclusivement à des fins privées et non commerciales
+	• à ne pas distribuer les documents, que ce soit à titre onéreux ou gratuit
+	• à ne pas modifier le contenu
+	• à citer clairement l’auteur et la source lors de toute citation
+Nous espérons que vous recevrez ce document en bon état et restons à votre disposition pour toute question.
+
+#if( $params[7] )
+
+Votre accès sera actif jusqu’au ${params[7]}.
+#end
+#if( $params[5] )
+
+Un message supplémentaire a été ajouté par le validateur :
+
+${params[5]}
+#end
+
+Cordialement,
+L'équipe ${config.get('dspace.name')}
