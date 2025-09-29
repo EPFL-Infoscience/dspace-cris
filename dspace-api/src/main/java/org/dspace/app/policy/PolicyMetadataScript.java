@@ -110,6 +110,11 @@ public class PolicyMetadataScript extends DSpaceRunnable<PolicyMetadataScriptCon
                 context.commit();
             }
         }
+        if (count % pageSize != 0) {
+            handler.logInfo("Processed " + count + " items");
+            context.commit();
+        }
+
     }
 
     private void updateAllItems() throws SQLException, AuthorizeException {
