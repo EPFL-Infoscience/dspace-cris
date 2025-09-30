@@ -194,12 +194,6 @@ public class EpflUserSynchronizationScript
                 } else if (allowDeactivationOnQuery) {
                     EPerson ePerson = ePersonService.findByNetid(context, sciperId + "@epfl.ch");
                     if (ePerson != null) {
-                        if (profileInitializer.isDeactivated(context, ePerson)) {
-                            logInfo(
-                                    "EPerson with uuid: " + ePerson.getID() + ", netId: " + ePerson.getNetid()
-                                            + " was skipped because already deactivated");
-                            continue;
-                        }
                         profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciperId);
                         updatedPersonCount++;
                         logInfo("Person with sciper: " + sciperId
