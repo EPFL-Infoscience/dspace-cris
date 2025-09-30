@@ -140,4 +140,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.mediafilter.MediaFilterScript"/>
     </bean>
 
+    <bean id="access-status-metadata" class="org.dspace.app.policy.PolicyMetadataScriptConfiguration" primary="true">
+        <property name="description" value="Calculate access status metadata"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.policy.PolicyMetadataScript"/>
+    </bean>
+
 </beans>
