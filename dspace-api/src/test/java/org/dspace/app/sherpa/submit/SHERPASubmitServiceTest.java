@@ -122,4 +122,21 @@ public class SHERPASubmitServiceTest extends AbstractUnitTest {
         // Skip remainder of parsing tests - these are already done in SHERPAServiceTEst
     }
 
+    @Test
+    public void testGetDoubleISSNs() throws AuthorizeException, SQLException {
+        String validISSN = "0028-0836|||1476-4687";
+        // Create and install an item with two ISSNs
+        WorkspaceItem testWorkspaceItem = workspaceItemService.create(context, testCollection, false);
+        Item testItem = installItemService.installItem(context, testWorkspaceItem);
+        MetadataField issnField = metadataFieldService.
+                findByString(context, "dc.identifier.issn", '.');
+        MetadataValue metadataValue = metadataValueService.create(context, testItem, issnField);
+        metadataValue.setValue(validISSN);
+        SHERPAResponse response = sherpaSubmitService.searchRelatedJournals(context, testItem);
+        assertTrue("Response should not be null", response != null);
+        assertFalse("Expected at least one journal match", response.getJournals().isEmpty());
+        assertFalse("Response was flagged as 'isError'", response.isError());
+    }
+
+
 }

@@ -64,6 +64,12 @@ public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchr
             options.getOption("e").setType(String.class);
             options.getOption("e").setRequired(false);
 
+            options.addOption("dq", "deactivationOnQuery", false,
+                    "optional parameter to be used to allow deactivation" +
+                            " of users specified with the -q parameter (works only with -q");
+            options.getOption("dq").setType(Boolean.class);
+            options.getOption("dq").setRequired(false);
+
             super.options = options;
         }
         return options;

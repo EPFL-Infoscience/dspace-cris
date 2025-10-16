@@ -105,6 +105,7 @@ public class RequestItemRepositoryIT
 
     @After
     public void tearDown() {
+        configurationService.setProperty("request.item.create.captcha", true);
         configurationService.setProperty("captcha.provider", "google");
     }
 
@@ -147,6 +148,7 @@ public class RequestItemRepositoryIT
         configurationService.setProperty("captcha.provider", "altcha");
         configurationService.setProperty("altcha.algorithm", "SHA-256");
         configurationService.setProperty("altcha.hmac.key", "onetwothreesecret");
+        configurationService.setProperty("request.item.create.captcha", false);
 
         context.restoreAuthSystemState();
     }

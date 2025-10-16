@@ -53,6 +53,7 @@ public class EpflUserSynchronizationScript
     private String inputFile;
     private String query;
     private String log;
+    private boolean allowDeactivationOnQuery;
     private int createdPersonCount = 0;
     private int updatedPersonCount = 0;
 
@@ -88,6 +89,7 @@ public class EpflUserSynchronizationScript
         inputFile = commandLine.getOptionValue('f');
         query = commandLine.getOptionValue('q');
         email = commandLine.getOptionValue('e');
+        allowDeactivationOnQuery = commandLine.hasOption("dq");
 
         try {
             this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -159,7 +161,7 @@ public class EpflUserSynchronizationScript
                                                 + " was skipped because already deactivated");
                                 continue;
                             }
-                            profileInitializer.closeAffiliations(context, ePerson, sciper.get());
+                            profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciper.get());
                             logInfo("Person with sciper: " + sciper
                                     + " is not active anymore, affiliations have been set as ended.");
                             updatedPersonCount++;
@@ -189,6 +191,17 @@ public class EpflUserSynchronizationScript
                 Optional<PersonDTO> personDTO = epflApiClient.getPerson(sciperId, EpflApiClient.Language.EN);
                 if (personDTO.isPresent()) {
                     createOrSynch(personDTO.get());
+                } else if (allowDeactivationOnQuery) {
+                    EPerson ePerson = ePersonService.findByNetid(context, sciperId + "@epfl.ch");
+                    if (ePerson != null) {
+                        profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciperId);
+                        updatedPersonCount++;
+                        logInfo("Person with sciper: " + sciperId
+                                + " is not active anymore, affiliations have been set as ended.");
+                    } else {
+                        logInfo("Skipped profile #" + (count + 1) + " with sciper " + sciperId
+                                + " not found in the search api nor in the database as EPerson");
+                    }
                 } else {
                     logInfo("Skipped profile #" + (count + 1) + " with sciper " + sciperId
                             + " not found in the search api");

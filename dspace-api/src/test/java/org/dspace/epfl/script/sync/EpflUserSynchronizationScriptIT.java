@@ -20,8 +20,10 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -731,13 +733,20 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                 .withNetId("1@epfl.ch")
                 .build();
 
-        ItemBuilder.createItem(context, profiles)
+        Item profile = ItemBuilder.createItem(context, profiles)
                 .withDspaceObjectOwner(eperson)
                 .withTitle("My User")
                 .withBirthDate("1992-06-26")
+                .withPersonEmail("testuser@user.it")
                 .withMetadata("epfl", "sciperId", null, "1")
                 .withMetadata("epfl", "sciper", "active", "true")
+                .withMetadata("oairecerif", "identifier", "url", "someurl")
+                .withMetadata("person", "affiliation", "name", "My affiliation")
                 .build();
+
+        // Set a personal picture (basic empty jpg)
+        bitstreamService.replacePersonalPicture(context, profile, "1.jpg",
+                new ByteArrayInputStream(new byte[]{(byte)0xFF, (byte)0xD8, (byte)0xFF, (byte)0xD9}));
 
         groupService.addMember(context, submitters, eperson);
         context.restoreAuthSystemState();
@@ -759,6 +768,23 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         DiscoverQuery query = new DiscoverQuery();
         query.setQuery("epfl.sciperId:1 AND epfl.sciper.active:false");
         assertThat(searchService.search(context, query).getTotalSearchResults(), is(1l));
+
+        // Check the removal of these metadata: oairecerif.identifier.url, person.affiliation.name, person.email
+        query = new DiscoverQuery();
+        query.setQuery("epfl.sciperId:1 AND -oairecerif.identifier.url:[* TO *]");
+        assertThat(searchService.search(context, query).getTotalSearchResults(), is(1l));
+
+        query = new DiscoverQuery();
+        query.setQuery("epfl.sciperId:1 AND -person.affiliation.name:[* TO *]");
+        assertThat(searchService.search(context, query).getTotalSearchResults(), is(1l));
+
+        query = new DiscoverQuery();
+        query.setQuery("epfl.sciperId:1 AND -person.email:[* TO *]");
+        assertThat(searchService.search(context, query).getTotalSearchResults(), is(1l));
+
+        // The profile picture should have been removed
+        Bitstream picture = bitstreamService.getBitstreamByName(researcherProfile.getItem(), "ORIGINAL", "1.jpg");
+        assertThat(picture, nullValue());
     }
 
     private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {
