@@ -1,4 +1,9 @@
-<record>
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:dcterms="http://purl.org/dc/terms/"
+        xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+    <leader>@virtual.leader@</leader>
     <controlfield tag="001">@virtual.id@</controlfield>
     @group.dc-identifier-patentno.start@
     <datafield tag="013" ind1=" " ind2=" ">

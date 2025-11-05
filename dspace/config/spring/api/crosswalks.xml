@@ -784,6 +784,7 @@
 				<entry key="uniqueTitle" value-ref="virtualFieldUniqueTitle"></entry>
 				<entry key="uniqueAcronym" value-ref="virtualFieldUniqueAcronym"></entry>
 				<entry key="uniqueUnitCode" value-ref="virtualFieldUniqueUnitCode"></entry>
+                <entry key="leader" value-ref="virtualFieldLeader"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -811,6 +812,7 @@
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthors" id="virtualFieldAuthors"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPageNumber" id="virtualFieldPageNumber"/>	
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPersonName" id="virtualFieldPersonName"/>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldLeader" id="virtualFieldLeader"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldBitstream" id="virtualFieldBitstream">
 		<constructor-arg name="bitstreamTypeMap">
 			<map>
