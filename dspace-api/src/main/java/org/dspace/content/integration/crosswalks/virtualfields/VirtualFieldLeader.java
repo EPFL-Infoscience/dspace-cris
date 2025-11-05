@@ -13,7 +13,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class VirtualFieldLeader implements VirtualField{
+public class VirtualFieldLeader implements VirtualField {
 
     @Autowired
     private ItemService itemService;
@@ -64,6 +64,6 @@ public class VirtualFieldLeader implements VirtualField{
         leader.append("     ");
         leader.append(" ");
 
-        return new String[]{leader.toString()};
+        return new String[] {leader.toString()};
     }
 }
