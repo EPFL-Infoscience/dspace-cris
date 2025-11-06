@@ -1,10 +1,6 @@
 package org.dspace.content.integration.crosswalks;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.crosswalk.CrosswalkException;
-import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
-import org.dspace.core.Context;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -13,9 +9,13 @@ import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.List;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.crosswalk.CrosswalkException;
+import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
+import org.dspace.core.Context;
 
-public class EpflMarcReferCrosswalk extends ReferCrosswalk{
+public class EpflMarcReferCrosswalk extends ReferCrosswalk {
 
     @Override
     public void disseminate(Context context, DSpaceObject dso, OutputStream out)
