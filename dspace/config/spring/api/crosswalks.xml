@@ -210,7 +210,7 @@
 		<property name="converter" ref="xmlValueConverter" />
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="epflPublicationsMarcXml">
+	<bean class="org.dspace.content.integration.crosswalks.EpflMarcReferCrosswalk" id="epflPublicationsMarcXml">
 		<property name="templateFileName" value="crosswalks/template/epfl-publication-marc-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="publications.xml"/>

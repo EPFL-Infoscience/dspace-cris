@@ -178,7 +178,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             throw new AuthorizeException("The current user is not allowed to perform a zip item export");
         }
         try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
-                BufferedWriter writer = new BufferedWriter(osw)) {
+             BufferedWriter writer = new BufferedWriter(osw)) {
             List<String> lines = getItemLines(context, dso, true);
             writeLines(writer, lines);
             writer.newLine();
@@ -325,7 +325,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         return templateLineObj;
     }
 
-    private List<String> getItemLines(Context context, DSpaceObject dso, boolean findRelatedItems)
+    List<String> getItemLines(Context context, DSpaceObject dso, boolean findRelatedItems)
         throws CrosswalkObjectNotSupported, IOException {
 
         if (dso.getType() != Constants.ITEM) {
@@ -579,7 +579,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         lines.add(line.getBeforeField() + valueToAdd + line.getAfterField());
     }
 
-    private void writeLines(BufferedWriter writer, List<String> lines) throws IOException {
+    void writeLines(BufferedWriter writer, List<String> lines) throws IOException {
         if (linesPostProcessor != null) {
             linesPostProcessor.accept(lines);
         }
@@ -691,4 +691,5 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     public void setFastMetadataSecurity(boolean fastMetadataSecurity) {
         this.fastMetadataSecurity = fastMetadataSecurity;
     }
+
 }
