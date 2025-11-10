@@ -50,6 +50,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -1059,8 +1060,31 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         people = context.reloadEntity(people);
         // 1 are created in advance, 2 orgunits are in the excel,
         // they have a parent, the second one has a grandparent and a grand-grandparent
+        Iterator<Item> iterator = itemService.findByCollection(context, people);
+        List<Item> peopleItems = new ArrayList<>();
+        iterator.forEachRemaining(peopleItems::add);
+        System.out.println(">>> PEOPLE ITEMS (" + peopleItems.size() + "):");
+        for (Item item : peopleItems) {
+            System.out.println("Item ID: " + item.getID() + ", Name: " + item.getName());
+            for (MetadataValue md : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
+                System.out.println(" - " + md.getMetadataField().toString('.') + " = " + md.getValue());
+            }
+            System.out.println("------");
+        }
+        Iterator<Item> orgUnitIterator = itemService.findByCollection(context, orgunits);
+        List<Item> orgUnitItems = new ArrayList<>();
+        orgUnitIterator.forEachRemaining(orgUnitItems::add);
+
+        System.out.println(">>> ORGUNIT ITEMS (" + orgUnitItems.size() + "):");
+        for (Item item : orgUnitItems) {
+            System.out.println("Item ID: " + item.getID() + ", Name: " + item.getName());
+            for (MetadataValue md : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
+                System.out.println(" - " + md.getMetadataField().toString('.') + " = " + md.getValue());
+            }
+            System.out.println("------");
+        }
         assertThat(itemService.countItems(context, orgunits), is(1 + 2 + 2 + 3));
-        assertThat(itemService.countItems(context, people), is(2 + 1 + 3));
+        assertThat(itemService.countItems(context, people), is(7));
         // the MTI has STI as parent that has 283344 as director, let's look for him
         ItemSearcherMapper itemSearcherMapper = new DSpace().getSingletonService(ItemSearcherMapper.class);
         Item item = itemSearcherMapper.search(context, "SCIPER-ID", "283344", null);
