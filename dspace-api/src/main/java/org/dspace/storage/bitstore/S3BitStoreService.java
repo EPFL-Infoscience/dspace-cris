@@ -14,10 +14,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -667,6 +671,50 @@ public class S3BitStoreService extends BaseBitStoreService {
             IOUtils.copy(get(bitstream), out);
         }
         return tempFile.getAbsolutePath();
+    }
+
+    @Override
+    public String getPresignedUrl(Bitstream bitstream) throws IOException {
+        if (!isInitialized()) {
+            throw new IOException("S3BitStoreService not initialized");
+        }
+
+        String key = getFullKey(bitstream.getInternalId());
+
+        if (isRegisteredBitstream(key)) {
+            key = key.substring(REGISTERED_FLAG.length());
+        }
+
+        try {
+            // Generate a presigned URL valid for 15 min (900 seconds)
+            GeneratePresignedUrlRequest generatePresignedUrlRequest =
+                new GeneratePresignedUrlRequest(bucketName, key)
+                    .withMethod(HttpMethod.GET)
+                    .withExpiration(getExpirationDate());
+
+            URL presignedUrl = s3AsyncClient.generatePresignedUrl(generatePresignedUrlRequest);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Generated presigned URL for bitstream {} (key: {}): {}",
+                          bitstream.getID(), key, presignedUrl.toString());
+            }
+
+            return presignedUrl.toString();
+        } catch (AmazonClientException e) {
+            log.error("Error generating presigned URL for key: {}", key, e);
+            throw new IOException("Failed to generate presigned URL", e);
+        }
+    }
+
+    protected Date getExpirationDate() {
+        long expireSeconds = configurationService
+            .getLongProperty("assetstore.s3.presigned.url.expiration.seconds", DEFAULT_EXPIRATION);
+        return Date.from(
+            LocalDateTime.now()
+                         .plusSeconds(expireSeconds)
+                         .atZone(ZoneId.systemDefault())
+                         .toInstant()
+        );
     }
 
 }
