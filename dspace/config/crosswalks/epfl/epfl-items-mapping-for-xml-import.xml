@@ -218,7 +218,8 @@
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.faculty</field>
-            <xpath>./datafield[@tag = '918']/subfield[@code = 'a']</xpath>
+            <xpath>./datafield[@tag = '918']</xpath>
+            <reader>orgUnitA</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.section</field>
@@ -226,15 +227,18 @@
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.institute</field>
-            <xpath>./datafield[@tag = '918']/subfield[@code = 'c']</xpath>
+            <xpath>./datafield[@tag = '918']</xpath>
+            <reader>orgUnitC</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.doctoralSchool</field>
-            <xpath>./datafield[@tag = '918']/subfield[@code = 'd']</xpath>
+            <xpath>./datafield[@tag = '918']</xpath>
+            <reader>orgUnitD</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.originalUnit</field>
-            <xpath>./datafield[@tag = '919']/subfield[@code = 'a']</xpath>
+            <xpath>./datafield[@tag = '919']</xpath>
+            <reader>orgUnitA</reader>
         </metadata-field>
         <metadata-field>
             <field>epfl.thesis.publicDefenseYear</field>
