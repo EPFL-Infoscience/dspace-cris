@@ -1063,26 +1063,9 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Iterator<Item> iterator = itemService.findByCollection(context, people);
         List<Item> peopleItems = new ArrayList<>();
         iterator.forEachRemaining(peopleItems::add);
-        System.out.println(">>> PEOPLE ITEMS (" + peopleItems.size() + "):");
-        for (Item item : peopleItems) {
-            System.out.println("Item ID: " + item.getID() + ", Name: " + item.getName());
-            for (MetadataValue md : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
-                System.out.println(" - " + md.getMetadataField().toString('.') + " = " + md.getValue());
-            }
-            System.out.println("------");
-        }
         Iterator<Item> orgUnitIterator = itemService.findByCollection(context, orgunits);
         List<Item> orgUnitItems = new ArrayList<>();
         orgUnitIterator.forEachRemaining(orgUnitItems::add);
-
-        System.out.println(">>> ORGUNIT ITEMS (" + orgUnitItems.size() + "):");
-        for (Item item : orgUnitItems) {
-            System.out.println("Item ID: " + item.getID() + ", Name: " + item.getName());
-            for (MetadataValue md : itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY)) {
-                System.out.println(" - " + md.getMetadataField().toString('.') + " = " + md.getValue());
-            }
-            System.out.println("------");
-        }
         assertThat(itemService.countItems(context, orgunits), is(1 + 2 + 2 + 3));
         assertThat(itemService.countItems(context, people), is(7));
         // the MTI has STI as parent that has 283344 as director, let's look for him
