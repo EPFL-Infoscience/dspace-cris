@@ -50,7 +50,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -1060,12 +1059,6 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         people = context.reloadEntity(people);
         // 1 are created in advance, 2 orgunits are in the excel,
         // they have a parent, the second one has a grandparent and a grand-grandparent
-        Iterator<Item> iterator = itemService.findByCollection(context, people);
-        List<Item> peopleItems = new ArrayList<>();
-        iterator.forEachRemaining(peopleItems::add);
-        Iterator<Item> orgUnitIterator = itemService.findByCollection(context, orgunits);
-        List<Item> orgUnitItems = new ArrayList<>();
-        orgUnitIterator.forEachRemaining(orgUnitItems::add);
         assertThat(itemService.countItems(context, orgunits), is(1 + 2 + 2 + 3));
         assertThat(itemService.countItems(context, people), is(7));
         // the MTI has STI as parent that has 283344 as director, let's look for him
