@@ -139,6 +139,8 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private boolean fastMetadataSecurity = false;
 
+    private boolean addXmlSignature = false;
+
     @PostConstruct
     private void postConstruct() throws IOException {
         String parent = configurationService.getProperty("dspace.dir") + File.separator + "config" + File.separator;
@@ -178,7 +180,11 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             throw new AuthorizeException("The current user is not allowed to perform a zip item export");
         }
         try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
-             BufferedWriter writer = new BufferedWriter(osw)) {
+                BufferedWriter writer = new BufferedWriter(osw)) {
+            if (addXmlSignature) {
+                writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+                writer.newLine();
+            }
             List<String> lines = getItemLines(context, dso, true);
             writeLines(writer, lines);
             writer.newLine();
@@ -325,7 +331,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         return templateLineObj;
     }
 
-    List<String> getItemLines(Context context, DSpaceObject dso, boolean findRelatedItems)
+    private List<String> getItemLines(Context context, DSpaceObject dso, boolean findRelatedItems)
         throws CrosswalkObjectNotSupported, IOException {
 
         if (dso.getType() != Constants.ITEM) {
@@ -579,7 +585,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         lines.add(line.getBeforeField() + valueToAdd + line.getAfterField());
     }
 
-    void writeLines(BufferedWriter writer, List<String> lines) throws IOException {
+    private void writeLines(BufferedWriter writer, List<String> lines) throws IOException {
         if (linesPostProcessor != null) {
             linesPostProcessor.accept(lines);
         }
@@ -692,4 +698,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         this.fastMetadataSecurity = fastMetadataSecurity;
     }
 
+    public boolean setAddXmlSignature(boolean addXmlSignature) {
+        return this.addXmlSignature;
+    }
 }

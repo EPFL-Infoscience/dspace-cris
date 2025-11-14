@@ -157,6 +157,7 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
     <bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPersonCvXml">
@@ -167,6 +168,7 @@
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
         <property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
         <property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
     </bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPersonCerifXml">
@@ -177,6 +179,7 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-cerif-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPersonJson">
@@ -198,6 +201,7 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/publications-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkCerifXml">
@@ -208,9 +212,10 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/items-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.EpflMarcReferCrosswalk" id="epflPublicationsMarcXml">
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="epflPublicationsMarcXml">
 		<property name="templateFileName" value="crosswalks/template/epfl-publication-marc-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="publications.xml"/>
@@ -221,6 +226,7 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="all"/>
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="oaiOpenairePublicationXml">
@@ -233,6 +239,7 @@
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Publication"/>
         <property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="oaiOpenaireProductXml">
@@ -245,6 +252,7 @@
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Product"/>
         <property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="oaiOpenairePatentXml">
@@ -257,6 +265,7 @@
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Patent"/>
         <property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEndnote">
@@ -291,6 +300,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/projects-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkProjectJson">
@@ -312,6 +322,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/equipments-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEquipmentJson">
@@ -333,6 +344,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkOrgUnitCerifXml">
@@ -343,6 +355,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkOrgUnitJson">
@@ -364,6 +377,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/fundings-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkFundingJson">
@@ -385,6 +399,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/patents-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPatentJson">
@@ -441,6 +456,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/products-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkDatasetDataciteXml">
@@ -450,6 +466,7 @@
 		<property name="entityType" value="Product"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkEventCerifXml">
@@ -460,6 +477,7 @@
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/events-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="epflPublicationsHtml">
@@ -542,6 +560,7 @@
         <property name="entityType" value="Publication"/>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
         <property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
     </bean>
 
     <bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkPatentDataciteXml">
@@ -551,6 +570,7 @@
         <property name="entityType" value="Patent"/>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
         <property name="converter" ref="xmlValueConverter" />
+        <property name="addXmlSignature" value="true"/>
     </bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkEquipment">
