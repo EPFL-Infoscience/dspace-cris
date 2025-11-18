@@ -2,7 +2,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:dcterms="http://purl.org/dc/terms/"
         xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
-    <leader>     am         3u      </leader>
+    <leader>00000nam a22000003u 4500</leader>
     <controlfield tag="001">mock-id</controlfield>
     <datafield tag="039" ind1=" " ind2="9">
         <subfield code="y">SKIP-IN-COMPARING</subfield>
