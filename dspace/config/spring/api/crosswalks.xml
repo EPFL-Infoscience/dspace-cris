@@ -227,7 +227,7 @@
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="all"/>
         <property name="addXmlSignature" value="true"/>
-	</bean>
+    </bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="oaiOpenairePublicationXml">
 		<property name="templateFileName" value="crosswalks/template/oai-openaire-publication-xml.template"/>
@@ -832,7 +832,34 @@
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthors" id="virtualFieldAuthors"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPageNumber" id="virtualFieldPageNumber"/>	
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPersonName" id="virtualFieldPersonName"/>
-    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldLeader" id="virtualFieldLeader"/>
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldLeader" id="virtualFieldLeader">
+        <property name="typeOfRecordMap">
+            <map>
+                <entry key="dataset" value="m"/>
+                <entry key="software" value="m"/>
+                <entry key="image" value="k"/>
+                <entry key="interactive source" value="m"/>
+                <entry key="sound" value="i"/>
+                <entry key="manuscript" value="t"/>
+                <entry key="musical notation" value="c"/>
+            </map>
+        </property>
+        <property name="defaultTypeOfRecord" value="a"/>
+        <property name="bibliographicLevelMap">
+            <map>
+                <entry key="text::journal::journal article" value="b"/>
+                <entry key="text::revue::article" value="b"/>
+                <entry key="text::conference output::conference presentation" value="a"/>
+                <entry key="text::objet présenté à une conférence::support de présentation à une conférence" value="a"/>
+                <entry key="text::conference output::conference paperType not in proceedings" value="a"/>
+                <entry key="text::objet présenté à une conférence::article dans une conférence non publié dans les actes" value="a"/>
+                <entry key="text::book/monograph::book part or chapter" value="a"/>
+                <entry key="text::ouvrage/monographie::chapitre de livre" value="a"/>
+                <entry key="text::magazine" value="b"/>
+            </map>
+        </property>
+        <property name="defaultBibliographicLevel" value="m"/>
+    </bean>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldBitstream" id="virtualFieldBitstream">
 		<constructor-arg name="bitstreamTypeMap">
 			<map>
@@ -873,8 +900,7 @@
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldCitations" id="virtualFieldCitations"/>
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldVocabularyI18nValuePair" id="virtualFieldVocabularyI18n"/>
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPublisherWithPlace" id="publisherWithPlace" />
-
-  <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.FirstSelectedCitationsPostProcessor" />
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.FirstSelectedCitationsPostProcessor" />
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.GroupByTypeCitationsPostProcessor" />
   <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMultiValueSplitter" id="virtualFieldEpflUnitCodeSplitter">
     	<property name="metadataToSplit" value="epfl.unit.code" />
