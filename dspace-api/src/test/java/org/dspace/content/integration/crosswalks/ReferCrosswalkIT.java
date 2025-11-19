@@ -3335,6 +3335,90 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
+    public void testProductOneDoiOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("English title", "en")
+                .withTitleForLanguage("French title", "fr")
+                .withAcronym("OU")
+                .build();
+
+        Item author = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author Test")
+                .build();
+
+        Item product = ItemBuilder.createItem(context, collection)
+                .withAuthor("Author Test", author.getID().toString())
+                .withTitle("THP I.III.6 Maison Ritz")
+                .withEntityType("Product")
+                .withDoiIdentifier("10.00001")
+                .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
+                .withMetadata("oairecerif", "author", "affiliation", null, "OU", orgUnit.getID().toString(), 600)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-product-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, product, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-product-one-doi.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    public void testProductMoreDoisOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("English title", "en")
+                .withTitleForLanguage("French title", "fr")
+                .withAcronym("OU")
+                .build();
+
+        Item author = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author Test")
+                .build();
+
+        Item product = ItemBuilder.createItem(context, collection)
+                .withAuthor("Author Test", author.getID().toString())
+                .withTitle("THP I.III.6 Maison Ritz")
+                .withEntityType("Product")
+                .withDoiIdentifier("10.00001")
+                .withDoiIdentifier("10.00002")
+                .withDoiIdentifier("10.00003")
+                .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
+                .withMetadata("oairecerif", "author", "affiliation", null, "OU", orgUnit.getID().toString(), 600)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-product-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, product, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-product-more-dois.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
     public void testPatentOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -3369,6 +3453,90 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         referCrossWalk.disseminate(context, product, out);
 
         try (FileInputStream fis = getFileInputStream("oai-openaire-patent.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    public void testPatentOneDoiOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("English title", "en")
+                .withTitleForLanguage("French title", "fr")
+                .withAcronym("OU")
+                .build();
+
+        Item author = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author Test")
+                .build();
+
+        Item patent = ItemBuilder.createItem(context, collection)
+                .withAuthor("Author Test", author.getID().toString())
+                .withTitle("THP I.III.6 Maison Ritz")
+                .withEntityType("Patent")
+                .withDoiIdentifier("10.00001")
+                .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
+                .withMetadata("oairecerif", "author", "affiliation", null, "OU", orgUnit.getID().toString(), 600)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-patent-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, patent, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-patent-one-doi.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    public void testPatentMoreDoisOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitleForLanguage("English title", "en")
+                .withTitleForLanguage("French title", "fr")
+                .withAcronym("OU")
+                .build();
+
+        Item author = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Author Test")
+                .build();
+
+        Item patent = ItemBuilder.createItem(context, collection)
+                .withAuthor("Author Test", author.getID().toString())
+                .withTitle("THP I.III.6 Maison Ritz")
+                .withEntityType("Patent")
+                .withDoiIdentifier("10.00001")
+                .withDoiIdentifier("10.00002")
+                .withDoiIdentifier("10.00003")
+                .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
+                .withMetadata("oairecerif", "author", "affiliation", null, "OU", orgUnit.getID().toString(), 600)
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-patent-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, patent, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-patent-more-dois.xml")) {
             String expectedXml = getExpectedContent(fis);
             compareEachLine(out.toString(), expectedXml);
         }
@@ -3427,6 +3595,118 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             compareEachLine(out.toString(), expectedXml);
         }
     }
+
+    @Test
+    public void testPublicationOneDoiOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item myOrg = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("MyOrg")
+                .withAcronym("MO")
+                .build();
+
+        Item knownAuthor = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Known Author")
+                .build();
+        Item knownAuthor2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Known Author2")
+                .build();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Test Publication")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withDoiIdentifier("10.00001")
+                .withType("text::objet présenté à une conférence::actes de conférence" +
+                                "::article dans une conférence/papier de conférence",
+                        "publication-coar-types:c_5794" )
+                .withIssueDate("2020-01-01")
+                .withAuthor(knownAuthor.getName(), knownAuthor.getID().toString())
+                .withAuthorAffiliation(myOrg.getName(), myOrg.getID().toString())
+                .withAuthor("External Author")
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor(knownAuthor2.getName(), knownAuthor2.getID().toString())
+                .withAuthorAffiliation(myOrg.getName(), myOrg.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-publication-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, publication, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-publication-one-doi.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+    @Test
+    public void testPublicationMoreDoisOAIOpenAIREXmlDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item myOrg = ItemBuilder.createItem(context, collection)
+                .withEntityType("OrgUnit")
+                .withTitle("MyOrg")
+                .withAcronym("MO")
+                .build();
+
+        Item knownAuthor = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Known Author")
+                .build();
+        Item knownAuthor2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Person")
+                .withTitle("Known Author2")
+                .build();
+
+        Item publication = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Test Publication")
+                .withPublisher("Publication publisher")
+                .withVolume("V.01")
+                .withIssue("Issue")
+                .withDoiIdentifier("10.00001")
+                .withDoiIdentifier("10.00002")
+                .withDoiIdentifier("10.00003")
+                .withType("text::objet présenté à une conférence::actes de conférence" +
+                                "::article dans une conférence/papier de conférence",
+                        "publication-coar-types:c_5794" )
+                .withIssueDate("2020-01-01")
+                .withAuthor(knownAuthor.getName(), knownAuthor.getID().toString())
+                .withAuthorAffiliation(myOrg.getName(), myOrg.getID().toString())
+                .withAuthor("External Author")
+                .withAuthorAffiliation(CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE)
+                .withAuthor(knownAuthor2.getName(), knownAuthor2.getID().toString())
+                .withAuthorAffiliation(myOrg.getName(), myOrg.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ReferCrosswalk referCrossWalk = (ReferCrosswalk) crosswalkMapper.getByType("oai-openaire-publication-xml");
+        assertThat(referCrossWalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        referCrossWalk.disseminate(context, publication, out);
+
+        try (FileInputStream fis = getFileInputStream("oai-openaire-publication-more-dois.xml")) {
+            String expectedXml = getExpectedContent(fis);
+            compareEachLine(out.toString(), expectedXml);
+        }
+    }
+
+
 
     private void createSelectedRelationship(Item author, Item publication, RelationshipType selectedRelationshipType)
             throws SQLException {
