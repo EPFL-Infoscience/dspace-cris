@@ -1891,7 +1891,7 @@
         </field>
       </row>
     </form>
-    <form name="journalcontainer_details">
+    <form name="journalcontainer_details-dc-relation-journal">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
@@ -1901,16 +1901,41 @@
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <style>col-xs-12 col-md-9</style>
           <hint />
-          <type-bind>text::conference output::conference proceedings::conference paper, texte::objet présenté à une conférence::actes de conférence::article dans une conférence/papier de conférence, conference-coar-types:c_5794, publication-coar-types:c_5794, text::conference output::conference proceedings::conference poster, texte::objet présenté à une conférence::actes de conférence::poster dans une conférence, conference-coar-types:c_6670, publication-coar-types:c_6670, text::journal::journal article::data paper, texte::revue::article de revue::data paper, article-coar-types:c_beb9, publication-coar-types:c_beb9, text::journal::editorial, texte::revue::éditorial, article-coar-types:c_b239, publication-coar-types:c_b239, text::journal, texte::revue, article-coar-types:c_0640, publication-coar-types:c_0640, text::journal::journal article, texte::revue::article de revue, article-coar-types:c_6501, publication-coar-types:c_6501, text::journal::journal article::research article, texte::revue::article de revue::article de revue scientifique, article-coar-types:c_2df8fbb1, publication-coar-types:c_2df8fbb1, text::journal::journal article::review article, texte::revue::article de revue::article de synthèse, article-coar-types:c_dcae04bc, publication-coar-types:c_dcae04bc, text::journal::journal article::software paper, texte::revue::article de revue::software paper, article-coar-types:c_7bab, publication-coar-types:c_7bab, text, texte, article-coar-types:c_18cf, publication-coar-types:c_18cf, text::conference output, texte::objet présenté à une conférence, conference-coar-types:c_c94f, publication-coar-types:c_c94f, text, texte, conference-coar-types:c_18cf, publication-coar-types:c_18cf</type-bind>
         </field>
+      </row>
+      <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>issn</dc-qualifier>
           <label>ISSN</label>
           <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <label>Éditeur</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+      </row>
+    </form>
+    <form name="journalcontainer_details">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>journal</dc-qualifier>
+          <label />
+          <input-type>group</input-type>
           <repeatable>true</repeatable>
           <required />
           <style>col-xs-12 col-md-3</style>
@@ -9167,7 +9192,7 @@
       </pair>
       <pair>
         <displayed-value>Yes</displayed-value>
-        <stored-value>yes</stored-value>
+        <stored-value>Yes</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="audience" dc-term="audience">
