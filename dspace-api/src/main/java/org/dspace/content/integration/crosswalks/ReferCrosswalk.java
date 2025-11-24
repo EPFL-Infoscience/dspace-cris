@@ -139,6 +139,8 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private boolean fastMetadataSecurity = false;
 
+    private boolean addXmlSignature = false;
+
     @PostConstruct
     private void postConstruct() throws IOException {
         String parent = configurationService.getProperty("dspace.dir") + File.separator + "config" + File.separator;
@@ -179,6 +181,10 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         }
         try (OutputStreamWriter osw = new OutputStreamWriter(out, UTF_8);
                 BufferedWriter writer = new BufferedWriter(osw)) {
+            if (addXmlSignature) {
+                writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+                writer.newLine();
+            }
             List<String> lines = getItemLines(context, dso, true);
             writeLines(writer, lines);
             writer.newLine();
@@ -690,5 +696,9 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     public void setFastMetadataSecurity(boolean fastMetadataSecurity) {
         this.fastMetadataSecurity = fastMetadataSecurity;
+    }
+
+    public boolean setAddXmlSignature(boolean addXmlSignature) {
+        return this.addXmlSignature;
     }
 }
