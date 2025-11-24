@@ -464,7 +464,11 @@ public class S3BitStoreService extends BaseBitStoreService {
         if (isRegisteredBitstream(key)) {
             key = key.substring(REGISTERED_FLAG.length());
         }
-        return s3Service.getObject(bucketName, key).getObjectContent();
+        try {
+            return s3Service.getObject(bucketName, key).getObjectContent();
+        } catch (AmazonS3Exception e) {
+            throw new IOException(e);
+        }
     }
 
     /**
