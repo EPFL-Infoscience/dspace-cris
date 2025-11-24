@@ -232,4 +232,69 @@ public class XmlToItemImportScriptIT extends AbstractIntegrationTestWithDatabase
         return new File(BASE_XML_DIR_PATH, name).getAbsolutePath();
     }
 
+    @Test
+    public void testOrgUnitAuthorityImportForThesisMetadata() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Collection collectionForTest = CollectionBuilder.createCollection(context, community)
+                .withName("Thesis Collection")
+                .withEntityType("Publication")
+                .build();
+
+        Collection orgUnitCollection = CollectionBuilder.createCollection(context, community)
+                .withName("OrgUnit Collection")
+                .withEntityType("OrgUnit")
+                .build();
+
+        Item orgUnitLamm = ItemBuilder.createItem(context, orgUnitCollection)
+                .withTitle("LAMMM")
+                .withMetadata("oairecerif", "acronym", null, "LAMMM")
+                .build();
+
+        Item orgUnitIgm = ItemBuilder.createItem(context, orgUnitCollection)
+                .withTitle("IGM")
+                .withMetadata("oairecerif", "acronym", null, "IGM")
+                .build();
+
+        Group adminGroup = collectionService.createAdministrators(context, collectionForTest);
+        groupService.addMember(context, adminGroup, context.getCurrentUser());
+        context.restoreAuthSystemState();
+
+        String fileLocation = getFilePath("IS-Academia-orgunit.xml");
+        String[] args = new String[]{"is-academia-xml-import", "-c", collectionForTest.getID().toString(),
+                "-f", fileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        Item item = itemService.findAllByCollection(context, collectionForTest).next();
+
+        List<MetadataValue> doctoralSchool = itemService.getMetadata(item, "epfl", "thesis",
+                "doctoralSchool", "*", false);
+        doctoralSchool.stream()
+                .forEach(mv -> {
+                    assertThat(mv.getAuthority(), is("will be referenced::ACRONYM::EDME"));
+                });
+        List<MetadataValue> institute = itemService.getMetadata(item, "epfl", "thesis",
+                "institute", "*", false);
+        institute.stream()
+                .forEach(mv -> {
+                    assertThat(mv.getAuthority(), is(orgUnitIgm.getID().toString()));
+                });
+        List<MetadataValue> faculty = itemService.getMetadata(item, "epfl", "thesis",
+                "faculty", "*", false);
+        faculty.stream()
+                .forEach(mv -> {
+                    assertThat(mv.getAuthority(), is(orgUnitLamm.getID().toString()));
+                });
+        List<MetadataValue> originalUnit = itemService.getMetadata(item, "epfl", "thesis",
+                "originalUnit", "*", false);
+        faculty.stream()
+                .forEach(mv -> {
+                    assertThat(mv.getAuthority(), is(orgUnitLamm.getID().toString()));
+                });
+    }
 }

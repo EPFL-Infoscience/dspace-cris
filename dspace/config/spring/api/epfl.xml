@@ -184,7 +184,28 @@
         <property name="valueXPath" value="./subfield[@code = 'p']" />
         <property name="authorityXPath" value="./subfield[@code = 'p']" />
     </bean>
-    
+
+    <bean class="org.dspace.epfl.script.reader.ItemsImportAuthorityReader" >
+        <property name="readerName" value="orgUnitA" />
+        <property name="authorityPrefix" value="will be referenced::ACRONYM" />
+        <property name="valueXPath" value="./subfield[@code = 'a']" />
+        <property name="authorityXPath" value="./subfield[@code = 'a']" />
+    </bean>
+
+    <bean class="org.dspace.epfl.script.reader.ItemsImportAuthorityReader" >
+        <property name="readerName" value="orgUnitD" />
+        <property name="authorityPrefix" value="will be referenced::ACRONYM" />
+        <property name="valueXPath" value="./subfield[@code = 'd']" />
+        <property name="authorityXPath" value="./subfield[@code = 'd']" />
+    </bean>
+
+    <bean class="org.dspace.epfl.script.reader.ItemsImportAuthorityReader" >
+        <property name="readerName" value="orgUnitC" />
+        <property name="authorityPrefix" value="will be referenced::ACRONYM" />
+        <property name="valueXPath" value="./subfield[@code = 'c']" />
+        <property name="authorityXPath" value="./subfield[@code = 'c']" />
+    </bean>
+
     <bean class="org.dspace.epfl.script.reader.ItemsImportKeywordsReader" >
         <property name="alternativeMetadataField" value="epfl.tto" />
         <property name="prefix" value="TTO:" />
