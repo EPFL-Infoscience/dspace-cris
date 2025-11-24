@@ -65,6 +65,7 @@ public class BitstreamResource extends AbstractResource {
         this.currentSpecialGroups = currentSpecialGroups;
         this.shouldGenerateCoverPage = shouldGenerateCoverPage;
         this.skipAuthCheck = skipAuth;
+        fetchDocument();
     }
 
     /**
@@ -82,6 +83,7 @@ public class BitstreamResource extends AbstractResource {
                 Pair<byte[], Long> citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
                 this.file = citedDocument.getLeft();
             } catch (Exception e) {
+                LOG.warn("Could not generate cover page. Will fallback to original document", e);
                 // Return the original bitstream without the cover page
                 this.file = IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
             }
@@ -96,9 +98,12 @@ public class BitstreamResource extends AbstractResource {
 
     @Override
     public InputStream getInputStream() throws IOException {
-        fetchDocument();
-
         return document.getInputStream();
+    }
+
+    @Override
+    public boolean exists() {
+        return document != null && document.inputStream != null;
     }
 
     @Override
@@ -108,43 +113,39 @@ public class BitstreamResource extends AbstractResource {
 
     @Override
     public long contentLength() throws IOException {
-        fetchDocument();
-
         return document.getLength();
     }
 
     public String getChecksum() {
-        fetchDocument();
-
         return document.getEtag();
     }
 
-    void fetchDocument() {
+    protected void fetchDocument() {
         if (document != null) {
             return;
         }
 
+        BitstreamDocument bd;
         try (Context context = initializeContext()) {
-            if (skipAuthCheck) {
-                context.turnOffAuthorisationSystem();
-            }
             Bitstream bitstream = bitstreamService.find(context, uuid);
             if (shouldGenerateCoverPage) {
                 var coverPage = getCoverpageByteArray(context, bitstream);
 
-                this.document = new BitstreamDocument(etag(bitstream),
-                        coverPage.length,
-                        new ByteArrayInputStream(coverPage));
+                bd =  new BitstreamDocument(
+                    etag(bitstream),
+                    coverPage.length,
+                    new ByteArrayInputStream(coverPage)
+                );
             } else {
-                this.document = new BitstreamDocument(bitstream.getChecksum(),
+                bd =  new BitstreamDocument(bitstream.getChecksum(),
                         bitstream.getSizeBytes(),
                         bitstreamService.retrieve(context, bitstream));
             }
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
         }
-
-        LOG.debug("fetched document {} {}", shouldGenerateCoverPage, document);
+        LOG.debug("fetched document {} {}", shouldGenerateCoverPage, bd);
+        this.document = bd;
     }
 
     String etag(Bitstream bitstream) {
@@ -171,6 +172,9 @@ public class BitstreamResource extends AbstractResource {
         EPerson currentUser = ePersonService.find(context, currentUserUUID);
         context.setCurrentUser(currentUser);
         currentSpecialGroups.forEach(context::setSpecialGroup);
+        if (skipAuthCheck) {
+            context.turnOffAuthorisationSystem();
+        }
         return context;
     }
 
