@@ -1935,7 +1935,7 @@
           <dc-element>relation</dc-element>
           <dc-qualifier>journal</dc-qualifier>
           <label />
-          <input-type>group</input-type>
+          <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
           <style>col-xs-12 col-md-3</style>
@@ -9188,7 +9188,7 @@
     <value-pairs value-pairs-name="author_roles" dc-term="author_roles">
       <pair>
         <displayed-value>No</displayed-value>
-        <stored-value />
+        <stored-value>No</stored-value>
       </pair>
       <pair>
         <displayed-value>Yes</displayed-value>
