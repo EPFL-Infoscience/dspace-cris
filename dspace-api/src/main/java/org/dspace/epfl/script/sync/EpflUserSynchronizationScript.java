@@ -30,6 +30,9 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.eperson.EPerson;
@@ -37,6 +40,11 @@ import org.dspace.eperson.EPersonServiceImpl;
 import org.dspace.epfl.client.EpflApiClient;
 import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.PersonDTO;
+import org.dspace.orcid.OrcidQueue;
+import org.dspace.orcid.service.impl.OrcidQueueServiceImpl;
+import org.dspace.orcid.service.impl.OrcidTokenServiceImpl;
+import org.dspace.orcid.webhook.OrcidWebhookServiceImpl;
+import org.dspace.profile.ResearcherProfile;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -68,6 +76,10 @@ public class EpflUserSynchronizationScript
     private DocumentBuilder documentBuilder;
 
     private XPath xPath;
+    private OrcidWebhookServiceImpl orcidWebhookService;
+    private OrcidTokenServiceImpl orcidTokenService;
+    private OrcidQueueServiceImpl orcidQueueService;
+    private ItemService itemService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -86,6 +98,15 @@ public class EpflUserSynchronizationScript
                         EpflApiClientImpl.class);
         profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        orcidWebhookService = new DSpace().getServiceManager()
+                .getServiceByName("org.dspace.orcid.webhook.OrcidWebhookServiceImpl",
+                        OrcidWebhookServiceImpl.class);
+        orcidTokenService = new DSpace().getServiceManager()
+                .getServiceByName("org.dspace.orcid.service.impl.OrcidTokenServiceImpl",
+                        OrcidTokenServiceImpl.class);
+        orcidQueueService = new DSpace().getServiceManager()
+                .getServiceByName("org.dspace.orcid.service.impl.OrcidQueueServiceImpl", OrcidQueueServiceImpl.class);
+        itemService = ContentServiceFactory.getInstance().getItemService();
         inputFile = commandLine.getOptionValue('f');
         query = commandLine.getOptionValue('q');
         email = commandLine.getOptionValue('e');
@@ -162,6 +183,7 @@ public class EpflUserSynchronizationScript
                                 continue;
                             }
                             profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciper.get());
+                            deleteOrcidSynchronization(context, ePerson);
                             logInfo("Person with sciper: " + sciper
                                     + " is not active anymore, affiliations have been set as ended.");
                             updatedPersonCount++;
@@ -195,6 +217,7 @@ public class EpflUserSynchronizationScript
                     EPerson ePerson = ePersonService.findByNetid(context, sciperId + "@epfl.ch");
                     if (ePerson != null) {
                         profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciperId);
+                        deleteOrcidSynchronization(context, ePerson);
                         updatedPersonCount++;
                         logInfo("Person with sciper: " + sciperId
                                 + " is not active anymore, affiliations have been set as ended.");
@@ -335,5 +358,45 @@ public class EpflUserSynchronizationScript
             // handler.logInfo("Mail Message content: " + log);
         }
     }
+
+    public void deleteOrcidSynchronization(Context context, EPerson ePerson) throws SQLException, AuthorizeException {
+        Optional<ResearcherProfile> rpOpt = profileInitializer.findProfile(context, ePerson);
+
+        if (rpOpt.isEmpty()) {
+            handler.logInfo("No ResearcherProfile found for EPerson: " + ePerson.getID());
+            return;
+        }
+
+        Item profile = rpOpt.get().getItem();
+
+        // deactivate the orcid webhook
+        if (orcidWebhookService.isProfileRegistered(profile)) {
+            orcidWebhookService.unregister(context, profile);
+        }
+
+        // erase the synchronization metadata
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "scope", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-mode", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-publications", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-products", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-patents", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-fundings", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-profile", Item.ANY);
+
+        // delete token from database
+        orcidTokenService.deleteByProfileItem(context, profile);
+
+        // delete orcid queue
+        List<OrcidQueue> queueRecords = orcidQueueService.findByProfileItemId(context, profile.getID());
+        for (OrcidQueue queueRecord : queueRecords) {
+            orcidQueueService.delete(context, queueRecord);
+        }
+
+        handler.logInfo("ORCID synchronization metadata deleted for profile: " + profile.getID());
+
+        itemService.update(context, profile);
+    }
+
+
 
 }
