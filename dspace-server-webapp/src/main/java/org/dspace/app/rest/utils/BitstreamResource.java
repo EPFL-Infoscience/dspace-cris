@@ -58,14 +58,13 @@ public class BitstreamResource extends AbstractResource {
     protected BitstreamDocument document;
 
     public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
-        boolean shouldGenerateCoverPage, boolean skipAuth) {
+                             boolean shouldGenerateCoverPage, boolean skipAuth) {
         this.name = name;
         this.uuid = uuid;
         this.currentUserUUID = currentUserUUID;
         this.currentSpecialGroups = currentSpecialGroups;
         this.shouldGenerateCoverPage = shouldGenerateCoverPage;
         this.skipAuthCheck = skipAuth;
-        fetchDocument();
     }
 
     /**
@@ -77,13 +76,12 @@ public class BitstreamResource extends AbstractResource {
      * @return a byte array containing the cover page
      */
     byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
-        throws IOException, SQLException, AuthorizeException {
+            throws IOException, SQLException, AuthorizeException {
         if (file == null) {
             try {
                 Pair<byte[], Long> citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
                 this.file = citedDocument.getLeft();
             } catch (Exception e) {
-                LOG.warn("Could not generate cover page. Will fallback to original document", e);
                 // Return the original bitstream without the cover page
                 this.file = IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
             }
@@ -98,12 +96,9 @@ public class BitstreamResource extends AbstractResource {
 
     @Override
     public InputStream getInputStream() throws IOException {
-        return document.getInputStream();
-    }
+        fetchDocument();
 
-    @Override
-    public boolean exists() {
-        return document != null && document.inputStream != null;
+        return document.getInputStream();
     }
 
     @Override
@@ -113,39 +108,43 @@ public class BitstreamResource extends AbstractResource {
 
     @Override
     public long contentLength() throws IOException {
+        fetchDocument();
+
         return document.getLength();
     }
 
     public String getChecksum() {
+        fetchDocument();
+
         return document.getEtag();
     }
 
-    protected void fetchDocument() {
+    void fetchDocument() {
         if (document != null) {
             return;
         }
 
-        BitstreamDocument bd;
         try (Context context = initializeContext()) {
+            if (skipAuthCheck) {
+                context.turnOffAuthorisationSystem();
+            }
             Bitstream bitstream = bitstreamService.find(context, uuid);
             if (shouldGenerateCoverPage) {
                 var coverPage = getCoverpageByteArray(context, bitstream);
 
-                bd =  new BitstreamDocument(
-                    etag(bitstream),
-                    coverPage.length,
-                    new ByteArrayInputStream(coverPage)
-                );
+                this.document = new BitstreamDocument(etag(bitstream),
+                        coverPage.length,
+                        new ByteArrayInputStream(coverPage));
             } else {
-                bd =  new BitstreamDocument(bitstream.getChecksum(),
+                this.document = new BitstreamDocument(bitstream.getChecksum(),
                         bitstream.getSizeBytes(),
                         bitstreamService.retrieve(context, bitstream));
             }
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
         }
-        LOG.debug("fetched document {} {}", shouldGenerateCoverPage, bd);
-        this.document = bd;
+
+        LOG.debug("fetched document {} {}", shouldGenerateCoverPage, document);
     }
 
     String etag(Bitstream bitstream) {
@@ -172,9 +171,6 @@ public class BitstreamResource extends AbstractResource {
         EPerson currentUser = ePersonService.find(context, currentUserUUID);
         context.setCurrentUser(currentUser);
         currentSpecialGroups.forEach(context::setSpecialGroup);
-        if (skipAuthCheck) {
-            context.turnOffAuthorisationSystem();
-        }
         return context;
     }
 
