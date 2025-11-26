@@ -742,6 +742,15 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                 .withMetadata("epfl", "sciper", "active", "true")
                 .withMetadata("oairecerif", "identifier", "url", "someurl")
                 .withMetadata("person", "affiliation", "name", "My affiliation")
+                .withMetadata("dspace", "orcid", "scope", "test-scope")
+                .withMetadata("dspace", "orcid", "sync-mode", "test-mode")
+                .withMetadata("dspace", "orcid", "sync-publications", "true")
+                .withMetadata("dspace", "orcid", "sync-products", "true")
+                .withMetadata("dspace", "orcid", "sync-patents", "true")
+                .withMetadata("dspace", "orcid", "sync-fundings", "true")
+                .withMetadata("dspace", "orcid", "sync-profile", "true")
+                .withMetadata("person", "identifier", "orcid", "0000-0000-0000-0000")
+                .withMetadata("dspace", "orcid", "authenticated", "true")
                 .build();
 
         // Set a personal picture (basic empty jpg)
@@ -765,6 +774,20 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         // the profile should be deactivated
         ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
         assertThat(itemService.getMetadata(researcherProfile.getItem(), "epfl.sciper.active"), is("false"));
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "scope", Item.ANY), empty());
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "sync-mode", Item.ANY), empty());
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "sync-publications", Item.ANY), empty());
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "sync-products", Item.ANY), empty());
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "sync-patents", Item.ANY), empty());
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "sync-fundings", Item.ANY), empty());
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "sync-profile", Item.ANY), empty());
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "webhook", Item.ANY), empty());
+        // These metadata should still be present after deactivation
+        assertThat(itemService.getMetadata(profile, "person", "identifier", "orcid", Item.ANY)
+                        .get(0).getValue(), is("0000-0000-0000-0000"));
+        assertThat(itemService.getMetadata(profile, "dspace", "orcid", "authenticated", Item.ANY)
+                .get(0).getValue(), is("true"));
+
         DiscoverQuery query = new DiscoverQuery();
         query.setQuery("epfl.sciperId:1 AND epfl.sciper.active:false");
         assertThat(searchService.search(context, query).getTotalSearchResults(), is(1l));

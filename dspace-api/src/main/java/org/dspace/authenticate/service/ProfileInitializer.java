@@ -63,6 +63,10 @@ import org.dspace.epfl.client.EpflApiClientImpl;
 import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.epfl.service.PersonApiService;
+import org.dspace.orcid.OrcidQueue;
+import org.dspace.orcid.service.OrcidQueueService;
+import org.dspace.orcid.service.OrcidTokenService;
+import org.dspace.orcid.service.OrcidWebhookService;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.services.ConfigurationService;
@@ -100,6 +104,18 @@ public class ProfileInitializer {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private OrcidQueueService orcidQueueService;
+
+    @Autowired
+    private OrcidWebhookService orcidWebhookService;
+
+    @Autowired
+    private OrcidTokenService orcidTokenService;
+
+    @Autowired
+    private ProfileInitializer profileInitializer;
 
     private EpflApiClientImpl epflApiClient;
 
@@ -201,6 +217,7 @@ public class ProfileInitializer {
             }
         }
         setSynchronizationMetadata(context, ePerson, researcherProfile);
+        deleteOrcidSynchronization(context, ePerson);
         itemService.update(context, researcherProfile.getItem());
     }
 
@@ -865,6 +882,39 @@ public class ProfileInitializer {
                 personItem, new MetadataFieldName("epfl.sciper.active"), Item.ANY);
 
         return StringUtils.equalsIgnoreCase(val, "false");
+    }
+
+    public void deleteOrcidSynchronization(Context context, EPerson ePerson) throws SQLException {
+        Optional<ResearcherProfile> rpOpt = profileInitializer.findProfile(context, ePerson);
+
+        if (rpOpt.isEmpty()) {
+            return;
+        }
+
+        Item profile = rpOpt.get().getItem();
+
+        // deactivate the orcid webhook
+        if (orcidWebhookService.isProfileRegistered(profile)) {
+            orcidWebhookService.unregister(context, profile);
+        }
+
+        // erase the synchronization metadata
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "scope", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-mode", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-publications", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-products", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-patents", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-fundings", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-profile", Item.ANY);
+
+        // delete token from database
+        orcidTokenService.deleteByProfileItem(context, profile);
+
+        // delete orcid queue
+        List<OrcidQueue> queueRecords = orcidQueueService.findByProfileItemId(context, profile.getID());
+        for (OrcidQueue queueRecord : queueRecords) {
+            orcidQueueService.delete(context, queueRecord);
+        }
     }
 
 
