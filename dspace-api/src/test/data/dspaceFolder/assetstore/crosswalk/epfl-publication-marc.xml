@@ -15,7 +15,7 @@
     </datafield>
     <datafield tag="542" ind1=" " ind2=" ">
     </datafield>
-    <datafield tag="909" ind1="C" ind2="0">
+    <datafield tag="909" ind1="c" ind2="0">
         <subfield code="p">TOU|TOU2</subfield>
         <subfield code="x">UunitCode1</subfield>
         <subfield code="x">UunitCode2</subfield>

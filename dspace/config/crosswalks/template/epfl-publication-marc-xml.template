@@ -266,7 +266,7 @@
     </datafield>
     @group.epfl-url.end@
     @relation.dc-description-sponsorship.start@
-    <datafield tag="909" ind1="C" ind2="0">
+    <datafield tag="909" ind1="c" ind2="0">
             <subfield code="p">@oairecerif.acronym@</subfield>
             <subfield code="x">U@virtual.epfl-unit-code@</subfield>
             <subfield code="m">@crisou.director@</subfield>
@@ -274,7 +274,7 @@
     </datafield>
     @relation.dc-description-sponsorship.end@
     @if.metadata.epfl-oai-currentset.start@
-    <datafield tag="909" ind1="C" ind2="O">
+    <datafield tag="909" ind1="c" ind2="o">
             <subfield code="p">@epfl.oai.currentset@</subfield>
             <subfield code="o">@dspace.legacy.oai-identifier@</subfield>
     </datafield>
