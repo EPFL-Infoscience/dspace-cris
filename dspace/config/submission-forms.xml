@@ -9188,11 +9188,11 @@
     <value-pairs value-pairs-name="author_roles" dc-term="author_roles">
       <pair>
         <displayed-value>No</displayed-value>
-        <stored-value>No</stored-value>
+        <stored-value>no</stored-value>
       </pair>
       <pair>
         <displayed-value>Yes</displayed-value>
-        <stored-value>Yes</stored-value>
+        <stored-value>yes</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="audience" dc-term="audience">
