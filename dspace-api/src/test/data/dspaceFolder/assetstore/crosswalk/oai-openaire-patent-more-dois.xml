@@ -24,6 +24,7 @@
   other
   </resourceType>
   <datacite:alternateIdentifiers>
+    <datacite:alternateIdentifier alternateIdentifierType="Handle">SKIP-IN-COMPARING</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="doi">10.00002</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="doi">10.00003</datacite:alternateIdentifier>
   </datacite:alternateIdentifiers>

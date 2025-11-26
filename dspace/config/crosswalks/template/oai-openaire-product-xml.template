@@ -64,6 +64,9 @@
   </resourceType>
   @if.not.metadata.dc-type.end@
   <datacite:alternateIdentifiers>
+    @if.metadata.dc-identifier-doi.start@
+    <datacite:alternateIdentifier alternateIdentifierType="Handle">@virtual.handle@</datacite:alternateIdentifier>
+    @if.metadata.dc-identifier-doi.end@
     <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="isbn">@dc.identifier.isbn@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="issn">@dc.identifier.issn@</datacite:alternateIdentifier>
