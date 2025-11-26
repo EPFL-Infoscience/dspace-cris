@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Luca Giamminonni (luca.giamminonni at 4Science)
  *
  */
-@Ignore
 public class SherpaAuthorityIT extends AbstractControllerIntegrationTest {
 
     @Autowired
@@ -75,7 +74,8 @@ public class SherpaAuthorityIT extends AbstractControllerIntegrationTest {
                 sherpaEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(20)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-            .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
+                .andExpect(jsonPath("$._embedded.entries[0].source", Matchers.is("sherpa")))
+                .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
 
     }
 
@@ -134,6 +134,7 @@ public class SherpaAuthorityIT extends AbstractControllerIntegrationTest {
 
     }
 
+    @Ignore
     @Test
     public void testPaginationWithLocalItemChoicesEnabled() throws Exception {
 

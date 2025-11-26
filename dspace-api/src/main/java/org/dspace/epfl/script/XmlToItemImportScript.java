@@ -69,6 +69,9 @@ public class XmlToItemImportScript extends DSpaceRunnable<XmlToItemImportScriptC
     private MetadataSchemaService metadataSchemaService;
     private InstallItemService installItemService;
 
+    private int totalItemsProcessed = 0;
+    private int totalItemsCreated = 0;
+
 
     @Override
     @SuppressWarnings("unchecked")
@@ -121,9 +124,12 @@ public class XmlToItemImportScript extends DSpaceRunnable<XmlToItemImportScriptC
         handler.logInfo("XML is parsed");
 
         for (List<MetadataValueDTO> parsedItemField : parsedItemsFields) {
+            totalItemsProcessed++;
             handler.logInfo("Start creating an item");
             addItemFromMetadata(parsedItemField);
         }
+        handler.logInfo("Total items processed: " + totalItemsProcessed);
+        handler.logInfo("Total items created: " + totalItemsCreated);
         handler.logInfo("All Items are added");
     }
 
@@ -140,6 +146,7 @@ public class XmlToItemImportScript extends DSpaceRunnable<XmlToItemImportScriptC
         addItemToCollection(item);
         depositItem(workspaceItem);
         handler.logInfo("Item is created");
+        totalItemsCreated++;
     }
 
     private WorkspaceItem createWorkspaceItem() {
