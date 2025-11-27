@@ -103,10 +103,21 @@
         <subfield code="a">@virtual.date.dc-date-issued.YYYY@</subfield>
     </datafield>
     @group.dc-date-issued.end@
+    @if.metadata.dc-size.start@
     <datafield tag="300" ind1=" " ind2=" ">
         <subfield code="a">@dc.size@</subfield>
+        @if.metadata.dc-format-extent.start@
+        <subfield code="c">@dc.format.extent@</subfield>
+        @if.metadata.dc-format-extent.end@
+    </datafield>
+    @if.metadata.dc-size.end@
+    @if.not.metadata.dc-size.start@
+    @if.metadata.dc-format-extent.start@
+    <datafield tag="300" ind1=" " ind2=" ">
         <subfield code="c">@dc.format.extent@</subfield>
     </datafield>
+    @if.metadata.dc-format-extent.end@
+    @if.not.metadata.dc-size.end@
     @group.dc-type.start@
     <datafield tag="336" ind1=" " ind2=" ">
         <subfield code="a">@virtual.mapConverter.dcTypes.dc-type@</subfield>
@@ -144,10 +155,21 @@
         <subfield code="c">@oairecerif.funder.identifier@</subfield>
     </datafield>
     @group.oairecerif-funder.end@
+    @if.metadata.oairecerif-funder.start@
     <datafield tag="542" ind1=" " ind2=" ">
         <subfield code="a">@oairecerif.funder@</subfield>
-        <subfield code="c">@oairecerif.funder.identifier@</subfield>
+        @if.metadata.oairecerif-funder-identifier.start@
+            <subfield code="c">@oairecerif.funder.identifier@</subfield>
+        @if.metadata.oairecerif-funder-identifier.end@
     </datafield>
+    @if.metadata.oairecerif-funder.end@
+    @if.not.metadata.oairecerif-funder.start@
+    @if.metadata.oairecerif-funder-identifier.start@
+            <datafield tag="542" ind1=" " ind2=" ">
+                <subfield code="c">@oairecerif.funder.identifier@</subfield>
+            </datafield>
+    @if.metadata.oairecerif-funder-identifier.end@
+    @if.not.metadata.oairecerif-funder.end@
     @group.epfl-award.start@
     <datafield tag="586" ind1=" " ind2=" ">
         <subfield code="a">@epfl.award@</subfield>
@@ -266,7 +288,7 @@
     </datafield>
     @group.epfl-url.end@
     @relation.dc-description-sponsorship.start@
-    <datafield tag="909" ind1="C" ind2="0">
+    <datafield tag="909" ind1="c" ind2="0">
             <subfield code="p">@oairecerif.acronym@</subfield>
             <subfield code="x">U@virtual.epfl-unit-code@</subfield>
             <subfield code="m">@crisou.director@</subfield>
@@ -274,7 +296,7 @@
     </datafield>
     @relation.dc-description-sponsorship.end@
     @if.metadata.epfl-oai-currentset.start@
-    <datafield tag="909" ind1="C" ind2="O">
+    <datafield tag="909" ind1="c" ind2="o">
             <subfield code="p">@epfl.oai.currentset@</subfield>
             <subfield code="o">@dspace.legacy.oai-identifier@</subfield>
     </datafield>

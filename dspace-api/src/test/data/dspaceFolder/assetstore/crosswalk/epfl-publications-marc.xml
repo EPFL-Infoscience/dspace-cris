@@ -35,10 +35,6 @@
         <datafield tag="269" ind1=" " ind2=" ">
             <subfield code="a">2022</subfield>
         </datafield>
-        <datafield tag="300" ind1=" " ind2=" ">
-        </datafield>
-        <datafield tag="542" ind1=" " ind2=" ">
-        </datafield>
         <datafield tag="653" ind1="1" ind2=" ">
             <subfield code="a">test</subfield>
         </datafield>
@@ -96,11 +92,7 @@
         <datafield tag="269" ind1=" " ind2=" ">
             <subfield code="a">2022</subfield>
         </datafield>
-        <datafield tag="300" ind1=" " ind2=" ">
-        </datafield>
         <datafield tag="336" ind1=" " ind2=" ">
-        </datafield>
-        <datafield tag="542" ind1=" " ind2=" ">
         </datafield>
         <datafield tag="653" ind1="1" ind2=" ">
             <subfield code="a">test</subfield>
