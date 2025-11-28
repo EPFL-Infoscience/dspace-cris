@@ -1934,7 +1934,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>journal</dc-qualifier>
-          <label />
+          <label>Revue</label>
           <input-type>inline-group</input-type>
           <repeatable>true</repeatable>
           <required />
