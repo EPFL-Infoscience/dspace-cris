@@ -1903,8 +1903,6 @@
           <required />
           <hint />
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
@@ -1915,8 +1913,6 @@
           <required />
           <hint />
         </field>
-      </row>
-      <row>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>publisher</dc-element>
