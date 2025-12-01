@@ -55,6 +55,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -870,7 +871,7 @@ public class S3BitStoreService extends BaseBitStoreService {
             try {
                 Download download = tm.download(getRequest, currentChunkFile);
                 download.waitForCompletion();
-                currentChunkStream = new DeleteOnCloseFileInputStream(currentChunkFile);
+                currentChunkStream = new BufferedFileChannelInputStream.Builder().setFile(currentChunkFile).get();
                 endOfChunk = endOfChunk + download.getProgress().getBytesTransferred();
             } catch (AmazonClientException | InterruptedException e) {
                 currentChunkFile.delete();
