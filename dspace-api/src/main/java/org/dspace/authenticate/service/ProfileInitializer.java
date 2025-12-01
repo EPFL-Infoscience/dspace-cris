@@ -888,32 +888,65 @@ public class ProfileInitializer {
         Optional<ResearcherProfile> rpOpt = profileInitializer.findProfile(context, ePerson);
 
         if (rpOpt.isEmpty()) {
+            LOGGER.warn("No ResearcherProfile found for ePerson " + ePerson.getID());
             return;
         }
 
         Item profile = rpOpt.get().getItem();
-
-        // deactivate the orcid webhook
-        if (orcidWebhookService.isProfileRegistered(profile)) {
-            orcidWebhookService.unregister(context, profile);
+        if (profile == null) {
+            LOGGER.warn("No profile found for ResearcherProfile " + rpOpt.get().getId());
+            return;
         }
 
+        // deactivate the orcid webhook
+        unregisterOrcidWebhook(context, profile);
+
         // erase the synchronization metadata
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "scope", Item.ANY);
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-mode", Item.ANY);
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-publications", Item.ANY);
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-products", Item.ANY);
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-patents", Item.ANY);
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-fundings", Item.ANY);
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-profile", Item.ANY);
+        clearOrcidMetadata(context, profile);
 
         // delete token from database
-        orcidTokenService.deleteByProfileItem(context, profile);
+        try {
+            orcidTokenService.deleteByProfileItem(context, profile);
+        } catch (Exception e) {
+            LOGGER.error("Error deleting the orcid token for profile: " + profile.getID(), e);
+        }
 
         // delete orcid queue
-        List<OrcidQueue> queueRecords = orcidQueueService.findByProfileItemId(context, profile.getID());
-        for (OrcidQueue queueRecord : queueRecords) {
-            orcidQueueService.delete(context, queueRecord);
+        deleteOrcidQueue(context, profile);
+    }
+
+    private void unregisterOrcidWebhook(Context context, Item profile) {
+        try {
+            if (orcidWebhookService.isProfileRegistered(profile)) {
+                orcidWebhookService.unregister(context, profile);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Unable to unregister orcid webhook for profile " + profile.getID());
+        }
+    }
+
+    private void clearOrcidMetadata(Context context, Item profile) throws SQLException {
+        try {
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "scope", Item.ANY);
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-mode", Item.ANY);
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-publications", Item.ANY);
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-products", Item.ANY);
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-patents", Item.ANY);
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-fundings", Item.ANY);
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "sync-profile", Item.ANY);
+        } catch (SQLException e) {
+            LOGGER.error("Error deleting orcid metadata for profile " + profile.getID(), e);
+        }
+    }
+
+    private void deleteOrcidQueue(Context context, Item profile) {
+        try {
+            List<OrcidQueue> queueRecords = orcidQueueService.findByProfileItemId(context, profile.getID());
+            for (OrcidQueue queueRecord : queueRecords) {
+                orcidQueueService.delete(context, queueRecord);
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Error deleting the orcid queue for profile " + profile.getID(), e);
         }
     }
 
