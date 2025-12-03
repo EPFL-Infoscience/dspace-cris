@@ -64,6 +64,7 @@ import org.dspace.epfl.client.model.PersonDTO;
 import org.dspace.epfl.client.model.PersonDTO.Accred;
 import org.dspace.epfl.service.PersonApiService;
 import org.dspace.orcid.OrcidQueue;
+import org.dspace.orcid.exception.OrcidClientException;
 import org.dspace.orcid.service.OrcidQueueService;
 import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.orcid.service.OrcidWebhookService;
@@ -920,8 +921,11 @@ public class ProfileInitializer {
             if (orcidWebhookService.isProfileRegistered(profile)) {
                 orcidWebhookService.unregister(context, profile);
             }
+        } catch (OrcidClientException e) {
+            LOGGER.error("Unable to unregister orcid webhook for profile " +
+                    profile.getID() + " - Status: " + e.getStatus(), e);
         } catch (Exception e) {
-            LOGGER.error("Unable to unregister orcid webhook for profile " + profile.getID());
+            LOGGER.error("Unable to unregister orcid webhook for profile " + profile.getID(), e);
         }
     }
 
