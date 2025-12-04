@@ -110,6 +110,8 @@ definitions:
         runs-on: self.hosted
         name: integration-tests-dspace-api
         size: 4x
+        services:
+          - docker
         caches:
           - gradle
           - gradlewrapper
