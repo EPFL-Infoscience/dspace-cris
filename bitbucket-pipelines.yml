@@ -37,8 +37,10 @@ definitions:
 
     - step: &integration-tests
         runs-on: self.hosted
-        name: integration-tests
+        name: integration-tests-dspace-api
         size: 4x
+        services:
+          - docker
         caches:
           - gradle
           - gradlewrapper
@@ -69,8 +71,10 @@ definitions:
 
     - step: &integration-tests-slow
         runs-on: self.hosted
-        name: integration-tests-slow
+        name: integration-tests-with-test-jars
         size: 4x
+        services:
+          - docker
         caches:
           - gradle
           - gradlewrapper
