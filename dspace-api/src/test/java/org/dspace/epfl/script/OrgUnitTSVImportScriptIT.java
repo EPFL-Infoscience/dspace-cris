@@ -88,7 +88,7 @@ public class OrgUnitTSVImportScriptIT extends AbstractIntegrationTestWithDatabas
                 .contains("Head name is missing in tsv, and it was not possible to get it from the api:"
                         + " head name metadata is not added"));
         assertTrue(handler.getInfoMessages()
-                .contains("Head name is missing in tsv, taking head name from api: Dyson, Paul Joseph"));
+                .contains("Head name is missing in tsv, taking head name from api: Dyson, Paul"));
     }
 
     @Test
