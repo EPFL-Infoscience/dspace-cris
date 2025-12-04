@@ -58,7 +58,7 @@ public class BitstreamResource extends AbstractResource {
     protected BitstreamDocument document;
 
     public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
-                             boolean shouldGenerateCoverPage, boolean skipAuth) {
+        boolean shouldGenerateCoverPage, boolean skipAuth) {
         this.name = name;
         this.uuid = uuid;
         this.currentUserUUID = currentUserUUID;
@@ -76,7 +76,7 @@ public class BitstreamResource extends AbstractResource {
      * @return a byte array containing the cover page
      */
     byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
-            throws IOException, SQLException, AuthorizeException {
+        throws IOException, SQLException, AuthorizeException {
         if (file == null) {
             try {
                 Pair<byte[], Long> citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
