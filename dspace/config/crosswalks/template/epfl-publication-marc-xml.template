@@ -134,11 +134,11 @@
         <subfield code="a">@dc.relation.ispartofseries@</subfield>
     </datafield>
     @if.metadata.dc-relation-ispartofseries.end@
-    @group.dc-description.start@
+    @group.dc-description-notes.start@
     <datafield tag="500" ind1=" " ind2=" ">
-        <subfield code="a">@dc.description@</subfield>
+        <subfield code="a">@dc.description.notes@</subfield>
     </datafield>
-    @group.dc-description.end@
+    @group.dc-description-notes.end@
     @group.epfl-thesis-jury.start@
     <datafield tag="502" ind1=" " ind2=" ">
         <subfield code="a">@epfl.thesis.jury@</subfield>
