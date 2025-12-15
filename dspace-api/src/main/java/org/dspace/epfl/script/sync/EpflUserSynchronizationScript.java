@@ -162,8 +162,7 @@ public class EpflUserSynchronizationScript
                                 continue;
                             }
                             profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciper.get());
-                            logInfo("Person with sciper: " + sciper
-                                    + " is not active anymore, affiliations have been set as ended.");
+                            logInfo("Person with sciper " + sciper + " was deactivated");
                             updatedPersonCount++;
                         }
                     } catch (Exception e) {
@@ -196,8 +195,7 @@ public class EpflUserSynchronizationScript
                     if (ePerson != null) {
                         profileInitializer.closeAffiliationsAndDeactivateProfile(context, ePerson, sciperId);
                         updatedPersonCount++;
-                        logInfo("Person with sciper: " + sciperId
-                                + " is not active anymore, affiliations have been set as ended.");
+                        logInfo("Person with sciper " + sciperId + " was deactivated");
                     } else {
                         logInfo("Skipped profile #" + (count + 1) + " with sciper " + sciperId
                                 + " not found in the search api nor in the database as EPerson");
@@ -335,5 +333,7 @@ public class EpflUserSynchronizationScript
             // handler.logInfo("Mail Message content: " + log);
         }
     }
+
+
 
 }

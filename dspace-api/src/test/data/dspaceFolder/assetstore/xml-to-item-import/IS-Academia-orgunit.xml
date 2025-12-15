@@ -1,0 +1,12 @@
+<collection xmlns="http://ead.nb.admin.ch/web/standards/slb/MARC21/MARC21slim.xsd">
+    <record>
+        <datafield tag="918" ind1=" " ind2=" ">
+            <subfield code="a">LAMMM</subfield>
+            <subfield code="c">IGM</subfield>
+            <subfield code="d">EDME</subfield>
+        </datafield>
+        <datafield tag="919" ind1=" " ind2=" ">
+            <subfield code="a">LAMMM</subfield>
+        </datafield>
+    </record>
+</collection>

@@ -1,4 +1,8 @@
-<record>
+<record xmlns="http://www.loc.gov/MARC21/slim"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:dcterms="http://purl.org/dc/terms/"
+        xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+    <leader>00000nam a22000003u 4500</leader>
     <controlfield tag="001">mock-id</controlfield>
     <datafield tag="039" ind1=" " ind2="9">
         <subfield code="y">SKIP-IN-COMPARING</subfield>
@@ -7,11 +11,13 @@
     <datafield tag="245" ind1=" " ind2=" ">
         <subfield code="a">publication title|secondValueAfterSplit</subfield>
     </datafield>
-    <datafield tag="300" ind1=" " ind2=" ">
+    <datafield tag="340" ind1=" " ind2=" ">
+        <subfield code="a">This is a publication description</subfield>
     </datafield>
-    <datafield tag="542" ind1=" " ind2=" ">
+    <datafield tag="500" ind1=" " ind2=" ">
+        <subfield code="a">These are publication description notes</subfield>
     </datafield>
-    <datafield tag="909" ind1="C" ind2="0">
+    <datafield tag="909" ind1="c" ind2="0">
         <subfield code="p">TOU|TOU2</subfield>
         <subfield code="x">UunitCode1</subfield>
         <subfield code="x">UunitCode2</subfield>
