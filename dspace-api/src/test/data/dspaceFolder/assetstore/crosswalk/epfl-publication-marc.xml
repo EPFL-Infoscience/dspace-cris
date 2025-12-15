@@ -11,6 +11,12 @@
     <datafield tag="245" ind1=" " ind2=" ">
         <subfield code="a">publication title|secondValueAfterSplit</subfield>
     </datafield>
+    <datafield tag="340" ind1=" " ind2=" ">
+        <subfield code="a">This is a publication description</subfield>
+    </datafield>
+    <datafield tag="500" ind1=" " ind2=" ">
+        <subfield code="a">These are publication description notes</subfield>
+    </datafield>
     <datafield tag="909" ind1="c" ind2="0">
         <subfield code="p">TOU|TOU2</subfield>
         <subfield code="x">UunitCode1</subfield>
