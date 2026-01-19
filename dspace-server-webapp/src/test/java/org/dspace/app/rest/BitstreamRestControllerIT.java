@@ -53,7 +53,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.time.Period;
+import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -475,7 +475,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod(Period.ofMonths(6))
+                .withEmbargoPeriod("6 months")
                 .build();
         }
         context.restoreAuthSystemState();
@@ -519,7 +519,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod(Period.ofMonths(3))
+                .withEmbargoPeriod("3 months")
                 .build();
         }
         context.restoreAuthSystemState();
@@ -562,7 +562,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod(Period.ofMonths(-3))
+                .withEmbargoPeriod("-3 months")
                 .build();
         }
         context.restoreAuthSystemState();
@@ -640,7 +640,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                     .withName("Bitstream")
                     .withDescription("Description")
                     .withMimeType("text/plain")
-                    .withEmbargoPeriod(Period.ofWeeks(2))
+                    .withEmbargoPeriod("2 weeks")
                     .build();
         }
         context.restoreAuthSystemState();
@@ -1382,7 +1382,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod(Period.ofMonths(6))
+                .withEmbargoPeriod("6 months")
                 .build();
         }
         context.restoreAuthSystemState();

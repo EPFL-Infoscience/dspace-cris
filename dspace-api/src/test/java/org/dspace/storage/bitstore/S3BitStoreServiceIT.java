@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.adobe.testing.s3mock.testcontainers.S3MockContainer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
@@ -58,7 +57,11 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.testcontainers.localstack.LocalStackContainer;
+import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -70,7 +73,14 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
  * @author Luca Giamminonni (luca.giamminonni at 4science.com)
  */
 public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
-    private static S3MockContainer s3Mock = new S3MockContainer("4.8.0");
+
+    // LocalStack 4.14.0 is the last release under semantic versioning (4.x) and the community (free) license.
+    // After this version, LocalStack switched to calendar versioning (YYYY.MM.x)
+    // and became a paid product, requiring a valid LOCALSTACK_AUTH_TOKEN.
+    private static DockerImageName localstackName = DockerImageName.parse("localstack/localstack:4.14.0");
+
+    @SuppressWarnings("resource")
+    private static LocalStackContainer localstackContainer = new LocalStackContainer(localstackName).withServices("s3");
 
     private static URI s3URI;
     private static S3AsyncClient s3AsyncClient;
@@ -81,34 +91,31 @@ public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
 
     private Collection collection;
 
-    private File s3Directory;
-
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     @BeforeClass
     public static void setupS3() {
-        s3Mock.start();
+        localstackContainer.start();
 
-        AnonymousCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
-        Region region = Region.US_EAST_1;
-        s3URI = URI.create("http://127.0.0.1:" + s3Mock.getHttpServerPort());
         s3AsyncClient = S3AsyncClient.crtBuilder()
-                                     .endpointOverride(s3URI)
-                                     .credentialsProvider(credentialsProvider)
-                                     .region(region)
-                                     .build();
+                .endpointOverride(localstackContainer.getEndpoint())
+                .credentialsProvider(StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(localstackContainer.getAccessKey(),
+                                               localstackContainer.getSecretKey())
+                        ))
+                .region(Region.of(localstackContainer.getRegion()))
+                .build();
     }
 
     @AfterClass
     public static void cleanupS3() {
-        s3Mock.close();
+        localstackContainer.close();
         s3AsyncClient.close();
     }
 
     @Before
     public void setup() throws Exception {
         configurationService.setProperty("assetstore.s3.enabled", "true");
-        s3Directory = new File(System.getProperty("java.io.tmpdir"), "s3");
 
         AWSS3ClientBuilder builder = AWSS3ClientBuilder.builder()
             .setEndpoint(s3URI.toString())
