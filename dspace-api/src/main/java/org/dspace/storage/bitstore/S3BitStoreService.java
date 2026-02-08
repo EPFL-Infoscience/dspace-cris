@@ -14,6 +14,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -867,14 +870,24 @@ public class S3BitStoreService extends BaseBitStoreService {
                     .withRange(startByte, endByte);
 
             File currentChunkFile = File.createTempFile("s3-disk-copy-" + UUID.randomUUID(), "temp");
-            currentChunkFile.deleteOnExit();
+
             try {
                 Download download = tm.download(getRequest, currentChunkFile);
                 download.waitForCompletion();
-                currentChunkStream = new BufferedFileChannelInputStream.Builder().setFile(currentChunkFile).get();
+
+                final Path chunkPath = currentChunkFile.toPath();
+                final FileChannel chunkChannel = FileChannel.open(
+                        chunkPath,
+                        StandardOpenOption.READ,
+                        StandardOpenOption.DELETE_ON_CLOSE
+                );
+                currentChunkStream = BufferedFileChannelInputStream
+                        .builder()
+                        .setFileChannel(chunkChannel)
+                        .get();
                 endOfChunk = endOfChunk + download.getProgress().getBytesTransferred();
             } catch (AmazonClientException | InterruptedException e) {
-                currentChunkFile.delete();
+                deleteChunk(currentChunkFile);
                 throw new IOException(e);
             }
         }
@@ -886,5 +899,15 @@ public class S3BitStoreService extends BaseBitStoreService {
             }
         }
 
+    }
+
+    private static void deleteChunk(File chunkFile) {
+        try {
+            if (!chunkFile.delete()) {
+                log.warn("Could not delete temporary file {}", chunkFile.getAbsolutePath());
+            }
+        } catch (Exception ex) {
+            log.error("Error deleting temporary file " + chunkFile.getAbsolutePath(), ex);
+        }
     }
 }

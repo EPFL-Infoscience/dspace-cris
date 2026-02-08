@@ -95,6 +95,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
 
+
     private ItemService itemService;
 
     private MetadataFieldService mfss;
@@ -3155,6 +3156,8 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         Item publication = createItem(context, collection)
                 .withEntityType("Publication")
                 .withTitle("publication title|secondValueAfterSplit")
+                .withDescription("This is a publication description")
+                .withDescriptionNotes("These are publication description notes")
                 .withMetadata("dc", "description", "sponsorship", null,  "TOU|TOU2",
                         orgUnit.getID().toString(), -1)
                 .build();
