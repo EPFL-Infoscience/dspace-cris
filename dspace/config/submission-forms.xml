@@ -1733,8 +1733,8 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>contributor</dc-element>
-          <dc-qualifier>role</dc-qualifier>
+          <dc-element>author</dc-element>
+          <dc-qualifier>corresponding</dc-qualifier>
           <label>Corresponding author</label>
           <input-type value-pairs-name="author_roles">dropdown</input-type>
           <repeatable>false</repeatable>
@@ -3489,8 +3489,8 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>contributor</dc-element>
-          <dc-qualifier>role</dc-qualifier>
+          <dc-element>author</dc-element>
+          <dc-qualifier>corresponding</dc-qualifier>
           <label>Corresponding author</label>
           <input-type value-pairs-name="author_roles">dropdown</input-type>
           <repeatable>false</repeatable>
@@ -4214,8 +4214,8 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>contributor</dc-element>
-          <dc-qualifier>role</dc-qualifier>
+          <dc-element>author</dc-element>
+          <dc-qualifier>corresponding</dc-qualifier>
           <label>Corresponding author</label>
           <input-type value-pairs-name="author_roles">dropdown</input-type>
           <repeatable>false</repeatable>
@@ -4590,8 +4590,8 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>contributor</dc-element>
-          <dc-qualifier>role</dc-qualifier>
+          <dc-element>author</dc-element>
+          <dc-qualifier>corresponding</dc-qualifier>
           <label>Corresponding author</label>
           <input-type value-pairs-name="author_roles">dropdown</input-type>
           <repeatable>false</repeatable>
@@ -5683,8 +5683,8 @@
       <row>
         <field>
           <dc-schema>epfl</dc-schema>
-          <dc-element>contributor</dc-element>
-          <dc-qualifier>role</dc-qualifier>
+          <dc-element>author</dc-element>
+          <dc-qualifier>corresponding</dc-qualifier>
           <label>Corporate author name</label>
           <input-type value-pairs-name="author_roles">dropdown</input-type>
           <repeatable>false</repeatable>
