@@ -6,7 +6,9 @@
   xmlns:datacite="http://datacite.org/schema/kernel-4"
   xmlns="http://namespace.openaire.eu/schema/oaire/"
   xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
-  <datacite:identifier identifierType="DOI">10.00001</datacite:identifier>
+  <datacite:identifier identifierType="DOI">
+      10.5072.0009
+  </datacite:identifier>
   <datacite:creators>
         <datacite:creator>
             <datacite:creatorName>Known Author</datacite:creatorName>

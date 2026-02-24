@@ -2476,7 +2476,8 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testVirtualFieldCitationsWithFirstSelectedPublication() throws Exception {
+    public void
+    testVirtualFieldCitationsWithFirstSelectedPublication() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -3338,7 +3339,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testProductOneDoiOAIOpenAIREXmlDisseminate() throws Exception {
+    public void testProductOneExternalDoiOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -3399,7 +3400,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withAuthor("Author Test", author.getID().toString())
                 .withTitle("THP I.III.6 Maison Ritz")
                 .withEntityType("Product")
-                .withDoiIdentifier("10.00001")
+                .withDoiIdentifier("10.5072.0009")
                 .withDoiIdentifier("10.00002")
                 .withDoiIdentifier("10.00003")
                 .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
@@ -3462,7 +3463,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testPatentOneDoiOAIOpenAIREXmlDisseminate() throws Exception {
+    public void testPatentOneExternalDoiOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -3523,7 +3524,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withAuthor("Author Test", author.getID().toString())
                 .withTitle("THP I.III.6 Maison Ritz")
                 .withEntityType("Patent")
-                .withDoiIdentifier("10.00001")
+                .withDoiIdentifier("10.5072.0009")
                 .withDoiIdentifier("10.00002")
                 .withDoiIdentifier("10.00003")
                 .withMetadata("oairecerif", "affiliation", "orgunit", null, "OU", orgUnit.getID().toString(), 600)
@@ -3600,7 +3601,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testPublicationOneDoiOAIOpenAIREXmlDisseminate() throws Exception {
+    public void testPublicationOneDoiExternalOAIOpenAIREXmlDisseminate() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -3679,7 +3680,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
                 .withPublisher("Publication publisher")
                 .withVolume("V.01")
                 .withIssue("Issue")
-                .withDoiIdentifier("10.00001")
+                .withDoiIdentifier("10.5072.0009")
                 .withDoiIdentifier("10.00002")
                 .withDoiIdentifier("10.00003")
                 .withType("text::objet présenté à une conférence::actes de conférence" +
