@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resource xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:dc="http://purl.org/dc/elements/1.1/"
+          xmlns:dcterms="http://purl.org/dc/terms/"
+          xmlns:datacite="http://datacite.org/schema/kernel-4"
+          xmlns="http://namespace.openaire.eu/schema/oaire/"
+          xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
+    <datacite:identifier identifierType="DOI">
+        https://doi.org/10.5072/yyyy
+    </datacite:identifier>
+    <datacite:creators>
+        <datacite:creator>
+            <datacite:creatorName>Known Author</datacite:creatorName>
+            <datacite:affiliation
+            >MyOrg</datacite:affiliation>
+        </datacite:creator>
+        <datacite:creator>
+            <datacite:creatorName>External Author</datacite:creatorName>
+        </datacite:creator>
+        <datacite:creator>
+            <datacite:creatorName>Known Author2</datacite:creatorName>
+            <datacite:affiliation
+            >MyOrg</datacite:affiliation>
+        </datacite:creator>
+    </datacite:creators>
+    <datacite:titles>
+        <datacite:title>Test Publication</datacite:title>
+    </datacite:titles>
+    <dc:publisher>Publication publisher</dc:publisher>
+    <datacite:dates>
+        <datacite:date dateType="Issued">2020-01-01</datacite:date>
+        <datacite:date dateType="Available">SKIP-IN-COMPARING</datacite:date>
+    </datacite:dates>
+    <resourceType
+            resourceTypeGeneral="literature"
+            uri="http://purl.org/coar/resource_type/c_5794">
+        conference paper
+    </resourceType>
+    <datacite:alternateIdentifiers>
+        <datacite:alternateIdentifier alternateIdentifierType="Handle">SKIP-IN-COMPARING</datacite:alternateIdentifier>
+        <datacite:alternateIdentifier alternateIdentifierType="doi">10.00001</datacite:alternateIdentifier>
+        <datacite:alternateIdentifier alternateIdentifierType="doi">10.00007</datacite:alternateIdentifier>
+        <datacite:alternateIdentifier alternateIdentifierType="doi">10.5072.12345</datacite:alternateIdentifier>
+    </datacite:alternateIdentifiers>
+    <citationVolume>V.01</citationVolume>
+    <citationIssue>Issue</citationIssue>
+    <datacite:relatedIdentifiers>
+    </datacite:relatedIdentifiers>
+    <datacite:rights rightsURI="http://purl.org/coar/access_right/c_14cb">
+        metadata only access</datacite:rights>
+</resource>
