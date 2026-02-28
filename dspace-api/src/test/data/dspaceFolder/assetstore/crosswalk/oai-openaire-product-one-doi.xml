@@ -6,7 +6,9 @@
   xmlns:datacite="http://datacite.org/schema/kernel-4"
   xmlns="http://namespace.openaire.eu/schema/oaire/"
   xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
-  <datacite:identifier identifierType="DOI">10.00001</datacite:identifier>
+  <datacite:identifier identifierType="Handle">
+      SKIP-IN-COMPARING
+  </datacite:identifier>
   <datacite:creators>
         <datacite:creator>
             <datacite:creatorName>Author Test</datacite:creatorName>
@@ -23,9 +25,9 @@
   <resourceType resourceTypeGeneral="other research product" uri="http://purl.org/coar/resource_type/c_1843">
   other
   </resourceType>
-  <datacite:alternateIdentifiers>
-      <datacite:alternateIdentifier alternateIdentifierType="Handle">SKIP-IN-COMPARING</datacite:alternateIdentifier>
-  </datacite:alternateIdentifiers>
+    <datacite:alternateIdentifiers>
+        <datacite:alternateIdentifier alternateIdentifierType="doi">10.00001</datacite:alternateIdentifier>
+    </datacite:alternateIdentifiers>
   <datacite:relatedIdentifiers>
   </datacite:relatedIdentifiers>
   <datacite:rights rightsURI="http://purl.org/coar/access_right/c_14cb">

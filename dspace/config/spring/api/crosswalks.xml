@@ -785,6 +785,10 @@
 				<entry key="authority" value-ref="virtualFieldAuthority" />
 				<entry key="primary-doi" value-ref="virtualFieldPrimaryDOI" />
 				<entry key="alternative-doi" value-ref="virtualFieldAlternativeDOI" />
+				<entry key="openaire-primary-id" value-ref="VirtualFieldOpenAirePrimaryIdentifier" />
+				<entry key="openaire-primary-id-type" value-ref="VirtualFieldOpenAirePrimaryIdentifierType" />
+				<entry key="openaire-alternative-handle-tag" value-ref="VirtualFieldOpenAireAlternativeHandle" />
+				<entry key="openaire-alternative-doi-tags" value-ref="VirtualFieldOpenAireAlternativeDOI" />
 				<entry key="reftype" value-ref="virtualFieldRefererType" />
 				<entry key="authors" value-ref="virtualFieldAuthors" />
 				<entry key="fullpage" value-ref="virtualFieldPageNumber" />
@@ -828,6 +832,10 @@
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthority" id="virtualFieldAuthority"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPrimaryDOI" id="virtualFieldPrimaryDOI"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAlternativeDOI" id="virtualFieldAlternativeDOI"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldOpenAirePrimaryIdentifier" id="VirtualFieldOpenAirePrimaryIdentifier"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldOpenAirePrimaryIdentifierType" id="VirtualFieldOpenAirePrimaryIdentifierType"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldOpenAireAlternativeHandle" id="VirtualFieldOpenAireAlternativeHandle"/>
+	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldOpenAireAlternativeDOI" id="VirtualFieldOpenAireAlternativeDOI"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldRefererType" id="virtualFieldRefererType"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldAuthors" id="virtualFieldAuthors"/>
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldPageNumber" id="virtualFieldPageNumber"/>	

@@ -6,12 +6,9 @@
   xmlns:datacite="http://datacite.org/schema/kernel-4"
   xmlns="http://namespace.openaire.eu/schema/oaire/"
   xsi:schemaLocation="http://namespace.openaire.eu/schema/oaire/ https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd">
-  @if.metadata.dc-identifier-doi.start@
-  <datacite:identifier identifierType="DOI">@virtual.primary-doi.dc-identifier-doi@</datacite:identifier>
-  @if.metadata.dc-identifier-doi.end@
-  @if.not.metadata.dc-identifier-doi.start@
-  <datacite:identifier identifierType="Handle">@virtual.handle@</datacite:identifier>
-  @if.not.metadata.dc-identifier-doi.end@
+  <datacite:identifier identifierType="@virtual.openaire-primary-id-type.dc-identifier-doi@">
+          @virtual.openaire-primary-id.dc-identifier-doi@
+  </datacite:identifier>
   <datacite:creators>
       @group.dc-contributor-author.start@
         <datacite:creator>
@@ -64,10 +61,8 @@
   </resourceType>
   @if.not.metadata.dc-type.end@
   <datacite:alternateIdentifiers>
-    @if.metadata.dc-identifier-doi.start@
-    <datacite:alternateIdentifier alternateIdentifierType="Handle">@virtual.handle@</datacite:alternateIdentifier>
-    @if.metadata.dc-identifier-doi.end@
-    <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.alternative-doi.dc-identifier-doi@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="Handle">@virtual.openaire-alternative-handle-tag.dc-identifier-doi@</datacite:alternateIdentifier>
+    <datacite:alternateIdentifier alternateIdentifierType="doi">@virtual.openaire-alternative-doi-tags.dc-identifier-doi@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="isbn">@dc.identifier.isbn@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="issn">@dc.identifier.issn@</datacite:alternateIdentifier>
     <datacite:alternateIdentifier alternateIdentifierType="WOS">@dc.identifier.isi@</datacite:alternateIdentifier>

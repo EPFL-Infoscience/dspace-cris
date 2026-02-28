@@ -46,6 +46,16 @@ public class ItemDOIService {
                 .orElse(!metadataValueList.isEmpty() ? metadataValueList.get(0).getValue() : null);
     }
 
+
+    public String getPrimaryLocalDOIFromItem(Item item) {
+        List<MetadataValue> metadataValueList = itemService.getMetadataByMetadataString(item, DOI_METADATA);
+        return metadataValueList.stream()
+                .filter(m -> m.getValue() != null && m.getValue().contains(getPrefix()))
+                .min(Comparator.comparingInt(MetadataValue::getPlace))
+                .map(MetadataValue::getValue)
+                .orElse(null);
+    }
+
     protected String getPrefix() {
         String prefix;
         prefix = this.configurationService.getProperty(CFG_PREFIX);
