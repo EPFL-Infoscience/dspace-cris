@@ -884,11 +884,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                     break;
             }
 
-            context.commit();
+//            if (item != null) {
+//                context.uncacheEntity(item);
+//            }
 
-            if (item != null) {
-                context.uncacheEntity(item);
-            }
+            context.commit();
 
         } catch (BulkImportException bie) {
             handleException(entityRow, bie);
