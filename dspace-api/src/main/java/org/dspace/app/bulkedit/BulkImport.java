@@ -884,11 +884,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                     break;
             }
 
+            context.commit();
+
             if (item != null) {
                 context.uncacheEntity(item);
             }
-
-            context.commit();
 
         } catch (BulkImportException bie) {
             handleException(entityRow, bie);
@@ -912,6 +912,10 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         addUploadsToItem(item, entityRow);
         setSubmitter(item, entityRow);
         configureDiscoverability(item, entityRow);
+
+        context.commit();
+        workspaceItem = context.reloadEntity(workspaceItem);
+        item = workspaceItem.getItem();
 
         String itemId = item.getID().toString();
         int row = entityRow.getRow();
