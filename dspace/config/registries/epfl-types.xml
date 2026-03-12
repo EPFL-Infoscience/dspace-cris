@@ -535,4 +535,9 @@
         <qualifier>orcid</qualifier>
     </dc-type>
 
+    <dc-type>
+        <schema>epfl</schema>
+        <element>author</element>
+        <qualifier>corresponding</qualifier>
+    </dc-type>
 </dspace-dc-types>
