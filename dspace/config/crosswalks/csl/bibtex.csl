@@ -93,7 +93,7 @@
   </macro>
   <macro name="issued-month">
     <date variable="issued">
-      <date-part name="month" form="short" strip-periods="true" text-case="lowercase"/>
+      <date-part name="month" form="short" strip-periods="true"/>
     </date>
   </macro>
   <macro name="author">
@@ -161,7 +161,7 @@
       <key variable="issued"/>
     </sort>
     <layout>
-      <text macro="zotero2bibtexType" prefix=" @"/>
+      <text macro="zotero2bibtexType" prefix="@"/>
       <group prefix="{" suffix=" }" delimiter=", ">
         <text macro="citeKey"/>
         <text variable="publisher-place" prefix=" address={" suffix="}"/>
@@ -188,7 +188,7 @@
         <text macro="author" prefix=" author={" suffix="}"/>
         <text macro="editor-translator" prefix=" editor={" suffix="}"/>
         <text macro="issued-year" prefix=" year={" suffix="}"/>
-        <text macro="issued-month" prefix=" month={" suffix="}"/>
+        <text macro="issued-month" prefix=" month={" suffix="}" text-case="lowercase"/>
         <text macro="pages" prefix=" pages={" suffix="}"/>
         <text macro="journal" prefix=" journal={" suffix="}"/>
         <text variable="collection-title" prefix=" collection={" suffix="}"/>

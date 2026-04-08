@@ -95,7 +95,6 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
 
-
     private ItemService itemService;
 
     private MetadataFieldService mfss;
@@ -2410,7 +2409,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withAuthor("John Smith", personItem.getID().toString())
             .withAuthor("Walter White")
             .withPublisher("Test publisher")
-            .withType("Controlled Vocabulary for Resource Type Genres::text::periodical::journal")
+            .withType("text::journal::editorial")
             .withHandle("123456789/111111")
             .build();
 
@@ -2419,7 +2418,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withIssueDate("2020-04-01")
             .withAuthor("John Smith", personItem.getID().toString())
             .withHandle("123456789/99999")
-            .withType("Controlled Vocabulary for Resource Type Genres::text::periodical::journal")
+            .withType("text::journal::editorial")
             .build();
 
         context.restoreAuthSystemState();
@@ -2455,7 +2454,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withIssueDate("2020-01-01")
             .withAuthor("John Smith")
             .withAuthor("Walter White")
-            .withType("Controlled Vocabulary for Resource Type Genres::text::periodical::journal")
+            .withType("text::journal::editorial")
             .withPublisher("Test publisher")
             .withHandle("123456789/111111")
             .build();
@@ -2499,7 +2498,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withIssueDate("2020-01-01")
             .withAuthor("John Smith", personItem.getID().toString())
             .withAuthor("Walter White")
-            .withType("Controlled Vocabulary for Resource Type Genres::text::periodical::journal")
+            .withType("text::journal::editorial")
             .withPublisher("Test publisher")
             .withHandle("123456789/111111")
             .build();
@@ -2508,7 +2507,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withTitle("Second Publication")
             .withIssueDate("2020-04-01")
             .withAuthor("John Smith", personItem.getID().toString())
-            .withType("Controlled Vocabulary for Resource Type Genres::text::periodical::journal")
+            .withType("text::journal::editorial")
             .withHandle("123456789/99999")
             .build();
 
@@ -2516,7 +2515,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .withTitle("Third Publication")
             .withIssueDate("2022-03-02")
             .withAuthor("John Smith", personItem.getID().toString())
-            .withType("Controlled Vocabulary for Resource Type Genres::text::periodical::journal")
+            .withType("text::journal::editorial")
             .withHandle("123456789/55555")
             .build();
 

@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import de.undercouch.citeproc.csl.CSLItemData;
 import de.undercouch.citeproc.output.Bibliography;
 
 /**
