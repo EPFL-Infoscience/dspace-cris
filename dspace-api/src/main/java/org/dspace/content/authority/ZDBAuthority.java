@@ -18,6 +18,8 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.content.authority.zdb.ZDBAuthorityValue;
 import org.dspace.content.authority.zdb.ZDBService;
+import org.dspace.content.authority.zdb.ZDBServicesFactory;
+
 /**
  * 
  * @author Mykhaylo Boychuk (4science.it)
@@ -28,7 +30,11 @@ public class ZDBAuthority extends ItemAuthority {
 
     private static Logger log = LogManager.getLogger(ZDBAuthority.class);
 
-    private ZDBService source = dspace.getServiceManager().getServiceByName("ZDBSource", ZDBService.class);
+    private ZDBService source;
+
+    public ZDBAuthority() {
+        this.source = ZDBServicesFactory.getInstance().getZDBService();
+    }
 
     @Override
     public Choices getMatches(String query, int start, int limit, String locale) {
@@ -65,8 +71,7 @@ public class ZDBAuthority extends ItemAuthority {
 
     private Map<String, String> getZDBExtra(AuthorityValue val) {
         Map<String, String> extras = new HashMap<String, String>();
-        List<ZDBExtraMetadataGenerator> generators = dspace.getServiceManager()
-                .getServicesByType(ZDBExtraMetadataGenerator.class);
+        List<ZDBExtraMetadataGenerator> generators = ZDBServicesFactory.getInstance().getMetadataGenerators();
         if (generators != null) {
             for (ZDBExtraMetadataGenerator gg : generators) {
                 Map<String, String> extrasTmp = gg.build(val);
