@@ -57,4 +57,18 @@ public interface ItemExportFormatService {
     List<ItemExportFormat> byEntityTypeAndMolteplicity(Context context, String entityTypeId,
             CrosswalkMode molteplicity);
 
+    /**
+     * Get all the item export formats for the particular configuration and molteplicity
+     *
+     * @param context
+     *            DSpace context object
+     * @param configuration
+     *            the configuration related to the search page
+     * @param molteplicity
+     *            the export molteplicity
+     * @return
+     */
+    List<ItemExportFormat> byConfigurationAndMolteplicity(Context context, String configuration,
+                                                       CrosswalkMode molteplicity);
+
 }

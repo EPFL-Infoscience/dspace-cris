@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
@@ -59,6 +60,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     @Autowired
     private BulkImportWorkbookBuilder bulkImportWorkbookBuilder;
     private String entityType;
+    private List<String> configurations;
 
     private DSpaceRunnableHandler handler;
 
@@ -122,6 +124,15 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     public void setEntityType(String entityType) {
         this.entityType = entityType;
+    }
+
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Override
+    public Optional<List<String>> getConfigurations() {
+        return Optional.ofNullable(configurations);
     }
 
     private void writeWorkbook(Context context, Collection collection, Iterator<Item> itemIterator, OutputStream out)
