@@ -95,12 +95,12 @@
 				<entry key="researchoutput-xls" value-ref="xlsCrosswalkResearchOutput"></entry>
 				<entry key="researchoutput-csv" value-ref="csvCrosswalkResearchOutput"></entry>
 				<entry key="researchoutput-json" value-ref="referCrosswalkResearchOutputJson"></entry>
-				<entry key="researchoutput-cerif-xml" value-ref="referCrosswalkResearchOutputCerifXml"></entry>
+				<entry key="researchoutput-xml" value-ref="referCrosswalkResearchOutputXml"></entry>
 
-				<entry key="researchoutputsoa-xls" value-ref="xlsCrosswalkResearchOutputSoa"></entry>
-				<entry key="researchoutputsoa-csv" value-ref="csvCrosswalkResearchOutputSoa"></entry>
-				<entry key="researchoutputsoa-json" value-ref="referCrosswalkResearchOutputSoaJson"></entry>
-				<entry key="researchoutputsoa-cerif-xml" value-ref="referCrosswalkResearchOutputSoaCerifXml"></entry>
+				<entry key="researchoutputsoa-xls" value-ref="xlsCrosswalkResearchOutputOA"></entry>
+				<entry key="researchoutputsoa-csv" value-ref="csvCrosswalkResearchOutputOA"></entry>
+				<entry key="researchoutputsoa-json" value-ref="referCrosswalkResearchOutputOAJson"></entry>
+				<entry key="researchoutputsoa-xml" value-ref="referCrosswalkResearchOutputOAXml"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -1065,8 +1065,8 @@
 		<property name="linesPostProcessor" ref="jsonPostProcessor" />
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputCerifXml">
-		<property name="templateFileName" value="crosswalks/template/researchoutput-cerif-xml.template"/>
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputXml">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="researchoutput.xml"/>
 		<property name="entityType" value="all"/>
@@ -1081,7 +1081,7 @@
 		<property name="addXmlSignature" value="true"/>
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkResearchOutputSoa">
+	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkResearchOutputOA">
 		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-table.template"/>
 		<property name="fileName" value="researchoutputsoa.xls"/>
 		<property name="sheetName" value="ResearchOutputsSoa"/>
@@ -1094,7 +1094,7 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkResearchOutputSoa">
+	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkResearchOutputOA">
 		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-table.template"/>
 		<property name="fileName" value="researchoutputsoa.csv"/>
 		<property name="entityType" value="all"/>
@@ -1106,8 +1106,8 @@
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputSoaJson">
-		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-json.template"/>
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputOAJson">
+		<property name="templateFileName" value="crosswalks/template/researchoutputoa-json.template"/>
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="researchoutputsoa.json"/>
 		<property name="entityType" value="all"/>
@@ -1116,14 +1116,14 @@
 				<value>researchoutputsoa</value>
 			</list>
 		</property>
-		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputssoa-json.template"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputsoa-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
 		<property name="linesPostProcessor" ref="jsonPostProcessor" />
 	</bean>
 
-	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputSoaCerifXml">
-		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-cerif-xml.template"/>
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputOAXml">
+		<property name="templateFileName" value="crosswalks/template/researchoutputoa-xml.template"/>
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="researchoutputsoa.xml"/>
 		<property name="entityType" value="all"/>
@@ -1132,7 +1132,7 @@
 				<value>researchoutputsoa</value>
 			</list>
 		</property>
-		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputssoa-xml.template"/>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputsoa-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
 		<property name="addXmlSignature" value="true"/>
