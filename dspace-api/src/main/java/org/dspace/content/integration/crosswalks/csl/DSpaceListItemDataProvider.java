@@ -218,7 +218,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(locator, item, value -> itemBuilder.locator(value));
         consumeMetadataIfNotBlank(medium, item, value -> itemBuilder.medium(value));
         consumeMetadataIfNotBlank(note, item, value -> itemBuilder.note(value));
-        consumeMetadataIfNotBlank(number != null ? number.getValue(item) : null, item, value -> itemBuilder.number(value));
+        consumeMetadataIfNotBlank(number != null ? number.getValue(item) : null, item,
+                value -> itemBuilder.number(value));
         consumeMetadataIfNotBlank(numberOfPages, item, value -> itemBuilder.numberOfPages(value));
         consumeMetadataIfNotBlank(numberOfVolumes, item, value -> itemBuilder.numberOfVolumes(value));
         consumeMetadataIfNotBlank(originalPublisher, item, value -> itemBuilder.originalPublisher(value));
