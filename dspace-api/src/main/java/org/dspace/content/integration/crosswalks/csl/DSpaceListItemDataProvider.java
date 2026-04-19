@@ -96,31 +96,31 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private CascadeMetadataRule containerTitle;
     private String containerTitleShort;
     private String dimensions;
-    private String DOI;
+    private CascadeMetadataRule DOI;
     private String edition;
     private String event;
-    private MetadataMergeRule eventPlace;
+    private String eventPlace;
     private String firstReferenceNoteNumber;
     private MetadataMergeRuleWithMapping genre;
-    private String ISBN;
-    private String ISSN;
+    private CascadeMetadataRule ISBN;
+    private CascadeMetadataRule ISSN;
     private String issue;
     private String jurisdiction;
     private String keyword;
     private String locator;
     private String medium;
     private String note;
-    private String number;
+    private CascadeMetadataRule number;
     private String numberOfPages;
     private String numberOfVolumes;
     private String originalPublisher;
     private String originalPublisherPlace;
     private String originalTitle;
-    private String page;
+    private MetadataMergeRuleWithMapping page;
     private String pageFirst;
     private String PMCID;
     private String PMID;
-    private MetadataMergeRuleWithMapping publisher;
+    private String publisher;
     private String publisherPlace;
     private String references;
     private String reviewedTitle;
@@ -130,7 +130,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private String status;
     private String title;
     private String titleShort;
-    private String URL;
+    private CascadeMetadataRule URL;
     private String version;
     private String volume;
     private String yearSuffix;
@@ -175,8 +175,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(type, item, value -> itemBuilder.type(getPublicationType(value)));
         consumeIfNotBlank(categories, value -> itemBuilder.categories(getMetadataValues(item, value)));
         consumeMetadataIfNotBlank(language, item, value -> itemBuilder.language(value));
-        consumeMetadataByTypeIfNotBlank(journalAbbreviation, item, typeValue,
-            value -> itemBuilder.journalAbbreviation(value));
+        //consumeMetadataByTypeIfNotBlank(journalAbbreviation, item, typeValue,
+        //    value -> itemBuilder.journalAbbreviation(value));
         consumeMetadataIfNotBlank(shortTitle, item, value -> itemBuilder.shortTitle(value));
         consumeMetadataIfNotBlank(abstrct, item, value -> itemBuilder.abstrct(value));
         consumeMetadataIfNotBlank(annote, item, value -> itemBuilder.annote(value));
@@ -190,40 +190,40 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(citationLabel, item, value -> itemBuilder.citationLabel(value));
         consumeMetadataIfNotBlank(collectionNumber, item, value -> itemBuilder.collectionNumber(value));
         consumeMetadataIfNotBlank(collectionTitle, item, value -> itemBuilder.collectionTitle(value));
-        consumeMetadataValueIfNotBlank(() -> containerTitle.getValue(item), item,
+        consumeMetadataValueIfNotBlank(() -> containerTitle != null ? containerTitle.getValue(item) : null, item,
                 value -> itemBuilder.containerTitle(value.get()));
         consumeMetadataIfNotBlank(containerTitleShort, item, value -> itemBuilder.containerTitleShort(value));
         consumeMetadataIfNotBlank(dimensions, item, value -> itemBuilder.dimensions(value));
-        consumeMetadataIfNotBlank(DOI, item, value -> itemBuilder.DOI(value));
+        consumeMetadataValueIfNotBlank(() -> DOI != null ? DOI.getValue(item) : null, item,
+                value -> itemBuilder.DOI(value.get()));
         consumeMetadataIfNotBlank(edition, item, value -> itemBuilder.edition(value));
         consumeMetadataIfNotBlank(event, item, value -> itemBuilder.event(value));
-        consumeMetadataValueIfNotBlank(() -> eventPlace != null ? eventPlace.getValue(item) : null, item,
-                value -> itemBuilder.eventPlace(value.get()));
+        consumeMetadataIfNotBlank(eventPlace, item, value -> itemBuilder.eventPlace(value));
         consumeMetadataIfNotBlank(firstReferenceNoteNumber, item,
                 value -> itemBuilder.firstReferenceNoteNumber(value));
         if (cslType != null) {
             consumeMetadataValueIfNotBlank(() -> genre != null ?
                             genre.getValue(item, cslType.toString()) : null, item,
                     value -> itemBuilder.genre(value.get()));
-            consumeMetadataValueIfNotBlank(() -> publisher != null ?
-                            publisher.getValue(item, cslType.toString()) : null, item,
-                    value -> itemBuilder.publisher(value.get()));
+            consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
+            setPageValues(page != null ? page.getValue(item, cslType.toString()) : null, item, itemBuilder);
         }
-        consumeMetadataIfNotBlank(ISBN, item, value -> itemBuilder.ISBN(value));
-        consumeMetadataIfNotBlank(ISSN, item, value -> itemBuilder.ISSN(value));
+        consumeMetadataValueIfNotBlank(() -> ISBN != null ? ISBN.getValue(item) : null, item,
+                value -> itemBuilder.ISBN(value.get()));
+        consumeMetadataValueIfNotBlank(() -> ISSN != null ? ISSN.getValue(item) : null, item,
+                value -> itemBuilder.ISSN(value.get()));
         consumeMetadataIfNotBlank(issue, item, value -> itemBuilder.issue(value));
         consumeMetadataIfNotBlank(jurisdiction, item, value -> itemBuilder.jurisdiction(value));
         consumeMetadataValuesIfNotBlank(keyword, item, values -> itemBuilder.keyword(String.join(" | ", values)));
         consumeMetadataIfNotBlank(locator, item, value -> itemBuilder.locator(value));
         consumeMetadataIfNotBlank(medium, item, value -> itemBuilder.medium(value));
         consumeMetadataIfNotBlank(note, item, value -> itemBuilder.note(value));
-        consumeMetadataIfNotBlank(number, item, value -> itemBuilder.number(value));
+        consumeMetadataIfNotBlank(number != null ? number.getValue(item) : null, item, value -> itemBuilder.number(value));
         consumeMetadataIfNotBlank(numberOfPages, item, value -> itemBuilder.numberOfPages(value));
         consumeMetadataIfNotBlank(numberOfVolumes, item, value -> itemBuilder.numberOfVolumes(value));
         consumeMetadataIfNotBlank(originalPublisher, item, value -> itemBuilder.originalPublisher(value));
         consumeMetadataIfNotBlank(originalPublisherPlace, item, value -> itemBuilder.originalPublisherPlace(value));
         consumeMetadataIfNotBlank(originalTitle, item, value -> itemBuilder.originalTitle(value));
-        setPageValues(page, item, itemBuilder);
         consumeMetadataIfNotBlank(PMCID, item, value -> itemBuilder.PMCID(value));
         consumeMetadataIfNotBlank(PMID, item, value -> itemBuilder.PMID(value));
         consumeMetadataIfNotBlank(publisherPlace, item, value -> itemBuilder.publisherPlace(value));
@@ -235,7 +235,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(status, item, value -> itemBuilder.status(value));
         consumeMetadataIfNotBlank(title, item, value -> itemBuilder.title(value));
         consumeMetadataIfNotBlank(titleShort, item, value -> itemBuilder.titleShort(value));
-        consumeMetadataIfNotBlank(URL, item, value -> itemBuilder.URL(value));
+        consumeMetadataValueIfNotBlank(() -> URL != null ? URL.getValue(item) : null, item,
+                value -> itemBuilder.URL(value.get()));
         consumeMetadataIfNotBlank(version, item, value -> itemBuilder.version(value));
         consumeMetadataIfNotBlank(volume, item, value -> itemBuilder.volume(value));
         consumeMetadataIfNotBlank(yearSuffix, item, value -> itemBuilder.yearSuffix(value));
@@ -633,7 +634,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return dimensions;
     }
 
-    public String getDOI() {
+    public CascadeMetadataRule getDOI() {
         return DOI;
     }
 
@@ -645,7 +646,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return event;
     }
 
-    public MetadataMergeRule getEventPlace() {
+    public String getEventPlace() {
         return eventPlace;
     }
 
@@ -657,11 +658,11 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return genre;
     }
 
-    public String getISBN() {
+    public CascadeMetadataRule getISBN() {
         return ISBN;
     }
 
-    public String getISSN() {
+    public CascadeMetadataRule getISSN() {
         return ISSN;
     }
 
@@ -689,7 +690,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return note;
     }
 
-    public String getNumber() {
+    public CascadeMetadataRule getNumber() {
         return number;
     }
 
@@ -713,7 +714,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return originalTitle;
     }
 
-    public String getPage() {
+    public MetadataMergeRuleWithMapping getPage() {
         return page;
     }
 
@@ -729,7 +730,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return PMID;
     }
 
-    public MetadataMergeRuleWithMapping getPublisher() {
+    public String getPublisher() {
         return publisher;
     }
 
@@ -769,7 +770,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return titleShort;
     }
 
-    public String getURL() {
+    public CascadeMetadataRule getURL() {
         return URL;
     }
 
@@ -945,7 +946,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.dimensions = dimensions;
     }
 
-    public void setDOI(String DOI) {
+    public void setDOI(CascadeMetadataRule DOI) {
         this.DOI = DOI;
     }
 
@@ -957,7 +958,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.event = event;
     }
 
-    public void setEventPlace(MetadataMergeRule eventPlace) {
+    public void setEventPlace(String eventPlace) {
         this.eventPlace = eventPlace;
     }
 
@@ -969,11 +970,11 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.genre = genre;
     }
 
-    public void setISBN(String ISBN) {
+    public void setISBN(CascadeMetadataRule ISBN) {
         this.ISBN = ISBN;
     }
 
-    public void setISSN(String ISSN) {
+    public void setISSN(CascadeMetadataRule ISSN) {
         this.ISSN = ISSN;
     }
 
@@ -1001,7 +1002,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.note = note;
     }
 
-    public void setNumber(String number) {
+    public void setNumber(CascadeMetadataRule number) {
         this.number = number;
     }
 
@@ -1025,7 +1026,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.originalTitle = originalTitle;
     }
 
-    public void setPage(String page) {
+    public void setPage(MetadataMergeRuleWithMapping page) {
         this.page = page;
     }
 
@@ -1041,7 +1042,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.PMID = PMID;
     }
 
-    public void setPublisher(MetadataMergeRuleWithMapping publisher) {
+    public void setPublisher(String publisher) {
         this.publisher = publisher;
     }
 
@@ -1081,7 +1082,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.titleShort = titleShort;
     }
 
-    public void setURL(String URL) {
+    public void setURL(CascadeMetadataRule URL) {
         this.URL = URL;
     }
 
