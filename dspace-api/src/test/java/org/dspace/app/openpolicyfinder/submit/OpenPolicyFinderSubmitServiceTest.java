@@ -133,7 +133,7 @@ public class OpenPolicyFinderSubmitServiceTest extends AbstractUnitTest {
                 findByString(context, "dc.identifier.issn", '.');
         MetadataValue metadataValue = metadataValueService.create(context, testItem, issnField);
         metadataValue.setValue(validISSN);
-        SHERPAResponse response = sherpaSubmitService.searchRelatedJournals(context, testItem);
+        OpenPolicyFinderResponse response = opfSubmitService.searchRelatedJournals(context, testItem);
         assertTrue("Response should not be null", response != null);
         assertFalse("Expected at least one journal match", response.getJournals().isEmpty());
         assertFalse("Response was flagged as 'isError'", response.isError());
