@@ -74,7 +74,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
                 openPolicyFinderEntry("The Lancet", REFERENCE, "0140-6736", "Elsevier"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(20)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
-                .andExpect(jsonPath("$._embedded.entries[0].source", Matchers.is("sherpa")))
+                .andExpect(jsonPath("$._embedded.entries[0].source", Matchers.is("opf")))
                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
 
     }
