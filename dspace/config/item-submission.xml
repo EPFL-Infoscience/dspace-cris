@@ -158,8 +158,8 @@
       <type>correction</type>
       <scope visibilityOutside="hidden">workflow</scope>
     </step-definition>
-    <step-definition id="opfPolicies" mandatory="true">
-      <heading>submit.progressbar.opfpolicy</heading>
+    <step-definition id="opfPolicies" mandatory="true" opened="false">
+      <heading>submit.progressbar.opfPolicies</heading>
       <processing-class>org.dspace.app.rest.submit.step.OpenPolicyFinderPolicyStep</processing-class>
       <type>opfPolicy</type>
     </step-definition>
