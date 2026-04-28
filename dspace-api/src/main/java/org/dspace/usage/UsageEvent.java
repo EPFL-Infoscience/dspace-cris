@@ -7,10 +7,10 @@
  */
 package org.dspace.usage;
 
-import java.sql.SQLException;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.logging.log4j.Logger;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
@@ -22,6 +22,8 @@ import org.dspace.services.model.Event;
  */
 public class UsageEvent extends Event {
 
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(UsageEvent.class);
+
     public static final UsageEvent createUsageEvent(
         final Context context, final HttpServletRequest req,
         final DSpaceObjectService<?> dSpaceObjectService, final UUID targetId,
@@ -31,7 +33,9 @@ public class UsageEvent extends Event {
             return new UsageEvent(
                 UsageEvent.Action.VIEW, req, context, dSpaceObjectService.find(context, targetId), referrer
             );
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            String msg = "Unable to create VIEW usage event for " + (targetId != null ? targetId.toString() : null);
+            log.error(msg, e);
             throw new RuntimeException(e);
         }
     }
