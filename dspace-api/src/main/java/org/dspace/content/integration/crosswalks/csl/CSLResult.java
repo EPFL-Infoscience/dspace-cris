@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import de.undercouch.citeproc.csl.CSLItemData;
 import de.undercouch.citeproc.output.Bibliography;
 
 /**
@@ -32,8 +31,12 @@ public class CSLResult {
 
     private final String citation;
 
-    public CSLResult(String format, String[] itemIds, String[] citationEntries) {
+    public CSLResult(String format, Collection<String> itemIds, String[] citationEntries) {
         this(format, convertToUUIDs(itemIds), citationEntries, null);
+    }
+
+    public CSLResult(String format, String[] itemIds, String[] citationEntries) {
+        this(format, convertToUUIDs(Arrays.stream(itemIds).collect(Collectors.toList())), citationEntries, null);
     }
 
     public CSLResult(String format, UUID[] itemIds, String[] citationEntries) {
@@ -53,14 +56,9 @@ public class CSLResult {
 
     }
 
-    public static CSLResult fromBibliography(String format, Collection<CSLItemData> collection, Bibliography bibliogr) {
-        String[] entryIds = bibliogr.getEntryIds();
-        if (entryIds == null) {
-            entryIds = collection.stream().map(c -> c.getId()).collect(Collectors.toList()).toArray(new String[0]);
-        }
-        UUID[] uuidIds = convertToUUIDs(entryIds);
-
-        return new CSLResult(format, uuidIds, bibliogr.getEntries(), bibliogr.makeString());
+    public static CSLResult fromBibliography(String format, Bibliography bibliogr, Collection<String> itemIds) {
+        UUID[] entryIds = convertToUUIDs(itemIds);
+        return new CSLResult(format, entryIds, bibliogr.getEntries(), bibliogr.makeString());
     }
 
     public UUID[] getItemIds() {
@@ -75,8 +73,8 @@ public class CSLResult {
         return citation;
     }
 
-    private static UUID[] convertToUUIDs(String[] itemIds) {
-        return Arrays.stream(nullToEmpty(itemIds))
+    private static UUID[] convertToUUIDs(Collection<String> itemIds) {
+        return itemIds.stream()
             .map(UUID::fromString)
             .toArray(UUID[]::new);
     }

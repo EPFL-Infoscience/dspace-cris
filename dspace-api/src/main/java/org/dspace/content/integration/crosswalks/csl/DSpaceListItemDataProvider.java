@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import com.google.gson.GsonBuilder;
 import de.undercouch.citeproc.ListItemDataProvider;
@@ -51,6 +52,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private final String DEFAULT_TYPE = "default";
 
     private final ItemService itemService;
+
+    private String citationLanguage;
 
     private String id;
     private String type;
@@ -208,7 +211,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(originalPublisher, item, value -> itemBuilder.originalPublisher(value));
         consumeMetadataIfNotBlank(originalPublisherPlace, item, value -> itemBuilder.originalPublisherPlace(value));
         consumeMetadataIfNotBlank(originalTitle, item, value -> itemBuilder.originalTitle(value));
-        consumePageMetadataIfNotBlank(pageFirst, page, item, value -> itemBuilder.page(value));
+        setPageValues(page, item, itemBuilder);
         consumeMetadataIfNotBlank(PMCID, item, value -> itemBuilder.PMCID(value));
         consumeMetadataIfNotBlank(PMID, item, value -> itemBuilder.PMID(value));
         consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
@@ -227,6 +230,23 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(yearSuffix, item, value -> itemBuilder.yearSuffix(value));
 
         return itemBuilder;
+    }
+
+    private void setPageValues(String page, Item item, CSLItemDataBuilder itemBuilder) {
+        if (StringUtils.isBlank(page)) {
+            return;
+        }
+
+        String metadataFirstValue = getMetadataFirstValue(item, page);
+        if (StringUtils.isNotBlank(metadataFirstValue)) {
+            String[] pageParts = metadataFirstValue.split(Pattern.quote("-"));
+            if (pageParts.length == 2) {
+                itemBuilder.page(pageParts[0].trim(), pageParts[1].trim());
+            } else {
+                LOGGER.warn("Invalid page format: '{}'. Expected format is 'page' or 'pageFirst-page'.", page,
+                        metadataFirstValue);
+            }
+        }
     }
 
     protected CSLItemDataBuilder handleCslNameFields(Item item, CSLItemDataBuilder itemBuilder) {
@@ -272,10 +292,15 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
 
     protected CSLName[] getCslNameFromMetadataValue(Item item, String metadataField) {
         String[] mdf = parseMetadataField(metadataField);
-        return itemService.getMetadata(item, mdf[0], mdf[1], mdf.length > 2 ? mdf[2] : null, ANY).stream()
+        CSLName[] names = itemService.getMetadata(item, mdf[0], mdf[1], mdf.length > 2 ? mdf[2] : null, ANY).stream()
             .map(metadata -> new DCPersonName(metadata.getValue()))
             .map(name -> toCSLName(name))
             .toArray(CSLName[]::new);
+        // If no names are found, return a null value this is important for CSL processing
+        if (names.length == 0) {
+            return null;
+        }
+        return names;
     }
 
     private CSLName toCSLName(DCPersonName name) {
@@ -1055,5 +1080,26 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
 
     public void setTypeConverter(SimpleMapConverter typeConverter) {
         this.typeConverter = typeConverter;
+    }
+
+    public String getCitationLanguage() {
+        if (StringUtils.isBlank(citationLanguage)) {
+            return "en-US";
+        }
+
+        switch (citationLanguage) {
+            case "fr":
+            case "fr_FR":
+                return "fr-FR";
+            case "en":
+            case "en_US":
+            case "en_GB":
+            default:
+                return "en-US"; // Default to English if not specified
+        }
+    }
+
+    public void setCitationLanguage(String citationLanguage) {
+        this.citationLanguage = citationLanguage;
     }
 }

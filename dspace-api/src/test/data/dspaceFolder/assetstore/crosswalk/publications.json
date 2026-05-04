@@ -2,7 +2,7 @@
   "items": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
-      "type": "article",
+      "type": "article-journal",
       "language": "en",
       "author": [
         {
@@ -51,7 +51,6 @@
           "given": "Walter"
         }
       ],
-      "editor": [],
       "issued": {
         "date-parts": [
           [

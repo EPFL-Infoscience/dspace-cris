@@ -32,7 +32,8 @@
     </bean>
     
     <bean name="mapConverterPublicationCSLTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
-		  <property name="converterNameFile" value="mapConverter-publicationTypesCSL.properties" />
+		  <!-- <property name="converterNameFile" value="mapConverter-publicationTypesCSL.properties" /> -->
+          <property name="converterNameFile" value="mapConverter-dcTypesToClsTypes.properties" />
 		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
           <property name="defaultValue" value="article"/>
     </bean>
