@@ -224,7 +224,7 @@
 
 	<bean
 		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
-		<property name="authorityName" value="SherpaAuthority" />
+		<property name="authorityName" value="OpenPolicyFinderAuthority" />
 		<property name="keyId" value="dc_relation_issn" />
 		<property name="schema" value="dc" />
 		<property name="element" value="identifier" />
@@ -234,7 +234,7 @@
 
 	<bean
 		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
-		<property name="authorityName" value="SherpaAuthority" />
+		<property name="authorityName" value="OpenPolicyFinderAuthority" />
 		<property name="keyId" value="dc_publisher" />
 		<property name="schema" value="dc" />
 		<property name="element" value="publisher" />
