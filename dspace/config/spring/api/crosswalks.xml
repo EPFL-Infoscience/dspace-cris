@@ -1542,6 +1542,18 @@
 		<property name="defaultValue" value=""/>
 	</bean>
 
+	<bean name="mapConverterPublicationCSLTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-dcTypesToClsTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="article"/>
+	</bean>
+
+	<bean name="mapConverterCoarToGenre" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-coarToGenre.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value=""/>
+	</bean>
+
 
 
 	<!-- CONDITION EVALUATORS CONFIGURATION -->

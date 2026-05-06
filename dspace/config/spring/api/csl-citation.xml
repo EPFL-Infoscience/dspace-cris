@@ -37,6 +37,7 @@
         <property name="ISSN" ref="ISSNrules" />
         <property name="DOI" ref="doiRules" />
         <property name="page" ref="pageRules" />
+        <property name="genre" ref="genreRules" />
     </bean>
 
     <bean id="containerTitleRules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
@@ -129,9 +130,11 @@
         </property>
     </bean>
 
-    <bean name="mapConverterPublicationCSLTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
-        <property name="converterNameFile" value="mapConverter-dcTypesToClsTypes.properties" />
-        <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-        <property name="defaultValue" value="article"/>
+    <bean id="genreRules" class="org.dspace.content.integration.crosswalks.csl.MetadataAuthorityRule">
+        <property name="metadatafield" value="dc.type"/>
+        <property name="mapConverter" ref="mapConverterCoarToGenre"/>
+        <property name="useSplit" value="true"/>
+        <property name="splitSeparator" value=":"/>
+        <property name="chunkPosition" value="1"/>
     </bean>
 </beans>

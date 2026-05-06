@@ -101,7 +101,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private String event;
     private String eventPlace;
     private String firstReferenceNoteNumber;
-    private MetadataMergeRuleWithMapping genre;
+    private MetadataAuthorityRule genre;
     private CascadeMetadataRule ISBN;
     private CascadeMetadataRule ISSN;
     private String issue;
@@ -207,12 +207,12 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(firstReferenceNoteNumber, item,
                 value -> itemBuilder.firstReferenceNoteNumber(value));
         if (cslType != null) {
-            consumeMetadataValueIfNotBlank(() -> genre != null ?
-                            genre.getValue(item, cslType.toString()) : null, item,
-                    value -> itemBuilder.genre(value.get()));
             consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
             setPageValues(page != null ? page.getValue(item, cslType.toString()) : null, item, itemBuilder);
+
         }
+        consumeMetadataValueIfNotBlank(() -> genre != null ? genre.getValue(item) : null, item,
+                value -> itemBuilder.genre(value.get()));
         consumeMetadataValueIfNotBlank(() -> ISBN != null ? ISBN.getValue(item) : null, item,
                 value -> itemBuilder.ISBN(value.get()));
         consumeMetadataValueIfNotBlank(() -> ISSN != null ? ISSN.getValue(item) : null, item,
@@ -665,7 +665,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return firstReferenceNoteNumber;
     }
 
-    public MetadataMergeRuleWithMapping getGenre() {
+    public MetadataAuthorityRule getGenre() {
         return genre;
     }
 
@@ -977,7 +977,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.firstReferenceNoteNumber = firstReferenceNoteNumber;
     }
 
-    public void setGenre(MetadataMergeRuleWithMapping genre) {
+    public void setGenre(MetadataAuthorityRule genre) {
         this.genre = genre;
     }
 
