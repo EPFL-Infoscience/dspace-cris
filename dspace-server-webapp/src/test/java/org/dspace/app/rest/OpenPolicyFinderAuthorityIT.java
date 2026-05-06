@@ -11,7 +11,6 @@ import static org.dspace.app.rest.matcher.ItemAuthorityMatcher.matchItemAuthorit
 import static org.dspace.app.rest.matcher.ItemAuthorityMatcher.matchItemAuthorityWithOtherInformations;
 import static org.dspace.authority.service.AuthorityValueService.GENERATE;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
-import static org.dspace.authority.service.AuthorityValueService.SPLIT;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -59,7 +58,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .build();
 
         context.restoreAuthSystemState();
-        configurationService.setProperty("opf.authority.prefix", REFERENCE + "ISSN" + SPLIT);
+
     }
 
     @Test
