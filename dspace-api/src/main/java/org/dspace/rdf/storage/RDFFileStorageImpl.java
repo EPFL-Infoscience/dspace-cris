@@ -77,12 +77,6 @@ public class RDFFileStorageImpl extends RDFStorageImpl {
     }
 
     @Override
-    public Model load(String uri) {
-        log.error("RDFFileStorageImpl#load not implemented");
-        throw new RuntimeException("RDFFileStorageImpl#load not implemented");
-    }
-
-    @Override
     public void delete(String uri) {
         log.error("RDFFileStorageImpl#delete not implemented");
         throw new RuntimeException("RDFFileStorageImpl#delete not implemented");

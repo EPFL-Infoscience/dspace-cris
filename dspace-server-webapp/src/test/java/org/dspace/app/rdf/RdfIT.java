@@ -10,10 +10,13 @@ package org.dspace.app.rdf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 import java.net.URI;
 
+import org.apache.jena.rdfconnection.RDFConnection;
 import org.dspace.app.rest.test.AbstractWebClientIntegrationTest;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.content.Community;
@@ -21,12 +24,12 @@ import org.dspace.content.service.SiteService;
 import org.dspace.rdf.RDFUtil;
 import org.dspace.rdf.conversion.RDFConverter;
 import org.dspace.rdf.factory.RDFFactoryImpl;
-import org.dspace.rdf.storage.RDFStorage;
 import org.dspace.rdf.storage.RDFStorageImpl;
 import org.dspace.services.ConfigurationService;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,6 +53,16 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = {"rdf.enabled = true"})
 public class RdfIT extends AbstractWebClientIntegrationTest {
 
+    protected final class RDFStorageImplMockConnection extends RDFStorageImpl {
+
+        RDFConnection rdfConnection = Mockito.mock(RDFConnection.class);
+
+        @Override
+        protected RDFConnection getConnection() {
+            return this.rdfConnection;
+        }
+    }
+
     @Autowired
     private ConfigurationService configurationService;
 
@@ -65,7 +78,7 @@ public class RdfIT extends AbstractWebClientIntegrationTest {
     // Create a new spy-able instance of RDFStorage. We will use this instance in all below tests (see @Before)
     // so that we can fake a triplestore backend. No triplestore is used in these tests.
     @Spy
-    RDFStorage rdfStorage = new RDFStorageImpl();
+    RDFStorageImplMockConnection rdfStorage = new RDFStorageImplMockConnection();
 
     // All RDF paths that we test against
     private final String SERIALIZE_PATH = "/rdf/handle";
@@ -106,18 +119,21 @@ public class RdfIT extends AbstractWebClientIntegrationTest {
 
         // Mock an RDF triplestore's response by returning the RDF conversion of our Community
         // when rdfStorage.load() is called with the RDF identifier for this Community
-        doReturn(rdfConverter.convert(context, community)).when(rdfStorage).load(communityIdentifier);
+        doReturn(rdfConverter.convert(context, community)).when(rdfStorage.rdfConnection).fetch(communityIdentifier);
 
         // Perform a GET request on the RDF /handle path, using our new Community's Handle
         ResponseEntity<String> response = getResponseAsString(SERIALIZE_PATH + "/" + community.getHandle());
         // Expect a 200 response code, and text/turtle (RDF Turtle syntax) response
+        verify(rdfStorage, atLeastOnce()).getConnection();
+        verify(rdfStorage, atLeastOnce()).load(communityIdentifier);
+
         assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertThat(response.getHeaders().getContentType().toString(), equalTo("text/turtle;charset=UTF-8"));
 
         // Turtle response should include the RDF identifier of Community
         assertThat(response.getBody(), containsString(communityIdentifier));
         // Turtle response should also note that this Community is part of our Site object
-        assertThat(response.getBody(), containsString("dspace:isPartOfRepository  <" + siteIdentifier + "> ;"));
+        assertThat(response.getBody(), containsString("dspace:isPartOfRepository  <" + siteIdentifier + ">;"));
     }
 
     @Test

@@ -39,14 +39,14 @@ public class RDFStorageImpl
 
     @Override
     public void store(String uri, Model model) {
-        RDFConnection connection = this.getConnection();
-        connection.put(uri, model);
+        try (RDFConnection connection = this.getConnection()) {
+            connection.put(uri, model);
+        }
     }
 
     @Override
     public Model load(String uri) {
-        try {
-            RDFConnection connection = this.getConnection();
+        try (RDFConnection connection = this.getConnection()) {
             return connection.fetch(uri);
         } catch (JenaHttpNotFoundException nf) {
             log.debug("Model not found for the uri " + uri, nf);
@@ -54,8 +54,15 @@ public class RDFStorageImpl
         }
     }
 
+    /**
+     * Get a connection to the Graph Store HTTP Protocol endpoint defined in the configuration.
+     * If credentials are defined in the configuration, they will be used to authenticate to the endpoint.
+     * <br/>
+     * Close the connection after use to free resources.
+     * The connection is not thread safe, so a new connection will be created for each call.
+     * @return RDFConnection to the Graph Store HTTP Protocol endpoint
+     */
     protected RDFConnection getConnection() {
-        RDFConnection connection;
         if (configurationService.hasProperty(RDFUtil.STORAGE_GRAPHSTORE_LOGIN_KEY)
             && configurationService.hasProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY)) {
             AuthEnv.get()
@@ -66,13 +73,14 @@ public class RDFStorageImpl
             log.debug("Did not found credential to use for our connection to the "
                           + "Graph Store HTTP endpoint, trying to connect unauthenticated.");
         }
-        connection = RDFConnectionRemote.service(getGraphStoreEndpoint()).build();
-        return connection;
+        return RDFConnectionRemote.service(getGraphStoreEndpoint()).build();
     }
 
     @Override
     public void delete(String uri) {
-        this.getConnection().delete(uri);
+        try (RDFConnection connection = this.getConnection()) {
+            connection.delete();
+        }
     }
 
     @Override
@@ -81,7 +89,9 @@ public class RDFStorageImpl
             this.delete(graph);
         }
         // clean default graph:
-        this.getConnection().delete();
+        try (RDFConnection connection = this.getConnection()) {
+            connection.delete();
+        }
     }
 
     @Override
