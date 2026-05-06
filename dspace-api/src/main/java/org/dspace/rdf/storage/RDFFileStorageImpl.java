@@ -17,8 +17,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -58,9 +56,7 @@ public class RDFFileStorageImpl extends RDFStorageImpl {
     @Override
     public void store(String uri, Model model) {
         try {
-            Dataset dataset = DatasetFactory.create();
-            dataset.addNamedModel(uri, model);
-            RDFDataMgr.write(out, dataset, Lang.NQUADS);
+            RDFDataMgr.write(out, model, Lang.TTL);
             out.flush();
         } catch (IOException e) {
             log.error("Fail to store the model ", e);
