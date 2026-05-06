@@ -58,7 +58,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .build();
 
         context.restoreAuthSystemState();
-
+        // opf.authority.prefix = will be generated::ISSN:: in dspace.cfg, so tests expect GENERATE authority prefix
     }
 
     @Test
@@ -71,7 +71,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .param("filter", "test journal"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                openPolicyFinderEntry("The Lancet", REFERENCE, "0140-6736", "Elsevier"))))
+                openPolicyFinderEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(20)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
                 .andExpect(jsonPath("$._embedded.entries[0].source", Matchers.is("opf")))
@@ -101,7 +101,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
                 localEntry("Test Journal 1", firstJournal),
                 localEntry("Test Journal 2", secondJournal),
                 localEntry("Test Journal 3", thirdJournal),
-                openPolicyFinderEntry("The Lancet", REFERENCE, "0140-6736", "Elsevier"))))
+                openPolicyFinderEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(20)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(4)));
@@ -127,7 +127,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .param("filter", "test journal"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                openPolicyFinderEntry("The Lancet", REFERENCE, "0140-6736", "Elsevier"))))
+                openPolicyFinderEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(20)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
@@ -243,8 +243,8 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .param("filter", "authority_test"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                openPolicyFinderEntry("The Lancet", REFERENCE, "0140-6736", "Elsevier"),
-                openPolicyFinderEntry("Nature Synthesis", REFERENCE, "2731-0582", "Nature Research"))))
+                openPolicyFinderEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"),
+                openPolicyFinderEntry("Nature Synthesis", GENERATE, "2731-0582", "Nature Research"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(20)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
@@ -255,8 +255,8 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .param("size", "2"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                openPolicyFinderEntry("The Lancet", REFERENCE, "0140-6736", "Elsevier"),
-                openPolicyFinderEntry("Nature Synthesis", REFERENCE, "2731-0582", "Nature Research"))))
+                openPolicyFinderEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"),
+                openPolicyFinderEntry("Nature Synthesis", GENERATE, "2731-0582", "Nature Research"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(2)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(1)))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
@@ -267,7 +267,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .param("size", "1"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                openPolicyFinderEntry("The Lancet", REFERENCE, "0140-6736", "Elsevier"))))
+                openPolicyFinderEntry("The Lancet", GENERATE, "0140-6736", "Elsevier"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(1)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(2)))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
@@ -278,7 +278,7 @@ public class OpenPolicyFinderAuthorityIT extends AbstractControllerIntegrationTe
             .param("size", "1"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.entries", containsInAnyOrder(
-                openPolicyFinderEntry("Nature Synthesis", REFERENCE, "2731-0582", "Nature Research"))))
+                openPolicyFinderEntry("Nature Synthesis", GENERATE, "2731-0582", "Nature Research"))))
             .andExpect(jsonPath("$.page.size", Matchers.is(1)))
             .andExpect(jsonPath("$.page.totalPages", Matchers.is(2)))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
