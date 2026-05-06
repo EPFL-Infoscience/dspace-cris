@@ -70,6 +70,8 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
 
     private String entityType;
 
+    private List<String> configurations;
+
     private String bitstreamBundle = "ORIGINAL";
 
     private String metadataFileName;
@@ -293,6 +295,15 @@ public class ZipItemExportCrosswalk implements ItemExportCrosswalk {
 
     public void setEntityType(String entityType) {
         this.entityType = entityType;
+    }
+
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Override
+    public Optional<List<String>> getConfigurations() {
+        return Optional.ofNullable(configurations);
     }
 
     public StreamDisseminationCrosswalk getCrosswalk() {

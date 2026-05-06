@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -63,6 +64,8 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
     private CrosswalkMode crosswalkMode;
 
     private String entityType;
+
+    private List<String> configurations;
 
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
@@ -181,5 +184,14 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
 
     public void setEntityType(String entityType) {
         this.entityType = entityType;
+    }
+
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Override
+    public Optional<List<String>> getConfigurations() {
+        return Optional.ofNullable(configurations);
     }
 }

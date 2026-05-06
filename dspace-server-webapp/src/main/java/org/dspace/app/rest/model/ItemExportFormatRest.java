@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.model;
 
+import java.util.List;
+
 import org.dspace.app.rest.RestResourceController;
 
 /**
@@ -24,6 +26,7 @@ public class ItemExportFormatRest extends BaseObjectRest<String> {
 
     private String mimeType;
     private String entityType;
+    private List<String> configurations;
     private String molteplicity;
 
     @Override
@@ -55,6 +58,14 @@ public class ItemExportFormatRest extends BaseObjectRest<String> {
 
     public void setEntityType(String entityTypeId) {
         this.entityType = entityTypeId;
+    }
+
+    public List<String> getConfigurations() {
+        return configurations;
+    }
+
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
     }
 
     public String getMolteplicity() {

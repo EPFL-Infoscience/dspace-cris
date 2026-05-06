@@ -7,6 +7,8 @@
  */
 package org.dspace.content.integration.crosswalks.service;
 
+import java.util.List;
+
 /**
  *  ItemExportFormat representation.
  *
@@ -18,6 +20,7 @@ public class ItemExportFormat {
     private String mimeType;
     private String entityType;
     private String molteplicity;
+    private List<String> configurations;
 
     public String getId() {
         return id;
@@ -42,5 +45,11 @@ public class ItemExportFormat {
     }
     public void setMolteplicity(String molteplicity) {
         this.molteplicity = molteplicity;
+    }
+    public List<String> getConfigurations() {
+        return configurations;
+    }
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
     }
 }

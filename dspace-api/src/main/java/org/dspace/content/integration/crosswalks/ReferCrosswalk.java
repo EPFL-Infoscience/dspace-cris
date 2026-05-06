@@ -125,6 +125,8 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private String entityType;
 
+    private List<String> configurations;
+
     private boolean publiclyReadable = false;
 
     private List<TemplateLine> templateLines;
@@ -662,6 +664,15 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     @Override
     public Optional<String> getEntityType() {
         return Optional.ofNullable(entityType);
+    }
+
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Override
+    public Optional<List<String>> getConfigurations() {
+        return Optional.ofNullable(configurations);
     }
 
     public void setCrosswalkMode(CrosswalkMode crosswalkMode) {

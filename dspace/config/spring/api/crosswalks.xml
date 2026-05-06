@@ -91,6 +91,16 @@
 				<entry key="json" value-ref="referCrosswalkJson"></entry>
 				<entry key="csv" value-ref="csvCrosswalk"></entry>
 				<entry key="xls" value-ref="xlsCrosswalk"></entry>
+
+				<entry key="researchoutput-xls" value-ref="xlsCrosswalkResearchOutput"></entry>
+				<entry key="researchoutput-csv" value-ref="csvCrosswalkResearchOutput"></entry>
+				<entry key="researchoutput-json" value-ref="referCrosswalkResearchOutputJson"></entry>
+				<entry key="researchoutput-xml" value-ref="referCrosswalkResearchOutputXml"></entry>
+
+				<entry key="researchoutputsoa-xls" value-ref="xlsCrosswalkResearchOutputOA"></entry>
+				<entry key="researchoutputsoa-csv" value-ref="csvCrosswalkResearchOutputOA"></entry>
+				<entry key="researchoutputsoa-json" value-ref="referCrosswalkResearchOutputOAJson"></entry>
+				<entry key="researchoutputsoa-xml" value-ref="referCrosswalkResearchOutputOAXml"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
@@ -101,6 +111,12 @@
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="mapConverter" ref="mapConverterPublicationToBibtexTypes"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
@@ -111,6 +127,13 @@
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="mapConverter" ref="mapConverterPublicationToBibtexTypes"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
@@ -121,6 +144,12 @@
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="mapConverter" ref="mapConverterPublicationToBibtexTypes"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
@@ -154,6 +183,11 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="person.xml"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -165,6 +199,11 @@
         <property name="mimeType" value="application/xml; charset=UTF-8"/>
         <property name="fileName" value="person.xml"/>
         <property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
         <property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
         <property name="converter" ref="xmlValueConverter" />
@@ -176,6 +215,11 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="person.xml"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-cerif-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -187,6 +231,11 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="person.json"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-json.template"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -198,6 +247,12 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="publication.xml"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/publications-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -238,6 +293,12 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
 	</bean>
@@ -251,6 +312,12 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
 	</bean>
@@ -264,6 +331,13 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
 	</bean>
@@ -273,6 +347,12 @@
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
 		<property name="fileName" value="publication.ris"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 
@@ -281,6 +361,12 @@
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
 		<property name="fileName" value="product.ris"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 
@@ -289,6 +375,13 @@
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
 		<property name="fileName" value="patent.ris"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 
@@ -341,6 +434,15 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="orgUnit.xml"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -352,6 +454,15 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="orgUnit.xml"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -363,6 +474,15 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="orgUnit.json"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -396,6 +516,13 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="patent.xml"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/patents-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -407,6 +534,13 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="patent.json"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/patents-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -418,6 +552,12 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="product.json"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/products-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -453,6 +593,12 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="product.xml"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/products-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -464,6 +610,12 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="datacite44.xml"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
@@ -474,6 +626,11 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="event.xml"/>
 		<property name="entityType" value="Event"/>
+		<property name="configurations">
+			<list>
+				<value>event</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/events-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -502,6 +659,11 @@
 		<property name="fileName" value="person.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
 
@@ -510,6 +672,11 @@
         <property name="fileName" value="person-cv.pdf"/>
         <property name="mimeType" value="application/pdf"/>
         <property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
         <property name="referCrosswalk" ref="referCrosswalkPersonCvXml"/>
     </bean>
 
@@ -518,6 +685,11 @@
 		<property name="fileName" value="person.rtf"/>
 		<property name="mimeType" value="application/rtf"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
 
@@ -526,6 +698,11 @@
 		<property name="fileName" value="person.doc"/>
 		<property name="mimeType" value="application/rtf"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
 
@@ -534,6 +711,12 @@
 		<property name="fileName" value="publication.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPublicationCerifXml"/>
 	</bean>
 
@@ -542,6 +725,12 @@
 		<property name="fileName" value="product.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkDatasetCerifXml"/>
 	</bean>
 
@@ -558,6 +747,12 @@
         <property name="mimeType" value="application/xml; charset=UTF-8"/>
         <property name="fileName" value="datacite44.xml"/>
         <property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
@@ -568,6 +763,13 @@
         <property name="mimeType" value="application/xml; charset=UTF-8"/>
         <property name="fileName" value="datacite44.xml"/>
         <property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
@@ -586,6 +788,15 @@
 		<property name="fileName" value="orgUnit.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkOrgUnitXml"/>
 	</bean>
 
@@ -602,6 +813,13 @@
 		<property name="fileName" value="patent.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPatentCerifXml"/>
 	</bean>
 
@@ -609,6 +827,11 @@
 		<property name="templateFileName" value="crosswalks/template/person-table.template"/>
 		<property name="fileName" value="persons.csv"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 	
@@ -617,6 +840,11 @@
 		<property name="fileName" value="persons.xls"/>
 		<property name="sheetName" value="Persons"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 	
@@ -624,6 +852,12 @@
 		<property name="templateFileName" value="crosswalks/template/publication-table.template"/>
 		<property name="fileName" value="publications.csv"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
@@ -638,6 +872,12 @@
 		<property name="templateFileName" value="crosswalks/template/product-table.template"/>
 		<property name="fileName" value="products.csv"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
@@ -646,6 +886,12 @@
 		<property name="fileName" value="publications.xls"/>
 		<property name="sheetName" value="Publications"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -662,6 +908,12 @@
 		<property name="fileName" value="products.xls"/>
 		<property name="sheetName" value="Products"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -684,6 +936,15 @@
 		<property name="templateFileName" value="crosswalks/template/orgUnit-table.template"/>
 		<property name="fileName" value="orgUnits.csv"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -692,6 +953,15 @@
 		<property name="fileName" value="orgUnits.xls"/>
 		<property name="sheetName" value="OrgUnits"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -729,6 +999,13 @@
 		<property name="templateFileName" value="crosswalks/template/patent-table.template"/>
 		<property name="fileName" value="patents.csv"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
@@ -737,7 +1014,128 @@
 		<property name="fileName" value="patents.xls"/>
 		<property name="sheetName" value="Patents"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkResearchOutput">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-table.template"/>
+		<property name="fileName" value="researchoutput.xls"/>
+		<property name="sheetName" value="ResearchOutputs"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkResearchOutput">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-table.template"/>
+		<property name="fileName" value="researchoutput.csv"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputJson">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-json.template"/>
+		<property name="mimeType" value="application/json; charset=UTF-8"/>
+		<property name="fileName" value="researchoutput.json"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputs-json.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="jsonValueConverter" />
+		<property name="linesPostProcessor" ref="jsonPostProcessor" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputXml">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="researchoutput.xml"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputs-xml.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="addXmlSignature" value="true"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkResearchOutputOA">
+		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-table.template"/>
+		<property name="fileName" value="researchoutputsoa.xls"/>
+		<property name="sheetName" value="ResearchOutputsSoa"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkResearchOutputOA">
+		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-table.template"/>
+		<property name="fileName" value="researchoutputsoa.csv"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputOAJson">
+		<property name="templateFileName" value="crosswalks/template/researchoutputoa-json.template"/>
+		<property name="mimeType" value="application/json; charset=UTF-8"/>
+		<property name="fileName" value="researchoutputsoa.json"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputsoa-json.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="jsonValueConverter" />
+		<property name="linesPostProcessor" ref="jsonPostProcessor" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputOAXml">
+		<property name="templateFileName" value="crosswalks/template/researchoutputoa-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="researchoutputsoa.xml"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputsoa-xml.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="addXmlSignature" value="true"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="referCrosswalkPublicationIeeeHtml">
@@ -750,6 +1148,13 @@
 	
 	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollection">
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutput</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 	</bean>
 
     <bean class="org.dspace.content.integration.crosswalks.ZipItemExportCrosswalk" id="zipCrosswalk">

@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import javax.xml.transform.Result;
@@ -59,6 +60,8 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
     private String templateFileName;
 
     private String entityType;
+
+    private List<String> configurations;
 
     private ReferCrosswalk referCrosswalk;
 
@@ -193,5 +196,13 @@ public class DocumentCrosswalk implements ItemExportCrosswalk {
         return Optional.ofNullable(entityType);
     }
 
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Override
+    public Optional<List<String>> getConfigurations() {
+        return Optional.ofNullable(configurations);
+    }
 
 }
