@@ -46,19 +46,8 @@ public class RDFStorageImpl
 
     @Override
     public Model load(String uri) {
-        String queryString = "CONSTRUCT { ?s ?p ?o } WHERE { "
-            + "{ ?s ?p ?o } UNION { GRAPH ?g { ?s ?p ?o } } "
-            + "FILTER(?s = <" + uri.replace(">", "\\>") + ">) }";
-        if (configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY)
-            && configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_PASSWORD_KEY)) {
-            AuthEnv.get()
-                   .registerUsernamePassword(getSparqlEndpoint(),
-                                             configurationService.getProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY),
-                                             configurationService.getProperty(RDFUtil.STORAGE_SPARQL_PASSWORD_KEY));
-        }
-        try (QueryExecution qexec = QueryExecutionHTTP.service(getSparqlEndpoint())
-                                                      .queryString(queryString).build()) {
-            return qexec.execDescribe();
+        try (RDFConnection connection = this.getConnection()) {
+            return connection.fetch(uri);
         } catch (JenaHttpNotFoundException nf) {
             log.error("Model not found for the uri {}", uri, nf);
             return null;
@@ -108,16 +97,8 @@ public class RDFStorageImpl
     @Override
     public List<String> getAllStoredGraphs() {
         String queryString = "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }";
-        if (configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY)
-            && configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_PASSWORD_KEY)) {
-            AuthEnv.get()
-                   .registerUsernamePassword(getSparqlEndpoint(),
-                                             configurationService.getProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY),
-                                             configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY));
-        }
-
         List<String> graphs = Collections.synchronizedList(new ArrayList<>());
-        try (QueryExecution qexec = QueryExecutionHTTP.service(getSparqlEndpoint()).queryString(queryString).build()) {
+        try (QueryExecution qexec = executeSparqlQuery(queryString)) {
             ResultSet rs = qexec.execSelect();
             while (rs.hasNext()) {
                 QuerySolution solution = rs.next();
@@ -127,6 +108,17 @@ public class RDFStorageImpl
             }
         }
         return graphs;
+    }
+
+    protected QueryExecution executeSparqlQuery(String queryString) {
+        if (configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY)
+            && configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_PASSWORD_KEY)) {
+            AuthEnv.get()
+                   .registerUsernamePassword(getSparqlEndpoint(),
+                                             configurationService.getProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY),
+                                             configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY));
+        }
+        return QueryExecutionHTTP.service(getSparqlEndpoint()).queryString(queryString).build();
     }
 
     protected String getGraphStoreEndpoint() {

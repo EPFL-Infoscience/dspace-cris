@@ -17,9 +17,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.web.JenaHttpNotFoundException;
 import org.apache.logging.log4j.Logger;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,12 +66,31 @@ public class RDFFileStorageImpl extends RDFStorageImpl {
     }
 
     /**
+     * Load the model for the given URI from the SPARQL endpoint defined in the configuration.
+     * The model is loaded by executing a CONSTRUCT query to the SPARQL endpoint.
+     * The query will look for triples with the given URI as subject in the default graph and in all named graphs.
+     * If credentials are defined in the configuration, they will be used to authenticate to the endpoint.
+     *
+     * @param uri Identifier for this DSO
+     * @return Model containing all the triples with the given URI as subject, or null if no such triples are found.
+     */
+    @Override
+    public Model load(String uri) {
+        String queryString = "DESCRIBE <" + uri.replace(">", "\\>") + ">";
+        try (QueryExecution qexec = executeSparqlQuery(queryString)) {
+            return qexec.execDescribe();
+        } catch (JenaHttpNotFoundException nf) {
+            log.error("Model not found for the uri {}", uri, nf);
+            return null;
+        }
+    }
+
+    /**
      * Used as destroy method in the spring bean configuration
      * @throws Throwable
      */
     public void destroy() throws Throwable {
-        out.flush();
-        out.close();
+        closeStream();
     }
 
     @Override
@@ -81,8 +102,9 @@ public class RDFFileStorageImpl extends RDFStorageImpl {
     @Override
     public void deleteAll() {
         try {
+            closeStream();
+
             String fileStorage = configurationService.getProperty("rdf.filestorage.location");
-            out.close();
             File file = new File(fileStorage);
             if (file.exists()) {
                 file.delete();
@@ -94,6 +116,11 @@ public class RDFFileStorageImpl extends RDFStorageImpl {
         } catch (IOException e) {
             log.error("Invalid file storage location", e);
         }
+    }
+
+    private void closeStream() throws IOException {
+        out.flush();
+        out.close();
     }
 
     @Override
