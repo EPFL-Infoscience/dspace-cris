@@ -12,24 +12,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.update.GraphStore;
-import com.hp.hpl.jena.update.GraphStoreFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.atlas.web.auth.HttpAuthenticator;
-import org.apache.jena.atlas.web.auth.SimpleAuthenticator;
-import org.apache.jena.web.DatasetGraphAccessor;
-import org.apache.jena.web.DatasetGraphAccessorHTTP;
+import org.apache.jena.http.auth.AuthEnv;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.rdfconnection.RDFConnectionRemote;
+import org.apache.jena.sparql.exec.http.QueryExecutionHTTP;
+import org.apache.jena.web.JenaHttpNotFoundException;
 import org.apache.logging.log4j.Logger;
 import org.dspace.rdf.RDFUtil;
 import org.dspace.services.ConfigurationService;
@@ -47,101 +39,94 @@ public class RDFStorageImpl
 
     @Override
     public void store(String uri, Model model) {
-        Node graphNode = NodeFactory.createURI(uri);
-        DatasetGraphAccessor accessor = this.getAccessor();
-        Dataset ds = DatasetFactory.create(model);
-        DatasetGraph dsg = ds.asDatasetGraph();
-        Graph g = dsg.getDefaultGraph();
-        accessor.httpPut(graphNode, g);
+        try (RDFConnection connection = this.getConnection()) {
+            connection.put(uri, model);
+        }
     }
 
     @Override
     public Model load(String uri) {
-        Node graphNode = NodeFactory.createURI(uri);
-        DatasetGraphAccessor accessor = this.getAccessor();
-        Graph g = accessor.httpGet(graphNode);
-        if (g == null || g.isEmpty()) {
+        try (RDFConnection connection = this.getConnection()) {
+            return connection.fetch(uri);
+        } catch (JenaHttpNotFoundException nf) {
+            log.error("Model not found for the uri {}", uri, nf);
             return null;
         }
-        GraphStore gs = GraphStoreFactory.create(g);
-        Dataset ds = gs.toDataset();
-        Model m = ds.getDefaultModel();
-        return m;
     }
 
-    protected DatasetGraphAccessor getAccessor() {
-        DatasetGraphAccessor accessor;
+    /**
+     * Get a connection to the Graph Store HTTP Protocol endpoint defined in the configuration.
+     * If credentials are defined in the configuration, they will be used to authenticate to the endpoint.
+     * <br/>
+     * Close the connection after use to free resources.
+     * The connection is not thread safe, so a new connection will be created for each call.
+     * @return RDFConnection to the Graph Store HTTP Protocol endpoint
+     */
+    protected RDFConnection getConnection() {
         if (configurationService.hasProperty(RDFUtil.STORAGE_GRAPHSTORE_LOGIN_KEY)
             && configurationService.hasProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY)) {
-            HttpAuthenticator httpAuthenticator = new SimpleAuthenticator(
-                configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_LOGIN_KEY),
-                configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY).toCharArray());
-            accessor = new DatasetGraphAccessorHTTP(getGraphStoreEndpoint(),
-                                                    httpAuthenticator);
+            AuthEnv.get()
+                   .registerUsernamePassword(getGraphStoreEndpoint(),
+                                             configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_LOGIN_KEY),
+                                             configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY));
         } else {
-            report("Did not found credential to use for our connection to the "
-                          + "Graph Store HTTP endpoint, trying to connect unauthenticated.", "debug");
-            accessor = new DatasetGraphAccessorHTTP(getGraphStoreEndpoint());
+            log.debug("Did not found credential to use for our connection to the "
+                          + "Graph Store HTTP endpoint, trying to connect unauthenticated.");
         }
-        return accessor;
+        return RDFConnectionRemote.service(getGraphStoreEndpoint()).build();
     }
 
     @Override
     public void delete(String uri) {
-        Node node = NodeFactory.createURI(uri);
-        report("node for deletion: " + node, "debug");
-        this.getAccessor().httpDelete(node);
+        try (RDFConnection connection = this.getConnection()) {
+            connection.delete();
+        }
     }
 
     @Override
     public void deleteAll() {
         for (String graph : this.getAllStoredGraphs()) {
-            report("Deleting graph: " + graph, "debug");
             this.delete(graph);
-            report("Deleted graph: " + graph, "debug");
         }
         // clean default graph:
-        this.getAccessor().httpDelete();
-        report("Default graph is cleaned", "debug");
+        try (RDFConnection connection = this.getConnection()) {
+            connection.delete();
+        }
     }
 
     @Override
     public List<String> getAllStoredGraphs() {
-        report("Start getting all stored graphs", "debug");
         String queryString = "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }";
-        QueryExecution qexec;
-        if (configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY)
-            && configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_PASSWORD_KEY)) {
-            HttpAuthenticator httpAuthenticator = new SimpleAuthenticator(
-                configurationService.getProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY),
-                configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY).toCharArray());
-            qexec = QueryExecutionFactory.sparqlService(getSparqlEndpoint(),
-                                                        queryString, httpAuthenticator);
-        } else {
-            qexec = QueryExecutionFactory.sparqlService(getSparqlEndpoint(),
-                                                        queryString);
-        }
-        report("Request has been created. Start executing the request for getting all stored graphs", "debug");
-        ResultSet rs = qexec.execSelect();
-        report("Request has been exec. Result received for all stored graphs", "debug");
-        List<String> graphs = Collections.synchronizedList(new ArrayList<String>());
-        while (rs.hasNext()) {
-            QuerySolution solution = rs.next();
-            if (solution.contains("g")) {
-                graphs.add(solution.get("g").asResource().getURI());
+        List<String> graphs = Collections.synchronizedList(new ArrayList<>());
+        try (QueryExecution qexec = executeSparqlQuery(queryString)) {
+            ResultSet rs = qexec.execSelect();
+            while (rs.hasNext()) {
+                QuerySolution solution = rs.next();
+                if (solution.contains("g")) {
+                    graphs.add(solution.get("g").asResource().getURI());
+                }
             }
         }
-        qexec.close();
-        report("Ended getting all stored graphs", "debug");
         return graphs;
+    }
+
+    protected QueryExecution executeSparqlQuery(String queryString) {
+        if (configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY)
+            && configurationService.hasProperty(RDFUtil.STORAGE_SPARQL_PASSWORD_KEY)) {
+            AuthEnv.get()
+                   .registerUsernamePassword(getSparqlEndpoint(),
+                                             configurationService.getProperty(RDFUtil.STORAGE_SPARQL_LOGIN_KEY),
+                                             configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_PASSWORD_KEY));
+        }
+        return QueryExecutionHTTP.service(getSparqlEndpoint()).queryString(queryString).build();
     }
 
     protected String getGraphStoreEndpoint() {
         String endpoint = configurationService.getProperty(RDFUtil.STORAGE_GRAPHSTORE_ENDPOINT_KEY);
         if (StringUtils.isEmpty(endpoint)) {
-            report("Cannot load Graph Store HTTP Protocol endpoint! Property "
+            log.warn("Cannot load Graph Store HTTP Protocol endpoint! Property "
                          + RDFUtil.STORAGE_GRAPHSTORE_ENDPOINT_KEY + " does not "
-                         + "exist or is empty.", "warn");
+                         + "exist or is empty.");
             throw new RuntimeException("Cannot load Graph Store HTTP Protocol "
                                            + "endpoint! Property "
                                            + RDFUtil.STORAGE_GRAPHSTORE_ENDPOINT_KEY + " does not "
@@ -159,21 +144,10 @@ public class RDFStorageImpl
         }
         // check if we found an endpoint
         if (StringUtils.isEmpty(endpoint)) {
-            report("Cannot load internal or public SPARQL endpoint!", "warn");
+            log.warn("Cannot load internal or public SPARQL endpoint!");
             throw new RuntimeException("Cannot load internal or public SPARQL "
                                            + "endpoint!");
         }
         return endpoint;
-    }
-
-    protected void report(String message, String method) {
-        if (method.equals("warn")) {
-            log.warn(message);
-            System.err.println("WARN: " + message);
-        } else {
-            log.debug(message);
-            System.err.println("INFO: " + message);
-        }
-
     }
 }
