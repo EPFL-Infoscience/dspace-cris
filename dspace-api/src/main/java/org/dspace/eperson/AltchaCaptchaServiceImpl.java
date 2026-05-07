@@ -61,13 +61,23 @@ public class AltchaCaptchaServiceImpl implements CaptchaService {
      * @return
      */
     private boolean validateAltchaCaptcha(String captchaPayloadHeader) throws InvalidReCaptchaException {
+
+        if (captchaPayloadHeader == null || captchaPayloadHeader.isEmpty()) {
+            throw new InvalidReCaptchaException("ALTCHA captcha payload header is missing");
+        }
+
         // Decode base64 string for parsing to json
         String captchaPayloadJson =
                 new String(Base64.decodeBase64(captchaPayloadHeader.getBytes(StandardCharsets.UTF_8)));
-        // Parse as JSON
-        JSONObject captchaPayload = new JSONObject(captchaPayloadJson);
-        // Extract data and validate work
+
+        if (captchaPayloadJson.isEmpty()) {
+            throw new InvalidReCaptchaException("ALTCHA captcha payload header is missing");
+        }
+
         try {
+            // Parse as JSON
+            JSONObject captchaPayload = new JSONObject(captchaPayloadJson);
+            // Extract data and validate work
             // Make sure the required fields are present
             if (captchaPayload.has("challenge") && captchaPayload.has("salt")
                     && captchaPayload.has("number") && captchaPayload.has("signature")
