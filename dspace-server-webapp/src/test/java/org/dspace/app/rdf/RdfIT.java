@@ -196,7 +196,8 @@ public class RdfIT extends AbstractWebClientIntegrationTest {
 
         QueryExecution queryExecution = Mockito.mock(QueryExecution.class);
 
-        // Return mocked QueryExecution when rdfStorage.executeSparqlQuery() is called with a query containing this Community's Handle
+        // Return mocked QueryExecution when rdfStorage.executeSparqlQuery() is called
+        // with a query containing this Community's Handle
         doReturn(queryExecution).when(rdfStorage).executeSparqlQuery(Mockito.contains(community.getHandle()));
         // Mock an RDF triplestore's response by returning the RDF conversion of our Community
         // when rdfStorage.load() is called with the RDF identifier for this Community
@@ -207,7 +208,8 @@ public class RdfIT extends AbstractWebClientIntegrationTest {
 
         // Verify that our RDFStorage's queryExecution.execDescribe() method was called at least once for TURTLE data
         verify(queryExecution, atLeastOnce()).execDescribe();
-        // Verify that our RDFStorage's load() method was called at least once with the RDF identifier for this Community
+        // Verify that our RDFStorage's load() method was called at least once
+        // with the RDF identifier for this Community
         verify(rdfStorage, atLeastOnce()).load(communityIdentifier);
 
         // Expect a 200 response code, and text/turtle (RDF Turtle syntax) response
