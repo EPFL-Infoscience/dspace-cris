@@ -101,7 +101,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private String event;
     private String eventPlace;
     private String firstReferenceNoteNumber;
-    private MetadataMergeRuleWithMapping genre;
+    private MetadataAuthorityRule genre;
     private CascadeMetadataRule ISBN;
     private CascadeMetadataRule ISSN;
     private String issue;
@@ -134,6 +134,11 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private String version;
     private String volume;
     private String yearSuffix;
+    private String contributor;
+    private String eventTitle;
+    private String availableDate;
+    private String partTitle;
+    private String volumeTitle;
 
     private SimpleMapConverter typeConverter;
 
@@ -202,12 +207,12 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(firstReferenceNoteNumber, item,
                 value -> itemBuilder.firstReferenceNoteNumber(value));
         if (cslType != null) {
-            consumeMetadataValueIfNotBlank(() -> genre != null ?
-                            genre.getValue(item, cslType.toString()) : null, item,
-                    value -> itemBuilder.genre(value.get()));
             consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
             setPageValues(page != null ? page.getValue(item, cslType.toString()) : null, item, itemBuilder);
+
         }
+        consumeMetadataValueIfNotBlank(() -> genre != null ? genre.getValue(item) : null, item,
+                value -> itemBuilder.genre(value.get()));
         consumeMetadataValueIfNotBlank(() -> ISBN != null ? ISBN.getValue(item) : null, item,
                 value -> itemBuilder.ISBN(value.get()));
         consumeMetadataValueIfNotBlank(() -> ISSN != null ? ISSN.getValue(item) : null, item,
@@ -241,6 +246,9 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(version, item, value -> itemBuilder.version(value));
         consumeMetadataIfNotBlank(volume, item, value -> itemBuilder.volume(value));
         consumeMetadataIfNotBlank(yearSuffix, item, value -> itemBuilder.yearSuffix(value));
+        consumeMetadataIfNotBlank(eventTitle, item, value -> itemBuilder.eventTitle(value));
+        consumeMetadataIfNotBlank(partTitle, item, value -> itemBuilder.partTitle(value));
+        consumeMetadataIfNotBlank(volumeTitle, item, value -> itemBuilder.volumeTitle(value));
 
         return itemBuilder;
     }
@@ -268,6 +276,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeCSLNamesIfNotBlank(collectionEditor, item, names -> itemBuilder.collectionEditor(names));
         consumeCSLNamesIfNotBlank(composer, item, names -> itemBuilder.composer(names));
         consumeCSLNamesIfNotBlank(containerAuthor, item, names -> itemBuilder.containerAuthor(names));
+        consumeCSLNamesIfNotBlank(contributor, item, names -> itemBuilder.contributor(names));
         consumeCSLNamesIfNotBlank(director, item, names -> itemBuilder.director(names));
         consumeCSLNamesIfNotBlank(editor, item, names -> itemBuilder.editor(names));
         consumeCSLNamesIfNotBlank(editorialDirector, item, names -> itemBuilder.editorialDirector(names));
@@ -289,6 +298,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeDateIfNotBlank(issued, item, itemBuilder::issued);
         consumeDateIfNotBlank(originalDate, item, itemBuilder::originalDate);
         consumeDateIfNotBlank(submitted, item, itemBuilder::submitted);
+        consumeDateIfNotBlank(availableDate, item, itemBuilder::availableDate);
 
         return itemBuilder;
     }
@@ -655,7 +665,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return firstReferenceNoteNumber;
     }
 
-    public MetadataMergeRuleWithMapping getGenre() {
+    public MetadataAuthorityRule getGenre() {
         return genre;
     }
 
@@ -967,7 +977,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.firstReferenceNoteNumber = firstReferenceNoteNumber;
     }
 
-    public void setGenre(MetadataMergeRuleWithMapping genre) {
+    public void setGenre(MetadataAuthorityRule genre) {
         this.genre = genre;
     }
 
@@ -1123,4 +1133,45 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     public void setCitationLanguage(String citationLanguage) {
         this.citationLanguage = citationLanguage;
     }
+
+    public String getContributor() {
+        return contributor;
+    }
+
+    public void setContributor(String contributor) {
+        this.contributor = contributor;
+    }
+
+    public String getEventTitle() {
+        return eventTitle;
+    }
+
+    public void setEventTitle(String eventTitle) {
+        this.eventTitle = eventTitle;
+    }
+
+    public String getAvailableDate() {
+        return availableDate;
+    }
+
+    public void setAvailableDate(String availableDate) {
+        this.availableDate = availableDate;
+    }
+
+    public String getPartTitle() {
+        return partTitle;
+    }
+
+    public void setPartTitle(String partTitle) {
+        this.partTitle = partTitle;
+    }
+
+    public String getVolumeTitle() {
+        return volumeTitle;
+    }
+
+    public void setVolumeTitle(String volumeTitle) {
+        this.volumeTitle = volumeTitle;
+    }
+
 }

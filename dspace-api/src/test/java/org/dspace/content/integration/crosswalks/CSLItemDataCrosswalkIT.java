@@ -79,7 +79,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withEntityType("Publication")
             .withIssueDate("2018-05-17")
             .withHandle("123456789/0004")
-            .withType("text::report::technical report")
+            .withType("text::report::technical report", "report-coar-types:c_18ws")
             .withAuthor("John Smith")
             .withAuthor("Edward Red")
             .build();
