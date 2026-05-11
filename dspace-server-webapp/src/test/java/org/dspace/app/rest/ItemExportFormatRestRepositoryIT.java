@@ -26,7 +26,7 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
                 .param("molteplicity", SINGLE.name())
                 .param("entityTypeId", "all"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(15)));
+                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(27)));
     }
 
     @Test
@@ -36,7 +36,7 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
                         .param("molteplicity", SINGLE.name())
                         .param("entityTypeId", "Publication"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(7)));
+                .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(14)));
     }
 
     @Test
@@ -46,6 +46,6 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
                         .param("molteplicity", SINGLE.name()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.itemexportformats.length()",
-                        Matchers.greaterThanOrEqualTo(9)));
+                        Matchers.greaterThanOrEqualTo(27)));
     }
 }
