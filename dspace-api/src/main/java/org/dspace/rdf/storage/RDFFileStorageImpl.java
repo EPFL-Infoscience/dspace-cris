@@ -9,13 +9,19 @@
 package org.dspace.rdf.storage;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.web.JenaHttpNotFoundException;
 import org.apache.logging.log4j.Logger;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Andrea Bollini (andrea.bollini at 4science.com)
  */
-public class RDFFileStorageImpl implements RDFStorage {
+public class RDFFileStorageImpl extends RDFStorageImpl {
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(RDFFileStorageImpl.class);
 
     private OutputStream out;
@@ -40,8 +46,11 @@ public class RDFFileStorageImpl implements RDFStorage {
         this.configurationService = configurationService;
         String fileStorage = configurationService.getProperty("rdf.filestorage.location");
         try {
-            out = new FileOutputStream(new File(fileStorage));
-        } catch (FileNotFoundException e) {
+            File file = new File(fileStorage);
+            Path path = Paths.get(file.getParent());
+            Files.createDirectories(path);
+            out = new FileOutputStream(file, true);
+        } catch (IOException e) {
             log.error("Invalid file storage location", e);
         }
     }
@@ -49,10 +58,30 @@ public class RDFFileStorageImpl implements RDFStorage {
     @Override
     public void store(String uri, Model model) {
         try {
-            model.write(out, "TTL");
+            RDFDataMgr.write(out, model, Lang.TTL);
             out.flush();
         } catch (IOException e) {
             log.error("Fail to store the model ", e);
+        }
+    }
+
+    /**
+     * Load the model for the given URI from the SPARQL endpoint defined in the configuration.
+     * The model is loaded by executing a CONSTRUCT query to the SPARQL endpoint.
+     * The query will look for triples with the given URI as subject in the default graph and in all named graphs.
+     * If credentials are defined in the configuration, they will be used to authenticate to the endpoint.
+     *
+     * @param uri Identifier for this DSO
+     * @return Model containing all the triples with the given URI as subject, or null if no such triples are found.
+     */
+    @Override
+    public Model load(String uri) {
+        String queryString = "DESCRIBE <" + uri.replace(">", "\\>") + ">";
+        try (QueryExecution qexec = executeSparqlQuery(queryString)) {
+            return qexec.execDescribe();
+        } catch (JenaHttpNotFoundException nf) {
+            log.error("Model not found for the uri {}", uri, nf);
+            return null;
         }
     }
 
@@ -61,14 +90,7 @@ public class RDFFileStorageImpl implements RDFStorage {
      * @throws Throwable
      */
     public void destroy() throws Throwable {
-        out.flush();
-        out.close();
-    }
-
-    @Override
-    public Model load(String uri) {
-        log.error("RDFFileStorageImpl#load not implemented");
-        throw new RuntimeException("RDFFileStorageImpl#load not implemented");
+        closeStream();
     }
 
     @Override
@@ -80,14 +102,25 @@ public class RDFFileStorageImpl implements RDFStorage {
     @Override
     public void deleteAll() {
         try {
+            closeStream();
+
             String fileStorage = configurationService.getProperty("rdf.filestorage.location");
-            out.close();
             File file = new File(fileStorage);
-            file.delete();
+            if (file.exists()) {
+                file.delete();
+            }
+            Path path = Paths.get(file.getParent());
+            Files.createDirectories(path);
+            file = new File(fileStorage);
             out = new FileOutputStream(file);
         } catch (IOException e) {
             log.error("Invalid file storage location", e);
         }
+    }
+
+    private void closeStream() throws IOException {
+        out.flush();
+        out.close();
     }
 
     @Override

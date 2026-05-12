@@ -12,8 +12,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.rdf.model.Model;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -92,7 +92,7 @@ public class RDFUtil {
      * Loads converted data of a DSpaceObject identified by the URI provided
      * as {@code identifier}. This method uses the RDFStorage configurated in
      * the DSpace configuration.  Close the model
-     * ({@link com.hp.hpl.jena.rdf.model.Model#close() Model.close()}) as soon
+     * ({@link org.apache.jena.rdf.model.Model#close() Model.close()}) as soon
      * as possible to free system resources.
      *
      * @param identifier A URI representing the object you want to load data about.
