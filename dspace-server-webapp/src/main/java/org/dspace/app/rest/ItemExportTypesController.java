@@ -1,0 +1,265 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.app.rest;
+
+import static org.dspace.app.rest.model.ItemRest.PLURAL_NAME;
+import static org.dspace.app.rest.utils.RegexUtils.REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.dspace.app.rest.converter.ConverterService;
+import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.model.ItemExportFormatRest;
+import org.dspace.app.rest.model.ItemRest;
+import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.app.rest.utils.Utils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
+import org.dspace.content.crosswalk.CrosswalkException;
+import org.dspace.content.crosswalk.CrosswalkMode;
+import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMapper;
+import org.dspace.content.integration.crosswalks.service.ItemExportFormat;
+import org.dspace.content.integration.crosswalks.service.ItemExportFormatService;
+import org.dspace.content.service.ItemService;
+import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Controller for retrieving export types available for a specific item.
+ *
+ * @author  daniele.ninfo at 4science.it
+ */
+@RestController
+@RequestMapping("/api/" + ItemRest.CATEGORY + "/" + PLURAL_NAME + REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID
+        + "/export-types")
+public class ItemExportTypesController {
+
+    private static final Logger log = LogManager.getLogger(ItemExportTypesController.class);
+
+    private static final String EXPORT_TYPE_ALL = "all";
+    private static final String CITATION_FILTER_PREFIX = "citation-filter.";
+
+    @Autowired
+    private ItemService itemService;
+
+    @Autowired
+    private ItemExportFormatService itemExportFormatService;
+
+    @Autowired
+    private ConverterService converter;
+
+    @Autowired
+    private Utils utils;
+
+    @Autowired
+    private StreamDisseminationCrosswalkMapper streamDisseminationCrosswalkMapper;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    /**
+     * Retrieve all export types available for a specific item.
+     *
+     * @param uuid the UUID of the item
+     * @param request the HTTP request
+     * @return a collection of available export format resources for the item
+     * @throws SQLException if a database error occurs
+     */
+    @GetMapping
+    @PreAuthorize("hasPermission(#uuid, 'ITEM', 'READ')")
+    public CollectionModel<ItemExportFormatRest> getExportTypes(@PathVariable UUID uuid,
+                                                                  HttpServletRequest request)
+            throws SQLException {
+        Context context = ContextUtil.obtainContext(request);
+
+        Item item = getItemOrThrow(context, uuid);
+
+        // Get export formats available for this specific item entity type.
+        List<ItemExportFormat> formats = getFormatsForItem(context, item);
+
+        // Convert to REST resources
+        List<ItemExportFormatRest> restFormats = new ArrayList<>();
+        for (ItemExportFormat format : formats) {
+            restFormats.add(converter.toRest(format, utils.obtainProjection()));
+        }
+
+        return CollectionModel.of(restFormats);
+    }
+
+    /**
+     * Export the citation/content of an item for the provided export type.
+     *
+     * @param uuid the UUID of the item
+     * @param exportType the export type identifier
+     * @param request the HTTP request
+     * @return raw bytes generated by the selected export type
+     * @throws SQLException if a database error occurs
+     * @throws IOException if the export stream cannot be written
+     * @throws AuthorizeException if authorization fails while exporting
+     * @throws CrosswalkException if the export crosswalk fails
+     */
+    @GetMapping("/{exportType}")
+    @PreAuthorize("hasPermission(#uuid, 'ITEM', 'READ')")
+    public ResponseEntity<byte[]> exportByType(@PathVariable UUID uuid,
+                                               @PathVariable String exportType,
+                                               HttpServletRequest request)
+            throws SQLException, IOException, AuthorizeException, CrosswalkException {
+        Context context = ContextUtil.obtainContext(request);
+
+        Item item = getItemOrThrow(context, uuid);
+
+        if (EXPORT_TYPE_ALL.equals(exportType)) {
+            Map<String, String> allExports = new LinkedHashMap<>();
+            for (ItemExportFormat format : getFormatsForItem(context, item)) {
+                StreamDisseminationCrosswalk crosswalk = getValidatedCrosswalk(context, item, format);
+                byte[] exportBytes = exportItemByFormat(context, item, crosswalk, format.getId());
+                allExports.put(format.getId(), new String(exportBytes, StandardCharsets.UTF_8));
+            }
+            byte[] body = new ObjectMapper().writeValueAsString(allExports).getBytes(StandardCharsets.UTF_8);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            return new ResponseEntity<>(body, headers, HttpStatus.OK);
+        }
+
+        ItemExportFormat requestedFormat = getFormatsForItem(context, item).stream()
+                .filter(format -> exportType.equals(format.getId()))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Could not find export type " + exportType));
+
+        StreamDisseminationCrosswalk crosswalk = getValidatedCrosswalk(context, item, requestedFormat);
+        byte[] out = exportItemByFormat(context, item, crosswalk, requestedFormat.getId());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(crosswalk.getMIMEType()));
+        return new ResponseEntity<>(out, headers, HttpStatus.OK);
+    }
+
+    private StreamDisseminationCrosswalk getValidatedCrosswalk(Context context, Item item, ItemExportFormat format) {
+        StreamDisseminationCrosswalk crosswalk = streamDisseminationCrosswalkMapper.getByType(format.getId());
+
+        // Validate crosswalk exists
+        if (crosswalk == null) {
+            log.warn("Crosswalk not found for export type: {}", format.getId());
+            throw new DSpaceBadRequestException("The export type " + format.getId() + " is not available");
+        }
+
+        // Validate item can be disseminated with this crosswalk
+        if (!crosswalk.canDisseminate(context, item)) {
+            log.warn("Item {} cannot be disseminated as {}", item.getID(), format.getId());
+            throw new DSpaceBadRequestException("The export type " + format.getId()
+                    + " cannot export this item");
+        }
+
+        return crosswalk;
+    }
+
+    private byte[] exportItemByFormat(Context context, Item item, StreamDisseminationCrosswalk crosswalk,
+                                      String exportType)
+            throws IOException, SQLException, AuthorizeException, CrosswalkException {
+        // Execute dissemination to stream
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Successfully exported item {} as {}", item.getID(), exportType);
+        }
+        return out.toByteArray();
+    }
+
+    private Item getItemOrThrow(Context context, UUID uuid) throws SQLException {
+        Item item = itemService.find(context, uuid);
+        if (item == null) {
+            throw new ResourceNotFoundException("Could not find item with id " + uuid);
+        }
+        return item;
+    }
+
+    private List<ItemExportFormat> getFormatsForItem(Context context, Item item) {
+        String entityType = itemService.getEntityType(item);
+
+        List<ItemExportFormat> singleFormats =
+                itemExportFormatService.byEntityTypeAndMolteplicity(context, entityType, CrosswalkMode.SINGLE);
+        List<ItemExportFormat> singleAndMultipleFormats =
+                itemExportFormatService.byEntityTypeAndMolteplicity(context, entityType,
+                        CrosswalkMode.SINGLE_AND_MULTIPLE);
+        List<ItemExportFormat> multipleFormats =
+                itemExportFormatService.byEntityTypeAndMolteplicity(context, entityType, CrosswalkMode.MULTIPLE);
+
+        Map<String, ItemExportFormat> formatsById = new LinkedHashMap<>();
+        for (ItemExportFormat format : singleFormats) {
+            formatsById.putIfAbsent(format.getId(), format);
+        }
+        for (ItemExportFormat format : singleAndMultipleFormats) {
+            formatsById.putIfAbsent(format.getId(), format);
+        }
+        for (ItemExportFormat format : multipleFormats) {
+            formatsById.putIfAbsent(format.getId(), format);
+        }
+
+        List<ItemExportFormat> formats = new ArrayList<>(formatsById.values());
+        return applyEntityCitationFilter(entityType, formats);
+    }
+
+    private List<ItemExportFormat> applyEntityCitationFilter(String entityType, List<ItemExportFormat> formats) {
+        if (StringUtils.isBlank(entityType)) {
+            return formats;
+        }
+
+        String filterKey = CITATION_FILTER_PREFIX + entityType.toLowerCase(Locale.ROOT);
+        String[] configuredFilters = configurationService.getArrayProperty(filterKey);
+
+        // If key is missing or empty, keep the original list.
+        if (configuredFilters == null || configuredFilters.length == 0) {
+            return formats;
+        }
+
+        Set<String> allowedFilters = java.util.Arrays.stream(configuredFilters)
+                                                     .map(String::trim)
+                                                     .filter(StringUtils::isNotBlank)
+                                                     .collect(Collectors.toSet());
+        if (allowedFilters.isEmpty()) {
+            return formats;
+        }
+
+        return formats.stream()
+                      .filter(format -> allowedFilters.contains(format.getId()))
+                      .collect(Collectors.toList());
+    }
+
+}
+
+
