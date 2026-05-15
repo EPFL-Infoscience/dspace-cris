@@ -16,16 +16,16 @@
         <property name="publisherPlace" value="dc.publisher.place"/>
         <property name="volume" value="oaire.citation.volume"/>
         <property name="issue" value="oaire.citation.issue"/>
-        <property name="event" value="dc.relation.conference"/>
+        <property name="eventTitle" value="dc.relation.conference"/>
         <property name="title" value="dc.title"/>
         <property name="issued" value="dc.date.issued"/>
         <property name="author" value="dc.contributor.author"/>
-        <property name="editor" value="dc.contributor.editor"/>
+        <property name="editor" value="dc.contributor.scientificeditor"/>
+        <property name="director" value="dc.contributor.advisor"/>
         <property name="pageFirst" value="oaire.citation.startPage"/>
         <property name="collectionTitle" value="dc.relation.ispartofseries"/>
         <property name="note" value="dc.description.notes"/>
         <property name="PMID" value="dc.identifier.pmid"/>
-        <property name="containerAuthor" value="dc.contributor.scientificeditor"/>
         <property name="eventPlace" value="oaire.citation.conferencePlace"/>
         <property name="eventDate" value="oaire.citation.conferenceDate"/>
         <property name="medium" value="dc.format.extent"/>
@@ -36,24 +36,58 @@
         <property name="ISBN" ref="ISBNrules" />
         <property name="ISSN" ref="ISSNrules" />
         <property name="DOI" ref="doiRules" />
-        <property name="page" ref="pageRules" />
         <property name="genre" ref="genreRules" />
+        <property name="authority" ref="holderRules" />
+        <property name="jurisdiction" ref="countryRules" />
+        <property name="page" value="oaire.citation.endPage"/>
+        <property name="numberOfPages" value="dc.size"/>
+        <property name="version" value="dc.description.version"/>
+        <property name="chapterNumber" value="epfl.part.number"/>
+        <property name="partTitle" value="epfl.part.name"/>
+        <property name="volumeTitle" value="epfl.relation.issuetitle"/>
+        <property name="submitted" value="dcterms.dateSubmitted"/>
+        <property name="availableDate" value="dc.date.available"/>
     </bean>
-
-    <bean id="containerTitleRules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
-        <property name="fields">
-            <list>
-                <value>dc.relation.journal</value>
-                <value>dc.relation.ispartof</value>
-            </list>
+    
+    <bean id="containerTitleRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
+        <property name="separator" value=", "/>
+        <property name="replacementRegex" value="^,|,$"/>
+        <property name="replacementValue" value="" />
+        <property name="onlyFirstValues" value="true"/>
+        <property name="mapping">
+            <map>
+                <entry key="article">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="article-journal">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="article-magazine">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="article-newspaper">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="default">
+                    <list>
+                        <value>dc.relation.ispartof</value>
+                    </list>
+                </entry>
+            </map>
         </property>
     </bean>
 
     <bean id="urlRules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
         <property name="fields">
             <list>
-                <value>dc.identifier.hdl</value>
-                <value>epfl.url</value>
                 <value>dc.identifier.uri</value>
             </list>
         </property>
@@ -62,10 +96,10 @@
     <bean id="numberRules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
         <property name="fields">
             <list>
-                <value>dc.identifier.epo</value>
                 <value>dc.identifier.patentno</value>
                 <value>dc.identifier.standardno</value>
                 <value>dc.identifier.reportno</value>
+                <value>epfl.thesis.number</value>
                 <value>oaire.citation.articlenumber</value>
             </list>
         </property>
@@ -84,7 +118,6 @@
         <property name="fields">
             <list>
                 <value>dc.identifier.issn</value>
-                <value>dc.relation.issn</value>
                 <value>dc.relation.serieissn</value>
             </list>
         </property>
@@ -98,32 +131,33 @@
             </list>
         </property>
     </bean>
-
-    <bean id="pageRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
+    
+    <bean id="holderRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
         <property name="separator" value=", "/>
         <property name="replacementRegex" value="^,|,$"/>
         <property name="replacementValue" value="" />
         <property name="onlyFirstValues" value="true"/>
         <property name="mapping">
             <map>
-                <entry key="thesis">
+                <entry key="patent">
                     <list>
-                        <value>dc.size</value>
+                        <value>dcterms.rightHolder</value>
                     </list>
                 </entry>
-                <entry key="report">
+            </map>
+        </property>
+    </bean>
+    
+    <bean id="countryRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
+        <property name="separator" value=", "/>
+        <property name="replacementRegex" value="^,|,$"/>
+        <property name="replacementValue" value="" />
+        <property name="onlyFirstValues" value="true"/>
+        <property name="mapping">
+            <map>
+                <entry key="patent">
                     <list>
-                        <value>dc.size</value>
-                    </list>
-                </entry>
-                <entry key="graphic">
-                    <list>
-                        <value>dc.size</value>
-                    </list>
-                </entry>
-                <entry key="default">
-                    <list>
-                        <value>oaire.citation.endPage</value>
+                        <value>oairecerif.patent.country</value>
                     </list>
                 </entry>
             </map>
