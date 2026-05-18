@@ -30,6 +30,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -46,6 +48,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
 
+    private ItemService itemService;
+
     private StreamDisseminationCrosswalkMapper crosswalkMapper;
 
     private CSLItemDataCrosswalk publicationHtmlCrosswalk;
@@ -57,6 +61,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     @Before
     public void setup() throws SQLException, AuthorizeException {
 
+        this.itemService = ContentServiceFactory.getInstance().getItemService();
         this.crosswalkMapper = new DSpace().getSingletonService(StreamDisseminationCrosswalkMapper.class);
         assertThat(crosswalkMapper, notNullValue());
 
@@ -243,6 +248,9 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withHandle("123456789/0001")
             .build();
 
+        itemService.setMetadataSingleValue(context, item, "dc", "date", "available", null, "2018-05-17");
+        itemService.update(context, item);
+
         context.restoreAuthSystemState();
         Item itemMock = Mockito.spy(item);
         Mockito.when(itemMock.getID()).thenReturn(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
@@ -293,6 +301,11 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withAuthor("White, Walter")
             .withHandle("123456789/0002")
             .build();
+
+        itemService.setMetadataSingleValue(context, item, "dc", "date", "available", null, "2018-05-17");
+        itemService.setMetadataSingleValue(context, anotherItem, "dc", "date", "available", null, "2020-01-01");
+        itemService.update(context, item);
+        itemService.update(context, anotherItem);
 
         context.restoreAuthSystemState();
 
