@@ -6,40 +6,169 @@
 
     <bean id="DSpaceListItemDataProvider" class="org.dspace.content.integration.crosswalks.csl.DSpaceListItemDataProvider" scope="prototype">
         <property name="typeConverter" ref="mapConverterPublicationCSLTypes"/>
-    	<property name="type" value="dc.type"/>
-    	<property name="language" value="dc.language.iso"/>
+        <property name="type" value="dc.type"/>
+        <property name="language" value="dc.language.iso"/>
         <!-- please note the following is not a typo abstract is a reserved word in JAVA
              so the property has been named abstrct (without the a) -->
         <property name="abstrct" value="dc.description.abstract"/>
-        <property name="DOI" value="dc.identifier.doi"/>
-        <property name="ISBN" value="dc.relation.isbn"/>
-        <property name="ISSN" value="dc.relation.issn"/>
         <property name="keyword" value="dc.subject"/>
         <property name="publisher" value="dc.publisher"/>
         <property name="publisherPlace" value="dc.publisher.place"/>
         <property name="volume" value="oaire.citation.volume"/>
         <property name="issue" value="oaire.citation.issue"/>
-        <property name="event" value="dc.relation.conference"/>
+        <property name="eventTitle" value="dc.relation.conference"/>
         <property name="title" value="dc.title"/>
-        <property name="URL" value="dc.identifier.uri"/>
         <property name="issued" value="dc.date.issued"/>
         <property name="author" value="dc.contributor.author"/>
-        <property name="editor" value="dc.contributor.editor"/>
-        <property name="journalAbbreviation" ref="journalTypesMap"/>
+        <property name="editor" value="dc.contributor.scientificeditor"/>
+        <property name="director" value="dc.contributor.advisor"/>
         <property name="pageFirst" value="oaire.citation.startPage"/>
-        <property name="page" value="oaire.citation.endPage"/>
         <property name="collectionTitle" value="dc.relation.ispartofseries"/>
+        <property name="note" value="dc.description.notes"/>
+        <property name="PMID" value="dc.identifier.pmid"/>
+        <property name="eventPlace" value="oaire.citation.conferencePlace"/>
+        <property name="eventDate" value="oaire.citation.conferenceDate"/>
+        <property name="medium" value="dc.format.extent"/>
+        <property name="edition" value="dc.description.edition"/>
+        <property name="containerTitle" ref="containerTitleRules" />
+        <property name="URL" ref="urlRules" />
+        <property name="number" ref="numberRules" />
+        <property name="ISBN" ref="ISBNrules" />
+        <property name="ISSN" ref="ISSNrules" />
+        <property name="DOI" ref="doiRules" />
+        <property name="genre" ref="genreRules" />
+        <property name="authority" ref="holderRules" />
+        <property name="jurisdiction" ref="countryRules" />
+        <property name="page" value="oaire.citation.endPage"/>
+        <property name="numberOfPages" value="dc.size"/>
+        <property name="version" value="dc.description.version"/>
+        <property name="chapterNumber" value="epfl.part.number"/>
+        <property name="partTitle" value="epfl.part.name"/>
+        <property name="volumeTitle" value="epfl.relation.issuetitle"/>
+        <property name="submitted" value="dcterms.dateSubmitted"/>
+        <property name="availableDate" value="dc.date.available"/>
     </bean>
     
-    <bean name="mapConverterPublicationCSLTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
-		  <property name="converterNameFile" value="mapConverter-publicationTypesCSL.properties" />
-		  <property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-          <property name="defaultValue" value="article"/>
+    <bean id="containerTitleRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
+        <property name="separator" value=", "/>
+        <property name="replacementRegex" value="^,|,$"/>
+        <property name="replacementValue" value="" />
+        <property name="onlyFirstValues" value="true"/>
+        <property name="mapping">
+            <map>
+                <entry key="article">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="article-journal">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="article-magazine">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="article-newspaper">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
+                <entry key="default">
+                    <list>
+                        <value>dc.relation.ispartof</value>
+                    </list>
+                </entry>
+            </map>
+        </property>
     </bean>
 
-    <util:map id="journalTypesMap" key-type="java.lang.String" value-type="java.lang.String">
-        <entry key="article" value="dc.relation.journal" />
-        <entry key="chapter" value="dc.relation.ispartof" />
-        <entry key="default" value="dc.relation.ispartof" />
-    </util:map>
+    <bean id="urlRules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
+        <property name="fields">
+            <list>
+                <value>dc.identifier.uri</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="numberRules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
+        <property name="fields">
+            <list>
+                <value>dc.identifier.patentno</value>
+                <value>dc.identifier.standardno</value>
+                <value>dc.identifier.reportno</value>
+                <value>epfl.thesis.number</value>
+                <value>oaire.citation.articlenumber</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="ISBNrules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
+        <property name="fields">
+            <list>
+                <value>dc.identifier.isbn</value>
+                <value>dc.relation.isbn</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="ISSNrules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
+        <property name="fields">
+            <list>
+                <value>dc.identifier.issn</value>
+                <value>dc.relation.serieissn</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="doiRules" class="org.dspace.content.integration.crosswalks.csl.CascadeMetadataRule">
+        <property name="fields">
+            <list>
+                <value>dc.identifier.doi</value>
+                <value>dc.relation.doi</value>
+            </list>
+        </property>
+    </bean>
+    
+    <bean id="holderRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
+        <property name="separator" value=", "/>
+        <property name="replacementRegex" value="^,|,$"/>
+        <property name="replacementValue" value="" />
+        <property name="onlyFirstValues" value="true"/>
+        <property name="mapping">
+            <map>
+                <entry key="patent">
+                    <list>
+                        <value>dcterms.rightHolder</value>
+                    </list>
+                </entry>
+            </map>
+        </property>
+    </bean>
+    
+    <bean id="countryRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
+        <property name="separator" value=", "/>
+        <property name="replacementRegex" value="^,|,$"/>
+        <property name="replacementValue" value="" />
+        <property name="onlyFirstValues" value="true"/>
+        <property name="mapping">
+            <map>
+                <entry key="patent">
+                    <list>
+                        <value>oairecerif.patent.country</value>
+                    </list>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="genreRules" class="org.dspace.content.integration.crosswalks.csl.MetadataAuthorityRule">
+        <property name="metadatafield" value="dc.type"/>
+        <property name="mapConverter" ref="mapConverterCoarToGenre"/>
+        <property name="useSplit" value="true"/>
+        <property name="splitSeparator" value=":"/>
+        <property name="chunkPosition" value="1"/>
+    </bean>
 </beans>

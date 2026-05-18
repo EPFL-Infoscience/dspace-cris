@@ -2,7 +2,7 @@
   "items": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
-      "type": "article",
+      "type": "article-journal",
       "language": "en",
       "author": [
         {
@@ -19,6 +19,15 @@
           "family": "Editor"
         }
       ],
+      "available-date": {
+        "date-parts": [
+          [
+            2018,
+            5,
+            17
+          ]
+        ]
+      },
       "issued": {
         "date-parts": [
           [
@@ -31,7 +40,7 @@
       "citation-key": "item_550e8400e29b41d4a716446655440000",
       "citation-label": "item_550e8400e29b41d4a716446655440000",
       "DOI": "10.1000/182",
-      "event": "Conference",
+      "event-title": "Conference",
       "ISBN": "11-22-33",
       "ISSN": "0002",
       "issue": "03",
@@ -51,7 +60,15 @@
           "given": "Walter"
         }
       ],
-      "editor": [],
+      "available-date": {
+        "date-parts": [
+          [
+            2020,
+            1,
+            1
+          ]
+        ]
+      },
       "issued": {
         "date-parts": [
           [

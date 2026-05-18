@@ -65,6 +65,20 @@ public class ItemExportFormatServiceImpl implements ItemExportFormatService {
 
     }
 
+    @Override
+    public List<ItemExportFormat> byConfigurationAndMolteplicity(Context context, String configuration,
+                                                              CrosswalkMode molteplicity) {
+
+        return this.streamDissiminatorCrosswalkMapper.getAllItemExportCrosswalks()
+                .entrySet().stream()
+                .filter(entry -> hasSameMolteplicity(entry.getValue(), molteplicity))
+                .filter(entry -> hasSameConfiguration(entry.getValue(), configuration))
+                .filter(entry -> entry.getValue().isAuthorized(context))
+                .map(entry -> buildItemExportFormat(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+    }
+
     private boolean hasSameMolteplicity(ItemExportCrosswalk exportCrosswalk, CrosswalkMode molteplicity) {
         CrosswalkMode crosswalkMode = exportCrosswalk.getCrosswalkMode();
         if (crosswalkMode == CrosswalkMode.SINGLE_AND_MULTIPLE) {
@@ -85,12 +99,21 @@ public class ItemExportFormatServiceImpl implements ItemExportFormatService {
         return crosswalkEntityType.get().equals(entityType);
     }
 
+    private boolean hasSameConfiguration(ItemExportCrosswalk exportCrosswalk, String configuration) {
+        Optional<List<String>> crosswalkConfigurationList = exportCrosswalk.getConfigurations();
+        if (StringUtils.isBlank(configuration)) {
+            return true;
+        }
+        return crosswalkConfigurationList.map(conf -> conf.contains(configuration)).orElse(false);
+    }
+
     private ItemExportFormat buildItemExportFormat(String id, ItemExportCrosswalk sdc) {
         ItemExportFormat itemExportFormatRest = new ItemExportFormat();
         itemExportFormatRest.setId(id);
         itemExportFormatRest.setMolteplicity(sdc.getCrosswalkMode().name());
         sdc.getEntityType().ifPresent(itemExportFormatRest::setEntityType);
         itemExportFormatRest.setMimeType(sdc.getMIMEType());
+        itemExportFormatRest.setConfigurations(sdc.getConfigurations().orElse(null));
         return itemExportFormatRest;
     }
 

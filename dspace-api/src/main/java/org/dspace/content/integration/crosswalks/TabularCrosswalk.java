@@ -93,6 +93,8 @@ public abstract class TabularCrosswalk implements ItemExportCrosswalk {
 
     private String entityType;
 
+    private List<String> configurations;
+
     private CrosswalkMode crosswalkMode;
 
 
@@ -351,6 +353,15 @@ public abstract class TabularCrosswalk implements ItemExportCrosswalk {
 
     public Optional<String> getEntityType() {
         return Optional.ofNullable(entityType);
+    }
+
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Override
+    public Optional<List<String>> getConfigurations() {
+        return Optional.ofNullable(configurations);
     }
 
     public void setCrosswalkMode(CrosswalkMode crosswalkMode) {
