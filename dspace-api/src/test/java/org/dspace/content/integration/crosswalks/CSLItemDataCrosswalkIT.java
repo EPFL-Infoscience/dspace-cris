@@ -140,7 +140,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -150,7 +150,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
@@ -229,7 +229,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -239,7 +239,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
@@ -269,7 +269,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -279,7 +279,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
@@ -323,7 +323,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -333,7 +333,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
