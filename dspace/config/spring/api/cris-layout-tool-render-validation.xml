@@ -184,12 +184,6 @@
         <property name="subTypes" ref="browseSupplier"/>
     </bean>
 
-    <bean id="itemCitationRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
-        <property name="name" value="citations"/>
-        <property name="fieldType" value="METADATA"/>
-        <property name="subTypeValidationRule" value="NOT_ALLOWED"/>
-    </bean>
-
     <bean id="browseSupplier" class="org.dspace.layout.script.supplier.BrowseSupplier"/>
 
     <bean id="searchRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderSearchValidatorImpl">
