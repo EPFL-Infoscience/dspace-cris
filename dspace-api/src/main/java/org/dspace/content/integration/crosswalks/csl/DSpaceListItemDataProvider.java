@@ -205,7 +205,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
                 value -> itemBuilder.firstReferenceNoteNumber(value));
         if (cslType != null) {
             consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
-            setPageValues(page, item, itemBuilder);
+            consumePageMetadataIfNotBlank(pageFirst, page, item, itemBuilder::page);
             consumeMetadataValueIfNotBlank(() ->
                             authority != null ? authority.getValue(item, cslType.toString()) : null,
                     item, value -> itemBuilder.authority(value.get()));
