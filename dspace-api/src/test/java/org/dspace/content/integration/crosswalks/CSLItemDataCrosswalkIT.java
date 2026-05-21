@@ -156,6 +156,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withRelationConference("Conference")
             .withTitle("Publication title")
             .withIssueDate("2018-05-17")
+            .withMetadata("oaire", "citation", "startPage", "3")
+            .withMetadata("oaire", "citation", "endPage", "5")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
             .withScientificEditor("Editor", null)
