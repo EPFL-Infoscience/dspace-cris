@@ -185,6 +185,8 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
                 return hasVersioningBox(context, item);
             case "NETWORKLAB":
                 return isNetworkLabEnabled(item);
+            case "CITATIONS":
+                return true;
             case "METADATA":
             default:
                 return hasMetadataBoxContent(context, box, item);

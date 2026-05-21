@@ -199,7 +199,7 @@
         <property name="singleResultOnAggregate" value="false"/>
     </bean>
 
-     <bean id="org.dspace.content.authority.ZDBExtraIssnMetadataGenerator" 
+     <bean id="org.dspace.content.authority.ZDBExtraIssnMetadataGenerator"
     	class="org.dspace.content.authority.ZDBExtraIssnMetadataGenerator">
     	<property name="relatedInputformMetadata" value="dc_relation_issn"/>
      </bean>
@@ -212,19 +212,19 @@
     	class="org.dspace.content.authority.OpenAIRECodeExtraMetadataGenerator">
      </bean>
      
-     <bean id="org.dspace.content.authority.SherpaExtraIPublisherMetadataGenerator" 
-    	class="org.dspace.content.authority.SherpaExtraIPublisherMetadataGenerator">
+     <bean id="org.dspace.content.authority.OpenPolicyFinderExtraIPublisherMetadataGenerator"
+    	class="org.dspace.content.authority.OpenPolicyFinderExtraIPublisherMetadataGenerator">
     	<property name="relatedInputFormMetadata" value="dc_publisher"/>
      </bean>
 
-     <bean id="org.dspace.content.authority.SherpaExtraISSNmetadataGenerator"
-    	class="org.dspace.content.authority.SherpaExtraISSNmetadataGenerator">
+     <bean id="org.dspace.content.authority.OpenPolicyFinderExtraISSNmetadataGenerator"
+    	class="org.dspace.content.authority.OpenPolicyFinderExtraISSNmetadataGenerator">
     	<property name="relatedInputFormMetadata" value="dc_relation_issn"/>
      </bean>
 
 	<bean
 		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
-		<property name="authorityName" value="SherpaAuthority" />
+		<property name="authorityName" value="OpenPolicyFinderAuthority" />
 		<property name="keyId" value="dc_relation_issn" />
 		<property name="schema" value="dc" />
 		<property name="element" value="identifier" />
@@ -234,7 +234,7 @@
 
 	<bean
 		class="org.dspace.content.authority.ItemSimpleAuthorityMetadataGenerator">
-		<property name="authorityName" value="SherpaAuthority" />
+		<property name="authorityName" value="OpenPolicyFinderAuthority" />
 		<property name="keyId" value="dc_publisher" />
 		<property name="schema" value="dc" />
 		<property name="element" value="publisher" />

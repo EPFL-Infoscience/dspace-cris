@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -25,6 +24,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.rdf.model.Model;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
@@ -530,11 +530,10 @@ public class RDFizer {
             System.exit(1);
         }
 
-        if (line.hasOption("convert-all")
-            && (line.hasOption("delete") || line.hasOption("delete-all"))) {
+        if (line.hasOption("convert-all") && (line.hasOption("delete"))) {
             usage(options);
             System.err.println("\n\nYou cannot use the option --convert-all "
-                                   + "together with --delete or --delete-all.");
+                                   + "together with --delete.");
             System.exit(1);
         }
         if (line.hasOption("identifiers")
@@ -602,7 +601,9 @@ public class RDFizer {
 
         if (line.hasOption("delete-all")) {
             this.deleteAll();
-            System.exit(0);
+            if (!line.hasOption("convert-all")) {
+                System.exit(0);
+            }
         }
 
         if (line.hasOption("identifiers")) {

@@ -158,10 +158,10 @@
       <type>correction</type>
       <scope visibilityOutside="hidden">workflow</scope>
     </step-definition>
-    <step-definition id="sherpaPolicies" mandatory="true" opened="false">
-      <heading>submit.progressbar.sherpaPolicies</heading>
-      <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
-      <type>sherpaPolicy</type>
+    <step-definition id="opfPolicies" mandatory="true" opened="false">
+      <heading>submit.progressbar.opfPolicies</heading>
+      <processing-class>org.dspace.app.rest.submit.step.OpenPolicyFinderPolicyStep</processing-class>
+      <type>opfPolicy</type>
     </step-definition>
     <step-definition id="detect-duplicate" mandatory="true">
       <heading>submit.progressbar.detect-duplicate</heading>
@@ -519,7 +519,7 @@
       <step id="alternative_identifiers" />
       <step id="article_details" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
@@ -534,7 +534,7 @@
       <step id="alternative_identifiers" />
       <step id="article_details" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
@@ -549,7 +549,7 @@
       <step id="alternative_identifiers" />
       <step id="article_details" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="additional_fields" />
       <step id="grants" />
       <step id="related_works" />
@@ -768,7 +768,7 @@
       <step id="conference_details" />
       <step id="bookcontainer_details" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="additional_fields" />
       <step id="conference_event" />
       <step id="grants" />
@@ -783,7 +783,7 @@
       <step id="conference_details" />
       <step id="bookcontainer_details" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="additional_fields" />
       <step id="conference_event" />
       <step id="grants" />
@@ -798,7 +798,7 @@
       <step id="conference_details" />
       <step id="bookcontainer_details" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="additional_fields" />
       <step id="conference_event" />
       <step id="grants" />
@@ -986,7 +986,7 @@
       <step id="basic_information" />
       <step id="additional_fields" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="bookcontainer_details" />
       <step id="related_event" />
       <step id="grants" />
@@ -1005,7 +1005,7 @@
       <step id="basic_information" />
       <step id="additional_fields" />
       <step id="journalcontainer_details" />
-      <step id="sherpaPolicies" />
+      <step id="opfPolicies" />
       <step id="bookcontainer_details" />
       <step id="related_event" />
       <step id="grants" />

@@ -208,8 +208,20 @@ public class ItemExportTypesController {
         return item;
     }
 
+    /**
+     * Gets all the citation formats for the item. The property citation-filter."entity type" must be defined,
+     * otherwise no formats are returned. The formats are recovered using the ItemExportFormatService and then
+     * filtered by a configured list of allowed formats.
+     */
     private List<ItemExportFormat> getFormatsForItem(Context context, Item item) {
         String entityType = itemService.getEntityType(item);
+
+        // If the configuration property citation-filter."entity-type" (like citation-filter.publication)
+        // is not defined return an empty list to avoid showing export options without a proper filter configured.
+        if (!configurationService.getPropertyKeys(CITATION_FILTER_PREFIX)
+                .contains(CITATION_FILTER_PREFIX + entityType.toLowerCase(Locale.ROOT))) {
+            return new ArrayList<>();
+        }
 
         List<ItemExportFormat> singleFormats =
                 itemExportFormatService.byEntityTypeAndMolteplicity(context, entityType, CrosswalkMode.SINGLE);
@@ -235,23 +247,29 @@ public class ItemExportTypesController {
     }
 
     private List<ItemExportFormat> applyEntityCitationFilter(String entityType, List<ItemExportFormat> formats) {
+        // If the entity type is not defined, return an empty list.
         if (StringUtils.isBlank(entityType)) {
-            return formats;
+            return List.of();
         }
 
         String filterKey = CITATION_FILTER_PREFIX + entityType.toLowerCase(Locale.ROOT);
         String[] configuredFilters = configurationService.getArrayProperty(filterKey);
 
-        // If key is missing or empty, keep the original list.
+        // If key is missing or empty, return an empty list.
         if (configuredFilters == null || configuredFilters.length == 0) {
-            return formats;
+            return List.of();
         }
 
         Set<String> allowedFilters = java.util.Arrays.stream(configuredFilters)
                                                      .map(String::trim)
                                                      .filter(StringUtils::isNotBlank)
                                                      .collect(Collectors.toSet());
+
+        // If no allowed filters are defined, return an empty list.
         if (allowedFilters.isEmpty()) {
+            return List.of();
+        } else if (allowedFilters.contains("*")) {
+            // If the wildcard is present, return all formats without filtering.
             return formats;
         }
 

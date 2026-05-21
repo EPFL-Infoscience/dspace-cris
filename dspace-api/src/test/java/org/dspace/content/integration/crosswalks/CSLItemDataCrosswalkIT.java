@@ -30,6 +30,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -46,6 +48,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
 
+    private ItemService itemService;
+
     private StreamDisseminationCrosswalkMapper crosswalkMapper;
 
     private CSLItemDataCrosswalk publicationHtmlCrosswalk;
@@ -57,6 +61,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     @Before
     public void setup() throws SQLException, AuthorizeException {
 
+        this.itemService = ContentServiceFactory.getInstance().getItemService();
         this.crosswalkMapper = new DSpace().getSingletonService(StreamDisseminationCrosswalkMapper.class);
         assertThat(crosswalkMapper, notNullValue());
 
@@ -140,7 +145,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -150,7 +155,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
@@ -229,7 +234,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -239,9 +244,12 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
+
+        itemService.setMetadataSingleValue(context, item, "dc", "date", "available", null, "2018-05-17");
+        itemService.update(context, item);
 
         context.restoreAuthSystemState();
         Item itemMock = Mockito.spy(item);
@@ -269,7 +277,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -279,7 +287,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
@@ -293,6 +301,11 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withAuthor("White, Walter")
             .withHandle("123456789/0002")
             .build();
+
+        itemService.setMetadataSingleValue(context, item, "dc", "date", "available", null, "2018-05-17");
+        itemService.setMetadataSingleValue(context, anotherItem, "dc", "date", "available", null, "2020-01-01");
+        itemService.update(context, item);
+        itemService.update(context, anotherItem);
 
         context.restoreAuthSystemState();
 
@@ -323,7 +336,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -333,7 +346,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
