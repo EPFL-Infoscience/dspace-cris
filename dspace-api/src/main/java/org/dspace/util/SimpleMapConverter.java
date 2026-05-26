@@ -38,6 +38,8 @@ public class SimpleMapConverter {
 
     private String defaultValue = "";
 
+    private Boolean allowEmptyValue = false;
+
     /**
      * This flag would inform the caller of the converter that it expects to deal
      * with authority values instead than text value
@@ -75,7 +77,8 @@ public class SimpleMapConverter {
 
     /**
      * Returns the value related to the given key. If the given key is not found the
-     * incoming value is returned.
+     * incoming value is returned by default. If the given key is not found but
+     * allowEmptyValue is set to true, an empty string is returned.
      *
      * @param  key the key to search for a value
      * @return     the value
@@ -84,7 +87,11 @@ public class SimpleMapConverter {
 
         String value = mapping.getOrDefault(key, defaultValue);
 
-        if (StringUtils.isBlank(value) || StringUtils.equals("@@ident@@", value)) {
+        if (StringUtils.equals("@@ident@@", value)) {
+            return key;
+        }
+
+        if (!allowEmptyValue && StringUtils.isBlank(value)) {
             return key;
         }
 
@@ -130,5 +137,13 @@ public class SimpleMapConverter {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public void setAllowEmptyValue(Boolean allowEmptyValue) {
+        this.allowEmptyValue = allowEmptyValue;
+    }
+
+    public Boolean getAllowEmptyValue() {
+        return allowEmptyValue;
     }
 }

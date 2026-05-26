@@ -139,7 +139,7 @@
 	</bean>
 	
 	<bean class="org.dspace.content.integration.crosswalks.CustomMapConverterCSLItemDataCrosswalk" id="cslItemDataCrosswalkBibtex">
-		<property name="style" value="bibtex.csl"/>
+		<property name="style" value="crosswalks/csl/bibtex.csl"/>
 		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
@@ -155,7 +155,7 @@
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.CustomMapConverterCSLItemDataCrosswalk" id="cslItemDataCrosswalkPatentBibtex">
-		<property name="style" value="bibtex.csl"/>
+		<property name="style" value="crosswalks/csl/bibtex.csl"/>
 		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
@@ -172,7 +172,7 @@
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.CustomMapConverterCSLItemDataCrosswalk" id="cslItemDataCrosswalkProductBibtex">
-		<property name="style" value="bibtex.csl"/>
+		<property name="style" value="crosswalks/csl/bibtex.csl"/>
 		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
@@ -2071,13 +2071,14 @@
 	<bean name="mapConverterPublicationCSLTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-dcTypesToClsTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="article"/>
+		<property name="defaultValue" value="document"/>
 	</bean>
 
 	<bean name="mapConverterCoarToGenre" class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<property name="converterNameFile" value="mapConverter-coarToGenre.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value=""/>
+		<property name="allowEmptyValue" value="true"/>
 	</bean>
 
 
