@@ -501,6 +501,73 @@ public class ExternalSourcesRestControllerIT extends AbstractControllerIntegrati
                              .andExpect(status().isNotFound());
     }
 
+    /**
+     * Verify that the datacite provider lists Publication, Product and none as supported entity types.
+     * This documents the intent of the configuration change that added Publication support.
+     */
+    @Test
+    public void dataciteSupportedEntityTypesIncludesPublicationTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+        EntityType product = EntityTypeBuilder.createEntityTypeBuilder(context, "Product").build();
+
+        context.restoreAuthSystemState();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        // Publication must be present in datacite supported entity types
+        getClient(tokenAdmin).perform(get("/api/integration/externalsources/datacite/entityTypes"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded.entityTypes",
+                                     Matchers.hasItem(EntityTypeMatcher.matchEntityTypeEntry(publication))))
+                             .andExpect(jsonPath("$._embedded.entityTypes",
+                                     Matchers.hasItem(EntityTypeMatcher.matchEntityTypeEntry(product))));
+    }
+
+    /**
+     * Verify that datacite appears as a selectable source when searching by the Publication entity type.
+     */
+    @Test
+    public void dataciteAppearsForPublicationEntityTypeTest() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/integration/externalsources/search/findByEntityType")
+                .param("entityType", "Publication"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.externalsources",
+                        Matchers.hasItem(ExternalSourceMatcher.matchExternalSource("datacite", "datacite", false))));
+    }
+
+    /**
+     * Regression: datacite must NOT appear as a source for the Person entity type.
+     */
+    @Test
+    public void dataciteDoesNotAppearForPersonEntityTypeTest() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/integration/externalsources/search/findByEntityType")
+                .param("entityType", "Person"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.externalsources",
+                        Matchers.not(Matchers.hasItem(
+                                ExternalSourceMatcher.matchExternalSource("datacite", "datacite", false)))));
+    }
+
+    /**
+     * Regression: Product entity type must still be supported by datacite after adding Publication.
+     */
+    @Test
+    public void dataciteStillSupportsProductEntityTypeTest() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/integration/externalsources/search/findByEntityType")
+                .param("entityType", "Product"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.externalsources",
+                        Matchers.hasItem(ExternalSourceMatcher.matchExternalSource("datacite", "datacite", false))));
+    }
+
     @Test
     public void findSupportedEntityTypesOfAnExternalDataProviderEmptyResponseTest() throws Exception {
         ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("mock"))
