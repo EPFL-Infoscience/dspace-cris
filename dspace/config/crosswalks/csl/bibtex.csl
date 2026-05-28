@@ -190,7 +190,7 @@
         <text macro="issued-year" prefix=" year={" suffix="}"/>
         <text macro="issued-month" prefix=" month={" suffix="}" text-case="lowercase"/>
         <text macro="pages" prefix=" pages={" suffix="}"/>
-        <text macro="journal" prefix=" journal={" suffix="}"/>
+        <!-- <text macro="journal" prefix=" journal={" suffix="}"/> -->
         <text variable="collection-title" prefix=" collection={" suffix="}"/>
         <text variable="keyword" prefix=" keywords={" suffix="}"/>
         <text variable="language" prefix="language={" suffix="}"/>

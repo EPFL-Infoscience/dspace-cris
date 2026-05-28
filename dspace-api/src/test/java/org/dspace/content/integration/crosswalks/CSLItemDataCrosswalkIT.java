@@ -11,7 +11,9 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.ByteArrayOutputStream;
@@ -21,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -326,6 +329,43 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             String expectedJson = IOUtils.toString(fis, Charset.defaultCharset());
             compareEachLine(out.toString(), expectedJson, true);
         }
+    }
+
+    @Test
+    public void testSingleItemApaNoGenreDisseminate() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article::research article", "article-coar-types:c_2df8fbb1")
+                .withLanguage("en")
+                .withDoiIdentifier("10.1000/182")
+                .withRelationIsbn("11-22-33")
+                .withIssnIdentifier("0002")
+                .withSubject("publication")
+                .withPublisher("Publisher")
+                .withVolume("V01")
+                .withIssue("03")
+                .withRelationConference("Conference")
+                .withTitle("Publication title")
+                .withIssueDate("2018-05-17")
+                .withAuthor("Smith, John")
+                .withAuthor("Red, Edward")
+                .withScientificEditor("Editor", null)
+                .withHandle("123456789/0001")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-apa");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, Collections.singletonList(item).iterator(), out);
+
+        String citation = out.toString();
+
+        assertThat(citation, not(containsString("c_2df8fbb1")));
     }
 
     @Test
