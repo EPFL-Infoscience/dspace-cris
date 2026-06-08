@@ -362,14 +362,6 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_2_b);
     }
 
-    /**
-     * Regression test for the TEXT bundle not being created for items deposited after ~2025-12-15.
-     *
-     * The public {@link MediaFilterService#processBitstream} interface method (4-arg) was overridden
-     * to unconditionally {@code return false} instead of delegating to the real implementation.
-     * Any code path that calls this method directly (e.g. the deposit/ingest pipeline) silently
-     * skips TEXT extraction, so the TEXT bundle is never created at ingest time.
-     */
     @Test
     public void mediaFilterScriptTextBundleCreatedTest() throws Exception {
         performMediaFilterScript(item1_1_b, true);
