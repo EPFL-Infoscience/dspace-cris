@@ -390,7 +390,7 @@ public class CitationsRestController {
     private Map<String, Object> buildResponse(CitationsRequestRest request, List<CitationItem> citationItems) {
         Map<String, Object> response = new LinkedHashMap<>();
         if (DISPLAY_FORMAT_FULL.equals(normalize(request.getFormat()))) {
-            response.put("groupBy", normalizeGroupByAsList(request.getGroupBy()));
+            //response.put("groupBy", normalizeGroupByAsList(request.getGroupBy()));
             response.put("style", normalizeStyleForResponse(request.getStyle()));
         }
         response.put("results", citationItems.stream().map(CitationItem::toMap).collect(Collectors.toList()));

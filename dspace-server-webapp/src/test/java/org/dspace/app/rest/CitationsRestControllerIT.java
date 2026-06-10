@@ -65,8 +65,6 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                         .content(body))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.groupBy").isArray())
-                .andExpect(jsonPath("$.groupBy").isEmpty())
                 .andExpect(jsonPath("$.style").value("apa"))
                 .andExpect(jsonPath("$.results").isArray())
                 .andExpect(jsonPath("$.results").isNotEmpty())
