@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import static org.hamcrest.Matchers.hasItem;
@@ -20,6 +27,8 @@ import org.springframework.http.MediaType;
 
 /**
  * Integration test for {@link CitationsRestController}.
+ *
+ * @author  Daniele Ninfo (daniele.ninfo at 4science.com)
  */
 public class CitationsRestControllerIT extends AbstractControllerIntegrationTest {
 
@@ -129,6 +138,92 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
         getClient().perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void getCitationsCombinesUuidsAndQueryWithAndSemantics() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        Item matchingItem1 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Combo Match Token One")
+                .inArchive()
+                .build();
+
+        Item matchingItem2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Combo Match Token Two")
+                .inArchive()
+                .build();
+
+        Item notMatchingItem = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Combo Excluded Token")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuidAndQueryBody = "{" +
+                "\"uuids\":[\"" + matchingItem1.getID() + "\",\"" + matchingItem2.getID() + "\"]," +
+                "\"query\":\"dc.title:Combo Match Token One\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(uuidAndQueryBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(matchingItem1.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(matchingItem2.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(notMatchingItem.getID().toString()))));
+
+        String uuidOnlyBody = "{" +
+                "\"uuids\":[\"" + matchingItem1.getID() + "\",\"" + notMatchingItem.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(uuidOnlyBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(2))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(matchingItem1.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(notMatchingItem.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(matchingItem2.getID().toString()))));
+
+        String queryOnlyBody = "{" +
+                "\"query\":\"dc.title:Combo Match Token\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(queryOnlyBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(2))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(matchingItem1.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(matchingItem2.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(notMatchingItem.getID().toString()))));
+
+        String noUuidNoQueryBody = "{" +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(noUuidNoQueryBody))
                 .andExpect(status().isBadRequest());
     }
 }

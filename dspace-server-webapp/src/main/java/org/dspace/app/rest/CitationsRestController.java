@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
@@ -48,7 +55,6 @@ import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,6 +64,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Integration endpoint for generating citations from items.
+ *
+ * @author  Daniele Ninfo (daniele.ninfo at 4science.com)
  */
 @RestController
 @RequestMapping("/api/integration/citations")
@@ -75,6 +83,7 @@ public class CitationsRestController {
     private static final String SORT_YEAR = "year";
     private static final String UNKNOWN_GROUP = "Unknown";
     private static final String OTHER_GROUP = "Other";
+    private static final String SEARCH_RESOURCE_ID_FIELD = "search.resourceid";
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
 
     @Autowired
@@ -106,8 +115,7 @@ public class CitationsRestController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getCitations(HttpServletRequest request,
-                                                            @RequestBody CitationsRequestRest citationsRequest)
-            throws SQLException {
+                                                            @RequestBody CitationsRequestRest citationsRequest) {
         Context context = obtainContext(request);
         if (context != null) {
             context.setMode(Mode.READ_ONLY);
@@ -176,45 +184,65 @@ public class CitationsRestController {
         return value.trim().toLowerCase(Locale.ROOT);
     }
 
-    private List<Item> resolveItems(Context context, CitationsRequestRest citationsRequest) throws SQLException {
-        Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
-
-        if (!isEmpty(citationsRequest.getUuids())) {
-            for (String uuidString : citationsRequest.getUuids()) {
-                if (StringUtils.isBlank(uuidString)) {
-                    continue;
-                }
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(uuidString.trim());
-                } catch (IllegalArgumentException e) {
-                    throw new DSpaceBadRequestException("Invalid item UUID: " + uuidString, e);
-                }
-
-                Item item = itemService.find(context, uuid);
-                if (item == null) {
-                    throw new ResourceNotFoundException("Could not find item with id " + uuid);
-                }
-                if (canRead(context, item)) {
-                    itemsByUuid.putIfAbsent(item.getID(), item);
-                }
-            }
+    private List<Item> resolveItems(Context context, CitationsRequestRest citationsRequest) {
+        String combinedQuery = buildCombinedQuery(citationsRequest);
+        if (StringUtils.isBlank(combinedQuery)) {
+            return Collections.emptyList();
         }
-
-        if (StringUtils.isNotBlank(citationsRequest.getQuery())) {
-            itemsByUuid.putAll(resolveItemsFromQuery(context, citationsRequest));
-        }
-
-        return new ArrayList<>(itemsByUuid.values());
+        return new ArrayList<>(resolveItemsFromQuery(context, citationsRequest, combinedQuery).values());
     }
 
-    private Map<UUID, Item> resolveItemsFromQuery(Context context, CitationsRequestRest citationsRequest) {
+    private String buildCombinedQuery(CitationsRequestRest citationsRequest) {
+        String uuidQuery = buildUuidQuery(citationsRequest.getUuids());
+        String textQuery = StringUtils.trimToNull(citationsRequest.getQuery());
+
+        if (textQuery == null) {
+            return uuidQuery;
+        }
+        if (uuidQuery == null) {
+            return textQuery;
+        }
+        return "(" + textQuery + ") AND (" + uuidQuery + ")";
+    }
+
+    private String buildUuidQuery(List<String> uuidStrings) {
+        if (isEmpty(uuidStrings)) {
+            return null;
+        }
+
+        List<String> uuidClauses = uuidStrings.stream()
+            .filter(StringUtils::isNotBlank)
+            .map(String::trim)
+            .map(this::parseUuid)
+            .map(uuid -> SEARCH_RESOURCE_ID_FIELD + ":\"" + uuid + "\"")
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (uuidClauses.isEmpty()) {
+            return null;
+        }
+        if (uuidClauses.size() == 1) {
+            return uuidClauses.get(0);
+        }
+        return uuidClauses.stream().collect(Collectors.joining(" OR ", "(", ")"));
+    }
+
+    private UUID parseUuid(String uuidString) {
+        try {
+            return UUID.fromString(uuidString);
+        } catch (IllegalArgumentException e) {
+            throw new DSpaceBadRequestException("Invalid item UUID: " + uuidString, e);
+        }
+    }
+
+    private Map<UUID, Item> resolveItemsFromQuery(Context context, CitationsRequestRest citationsRequest,
+                                                  String query) {
         IndexableObject<?, ?> scopeObject = resolveScope(context, citationsRequest.getScope());
         DiscoveryConfiguration discoveryConfiguration = discoveryConfigurationService
             .getDiscoveryConfigurationByNameOrDso(citationsRequest.getConfiguration(), scopeObject);
 
         DiscoverQuery discoverQuery = restDiscoverQueryBuilder.buildQuery(context, scopeObject,
-                discoveryConfiguration, citationsRequest.getQuery(), Collections.emptyList(), IndexableItem.TYPE, null);
+                discoveryConfiguration, query, Collections.emptyList(), IndexableItem.TYPE, null);
         discoverQuery.setMaxResults(configurationService.getIntProperty("rest.search.max.results", 100));
 
         Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
