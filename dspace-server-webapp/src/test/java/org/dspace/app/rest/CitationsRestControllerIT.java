@@ -79,6 +79,41 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void getCitationsOmitsStyleAndGroupByWhenFormatIsLight() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("A Light Test Publication")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String body = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"groupBy\":\"both\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.style").doesNotExist())
+                .andExpect(jsonPath("$.groupBy").doesNotExist())
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()));
+    }
+
+    @Test
     public void getCitationsHidesRestrictedItem() throws Exception {
         context.turnOffAuthorisationSystem();
 
