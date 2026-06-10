@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,6 +44,7 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -84,6 +84,8 @@ public class CitationsRestController {
     private static final String UNKNOWN_GROUP = "Unknown";
     private static final String OTHER_GROUP = "Other";
     private static final String SEARCH_RESOURCE_ID_FIELD = "search.resourceid";
+    private static final String TITLE_SORT_FIELD = "dc.title_sort";
+    private static final String DATE_ISSUED_SORT_FIELD = "dc.date.issued_dt";
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
 
     @Autowired
@@ -128,7 +130,6 @@ public class CitationsRestController {
             return ResponseEntity.ok(buildResponse(citationsRequest, Collections.emptyList()));
         }
 
-        items = sortItems(items, citationsRequest.getSort());
         List<CitationItem> citationItems = buildCitationItems(context, items, citationsRequest);
         return ResponseEntity.ok(buildResponse(citationsRequest, citationItems));
     }
@@ -243,6 +244,7 @@ public class CitationsRestController {
 
         DiscoverQuery discoverQuery = restDiscoverQueryBuilder.buildQuery(context, scopeObject,
                 discoveryConfiguration, query, Collections.emptyList(), IndexableItem.TYPE, null);
+        applySort(discoverQuery, citationsRequest.getSort());
         discoverQuery.setMaxResults(configurationService.getIntProperty("rest.search.max.results", 100));
 
         Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
@@ -299,29 +301,19 @@ public class CitationsRestController {
         }
     }
 
-    private List<Item> sortItems(List<Item> items, String sort) {
+    private void applySort(DiscoverQuery discoverQuery, String sort) {
         if (StringUtils.isBlank(sort)) {
-            return items;
+            return;
         }
 
         String normalized = normalize(sort);
-        Comparator<Item> comparator;
         if (SORT_DATE.equals(normalized)) {
-            comparator = Comparator.comparing(this::getIssuedDate, Comparator.nullsLast(String::compareTo)).reversed();
+            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, SORT_ORDER.asc);
         } else if (SORT_YEAR.equals(normalized)) {
-            comparator = Comparator.comparing(this::getYear, Comparator.nullsLast(String::compareTo));
+            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, SORT_ORDER.asc);
         } else {
-            comparator = Comparator.comparing(this::getTitle, Comparator.nullsLast(String::compareTo));
+            discoverQuery.setSortField(TITLE_SORT_FIELD, SORT_ORDER.asc);
         }
-        return items.stream().sorted(comparator).collect(Collectors.toList());
-    }
-
-    private String getTitle(Item item) {
-        return getDcMetadataValue(item, "title", null).orElse(null);
-    }
-
-    private String getIssuedDate(Item item) {
-        return getDcMetadataValue(item, "date", "issued").orElse(null);
     }
 
     private List<CitationItem> buildCitationItems(Context context, List<Item> items,

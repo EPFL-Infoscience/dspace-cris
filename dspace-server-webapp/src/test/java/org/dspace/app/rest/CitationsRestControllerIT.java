@@ -8,6 +8,7 @@
 package org.dspace.app.rest;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -106,11 +107,19 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.*", hasSize(1)))
                 .andExpect(jsonPath("$.style").doesNotExist())
                 .andExpect(jsonPath("$.groupBy").doesNotExist())
                 .andExpect(jsonPath("$.results").isArray())
                 .andExpect(jsonPath("$.results").isNotEmpty())
-                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()));
+                .andExpect(jsonPath("$.results[0].*", hasSize(2)))
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].handle").doesNotExist())
+                .andExpect(jsonPath("$.results[0].type").doesNotExist())
+                .andExpect(jsonPath("$.results[0].collection").doesNotExist())
+                .andExpect(jsonPath("$.results[0].year").doesNotExist())
+                .andExpect(jsonPath("$.results[0].cslItem").doesNotExist());
     }
 
     @Test
@@ -260,6 +269,87 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(noUuidNoQueryBody))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void getCitationsAppliesSortInSolrQuery() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        Item zebraItem = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Zebra Title")
+                .withIssueDate("2022-06-15")
+                .inArchive()
+                .build();
+
+        Item alphaItem = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Alpha Title")
+                .withIssueDate("2020-01-10")
+                .inArchive()
+                .build();
+
+        Item middleItem = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Middle Title")
+                .withIssueDate("2021-03-20")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuidsJson = "\"" + zebraItem.getID() + "\",\"" + alphaItem.getID() + "\",\""
+                + middleItem.getID() + "\"";
+
+        String titleSortBody = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"title\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(titleSortBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].uuid").value(alphaItem.getID().toString()))
+                .andExpect(jsonPath("$.results[1].uuid").value(middleItem.getID().toString()))
+                .andExpect(jsonPath("$.results[2].uuid").value(zebraItem.getID().toString()));
+
+        String dateSortBody = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(dateSortBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].uuid").value(alphaItem.getID().toString()))
+                .andExpect(jsonPath("$.results[1].uuid").value(middleItem.getID().toString()))
+                .andExpect(jsonPath("$.results[2].uuid").value(zebraItem.getID().toString()));
+
+        String yearSortBody = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"year\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(yearSortBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].uuid").value(alphaItem.getID().toString()))
+                .andExpect(jsonPath("$.results[1].uuid").value(middleItem.getID().toString()))
+                .andExpect(jsonPath("$.results[2].uuid").value(zebraItem.getID().toString()));
     }
 }
 
