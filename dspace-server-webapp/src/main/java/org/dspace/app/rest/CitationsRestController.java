@@ -2,6 +2,8 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,15 +21,16 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.CitationsRequestRest;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
-import org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory;
-import org.dspace.content.integration.crosswalks.csl.CSLResult;
-import org.dspace.content.integration.crosswalks.csl.DSpaceListItemDataProvider;
+import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMapper;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
@@ -60,7 +63,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/integration/citations")
 public class CitationsRestController {
 
-    private static final String DEFAULT_DISPLAY_FORMAT = "full";
+    private static final Logger log = LogManager.getLogger(CitationsRestController.class);
+
     private static final String DISPLAY_FORMAT_LIGHT = "light";
     private static final String DISPLAY_FORMAT_FULL = "full";
     private static final String GROUP_BY_TYPE = "type";
@@ -71,7 +75,6 @@ public class CitationsRestController {
     private static final String SORT_YEAR = "year";
     private static final String UNKNOWN_GROUP = "Unknown";
     private static final String OTHER_GROUP = "Other";
-    private static final String CSL_OUTPUT_FORMAT = "text";
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
 
     @Autowired
@@ -93,7 +96,7 @@ public class CitationsRestController {
     private ConfigurationService configurationService;
 
     @Autowired
-    private CSLGeneratorFactory cslGeneratorFactory;
+    private StreamDisseminationCrosswalkMapper streamDisseminationCrosswalkMapper;
 
     @Autowired
     private AuthorizeService authorizeService;
@@ -114,12 +117,12 @@ public class CitationsRestController {
 
         List<Item> items = resolveItems(context, citationsRequest);
         if (items.isEmpty()) {
-            return ResponseEntity.ok(buildResponse(citationsRequest, Collections.emptyList(), Collections.emptyList()));
+            return ResponseEntity.ok(buildResponse(citationsRequest, Collections.emptyList()));
         }
 
         items = sortItems(items, citationsRequest.getSort());
-        List<CitationItem> citationItems = buildCitationItems(items, normalizeStyle(citationsRequest.getStyle()));
-        return ResponseEntity.ok(buildResponse(citationsRequest, items, citationItems));
+        List<CitationItem> citationItems = buildCitationItems(context, items, citationsRequest);
+        return ResponseEntity.ok(buildResponse(citationsRequest, citationItems));
     }
 
     private void validateRequest(CitationsRequestRest citationsRequest) {
@@ -131,8 +134,8 @@ public class CitationsRestController {
             throw new DSpaceBadRequestException("The 'style' field is required");
         }
 
-        if (StringUtils.isNotBlank(citationsRequest.getFormat())
-                && !isDisplayFormatValid(citationsRequest.getFormat())) {
+        if (StringUtils.isBlank(citationsRequest.getFormat())
+                || !isDisplayFormatValid(citationsRequest.getFormat())) {
             throw new DSpaceBadRequestException("The 'format' field must be 'light' or 'full'");
         }
 
@@ -155,18 +158,22 @@ public class CitationsRestController {
     }
 
     private boolean isDisplayFormatValid(String format) {
-        String normalized = format.trim().toLowerCase(Locale.ROOT);
+        String normalized = normalize(format);
         return DISPLAY_FORMAT_LIGHT.equals(normalized) || DISPLAY_FORMAT_FULL.equals(normalized);
     }
 
     private boolean isGroupByValid(String groupBy) {
-        String normalized = groupBy.trim().toLowerCase(Locale.ROOT);
+        String normalized = normalize(groupBy);
         return GROUP_BY_TYPE.equals(normalized) || GROUP_BY_YEAR.equals(normalized) || GROUP_BY_BOTH.equals(normalized);
     }
 
     private boolean isSortValid(String sort) {
-        String normalized = sort.trim().toLowerCase(Locale.ROOT);
+        String normalized = normalize(sort);
         return SORT_DATE.equals(normalized) || SORT_TITLE.equals(normalized) || SORT_YEAR.equals(normalized);
+    }
+
+    private static String normalize(String value) {
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     private List<Item> resolveItems(Context context, CitationsRequestRest citationsRequest) throws SQLException {
@@ -269,7 +276,7 @@ public class CitationsRestController {
             return items;
         }
 
-        String normalized = sort.trim().toLowerCase(Locale.ROOT);
+        String normalized = normalize(sort);
         Comparator<Item> comparator;
         if (SORT_DATE.equals(normalized)) {
             comparator = Comparator.comparing(this::getIssuedDate, Comparator.nullsLast(String::compareTo)).reversed();
@@ -289,102 +296,108 @@ public class CitationsRestController {
         return getDcMetadataValue(item, "date", "issued").orElse(null);
     }
 
-    private List<CitationItem> buildCitationItems(List<Item> items, String style) {
-        DSpaceListItemDataProvider itemDataProvider = new DSpaceListItemDataProvider(itemService);
-        itemDataProvider.processItems(items.iterator());
-
-        CSLResult cslResult = cslGeneratorFactory.getCSLGenerator().generate(itemDataProvider, style,
-                CSL_OUTPUT_FORMAT);
-        if (cslResult == null) {
+    private List<CitationItem> buildCitationItems(Context context, List<Item> items,
+                                                  CitationsRequestRest citationsRequest) {
+        String style = citationsRequest.getStyle();
+        String crosswalkType = normalizeStyleForCrosswalk(style);
+        StreamDisseminationCrosswalk crosswalkPatent =
+                streamDisseminationCrosswalkMapper.getByType("patent-" + crosswalkType);
+        StreamDisseminationCrosswalk crosswalkProduct =
+                streamDisseminationCrosswalkMapper.getByType("product-" + crosswalkType);
+        StreamDisseminationCrosswalk crosswalkPublication =
+                streamDisseminationCrosswalkMapper.getByType("publication-" + crosswalkType);
+        StreamDisseminationCrosswalk crosswalkPatentJson =
+                streamDisseminationCrosswalkMapper.getByType("patent-json");
+        StreamDisseminationCrosswalk crosswalkProductJson =
+                streamDisseminationCrosswalkMapper.getByType("product-json");
+        StreamDisseminationCrosswalk crosswalkPublicationJson =
+                streamDisseminationCrosswalkMapper.getByType("publication-json");
+        if (crosswalkPatent == null || crosswalkProduct == null || crosswalkPublication == null) {
             throw new DSpaceBadRequestException("Unable to generate citations for style '" + style + "'");
         }
+        boolean isFullFormat = DISPLAY_FORMAT_FULL.equals(normalize(citationsRequest.getFormat()));
 
         List<CitationItem> citationItems = new ArrayList<>();
-        String[] citations = cslResult.getCitationEntries();
-        for (int i = 0; i < items.size(); i++) {
-            Item item = items.get(i);
-            CitationItem citationItem = new CitationItem();
-            citationItem.uuid = item.getID().toString();
-            citationItem.citation = citations.length > i ? citations[i] : null;
-            citationItem.title = getDcMetadataValue(item, "title", null).orElse(null);
-            citationItem.entityType = Optional.ofNullable(itemService.getEntityType(item)).orElse(OTHER_GROUP);
-            citationItem.year = getYear(item);
-            citationItems.add(citationItem);
+        for (Item item : items) {
+            StreamDisseminationCrosswalk crosswalk;
+            StreamDisseminationCrosswalk jsonCrosswalk;
+            String entityType = itemService.getEntityType(item);
+            switch (entityType) {
+                case "Patent":
+                    crosswalk = crosswalkPatent;
+                    jsonCrosswalk = crosswalkPatentJson;
+                    break;
+                case "Product":
+                    crosswalk = crosswalkProduct;
+                    jsonCrosswalk = crosswalkProductJson;
+                    break;
+                case "Publication":
+                    crosswalk = crosswalkPublication;
+                    jsonCrosswalk = crosswalkPublicationJson;
+                    break;
+                default:
+                    crosswalk = null;
+                    jsonCrosswalk = null;
+            }
+            if (crosswalk == null) {
+                log.warn("Skipping item " + item.getID() + " as it is not a supported entity type: " + entityType);
+                continue;
+            }
+            if (isFullFormat) {
+                CitationItemFull citationItem = new CitationItemFull();
+                citationItem.uuid = item.getID().toString();
+                citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
+
+                citationItem.handle = item.getHandle();
+                citationItem.type = getType(item);
+                citationItem.collection = Optional.ofNullable(item.getOwningCollection())
+                        .map(Collection::getName)
+                        .orElse(null);
+                citationItem.year = getYear(item);
+                citationItem.cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
+                citationItems.add(citationItem);
+            } else {
+                CitationItemLight citationItem = new CitationItemLight();
+                citationItem.uuid = item.getID().toString();
+                citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
+                citationItems.add(citationItem);
+            }
+
         }
         return citationItems;
     }
 
-    private Map<String, Object> buildResponse(CitationsRequestRest request, List<Item> items,
-                                              List<CitationItem> citationItems) {
+    private Map<String, Object> buildResponse(CitationsRequestRest request, List<CitationItem> citationItems) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("style", normalizeStyle(request.getStyle()));
-        response.put("format", normalizeDisplayFormat(request.getFormat()));
-        response.put("groupBy", normalizeGroupBy(request.getGroupBy()));
-        response.put("sort", normalizeSort(request.getSort()));
-        response.put("groups", buildGroups(items, citationItems, request.getGroupBy(), request.getFormat()));
+        response.put("groupBy", normalizeGroupByAsList(request.getGroupBy()));
+        response.put("style", normalizeStyleForResponse(request.getStyle()));
+        response.put("results", citationItems.stream().map(CitationItem::toMap).collect(Collectors.toList()));
         return response;
     }
 
-    private List<Map<String, Object>> buildGroups(List<Item> items, List<CitationItem> citationItems,
-                                                  String groupBy, String displayFormat) {
-        String normalizedGroupBy = normalizeGroupBy(groupBy);
-        String normalizedDisplayFormat = normalizeDisplayFormat(displayFormat);
-
-        LinkedHashMap<String, List<Map<String, Object>>> groups = new LinkedHashMap<>();
-        for (int i = 0; i < items.size(); i++) {
-            Item item = items.get(i);
-            CitationItem citationItem = citationItems.get(i);
-            String groupKey = buildGroupKey(item, normalizedGroupBy);
-            groups.computeIfAbsent(groupKey, key -> new ArrayList<>()).add(citationItem.toMap(normalizedDisplayFormat));
-        }
-
-        if (groups.isEmpty()) {
-            groups.put("all", new ArrayList<>());
-        }
-
-        List<Map<String, Object>> responseGroups = new ArrayList<>();
-        for (Map.Entry<String, List<Map<String, Object>>> entry : groups.entrySet()) {
-            Map<String, Object> group = new LinkedHashMap<>();
-            group.put("key", entry.getKey());
-            group.put("items", entry.getValue());
-            responseGroups.add(group);
-        }
-        return responseGroups;
-    }
-
-    private String buildGroupKey(Item item, String groupBy) {
-        if (StringUtils.isBlank(groupBy)) {
-            return "all";
-        }
-
-        String type = Optional.ofNullable(itemService.getEntityType(item)).filter(StringUtils::isNotBlank)
-            .orElse(OTHER_GROUP);
-        String year = getYear(item);
-
-        if (GROUP_BY_TYPE.equals(groupBy)) {
-            return type;
-        }
-        if (GROUP_BY_YEAR.equals(groupBy)) {
-            return year;
-        }
-        return type + " / " + year;
-    }
-
-    private String normalizeStyle(String style) {
+    private String normalizeStyleForCrosswalk(String style) {
         String normalized = style.trim();
-        return StringUtils.endsWithIgnoreCase(normalized, ".csl") ? normalized : normalized + ".csl";
+        return StringUtils.removeEndIgnoreCase(normalized, ".csl").toLowerCase(Locale.ROOT);
     }
 
-    private String normalizeDisplayFormat(String format) {
-        return StringUtils.isBlank(format) ? DEFAULT_DISPLAY_FORMAT : format.trim().toLowerCase(Locale.ROOT);
+    private String normalizeStyleForResponse(String style) {
+        String normalized = style.trim();
+        return StringUtils.removeEndIgnoreCase(normalized, ".csl");
     }
 
     private String normalizeGroupBy(String groupBy) {
         return StringUtils.isBlank(groupBy) ? null : groupBy.trim().toLowerCase(Locale.ROOT);
     }
 
-    private String normalizeSort(String sort) {
-        return StringUtils.isBlank(sort) ? null : sort.trim().toLowerCase(Locale.ROOT);
+    private List<String> normalizeGroupByAsList(String groupBy) {
+        String normalized = normalizeGroupBy(groupBy);
+        if (normalized == null) {
+            return Collections.emptyList();
+        }
+        if (GROUP_BY_BOTH.equals(normalized)) {
+            return List.of(GROUP_BY_YEAR, GROUP_BY_TYPE);
+        }
+        return List.of(normalized);
     }
 
     private String getYear(Item item) {
@@ -401,22 +414,63 @@ public class CitationsRestController {
                        .filter(StringUtils::isNotBlank);
     }
 
-    private static class CitationItem {
+    private String getType(Item item) {
+        return getDcMetadataValue(item, "type", null)
+                .orElse(Optional.ofNullable(itemService.getEntityType(item)).orElse(OTHER_GROUP));
+    }
+
+    private String exportCitationByStyle(Context context, Item item, StreamDisseminationCrosswalk crosswalk,
+                                         String style) {
+        try {
+            if (!crosswalk.canDisseminate(context, item)) {
+                throw new DSpaceBadRequestException("Unable to generate citation for item " + item.getID()
+                        + " with style '" + style + "'");
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            crosswalk.disseminate(context, item, out);
+            return out.toString(java.nio.charset.StandardCharsets.UTF_8).trim();
+        } catch (IOException | RuntimeException | org.dspace.authorize.AuthorizeException
+                 | org.dspace.content.crosswalk.CrosswalkException | SQLException e) {
+            throw new DSpaceBadRequestException("Unable to generate citation for item " + item.getID()
+                    + " with style '" + style + "'", e);
+        }
+    }
+
+    private interface CitationItem {
+        Map<String, Object> toMap();
+    }
+
+    private static class CitationItemLight implements CitationItem {
         private String uuid;
         private String citation;
-        private String title;
-        private String entityType;
-        private String year;
 
-        private Map<String, Object> toMap(String format) {
+        public Map<String, Object> toMap() {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("uuid", uuid);
             map.put("citation", citation);
-            if (DISPLAY_FORMAT_FULL.equals(format)) {
-                map.put("title", title);
-                map.put("entityType", entityType);
-                map.put("year", year);
-            }
+            return map;
+        }
+    }
+
+    private static class CitationItemFull implements CitationItem {
+        private String uuid;
+        private String handle;
+        private String type;
+        private String collection;
+        private String citation;
+        private String year;
+        private String cslItem;
+
+        public Map<String, Object> toMap() {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("uuid", uuid);
+            map.put("handle", handle);
+            map.put("type", type);
+            map.put("collection", collection);
+            map.put("year", year);
+            map.put("citation", citation);
+            map.put("cslItem", cslItem);
             return map;
         }
     }

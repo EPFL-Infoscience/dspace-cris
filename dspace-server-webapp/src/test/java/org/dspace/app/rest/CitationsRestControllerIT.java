@@ -28,11 +28,16 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context).build();
-        Collection collection = CollectionBuilder.createCollection(context, parentCommunity).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
         Item item = ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
+                .withType("Journal Article")
                 .withTitle("A Test Publication")
                 .withAuthor("Doe, John")
+                .withIssueDate("2021-05-20")
                 .inArchive()
                 .build();
 
@@ -41,16 +46,27 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
         String body = "{" +
                 "\"uuids\":[\"" + item.getID() + "\"]," +
                 "\"style\":\"apa\"," +
-                "\"format\":\"light\"" +
+                "\"format\":\"full\"" +
                 "}";
 
+        //result.getResponse().getContentAsString()
         getClient().perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.groups[0].items[0].uuid").value(item.getID().toString()))
-                .andExpect(jsonPath("$.groups[0].items[0].citation").isNotEmpty());
+                .andExpect(jsonPath("$.groupBy").isArray())
+                .andExpect(jsonPath("$.groupBy").isEmpty())
+                .andExpect(jsonPath("$.style").value("apa"))
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].handle").value(item.getHandle()))
+                .andExpect(jsonPath("$.results[0].type").value("Journal Article"))
+                .andExpect(jsonPath("$.results[0].collection").value("Test Collection"))
+                .andExpect(jsonPath("$.results[0].year").value("2021"))
+                .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].cslItem").isNotEmpty());
     }
 
     @Test
@@ -80,15 +96,16 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
 
         String body = "{" +
                 "\"uuids\":[\"" + visibleItem.getID() + "\",\"" + hiddenItem.getID() + "\"]," +
-                "\"style\":\"apa\"" +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
                 "}";
 
         getClient().perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.groups[0].items[*].uuid", hasItem(visibleItem.getID().toString())))
-                .andExpect(jsonPath("$.groups[0].items[*].uuid", not(hasItem(hiddenItem.getID().toString()))));
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(visibleItem.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(hiddenItem.getID().toString()))));
     }
 
     @Test
