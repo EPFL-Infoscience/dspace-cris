@@ -59,6 +59,42 @@
 
         <!-- The algorithm the S3 client will use to create a checksum when doing putObject. -->
         <property name="s3ChecksumAlgorithm" value="${assetstore.s3.s3ChecksumAlgorithm}"/>
+
+        <property name="builder" ref="defaultClientBuilder"/>
+        <property name="presignedUrlStrategy" ref="presignedUrlStrategy"/>
+    </bean>
+
+    <bean name="s3TempStore" class="org.dspace.storage.bitstore.S3BitStoreService" lazy-init="true" parent="s3Store">
+        <property name="enabled" value="${assetstore.s3.temp.enabled}"/>
+        <property name="bucketName" value="${assetstore.s3.temp.bucketName}"/>
+
+        <!-- Subfolder to organize assets within the bucket, in case this bucket is shared  -->
+        <!-- Optional, default is root level of bucket -->
+        <property name="subfolder" value="${assetstore.s3.temp.subfolder}"/>
+        <property name="builder" ref="tempClientBuilder"/>
+    </bean>
+
+    <bean name="awsCredentialsFactory"
+          class="org.dspace.storage.bitstore.factory.AWSFactory"/>
+
+    <!-- Default client builder -->
+    <bean name="defaultClientBuilder"
+          factory-bean="awsCredentialsFactory"
+          factory-method="clientBuilder"/>
+
+    <!-- Temp client builder -->
+    <bean name="tempClientBuilder"
+          factory-bean="awsCredentialsFactory"
+          factory-method="clientBuilder">
+        <constructor-arg name="storeSuffix" value="temp"/>
+    </bean>
+
+    <!-- Presigned URL strategy: uses CloudFront if distribution domain is configured, otherwise falls back to S3 -->
+    <bean name="presignedUrlStrategy" class="org.dspace.storage.bitstore.PresignedUrlStrategyFactoryBean">
+        <property name="distributionDomain" value="${assetstore.s3.cloudfront.distribution.domain:}"/>
+        <property name="keyPairId" value="${assetstore.s3.cloudfront.key.id:}"/>
+        <property name="privateKeyPath" value="${assetstore.s3.cloudfront.private.key.path:}"/>
+        <property name="s3ClientBuilder" ref="defaultClientBuilder"/>
     </bean>
 
   <bean name="s3StorePROD" class="org.dspace.storage.bitstore.S3BitStoreService" scope="singleton" lazy-init="true">

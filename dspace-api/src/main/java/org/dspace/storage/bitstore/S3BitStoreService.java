@@ -13,22 +13,17 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Supplier;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -48,11 +43,9 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
-import org.dspace.util.FunctionalUtils;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -60,7 +53,6 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -95,38 +87,32 @@ public class S3BitStoreService extends BaseBitStoreService {
     static final String CSA = "MD5";
 
     private boolean enabled = false;
-    /**
-     * Override AWS endpoint if not null
-     */
-    private String endpoint = null;
-    private String awsAccessKey;
-    private String awsSecretKey;
-    private String awsRegionName;
-    private String awsSessionToken;
+
     private boolean useRelativePath;
-    private double targetThroughputGbps = 10.0;
-    private long minPartSizeBytes = 8 * 1024 * 1024L;
     private ChecksumAlgorithm s3ChecksumAlgorithm = ChecksumAlgorithm.CRC32;
-    private Integer maxConcurrency = null;
 
     /**
      * container for all the assets
      */
     private String bucketName = null;
+
     /**
      * (Optional) subfolder within bucket where objects are stored
      */
     private String subfolder = null;
+    private static final ConfigurationService configurationService =
+        DSpaceServicesFactory.getInstance().getConfigurationService();
+
+    public static final String PRESIGNED_URL_EXPIRATION_PROPERTY = "assetstore.s3.presigned.url.expiration.seconds";
+
     /**
      * S3 service
      */
-    private S3AsyncClient s3AsyncClient = null;
+    private S3AsyncClient s3AsyncClient;
+    private AWSS3ClientBuilder builder;
+    private PresignedUrlStrategy presignedUrlStrategy;
 
-    private static final ConfigurationService configurationService
-            = DSpaceServicesFactory.getInstance().getConfigurationService();
-
-    public S3BitStoreService() {
-    }
+    public S3BitStoreService() {}
 
     /**
      * This constructor is used for test purpose.
@@ -138,122 +124,14 @@ public class S3BitStoreService extends BaseBitStoreService {
     }
 
     /**
-     * Creates an AWS credentials provider that supports both basic credentials and session tokens.
+     * This constructor is used for test purpose.
      *
-     * @param accessKey AWS access key
-     * @param secretKey AWS secret key
-     * @param sessionToken AWS session token (optional)
-     * @return StaticCredentialsProvider with appropriate credentials
+     * @param s3AsyncClient             AmazonS3 service
+     * @param presignedUrlStrategy      S3Presigner service
      */
-    protected static StaticCredentialsProvider createCredentialsProvider(
-        String accessKey, String secretKey, String sessionToken
-    ) {
-        if (StringUtils.isNotBlank(sessionToken)) {
-            return StaticCredentialsProvider.create(
-                AwsSessionCredentials.create(accessKey, secretKey, sessionToken)
-            );
-        } else {
-            return StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(accessKey, secretKey)
-            );
-        }
-    }
-
-    /**
-     * Utility method for generate AmazonS3 builder
-     *
-     * @param region wanted regions in client
-     * @param credentialsProvider credentials of the client
-     * @param endpoint custom AWS endpoint
-     * @param targetThroughput target throughput in Gbps
-     * @param minPartSize minimum part size in bytes
-     * @param maxConcurrency maximum number of concurrent requests
-     * @return builder with the specified parameters
-     */
-    protected static Supplier<S3AsyncClient> amazonClientBuilderBy(
-            Region region,
-            AwsCredentialsProvider credentialsProvider,
-            String endpoint,
-            double targetThroughput,
-            long minPartSize,
-            Integer maxConcurrency
-    ) {
-        return () -> {
-            S3CrtAsyncClientBuilder crtBuilder = S3AsyncClient.crtBuilder();
-
-            if (credentialsProvider != null) {
-                crtBuilder.credentialsProvider(credentialsProvider);
-            }
-
-            if (region != null) {
-                crtBuilder.region(region);
-            }
-
-            if (maxConcurrency != null) {
-                crtBuilder.maxConcurrency(maxConcurrency);
-            }
-
-            if (StringUtils.isNotBlank(endpoint)) {
-                crtBuilder.endpointOverride(URI.create(endpoint));
-                crtBuilder.forcePathStyle(true);
-            }
-
-            return crtBuilder.targetThroughputInGbps(targetThroughput).minimumPartSizeInBytes(minPartSize).build();
-        };
-    }
-
-    /**
-     * Contains a command-line testing tool. Expects arguments:
-     * -a accessKey -s secretKey -f assetFileName
-     *
-     * @param args the command line arguments given
-     * @throws Exception generic exception
-     */
-    public static void main(String[] args) throws Exception {
-        //TODO Perhaps refactor to be a unit test. Can't mock this without keys though.
-
-        // parse command line
-        Options options = new Options();
-        Option option;
-
-        option = Option.builder("a").desc("access key").hasArg().required().build();
-        options.addOption(option);
-
-        option = Option.builder("s").desc("secret key").hasArg().required().build();
-        options.addOption(option);
-
-        option = Option.builder("f").desc("asset file name").hasArg().required().build();
-        options.addOption(option);
-
-        DefaultParser parser = new DefaultParser();
-
-        CommandLine command;
-        try {
-            command = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.err.println(e.getMessage());
-            new HelpFormatter().printHelp(
-                S3BitStoreService.class.getSimpleName() + "options", options);
-            return;
-        }
-
-        String accessKey = command.getOptionValue("a");
-        String secretKey = command.getOptionValue("s");
-
-        S3BitStoreService store = new S3BitStoreService();
-
-        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
-            AwsBasicCredentials.create(accessKey, secretKey));
-
-        // Todo configurable region
-        store.s3AsyncClient = S3AsyncClient.builder().credentialsProvider(credentialsProvider).
-                                           region(Region.US_EAST_1).build();
-
-        // get hostname of DSpace UI to use to name bucket
-        String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
-        //Bucketname should be lowercase
-        store.bucketName = DEFAULT_BUCKET_PREFIX + hostname + ".s3test";
-        store.s3AsyncClient.createBucket(r -> r.bucket(store.bucketName)).join();
+    protected S3BitStoreService(S3AsyncClient s3AsyncClient, PresignedUrlStrategy presignedUrlStrategy) {
+        this.s3AsyncClient = s3AsyncClient;
+        this.presignedUrlStrategy = presignedUrlStrategy;
     }
 
     @Override
@@ -275,37 +153,20 @@ public class S3BitStoreService extends BaseBitStoreService {
         }
 
         try {
-            if (StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
-                log.warn("Use local defined S3 credentials");
-                // region
-                Region region = Region.US_EAST_1;
-                if (StringUtils.isNotBlank(awsRegionName)) {
-                    try {
-                        region = Region.of(awsRegionName);
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Invalid aws_region: " + awsRegionName);
-                    }
-                }
 
-                StaticCredentialsProvider credentialsProvider = createCredentialsProvider(
-                    getAwsAccessKey(), getAwsSecretKey(), getAwsSessionToken());
+            if (s3AsyncClient == null && builder == null) {
+                log.error("Cannot initialize S3BitStoreService: missing S3AsyncClient or AWSS3ClientBuilder");
+                throw new BeanInitializationException(
+                    "Cannot initialize S3BitStoreService: missing S3AsyncClient or AWSS3ClientBuilder"
+                );
+            }
 
-                // init client
-                s3AsyncClient = FunctionalUtils.getDefaultOrBuild(
-                        this.s3AsyncClient,
-                        amazonClientBuilderBy(
-                                region,
-                                credentialsProvider, endpoint, targetThroughputGbps,
-                                minPartSizeBytes, maxConcurrency)
-                        );
+            if (s3AsyncClient == null) {
+                s3AsyncClient = builder.asyncClient();
+            }
 
-                log.warn("S3 Region set to: " + region.id());
-            } else {
-                log.info("Using a IAM role or aws environment credentials");
-                s3AsyncClient = FunctionalUtils.getDefaultOrBuild(
-                        this.s3AsyncClient,
-                        amazonClientBuilderBy(null, null , endpoint, targetThroughputGbps,
-                                minPartSizeBytes, maxConcurrency));
+            if (presignedUrlStrategy == null) {
+                presignedUrlStrategy = new S3PresignedUrlStrategy(builder);
             }
 
             // bucket name
@@ -313,15 +174,16 @@ public class S3BitStoreService extends BaseBitStoreService {
                 // get hostname of DSpace UI to use to name bucket
                 String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
                 bucketName = DEFAULT_BUCKET_PREFIX + hostname;
-                log.warn("S3 BucketName is not configured, setting default: " + bucketName);
+                log.warn("S3 BucketName is not configured, setting default: {}", bucketName);
             }
 
             if (!doesBucketExist(bucketName)) {
                 s3AsyncClient.createBucket(r -> r.bucket(bucketName)).join();
-                log.info("Creating new S3 Bucket: " + bucketName);
+                log.info("Creating new S3 Bucket: {}", bucketName);
             }
+
             this.initialized = true;
-            log.info("AWS S3 Assetstore ready to go! bucket:" + bucketName);
+            log.info("AWS S3 Assetstore ready to go! bucket:{}", bucketName);
         } catch (Exception e) {
             this.initialized = false;
             log.error("Can't initialize this store!", e);
@@ -332,7 +194,7 @@ public class S3BitStoreService extends BaseBitStoreService {
      * @param bucketName
      * @return whether or not the specified bucket exists
      */
-    public boolean doesBucketExist(String bucketName) {
+    public boolean doesBucketExist(String bucketName ) {
         try {
             s3AsyncClient.headBucket(r -> r.bucket(bucketName)).join();
             return true;
@@ -470,10 +332,9 @@ public class S3BitStoreService extends BaseBitStoreService {
 
             return metadata;
         } catch (CompletionException e) {
-            if (e.getCause() instanceof AwsServiceException) {
-                if (((AwsServiceException) e.getCause()).statusCode() == HttpStatusCode.NOT_FOUND) {
-                    return metadata;
-                }
+            if (e.getCause() instanceof AwsServiceException &&
+                ((AwsServiceException) e.getCause()).statusCode() == HttpStatusCode.NOT_FOUND) {
+                return metadata;
             }
 
             log.error("about(" + key + ", attrs)", e);
@@ -554,32 +415,6 @@ public class S3BitStoreService extends BaseBitStoreService {
         this.enabled = enabled;
     }
 
-    public String getAwsAccessKey() {
-        return awsAccessKey;
-    }
-
-    @Autowired(required = true)
-    public void setAwsAccessKey(String awsAccessKey) {
-        this.awsAccessKey = awsAccessKey;
-    }
-
-    public String getAwsSecretKey() {
-        return awsSecretKey;
-    }
-
-    @Autowired(required = true)
-    public void setAwsSecretKey(String awsSecretKey) {
-        this.awsSecretKey = awsSecretKey;
-    }
-
-    public String getAwsRegionName() {
-        return awsRegionName;
-    }
-
-    public void setAwsRegionName(String awsRegionName) {
-        this.awsRegionName = awsRegionName;
-    }
-
     @Autowired(required = true)
     public String getBucketName() {
         return bucketName;
@@ -605,22 +440,6 @@ public class S3BitStoreService extends BaseBitStoreService {
         this.useRelativePath = useRelativePath;
     }
 
-    public double getTargetThroughputGbps() {
-        return targetThroughputGbps;
-    }
-
-    public void setTargetThroughputGbps(double targetThroughputGbps) {
-        this.targetThroughputGbps = targetThroughputGbps;
-    }
-
-    public long getMinPartSizeBytes() {
-        return minPartSizeBytes;
-    }
-
-    public void setMinPartSizeBytes(long minPartSizeBytes) {
-        this.minPartSizeBytes = minPartSizeBytes;
-    }
-
     public ChecksumAlgorithm getS3ChecksumAlgorithm() {
         return s3ChecksumAlgorithm;
     }
@@ -629,33 +448,70 @@ public class S3BitStoreService extends BaseBitStoreService {
         this.s3ChecksumAlgorithm = s3ChecksumAlgorithm;
     }
 
-    public Integer getMaxConcurrency() {
-        return maxConcurrency;
+    public void setPresignedUrlStrategy(PresignedUrlStrategy presignedUrlStrategy) {
+        this.presignedUrlStrategy = presignedUrlStrategy;
     }
 
-    public void setMaxConcurrency(Integer maxConcurrency) {
-        this.maxConcurrency = maxConcurrency;
+    public void setBuilder(AWSS3ClientBuilder builder) {
+        this.builder = builder;
     }
 
-    public String getEndpoint() {
-        return endpoint;
-    }
+    /**
+     * Contains a command-line testing tool. Expects arguments:
+     * -a accessKey -s secretKey -f assetFileName
+     *
+     * @param args the command line arguments given
+     * @throws Exception generic exception
+     */
+    public static void main(String[] args) throws Exception {
+        //TODO Perhaps refactor to be a unit test. Can't mock this without keys though.
 
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
+        // parse command line
+        Options options = new Options();
+        Option option;
 
-    public String getAwsSessionToken() {
-        return awsSessionToken;
-    }
+        option = Option.builder("a").desc("access key").hasArg().required().build();
+        options.addOption(option);
 
-    public void setAwsSessionToken(String awsSessionToken) {
-        this.awsSessionToken = awsSessionToken;
+        option = Option.builder("s").desc("secret key").hasArg().required().build();
+        options.addOption(option);
+
+        option = Option.builder("f").desc("asset file name").hasArg().required().build();
+        options.addOption(option);
+
+        DefaultParser parser = new DefaultParser();
+
+        CommandLine command;
+        try {
+            command = parser.parse(options, args);
+        } catch (ParseException e) {
+            System.err.println(e.getMessage());
+            new HelpFormatter().printHelp(
+                    S3BitStoreService.class.getSimpleName() + "options", options);
+            return;
+        }
+
+        String accessKey = command.getOptionValue("a");
+        String secretKey = command.getOptionValue("s");
+
+        S3BitStoreService store = new S3BitStoreService();
+
+        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(accessKey, secretKey));
+
+        // Todo configurable region
+        store.s3AsyncClient = S3AsyncClient.builder().credentialsProvider(credentialsProvider).
+                                region(Region.US_EAST_1).build();
+
+        // get hostname of DSpace UI to use to name bucket
+        String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
+        //Bucketname should be lowercase
+        store.bucketName = DEFAULT_BUCKET_PREFIX + hostname + ".s3test";
+        store.s3AsyncClient.createBucket(r -> r.bucket(store.bucketName)).join();
     }
 
     /**
      * Is this a registered bitstream? (not stored via this service originally)
-     *
      * @param internalId
      * @return
      */
@@ -679,41 +535,80 @@ public class S3BitStoreService extends BaseBitStoreService {
             throw new IOException("S3BitStoreService not initialized");
         }
 
+        if (presignedUrlStrategy == null) {
+            throw new IOException("S3BitStoreService presigned URL strategy not initialized");
+        }
+
         String key = getFullKey(bitstream.getInternalId());
 
         if (isRegisteredBitstream(key)) {
             key = key.substring(REGISTERED_FLAG.length());
         }
 
-        try {
-            // Generate a presigned URL valid for 15 min (900 seconds)
-            GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(bucketName, key)
-                    .withMethod(HttpMethod.GET)
-                    .withExpiration(getExpirationDate());
-
-            URL presignedUrl = s3AsyncClient.generatePresignedUrl(generatePresignedUrlRequest);
-
-            if (log.isDebugEnabled()) {
-                log.debug("Generated presigned URL for bitstream {} (key: {}): {}",
-                          bitstream.getID(), key, presignedUrl.toString());
-            }
-
-            return presignedUrl.toString();
-        } catch (AmazonClientException e) {
-            log.error("Error generating presigned URL for key: {}", key, e);
-            throw new IOException("Failed to generate presigned URL", e);
+        if (log.isDebugEnabled()) {
+            log.debug("Generating presigned URL for bitstream {} (key: {})", bitstream.getID(), key);
         }
+
+        // Resolve content-type and filename for response header overrides
+        String contentType = resolveContentType(bitstream);
+        String contentDisposition = resolveContentDisposition(bitstream);
+
+        return presignedUrlStrategy.generatePresignedUrl(
+            bucketName, key, presignDuration(), contentType, contentDisposition
+        );
     }
 
-    protected Date getExpirationDate() {
-        long expireSeconds = configurationService
-            .getLongProperty("assetstore.s3.presigned.url.expiration.seconds", DEFAULT_EXPIRATION);
-        return Date.from(
-            LocalDateTime.now()
-                         .plusSeconds(expireSeconds)
-                         .atZone(ZoneId.systemDefault())
-                         .toInstant()
+    /**
+     * Resolves the content type from the bitstream's format MIME type.
+     *
+     * @param bitstream the bitstream
+     * @return the MIME type, or null if not resolvable
+     */
+    private String resolveContentType(Bitstream bitstream) {
+        try {
+            var format = bitstream.getFormat(null);
+            if (format != null && StringUtils.isNotBlank(format.getMIMEType())) {
+                return format.getMIMEType();
+            }
+        } catch (SQLException e) {
+            log.warn("Could not resolve content type for bitstream {}", bitstream.getID(), e);
+        }
+        return null;
+    }
+
+    /**
+     * Resolves the content disposition with filename from the bitstream.
+     * Falls back to the bitstream ID + format extension if no name is set.
+     *
+     * @param bitstream the bitstream
+     * @return the content-disposition value, or null if not resolvable
+     */
+    private String resolveContentDisposition(Bitstream bitstream) {
+        try {
+            String name = bitstream.getName();
+            if (name == null) {
+                var id = bitstream.getID();
+                if (id == null) {
+                    return null;
+                }
+                name = id.toString();
+                var format = bitstream.getFormat(null);
+                if (format != null && format.getExtensions() != null
+                        && !format.getExtensions().isEmpty()) {
+                    name += "." + format.getExtensions().get(0);
+                }
+            }
+            return "attachment; filename=\"" + name + "\"";
+        } catch (SQLException e) {
+            log.warn("Could not resolve content disposition for bitstream {}", bitstream.getID(), e);
+        }
+        return null;
+    }
+
+    protected Duration presignDuration() {
+        return Duration.ofSeconds(
+            configurationService
+                .getLongProperty(PRESIGNED_URL_EXPIRATION_PROPERTY, DEFAULT_EXPIRATION)
         );
     }
 

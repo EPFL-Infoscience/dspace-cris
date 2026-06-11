@@ -817,6 +817,36 @@
                     <groupId>org.yaml</groupId>
                     <artifactId>snakeyaml</artifactId>
                 </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ssooidc</artifactId>
+            <version>${software.amazon.awssdk.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudfront</artifactId>
+            <version>${software.amazon.awssdk.version}</version>
+        </dependency>
+
+
+        <!-- TODO: This may need to be replaced with the "orcid-model" artifact once this ticket is resolved:
+             https://github.com/ORCID/orcid-model/issues/50 -->
+        <!-- Maintained at https://github.com/DSpace/orcid-model -->
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>orcid-model-jakarta</artifactId>
+            <version>3.3.0</version>
+            <exclusions>
                 <exclusion>
                     <groupId>org.javassist</groupId>
                     <artifactId>javassist</artifactId>

@@ -27,6 +27,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -35,8 +36,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.adobe.testing.s3mock.testcontainers.S3MockContainer;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.matcher.LambdaMatcher;
 import org.dspace.authorize.AuthorizeException;
@@ -56,10 +58,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.testcontainers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -71,11 +70,9 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
  * @author Luca Giamminonni (luca.giamminonni at 4science.com)
  */
 public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
-    private static DockerImageName localstackName = DockerImageName.parse("localstack/localstack:stable");
+    private static S3MockContainer s3Mock = new S3MockContainer("4.8.0");
 
-    @SuppressWarnings("resource")
-    private static LocalStackContainer localstackContainer = new LocalStackContainer(localstackName).withServices("s3");
-
+    private static URI s3URI;
     private static S3AsyncClient s3AsyncClient;
 
     private static final String DEFAULT_BUCKET_NAME = "dspace-asset-localhost";
@@ -84,33 +81,40 @@ public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
 
     private Collection collection;
 
+    private File s3Directory;
+
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     @BeforeClass
     public static void setupS3() {
-        localstackContainer.start();
+        s3Mock.start();
 
+        AnonymousCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
+        Region region = Region.US_EAST_1;
+        s3URI = URI.create("http://127.0.0.1:" + s3Mock.getHttpServerPort());
         s3AsyncClient = S3AsyncClient.crtBuilder()
-                .endpointOverride(localstackContainer.getEndpoint())
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(localstackContainer.getAccessKey(),
-                                localstackContainer.getSecretKey())
-                        ))
-                .region(Region.of(localstackContainer.getRegion()))
-                .build();
+                                     .endpointOverride(s3URI)
+                                     .credentialsProvider(credentialsProvider)
+                                     .region(region)
+                                     .build();
     }
 
     @AfterClass
     public static void cleanupS3() {
-        localstackContainer.close();
+        s3Mock.close();
         s3AsyncClient.close();
     }
 
     @Before
     public void setup() throws Exception {
         configurationService.setProperty("assetstore.s3.enabled", "true");
+        s3Directory = new File(System.getProperty("java.io.tmpdir"), "s3");
 
-        s3BitStoreService = new S3BitStoreService(s3AsyncClient);
+        AWSS3ClientBuilder builder = AWSS3ClientBuilder.builder()
+            .setEndpoint(s3URI.toString())
+            .setCredentialsProvider(() -> AnonymousCredentialsProvider.create())
+            .setRegion(Region.US_EAST_1);
+        s3BitStoreService = new S3BitStoreService(s3AsyncClient, new S3PresignedUrlStrategy(builder));
         s3BitStoreService.setEnabled(BooleanUtils.toBoolean(
                 configurationService.getProperty("assetstore.s3.enabled")));
         s3BitStoreService.setS3ChecksumAlgorithm(ChecksumAlgorithm.SHA256);

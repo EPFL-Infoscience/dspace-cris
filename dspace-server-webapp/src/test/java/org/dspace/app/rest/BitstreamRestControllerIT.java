@@ -58,14 +58,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.adobe.testing.s3mock.testcontainers.S3MockContainer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.findify.s3mock.S3Mock;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -105,17 +99,27 @@ import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
+import org.dspace.storage.bitstore.AWSCredentialsProviderBuilder;
+import org.dspace.storage.bitstore.AWSS3ClientBuilder;
 import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
+import org.jspecify.annotations.NonNull;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
+
 
 /**
  * Integration test to test the /api/core/bitstreams/[id]/* endpoints
@@ -126,7 +130,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest {
 
     public static final String[] PASS_ONLY = {"org.dspace.authenticate.PasswordAuthentication"};
-
+    private static final String DEFAULT_BUCKET_NAME = "dspace-asset-localhost";
+    // S3Mock related fields for integration testing
+    private static S3MockContainer s3Mock = new S3MockContainer("4.8.0");
+    private static S3AsyncClient s3AsyncClient;
     protected SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
     @Autowired
     private ConfigurationService configurationService;
@@ -141,22 +148,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     @Autowired
     private AuthorizeService authorizeService;
     @Autowired
-    private CollectionService collectionService;
-
-    @Autowired
     private BitstreamStorageService bitstreamStorageService;
-
-    @Autowired
-    private S3BitStoreService s3BitStoreService;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    // S3Mock related fields for integration testing
-    private S3Mock s3Mock;
-    private AmazonS3 amazonS3Client;
-    private File s3Directory;
-    private S3BitStoreService mockS3BitStoreService;
+    private Bitstream bitstream;
+    private BitstreamFormat supportedFormat;
+    private BitstreamFormat knownFormat;
+    private BitstreamFormat unknownFormat;
 
     @Autowired
     private RequestItemService requestItemService;
@@ -165,21 +161,47 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     private ObjectMapper mapper;
 
     public static final String requestItemUrl = REST_SERVER_URL
-            + RequestItemRest.CATEGORY + '/'
-            + RequestItemRest.PLURAL_NAME;
-
-    private Bitstream bitstream;
-    private BitstreamFormat supportedFormat;
-    private BitstreamFormat knownFormat;
-    private BitstreamFormat unknownFormat;
-
-
+        + RequestItemRest.CATEGORY + '/'
+        + RequestItemRest.PLURAL_NAME;
 
     @BeforeClass
     public static void clearStatistics() throws Exception {
         // To ensure these tests start "fresh", clear out any existing statistics data.
         // NOTE: this is committed immediately in removeIndex()
         StatisticsServiceFactory.getInstance().getSolrLoggerService().removeIndex("*:*");
+
+        // Setup S3Mock for all tests
+        setupS3();
+    }
+
+    @AfterClass
+    public static void cleanupS3() {
+        s3Mock.close();
+        s3AsyncClient.close();
+    }
+
+    @BeforeClass
+    public static void setupS3() {
+        s3Mock.start();
+
+        // Use static credentials for S3Mock compatibility (required for SigV4 signatures)
+        StaticCredentialsProvider credentialsProvider =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("test-access-key", "test-secret-key"));
+
+        s3AsyncClient = S3AsyncClient.crtBuilder()
+                .endpointOverride(URI.create("http://127.0.0.1:" + s3Mock.getHttpServerPort()))
+                .credentialsProvider(credentialsProvider)
+                .region(Region.US_EAST_1)
+                .forcePathStyle(true)
+                .build();
+    }
+
+    private static String md5Checksum(File file) throws IOException {
+        final String md5;
+        try (InputStream is = new FileInputStream(file)) {
+            md5 = DigestUtils.md5Hex(is);
+        }
+        return md5;
     }
 
     @Before
@@ -221,69 +243,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         context.restoreAuthSystemState();
     }
 
-    /**
-     * Sets up S3Mock for presigned URL integration tests.
-     * This creates a real S3-compatible mock server that the S3BitStoreService can connect to.
-     */
-    private void setupS3Mock() throws Exception {
-        // Setup S3Mock server similar to S3BitStoreServiceIT
-        s3Directory = new File(System.getProperty("java.io.tmpdir"), "s3mock-test");
-        s3Mock = S3Mock.create(8001, s3Directory.getAbsolutePath());
-        s3Mock.start();
-
-        // Create Amazon S3 client pointing to the mock server
-        amazonS3Client = createAmazonS3Client("http://127.0.0.1:8001");
-
-        // Create the test bucket
-        String bucketName = "testbucket";
-        amazonS3Client.createBucket(bucketName);
-
-        // Create a new S3BitStoreService configured with the mock S3 client
-        Class<S3BitStoreService> s3Class = S3BitStoreService.class;
-        java.lang.reflect.Constructor<S3BitStoreService> constructor =
-            s3Class.getDeclaredConstructor(AmazonS3.class);
-        constructor.setAccessible(true);
-        mockS3BitStoreService = constructor.newInstance(amazonS3Client);
-
-        mockS3BitStoreService.setEnabled(true);
-        mockS3BitStoreService.setBucketName(bucketName);
-        mockS3BitStoreService.init();
-
-        // Replace store number 1 in the BitstreamStorageService with our mock S3 store
-        Map<Integer, org.dspace.storage.bitstore.BitStoreService> stores =
-            (Map<Integer, org.dspace.storage.bitstore.BitStoreService>)
-            ReflectionTestUtils.getField(bitstreamStorageService, "stores");
-
-        if (stores != null) {
-            stores.put(1, mockS3BitStoreService);
-        }
-    }
-
-    /**
-     * Tears down S3Mock after presigned URL tests
-     */
-    private void tearDownS3Mock() throws Exception {
-        if (s3Mock != null) {
-            s3Mock.shutdown();
-        }
-        if (s3Directory != null && s3Directory.exists()) {
-            FileUtils.deleteDirectory(s3Directory);
-        }
-    }
-
-    /**
-     * Creates an Amazon S3 client for testing with S3Mock
-     * Based on the approach used in S3BitStoreServiceIT
-     */
-    private AmazonS3 createAmazonS3Client(String endpoint) {
-        return AmazonS3ClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
-            .withEndpointConfiguration(new AwsClientBuilder
-                .EndpointConfiguration(endpoint, Regions.DEFAULT_REGION.getName()))
-            .withPathStyleAccessEnabled(true)
-            .build();
-    }
-
     @Test
     public void retrieveFullBitstream() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -307,7 +266,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                                           .withAuthor("Smith, Donald").withAuthor("Doe, John")
                                           .build();
 
-             bitstream = BitstreamBuilder
+            bitstream = BitstreamBuilder
                 .createBitstream(context, publicItem1, is)
                 .withName("Test bitstream")
                 .withDescription("This is a bitstream to test range requests")
@@ -316,45 +275,45 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-            //** WHEN **
-            // we want to know what we are downloading before we download it
-            getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                       //** THEN **
-                       .andExpect(status().isOk())
+        //** WHEN **
+        // we want to know what we are downloading before we download it
+        getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                   //** THEN **
+                   .andExpect(status().isOk())
 
-                       //The Content Length must match the full length
-                       .andExpect(header().longValue("Content-Length", bitstreamContent.getBytes().length))
-                       .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"))
-                       .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
-                       .andExpect(content().bytes(new byte[] {}));
+                   //The Content Length must match the full length
+                   .andExpect(header().longValue("Content-Length", bitstreamContent.getBytes().length))
+                   .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"))
+                   .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
+                   .andExpect(content().bytes(new byte[] {}));
 
-            //** WHEN **
-            //We download the bitstream
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+        //** WHEN **
+        //We download the bitstream
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
 
-                       //** THEN **
-                       .andExpect(status().isOk())
+                   //** THEN **
+                   .andExpect(status().isOk())
 
-                       //The Content Length must match the full length
-                       .andExpect(header().longValue("Content-Length", bitstreamContent.getBytes().length))
-                       //The server should indicate we support Range requests
-                       .andExpect(header().string("Accept-Ranges", "bytes"))
-                       //The ETag has to be based on the checksum
-                       // We're checking this with quotes because it is required:
-                       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
-                       .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
-                       //We expect the content type to match the bitstream mime type
-                       .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                       //THe bytes of the content must match the original content
-                       .andExpect(content().bytes(bitstreamContent.getBytes()));
+                   //The Content Length must match the full length
+                   .andExpect(header().longValue("Content-Length", bitstreamContent.getBytes().length))
+                   //The server should indicate we support Range requests
+                   .andExpect(header().string("Accept-Ranges", "bytes"))
+                   //The ETag has to be based on the checksum
+                   // We're checking this with quotes because it is required:
+                   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+                   .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
+                   //We expect the content type to match the bitstream mime type
+                   .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                   //THe bytes of the content must match the original content
+                   .andExpect(content().bytes(bitstreamContent.getBytes()));
 
-            //A If-None-Match HEAD request on the ETag must tell is the bitstream is not modified
-            getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                                    .header("If-None-Match", bitstream.getChecksum()))
-                       .andExpect(status().isNotModified());
+        //A If-None-Match HEAD request on the ETag must tell is the bitstream is not modified
+        getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                                .header("If-None-Match", bitstream.getChecksum()))
+                   .andExpect(status().isNotModified());
 
-            //The download and head request should also be logged as a statistics record
-            checkNumberOfStatsRecords(bitstream, 3);
+        //The download and head request should also be logged as a statistics record
+        checkNumberOfStatsRecords(bitstream, 3);
     }
 
     @Test
@@ -389,50 +348,50 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
         context.restoreAuthSystemState();
 
-            //** WHEN **
-            //We download only a specific byte range of the bitstream
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                                    .header("Range", "bytes=1-3"))
+        //** WHEN **
+        //We download only a specific byte range of the bitstream
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                                .header("Range", "bytes=1-3"))
 
-                       //** THEN **
-                       .andExpect(status().is(206))
+                   //** THEN **
+                   .andExpect(status().is(206))
 
-                       //The Content Length must match the requested range
-                       .andExpect(header().longValue("Content-Length", 3))
-                       //The server should indicate we support Range requests
-                       .andExpect(header().string("Accept-Ranges", "bytes"))
-                       //The ETag has to be based on the checksum
-                       .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
-                       //The response should give us details about the range
-                       .andExpect(header().string("Content-Range", "bytes 1-3/10"))
-                       //We expect the content type to match the bitstream mime type
-                       .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                       //We only expect the bytes 1, 2 and 3
-                       .andExpect(content().bytes("123".getBytes()));
+                   //The Content Length must match the requested range
+                   .andExpect(header().longValue("Content-Length", 3))
+                   //The server should indicate we support Range requests
+                   .andExpect(header().string("Accept-Ranges", "bytes"))
+                   //The ETag has to be based on the checksum
+                   .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
+                   //The response should give us details about the range
+                   .andExpect(header().string("Content-Range", "bytes 1-3/10"))
+                   //We expect the content type to match the bitstream mime type
+                   .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                   //We only expect the bytes 1, 2 and 3
+                   .andExpect(content().bytes("123".getBytes()));
 
-            //** WHEN **
-            //We download the rest of the range
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                                    .header("Range", "bytes=4-"))
+        //** WHEN **
+        //We download the rest of the range
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
+                                .header("Range", "bytes=4-"))
 
-                       //** THEN **
-                       .andExpect(status().is(206))
+                   //** THEN **
+                   .andExpect(status().is(206))
 
-                       //The Content Length must match the requested range
-                       .andExpect(header().longValue("Content-Length", 6))
-                       //The server should indicate we support Range requests
-                       .andExpect(header().string("Accept-Ranges", "bytes"))
-                       //The ETag has to be based on the checksum
-                       .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
-                       //The response should give us details about the range
-                       .andExpect(header().string("Content-Range", "bytes 4-9/10"))
-                       //We expect the content type to match the bitstream mime type
-                       .andExpect(content().contentType("text/plain;charset=UTF-8"))
-                       //We all remaining bytes, starting at byte 4
-                       .andExpect(content().bytes("456789".getBytes()));
+                   //The Content Length must match the requested range
+                   .andExpect(header().longValue("Content-Length", 6))
+                   //The server should indicate we support Range requests
+                   .andExpect(header().string("Accept-Ranges", "bytes"))
+                   //The ETag has to be based on the checksum
+                   .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
+                   //The response should give us details about the range
+                   .andExpect(header().string("Content-Range", "bytes 4-9/10"))
+                   //We expect the content type to match the bitstream mime type
+                   .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                   //We all remaining bytes, starting at byte 4
+                   .andExpect(content().bytes("456789".getBytes()));
 
-            //Check that NO statistics record was logged for the Range requests
-            checkNumberOfStatsRecords(bitstream, 0);
+        //Check that NO statistics record was logged for the Range requests
+        checkNumberOfStatsRecords(bitstream, 0);
     }
 
     @Test
@@ -516,20 +475,20 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod("6 months")
+                .withEmbargoPeriod(Period.ofMonths(6))
                 .build();
         }
         context.restoreAuthSystemState();
 
-            //** WHEN **
-            //We download the bitstream
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+        //** WHEN **
+        //We download the bitstream
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
 
-                       //** THEN **
-                       .andExpect(status().isUnauthorized());
+                   //** THEN **
+                   .andExpect(status().isUnauthorized());
 
-            //An unauthorized request should not log statistics
-            checkNumberOfStatsRecords(bitstream, 0);
+        //An unauthorized request should not log statistics
+        checkNumberOfStatsRecords(bitstream, 0);
     }
 
     @Test
@@ -560,19 +519,19 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod("3 months")
+                .withEmbargoPeriod(Period.ofMonths(3))
                 .build();
         }
-            context.restoreAuthSystemState();
+        context.restoreAuthSystemState();
 
-            String authToken = getAuthToken(eperson.getEmail(), password);
-            getClient(authToken).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                       .andExpect(status().isForbidden());
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                            .andExpect(status().isForbidden());
 
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                       .andExpect(status().isUnauthorized());
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                   .andExpect(status().isUnauthorized());
 
-            checkNumberOfStatsRecords(bitstream, 0);
+        checkNumberOfStatsRecords(bitstream, 0);
     }
 
     @Test
@@ -603,21 +562,21 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod("-3 months")
+                .withEmbargoPeriod(Period.ofMonths(-3))
                 .build();
         }
-            context.restoreAuthSystemState();
+        context.restoreAuthSystemState();
 
-            // all  are allowed access to item with embargoed expired
+        // all  are allowed access to item with embargoed expired
 
-            String authToken = getAuthToken(eperson.getEmail(), password);
-            getClient(authToken).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                       .andExpect(status().isOk());
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                            .andExpect(status().isOk());
 
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                       .andExpect(status().isOk());
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                   .andExpect(status().isOk());
 
-            checkNumberOfStatsRecords(bitstream, 2);
+        checkNumberOfStatsRecords(bitstream, 2);
     }
 
     @Test
@@ -681,7 +640,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                     .withName("Bitstream")
                     .withDescription("Description")
                     .withMimeType("text/plain")
-                    .withEmbargoPeriod("2 week")
+                    .withEmbargoPeriod(Period.ofWeeks(2))
                     .build();
         }
         context.restoreAuthSystemState();
@@ -737,7 +696,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         String bitstreamContent = "Private!";
         try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
 
-             bitstream = BitstreamBuilder
+            bitstream = BitstreamBuilder
                 .createBitstream(context, publicItem1, is)
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
@@ -745,18 +704,15 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withReaderGroup(internalGroup)
                 .build();
         }
-            context.restoreAuthSystemState();
-            //** WHEN **
-            //We download the bitstream
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //We download the bitstream
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                   //** THEN **
+                   .andExpect(status().isUnauthorized());
 
-                       //** THEN **
-                       .andExpect(status().isUnauthorized());
-
-            //An unauthorized request should not log statistics
-            checkNumberOfStatsRecords(bitstream, 0);
-
-
+        //An unauthorized request should not log statistics
+        checkNumberOfStatsRecords(bitstream, 0);
     }
 
     @Test
@@ -845,24 +801,24 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withReaderGroup(restrictedGroup)
                 .build();
         }
-            context.restoreAuthSystemState();
-            // download the bitstream
-            // eperson that belong to restricted group is allowed access to the item
-            String authToken = getAuthToken(eperson.getEmail(), password);
-            getClient(authToken).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                                .andExpect(status().isOk());
+        context.restoreAuthSystemState();
+        // download the bitstream
+        // eperson that belong to restricted group is allowed access to the item
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                            .andExpect(status().isOk());
 
-            checkNumberOfStatsRecords(bitstream, 1);
+        checkNumberOfStatsRecords(bitstream, 1);
 
-            String tokenEPerson2 = getAuthToken(eperson2.getEmail(), "qwerty02");
-            getClient(tokenEPerson2).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+        String tokenEPerson2 = getAuthToken(eperson2.getEmail(), "qwerty02");
+        getClient(tokenEPerson2).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
                                 .andExpect(status().isForbidden());
 
-            // Anonymous users CANNOT access/download Bitstreams that are restricted
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                                .andExpect(status().isUnauthorized());
+        // Anonymous users CANNOT access/download Bitstreams that are restricted
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                   .andExpect(status().isUnauthorized());
 
-            checkNumberOfStatsRecords(bitstream, 1);
+        checkNumberOfStatsRecords(bitstream, 1);
     }
 
     @Test
@@ -993,31 +949,31 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withReaderGroup(restrictedGroup)
                 .build();
         }
-            context.restoreAuthSystemState();
-            // download the bitstream
-            // parent community's admin user is allowed access to the item belong restricted group
-            String tokenAdminParentCommuity = getAuthToken(adminParentCommunity.getEmail(), "qwerty00");
-            getClient(tokenAdminParentCommuity).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                                .andExpect(status().isOk());
+        context.restoreAuthSystemState();
+        // download the bitstream
+        // parent community's admin user is allowed access to the item belong restricted group
+        String tokenAdminParentCommuity = getAuthToken(adminParentCommunity.getEmail(), "qwerty00");
+        getClient(tokenAdminParentCommuity).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                                           .andExpect(status().isOk());
 
-            // collection1's admin user is allowed access to the item belong restricted group
-            String tokenAdminCol1 = getAuthToken(adminCol1.getEmail(), "qwerty01");
-            getClient(tokenAdminCol1).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                                .andExpect(status().isOk());
+        // collection1's admin user is allowed access to the item belong restricted group
+        String tokenAdminCol1 = getAuthToken(adminCol1.getEmail(), "qwerty01");
+        getClient(tokenAdminCol1).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                                 .andExpect(status().isOk());
 
-            checkNumberOfStatsRecords(bitstream, 2);
+        checkNumberOfStatsRecords(bitstream, 2);
 
-            // collection2's admin user is NOT allowed access to the item belong collection1
-            String tokenAdminCol2 = getAuthToken(adminCol2.getEmail(), "qwerty02");
-            getClient(tokenAdminCol2).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                                .andExpect(status().isForbidden());
+        // collection2's admin user is NOT allowed access to the item belong collection1
+        String tokenAdminCol2 = getAuthToken(adminCol2.getEmail(), "qwerty02");
+        getClient(tokenAdminCol2).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                                 .andExpect(status().isForbidden());
 
-            // child1's admin user is NOT allowed access to the item belong collection1
-            String tokenAdminChild1 = getAuthToken(adminChild1.getEmail(), "qwerty05");
-            getClient(tokenAdminChild1).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
-                                .andExpect(status().isForbidden());
+        // child1's admin user is NOT allowed access to the item belong collection1
+        String tokenAdminChild1 = getAuthToken(adminChild1.getEmail(), "qwerty05");
+        getClient(tokenAdminChild1).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+                                   .andExpect(status().isForbidden());
 
-            checkNumberOfStatsRecords(bitstream, 2);
+        checkNumberOfStatsRecords(bitstream, 2);
     }
 
     // Verify number of hits/views of Bitstream is as expected
@@ -1043,8 +999,8 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         //** GIVEN **
         //1. A community-collection structure with one parent community and one collections.
         parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Parent Community")
-                                          .build();
+                .withName("Parent Community")
+                .build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
 
@@ -1054,17 +1010,17 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         try (InputStream is = new FileInputStream(originalPdf)) {
 
             Item publicItem1 = ItemBuilder.createItem(context, col1)
-                                          .withTitle("Public item citation cover page test 1")
-                                          .withIssueDate("2017-10-17")
-                                          .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                                          .build();
+                    .withTitle("Public item citation cover page test 1")
+                    .withIssueDate("2017-10-17")
+                    .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                    .build();
 
             bitstream = BitstreamBuilder
-                .createBitstream(context, publicItem1, is)
-                .withName("Test bitstream")
-                .withDescription("This is a bitstream to test the citation cover page.")
-                .withMimeType("application/pdf")
-                .build();
+                    .createBitstream(context, publicItem1, is)
+                    .withName("Test bitstream")
+                    .withDescription("This is a bitstream to test the citation cover page.")
+                    .withMimeType("application/pdf")
+                    .build();
         }
         context.restoreAuthSystemState();
         //** WHEN **
@@ -1074,12 +1030,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                                     //** THEN **
                                     .andExpect(status().isOk())
 
-                                    //The Content Length must match the full length
+                                    // exact content-length and etag values are verified in s separate test
                                     .andExpect(header().string("Content-Length", not(nullValue())))
+                                    .andExpect(header().string("ETag", not(nullValue())))
                                     //The server should indicate we support Range requests
                                     .andExpect(header().string("Accept-Ranges", "bytes"))
-                                    //The ETag has to be based on the checksum
-                                    .andExpect(header().string("ETag", "\"" + bitstream.getChecksum() + "\""))
                                     //We expect the content type to match the bitstream mime type
                                     .andExpect(content().contentType("application/pdf;charset=UTF-8"))
                                     //THe bytes of the content must match the original content
@@ -1133,8 +1088,8 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         resourcePolicyService.removePolicies(context, bitstream.getBundles().get(0), READ);
 
         getClient()
-            .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/format"))
-            .andExpect(status().isUnauthorized());
+                .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/format"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -1144,44 +1099,44 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         resourcePolicyService.removePolicies(context, bitstream.getBundles().get(0), READ);
 
         getClient(getAuthToken(eperson.getEmail(), password))
-            .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/format"))
-            .andExpect(status().isForbidden());
+                .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/format"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     public void getBitstreamFormat() throws Exception {
 
         getClient()
-            .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/format"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$", matchBitstreamFormat(
-                supportedFormat.getID(),
-                supportedFormat.getMIMEType(),
-                supportedFormat.getDescription(),
-                supportedFormat.getShortDescription(),
-                "SUPPORTED"
-            )));
+                .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/format"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", matchBitstreamFormat(
+                        supportedFormat.getID(),
+                        supportedFormat.getMIMEType(),
+                        supportedFormat.getDescription(),
+                        supportedFormat.getShortDescription(),
+                        "SUPPORTED"
+                )));
     }
 
     @Test
     public void updateBitstreamFormatBadRequest() throws Exception {
 
         getClient(getAuthToken(admin.getEmail(), password)).perform(
-            put("/api/core/bitstreams/" + bitstream.getID() + "/format")
-                .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
-                .content(
-                    REST_SERVER_URL + "/api/core/bitstreamformat/-1"
-                )
+                put("/api/core/bitstreams/" + bitstream.getID() + "/format")
+                        .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
+                        .content(
+                                REST_SERVER_URL + "/api/core/bitstreamformat/-1"
+                        )
         ).andExpect(status().isBadRequest());
 
         getClient(getAuthToken(admin.getEmail(), password)).perform(
-            put("/api/core/bitstreams/" + bitstream.getID() + "/format")
-                .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
-                .content(
-                    REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID() + "\n"
-                        + REST_SERVER_URL + "/api/core/bitstreamformat/"
-                        + supportedFormat.getID()
-                )
+                put("/api/core/bitstreams/" + bitstream.getID() + "/format")
+                        .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
+                        .content(
+                                REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID() + "\n"
+                                        + REST_SERVER_URL + "/api/core/bitstreamformat/"
+                                        + supportedFormat.getID()
+                        )
         ).andExpect(status().isBadRequest());
     }
 
@@ -1189,11 +1144,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     public void updateBitstreamFormatNotFound() throws Exception {
 
         getClient(getAuthToken(admin.getEmail(), password)).perform(
-            put("/api/core/bitstreams/" + randomUUID() + "/format")
-                .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
-                .content(
-                    REST_SERVER_URL + "/api/core/bitstreamformat/" + unknownFormat.getID()
-                )
+                put("/api/core/bitstreams/" + randomUUID() + "/format")
+                        .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
+                        .content(
+                                REST_SERVER_URL + "/api/core/bitstreamformat/" + unknownFormat.getID()
+                        )
         ).andExpect(status().isNotFound());
     }
 
@@ -1201,11 +1156,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     public void updateBitstreamFormatUnauthorized() throws Exception {
 
         getClient().perform(
-            put("/api/core/bitstreams/" + bitstream.getID() + "/format")
-                .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
-                .content(
-                    REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID()
-                )
+                put("/api/core/bitstreams/" + bitstream.getID() + "/format")
+                        .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
+                        .content(
+                                REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID()
+                        )
         ).andExpect(status().isUnauthorized());
     }
 
@@ -1213,11 +1168,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     public void updateBitstreamFormatForbidden() throws Exception {
 
         getClient(getAuthToken(eperson.getEmail(), password)).perform(
-            put("/api/core/bitstreams/" + bitstream.getID() + "/format")
-                .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
-                .content(
-                    REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID()
-                )
+                put("/api/core/bitstreams/" + bitstream.getID() + "/format")
+                        .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
+                        .content(
+                                REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID()
+                        )
         ).andExpect(status().isForbidden());
     }
 
@@ -1227,25 +1182,25 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         context.turnOffAuthorisationSystem();
 
         createResourcePolicy(context, eperson, null)
-            .withAction(WRITE)
-            .withDspaceObject(bitstream)
-            .build();
+                .withAction(WRITE)
+                .withDspaceObject(bitstream)
+                .build();
 
         context.restoreAuthSystemState();
 
         getClient(getAuthToken(eperson.getEmail(), password)).perform(
-            put("/api/core/bitstreams/" + bitstream.getID() + "/format")
-                .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
-                .content(
-                    REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID()
-                )
+                put("/api/core/bitstreams/" + bitstream.getID() + "/format")
+                        .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
+                        .content(
+                                REST_SERVER_URL + "/api/core/bitstreamformat/" + knownFormat.getID()
+                        )
         ).andExpect(status().isOk());
 
         bitstream = context.reloadEntity(bitstream);
 
         assertThat(knownFormat, equalTo(bitstream.getFormat(context)));
         assertTrue(isEmpty(
-            bitstreamService.getMetadataByMetadataString(bitstream, "dc.format")
+                bitstreamService.getMetadataByMetadataString(bitstream, "dc.format")
         ));
     }
 
@@ -1257,21 +1212,20 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         context.restoreAuthSystemState();
 
         getClient(getAuthToken(admin.getEmail(), password)).perform(
-            put("/api/core/bitstreams/" + bitstream.getID() + "/format")
-                .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
-                .content(
-                    REST_SERVER_URL + "/api/core/bitstreamformat/" + unknownFormat.getID()
-                )
+                put("/api/core/bitstreams/" + bitstream.getID() + "/format")
+                        .contentType(parseMediaType(TEXT_URI_LIST_VALUE))
+                        .content(
+                                REST_SERVER_URL + "/api/core/bitstreamformat/" + unknownFormat.getID()
+                        )
         ).andExpect(status().isOk());
 
         bitstream = context.reloadEntity(bitstream);
 
         assertThat(unknownFormat, equalTo(bitstream.getFormat(context)));
         assertTrue(isEmpty(
-            bitstreamService.getMetadataByMetadataString(bitstream, "dc.format")
+                bitstreamService.getMetadataByMetadataString(bitstream, "dc.format")
         ));
     }
-
 
     @Test
     public void closeInputStreamsRegularDownload() throws Exception {
@@ -1428,7 +1382,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Embargoed Bitstream")
                 .withDescription("This bitstream is embargoed")
                 .withMimeType("text/plain")
-                .withEmbargoPeriod("6 months")
+                .withEmbargoPeriod(Period.ofMonths(6))
                 .build();
         }
         context.restoreAuthSystemState();
@@ -1461,7 +1415,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         // unauthorized request should not log statistics so we have only 2 successful visits
         checkNumberOfStatsRecords(bitstream, 2);
     }
-
 
     @Test
     public void checkContentDispositionOfFormats() throws Exception {
@@ -1564,7 +1517,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             csv = BitstreamBuilder.createBitstream(context, item, is)
                                   .withMimeType("text/csv").build();
             jpg = BitstreamBuilder.createBitstream(context, item, is)
-                                   .withMimeType("image/jpeg").build();
+                                  .withMimeType("image/jpeg").build();
             mpg = BitstreamBuilder.createBitstream(context, item, is)
                                   .withMimeType("video/mpeg").build();
             pdf = BitstreamBuilder.createBitstream(context, item, is)
@@ -1578,7 +1531,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         verifyBitstreamDownload(mpg, "video/mpeg;charset=UTF-8", true);
         verifyBitstreamDownload(pdf, "application/pdf;charset=UTF-8", true);
     }
-
 
     private void verifyBitstreamDownload(Bitstream file, String contentType, boolean shouldDownload) throws Exception {
         String token = getAuthToken(admin.getEmail(), password);
@@ -1614,14 +1566,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                     .andExpect(header().longValue("Content-Length", originalLength))
                     .andExpect(header().string("ETag", "\"" + originalMd5 + "\""));
         });
-    }
-
-    private static String md5Checksum(File file) throws IOException {
-        final String md5;
-        try (InputStream is = new FileInputStream(file)) {
-            md5 = DigestUtils.md5Hex(is);
-        }
-        return md5;
     }
 
     @Test
@@ -1662,11 +1606,6 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
 
             assertThat(etag1, equalTo(etag2));
         });
-    }
-
-    @FunctionalInterface
-    interface ThrowingConsumer<T> {
-        void accept(T t) throws Exception;
     }
 
     private void givenPdf(boolean coverPageEnabled, ThrowingConsumer<File> block) {
@@ -1838,11 +1777,38 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
                 .build();
         }
 
-        // Setup S3Mock - this creates a real S3-compatible server for integration testing
-        setupS3Mock();
+        // Create a new S3BitStoreService configured with the mock S3 client
+        // Use static credentials for S3Mock compatibility (required for SigV4 signatures)
+        Class<S3BitStoreService> s3Class = S3BitStoreService.class;
+        java.lang.reflect.Constructor<S3BitStoreService> constructor =
+            s3Class.getDeclaredConstructor(S3AsyncClient.class);
+        constructor.setAccessible(true);
+        S3BitStoreService s3BitStoreService = constructor.newInstance(s3AsyncClient);
+
+        s3BitStoreService.setS3ChecksumAlgorithm(ChecksumAlgorithm.SHA256);
+        s3BitStoreService.setEnabled(true);
+
+        // Set the endpoint and credentials so init() creates the presigner with correct mock endpoint
+        s3BitStoreService.setBuilder(
+            AWSS3ClientBuilder.builder()
+                .setEndpoint("http://127.0.0.1:" + s3Mock.getHttpServerPort())
+                .setRegion(Region.of("us-east-1"))
+                .setCredentialsProvider(BitstreamRestControllerIT::testCredentials)
+        );
+
+        s3BitStoreService.init();
+
+        // Replace store number 1 in the BitstreamStorageService with our mock S3 store
+        Map<Integer, org.dspace.storage.bitstore.BitStoreService> stores =
+            (Map<Integer, org.dspace.storage.bitstore.BitStoreService>)
+                ReflectionTestUtils.getField(bitstreamStorageService, "stores");
+
+        if (stores != null) {
+            stores.put(1, s3BitStoreService);
+        }
 
         // Actually store the bitstream content in the S3Mock
-        mockS3BitStoreService.put(dummyBitstream, IOUtils.toInputStream("Test Content", CharEncoding.UTF_8));
+        s3BitStoreService.put(dummyBitstream, IOUtils.toInputStream("Test Content", CharEncoding.UTF_8));
 
         context.restoreAuthSystemState();
 
@@ -1858,6 +1824,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             // Always clean up S3Mock
             tearDownS3Mock();
         }
+    }
+
+    private static @NonNull AwsCredentialsProvider testCredentials() {
+        return AWSCredentialsProviderBuilder
+            .basic("test-access-key", "test-secret-key");
     }
 
     @Test
@@ -1893,6 +1864,33 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void testGetPresignedUrl_LogsStatisticsEvent() throws Exception {
+        // Grant READ access to eperson
+        context.turnOffAuthorisationSystem();
+        createResourcePolicy(context, eperson, null)
+            .withAction(READ)
+            .withDspaceObject(bitstream)
+            .build();
+        context.restoreAuthSystemState();
+
+        // Verify no stats records exist yet
+        checkNumberOfStatsRecords(bitstream, 0);
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/signedurl"));
+
+        // Verify that a statistics record was logged
+        checkNumberOfStatsRecords(bitstream, 1);
+
+        // Call again to verify it increments
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/signedurl"));
+
+        checkNumberOfStatsRecords(bitstream, 2);
+    }
+
+    @Test
     public void testGetPresignedUrl_PresignedUrlNotAvailable() throws Exception {
         // Grant READ access to eperson
         context.turnOffAuthorisationSystem();
@@ -1907,5 +1905,11 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
             .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/signedurl"))
             .andExpect(status().isNotFound());
     }
+
+    @FunctionalInterface
+    interface ThrowingConsumer<T> {
+        void accept(T t) throws Exception;
+    }
+
 
 }
