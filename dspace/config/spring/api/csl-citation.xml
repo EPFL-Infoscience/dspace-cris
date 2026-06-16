@@ -21,7 +21,8 @@
         <property name="issued" value="dc.date.issued"/>
         <property name="author" value="dc.contributor.author"/>
         <property name="editor" value="dc.contributor.scientificeditor"/>
-        <property name="director" value="dc.contributor.advisor"/>
+<!--        <property name="director" value="dc.contributor.advisor"/>-->
+        <property name="editorialDirector" ref="advisorRules"/>
         <property name="pageFirst" value="oaire.citation.startPage"/>
         <property name="collectionTitle" value="dc.relation.ispartofseries"/>
         <property name="note" value="dc.description.notes"/>
@@ -170,5 +171,21 @@
         <property name="useSplit" value="true"/>
         <property name="splitSeparator" value=":"/>
         <property name="chunkPosition" value="1"/>
+    </bean>
+
+    <bean id="advisorRules" class="org.dspace.content.integration.crosswalks.csl.MetadataMergeRuleWithMapping">
+        <property name="separator" value=", "/>
+        <property name="replacementRegex" value="^,|,$"/>
+        <property name="replacementValue" value="" />
+        <property name="onlyFirstValues" value="true"/>
+        <property name="mapping">
+            <map>
+                <entry key="thesis">
+                    <list>
+                        <value>dc.contributor.advisor</value>
+                    </list>
+                </entry>
+            </map>
+        </property>
     </bean>
 </beans>
