@@ -332,6 +332,60 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    public void testEditorialDirectorIsPresentWhenTypeResolvesToThesis() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::thesis")
+            .withTitle("Thesis title")
+            .withIssueDate("2021-07-01")
+            .withMetadata("dc", "contributor", "advisor", "Doe, Jane")
+            .withHandle("123456789/0100")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"editorial-director\""));
+        assertThat(citation, containsString("\"family\": \"Doe\""));
+        assertThat(citation, containsString("\"given\": \"Jane\""));
+    }
+
+    @Test
+    public void testEditorialDirectorIsNotPresentWhenTypeDoesNotResolveToThesis() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::report")
+            .withTitle("Report title")
+            .withIssueDate("2021-07-01")
+            .withMetadata("dc", "contributor", "advisor", "Doe, Jane")
+            .withHandle("123456789/0101")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, not(containsString("\"editorial-director\"")));
+    }
+
+    @Test
     public void testSingleItemApaNoGenreDisseminate() throws Exception {
         context.turnOffAuthorisationSystem();
 

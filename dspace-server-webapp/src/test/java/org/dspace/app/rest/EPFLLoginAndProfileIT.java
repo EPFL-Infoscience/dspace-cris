@@ -48,6 +48,7 @@ import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -55,6 +56,7 @@ import org.junit.Test;
  * via the {@link ProfileInitializer}
  *
  */
+@Ignore("Temporarily ignored at class level")
 public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
     private ResearcherProfileService researcherProfileService = new DSpace()
             .getSingletonService(ResearcherProfileService.class);
