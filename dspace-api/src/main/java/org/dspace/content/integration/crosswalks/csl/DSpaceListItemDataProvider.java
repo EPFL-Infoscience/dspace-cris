@@ -68,7 +68,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private String containerAuthor;
     private String director;
     private String editor;
-    private String editorialDirector;
+    private MetadataMergeRuleWithMapping editorialDirector;
     private String interviewer;
     private String illustrator;
     private String originalAuthor;
@@ -174,9 +174,8 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     }
 
     protected CSLItemDataBuilder handleStringFields(Item item, CSLItemDataBuilder itemBuilder) {
-        String typeValue = getTypeValue(type, item);
+        final String typeValue = getTypeValue(type, item);
 
-        CSLType cslType = getPublicationType(getMetadataFirstValue(item, type));
         consumeMetadataIfNotBlank(type, item, value -> itemBuilder.type(getPublicationType(value)));
         consumeIfNotBlank(categories, value -> itemBuilder.categories(getMetadataValues(item, value)));
         consumeMetadataIfNotBlank(language, item, value -> itemBuilder.language(value));
@@ -203,17 +202,17 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeMetadataIfNotBlank(eventPlace, item, value -> itemBuilder.eventPlace(value));
         consumeMetadataIfNotBlank(firstReferenceNoteNumber, item,
                 value -> itemBuilder.firstReferenceNoteNumber(value));
-        if (cslType != null) {
+        if (typeValue != null) {
             consumeMetadataIfNotBlank(publisher, item, value -> itemBuilder.publisher(value));
             consumePageMetadataIfNotBlank(pageFirst, page, item, itemBuilder::page);
             consumeMetadataValueIfNotBlank(() ->
-                            authority != null ? authority.getValue(item, cslType.toString()) : null,
+                            authority != null ? authority.getValue(item, typeValue) : null,
                     item, value -> itemBuilder.authority(value.get()));
             consumeMetadataValueIfNotBlank(() ->
-                            jurisdiction != null ? jurisdiction.getValue(item, cslType.toString()) : null,
+                            jurisdiction != null ? jurisdiction.getValue(item, typeValue) : null,
                     item, value -> itemBuilder.jurisdiction(value.get()));
             consumeMetadataValueIfNotBlank(() ->
-                            containerTitle != null ? containerTitle.getValue(item, cslType.toString()) : null,
+                            containerTitle != null ? containerTitle.getValue(item, typeValue) : null,
                     item, value -> itemBuilder.containerTitle(value.get()));
         }
         consumeMetadataValueIfNotBlank(() -> genre != null ? genre.getValue(item) : null, item,
@@ -275,7 +274,6 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     }
 
     protected CSLItemDataBuilder handleCslNameFields(Item item, CSLItemDataBuilder itemBuilder) {
-
         consumeCSLNamesIfNotBlank(author, item, names -> itemBuilder.author(names));
         consumeCSLNamesIfNotBlank(collectionEditor, item, names -> itemBuilder.collectionEditor(names));
         consumeCSLNamesIfNotBlank(composer, item, names -> itemBuilder.composer(names));
@@ -283,13 +281,17 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeCSLNamesIfNotBlank(contributor, item, names -> itemBuilder.contributor(names));
         consumeCSLNamesIfNotBlank(director, item, names -> itemBuilder.director(names));
         consumeCSLNamesIfNotBlank(editor, item, names -> itemBuilder.editor(names));
-        consumeCSLNamesIfNotBlank(editorialDirector, item, names -> itemBuilder.editorialDirector(names));
         consumeCSLNamesIfNotBlank(interviewer, item, names -> itemBuilder.interviewer(names));
         consumeCSLNamesIfNotBlank(illustrator, item, names -> itemBuilder.illustrator(names));
         consumeCSLNamesIfNotBlank(originalAuthor, item, names -> itemBuilder.originalAuthor(names));
         consumeCSLNamesIfNotBlank(recipient, item, names -> itemBuilder.recipient(names));
         consumeCSLNamesIfNotBlank(reviewedAuthor, item, names -> itemBuilder.reviewedAuthor(names));
         consumeCSLNamesIfNotBlank(translator, item, names -> itemBuilder.translator(names));
+        String typeValue = getTypeValue(type, item);
+        if (typeValue != null) {
+            consumeCSLNameValueIfNotBlank(editorialDirector != null ? editorialDirector.getValue(item, typeValue)
+                    : null, itemBuilder::editorialDirector);
+        }
 
         return itemBuilder;
     }
@@ -445,6 +447,12 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         }
     }
 
+    private void consumeCSLNameValueIfNotBlank(String value, Consumer<CSLName[]> consumer) {
+        if (StringUtils.isNotBlank(value)) {
+            consumer.accept(new CSLName[] { toCSLName(new DCPersonName(value)) });
+        }
+    }
+
     private void consumeDateIfNotBlank(String value, Item item, Consumer<CSLDate> consumer) {
 
         if (StringUtils.isBlank(value)) {
@@ -537,7 +545,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         return editor;
     }
 
-    public String getEditorialDirector() {
+    public MetadataMergeRuleWithMapping getEditorialDirector() {
         return editorialDirector;
     }
 
@@ -849,7 +857,7 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         this.editor = editor;
     }
 
-    public void setEditorialDirector(String editorialDirector) {
+    public void setEditorialDirector(MetadataMergeRuleWithMapping editorialDirector) {
         this.editorialDirector = editorialDirector;
     }
 
