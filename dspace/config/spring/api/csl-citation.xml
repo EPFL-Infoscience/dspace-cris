@@ -16,7 +16,7 @@
         <property name="publisherPlace" value="dc.publisher.place"/>
         <property name="volume" value="oaire.citation.volume"/>
         <property name="issue" value="oaire.citation.issue"/>
-        <property name="eventTitle" value="dc.relation.conference"/>
+        <property name="event" value="dc.relation.conference"/>
         <property name="title" value="dc.title"/>
         <property name="issued" value="dc.date.issued"/>
         <property name="author" value="dc.contributor.author"/>
