@@ -52,8 +52,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.file.Files;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,7 +61,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.adobe.testing.s3mock.testcontainers.S3MockContainer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
@@ -104,7 +103,6 @@ import org.dspace.storage.bitstore.AWSS3ClientBuilder;
 import org.dspace.storage.bitstore.S3BitStoreService;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
-import org.jspecify.annotations.NonNull;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -1826,7 +1824,7 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         }
     }
 
-    private static @NonNull AwsCredentialsProvider testCredentials() {
+    private static AwsCredentialsProvider testCredentials() {
         return AWSCredentialsProviderBuilder
             .basic("test-access-key", "test-secret-key");
     }
