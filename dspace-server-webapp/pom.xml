@@ -788,7 +788,7 @@
         <dependency>
             <groupId>com.adobe.testing</groupId>
             <artifactId>s3mock-testcontainers</artifactId>
-            <version>4.8.0</version>
+            <version>2.17.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
