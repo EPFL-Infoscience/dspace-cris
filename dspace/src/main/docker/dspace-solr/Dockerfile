@@ -11,8 +11,9 @@
 # This will be published as dspace/dspace-solr:$DSPACE_VERSION
 
 ARG SOLR_VERSION=8.11
+ARG DOCKER_REGISTRY=docker.io
 
-FROM solr:${SOLR_VERSION}-slim
+FROM ${DOCKER_REGISTRY}/solr:${SOLR_VERSION}-slim
 
 ENV AUTHORITY_CONFIGSET_PATH=/opt/solr/server/solr/configsets/authority/conf \
     OAI_CONFIGSET_PATH=/opt/solr/server/solr/configsets/oai/conf \
