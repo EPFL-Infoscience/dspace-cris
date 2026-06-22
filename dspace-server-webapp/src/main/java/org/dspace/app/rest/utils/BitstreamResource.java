@@ -39,23 +39,24 @@ import org.springframework.util.DigestUtils;
  */
 public class BitstreamResource extends AbstractResource {
 
-    static final Logger LOG = LogManager.getLogger(BitstreamResource.class);
+    private static final Logger LOG = LogManager.getLogger(BitstreamResource.class);
 
-    protected final String name;
-    protected final UUID uuid;
-    protected final UUID currentUserUUID;
-    protected final boolean shouldGenerateCoverPage;
-    protected boolean skipAuthCheck;
-    protected byte[] file;
-    protected final Set<UUID> currentSpecialGroups;
+    private final String name;
+    private final UUID uuid;
+    private final UUID currentUserUUID;
+    private final boolean shouldGenerateCoverPage;
+    private final boolean skipAuthCheck;
+    private final Set<UUID> currentSpecialGroups;
 
-    protected final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-    protected final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-    protected final CitationDocumentService citationDocumentService =
-            new DSpace().getServiceManager()
-                    .getServicesByType(CitationDocumentService.class).get(0);
+    private final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+    private final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    private final CitationDocumentService citationDocumentService =
+        new DSpace().getServiceManager()
+            .getServicesByType(CitationDocumentService.class).get(0);
 
-    protected BitstreamDocument document;
+    private String documentEtag;
+    private long documentLength;
+    private InputStream documentInputStream = null;
 
     public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
         boolean shouldGenerateCoverPage, boolean skipAuth) {
@@ -75,18 +76,15 @@ public class BitstreamResource extends AbstractResource {
      * @param bitstream the pdf for which we want to generate a coverpage
      * @return a byte array containing the cover page
      */
-    byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
+    private byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
         throws IOException, SQLException, AuthorizeException {
-        if (file == null) {
-            try {
-                Pair<byte[], Long> citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
-                this.file = citedDocument.getLeft();
-            } catch (Exception e) {
-                // Return the original bitstream without the cover page
-                this.file = IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
-            }
+        try {
+            var citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
+            return citedDocument.getLeft();
+        } catch (Exception e) {
+            LOG.warn("Could not generate cover page. Will fallback to original document", e);
+            return IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
         }
-        return file;
     }
 
     @Override
@@ -98,7 +96,7 @@ public class BitstreamResource extends AbstractResource {
     public InputStream getInputStream() throws IOException {
         fetchDocument();
 
-        return document.getInputStream();
+        return this.documentInputStream;
     }
 
     @Override
@@ -107,20 +105,20 @@ public class BitstreamResource extends AbstractResource {
     }
 
     @Override
-    public long contentLength() throws IOException {
+    public long contentLength() {
         fetchDocument();
 
-        return document.getLength();
+        return this.documentLength;
     }
 
     public String getChecksum() {
         fetchDocument();
 
-        return document.getEtag();
+        return this.documentEtag;
     }
 
-    void fetchDocument() {
-        if (document != null) {
+    private void fetchDocument() {
+        if (this.documentInputStream != null) {
             return;
         }
 
@@ -132,19 +130,19 @@ public class BitstreamResource extends AbstractResource {
             if (shouldGenerateCoverPage) {
                 var coverPage = getCoverpageByteArray(context, bitstream);
 
-                this.document = new BitstreamDocument(etag(bitstream),
-                        coverPage.length,
-                        new ByteArrayInputStream(coverPage));
+                this.documentEtag = etag(bitstream);
+                this.documentLength = coverPage.length;
+                this.documentInputStream = new ByteArrayInputStream(coverPage);
             } else {
-                this.document = new BitstreamDocument(bitstream.getChecksum(),
-                        bitstream.getSizeBytes(),
-                        bitstreamService.retrieve(context, bitstream));
+                this.documentEtag = bitstream.getChecksum();
+                this.documentLength = bitstream.getSizeBytes();
+                this.documentInputStream = bitstreamService.retrieve(context, bitstream);
             }
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
         }
 
-        LOG.debug("fetched document {} {}", shouldGenerateCoverPage, document);
+        LOG.debug("fetched document {} {} {}", shouldGenerateCoverPage, this.documentEtag, this.documentLength);
     }
 
     String etag(Bitstream bitstream) {
@@ -166,42 +164,11 @@ public class BitstreamResource extends AbstractResource {
         return builder.toString();
     }
 
-    Context initializeContext() throws SQLException {
+    private Context initializeContext() throws SQLException {
         Context context = new Context();
         EPerson currentUser = ePersonService.find(context, currentUserUUID);
         context.setCurrentUser(currentUser);
         currentSpecialGroups.forEach(context::setSpecialGroup);
         return context;
-    }
-
-    /**
-     * Replaces the use of record to be java 11 compatible
-     * Represents a document in the form of a bitstream, encapsulating metadata and content.
-     * This class is immutable.
-     */
-    public final class BitstreamDocument {
-        private final String etag;
-        private final long length;
-        private final InputStream inputStream;
-
-
-        public BitstreamDocument(String etag, long length, InputStream inputStream) {
-            this.etag = etag;
-            this.length = length;
-            this.inputStream = inputStream;
-        }
-
-        public String getEtag() {
-            return etag;
-        }
-
-        public long getLength() {
-            return length;
-        }
-
-        public InputStream getInputStream() {
-            return inputStream;
-        }
-
     }
 }

@@ -96,6 +96,7 @@ public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
     @BeforeClass
     public static void setupS3() {
         localstackContainer.start();
+        s3URI = localstackContainer.getEndpoint();
 
         s3AsyncClient = S3AsyncClient.crtBuilder()
                 .endpointOverride(localstackContainer.getEndpoint())

@@ -200,13 +200,13 @@ public class BitstreamRestController {
 
             // Set http headers
             HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
-                    .withBufferSize(BUFFER_SIZE)
-                    .withFileName(name)
-                    .withChecksum(bitstreamResource.getChecksum())
-                    .withLength(bitstreamResource.contentLength())
-                    .withMimetype(mimetype)
-                    .with(request)
-                    .with(response);
+                .withBufferSize(BUFFER_SIZE)
+                .withFileName(name)
+                .withChecksum(bitstreamResource.getChecksum())
+                .withLength(bitstreamResource.contentLength())
+                .withMimetype(mimetype)
+                .with(request)
+                .with(response);
 
             // Set last modified in headers
             if (lastModified != null) {
@@ -399,6 +399,14 @@ public class BitstreamRestController {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return null;
         }
+
+        // Fire a download/view event for Solr statistics
+        eventService.fireEvent(
+            new UsageEvent(
+                UsageEvent.Action.VIEW,
+                request,
+                context,
+                bitstream));
 
         try {
             String presignedUrl = bitstreamStorageService.getPresignedUrl(context, bitstream);
