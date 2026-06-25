@@ -109,6 +109,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -1902,6 +1904,348 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         getClient(authToken)
             .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/signedurl"))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testContent_RedirectToPresignedUrl() throws Exception {
+        //** GIVEN **
+        // Setup S3-backed bitstream so presigned URL is available
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream s3Bitstream;
+        try (InputStream is = IOUtils.toInputStream("Redirected Content", CharEncoding.UTF_8)) {
+            s3Bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/plain").build();
+            s3Bitstream.setStoreNumber(1);
+
+            createResourcePolicy(context, eperson, null)
+                .withAction(READ)
+                .withDspaceObject(s3Bitstream)
+                .build();
+        }
+
+        S3BitStoreService s3Store = configureS3MockStore();
+        s3Store.put(s3Bitstream, IOUtils.toInputStream("Redirected Content", CharEncoding.UTF_8));
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + s3Bitstream.getID() + "/content"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(status().is(HttpStatus.FOUND.value()))
+            .andExpect(header().exists(HttpHeaders.LOCATION));
+    }
+
+    @Test
+    public void testContent_Head_NoRedirect() throws Exception {
+        //** GIVEN **
+        // Setup S3-backed bitstream
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream s3Bitstream;
+        try (InputStream is = IOUtils.toInputStream("HEAD Content", CharEncoding.UTF_8)) {
+            s3Bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/plain").build();
+            s3Bitstream.setStoreNumber(1);
+
+            createResourcePolicy(context, eperson, null)
+                .withAction(READ)
+                .withDspaceObject(s3Bitstream)
+                .build();
+        }
+
+        S3BitStoreService s3Store = configureS3MockStore();
+        s3Store.put(s3Bitstream, IOUtils.toInputStream("HEAD Content", CharEncoding.UTF_8));
+
+        context.restoreAuthSystemState();
+
+        // HEAD request must NOT redirect
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(head("/api/core/bitstreams/" + s3Bitstream.getID() + "/content"))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testContent_LocalStorage_NoRedirect() throws Exception {
+        //** GIVEN **
+        // Bitstream on local storage (default store 0) — its getPresignedUrl() returns null naturally,
+        // so the redirect won't fire and the controller falls through to direct streaming.
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream localBitstream;
+        try (InputStream is = IOUtils.toInputStream("Local Content", CharEncoding.UTF_8)) {
+            localBitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                     .withMimeType("text/plain").build();
+            localBitstream.setStoreNumber(0);
+
+            createResourcePolicy(context, eperson, null)
+                .withAction(READ)
+                .withDspaceObject(localBitstream)
+                .build();
+        }
+
+        context.restoreAuthSystemState();
+
+        // GET should return 200 with direct content (no redirect, local storage returns null presigned URL)
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + localBitstream.getID() + "/content"))
+            .andExpect(status().isOk())
+            .andExpect(content().bytes("Local Content".getBytes()));
+    }
+
+    @Test
+    public void testContent_FallbackWhenPresignedNull() throws Exception {
+        //** GIVEN **
+        // Bitstream on a store type that returns null for getPresignedUrl — fallback to direct stream
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream fallbackBitstream;
+        try (InputStream is = IOUtils.toInputStream("Fallback Content", CharEncoding.UTF_8)) {
+            fallbackBitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                        .withMimeType("text/plain").build();
+            fallbackBitstream.setStoreNumber(0);
+
+            createResourcePolicy(context, eperson, null)
+                .withAction(READ)
+                .withDspaceObject(fallbackBitstream)
+                .build();
+        }
+
+        // Default local storage (store 0) returns null for getPresignedUrl naturally.
+        // The controller will fall through to direct streaming.
+
+        context.restoreAuthSystemState();
+
+        // GET should fallback to direct streaming (200 OK)
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + fallbackBitstream.getID() + "/content"))
+            .andExpect(status().isOk())
+            .andExpect(content().bytes("Fallback Content".getBytes()));
+    }
+
+    @Test
+    public void testContent_AdminBypass_DirectStream() throws Exception {
+        //** GIVEN **
+        // S3-backed bitstream; admin requests with ?authenticationMethod=direct → skip redirect
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream s3Bitstream;
+        try (InputStream is = IOUtils.toInputStream("Admin Bypass Content", CharEncoding.UTF_8)) {
+            s3Bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/plain").build();
+            s3Bitstream.setStoreNumber(1);
+        }
+
+        S3BitStoreService s3Store = configureS3MockStore();
+        s3Store.put(s3Bitstream, IOUtils.toInputStream("Admin Bypass Content", CharEncoding.UTF_8));
+
+        context.restoreAuthSystemState();
+
+        // Admin with bypass param gets direct stream (200)
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken)
+            .perform(get("/api/core/bitstreams/" + s3Bitstream.getID() + "/content")
+                         .param("authenticationMethod", "direct"))
+            .andExpect(status().isOk())
+            .andExpect(content().bytes("Admin Bypass Content".getBytes()));
+    }
+
+    @Test
+    public void testContent_NonAdmin_BypassIgnored() throws Exception {
+        //** GIVEN **
+        // S3-backed bitstream; non-admin with ?authenticationMethod=direct still gets redirect
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream s3Bitstream;
+        try (InputStream is = IOUtils.toInputStream("NonAdmin Bypass", CharEncoding.UTF_8)) {
+            s3Bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/plain").build();
+            s3Bitstream.setStoreNumber(1);
+
+            createResourcePolicy(context, eperson, null)
+                .withAction(READ)
+                .withDspaceObject(s3Bitstream)
+                .build();
+        }
+
+        S3BitStoreService s3Store = configureS3MockStore();
+        s3Store.put(s3Bitstream, IOUtils.toInputStream("NonAdmin Bypass", CharEncoding.UTF_8));
+
+        context.restoreAuthSystemState();
+
+        // Non-admin with bypass param still gets redirect (302)
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + s3Bitstream.getID() + "/content")
+                         .param("authenticationMethod", "direct"))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    public void testContent_Admin_WithoutBypass_StillRedirects() throws Exception {
+        //** GIVEN **
+        // S3-backed bitstream; admin without bypass param still gets redirect
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream s3Bitstream;
+        try (InputStream is = IOUtils.toInputStream("Admin NoBypass", CharEncoding.UTF_8)) {
+            s3Bitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                  .withMimeType("text/plain").build();
+            s3Bitstream.setStoreNumber(1);
+        }
+
+        S3BitStoreService s3Store = configureS3MockStore();
+        s3Store.put(s3Bitstream, IOUtils.toInputStream("Admin NoBypass", CharEncoding.UTF_8));
+
+        context.restoreAuthSystemState();
+
+        // Admin without bypass param still gets redirect (302)
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken)
+            .perform(get("/api/core/bitstreams/" + s3Bitstream.getID() + "/content"))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithTtl_Success() throws Exception {
+        //** GIVEN **
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community community = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, community).build();
+        Item item = ItemBuilder.createItem(context, collection).build();
+
+        Bitstream ttlBitstream;
+        try (InputStream is = IOUtils.toInputStream("TTL Content", CharEncoding.UTF_8)) {
+            ttlBitstream = BitstreamBuilder.createBitstream(context, item, is)
+                                   .withMimeType("text/plain").build();
+            ttlBitstream.setStoreNumber(1);
+
+            createResourcePolicy(context, eperson, null)
+                .withAction(READ)
+                .withDspaceObject(ttlBitstream)
+                .build();
+        }
+
+        S3BitStoreService s3Store = configureS3MockStore();
+        s3Store.put(ttlBitstream, IOUtils.toInputStream("TTL Content", CharEncoding.UTF_8));
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + ttlBitstream.getID() + "/signedurl")
+                         .param("ttl", "30"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.presignedUrl").exists());
+    }
+
+    @Test
+    public void testGetPresignedUrl_NegativeTtl_BadRequest() throws Exception {
+        //** GIVEN **
+        context.turnOffAuthorisationSystem();
+        createResourcePolicy(context, eperson, null)
+            .withAction(READ)
+            .withDspaceObject(bitstream)
+            .build();
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/signedurl")
+                         .param("ttl", "-1"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testGetPresignedUrl_ZeroTtl_BadRequest() throws Exception {
+        //** GIVEN **
+        context.turnOffAuthorisationSystem();
+        createResourcePolicy(context, eperson, null)
+            .withAction(READ)
+            .withDspaceObject(bitstream)
+            .build();
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/signedurl")
+                         .param("ttl", "0"))
+            .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Configures a S3BitStoreService backed by the S3Mock container and registers it as store 1.
+     * @return the initialized S3BitStoreService
+     */
+    private S3BitStoreService configureS3MockStore() throws Exception {
+        Class<S3BitStoreService> s3Class = S3BitStoreService.class;
+        java.lang.reflect.Constructor<S3BitStoreService> constructor =
+            s3Class.getDeclaredConstructor(S3AsyncClient.class);
+        constructor.setAccessible(true);
+        S3BitStoreService s3BitStoreService = constructor.newInstance(s3AsyncClient);
+
+        s3BitStoreService.setS3ChecksumAlgorithm(ChecksumAlgorithm.SHA256);
+        s3BitStoreService.setEnabled(true);
+        s3BitStoreService.setBuilder(
+            AWSS3ClientBuilder.builder()
+                .setEndpoint("http://127.0.0.1:" + s3Mock.getHttpServerPort())
+                .setRegion(Region.of("us-east-1"))
+                .setCredentialsProvider(BitstreamRestControllerIT::testCredentials)
+        );
+        s3BitStoreService.init();
+
+        Map<Integer, org.dspace.storage.bitstore.BitStoreService> stores =
+            (Map<Integer, org.dspace.storage.bitstore.BitStoreService>)
+                ReflectionTestUtils.getField(bitstreamStorageService, "stores");
+
+        if (stores != null) {
+            stores.put(1, s3BitStoreService);
+        }
+
+        return s3BitStoreService;
     }
 
     @FunctionalInterface

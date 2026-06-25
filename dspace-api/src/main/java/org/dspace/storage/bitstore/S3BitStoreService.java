@@ -531,6 +531,11 @@ public class S3BitStoreService extends BaseBitStoreService {
 
     @Override
     public String getPresignedUrl(Bitstream bitstream) throws IOException {
+        return getPresignedUrl(bitstream, presignDuration());
+    }
+
+    @Override
+    public String getPresignedUrl(Bitstream bitstream, Duration expiration) throws IOException {
         if (!isInitialized()) {
             throw new IOException("S3BitStoreService not initialized");
         }
@@ -546,7 +551,8 @@ public class S3BitStoreService extends BaseBitStoreService {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Generating presigned URL for bitstream {} (key: {})", bitstream.getID(), key);
+            log.debug("Generating presigned URL for bitstream {} (key: {}, ttl: {}s)",
+                      bitstream.getID(), key, expiration.getSeconds());
         }
 
         // Resolve content-type and filename for response header overrides
@@ -554,7 +560,7 @@ public class S3BitStoreService extends BaseBitStoreService {
         String contentDisposition = resolveContentDisposition(bitstream);
 
         return presignedUrlStrategy.generatePresignedUrl(
-            bucketName, key, presignDuration(), contentType, contentDisposition
+            bucketName, key, expiration, contentType, contentDisposition
         );
     }
 

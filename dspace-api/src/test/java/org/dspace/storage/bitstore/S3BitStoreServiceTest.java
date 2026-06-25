@@ -161,4 +161,169 @@ public class S3BitStoreServiceTest {
         }
     }
 
+    // ---------- Duration overload tests ----------
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_DelegatesToStrategy() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("abc-123");
+        when(bitstream.getName()).thenReturn("document.pdf");
+
+        String expectedUrl = "https://s3.amazonaws.com/bucket/abc-123?dur=30";
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), any(), any()))
+            .thenReturn(expectedUrl);
+
+        String result = s3BitStoreService.getPresignedUrl(bitstream, Duration.ofSeconds(30));
+
+        assertEquals(expectedUrl, result);
+        verify(presignedUrlStrategy).generatePresignedUrl(
+            eq("test-bucket"), eq("abc-123"), any(Duration.class), any(), any());
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_VerifiesExactDuration() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("xyz-789");
+        when(bitstream.getName()).thenReturn("file.txt");
+
+        Duration requestedDuration = Duration.ofSeconds(90);
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), any(), any()))
+            .thenReturn("https://example.com");
+
+        s3BitStoreService.getPresignedUrl(bitstream, requestedDuration);
+
+        verify(presignedUrlStrategy).generatePresignedUrl(
+            eq("test-bucket"), eq("xyz-789"), eq(requestedDuration), any(), any());
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_RegisteredBitstream() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("-Rreg/asset/data.bin");
+        when(bitstream.getName()).thenReturn("data.bin");
+
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), any(), any()))
+            .thenReturn("https://example.com");
+
+        s3BitStoreService.getPresignedUrl(bitstream, Duration.ofSeconds(60));
+
+        verify(presignedUrlStrategy).generatePresignedUrl(
+            eq("test-bucket"), eq("reg/asset/data.bin"), any(Duration.class), any(), any());
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_ContentTypeAndDisposition() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("file-001");
+        when(bitstream.getName()).thenReturn("report.pdf");
+
+        String expectedUrl = "https://s3.amazonaws.com/bucket/file-001?dur=15";
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), isNull(),
+                                                         eq("attachment; filename=\"report.pdf\"")))
+            .thenReturn(expectedUrl);
+
+        String result = s3BitStoreService.getPresignedUrl(bitstream, Duration.ofSeconds(15));
+
+        assertEquals(expectedUrl, result);
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_ZeroDuration() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("zero-id");
+        when(bitstream.getName()).thenReturn("zero.txt");
+
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), any(), any()))
+            .thenReturn("https://example.com/zero");
+
+        s3BitStoreService.getPresignedUrl(bitstream, Duration.ZERO);
+
+        verify(presignedUrlStrategy).generatePresignedUrl(
+            eq("test-bucket"), eq("zero-id"), eq(Duration.ZERO), any(), any());
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_LongDuration() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("long-id");
+        when(bitstream.getName()).thenReturn("large.dat");
+
+        Duration longDur = Duration.ofHours(24);
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), any(), any()))
+            .thenReturn("https://example.com/long");
+
+        s3BitStoreService.getPresignedUrl(bitstream, longDur);
+
+        verify(presignedUrlStrategy).generatePresignedUrl(
+            eq("test-bucket"), eq("long-id"), eq(longDur), any(), any());
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_NotInitialized() {
+        try {
+            s3BitStoreService.getPresignedUrl(mock(Bitstream.class), Duration.ofSeconds(30));
+            fail("Expected IOException");
+        } catch (IOException e) {
+            assertEquals("S3BitStoreService not initialized", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGetPresignedUrl_WithDuration_NullStrategy() {
+        ReflectionTestUtils.setField(s3BitStoreService, "presignedUrlStrategy", null);
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+
+        try {
+            s3BitStoreService.getPresignedUrl(mock(Bitstream.class), Duration.ofSeconds(30));
+            fail("Expected IOException");
+        } catch (IOException e) {
+            assertEquals("S3BitStoreService presigned URL strategy not initialized", e.getMessage());
+        }
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetPresignedUrl_WithDuration_NullBitstream() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        // presignedUrlStrategy is already set via setUp() — must not be null to reach NPE on getInternalId()
+
+        s3BitStoreService.getPresignedUrl(null, Duration.ofSeconds(30));
+    }
+
+    @Test
+    public void testGetPresignedUrl_NoDuration_DelegatesToWithDuration() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("delegate-test");
+        when(bitstream.getName()).thenReturn("delegate.pdf");
+
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), any(), any()))
+            .thenReturn("https://example.com/delegate");
+
+        String result = s3BitStoreService.getPresignedUrl(bitstream);
+
+        assertEquals("https://example.com/delegate", result);
+        // The no-Duration overload delegates to getPresignedUrl(bitstream, presignDuration())
+        // which calls the strategy with whatever presignDuration() returns (mocked as 60s via @BeforeClass)
+    }
+
 }

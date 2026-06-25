@@ -10,6 +10,7 @@ package org.dspace.storage.bitstore;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -372,6 +373,31 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         }
 
         log.debug("Generated presigned URL for bitstream: {}", bitstream.getID());
+        return presignedUrl;
+    }
+
+    @Override
+    public String getPresignedUrl(Context context, Bitstream bitstream, Duration expiration)
+        throws IOException, SQLException, AuthorizeException {
+        if (bitstream == null) {
+            throw new IllegalArgumentException("Bitstream cannot be null");
+        }
+
+        // Get the appropriate bitstore for this bitstream
+        BitStoreService store = this.getStore(bitstream.getStoreNumber());
+
+        // Try to get presigned URL from the store implementation with specified expiration
+        String presignedUrl = store.getPresignedUrl(bitstream, expiration);
+
+        if (presignedUrl == null) {
+            log.warn("Presigned URL not supported by store with id: {} for bitstream: {}",
+                     bitstream.getStoreNumber(),
+                     bitstream.getID());
+            return null;
+        }
+
+        log.debug("Generated presigned URL for bitstream: {} with duration: {}s",
+                  bitstream.getID(), expiration.getSeconds());
         return presignedUrl;
     }
 

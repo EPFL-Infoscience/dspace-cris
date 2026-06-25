@@ -9,6 +9,7 @@ package org.dspace.storage.bitstore;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -115,5 +116,18 @@ public interface BitStoreService {
      */
     public default String getPresignedUrl(Bitstream bitstream) throws IOException {
         return null; // Default implementation returns null (not supported)
+    }
+
+    /**
+     * Generate a presigned URL for accessing the bitstream directly with a specified duration.
+     * This allows temporary, secure access to the bitstream without going through DSpace's authorization.
+     *
+     * @param bitstream The bitstream for which to generate the presigned URL
+     * @param expiration The duration for which the URL should be valid
+     * @return The presigned URL as a string, or null if not supported by this store implementation
+     * @throws IOException If a problem occurs while generating the URL
+     */
+    public default String getPresignedUrl(Bitstream bitstream, Duration expiration) throws IOException {
+        return getPresignedUrl(bitstream);
     }
 }
