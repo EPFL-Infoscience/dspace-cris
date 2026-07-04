@@ -26,6 +26,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,6 +74,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CitationsRestController {
 
     private static final Logger log = LogManager.getLogger(CitationsRestController.class);
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private static final String DISPLAY_FORMAT_LIGHT = "light";
     private static final String DISPLAY_FORMAT_FULL = "full";
@@ -458,7 +461,6 @@ public class CitationsRestController {
                     + " with style '" + style + "'", e);
         }
     }
-
     private interface CitationItem {
         Map<String, Object> toMap();
     }
@@ -492,7 +494,11 @@ public class CitationsRestController {
             map.put("collection", collection);
             map.put("year", year);
             map.put("citation", citation);
-            map.put("cslItem", cslItem);
+            try {
+                map.put("cslItem", JSON_MAPPER.readValue(cslItem, Object.class));
+            } catch (JsonProcessingException e) {
+                log.error("Error converting cslItem to json: " + cslItem, e);
+            }
             return map;
         }
     }

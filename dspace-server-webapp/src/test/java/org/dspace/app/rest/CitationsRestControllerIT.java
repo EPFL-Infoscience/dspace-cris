@@ -59,7 +59,6 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        //result.getResponse().getContentAsString()
         getClient().perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
@@ -74,7 +73,8 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[0].collection").value("Test Collection"))
                 .andExpect(jsonPath("$.results[0].year").value("2021"))
                 .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
-                .andExpect(jsonPath("$.results[0].cslItem").isNotEmpty());
+                .andExpect(jsonPath("$.results[0].cslItem").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].cslItem.items[0].title").value("A Test Publication"));
     }
 
     @Test
