@@ -19,20 +19,16 @@ import java.util.Iterator;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.iterable.S3Objects;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -50,60 +46,58 @@ public class EpflItemsClientImpl implements EpflItemsClient {
     @Autowired
     private ConfigurationService configurationService;
 
-    private AmazonS3 s3Service = null;
-
-    private TransferManager transferManager = null;
+    private S3Client s3Service = null;
 
     @PostConstruct
     private void setup() {
+        var builder = S3Client.builder()
+            .region(getAwsRegion());
 
-        BasicAWSCredentials credentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
+        String accessKey = getAwsAccessKey();
+        String secretKey = getAwsSecretKey();
 
-        s3Service = AmazonS3ClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(credentials))
-            .withRegion(getAwsRegion())
-            .build();
+        if (isNotBlank(accessKey) && isNotBlank(secretKey)) {
+            builder.credentialsProvider(
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(accessKey, secretKey)
+                )
+            );
+        }
 
-        transferManager = TransferManagerBuilder.standard()
-            .withS3Client(s3Service)
-            .build();
-
+        s3Service = builder.build();
     }
 
     @Override
-    public Iterator<S3ObjectSummary> iterateObjects() {
-        return S3Objects.inBucket(s3Service, getBucketName()).iterator();
+    public Iterator<S3Object> iterateObjects() {
+        return s3Service.listObjectsV2Paginator(r -> r.bucket(getBucketName()))
+            .contents()
+            .iterator();
     }
 
     @Override
-    public List<S3ObjectSummary> getObjects(Integer limit, String startAfter) {
-
+    public List<S3Object> getObjects(Integer limit, String startAfter) {
         if (limit == null) {
             limit = 200000;
         }
 
         String bucketName = getBucketName();
-
-        List<S3ObjectSummary> objects = new ArrayList<S3ObjectSummary>();
-
+        List<S3Object> objects = new ArrayList<>();
         String continuationToken = null;
 
         do {
-
-            ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
-            listObjectsV2Request.setContinuationToken(continuationToken);
-            listObjectsV2Request.setBucketName(bucketName);
-            listObjectsV2Request.setMaxKeys(limit - objects.size());
+            ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .maxKeys(limit - objects.size())
+                .continuationToken(continuationToken);
 
             if (StringUtils.isNotBlank(startAfter)) {
-                listObjectsV2Request.setStartAfter(startAfter);
+                requestBuilder.startAfter(startAfter);
             }
 
-            ListObjectsV2Result result = s3Service.listObjectsV2(listObjectsV2Request);
+            ListObjectsV2Response result = s3Service.listObjectsV2(requestBuilder.build());
 
-            objects.addAll(result.getObjectSummaries());
-
-            continuationToken = result.getNextContinuationToken();
+            objects.addAll(result.contents());
+            continuationToken = result.nextContinuationToken();
 
         } while (isNotBlank(continuationToken) && objects.size() < limit);
 
@@ -114,8 +108,10 @@ public class EpflItemsClientImpl implements EpflItemsClient {
     public File get(String key) {
         try {
             File tempFile = Files.createTempFile(key, ".temp").toFile();
-            Download myDownload = transferManager.download(getBucketName(), key, tempFile);
-            myDownload.waitForCompletion();
+            s3Service.getObject(
+                GetObjectRequest.builder().bucket(getBucketName()).key(key).build(),
+                ResponseTransformer.toFile(tempFile.toPath())
+            );
             return tempFile;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -130,20 +126,27 @@ public class EpflItemsClientImpl implements EpflItemsClient {
 
     @Override
     public String getCreationDateByKey(String key) {
-        S3Object s3Object = getCreationDateObject(getCreationDateBucketName(), key);
-        JSONArray json = parseJson(s3Object.getObjectContent().getDelegateStream());
-        return ((JSONObject) json.get(0)).getString(getCreationDateField());
+        try (InputStream content = getCreationDateObject(getCreationDateBucketName(), key)) {
+            JSONArray json = parseJson(content);
+            return ((JSONObject) json.get(0)).getString(getCreationDateField());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Iterator<S3ObjectSummary> iterateCreationDate() {
-        return S3Objects.inBucket(s3Service, getCreationDateBucketName()).iterator();
+    public Iterator<S3Object> iterateCreationDate() {
+        return s3Service.listObjectsV2Paginator(r -> r.bucket(getCreationDateBucketName()))
+            .contents()
+            .iterator();
     }
 
-    private S3Object getCreationDateObject(String bucketName, String key) {
+    private InputStream getCreationDateObject(String bucketName, String key) {
         try {
-            return s3Service.getObject(bucketName, key);
-        } catch (AmazonS3Exception ex) {
+            return s3Service.getObject(
+                GetObjectRequest.builder().bucket(bucketName).key(key).build()
+            );
+        } catch (NoSuchKeyException ex) {
             throw new IllegalArgumentException("No creation date object found by key " + key);
         }
     }
@@ -156,17 +159,17 @@ public class EpflItemsClientImpl implements EpflItemsClient {
         }
     }
 
-    private Regions getAwsRegion() {
-        Regions regions = Regions.DEFAULT_REGION;
+    private Region getAwsRegion() {
+        Region region = Region.US_EAST_1;
         String awsRegionName = getAwsAccessRegion();
         if (StringUtils.isNotBlank(awsRegionName)) {
             try {
-                regions = Regions.fromName(awsRegionName);
+                region = Region.of(awsRegionName);
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("Invalid aws_region: " + awsRegionName);
             }
         }
-        return regions;
+        return region;
     }
 
     private String getCreationDateBucketName() {

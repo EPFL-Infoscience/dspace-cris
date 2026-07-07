@@ -121,7 +121,6 @@ public class BitstreamRestController {
     @Autowired
     private AuthorizeService authorizeService;
 
-    @PreAuthorize("hasPermission(#uuid, 'BITSTREAM', 'READ')")
     /**
      * Retrieve bitstream. An access token (created by request a copy for some files, if enabled) can optionally
      * be used for authorization instead of current user/group

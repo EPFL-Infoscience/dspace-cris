@@ -36,6 +36,8 @@ import org.springframework.core.io.AbstractResource;
  */
 public class BitstreamResourceAccessByToken extends BitstreamResource {
 
+    protected BitstreamDocument document;
+
     private String accessToken;
 
     private RequestItemService requestItemService = RequestItemServiceFactory.getInstance().getRequestItemService();

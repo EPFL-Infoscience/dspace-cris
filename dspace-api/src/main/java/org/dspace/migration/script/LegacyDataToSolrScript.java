@@ -23,14 +23,10 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.iterable.S3Objects;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -54,9 +50,7 @@ public class LegacyDataToSolrScript
 
     private static final Logger log = LoggerFactory.getLogger(LegacyDataToSolrScript.class);
 
-    private AmazonS3 s3Service = null;
-
-    private TransferManager transferManager = null;
+    private S3Client s3Service = null;
 
     private String bucketName;
     private HttpSolrClient solrClient;
@@ -69,12 +63,7 @@ public class LegacyDataToSolrScript
 
     @Override
     public void setup() throws ParseException {
-        s3Service = AmazonS3ClientBuilder.defaultClient();
-        transferManager = TransferManagerBuilder.standard()
-                                                .withAlwaysCalculateMultipartMd5(true)
-                                                .withS3Client(s3Service)
-                                                .build();
-
+        s3Service = S3Client.create();
         bucketName = commandLine.getOptionValue("b");
     }
 
@@ -90,29 +79,31 @@ public class LegacyDataToSolrScript
                                 .orElse(Integer.MAX_VALUE);
         String startFrom = commandLine.getOptionValue("f");
 
-        Iterator<S3ObjectSummary> iterator = S3Objects.inBucket(s3Service, bucketName).iterator();
+        Iterator<S3Object> iterator = s3Service.listObjectsV2Paginator(r -> r.bucket(bucketName))
+            .contents().iterator();
         Integer imported = 0;
         boolean startFound = StringUtils.isBlank(startFrom);
         while (iterator.hasNext() && imported < limit) {
-            S3ObjectSummary summary = iterator.next();
-            if (StringUtils.isNotBlank(startFrom) && !startFrom.equals(summary.getKey()) && !startFound) {
+            S3Object summary = iterator.next();
+            if (StringUtils.isNotBlank(startFrom) && !startFrom.equals(summary.key()) && !startFound) {
                 continue;
-            } else if (StringUtils.isNotBlank(startFrom) && summary.getKey().equals(startFrom)) {
+            } else if (StringUtils.isNotBlank(startFrom) && summary.key().equals(startFrom)) {
                 startFound = true;
             }
 
-            GetObjectRequest rq = new GetObjectRequest(bucketName, summary.getKey());
             File file = File.createTempFile("s3-import-download", ".zip");
             file.deleteOnExit();
             try {
-                Download download = transferManager.download(rq, file);
-                download.waitForCompletion();
-                handler.logInfo("Storing to solr content of file " + summary.getKey());
-                toSolr(file, summary.getKey());
-                handler.logInfo("Content of file " + summary.getKey() + " stored to solr");
+                s3Service.getObject(
+                    GetObjectRequest.builder().bucket(bucketName).key(summary.key()).build(),
+                    ResponseTransformer.toFile(file.toPath())
+                );
+                handler.logInfo("Storing to solr content of file " + summary.key());
+                toSolr(file, summary.key());
+                handler.logInfo("Content of file " + summary.key() + " stored to solr");
                 imported++;
             } catch (Exception e) {
-                handler.logWarning("Error while importing content of file " + summary.getKey() + ": " + e.getMessage());
+                handler.logWarning("Error while importing content of file " + summary.key() + ": " + e.getMessage());
                 log.warn(e.getMessage(), e);
             } finally {
                 file.delete();

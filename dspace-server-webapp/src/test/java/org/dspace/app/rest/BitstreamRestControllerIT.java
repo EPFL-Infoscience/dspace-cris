@@ -1813,17 +1813,13 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         context.restoreAuthSystemState();
 
         String authToken = getAuthToken(eperson.getEmail(), password);
-        try {
-            getClient(authToken)
-                .perform(get("/api/core/bitstreams/" + dummyBitstream.getID() + "/signedurl"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.presignedUrl").exists())
-                .andExpect(jsonPath("$.presignedUrl")
-                    .value(org.hamcrest.Matchers.startsWith("http://127.0.0.1:8001/testbucket")));
-        } finally {
-            // Always clean up S3Mock
-            tearDownS3Mock();
-        }
+        getClient(authToken)
+            .perform(get("/api/core/bitstreams/" + dummyBitstream.getID() + "/signedurl"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.presignedUrl").exists())
+            .andExpect(jsonPath("$.presignedUrl")
+                           .value(org.hamcrest.Matchers.startsWith(
+                               "http://127.0.0.1:" + s3Mock.getHttpServerPort() + "/" + DEFAULT_BUCKET_NAME)));
     }
 
     private static AwsCredentialsProvider testCredentials() {

@@ -12,17 +12,17 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.io.IOException;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,21 +43,13 @@ public class S3ObjectStore implements ObjectStore {
 
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
-    private AmazonS3 s3Service = null;
-
-    private TransferManager transferManager = null;
+    private S3Client s3Service = null;
 
     private String bucketName;
 
     @Override
     public void init() throws IOException {
-
-        s3Service = initializeAmazonS3();
-
-        transferManager = TransferManagerBuilder.standard()
-            .withAlwaysCalculateMultipartMd5(true)
-            .withS3Client(s3Service)
-            .build();
+        s3Service = initializeS3Client();
 
         bucketName = configurationService.getProperty("replicate.s3.bucket-name");
 
@@ -65,15 +57,29 @@ public class S3ObjectStore implements ObjectStore {
             throw new IllegalStateException("No S3 bucket configured");
         }
 
-        if (!s3Service.doesBucketExistV2(bucketName)) {
-            s3Service.createBucket(bucketName);
+        if (!bucketExists(bucketName)) {
+            s3Service.createBucket(r -> r.bucket(bucketName));
         }
+    }
 
+    private boolean bucketExists(String bucketName) {
+        try {
+            s3Service.headBucket(r -> r.bucket(bucketName));
+            return true;
+        } catch (NoSuchBucketException e) {
+            return false;
+        }
     }
 
     @Override
     public boolean objectExists(String group, String id) throws IOException {
-        return s3Service.doesObjectExist(bucketName, getKey(id, group));
+        try {
+            s3Service.headObject(HeadObjectRequest.builder()
+                .bucket(bucketName).key(getKey(id, group)).build());
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        }
     }
 
     @Override
@@ -91,27 +97,20 @@ public class S3ObjectStore implements ObjectStore {
             return null;
         }
 
-        ObjectMetadata objectMetadata = s3Service.getObjectMetadata(bucketName, getKey(id, group));
-        if (objectMetadata == null) {
-            return null;
-        }
+        long contentLength = s3Service.headObject(HeadObjectRequest.builder()
+            .bucket(bucketName).key(getKey(id, group)).build())
+            .contentLength();
 
-        return String.valueOf(objectMetadata.getContentLength());
-
+        return String.valueOf(contentLength);
     }
 
     @Override
     public long fetchObject(String group, String id, File file) throws IOException {
-
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, getKey(id, group));
-
-        Download download = transferManager.download(getObjectRequest, file);
-        try {
-            download.waitForCompletion();
-        } catch (AmazonClientException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
+        s3Service.getObject(
+            GetObjectRequest.builder()
+                .bucket(bucketName).key(getKey(id, group)).build(),
+            ResponseTransformer.toFile(file.toPath())
+        );
         return file.length();
     }
 
@@ -119,24 +118,28 @@ public class S3ObjectStore implements ObjectStore {
     public long transferObject(String group, File file) throws IOException {
         String fileName = file.getName();
         String key = isNotBlank(group) ? group + File.pathSeparator + fileName : fileName;
-        transferManager.upload(bucketName, key, file);
+        s3Service.putObject(
+            PutObjectRequest.builder()
+                .bucket(bucketName).key(key).build(),
+            file.toPath()
+        );
         return file.length();
     }
 
     @Override
     public long removeObject(String group, String id) throws IOException {
         long size = getFileSize(group, id);
-        s3Service.deleteObject(bucketName, getKey(id, group));
+        s3Service.deleteObject(r -> r.bucket(bucketName).key(getKey(id, group)));
         return size;
     }
 
     @Override
     public long moveObject(String srcgroup, String destGroup, String id) throws IOException {
-
         long fileSize = getFileSize(srcgroup, id);
-
-        s3Service.copyObject(bucketName, getKey(id, srcgroup), bucketName, getKey(id, destGroup));
-
+        String key = getKey(id, srcgroup);
+        String destKey = getKey(id, destGroup);
+        s3Service.copyObject(r -> r.sourceBucket(bucketName).sourceKey(key)
+            .destinationBucket(bucketName).destinationKey(destKey));
         return fileSize;
     }
 
@@ -167,35 +170,33 @@ public class S3ObjectStore implements ObjectStore {
         return isNotBlank(group) ? group + File.pathSeparator + id : id;
     }
 
-    private AmazonS3 initializeAmazonS3() {
-
-        AmazonS3 amazonS3 = null;
-
+    private S3Client initializeS3Client() {
         String awsAccessKey = configurationService.getProperty("replicate.s3.access-key");
         String awsSecretKey = configurationService.getProperty("replicate.s3.secret-key");
         String awsRegionName = configurationService.getProperty("replicate.s3.region-name");
 
         if (StringUtils.isNotBlank(awsAccessKey) && StringUtils.isNotBlank(awsSecretKey)) {
+            AwsCredentialsProvider credentialsProvider =
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(awsAccessKey, awsSecretKey)
+                );
 
-            Regions regions = Regions.DEFAULT_REGION;
+            Region region = Region.US_EAST_1;
             if (StringUtils.isNotBlank(awsRegionName)) {
                 try {
-                    regions = Regions.fromName(awsRegionName);
+                    region = Region.of(awsRegionName);
                 } catch (IllegalArgumentException e) {
                     log.warn("Invalid aws_region: " + awsRegionName);
                 }
             }
 
-            amazonS3 = AmazonS3ClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(awsAccessKey, awsSecretKey)))
-                .withRegion(regions)
+            return S3Client.builder()
+                .credentialsProvider(credentialsProvider)
+                .region(region)
                 .build();
-
-        } else {
-            amazonS3 = AmazonS3ClientBuilder.defaultClient();
         }
 
-        return amazonS3;
+        return S3Client.create();
     }
 
 }

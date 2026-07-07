@@ -39,24 +39,24 @@ import org.springframework.util.DigestUtils;
  */
 public class BitstreamResource extends AbstractResource {
 
-    private static final Logger LOG = LogManager.getLogger(BitstreamResource.class);
+    static final Logger LOG = LogManager.getLogger(BitstreamResource.class);
 
-    private final String name;
-    private final UUID uuid;
-    private final UUID currentUserUUID;
-    private final boolean shouldGenerateCoverPage;
-    private final boolean skipAuthCheck;
-    private final Set<UUID> currentSpecialGroups;
+    protected final String name;
+    protected final UUID uuid;
+    protected final UUID currentUserUUID;
+    protected final boolean shouldGenerateCoverPage;
+    protected final boolean skipAuthCheck;
+    protected final Set<UUID> currentSpecialGroups;
 
-    private final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-    private final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-    private final CitationDocumentService citationDocumentService =
+    protected final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+    protected final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    protected final CitationDocumentService citationDocumentService =
         new DSpace().getServiceManager()
             .getServicesByType(CitationDocumentService.class).get(0);
 
-    private String documentEtag;
-    private long documentLength;
-    private InputStream documentInputStream = null;
+    protected String documentEtag;
+    protected long documentLength;
+    protected InputStream documentInputStream = null;
 
     public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
         boolean shouldGenerateCoverPage, boolean skipAuth) {
@@ -76,7 +76,7 @@ public class BitstreamResource extends AbstractResource {
      * @param bitstream the pdf for which we want to generate a coverpage
      * @return a byte array containing the cover page
      */
-    private byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
+    byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
         throws IOException, SQLException, AuthorizeException {
         try {
             var citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
@@ -117,7 +117,7 @@ public class BitstreamResource extends AbstractResource {
         return this.documentEtag;
     }
 
-    private void fetchDocument() {
+    void fetchDocument() {
         if (this.documentInputStream != null) {
             return;
         }
@@ -164,11 +164,42 @@ public class BitstreamResource extends AbstractResource {
         return builder.toString();
     }
 
-    private Context initializeContext() throws SQLException {
+    Context initializeContext() throws SQLException {
         Context context = new Context();
         EPerson currentUser = ePersonService.find(context, currentUserUUID);
         context.setCurrentUser(currentUser);
         currentSpecialGroups.forEach(context::setSpecialGroup);
         return context;
+    }
+
+    /**
+     * Replaces the use of record to be java 11 compatible
+     * Represents a document in the form of a bitstream, encapsulating metadata and content.
+     * This class is immutable.
+     */
+    public final class BitstreamDocument {
+        private final String etag;
+        private final long length;
+        private final InputStream inputStream;
+
+
+        public BitstreamDocument(String etag, long length, InputStream inputStream) {
+            this.etag = etag;
+            this.length = length;
+            this.inputStream = inputStream;
+        }
+
+        public String getEtag() {
+            return etag;
+        }
+
+        public long getLength() {
+            return length;
+        }
+
+        public InputStream getInputStream() {
+            return inputStream;
+        }
+
     }
 }
