@@ -124,6 +124,8 @@ public class CitationsRestController {
         Context context = obtainContext(request);
         if (context != null) {
             context.setMode(Mode.READ_ONLY);
+        } else {
+            context = new Context(Mode.READ_ONLY);
         }
 
         validateRequest(citationsRequest);
@@ -160,8 +162,9 @@ public class CitationsRestController {
             throw new DSpaceBadRequestException("The 'sort' field must be 'date', 'title' or 'year'");
         }
 
-        if (isEmpty(citationsRequest.getUuids()) && StringUtils.isBlank(citationsRequest.getQuery())) {
-            throw new DSpaceBadRequestException("Either 'uuids' or 'query' must be provided");
+        if (isEmpty(citationsRequest.getUuids()) && StringUtils.isBlank(citationsRequest.getQuery())
+            && StringUtils.isBlank(citationsRequest.getConfiguration())) {
+            throw new DSpaceBadRequestException("Either 'uuids' or 'query' or 'configuration' must be provided");
         }
     }
 
@@ -190,9 +193,6 @@ public class CitationsRestController {
 
     private List<Item> resolveItems(Context context, CitationsRequestRest citationsRequest) {
         String combinedQuery = buildCombinedQuery(citationsRequest);
-        if (StringUtils.isBlank(combinedQuery)) {
-            return Collections.emptyList();
-        }
         return new ArrayList<>(resolveItemsFromQuery(context, citationsRequest, combinedQuery).values());
     }
 
@@ -372,12 +372,13 @@ public class CitationsRestController {
                 citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
 
                 citationItem.handle = item.getHandle();
-                citationItem.type = getType(item);
                 citationItem.collection = Optional.ofNullable(item.getOwningCollection())
                         .map(Collection::getName)
                         .orElse(null);
                 citationItem.year = getYear(item);
-                citationItem.cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
+                String cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
+                citationItem.cslItem = cslItem;
+                citationItem.type = getCslType(cslItem, item.getID().toString());
                 citationItems.add(citationItem);
             } else {
                 CitationItemLight citationItem = new CitationItemLight();
@@ -442,6 +443,20 @@ public class CitationsRestController {
     private String getType(Item item) {
         return getDcMetadataValue(item, "type", null)
                 .orElse(Optional.ofNullable(itemService.getEntityType(item)).orElse(OTHER_GROUP));
+    }
+
+    private String getCslType(String cslItem, String itemId) {
+        try {
+            for (var item : new ObjectMapper().readTree(cslItem).path("items")) {
+                if (itemId.equals(item.path("id").asText())) {
+                    return item.path("type").asText();
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            log.error("Error while parsing the json " + cslItem, e);
+            return null;
+        }
     }
 
     private String exportCitationByStyle(Context context, Item item, StreamDisseminationCrosswalk crosswalk,

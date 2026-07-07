@@ -20,8 +20,12 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.eperson.Group;
 import org.junit.Test;
 import org.springframework.http.MediaType;
@@ -32,6 +36,8 @@ import org.springframework.http.MediaType;
  * @author  Daniele Ninfo (daniele.ninfo at 4science.com)
  */
 public class CitationsRestControllerIT extends AbstractControllerIntegrationTest {
+
+    private final InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
 
     @Test
     public void getCitationsReturnsCitationForVisibleItem() throws Exception {
@@ -44,7 +50,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
 
         Item item = ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
-                .withType("Journal Article")
+                .withType("text::journal::journal article")
                 .withTitle("A Test Publication")
                 .withAuthor("Doe, John")
                 .withIssueDate("2021-05-20")
@@ -69,7 +75,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results").isNotEmpty())
                 .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
                 .andExpect(jsonPath("$.results[0].handle").value(item.getHandle()))
-                .andExpect(jsonPath("$.results[0].type").value("Journal Article"))
+                .andExpect(jsonPath("$.results[0].type").value("article-journal"))
                 .andExpect(jsonPath("$.results[0].collection").value("Test Collection"))
                 .andExpect(jsonPath("$.results[0].year").value("2021"))
                 .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
@@ -270,6 +276,130 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void getCitationsWithConfiguration() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection publicationCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Publications")
+                .withEntityType("Publication")
+                .build();
+        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("People")
+                .withEntityType("Person")
+                .build();
+
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Configuration Scope Match")
+                .withIssueDate("2017-10-17")
+                .withAuthor("Doe, John")
+                .withSubject("ExtraEntry")
+                .inArchive()
+                .build();
+
+        Item person = ItemBuilder.createItem(context, personCollection)
+                .withEntityType("Person")
+                .withTitle("John Doe")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String onlyResearchOutputsBody = "{" +
+                "\"configuration\":\"researchoutputs\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(onlyResearchOutputsBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
+    }
+
+    @Test
+    public void getCitationsWithConfigurationScopeQuery() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection researchOutputsCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Research Outputs Collection")
+                .build();
+        Collection otherCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Other Collection")
+                .build();
+
+        Item matchingResearchOutput = ItemBuilder.createItem(context, researchOutputsCollection)
+                .withEntityType("Publication")
+                .withTitle("Configuration Scope Match")
+                .inArchive()
+                .build();
+
+        Item matchingResearchOutputInOtherScope = ItemBuilder.createItem(context, otherCollection)
+                .withEntityType("Publication")
+                .withTitle("Configuration Scope Match")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String researchOutputsBody = "{" +
+                "\"configuration\":\"researchoutputs\"," +
+                "\"scope\":\"" + researchOutputsCollection.getID() + "\"," +
+                "\"query\":\"dc.title:Configuration Scope Match\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(researchOutputsBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[0].uuid").value(matchingResearchOutput.getID().toString()))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(matchingResearchOutput.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid",
+                        not(hasItem(matchingResearchOutputInOtherScope.getID().toString()))));
+
+        String wrongScopeBody = "{" +
+                "\"configuration\":\"researchoutputs\"," +
+                "\"scope\":\"" + otherCollection.getID() + "\"," +
+                "\"query\":\"dc.title:Configuration Scope Match\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(wrongScopeBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[0].uuid").value(matchingResearchOutputInOtherScope.getID().toString()))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(matchingResearchOutputInOtherScope.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid",
+                        not(hasItem(matchingResearchOutput.getID().toString()))));
+
+        String researcherProfilesBody = "{" +
+                "\"configuration\":\"person\"," +
+                "\"scope\":\"" + researchOutputsCollection.getID() + "\"," +
+                "\"query\":\"dc.title:Configuration Scope Match\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(researcherProfilesBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(0)));
+    }
+
+    @Test
     public void getCitationsAppliesSortInSolrQuery() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -350,5 +480,4 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[2].uuid").value(zebraItem.getID().toString()));
     }
 }
-
 
