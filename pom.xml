@@ -2059,6 +2059,12 @@
                 <artifactId>jakarta.xml.bind-api</artifactId>
                 <version>2.3.3</version>
             </dependency>
+            <!-- Resolve dependency convergence for jakarta.activation-api (jackson-module-jakarta-xmlbind-annotations vs jakarta.xml.bind-api) -->
+            <dependency>
+                <groupId>jakarta.activation</groupId>
+                <artifactId>jakarta.activation-api</artifactId>
+                <version>2.1.0</version>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
