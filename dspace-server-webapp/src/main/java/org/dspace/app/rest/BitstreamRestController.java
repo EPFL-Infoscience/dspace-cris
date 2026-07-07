@@ -137,10 +137,10 @@ public class BitstreamRestController {
     @PreAuthorize("#accessToken != null|| hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
     public ResponseEntity retrieve(@PathVariable UUID uuid,
-                                   @Parameter(value = "accessToken", required = false) String accessToken,
-                                   @RequestParam(name = "authenticationMethod", required = false) String authenticationMethod,
-                                   HttpServletResponse response,
-                                   HttpServletRequest request) throws IOException, SQLException, AuthorizeException {
+           @Parameter(value = "accessToken", required = false) String accessToken,
+           @RequestParam(name = "authenticationMethod", required = false) String authenticationMethod,
+           HttpServletResponse response,
+           HttpServletRequest request) throws IOException, SQLException, AuthorizeException {
 
         // Obtain context
         Context context = ContextUtil.obtainContext(request);
