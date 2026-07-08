@@ -9,6 +9,7 @@ package org.dspace.app.rest.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Set;
 import java.util.UUID;
@@ -88,14 +89,25 @@ public class BitstreamResourceAccessByToken extends BitstreamResource {
             }
             if (shouldGenerateCoverPage) {
                 var coverPage = getCoverpageByteArray(fileRetrievalContext, bitstream);
+                String etag = etag(bitstream);
 
-                this.document = new BitstreamDocument(etag(bitstream),
+                this.document = new BitstreamDocument(etag,
                         coverPage.length,
                         new ByteArrayInputStream(coverPage));
+                this.documentEtag = etag;
+                this.documentLength = coverPage.length;
+                this.documentInputStream = new ByteArrayInputStream(coverPage);
             } else {
-                this.document = new BitstreamDocument(bitstream.getChecksum(),
-                        bitstream.getSizeBytes(),
-                        bitstreamService.retrieve(fileRetrievalContext, bitstream));
+                InputStream inputStream = bitstreamService.retrieve(fileRetrievalContext, bitstream);
+                String checksum = bitstream.getChecksum();
+                long sizeBytes = bitstream.getSizeBytes();
+
+                this.document = new BitstreamDocument(checksum,
+                        sizeBytes,
+                        inputStream);
+                this.documentEtag = checksum;
+                this.documentLength = sizeBytes;
+                this.documentInputStream = inputStream;
             }
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
