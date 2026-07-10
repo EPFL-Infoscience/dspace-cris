@@ -20,12 +20,8 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
-import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.InstallItemService;
 import org.dspace.eperson.Group;
 import org.junit.Test;
 import org.springframework.http.MediaType;
@@ -36,8 +32,6 @@ import org.springframework.http.MediaType;
  * @author  Daniele Ninfo (daniele.ninfo at 4science.com)
  */
 public class CitationsRestControllerIT extends AbstractControllerIntegrationTest {
-
-    private final InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
 
     @Test
     public void getCitationsReturnsCitationForVisibleItem() throws Exception {
@@ -84,7 +78,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void getCitationsOmitsStyleAndGroupByWhenFormatIsLight() throws Exception {
+    public void getCitationsWithGrouping() throws Exception {
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context).build();
@@ -92,38 +86,190 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Test Collection")
                 .build();
 
-        Item item = ItemBuilder.createItem(context, collection)
+        Item journalArticle1 = ItemBuilder.createItem(context, collection)
                 .withEntityType("Publication")
-                .withTitle("A Light Test Publication")
+                .withTitle("Journal article of 2020")
+                .withIssueDate("2020-10-10")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item journalArticle2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Journal article of 2021")
+                .withIssueDate("2021-10-10")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item thesis1 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Thesis of 2021")
+                .withIssueDate("2021-10-10")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        Item thesis2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Thesis of 2022")
+                .withIssueDate("2022-10-10")
+                .withType("text::thesis")
                 .inArchive()
                 .build();
 
         context.restoreAuthSystemState();
 
-        String body = "{" +
-                "\"uuids\":[\"" + item.getID() + "\"]," +
+        // Group by type
+
+        String bodyGroupByType = "{" +
+                "\"uuids\":[\"" + journalArticle1.getID() + "\", \"" + journalArticle2.getID() + "\", \""
+                + thesis1.getID() + "\", \"" + thesis2.getID() + "\"]," +
                 "\"style\":\"apa\"," +
                 "\"format\":\"light\"," +
-                "\"groupBy\":\"both\"" +
+                "\"groupBy\":\"type\"" +
                 "}";
 
         getClient().perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(bodyGroupByType))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.*", hasSize(1)))
                 .andExpect(jsonPath("$.style").doesNotExist())
-                .andExpect(jsonPath("$.groupBy").doesNotExist())
-                .andExpect(jsonPath("$.results").isArray())
-                .andExpect(jsonPath("$.results").isNotEmpty())
-                .andExpect(jsonPath("$.results[0].*", hasSize(2)))
-                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
-                .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
-                .andExpect(jsonPath("$.results[0].handle").doesNotExist())
-                .andExpect(jsonPath("$.results[0].type").doesNotExist())
-                .andExpect(jsonPath("$.results[0].collection").doesNotExist())
-                .andExpect(jsonPath("$.results[0].year").doesNotExist())
-                .andExpect(jsonPath("$.results[0].cslItem").doesNotExist());
+                .andExpect(jsonPath("$.groupBy").exists())
+                .andExpect(jsonPath("$.groupBy").value("type"))
+                .andExpect(jsonPath("$.results").exists())
+                .andExpect(jsonPath("$.results.thesis").exists())
+                .andExpect(jsonPath("$.results.thesis").isArray())
+                .andExpect(jsonPath("$.results.thesis", hasSize(2)))
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.thesis[1].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[1].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.article-journal").exists())
+                .andExpect(jsonPath("$.results.article-journal").isArray())
+                .andExpect(jsonPath("$.results.article-journal", hasSize(2)))
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(journalArticle1.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(journalArticle2.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].citation").isNotEmpty());
+
+        // Group by year
+
+        String bodyGroupByYear = "{" +
+                "\"uuids\":[\"" + journalArticle1.getID() + "\", \"" + journalArticle2.getID() + "\", \""
+                + thesis1.getID() + "\", \"" + thesis2.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"groupBy\":\"year\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByYear))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.style").doesNotExist())
+                .andExpect(jsonPath("$.groupBy").exists())
+                .andExpect(jsonPath("$.groupBy").value("year"))
+                .andExpect(jsonPath("$.results").exists())
+                .andExpect(jsonPath("$.results.2020").exists())
+                .andExpect(jsonPath("$.results.2020").isArray())
+                .andExpect(jsonPath("$.results.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.2020[0].uuid").value(journalArticle1.getID().toString()))
+                .andExpect(jsonPath("$.results.2020[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.2021").exists())
+                .andExpect(jsonPath("$.results.2021").isArray())
+                .andExpect(jsonPath("$.results.2021", hasSize(2)))
+                .andExpect(jsonPath("$.results.2021[0].uuid").value(journalArticle2.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.2021[1].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[1].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.2022").exists())
+                .andExpect(jsonPath("$.results.2022").isArray())
+                .andExpect(jsonPath("$.results.2022", hasSize(1)))
+                .andExpect(jsonPath("$.results.2022[0].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.2022[0].citation").isNotEmpty());
+
+        // Group by type and year
+
+        String bodyGroupByTypeYear = "{" +
+                "\"uuids\":[\"" + journalArticle1.getID() + "\", \"" + journalArticle2.getID() + "\", \""
+                + thesis1.getID() + "\", \"" + thesis2.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"groupBy\":\"type,year\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByTypeYear))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.style").doesNotExist())
+                .andExpect(jsonPath("$.groupBy").exists())
+                .andExpect(jsonPath("$.groupBy").value("type,year"))
+                .andExpect(jsonPath("$.results").exists())
+                .andExpect(jsonPath("$.results.thesis").exists())
+                .andExpect(jsonPath("$.results.thesis.2021").exists())
+                .andExpect(jsonPath("$.results.thesis.2021").isArray())
+                .andExpect(jsonPath("$.results.thesis.2021", hasSize(1)))
+                .andExpect(jsonPath("$.results.thesis.2021[0].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis.2021[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.thesis.2022").exists())
+                .andExpect(jsonPath("$.results.thesis.2022").isArray())
+                .andExpect(jsonPath("$.results.thesis.2022", hasSize(1)))
+                .andExpect(jsonPath("$.results.thesis.2022[0].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis.2022[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.article-journal").exists())
+                .andExpect(jsonPath("$.results.article-journal.2021").exists())
+                .andExpect(jsonPath("$.results.article-journal.2021").isArray())
+                .andExpect(jsonPath("$.results.article-journal.2021", hasSize(1)))
+                .andExpect(jsonPath("$.results.article-journal.2021[0].uuid").value(journalArticle2.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal.2021[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.article-journal.2020").exists())
+                .andExpect(jsonPath("$.results.article-journal.2020").isArray())
+                .andExpect(jsonPath("$.results.article-journal.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.article-journal.2020[0].uuid").value(journalArticle1.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal.2020[0].citation").isNotEmpty());
+
+        // Group by year and type
+
+        String bodyGroupByYearType = "{" +
+                "\"uuids\":[\"" + journalArticle1.getID() + "\", \"" + journalArticle2.getID() + "\", \""
+                + thesis1.getID() + "\", \"" + thesis2.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"groupBy\":\"year,type\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByYearType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.style").doesNotExist())
+                .andExpect(jsonPath("$.groupBy").exists())
+                .andExpect(jsonPath("$.groupBy").value("year,type"))
+                .andExpect(jsonPath("$.results").exists())
+                .andExpect(jsonPath("$.results.2021").exists())
+                .andExpect(jsonPath("$.results.2021.thesis").exists())
+                .andExpect(jsonPath("$.results.2021.thesis").isArray())
+                .andExpect(jsonPath("$.results.2021.thesis", hasSize(1)))
+                .andExpect(jsonPath("$.results.2021.thesis[0].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.2021.thesis[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.2022.thesis").exists())
+                .andExpect(jsonPath("$.results.2022.thesis").isArray())
+                .andExpect(jsonPath("$.results.2022.thesis", hasSize(1)))
+                .andExpect(jsonPath("$.results.2022.thesis[0].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.2022.thesis[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.2021").exists())
+                .andExpect(jsonPath("$.results.2021.article-journal").exists())
+                .andExpect(jsonPath("$.results.2021.article-journal").isArray())
+                .andExpect(jsonPath("$.results.2021.article-journal", hasSize(1)))
+                .andExpect(jsonPath("$.results.2021.article-journal[0].uuid").value(journalArticle2.getID().toString()))
+                .andExpect(jsonPath("$.results.2021.article-journal[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results.2020.article-journal").exists())
+                .andExpect(jsonPath("$.results.2020.article-journal").isArray())
+                .andExpect(jsonPath("$.results.2020.article-journal", hasSize(1)))
+                .andExpect(jsonPath("$.results.2020.article-journal[0].uuid").value(journalArticle1.getID().toString()))
+                .andExpect(jsonPath("$.results.2020.article-journal[0].citation").isNotEmpty());
     }
 
     @Test
@@ -380,7 +526,8 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.results.length()").value(1))
                 .andExpect(jsonPath("$.results[0].uuid").value(matchingResearchOutputInOtherScope.getID().toString()))
-                .andExpect(jsonPath("$.results[*].uuid", hasItem(matchingResearchOutputInOtherScope.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid",
+                        hasItem(matchingResearchOutputInOtherScope.getID().toString())))
                 .andExpect(jsonPath("$.results[*].uuid",
                         not(hasItem(matchingResearchOutput.getID().toString()))));
 
