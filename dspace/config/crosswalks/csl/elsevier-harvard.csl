@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" demote-non-dropping-particle="never" default-locale="en-US">
+   <!-- This file has been customised by 4Science for EPFL as follows:
+    1) In the “locators” macro instead of <else-if type="chapter paper-conference" match="any"> we insert <else-if type="chapter paper-conference speech" match="any"> -->
   <info>
     <title>Elsevier (author-date/Harvard, with titles)</title>
     <id>http://www.zotero.org/styles/elsevier-harvard</id>
