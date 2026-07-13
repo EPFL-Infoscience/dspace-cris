@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -270,6 +271,182 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results.2020.article-journal", hasSize(1)))
                 .andExpect(jsonPath("$.results.2020.article-journal[0].uuid").value(journalArticle1.getID().toString()))
                 .andExpect(jsonPath("$.results.2020.article-journal[0].citation").isNotEmpty());
+    }
+
+    @Test
+    public void getCitationsWithGroupingAndSorting() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        Item journalArticle1 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("A")
+                .withIssueDate("2020-10-10")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item journalArticle2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("B")
+                .withIssueDate("2021-10-10")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item journalArticle3 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("C")
+                .withIssueDate("2019-10-10")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+
+        Item thesis1 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("D")
+                .withIssueDate("2021-10-10")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        Item thesis2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("E")
+                .withIssueDate("2022-10-10")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        Item thesis3 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("F")
+                .withIssueDate("2022-10-11")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Group by type, sort by year (default)
+
+        String bodyGroupByTypeSortByYear = "{" +
+                "\"uuids\":[\"" + journalArticle1.getID() +
+                "\", \"" + journalArticle2.getID() +
+                "\", \"" + journalArticle3.getID() +
+                "\", \"" + thesis1.getID() +
+                "\", \"" + thesis2.getID() +
+                "\", \"" + thesis3.getID() +
+                "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"date\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByTypeSortByYear))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results").exists())
+                .andExpect(jsonPath("$.results.thesis").exists())
+                .andExpect(jsonPath("$.results.thesis").isArray())
+                .andExpect(jsonPath("$.results.thesis", hasSize(3)))
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[1].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[2].uuid").value(thesis3.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal").exists())
+                .andExpect(jsonPath("$.results.article-journal").isArray())
+                .andExpect(jsonPath("$.results.article-journal", hasSize(3)))
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(journalArticle3.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(journalArticle1.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[2].uuid").value(journalArticle2.getID().toString()))
+                ;
+
+
+        // Group by type, sort by title (default)
+
+        String bodyGroupByTypeSortByTitle = "{" +
+                "\"uuids\":[\"" + journalArticle1.getID() +
+                "\", \"" + journalArticle2.getID() +
+                "\", \"" + journalArticle3.getID() +
+                "\", \"" + thesis1.getID() +
+                "\", \"" + thesis2.getID() +
+                "\", \"" + thesis3.getID() +
+                "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"title\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByTypeSortByTitle))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results").exists())
+                .andExpect(jsonPath("$.results.thesis").exists())
+                .andExpect(jsonPath("$.results.thesis").isArray())
+                .andExpect(jsonPath("$.results.thesis", hasSize(3)))
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[1].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[2].uuid").value(thesis3.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal").exists())
+                .andExpect(jsonPath("$.results.article-journal").isArray())
+                .andExpect(jsonPath("$.results.article-journal", hasSize(3)))
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(journalArticle1.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(journalArticle2.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[2].uuid").value(journalArticle3.getID().toString()))
+        ;
+
+        // Group by year, sort by title (default)
+
+        String bodyGroupByYearSortByTitle = "{" +
+                "\"uuids\":[\"" + journalArticle1.getID() +
+                "\", \"" + journalArticle2.getID() +
+                "\", \"" + journalArticle3.getID() +
+                "\", \"" + thesis1.getID() +
+                "\", \"" + thesis2.getID() +
+                "\", \"" + thesis3.getID() +
+                "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year\"," +
+                "\"sort\":\"title\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByYearSortByTitle))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results").exists())
+                .andExpect(jsonPath("$.results.2019").exists())
+                .andExpect(jsonPath("$.results.2019").isArray())
+                .andExpect(jsonPath("$.results.2019", hasSize(1)))
+                .andExpect(jsonPath("$.results.2019[0].uuid").value(journalArticle3.getID().toString()))
+                .andExpect(jsonPath("$.results.2020").exists())
+                .andExpect(jsonPath("$.results.2020").isArray())
+                .andExpect(jsonPath("$.results.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.2020[0].uuid").value(journalArticle1.getID().toString()))
+                .andExpect(jsonPath("$.results.2021").exists())
+                .andExpect(jsonPath("$.results.2021").isArray())
+                .andExpect(jsonPath("$.results.2021", hasSize(2)))
+                .andExpect(jsonPath("$.results.2021[0].uuid").value(journalArticle2.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[1].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.2022").exists())
+                .andExpect(jsonPath("$.results.2022").isArray())
+                .andExpect(jsonPath("$.results.2022", hasSize(2)))
+                .andExpect(jsonPath("$.results.2022[0].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.2022[1].uuid").value(thesis3.getID().toString()))
+        ;
+
+
     }
 
     @Test
@@ -627,4 +804,3 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[2].uuid").value(zebraItem.getID().toString()));
     }
 }
-
