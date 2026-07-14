@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest;
 
+import static org.apache.commons.codec.CharEncoding.UTF_8;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
@@ -17,13 +19,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.eperson.Group;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 
@@ -33,6 +39,19 @@ import org.springframework.http.MediaType;
  * @author  Daniele Ninfo (daniele.ninfo at 4science.com)
  */
 public class CitationsRestControllerIT extends AbstractControllerIntegrationTest {
+
+    private String loggedInToken;
+    private String adminToken;
+
+    @Before
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        context.turnOffAuthorisationSystem();
+        loggedInToken = getAuthToken(eperson.getEmail(), password);
+        adminToken = getAuthToken(admin.getEmail(), password);
+        context.restoreAuthSystemState();
+    }
 
     @Test
     public void getCitationsReturnsCitationForVisibleItem() throws Exception {
@@ -607,21 +626,42 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .withName("Publications")
                 .withEntityType("Publication")
                 .build();
+        Collection publicationCollection2 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Publications2")
+                .withEntityType("Publication")
+                .build();
         Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("People")
                 .withEntityType("Person")
                 .build();
 
-        Item publication = ItemBuilder.createItem(context, publicationCollection)
-                .withEntityType("Publication")
+        // The following two go in publicationCollection
+        Item publication1 = ItemBuilder.createItem(context, publicationCollection)
                 .withType("text::journal::journal article")
-                .withTitle("Configuration Scope Match")
+                .withTitle("Test Journal Article")
                 .withIssueDate("2017-10-17")
                 .withAuthor("Doe, John")
                 .withSubject("ExtraEntry")
-                .inArchive()
                 .build();
 
+        Item publication2 = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Another test Journal Article")
+                .withIssueDate("2018-10-17")
+                .withAuthor("Doe, John")
+                .withSubject("ExtraEntry2")
+                .build();
+
+        // This one goes in publicationCollection2
+        Item publication3 = ItemBuilder.createItem(context, publicationCollection2)
+                .withType("text::journal::journal article")
+                .withTitle("Another test Journal Article")
+                .withIssueDate("2018-10-17")
+                .withAuthor("Doe, John")
+                .withSubject("ExtraEntry2")
+                .build();
+
+        // This item isn't related to publications
         Item person = ItemBuilder.createItem(context, personCollection)
                 .withEntityType("Person")
                 .withTitle("John Doe")
@@ -640,9 +680,64 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(onlyResearchOutputsBody))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.results.length()").value(1))
-                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication.getID().toString())))
+                .andExpect(jsonPath("$.results.length()").value(3))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication1.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication2.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication3.getID().toString())))
                 .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
+
+        String searchWithQueryBody = "{" +
+                "\"query\":\"dc.subject:ExtraEntry\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(searchWithQueryBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(3))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication1.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication2.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication3.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
+
+        String onlyResearchOutputsWithScopeBody = "{" +
+                "\"configuration\":\"researchoutputs\"," +
+                "\"scope\":\"" + publicationCollection.getID() + "\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(onlyResearchOutputsWithScopeBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(2))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication1.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication2.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(publication3.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
+
+        String onlyResearchOutputsWithScopeAndQueryBody = "{" +
+                "\"configuration\":\"researchoutputs\"," +
+                "\"scope\":\"" + publicationCollection.getID() + "\"," +
+                "\"query\":\"dc.title:Another test\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(onlyResearchOutputsWithScopeAndQueryBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(publication1.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication2.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(publication3.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
+
+
     }
 
     @Test

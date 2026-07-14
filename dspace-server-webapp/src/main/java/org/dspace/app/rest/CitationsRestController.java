@@ -262,7 +262,7 @@ public class CitationsRestController {
             Iterator<Item> iterator = searchService.iteratorSearch(context, scopeObject, discoverQuery);
             while (iterator.hasNext()) {
                 Item item = iterator.next();
-                if (item != null && canRead(context, item)) {
+                if (item != null) {
                     itemsByUuid.putIfAbsent(item.getID(), item);
                 }
             }
@@ -301,14 +301,6 @@ public class CitationsRestController {
         }
 
         return null;
-    }
-
-    private boolean canRead(Context context, Item item) {
-        try {
-            return authorizeService.authorizeActionBoolean(context, item, Constants.READ);
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to verify read permission for item " + item.getID(), e);
-        }
     }
 
     private void applySort(DiscoverQuery discoverQuery, String sort) {
