@@ -86,6 +86,9 @@ public class CitationsRestController {
     private static final String SORT_DATE = "date";
     private static final String SORT_TITLE = "title";
     private static final String SORT_YEAR = "year";
+    private static final String SORT_ASC = "asc";
+    private static final String SORT_DESC = "desc";
+    private static final String SORT_SEPARATOR = ":";
     private static final String UNKNOWN_GROUP = "Unknown";
     private static final String SEARCH_RESOURCE_ID_FIELD = "search.resourceid";
     private static final String TITLE_SORT_FIELD = "dc.title_sort";
@@ -172,7 +175,8 @@ public class CitationsRestController {
         }
 
         if (StringUtils.isNotBlank(citationsRequest.getSort()) && !isSortValid(citationsRequest.getSort())) {
-            throw new DSpaceBadRequestException("The 'sort' field must be 'date', 'title' or 'year'");
+            throw new DSpaceBadRequestException(
+                    "The 'sort' field must be 'date', 'title' or 'year', optionally followed by ':asc' or ':desc'");
         }
 
         if (isEmpty(citationsRequest.getUuids()) && StringUtils.isBlank(citationsRequest.getQuery())
@@ -196,7 +200,24 @@ public class CitationsRestController {
     }
 
     private boolean isSortValid(String sort) {
-        return SORT_DATE.equals(sort) || SORT_TITLE.equals(sort) || SORT_YEAR.equals(sort);
+        String normalizedSort = StringUtils.trimToNull(sort);
+        if (normalizedSort == null) {
+            return false;
+        }
+
+        String[] tokens = normalizedSort.split(SORT_SEPARATOR, -1);
+        if (tokens.length == 1) {
+            return SORT_DATE.equals(tokens[0]) || SORT_TITLE.equals(tokens[0]) || SORT_YEAR.equals(tokens[0]);
+        }
+
+        if (tokens.length != 2) {
+            return false;
+        }
+
+        String sortField = tokens[0];
+        String sortOrder = tokens[1];
+        return (SORT_DATE.equals(sortField) || SORT_TITLE.equals(sortField) || SORT_YEAR.equals(sortField))
+                && (SORT_ASC.equals(sortOrder) || SORT_DESC.equals(sortOrder));
     }
 
     private List<Item> resolveItems(Context context, CitationsRequestRest citationsRequest) {
@@ -309,13 +330,23 @@ public class CitationsRestController {
             return;
         }
 
-        if (SORT_DATE.equals(sort)) {
-            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, SORT_ORDER.asc);
-        } else if (SORT_YEAR.equals(sort)) {
-            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, SORT_ORDER.asc);
-        } else {
-            discoverQuery.setSortField(TITLE_SORT_FIELD, SORT_ORDER.asc);
+        String[] tokens = StringUtils.trim(sort).split(SORT_SEPARATOR, -1);
+        String sortField = tokens[0];
+        SORT_ORDER sortOrder = getDefaultSortOrder(sortField);
+
+        if (tokens.length == 2) {
+            sortOrder = SORT_DESC.equals(tokens[1]) ? SORT_ORDER.desc : SORT_ORDER.asc;
         }
+
+        if (SORT_DATE.equals(sortField) || SORT_YEAR.equals(sortField)) {
+            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, sortOrder);
+        } else {
+            discoverQuery.setSortField(TITLE_SORT_FIELD, sortOrder);
+        }
+    }
+
+    private SORT_ORDER getDefaultSortOrder(String sortField) {
+        return SORT_TITLE.equals(sortField) ? SORT_ORDER.desc : SORT_ORDER.asc;
     }
 
     private Map<String, Map<String, List<CitationItem>>> buildCitationItems(Context context, List<Item> items,
@@ -634,6 +665,5 @@ public class CitationsRestController {
         }
     }
 }
-
 
 

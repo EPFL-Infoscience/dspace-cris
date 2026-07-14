@@ -395,7 +395,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"style\":\"apa\"," +
                 "\"format\":\"full\"," +
                 "\"groupBy\":\"type\"," +
-                "\"sort\":\"title\"" +
+                "\"sort\":\"title:asc\"" +
                 "}";
 
         getClient().perform(post("/api/integration/citations")
@@ -449,13 +449,13 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results.2021").exists())
                 .andExpect(jsonPath("$.results.2021").isArray())
                 .andExpect(jsonPath("$.results.2021", hasSize(2)))
-                .andExpect(jsonPath("$.results.2021[0].uuid").value(journalArticle2.getID().toString()))
-                .andExpect(jsonPath("$.results.2021[1].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[0].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[1].uuid").value(journalArticle2.getID().toString()))
                 .andExpect(jsonPath("$.results.2022").exists())
                 .andExpect(jsonPath("$.results.2022").isArray())
                 .andExpect(jsonPath("$.results.2022", hasSize(2)))
-                .andExpect(jsonPath("$.results.2022[0].uuid").value(thesis2.getID().toString()))
-                .andExpect(jsonPath("$.results.2022[1].uuid").value(thesis3.getID().toString()))
+                .andExpect(jsonPath("$.results.2022[0].uuid").value(thesis3.getID().toString()))
+                .andExpect(jsonPath("$.results.2022[1].uuid").value(thesis2.getID().toString()))
         ;
 
 
@@ -872,6 +872,21 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
         getClient().perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(titleSortBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].uuid").value(zebraItem.getID().toString()))
+                .andExpect(jsonPath("$.results[1].uuid").value(middleItem.getID().toString()))
+                .andExpect(jsonPath("$.results[2].uuid").value(alphaItem.getID().toString()));
+
+        String titleSortAscBody = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"title:asc\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(titleSortAscBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.results[0].uuid").value(alphaItem.getID().toString()))
                 .andExpect(jsonPath("$.results[1].uuid").value(middleItem.getID().toString()))
