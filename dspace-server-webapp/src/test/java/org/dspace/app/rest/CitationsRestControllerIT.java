@@ -7,26 +7,20 @@
  */
 package org.dspace.app.rest;
 
-import static org.apache.commons.codec.CharEncoding.UTF_8;
-import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
-import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
-import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.eperson.Group;
 import org.junit.Before;
@@ -371,7 +365,6 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
         getClient().perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByTypeSortByYear))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.results").exists())
                 .andExpect(jsonPath("$.results.thesis").exists())
@@ -699,6 +692,22 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results.length()").value(3))
                 .andExpect(jsonPath("$.results[*].uuid", hasItem(publication1.getID().toString())))
                 .andExpect(jsonPath("$.results[*].uuid", hasItem(publication2.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication3.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
+
+        String searchWithScopeBody = "{" +
+                "\"scope\":\"" + publicationCollection2.getID() + "\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(searchWithScopeBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(publication1.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(publication2.getID().toString()))))
                 .andExpect(jsonPath("$.results[*].uuid", hasItem(publication3.getID().toString())))
                 .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
 

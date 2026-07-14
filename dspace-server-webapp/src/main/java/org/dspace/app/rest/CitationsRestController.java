@@ -44,7 +44,6 @@ import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMap
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
@@ -177,8 +176,10 @@ public class CitationsRestController {
         }
 
         if (isEmpty(citationsRequest.getUuids()) && StringUtils.isBlank(citationsRequest.getQuery())
-            && StringUtils.isBlank(citationsRequest.getConfiguration())) {
-            throw new DSpaceBadRequestException("Either 'uuids' or 'query' or 'configuration' must be provided");
+            && StringUtils.isBlank(citationsRequest.getConfiguration())
+                && StringUtils.isBlank(citationsRequest.getScope())) {
+            throw new DSpaceBadRequestException(
+                    "Either 'uuids' or 'query' or 'configuration' or 'scope' must be provided");
         }
     }
 
