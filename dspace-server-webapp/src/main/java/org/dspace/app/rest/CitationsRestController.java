@@ -13,7 +13,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +28,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +44,6 @@ import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMap
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
@@ -72,21 +75,29 @@ import org.springframework.web.bind.annotation.RestController;
 public class CitationsRestController {
 
     private static final Logger log = LogManager.getLogger(CitationsRestController.class);
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private static final String DISPLAY_FORMAT_LIGHT = "light";
     private static final String DISPLAY_FORMAT_FULL = "full";
     private static final String GROUP_BY_TYPE = "type";
     private static final String GROUP_BY_YEAR = "year";
-    private static final String GROUP_BY_BOTH = "both";
+    private static final String GROUP_BY_TYPE_YEAR = "type,year";
+    private static final String GROUP_BY_YEAR_TYPE = "year,type";
     private static final String SORT_DATE = "date";
     private static final String SORT_TITLE = "title";
     private static final String SORT_YEAR = "year";
+    private static final String SORT_ASC = "asc";
+    private static final String SORT_DESC = "desc";
+    private static final String SORT_SEPARATOR = ":";
     private static final String UNKNOWN_GROUP = "Unknown";
-    private static final String OTHER_GROUP = "Other";
     private static final String SEARCH_RESOURCE_ID_FIELD = "search.resourceid";
     private static final String TITLE_SORT_FIELD = "dc.title_sort";
     private static final String DATE_ISSUED_SORT_FIELD = "dc.date.issued_dt";
+    private static final String DEFAULT_MAP_KEY = "nogroup";
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
+    private static final List<String> GROUP_VALUES =
+            Arrays.asList(GROUP_BY_TYPE, GROUP_BY_YEAR, GROUP_BY_TYPE_YEAR, GROUP_BY_YEAR_TYPE);
+    private static Map<String, Map<String, List<CitationItem>>> emptyResult;
 
     @Autowired
     private ItemService itemService;
@@ -121,16 +132,25 @@ public class CitationsRestController {
         Context context = obtainContext(request);
         if (context != null) {
             context.setMode(Mode.READ_ONLY);
+        } else {
+            context = new Context(Mode.READ_ONLY);
         }
 
         validateRequest(citationsRequest);
 
         List<Item> items = resolveItems(context, citationsRequest);
         if (items.isEmpty()) {
-            return ResponseEntity.ok(buildResponse(citationsRequest, Collections.emptyList()));
+            if (emptyResult == null) {
+                emptyResult = new HashMap<>();
+                Map<String, List<CitationItem>> innerMap = new HashMap<>();
+                innerMap.put(DEFAULT_MAP_KEY, Collections.emptyList());
+                emptyResult.put(DEFAULT_MAP_KEY, innerMap);
+            }
+            return ResponseEntity.ok(buildResponse(citationsRequest, emptyResult));
         }
 
-        List<CitationItem> citationItems = buildCitationItems(context, items, citationsRequest);
+        Map<String, Map<String, List<CitationItem>>> citationItems =
+                buildCitationItems(context, items, citationsRequest);
         return ResponseEntity.ok(buildResponse(citationsRequest, citationItems));
     }
 
@@ -150,15 +170,20 @@ public class CitationsRestController {
 
         if (StringUtils.isNotBlank(citationsRequest.getGroupBy())
                 && !isGroupByValid(citationsRequest.getGroupBy())) {
-            throw new DSpaceBadRequestException("The 'groupBy' field must be 'type', 'year' or 'both'");
+            throw new DSpaceBadRequestException(
+                    "The 'groupBy' field must be 'type', 'year', 'type,year' or 'year,type");
         }
 
         if (StringUtils.isNotBlank(citationsRequest.getSort()) && !isSortValid(citationsRequest.getSort())) {
-            throw new DSpaceBadRequestException("The 'sort' field must be 'date', 'title' or 'year'");
+            throw new DSpaceBadRequestException(
+                    "The 'sort' field must be 'date', 'title' or 'year', optionally followed by ':asc' or ':desc'");
         }
 
-        if (isEmpty(citationsRequest.getUuids()) && StringUtils.isBlank(citationsRequest.getQuery())) {
-            throw new DSpaceBadRequestException("Either 'uuids' or 'query' must be provided");
+        if (isEmpty(citationsRequest.getUuids()) && StringUtils.isBlank(citationsRequest.getQuery())
+            && StringUtils.isBlank(citationsRequest.getConfiguration())
+                && StringUtils.isBlank(citationsRequest.getScope())) {
+            throw new DSpaceBadRequestException(
+                    "Either 'uuids' or 'query' or 'configuration' or 'scope' must be provided");
         }
     }
 
@@ -167,29 +192,36 @@ public class CitationsRestController {
     }
 
     private boolean isDisplayFormatValid(String format) {
-        String normalized = normalize(format);
-        return DISPLAY_FORMAT_LIGHT.equals(normalized) || DISPLAY_FORMAT_FULL.equals(normalized);
+        return DISPLAY_FORMAT_LIGHT.equals(format) || DISPLAY_FORMAT_FULL.equals(format);
     }
 
     private boolean isGroupByValid(String groupBy) {
-        String normalized = normalize(groupBy);
-        return GROUP_BY_TYPE.equals(normalized) || GROUP_BY_YEAR.equals(normalized) || GROUP_BY_BOTH.equals(normalized);
+        return GROUP_VALUES.contains(groupBy);
     }
 
     private boolean isSortValid(String sort) {
-        String normalized = normalize(sort);
-        return SORT_DATE.equals(normalized) || SORT_TITLE.equals(normalized) || SORT_YEAR.equals(normalized);
-    }
+        String normalizedSort = StringUtils.trimToNull(sort);
+        if (normalizedSort == null) {
+            return false;
+        }
 
-    private static String normalize(String value) {
-        return value.trim().toLowerCase(Locale.ROOT);
+        String[] tokens = normalizedSort.split(SORT_SEPARATOR, -1);
+        if (tokens.length == 1) {
+            return SORT_DATE.equals(tokens[0]) || SORT_TITLE.equals(tokens[0]) || SORT_YEAR.equals(tokens[0]);
+        }
+
+        if (tokens.length != 2) {
+            return false;
+        }
+
+        String sortField = tokens[0];
+        String sortOrder = tokens[1];
+        return (SORT_DATE.equals(sortField) || SORT_TITLE.equals(sortField) || SORT_YEAR.equals(sortField))
+                && (SORT_ASC.equals(sortOrder) || SORT_DESC.equals(sortOrder));
     }
 
     private List<Item> resolveItems(Context context, CitationsRequestRest citationsRequest) {
         String combinedQuery = buildCombinedQuery(citationsRequest);
-        if (StringUtils.isBlank(combinedQuery)) {
-            return Collections.emptyList();
-        }
         return new ArrayList<>(resolveItemsFromQuery(context, citationsRequest, combinedQuery).values());
     }
 
@@ -252,7 +284,7 @@ public class CitationsRestController {
             Iterator<Item> iterator = searchService.iteratorSearch(context, scopeObject, discoverQuery);
             while (iterator.hasNext()) {
                 Item item = iterator.next();
-                if (item != null && canRead(context, item)) {
+                if (item != null) {
                     itemsByUuid.putIfAbsent(item.getID(), item);
                 }
             }
@@ -293,30 +325,31 @@ public class CitationsRestController {
         return null;
     }
 
-    private boolean canRead(Context context, Item item) {
-        try {
-            return authorizeService.authorizeActionBoolean(context, item, Constants.READ);
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to verify read permission for item " + item.getID(), e);
-        }
-    }
-
     private void applySort(DiscoverQuery discoverQuery, String sort) {
         if (StringUtils.isBlank(sort)) {
             return;
         }
 
-        String normalized = normalize(sort);
-        if (SORT_DATE.equals(normalized)) {
-            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, SORT_ORDER.asc);
-        } else if (SORT_YEAR.equals(normalized)) {
-            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, SORT_ORDER.asc);
+        String[] tokens = StringUtils.trim(sort).split(SORT_SEPARATOR, -1);
+        String sortField = tokens[0];
+        SORT_ORDER sortOrder = getDefaultSortOrder(sortField);
+
+        if (tokens.length == 2) {
+            sortOrder = SORT_DESC.equals(tokens[1]) ? SORT_ORDER.desc : SORT_ORDER.asc;
+        }
+
+        if (SORT_DATE.equals(sortField) || SORT_YEAR.equals(sortField)) {
+            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, sortOrder);
         } else {
-            discoverQuery.setSortField(TITLE_SORT_FIELD, SORT_ORDER.asc);
+            discoverQuery.setSortField(TITLE_SORT_FIELD, sortOrder);
         }
     }
 
-    private List<CitationItem> buildCitationItems(Context context, List<Item> items,
+    private SORT_ORDER getDefaultSortOrder(String sortField) {
+        return SORT_TITLE.equals(sortField) ? SORT_ORDER.desc : SORT_ORDER.asc;
+    }
+
+    private Map<String, Map<String, List<CitationItem>>> buildCitationItems(Context context, List<Item> items,
                                                   CitationsRequestRest citationsRequest) {
         String style = citationsRequest.getStyle();
         String crosswalkType = normalizeStyleForCrosswalk(style);
@@ -335,9 +368,9 @@ public class CitationsRestController {
         if (crosswalkPatent == null || crosswalkProduct == null || crosswalkPublication == null) {
             throw new DSpaceBadRequestException("Unable to generate citations for style '" + style + "'");
         }
-        boolean isFullFormat = DISPLAY_FORMAT_FULL.equals(normalize(citationsRequest.getFormat()));
+        boolean isFullFormat = DISPLAY_FORMAT_FULL.equals(citationsRequest.getFormat());
 
-        List<CitationItem> citationItems = new ArrayList<>();
+        Map<String, Map<String, List<CitationItem>>> citationItems = new HashMap<>();
         for (Item item : items) {
             StreamDisseminationCrosswalk crosswalk;
             StreamDisseminationCrosswalk jsonCrosswalk;
@@ -364,36 +397,179 @@ public class CitationsRestController {
                 continue;
             }
             if (isFullFormat) {
-                CitationItemFull citationItem = new CitationItemFull();
-                citationItem.uuid = item.getID().toString();
-                citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
-
-                citationItem.handle = item.getHandle();
-                citationItem.type = getType(item);
-                citationItem.collection = Optional.ofNullable(item.getOwningCollection())
-                        .map(Collection::getName)
-                        .orElse(null);
-                citationItem.year = getYear(item);
-                citationItem.cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
-                citationItems.add(citationItem);
+                addCitationItemFull(context, item, crosswalk, crosswalkType,
+                        jsonCrosswalk, citationItems, citationsRequest);
             } else {
-                CitationItemLight citationItem = new CitationItemLight();
-                citationItem.uuid = item.getID().toString();
-                citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
-                citationItems.add(citationItem);
+                addCitationItemLight(context, item, crosswalk, crosswalkType,
+                        jsonCrosswalk, citationItems, citationsRequest);
             }
 
         }
         return citationItems;
     }
 
-    private Map<String, Object> buildResponse(CitationsRequestRest request, List<CitationItem> citationItems) {
+    private void addCitationItemFull(Context context, Item item, StreamDisseminationCrosswalk crosswalk,
+                                     String crosswalkType, StreamDisseminationCrosswalk jsonCrosswalk,
+                                     Map<String, Map<String, List<CitationItem>>> citationItems,
+                                     CitationsRequestRest citationsRequest) {
+        CitationItemFull citationItem = new CitationItemFull();
+        citationItem.uuid = item.getID().toString();
+        citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
+
+        citationItem.handle = item.getHandle();
+        citationItem.collection = Optional.ofNullable(item.getOwningCollection())
+                .map(Collection::getName)
+                .orElse(null);
+        final String year = getYear(item);
+        citationItem.year = year;
+        final String cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
+        citationItem.cslItem = cslItem;
+        final String type = getCslType(cslItem, item.getID().toString());
+        citationItem.type = type;
+        List<CitationItem> destinationList =
+                getGroupedCitationItemList(citationItems, citationsRequest.getGroupBy(), year, type);
+        destinationList.add(citationItem);
+    }
+
+    private void addCitationItemLight(Context context, Item item,
+                                      StreamDisseminationCrosswalk crosswalk, String crosswalkType,
+                                      StreamDisseminationCrosswalk jsonCrosswalk,
+                                      Map<String, Map<String, List<CitationItem>>> citationItems,
+                                      CitationsRequestRest citationsRequest) {
+        CitationItemLight citationItem = new CitationItemLight();
+        citationItem.uuid = item.getID().toString();
+        citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
+        List<CitationItem> destinationList;
+        String groupBy = citationsRequest.getGroupBy();
+        if (StringUtils.isBlank(groupBy)) {
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, null, null);
+        } else {
+            final String year = getYear(item);
+            final String cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
+            final String type = getCslType(cslItem, item.getID().toString());
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, year, type);
+        }
+        destinationList.add(citationItem);
+    }
+
+    /**
+     * Retrieves a grouped list of CitationItem objects based on the specified parameters.
+     * The grouping behavior is determined by the values of the provided groupBy, year, and type parameters.
+     * If the input parameters are invalid or missing, default groups may be created in the citationItems map.
+     *
+     * @param citationItems the map containing existing groups of citation items, organized by keys like year and type
+     * @param groupBy the grouping criteria to organize the citation items (e.g., "year", "type", "year,type")
+     * @param year the year value used for grouping the citation items, when applicable
+     * @param type the type value used for grouping the citation items, when applicable
+     * @return a list of CitationItem objects corresponding to the specified grouping parameters
+     * @throws DSpaceBadRequestException if the provided groupBy value is invalid
+     */
+    private static List<CitationItem> getGroupedCitationItemList(
+            Map<String, Map<String, List<CitationItem>>> citationItems, String groupBy, String year, String type) {
+        List<CitationItem> destinationList;
+        if (StringUtils.isBlank(groupBy)) {
+            if (citationItems.isEmpty()) {
+                citationItems.put(DEFAULT_MAP_KEY, new HashMap<>());
+                citationItems.get(DEFAULT_MAP_KEY).put(DEFAULT_MAP_KEY, new ArrayList<>());
+            }
+            destinationList = citationItems.get(DEFAULT_MAP_KEY).get(DEFAULT_MAP_KEY);
+        } else {
+            if (StringUtils.isBlank(year)) {
+                year = UNKNOWN_GROUP;
+            }
+            if (StringUtils.isBlank(type)) {
+                type = UNKNOWN_GROUP;
+            }
+            switch (groupBy) {
+                case GROUP_BY_YEAR:
+                    if (!citationItems.containsKey(year)) {
+                        citationItems.put(year, new HashMap<>());
+                        citationItems.get(year).put(DEFAULT_MAP_KEY, new ArrayList<>());
+                    }
+                    destinationList = citationItems.get(year).get(DEFAULT_MAP_KEY);
+                    break;
+                case GROUP_BY_TYPE:
+                    if (!citationItems.containsKey(type)) {
+                        citationItems.put(type, new HashMap<>());
+                        citationItems.get(type).put(DEFAULT_MAP_KEY, new ArrayList<>());
+                    }
+                    destinationList = citationItems.get(type).get(DEFAULT_MAP_KEY);
+                    break;
+                case GROUP_BY_YEAR_TYPE:
+                    if (!citationItems.containsKey(year)) {
+                        citationItems.put(year, new HashMap<>());
+                    }
+                    if (!citationItems.get(year).containsKey(type)) {
+                        citationItems.get(year).put(type, new ArrayList<>());
+                    }
+                    destinationList = citationItems.get(year).get(type);
+                    break;
+                case GROUP_BY_TYPE_YEAR:
+                    if (!citationItems.containsKey(type)) {
+                        citationItems.put(type, new HashMap<>());
+                    }
+                    if (!citationItems.get(type).containsKey(year)) {
+                        citationItems.get(type).put(year, new ArrayList<>());
+                    }
+                    destinationList = citationItems.get(type).get(year);
+                    break;
+                default:
+                    throw new DSpaceBadRequestException("Invalid groupBy value: " + groupBy);
+            }
+        }
+        return destinationList;
+    }
+
+    private Map<String, Object> buildResponse(CitationsRequestRest request,
+                                              Map<String, Map<String, List<CitationItem>>> citationItems) {
         Map<String, Object> response = new LinkedHashMap<>();
-        if (DISPLAY_FORMAT_FULL.equals(normalize(request.getFormat()))) {
-            //response.put("groupBy", normalizeGroupByAsList(request.getGroupBy()));
+        if (DISPLAY_FORMAT_FULL.equals(request.getFormat())) {
             response.put("style", normalizeStyleForResponse(request.getStyle()));
         }
-        response.put("results", citationItems.stream().map(CitationItem::toMap).collect(Collectors.toList()));
+
+        if (request.getGroupBy() != null && !request.getGroupBy().isEmpty()) {
+            response.put("groupBy", request.getGroupBy());
+        }
+
+        Object results;
+
+        boolean noGrouping = citationItems.size() == 1 && citationItems.containsKey(DEFAULT_MAP_KEY);
+        boolean singleLevelGrouping = !noGrouping && citationItems.values().stream()
+                .allMatch(map -> map.size() == 1 && map.containsKey(DEFAULT_MAP_KEY));
+
+        if (noGrouping) {
+            results = citationItems.get(DEFAULT_MAP_KEY)
+                    .values()
+                    .stream()
+                    .flatMap(List::stream)
+                    .map(CitationItem::toMap)
+                    .collect(Collectors.toList());
+
+        } else if (singleLevelGrouping) {
+            results = citationItems.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry -> entry.getValue().get(DEFAULT_MAP_KEY).stream()
+                                    .map(CitationItem::toMap)
+                                    .collect(Collectors.toList())
+                    ));
+
+        } else {
+            results = citationItems.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            outerEntry -> outerEntry.getValue().entrySet().stream()
+                                    .collect(Collectors.toMap(
+                                            Map.Entry::getKey,
+                                            innerEntry -> innerEntry.getValue().stream()
+                                                    .map(CitationItem::toMap)
+                                                    .collect(Collectors.toList())
+                                    ))
+                    ));
+
+        }
+
+        response.put("results", results);
         return response;
     }
 
@@ -407,23 +583,8 @@ public class CitationsRestController {
         return StringUtils.removeEndIgnoreCase(normalized, ".csl");
     }
 
-    private String normalizeGroupBy(String groupBy) {
-        return StringUtils.isBlank(groupBy) ? null : groupBy.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private List<String> normalizeGroupByAsList(String groupBy) {
-        String normalized = normalizeGroupBy(groupBy);
-        if (normalized == null) {
-            return Collections.emptyList();
-        }
-        if (GROUP_BY_BOTH.equals(normalized)) {
-            return List.of(GROUP_BY_YEAR, GROUP_BY_TYPE);
-        }
-        return List.of(normalized);
-    }
-
     private String getYear(Item item) {
-        String issued = getDcMetadataValue(item, "date", "issued").orElse(null);
+        String issued = itemService.getMetadataFirstValue(item, "dc", "date", "issued", Item.ANY);
         if (StringUtils.isBlank(issued)) {
             return UNKNOWN_GROUP;
         }
@@ -431,14 +592,18 @@ public class CitationsRestController {
         return matcher.find() ? matcher.group(1) : UNKNOWN_GROUP;
     }
 
-    private Optional<String> getDcMetadataValue(Item item, String element, String qualifier) {
-        return Optional.ofNullable(itemService.getMetadataFirstValue(item, "dc", element, qualifier, Item.ANY))
-                       .filter(StringUtils::isNotBlank);
-    }
-
-    private String getType(Item item) {
-        return getDcMetadataValue(item, "type", null)
-                .orElse(Optional.ofNullable(itemService.getEntityType(item)).orElse(OTHER_GROUP));
+    private String getCslType(String cslItem, String itemId) {
+        try {
+            for (var item : new ObjectMapper().readTree(cslItem).path("items")) {
+                if (itemId.equals(item.path("id").asText())) {
+                    return item.path("type").asText();
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            log.error("Error while parsing the json " + cslItem, e);
+            return null;
+        }
     }
 
     private String exportCitationByStyle(Context context, Item item, StreamDisseminationCrosswalk crosswalk,
@@ -458,7 +623,6 @@ public class CitationsRestController {
                     + " with style '" + style + "'", e);
         }
     }
-
     private interface CitationItem {
         Map<String, Object> toMap();
     }
@@ -492,11 +656,14 @@ public class CitationsRestController {
             map.put("collection", collection);
             map.put("year", year);
             map.put("citation", citation);
-            map.put("cslItem", cslItem);
+            try {
+                map.put("cslItem", JSON_MAPPER.readValue(cslItem, Object.class));
+            } catch (JsonProcessingException e) {
+                log.error("Error converting cslItem to json: " + cslItem, e);
+            }
             return map;
         }
     }
 }
-
 
 
