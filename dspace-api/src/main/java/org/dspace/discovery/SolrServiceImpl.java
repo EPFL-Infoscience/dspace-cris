@@ -911,7 +911,13 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             solrQuery.setRows(discoveryQuery.getMaxResults());
         }
 
-        if (discoveryQuery.getSortField() != null) {
+        if (!discoveryQuery.getSortClauses().isEmpty()) {
+            for (DiscoverQuery.SortClause clause : discoveryQuery.getSortClauses()) {
+                SolrQuery.ORDER order = clause.getOrder().equals(DiscoverQuery.SORT_ORDER.desc)
+                    ? SolrQuery.ORDER.desc : SolrQuery.ORDER.asc;
+                solrQuery.addSort(clause.getField(), order);
+            }
+        } else if (discoveryQuery.getSortField() != null) {
             SolrQuery.ORDER order = SolrQuery.ORDER.asc;
             if (discoveryQuery.getSortOrder().equals(DiscoverQuery.SORT_ORDER.desc)) {
                 order = SolrQuery.ORDER.desc;

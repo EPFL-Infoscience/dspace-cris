@@ -88,6 +88,7 @@ public class CitationsRestController {
     private static final String SORT_ASC = "asc";
     private static final String SORT_DESC = "desc";
     private static final String SORT_SEPARATOR = ":";
+    private static final String SORT_MULTI_SEPARATOR = ",";
     private static final String UNKNOWN_GROUP = "Unknown";
     private static final String SEARCH_RESOURCE_ID_FIELD = "search.resourceid";
     private static final String TITLE_SORT_FIELD = "dc.title_sort";
@@ -189,7 +190,8 @@ public class CitationsRestController {
 
         if (StringUtils.isNotBlank(citationsRequest.getSort()) && !isSortValid(citationsRequest.getSort())) {
             throw new DSpaceBadRequestException(
-                    "The 'sort' field must be 'date', 'title' or 'year', optionally followed by ':asc' or ':desc'");
+                    "The 'sort' field must contain comma-separated clauses of 'date', 'title' or 'year', "
+                    + "optionally followed by ':asc' or ':desc' (e.g. 'date:asc,title:desc')");
         }
 
         if (isEmpty(citationsRequest.getUuids()) && StringUtils.isBlank(citationsRequest.getQuery())
@@ -218,7 +220,21 @@ public class CitationsRestController {
             return false;
         }
 
-        String[] tokens = normalizedSort.split(SORT_SEPARATOR, -1);
+        String[] clauses = normalizedSort.split(SORT_MULTI_SEPARATOR, -1);
+        for (String clause : clauses) {
+            if (!isSingleSortClauseValid(clause.trim())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isSingleSortClauseValid(String clause) {
+        if (StringUtils.isBlank(clause)) {
+            return false;
+        }
+
+        String[] tokens = clause.split(SORT_SEPARATOR, -1);
         if (tokens.length == 1) {
             return SORT_DATE.equals(tokens[0]) || SORT_TITLE.equals(tokens[0]) || SORT_YEAR.equals(tokens[0]);
         }
@@ -343,7 +359,14 @@ public class CitationsRestController {
             return;
         }
 
-        String[] tokens = StringUtils.trim(sort).split(SORT_SEPARATOR, -1);
+        String[] clauses = StringUtils.trim(sort).split(SORT_MULTI_SEPARATOR, -1);
+        for (String clause : clauses) {
+            applySingleSortClause(discoverQuery, clause.trim());
+        }
+    }
+
+    private void applySingleSortClause(DiscoverQuery discoverQuery, String clause) {
+        String[] tokens = clause.split(SORT_SEPARATOR, -1);
         String sortField = tokens[0];
         SORT_ORDER sortOrder = getDefaultSortOrder(sortField);
 
@@ -351,11 +374,14 @@ public class CitationsRestController {
             sortOrder = SORT_DESC.equals(tokens[1]) ? SORT_ORDER.desc : SORT_ORDER.asc;
         }
 
+        String solrField;
         if (SORT_DATE.equals(sortField) || SORT_YEAR.equals(sortField)) {
-            discoverQuery.setSortField(DATE_ISSUED_SORT_FIELD, sortOrder);
+            solrField = DATE_ISSUED_SORT_FIELD;
         } else {
-            discoverQuery.setSortField(TITLE_SORT_FIELD, sortOrder);
+            solrField = TITLE_SORT_FIELD;
         }
+
+        discoverQuery.addSortField(solrField, sortOrder);
     }
 
     private SORT_ORDER getDefaultSortOrder(String sortField) {
