@@ -9,8 +9,6 @@ package org.dspace.app.rest;
 
 import static org.dspace.app.rest.utils.ContextUtil.obtainContext;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,8 +36,9 @@ import org.dspace.app.rest.model.CitationsRequestRest;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
-import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk;
 import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMapper;
+import org.dspace.content.integration.crosswalks.csl.CSLPreparedItemData;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
@@ -367,18 +366,12 @@ public class CitationsRestController {
                                                   CitationsRequestRest citationsRequest) {
         String style = citationsRequest.getStyle();
         String crosswalkType = normalizeStyleForCrosswalk(style);
-        StreamDisseminationCrosswalk crosswalkPatent =
-                streamDisseminationCrosswalkMapper.getByType("patent-" + crosswalkType);
-        StreamDisseminationCrosswalk crosswalkProduct =
-                streamDisseminationCrosswalkMapper.getByType("product-" + crosswalkType);
-        StreamDisseminationCrosswalk crosswalkPublication =
-                streamDisseminationCrosswalkMapper.getByType("publication-" + crosswalkType);
-        StreamDisseminationCrosswalk crosswalkPatentJson =
-                streamDisseminationCrosswalkMapper.getByType("patent-json");
-        StreamDisseminationCrosswalk crosswalkProductJson =
-                streamDisseminationCrosswalkMapper.getByType("product-json");
-        StreamDisseminationCrosswalk crosswalkPublicationJson =
-                streamDisseminationCrosswalkMapper.getByType("publication-json");
+        CSLItemDataCrosswalk crosswalkPatent =
+                (CSLItemDataCrosswalk) streamDisseminationCrosswalkMapper.getByType("patent-" + crosswalkType);
+        CSLItemDataCrosswalk crosswalkProduct =
+                (CSLItemDataCrosswalk) streamDisseminationCrosswalkMapper.getByType("product-" + crosswalkType);
+        CSLItemDataCrosswalk crosswalkPublication =
+                (CSLItemDataCrosswalk) streamDisseminationCrosswalkMapper.getByType("publication-" + crosswalkType);
         if (crosswalkPatent == null || crosswalkProduct == null || crosswalkPublication == null) {
             throw new DSpaceBadRequestException("Unable to generate citations for style '" + style + "'");
         }
@@ -386,49 +379,53 @@ public class CitationsRestController {
 
         Map<String, Map<String, List<CitationItem>>> citationItems = new HashMap<>();
         for (Item item : items) {
-            StreamDisseminationCrosswalk crosswalk;
-            StreamDisseminationCrosswalk jsonCrosswalk;
+            CSLItemDataCrosswalk crosswalk;
             String entityType = itemService.getEntityType(item);
             switch (entityType) {
                 case "Patent":
                     crosswalk = crosswalkPatent;
-                    jsonCrosswalk = crosswalkPatentJson;
                     break;
                 case "Product":
                     crosswalk = crosswalkProduct;
-                    jsonCrosswalk = crosswalkProductJson;
                     break;
                 case "Publication":
                     crosswalk = crosswalkPublication;
-                    jsonCrosswalk = crosswalkPublicationJson;
                     break;
                 default:
                     crosswalk = null;
-                    jsonCrosswalk = null;
             }
             if (crosswalk == null) {
                 log.warn("Skipping item " + item.getID() + " as it is not a supported entity type: " + entityType);
                 continue;
             }
-            if (isFullFormat) {
-                addCitationItemFull(context, item, crosswalk, crosswalkType,
-                        jsonCrosswalk, citationItems, citationsRequest);
-            } else {
-                addCitationItemLight(context, item, crosswalk, crosswalkType,
-                        jsonCrosswalk, citationItems, citationsRequest);
+
+            CSLPreparedItemData preparedItemData;
+            try {
+                preparedItemData = crosswalk.prepareItemData(context, item);
+            } catch (Exception e) {
+                throw new DSpaceBadRequestException("Unable to prepare citation data for item " + item.getID()
+                        + " with style '" + style + "'", e);
             }
 
+            String cslJson = preparedItemData.getJson();
+            String citation = crosswalk.generateCitation(preparedItemData);
+
+            if (isFullFormat) {
+                addCitationItemFull(item, citation, cslJson, crosswalkType, citationItems, citationsRequest);
+            } else {
+                addCitationItemLight(item, citation, cslJson, citationItems, citationsRequest);
+            }
         }
         return citationItems;
     }
 
-    private void addCitationItemFull(Context context, Item item, StreamDisseminationCrosswalk crosswalk,
-                                     String crosswalkType, StreamDisseminationCrosswalk jsonCrosswalk,
+    private void addCitationItemFull(Item item, String citation, String cslJson,
+                                     String crosswalkType,
                                      Map<String, Map<String, List<CitationItem>>> citationItems,
                                      CitationsRequestRest citationsRequest) {
         CitationItemFull citationItem = new CitationItemFull();
         citationItem.uuid = item.getID().toString();
-        citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
+        citationItem.citation = citation;
 
         citationItem.handle = item.getHandle();
         citationItem.collection = Optional.ofNullable(item.getOwningCollection())
@@ -436,31 +433,27 @@ public class CitationsRestController {
                 .orElse(null);
         final String year = getYear(item);
         citationItem.year = year;
-        final String cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
-        citationItem.cslItem = cslItem;
-        final String type = getCslType(cslItem, item.getID().toString());
+        citationItem.cslItem = cslJson;
+        final String type = getCslType(cslJson, item.getID().toString());
         citationItem.type = type;
         List<CitationItem> destinationList =
                 getGroupedCitationItemList(citationItems, citationsRequest.getGroupBy(), year, type);
         destinationList.add(citationItem);
     }
 
-    private void addCitationItemLight(Context context, Item item,
-                                      StreamDisseminationCrosswalk crosswalk, String crosswalkType,
-                                      StreamDisseminationCrosswalk jsonCrosswalk,
+    private void addCitationItemLight(Item item, String citation, String cslJson,
                                       Map<String, Map<String, List<CitationItem>>> citationItems,
                                       CitationsRequestRest citationsRequest) {
         CitationItemLight citationItem = new CitationItemLight();
         citationItem.uuid = item.getID().toString();
-        citationItem.citation = exportCitationByStyle(context, item, crosswalk, crosswalkType);
+        citationItem.citation = citation;
         List<CitationItem> destinationList;
         String groupBy = citationsRequest.getGroupBy();
         if (StringUtils.isBlank(groupBy)) {
             destinationList = getGroupedCitationItemList(citationItems, groupBy, null, null);
         } else {
             final String year = getYear(item);
-            final String cslItem = exportCitationByStyle(context, item, jsonCrosswalk, crosswalkType);
-            final String type = getCslType(cslItem, item.getID().toString());
+            final String type = getCslType(cslJson, item.getID().toString());
             destinationList = getGroupedCitationItemList(citationItems, groupBy, year, type);
         }
         destinationList.add(citationItem);
@@ -620,23 +613,6 @@ public class CitationsRestController {
         }
     }
 
-    private String exportCitationByStyle(Context context, Item item, StreamDisseminationCrosswalk crosswalk,
-                                         String style) {
-        try {
-            if (!crosswalk.canDisseminate(context, item)) {
-                throw new DSpaceBadRequestException("Unable to generate citation for item " + item.getID()
-                        + " with style '" + style + "'");
-            }
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            crosswalk.disseminate(context, item, out);
-            return out.toString(java.nio.charset.StandardCharsets.UTF_8).trim();
-        } catch (IOException | RuntimeException | org.dspace.authorize.AuthorizeException
-                 | org.dspace.content.crosswalk.CrosswalkException | SQLException e) {
-            throw new DSpaceBadRequestException("Unable to generate citation for item " + item.getID()
-                    + " with style '" + style + "'", e);
-        }
-    }
     private interface CitationItem {
         Map<String, Object> toMap();
     }
