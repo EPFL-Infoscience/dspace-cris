@@ -35,7 +35,6 @@ import org.springframework.http.MediaType;
 public class CitationsRestControllerIT extends AbstractControllerIntegrationTest {
 
     private String loggedInToken;
-    private String adminToken;
 
     @Before
     @Override
@@ -43,7 +42,6 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
         super.setUp();
         context.turnOffAuthorisationSystem();
         loggedInToken = getAuthToken(eperson.getEmail(), password);
-        adminToken = getAuthToken(admin.getEmail(), password);
         context.restoreAuthSystemState();
     }
 
@@ -73,7 +71,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
@@ -89,6 +87,22 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
                 .andExpect(jsonPath("$.results[0].cslItem").isNotEmpty())
                 .andExpect(jsonPath("$.results[0].cslItem.items[0].title").value("A Test Publication"));
+    }
+
+    @Test
+    public void getCitationsReturnsUnauthorizedWhenTokenIsMissing() throws Exception {
+        String body = "{" +
+                "\"uuids\":[\"00000000-0000-0000-0000-000000000000\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient().perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message")
+                        .value("Unauthorized. Please provide a valid JWT token in the Authorization header"));
     }
 
     @Test
@@ -144,7 +158,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"groupBy\":\"type\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByType))
                 .andExpect(status().isOk())
@@ -177,7 +191,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"groupBy\":\"year\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByYear))
                 .andExpect(status().isOk())
@@ -213,7 +227,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"groupBy\":\"type,year\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByTypeYear))
                 .andExpect(status().isOk())
@@ -254,7 +268,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"groupBy\":\"year,type\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByYearType))
                 .andExpect(status().isOk())
@@ -362,7 +376,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"sort\":\"date\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByTypeSortByYear))
                 .andExpect(status().isOk())
@@ -398,7 +412,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"sort\":\"title:asc\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByTypeSortByTitle))
                 .andExpect(status().isOk())
@@ -433,7 +447,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"sort\":\"title\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyGroupByYearSortByTitle))
                 .andExpect(status().isOk())
@@ -492,7 +506,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
@@ -518,7 +532,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"uuids\":[\"" + item.getID() + "\"]" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest());
@@ -560,7 +574,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(uuidAndQueryBody))
                 .andExpect(status().isOk())
@@ -575,7 +589,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(uuidOnlyBody))
                 .andExpect(status().isOk())
@@ -590,7 +604,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(queryOnlyBody))
                 .andExpect(status().isOk())
@@ -604,7 +618,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(noUuidNoQueryBody))
                 .andExpect(status().isBadRequest());
@@ -669,7 +683,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(onlyResearchOutputsBody))
                 .andExpect(status().isOk())
@@ -685,7 +699,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(searchWithQueryBody))
                 .andExpect(status().isOk())
@@ -701,7 +715,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(searchWithScopeBody))
                 .andExpect(status().isOk())
@@ -718,7 +732,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(onlyResearchOutputsWithScopeBody))
                 .andExpect(status().isOk())
@@ -736,7 +750,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(onlyResearchOutputsWithScopeAndQueryBody))
                 .andExpect(status().isOk())
@@ -783,7 +797,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(researchOutputsBody))
                 .andExpect(status().isOk())
@@ -801,7 +815,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(wrongScopeBody))
                 .andExpect(status().isOk())
@@ -820,7 +834,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"format\":\"full\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(researcherProfilesBody))
                 .andExpect(status().isOk())
@@ -869,7 +883,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"sort\":\"title\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(titleSortBody))
                 .andExpect(status().isOk())
@@ -884,7 +898,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"sort\":\"title:asc\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(titleSortAscBody))
                 .andExpect(status().isOk())
@@ -899,7 +913,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"sort\":\"date\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(dateSortBody))
                 .andExpect(status().isOk())
@@ -914,7 +928,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 "\"sort\":\"year\"" +
                 "}";
 
-        getClient().perform(post("/api/integration/citations")
+        getClient(loggedInToken).perform(post("/api/integration/citations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(yearSortBody))
                 .andExpect(status().isOk())

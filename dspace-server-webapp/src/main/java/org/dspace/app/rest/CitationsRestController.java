@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.CitationsRequestRest;
-import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -58,6 +57,7 @@ import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -121,22 +121,24 @@ public class CitationsRestController {
     private StreamDisseminationCrosswalkMapper streamDisseminationCrosswalkMapper;
 
     @Autowired
-    private AuthorizeService authorizeService;
-
-    @Autowired
     private org.dspace.app.rest.utils.RestDiscoverQueryBuilder restDiscoverQueryBuilder;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> getCitations(HttpServletRequest request,
                                                             @RequestBody CitationsRequestRest citationsRequest) {
         Context context = obtainContext(request);
-        if (context != null) {
+        if (context != null && context.getCurrentUser() != null) {
             context.setMode(Mode.READ_ONLY);
         } else {
-            context = new Context(Mode.READ_ONLY);
+            return unauthorizedResponse();
         }
 
-        validateRequest(citationsRequest);
+        try {
+            validateRequest(citationsRequest);
+        } catch (DSpaceBadRequestException e) {
+            return badRequestResponse(e.getMessage());
+        }
+
 
         List<Item> items = resolveItems(context, citationsRequest);
         if (items.isEmpty()) {
@@ -152,6 +154,18 @@ public class CitationsRestController {
         Map<String, Map<String, List<CitationItem>>> citationItems =
                 buildCitationItems(context, items, citationsRequest);
         return ResponseEntity.ok(buildResponse(citationsRequest, citationItems));
+    }
+
+    private ResponseEntity<Map<String, Object>> unauthorizedResponse() {
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "Unauthorized. Please provide a valid JWT token in the Authorization header");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    private ResponseEntity<Map<String, Object>> badRequestResponse(String message) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     private void validateRequest(CitationsRequestRest citationsRequest) {
@@ -665,5 +679,3 @@ public class CitationsRestController {
         }
     }
 }
-
-
