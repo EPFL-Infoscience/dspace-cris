@@ -98,7 +98,9 @@ public class CitationsRestController {
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
     private static final List<String> GROUP_VALUES =
             Arrays.asList(GROUP_BY_TYPE, GROUP_BY_YEAR, GROUP_BY_TYPE_YEAR, GROUP_BY_YEAR_TYPE);
-    private static Map<String, Map<String, List<CitationItem>>> emptyResult;
+    private static final Map<String, Map<String, List<CitationItem>>> EMPTY_RESULT =
+            Collections.singletonMap(DEFAULT_MAP_KEY,
+                    Collections.singletonMap(DEFAULT_MAP_KEY, Collections.emptyList()));
 
     @Autowired
     private ItemService itemService;
@@ -143,13 +145,7 @@ public class CitationsRestController {
 
         List<Item> items = resolveItems(context, citationsRequest);
         if (items.isEmpty()) {
-            if (emptyResult == null) {
-                emptyResult = new HashMap<>();
-                Map<String, List<CitationItem>> innerMap = new HashMap<>();
-                innerMap.put(DEFAULT_MAP_KEY, Collections.emptyList());
-                emptyResult.put(DEFAULT_MAP_KEY, innerMap);
-            }
-            return ResponseEntity.ok(buildResponse(citationsRequest, emptyResult));
+            return ResponseEntity.ok(buildResponse(citationsRequest, EMPTY_RESULT));
         }
 
         Map<String, Map<String, List<CitationItem>>> citationItems =
@@ -436,7 +432,7 @@ public class CitationsRestController {
         batchGenerateCitations(context, publications, crosswalkPublication, style, citationsByUuid, cslJsonByUuid);
 
         // Build the grouped result maintaining the original Solr sort order
-        Map<String, Map<String, List<CitationItem>>> citationItems = new HashMap<>();
+        Map<String, Map<String, List<CitationItem>>> citationItems = new LinkedHashMap<>();
         for (Item item : items) {
             UUID itemId = item.getID();
             String citation = citationsByUuid.get(itemId);
@@ -548,7 +544,7 @@ public class CitationsRestController {
         List<CitationItem> destinationList;
         if (StringUtils.isBlank(groupBy)) {
             if (citationItems.isEmpty()) {
-                citationItems.put(DEFAULT_MAP_KEY, new HashMap<>());
+                citationItems.put(DEFAULT_MAP_KEY, new LinkedHashMap<>());
                 citationItems.get(DEFAULT_MAP_KEY).put(DEFAULT_MAP_KEY, new ArrayList<>());
             }
             destinationList = citationItems.get(DEFAULT_MAP_KEY).get(DEFAULT_MAP_KEY);
@@ -562,21 +558,21 @@ public class CitationsRestController {
             switch (groupBy) {
                 case GROUP_BY_YEAR:
                     if (!citationItems.containsKey(year)) {
-                        citationItems.put(year, new HashMap<>());
+                        citationItems.put(year, new LinkedHashMap<>());
                         citationItems.get(year).put(DEFAULT_MAP_KEY, new ArrayList<>());
                     }
                     destinationList = citationItems.get(year).get(DEFAULT_MAP_KEY);
                     break;
                 case GROUP_BY_TYPE:
                     if (!citationItems.containsKey(type)) {
-                        citationItems.put(type, new HashMap<>());
+                        citationItems.put(type, new LinkedHashMap<>());
                         citationItems.get(type).put(DEFAULT_MAP_KEY, new ArrayList<>());
                     }
                     destinationList = citationItems.get(type).get(DEFAULT_MAP_KEY);
                     break;
                 case GROUP_BY_YEAR_TYPE:
                     if (!citationItems.containsKey(year)) {
-                        citationItems.put(year, new HashMap<>());
+                        citationItems.put(year, new LinkedHashMap<>());
                     }
                     if (!citationItems.get(year).containsKey(type)) {
                         citationItems.get(year).put(type, new ArrayList<>());
@@ -585,7 +581,7 @@ public class CitationsRestController {
                     break;
                 case GROUP_BY_TYPE_YEAR:
                     if (!citationItems.containsKey(type)) {
-                        citationItems.put(type, new HashMap<>());
+                        citationItems.put(type, new LinkedHashMap<>());
                     }
                     if (!citationItems.get(type).containsKey(year)) {
                         citationItems.get(type).put(year, new ArrayList<>());
@@ -630,7 +626,9 @@ public class CitationsRestController {
                             Map.Entry::getKey,
                             entry -> entry.getValue().get(DEFAULT_MAP_KEY).stream()
                                     .map(CitationItem::toMap)
-                                    .collect(Collectors.toList())
+                                    .collect(Collectors.toList()),
+                            (a, b) -> a,
+                            LinkedHashMap::new
                     ));
 
         } else {
@@ -642,8 +640,12 @@ public class CitationsRestController {
                                             Map.Entry::getKey,
                                             innerEntry -> innerEntry.getValue().stream()
                                                     .map(CitationItem::toMap)
-                                                    .collect(Collectors.toList())
-                                    ))
+                                                    .collect(Collectors.toList()),
+                                            (a, b) -> a,
+                                            LinkedHashMap::new
+                                    )),
+                            (a, b) -> a,
+                            LinkedHashMap::new
                     ));
 
         }
