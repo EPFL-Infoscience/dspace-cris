@@ -95,6 +95,7 @@ public class CitationsRestController {
     private static final String TITLE_SORT_FIELD = "dc.title_sort";
     private static final String DATE_ISSUED_SORT_FIELD = "dc.date.issued_dt";
     private static final String DEFAULT_MAP_KEY = "nogroup";
+    private static final int DEFAULT_BATCH_CHUNK_SIZE = 50;
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
     private static final List<String> GROUP_VALUES =
             Arrays.asList(GROUP_BY_TYPE, GROUP_BY_YEAR, GROUP_BY_TYPE_YEAR, GROUP_BY_YEAR_TYPE);
@@ -459,20 +460,32 @@ public class CitationsRestController {
             return;
         }
 
+        int chunkSize = configurationService.getIntProperty("citations.batch.chunk-size", DEFAULT_BATCH_CHUNK_SIZE);
+
+        for (int offset = 0; offset < items.size(); offset += chunkSize) {
+            List<Item> chunk = items.subList(offset, Math.min(offset + chunkSize, items.size()));
+            processChunk(context, chunk, crosswalk, style, citationsByUuid, parsedCslJsonByUuid);
+        }
+    }
+
+    private void processChunk(Context context, List<Item> chunk, CSLItemDataCrosswalk crosswalk,
+                              String style, Map<UUID, String> citationsByUuid,
+                              Map<UUID, Object> parsedCslJsonByUuid) {
         CSLPreparedItemData preparedItemData;
         try {
-            preparedItemData = crosswalk.prepareItemData(context, items);
+            preparedItemData = crosswalk.prepareItemData(context, chunk);
         } catch (Exception e) {
             throw new DSpaceBadRequestException("Unable to prepare citation data with style '" + style + "'", e);
         }
 
-        // Parse the batch JSON once for all items in this entity type
-        Object parsedBatchJson = parseCslJsonObject(preparedItemData.getJson());
+        // Parse the chunk JSON once for all items in this chunk
+        Object parsedChunkJson = parseCslJsonObject(preparedItemData.getJson());
 
         CSLResult result = crosswalk.generateCitations(preparedItemData);
 
         if (result == null) {
-            log.warn("CSL generator returned null for batch of " + items.size() + " items with style '" + style + "'");
+            log.warn("CSL generator returned null for chunk of " + chunk.size()
+                    + " items with style '" + style + "'");
             return;
         }
 
@@ -484,9 +497,9 @@ public class CitationsRestController {
             citationsByUuid.put(resultItemIds[i], citationEntries[i]);
         }
 
-        // Store the single parsed JSON object for each item (shared reference, no extra memory)
-        for (Item item : items) {
-            parsedCslJsonByUuid.put(item.getID(), parsedBatchJson);
+        // Store the parsed JSON object for each item in this chunk (shared reference)
+        for (Item item : chunk) {
+            parsedCslJsonByUuid.put(item.getID(), parsedChunkJson);
         }
     }
 
