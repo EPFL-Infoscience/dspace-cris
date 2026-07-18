@@ -501,9 +501,13 @@ public class CitationsRestController {
                 .orElse(null);
         final String year = getYear(item);
         citationItem.year = year;
-        citationItem.cslItem = cslJson;
-        final String type = getCslType(cslJson, item.getID().toString());
+
+        // Parse JSON once: extract both the deserialized object and the type
+        Object parsedCslItem = parseCslJsonObject(cslJson);
+        citationItem.parsedCslItem = parsedCslItem;
+        final String type = extractCslType(parsedCslItem, item.getID().toString());
         citationItem.type = type;
+
         List<CitationItem> destinationList =
                 getGroupedCitationItemList(citationItems, citationsRequest.getGroupBy(), year, type);
         destinationList.add(citationItem);
@@ -519,6 +523,10 @@ public class CitationsRestController {
         String groupBy = citationsRequest.getGroupBy();
         if (StringUtils.isBlank(groupBy)) {
             destinationList = getGroupedCitationItemList(citationItems, groupBy, null, null);
+        } else if (GROUP_BY_YEAR.equals(groupBy)) {
+            // Only year is needed for grouping — skip JSON parsing for type
+            final String year = getYear(item);
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, year, null);
         } else {
             final String year = getYear(item);
             final String type = getCslType(cslJson, item.getID().toString());
@@ -687,6 +695,46 @@ public class CitationsRestController {
         }
     }
 
+    /**
+     * Parses the CSL JSON string into a deserialized Object (Map/List structure).
+     * This avoids parsing the same JSON multiple times.
+     */
+    private Object parseCslJsonObject(String cslJson) {
+        try {
+            return JSON_MAPPER.readValue(cslJson, Object.class);
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing cslJson: " + cslJson, e);
+            return null;
+        }
+    }
+
+    /**
+     * Extracts the CSL type from an already-parsed JSON object for the given item ID.
+     */
+    @SuppressWarnings("unchecked")
+    private String extractCslType(Object parsedCslItem, String itemId) {
+        if (parsedCslItem == null) {
+            return null;
+        }
+        try {
+            Map<String, Object> root = (Map<String, Object>) parsedCslItem;
+            List<Map<String, Object>> items = (List<Map<String, Object>>) root.get("items");
+            if (items == null) {
+                return null;
+            }
+            for (Map<String, Object> item : items) {
+                if (itemId.equals(String.valueOf(item.get("id")))) {
+                    Object type = item.get("type");
+                    return type != null ? type.toString() : null;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            log.error("Error extracting type from parsed cslItem", e);
+            return null;
+        }
+    }
+
     private interface CitationItem {
         Map<String, Object> toMap();
     }
@@ -710,7 +758,7 @@ public class CitationsRestController {
         private String collection;
         private String citation;
         private String year;
-        private String cslItem;
+        private Object parsedCslItem;
 
         public Map<String, Object> toMap() {
             Map<String, Object> map = new LinkedHashMap<>();
@@ -720,11 +768,7 @@ public class CitationsRestController {
             map.put("collection", collection);
             map.put("year", year);
             map.put("citation", citation);
-            try {
-                map.put("cslItem", JSON_MAPPER.readValue(cslItem, Object.class));
-            } catch (JsonProcessingException e) {
-                log.error("Error converting cslItem to json: " + cslItem, e);
-            }
+            map.put("cslItem", parsedCslItem);
             return map;
         }
     }
