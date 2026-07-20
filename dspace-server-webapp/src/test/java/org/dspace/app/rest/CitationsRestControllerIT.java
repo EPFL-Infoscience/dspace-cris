@@ -936,4 +936,426 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[1].uuid").value(middleItem.getID().toString()))
                 .andExpect(jsonPath("$.results[2].uuid").value(zebraItem.getID().toString()));
     }
+
+    @Test
+    public void getCitationsAppliesMultiSortWithoutGrouping() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        // Two items share the same date but differ in title
+        Item itemA = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Alpha")
+                .withIssueDate("2021-06-01")
+                .inArchive()
+                .build();
+
+        Item itemB = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Beta")
+                .withIssueDate("2021-06-01")
+                .inArchive()
+                .build();
+
+        Item itemC = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Gamma")
+                .withIssueDate("2020-01-01")
+                .inArchive()
+                .build();
+
+        Item itemD = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Delta")
+                .withIssueDate("2022-12-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuidsJson = "\"" + itemA.getID() + "\",\"" + itemB.getID() + "\",\""
+                + itemC.getID() + "\",\"" + itemD.getID() + "\"";
+
+        // Multi-sort: date ascending first, then title ascending as tie-breaker
+        String multiSortBody = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date:asc,title:asc\"" +
+                "}";
+
+        // Expected order: itemC (2020), then itemA (2021, Alpha) before itemB (2021, Beta), then itemD (2022)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(multiSortBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(4)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemC.getID().toString()))
+                .andExpect(jsonPath("$.results[1].uuid").value(itemA.getID().toString()))
+                .andExpect(jsonPath("$.results[2].uuid").value(itemB.getID().toString()))
+                .andExpect(jsonPath("$.results[3].uuid").value(itemD.getID().toString()));
+
+        // Multi-sort: date descending first, then title descending as tie-breaker
+        String multiSortDescBody = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date:desc,title:desc\"" +
+                "}";
+
+        // Expected order: itemD (2022), then itemB (2021, Beta) before itemA (2021, Alpha), then itemC (2020)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(multiSortDescBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(4)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemD.getID().toString()))
+                .andExpect(jsonPath("$.results[1].uuid").value(itemB.getID().toString()))
+                .andExpect(jsonPath("$.results[2].uuid").value(itemA.getID().toString()))
+                .andExpect(jsonPath("$.results[3].uuid").value(itemC.getID().toString()));
+
+        // Multi-sort: title ascending first, then date descending as tie-breaker
+        String multiSortTitleDateBody = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"title:asc,date:desc\"" +
+                "}";
+
+        // Expected order: Alpha, Beta, Delta, Gamma (all titles unique, date is irrelevant tie-breaker)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(multiSortTitleDateBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(4)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemA.getID().toString()))
+                .andExpect(jsonPath("$.results[1].uuid").value(itemB.getID().toString()))
+                .andExpect(jsonPath("$.results[2].uuid").value(itemD.getID().toString()))
+                .andExpect(jsonPath("$.results[3].uuid").value(itemC.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsAppliesMultiSortWithSingleLevelGrouping() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        // Articles with same date but different titles
+        Item article1 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Zulu Article")
+                .withIssueDate("2021-05-01")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item article2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Alpha Article")
+                .withIssueDate("2021-05-01")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item article3 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Middle Article")
+                .withIssueDate("2020-01-01")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        // Theses
+        Item thesis1 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Beta Thesis")
+                .withIssueDate("2022-03-01")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        Item thesis2 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Alpha Thesis")
+                .withIssueDate("2022-03-01")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuidsJson = "\"" + article1.getID() + "\",\"" + article2.getID() + "\",\""
+                + article3.getID() + "\",\"" + thesis1.getID() + "\",\"" + thesis2.getID() + "\"";
+
+        // Group by type, multi-sort: date asc, then title asc
+        String body = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"date:asc,title:asc\"" +
+                "}";
+
+        // article-journal group: article3 (2020), then article2 (2021, Alpha) before article1 (2021, Zulu)
+        // thesis group: thesis2 (2022, Alpha Thesis) before thesis1 (2022, Beta Thesis)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("type"))
+                .andExpect(jsonPath("$.results.article-journal", hasSize(3)))
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(article3.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(article2.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[2].uuid").value(article1.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis", hasSize(2)))
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(thesis2.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[1].uuid").value(thesis1.getID().toString()));
+
+        // Group by year, multi-sort: title desc, then date asc (date is tie-breaker within same year)
+        String bodyGroupByYear = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year\"," +
+                "\"sort\":\"title:desc,date:asc\"" +
+                "}";
+
+        // 2020 group: article3 (only one)
+        // 2021 group: article1 (Zulu) before article2 (Alpha) — title desc
+        // 2022 group: thesis1 (Beta) before thesis2 (Alpha) — title desc
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByYear))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year"))
+                .andExpect(jsonPath("$.results.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.2020[0].uuid").value(article3.getID().toString()))
+                .andExpect(jsonPath("$.results.2021", hasSize(2)))
+                .andExpect(jsonPath("$.results.2021[0].uuid").value(article1.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[1].uuid").value(article2.getID().toString()))
+                .andExpect(jsonPath("$.results.2022", hasSize(2)))
+                .andExpect(jsonPath("$.results.2022[0].uuid").value(thesis1.getID().toString()))
+                .andExpect(jsonPath("$.results.2022[1].uuid").value(thesis2.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsAppliesMultiSortWithTwoLevelGrouping() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        Item article2021A = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Zebra Article 2021")
+                .withIssueDate("2021-06-01")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item article2021B = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Alpha Article 2021")
+                .withIssueDate("2021-03-01")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item thesis2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Only Thesis 2021")
+                .withIssueDate("2021-09-01")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        Item article2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Lonely Article 2022")
+                .withIssueDate("2022-01-01")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        Item thesis2022A = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Beta Thesis 2022")
+                .withIssueDate("2022-11-01")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        Item thesis2022B = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("Alpha Thesis 2022")
+                .withIssueDate("2022-02-01")
+                .withType("text::thesis")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuidsJson = "\"" + article2021A.getID() + "\",\"" + article2021B.getID() + "\",\""
+                + thesis2021.getID() + "\",\"" + article2022.getID() + "\",\""
+                + thesis2022A.getID() + "\",\"" + thesis2022B.getID() + "\"";
+
+        // Group by type,year with multi-sort: date:asc,title:asc
+        String bodyTypeYear = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type,year\"," +
+                "\"sort\":\"date:asc,title:asc\"" +
+                "}";
+
+        // article-journal.2021: article2021B (2021-03, Alpha) before article2021A (2021-06, Zebra)
+        // article-journal.2022: article2022 (only one)
+        // thesis.2021: thesis2021 (only one)
+        // thesis.2022: thesis2022B (2022-02, Alpha) before thesis2022A (2022-11, Beta)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyTypeYear))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("type,year"))
+                .andExpect(jsonPath("$.results.article-journal.2021", hasSize(2)))
+                .andExpect(jsonPath("$.results.article-journal.2021[0].uuid")
+                        .value(article2021B.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal.2021[1].uuid")
+                        .value(article2021A.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal.2022", hasSize(1)))
+                .andExpect(jsonPath("$.results.article-journal.2022[0].uuid")
+                        .value(article2022.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis.2021", hasSize(1)))
+                .andExpect(jsonPath("$.results.thesis.2021[0].uuid")
+                        .value(thesis2021.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis.2022", hasSize(2)))
+                .andExpect(jsonPath("$.results.thesis.2022[0].uuid")
+                        .value(thesis2022B.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis.2022[1].uuid")
+                        .value(thesis2022A.getID().toString()));
+
+        // Group by year,type with multi-sort: title:asc,date:desc
+        String bodyYearType = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year,type\"," +
+                "\"sort\":\"title:asc,date:desc\"" +
+                "}";
+
+        // 2021.article-journal: article2021B (Alpha) before article2021A (Zebra)
+        // 2021.thesis: thesis2021 (only one)
+        // 2022.article-journal: article2022 (only one)
+        // 2022.thesis: thesis2022B (Alpha) before thesis2022A (Beta)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyYearType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year,type"))
+                .andExpect(jsonPath("$.results.2021.article-journal", hasSize(2)))
+                .andExpect(jsonPath("$.results.2021.article-journal[0].uuid")
+                        .value(article2021B.getID().toString()))
+                .andExpect(jsonPath("$.results.2021.article-journal[1].uuid")
+                        .value(article2021A.getID().toString()))
+                .andExpect(jsonPath("$.results.2021.thesis", hasSize(1)))
+                .andExpect(jsonPath("$.results.2021.thesis[0].uuid")
+                        .value(thesis2021.getID().toString()))
+                .andExpect(jsonPath("$.results.2022.article-journal", hasSize(1)))
+                .andExpect(jsonPath("$.results.2022.article-journal[0].uuid")
+                        .value(article2022.getID().toString()))
+                .andExpect(jsonPath("$.results.2022.thesis", hasSize(2)))
+                .andExpect(jsonPath("$.results.2022.thesis[0].uuid")
+                        .value(thesis2022B.getID().toString()))
+                .andExpect(jsonPath("$.results.2022.thesis[1].uuid")
+                        .value(thesis2022A.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsRejectsBadMultiSortSyntax() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity).build();
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("A Test Publication")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Invalid: empty clause after comma
+        String invalidEmptyClause = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date:asc,\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidEmptyClause))
+                .andExpect(status().isBadRequest());
+
+        // Invalid: unknown sort field in second clause
+        String invalidField = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date:asc,author:desc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidField))
+                .andExpect(status().isBadRequest());
+
+        // Invalid: bad order value
+        String invalidOrder = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"title:asc,date:up\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidOrder))
+                .andExpect(status().isBadRequest());
+
+        // Valid: single sort still works
+        String validSingle = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"title\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validSingle))
+                .andExpect(status().isOk());
+
+        // Valid: multi-sort without explicit directions
+        String validMultiNoDir = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date,title\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validMultiNoDir))
+                .andExpect(status().isOk());
+    }
 }

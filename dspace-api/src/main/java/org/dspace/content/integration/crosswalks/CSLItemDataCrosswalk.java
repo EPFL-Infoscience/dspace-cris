@@ -26,6 +26,7 @@ import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkMode;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
 import org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory;
+import org.dspace.content.integration.crosswalks.csl.CSLPreparedItemData;
 import org.dspace.content.integration.crosswalks.csl.CSLResult;
 import org.dspace.content.integration.crosswalks.csl.DSpaceListItemDataProvider;
 import org.dspace.content.service.ItemService;
@@ -95,6 +96,64 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
             print(out, result.getCitation());
         }
 
+    }
+
+    /**
+     * Phase 1 of a two-phase dissemination: processes the given item and returns
+     * prepared item data containing both the CSL JSON and the provider that can be
+     * used to generate the final citation.
+     *
+     * @param context the DSpace context
+     * @param dso     the DSpace item to process
+     * @return the prepared item data holding the JSON and the provider
+     * @throws CrosswalkException if the item cannot be crosswalked
+     */
+    public CSLPreparedItemData prepareItemData(Context context, DSpaceObject dso) throws CrosswalkException {
+        DSpaceListItemDataProvider itemDataProvider = createItemDataProvider(context, Arrays.asList(dso).iterator());
+        return new CSLPreparedItemData(itemDataProvider.toJson(), itemDataProvider);
+    }
+
+    /**
+     * Phase 2 of a two-phase dissemination: generates the citation string from
+     * prepared item data that was previously obtained via {@link #prepareItemData}.
+     *
+     * @param preparedItemData the prepared item data from phase 1
+     * @return the formatted citation string, or null if generation fails
+     */
+    public String generateCitation(CSLPreparedItemData preparedItemData) {
+        CSLResult result = cslGeneratorFactory.getCSLGenerator()
+            .generate(preparedItemData.getProvider(), style, format);
+        return result != null ? result.getCitation() : null;
+    }
+
+    /**
+     * Phase 1 (batch): processes multiple items at once and returns prepared item data
+     * containing both the CSL JSON and the provider. This is significantly more efficient
+     * than calling {@link #prepareItemData(Context, DSpaceObject)} in a loop because it
+     * enables a single call to the CSL generator for all items.
+     *
+     * @param context the DSpace context
+     * @param items   the list of DSpace items to process
+     * @return the prepared item data holding the combined JSON and the provider
+     * @throws CrosswalkException if any item cannot be crosswalked
+     */
+    public CSLPreparedItemData prepareItemData(Context context, List<? extends DSpaceObject> items)
+            throws CrosswalkException {
+        DSpaceListItemDataProvider itemDataProvider = createItemDataProvider(context, items.iterator());
+        return new CSLPreparedItemData(itemDataProvider.toJson(), itemDataProvider);
+    }
+
+    /**
+     * Phase 2 (batch): generates citations for all items in the prepared data and returns
+     * the full {@link CSLResult} which maps each item UUID to its individual citation entry.
+     * This performs a single call to the CSL generator for all items in the batch.
+     *
+     * @param preparedItemData the prepared item data from phase 1 (may contain multiple items)
+     * @return the CSL result containing individual citation entries per item, or null if generation fails
+     */
+    public CSLResult generateCitations(CSLPreparedItemData preparedItemData) {
+        return cslGeneratorFactory.getCSLGenerator()
+            .generate(preparedItemData.getProvider(), style, format);
     }
 
     private DSpaceListItemDataProvider createItemDataProvider(Context context,
