@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import de.undercouch.citeproc.CSL;
+import de.undercouch.citeproc.SelectionMode;
+import de.undercouch.citeproc.csl.CSLItemData;
+import de.undercouch.citeproc.csl.CSLItemDataBuilder;
 import de.undercouch.citeproc.output.Bibliography;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,8 +45,32 @@ public class CSLNestedGenerator implements CSLGenerator {
         if (citeproc == null) {
             return null;
         }
-        Bibliography bibliography = citeproc.makeBibliography();
-        return CSLResult.fromBibliography(format, bibliography, itemDataProvider.getIds());
+
+        // Generate the full bibliography once (entries in CSL sort order)
+        Bibliography fullBibliography = citeproc.makeBibliography();
+        if (fullBibliography == null) {
+            return null;
+        }
+        // The full concatenated citation in CSL sort order (used by disseminate/VirtualFieldCitations)
+        String fullCitation = fullBibliography.makeString();
+
+        // Now build per-item entries with correct UUID-to-citation mapping.
+        // We use SelectionMode.SELECT to filter the bibliography by each item's ID.
+        java.util.Collection<String> ids = itemDataProvider.getIds();
+        String[] allIds = ids.toArray(new String[0]);
+        String[] allEntries = new String[allIds.length];
+
+        for (int i = 0; i < allIds.length; i++) {
+            CSLItemData filterItem = new CSLItemDataBuilder().id(allIds[i]).build();
+            Bibliography filtered = citeproc.makeBibliography(SelectionMode.SELECT, filterItem);
+            if (filtered != null && filtered.getEntries().length > 0) {
+                allEntries[i] = filtered.getEntries()[0];
+            } else {
+                allEntries[i] = "";
+            }
+        }
+
+        return new CSLResult(format, allIds, allEntries, fullCitation);
     }
 
     private CSL createCitationProcessor(DSpaceListItemDataProvider itemDataProvider, String style, String format) {

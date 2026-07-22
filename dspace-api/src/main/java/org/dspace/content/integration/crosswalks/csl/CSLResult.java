@@ -39,6 +39,10 @@ public class CSLResult {
         this(format, convertToUUIDs(Arrays.stream(itemIds).collect(Collectors.toList())), citationEntries, null);
     }
 
+    public CSLResult(String format, String[] itemIds, String[] citationEntries, String citation) {
+        this(format, convertToUUIDs(Arrays.stream(itemIds).collect(Collectors.toList())), citationEntries, citation);
+    }
+
     public CSLResult(String format, UUID[] itemIds, String[] citationEntries) {
         this(format, itemIds, citationEntries, null);
     }

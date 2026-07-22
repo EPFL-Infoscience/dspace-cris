@@ -517,7 +517,9 @@ public class CitationsRestController {
         final String year = getYear(item);
         citationItem.year = year;
 
-        citationItem.parsedCslItem = parsedCslJson;
+        // Extract only this item's CSL data from the batch JSON
+        Object singleItemCsl = extractSingleItemCsl(parsedCslJson, item.getID().toString());
+        citationItem.parsedCslItem = singleItemCsl;
         final String type = extractCslType(parsedCslJson, item.getID().toString());
         citationItem.type = type;
 
@@ -730,6 +732,36 @@ public class CitationsRestController {
             return null;
         } catch (Exception e) {
             log.error("Error extracting type from parsed cslItem", e);
+            return null;
+        }
+    }
+
+    /**
+     * Extracts a single item's CSL data from a batch-parsed JSON object.
+     * Returns a new object with the structure {"items": [singleItem]} containing only
+     * the item matching the given ID.
+     */
+    @SuppressWarnings("unchecked")
+    private Object extractSingleItemCsl(Object parsedBatchCsl, String itemId) {
+        if (parsedBatchCsl == null) {
+            return null;
+        }
+        try {
+            Map<String, Object> root = (Map<String, Object>) parsedBatchCsl;
+            List<Map<String, Object>> items = (List<Map<String, Object>>) root.get("items");
+            if (items == null) {
+                return null;
+            }
+            for (Map<String, Object> item : items) {
+                if (itemId.equals(String.valueOf(item.get("id")))) {
+                    Map<String, Object> singleItemRoot = new LinkedHashMap<>();
+                    singleItemRoot.put("items", Collections.singletonList(item));
+                    return singleItemRoot;
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            log.error("Error extracting single item CSL for id " + itemId, e);
             return null;
         }
     }

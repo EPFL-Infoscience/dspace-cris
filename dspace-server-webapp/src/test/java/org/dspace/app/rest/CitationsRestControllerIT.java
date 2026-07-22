@@ -1358,4 +1358,280 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                         .content(validMultiNoDir))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    public void getCitationsMaintainsCorrectCitationToItemMapping() throws Exception {
+        // This test verifies that each item's citation corresponds to that item,
+        // even when the CSL bibliography internally reorders entries (e.g. by author name).
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Test Collection")
+                .build();
+
+        // Title order (asc): Alpha < Beta < Gamma < Delta
+        // Author order: Zorro > Martin > Abel > York
+        // Date order: 2020, 2021, 2021, 2022
+        // Types: article-journal, thesis, article-journal, thesis
+        // CSL bibliography might reorder by author internally
+        Item itemAlpha = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha Paper")
+                .withAuthor("Zorro, Antonio")
+                .withIssueDate("2020-03-15")
+                .inArchive()
+                .build();
+
+        Item itemBeta = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Beta Paper")
+                .withAuthor("Martin, Bob")
+                .withIssueDate("2021-06-10")
+                .inArchive()
+                .build();
+
+        Item itemGamma = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Gamma Paper")
+                .withAuthor("Abel, Charlie")
+                .withIssueDate("2021-09-20")
+                .inArchive()
+                .build();
+
+        Item itemDelta = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Delta Paper")
+                .withAuthor("York, Diana")
+                .withIssueDate("2022-01-05")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuidsJson = "\"" + itemAlpha.getID() + "\",\"" + itemBeta.getID() + "\",\""
+                + itemGamma.getID() + "\",\"" + itemDelta.getID() + "\"";
+
+        // --- Case 1: Full format, sort by title ascending ---
+        String bodyTitleAsc = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"title:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyTitleAsc))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(4)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results[0].cslItem.items[0].title").value("Alpha Paper"))
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")))
+                .andExpect(jsonPath("$.results[1].uuid").value(itemBeta.getID().toString()))
+                .andExpect(jsonPath("$.results[1].cslItem.items[0].title").value("Beta Paper"))
+                .andExpect(jsonPath("$.results[1].citation").value(
+                        org.hamcrest.Matchers.containsString("Martin")))
+                .andExpect(jsonPath("$.results[2].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results[2].cslItem.items[0].title").value("Delta Paper"))
+                .andExpect(jsonPath("$.results[2].citation").value(
+                        org.hamcrest.Matchers.containsString("York")))
+                .andExpect(jsonPath("$.results[3].uuid").value(itemGamma.getID().toString()))
+                .andExpect(jsonPath("$.results[3].cslItem.items[0].title").value("Gamma Paper"))
+                .andExpect(jsonPath("$.results[3].citation").value(
+                        org.hamcrest.Matchers.containsString("Abel")));
+
+        // --- Case 2: Full format, sort by date descending ---
+        String bodyDateDesc = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date:desc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyDateDesc))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(4)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("York")))
+                .andExpect(jsonPath("$.results[3].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results[3].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")));
+
+        // --- Case 3: Light format, sort by title ascending ---
+        String bodyLightTitleAsc = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"sort\":\"title:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyLightTitleAsc))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(4)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")))
+                .andExpect(jsonPath("$.results[1].uuid").value(itemBeta.getID().toString()))
+                .andExpect(jsonPath("$.results[1].citation").value(
+                        org.hamcrest.Matchers.containsString("Martin")))
+                .andExpect(jsonPath("$.results[2].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results[2].citation").value(
+                        org.hamcrest.Matchers.containsString("York")))
+                .andExpect(jsonPath("$.results[3].uuid").value(itemGamma.getID().toString()))
+                .andExpect(jsonPath("$.results[3].citation").value(
+                        org.hamcrest.Matchers.containsString("Abel")));
+
+        // --- Case 4: Full format, groupBy type, sort by title ascending ---
+        String bodyGroupByType = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"title:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.article-journal", hasSize(2)))
+                // article-journal sorted by title: Alpha (Zorro), Gamma (Abel)
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(itemGamma.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].citation").value(
+                        org.hamcrest.Matchers.containsString("Abel")))
+                .andExpect(jsonPath("$.results.thesis", hasSize(2)))
+                // thesis sorted by title: Beta (Martin), Delta (York)
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(itemBeta.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Martin")))
+                .andExpect(jsonPath("$.results.thesis[1].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[1].citation").value(
+                        org.hamcrest.Matchers.containsString("York")));
+
+        // --- Case 5: Full format, groupBy year, sort by title ascending ---
+        String bodyGroupByYear = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year\"," +
+                "\"sort\":\"title:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByYear))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.2020[0].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results.2020[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")))
+                .andExpect(jsonPath("$.results.2021", hasSize(2)))
+                // 2021 sorted by title: Beta (Martin), Gamma (Abel)
+                .andExpect(jsonPath("$.results.2021[0].uuid").value(itemBeta.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Martin")))
+                .andExpect(jsonPath("$.results.2021[1].uuid").value(itemGamma.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[1].citation").value(
+                        org.hamcrest.Matchers.containsString("Abel")))
+                .andExpect(jsonPath("$.results.2022", hasSize(1)))
+                .andExpect(jsonPath("$.results.2022[0].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results.2022[0].citation").value(
+                        org.hamcrest.Matchers.containsString("York")));
+
+        // --- Case 6: Light format, groupBy type, sort by date ascending ---
+        String bodyLightGroupByType = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"date:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyLightGroupByType))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.article-journal", hasSize(2)))
+                // article-journal sorted by date asc: Alpha (2020, Zorro), Gamma (2021, Abel)
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(itemGamma.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].citation").value(
+                        org.hamcrest.Matchers.containsString("Abel")))
+                .andExpect(jsonPath("$.results.thesis", hasSize(2)))
+                // thesis sorted by date asc: Beta (2021, Martin), Delta (2022, York)
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(itemBeta.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Martin")))
+                .andExpect(jsonPath("$.results.thesis[1].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[1].citation").value(
+                        org.hamcrest.Matchers.containsString("York")));
+
+        // --- Case 7: Full format, groupBy type,year, sort by title ascending ---
+        String bodyGroupByTypeYear = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type,year\"," +
+                "\"sort\":\"title:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyGroupByTypeYear))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.article-journal.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.article-journal.2020[0].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal.2020[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")))
+                .andExpect(jsonPath("$.results.article-journal.2021", hasSize(1)))
+                .andExpect(jsonPath("$.results.article-journal.2021[0].uuid").value(itemGamma.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal.2021[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Abel")))
+                .andExpect(jsonPath("$.results.thesis.2021", hasSize(1)))
+                .andExpect(jsonPath("$.results.thesis.2021[0].uuid").value(itemBeta.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis.2021[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Martin")))
+                .andExpect(jsonPath("$.results.thesis.2022", hasSize(1)))
+                .andExpect(jsonPath("$.results.thesis.2022[0].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis.2022[0].citation").value(
+                        org.hamcrest.Matchers.containsString("York")));
+
+        // --- Case 8: Full format, multi-sort date:asc,title:desc ---
+        String bodyMultiSort = "{" +
+                "\"uuids\":[" + uuidsJson + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"sort\":\"date:asc,title:desc\"" +
+                "}";
+
+        // date asc: Alpha(2020), then Beta(2021-06) and Gamma(2021-09) by title desc: Gamma before Beta,
+        // then Delta(2022)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyMultiSort))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(4)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Zorro")))
+                .andExpect(jsonPath("$.results[3].uuid").value(itemDelta.getID().toString()))
+                .andExpect(jsonPath("$.results[3].citation").value(
+                        org.hamcrest.Matchers.containsString("York")));
+    }
 }
