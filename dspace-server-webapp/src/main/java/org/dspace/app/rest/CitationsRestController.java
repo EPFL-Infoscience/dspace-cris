@@ -39,7 +39,6 @@ import org.dspace.content.Item;
 import org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk;
 import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMapper;
 import org.dspace.content.integration.crosswalks.csl.CSLPreparedItemData;
-import org.dspace.content.integration.crosswalks.csl.CSLResult;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
@@ -95,7 +94,6 @@ public class CitationsRestController {
     private static final String TITLE_SORT_FIELD = "dc.title_sort";
     private static final String DATE_ISSUED_SORT_FIELD = "dc.date.issued_dt";
     private static final String DEFAULT_MAP_KEY = "nogroup";
-    private static final int DEFAULT_BATCH_CHUNK_SIZE = 50;
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
     private static final List<String> GROUP_VALUES =
             Arrays.asList(GROUP_BY_TYPE, GROUP_BY_YEAR, GROUP_BY_TYPE_YEAR, GROUP_BY_YEAR_TYPE);
@@ -401,37 +399,42 @@ public class CitationsRestController {
         }
         boolean isFullFormat = DISPLAY_FORMAT_FULL.equals(citationsRequest.getFormat());
 
-        // Group items by entity type for batch processing
-        List<Item> patents = new ArrayList<>();
-        List<Item> products = new ArrayList<>();
-        List<Item> publications = new ArrayList<>();
-
-        for (Item item : items) {
-            String entityType = itemService.getEntityType(item);
-            switch (entityType) {
-                case "Patent":
-                    patents.add(item);
-                    break;
-                case "Product":
-                    products.add(item);
-                    break;
-                case "Publication":
-                    publications.add(item);
-                    break;
-                default:
-                    log.warn("Skipping item " + item.getID()
-                            + " as it is not a supported entity type: " + entityType);
-            }
-        }
-
-        // Batch generate citations per entity type (one CSL call per type)
+        // Generate citations one item at a time to guarantee correct UUID-to-citation mapping
         Map<UUID, String> citationsByUuid = new LinkedHashMap<>();
         Map<UUID, Object> parsedCslJsonByUuid = new LinkedHashMap<>();
 
-        batchGenerateCitations(context, patents, crosswalkPatent, style, citationsByUuid, parsedCslJsonByUuid);
-        batchGenerateCitations(context, products, crosswalkProduct, style, citationsByUuid, parsedCslJsonByUuid);
-        batchGenerateCitations(context, publications, crosswalkPublication, style,
-                citationsByUuid, parsedCslJsonByUuid);
+        for (Item item : items) {
+            UUID itemId = item.getID();
+            String entityType = itemService.getEntityType(item);
+            CSLItemDataCrosswalk crosswalk;
+            switch (entityType) {
+                case "Patent":
+                    crosswalk = crosswalkPatent;
+                    break;
+                case "Product":
+                    crosswalk = crosswalkProduct;
+                    break;
+                case "Publication":
+                    crosswalk = crosswalkPublication;
+                    break;
+                default:
+                    log.warn("Skipping item " + itemId + " as it is not a supported entity type: " + entityType);
+                    continue;
+            }
+
+            try {
+                // prepareItemData gives us the CSL JSON; generateCitation gives us the formatted citation
+                // Both use the same prepared data — one call to the library per item
+                CSLPreparedItemData prepared = crosswalk.prepareItemData(context, item);
+                String cslJson = prepared.getJson();
+                String citation = crosswalk.generateCitation(prepared);
+
+                citationsByUuid.put(itemId, citation);
+                parsedCslJsonByUuid.put(itemId, parseCslJsonObject(cslJson));
+            } catch (Exception e) {
+                log.error("Error generating citation for item " + itemId + " with style '" + style + "'", e);
+            }
+        }
 
         // Build the grouped result maintaining the original Solr sort order
         Map<String, Map<String, List<CitationItem>>> citationItems = new LinkedHashMap<>();
@@ -451,56 +454,6 @@ public class CitationsRestController {
             }
         }
         return citationItems;
-    }
-
-    private void batchGenerateCitations(Context context, List<Item> items, CSLItemDataCrosswalk crosswalk,
-                                        String style, Map<UUID, String> citationsByUuid,
-                                        Map<UUID, Object> parsedCslJsonByUuid) {
-        if (items.isEmpty()) {
-            return;
-        }
-
-        int chunkSize = configurationService.getIntProperty("citations.batch.chunk-size", DEFAULT_BATCH_CHUNK_SIZE);
-
-        for (int offset = 0; offset < items.size(); offset += chunkSize) {
-            List<Item> chunk = items.subList(offset, Math.min(offset + chunkSize, items.size()));
-            processChunk(context, chunk, crosswalk, style, citationsByUuid, parsedCslJsonByUuid);
-        }
-    }
-
-    private void processChunk(Context context, List<Item> chunk, CSLItemDataCrosswalk crosswalk,
-                              String style, Map<UUID, String> citationsByUuid,
-                              Map<UUID, Object> parsedCslJsonByUuid) {
-        CSLPreparedItemData preparedItemData;
-        try {
-            preparedItemData = crosswalk.prepareItemData(context, chunk);
-        } catch (Exception e) {
-            throw new DSpaceBadRequestException("Unable to prepare citation data with style '" + style + "'", e);
-        }
-
-        // Parse the chunk JSON once for all items in this chunk
-        Object parsedChunkJson = parseCslJsonObject(preparedItemData.getJson());
-
-        CSLResult result = crosswalk.generateCitations(preparedItemData);
-
-        if (result == null) {
-            log.warn("CSL generator returned null for chunk of " + chunk.size()
-                    + " items with style '" + style + "'");
-            return;
-        }
-
-        UUID[] resultItemIds = result.getItemIds();
-        String[] citationEntries = result.getCitationEntries();
-
-        // Map each item's citation by UUID
-        for (int i = 0; i < resultItemIds.length; i++) {
-            citationsByUuid.put(resultItemIds[i], citationEntries[i]);
-        }
-
-        // Store the parsed JSON object for each item in this chunk (shared reference)
-        for (Item item : chunk) {
-            parsedCslJsonByUuid.put(item.getID(), parsedChunkJson);
-        }
     }
 
     private void addCitationItemFull(Item item, String citation, Object parsedCslJson,
