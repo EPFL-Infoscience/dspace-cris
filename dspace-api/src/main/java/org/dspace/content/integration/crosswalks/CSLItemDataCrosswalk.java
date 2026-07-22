@@ -126,36 +126,6 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
         return result != null ? result.getCitation() : null;
     }
 
-    /**
-     * Phase 1 (batch): processes multiple items at once and returns prepared item data
-     * containing both the CSL JSON and the provider. This is significantly more efficient
-     * than calling {@link #prepareItemData(Context, DSpaceObject)} in a loop because it
-     * enables a single call to the CSL generator for all items.
-     *
-     * @param context the DSpace context
-     * @param items   the list of DSpace items to process
-     * @return the prepared item data holding the combined JSON and the provider
-     * @throws CrosswalkException if any item cannot be crosswalked
-     */
-    public CSLPreparedItemData prepareItemData(Context context, List<? extends DSpaceObject> items)
-            throws CrosswalkException {
-        DSpaceListItemDataProvider itemDataProvider = createItemDataProvider(context, items.iterator());
-        return new CSLPreparedItemData(itemDataProvider.toJson(), itemDataProvider);
-    }
-
-    /**
-     * Phase 2 (batch): generates citations for all items in the prepared data and returns
-     * the full {@link CSLResult} which maps each item UUID to its individual citation entry.
-     * This performs a single call to the CSL generator for all items in the batch.
-     *
-     * @param preparedItemData the prepared item data from phase 1 (may contain multiple items)
-     * @return the CSL result containing individual citation entries per item, or null if generation fails
-     */
-    public CSLResult generateCitations(CSLPreparedItemData preparedItemData) {
-        return cslGeneratorFactory.getCSLGenerator()
-            .generate(preparedItemData.getProvider(), style, format);
-    }
-
     private DSpaceListItemDataProvider createItemDataProvider(Context context,
         Iterator<? extends DSpaceObject> dsoIterator) throws CrosswalkObjectNotSupported {
 
