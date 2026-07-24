@@ -97,7 +97,6 @@ public class CitationMetadataScript
                     continue;
                 }
 
-                // Save placeholder citation metadata (will be replaced with real generation later)
                 saveCitationMetadata(item);
                 processed++;
 
@@ -113,8 +112,10 @@ public class CitationMetadataScript
 
             handler.logInfo("Citation metadata script completed. Total items processed: " + processed);
             context.restoreAuthSystemState();
-        } finally {
             context.complete();
+        } catch (Exception e) {
+            handler.handleException(e);
+            context.abort();
         }
     }
 
