@@ -330,6 +330,81 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
         }
     }
 
+    @Test
+    public void scriptProcessesMultipleItemsWithCommitBatching() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community Batch").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col Batch").withEntityType("Publication").build();
+
+        // Create 5 items — we'll use commitSize=2 so we get multiple commits
+        Item item1 = ItemBuilder.createItem(context, col)
+                .withTitle("Batch Item 1").withAuthor("Author, A.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+        Item item2 = ItemBuilder.createItem(context, col)
+                .withTitle("Batch Item 2").withAuthor("Author, B.").withIssueDate("2023-02-01")
+                .withType("text::journal::journal article").build();
+        Item item3 = ItemBuilder.createItem(context, col)
+                .withTitle("Batch Item 3").withAuthor("Author, C.").withIssueDate("2023-03-01")
+                .withType("text::journal::journal article").build();
+        Item item4 = ItemBuilder.createItem(context, col)
+                .withTitle("Batch Item 4").withAuthor("Author, D.").withIssueDate("2023-04-01")
+                .withType("text::journal::journal article").build();
+        Item item5 = ItemBuilder.createItem(context, col)
+                .withTitle("Batch Item 5").withAuthor("Author, E.").withIssueDate("2023-05-01")
+                .withType("text::journal::journal article").build();
+
+        // Item 6: already has a citation date far in the future — should be skipped without -f
+        Item item6 = ItemBuilder.createItem(context, col)
+                .withTitle("Already Cached Item").withAuthor("Author, F.").withIssueDate("2023-06-01")
+                .withType("text::journal::journal article").build();
+        itemService.addMetadata(context, item6, "epfl", "citation", "date", null,
+                java.time.Instant.now().plusSeconds(7200).toString());
+        itemService.addMetadata(context, item6, "epfl", "citation", "apa", null, "pre-existing-citation");
+        itemService.update(context, item6);
+
+        context.restoreAuthSystemState();
+
+        // Run WITHOUT -f and with commitSize=2: item6 should be skipped by needsUpdate
+        runScript("-i", community.getID().toString(), "-c", "2");
+
+        item1 = reloadItem(item1);
+        item2 = reloadItem(item2);
+        item3 = reloadItem(item3);
+        item4 = reloadItem(item4);
+        item5 = reloadItem(item5);
+        item6 = reloadItem(item6);
+
+        // All 5 new items should have citations generated
+        assertThat("Item 1 should have apa citation",
+                getCitationMetadata(item1, "apa"), not(emptyOrNullString()));
+        assertThat("Item 2 should have apa citation",
+                getCitationMetadata(item2, "apa"), not(emptyOrNullString()));
+        assertThat("Item 3 should have apa citation",
+                getCitationMetadata(item3, "apa"), not(emptyOrNullString()));
+        assertThat("Item 4 should have apa citation",
+                getCitationMetadata(item4, "apa"), not(emptyOrNullString()));
+        assertThat("Item 5 should have apa citation",
+                getCitationMetadata(item5, "apa"), not(emptyOrNullString()));
+
+        // Item 6 should keep its pre-existing citation (was skipped)
+        assertThat("Item 6 should keep pre-existing citation",
+                getCitationMetadata(item6, "apa"), is("pre-existing-citation"));
+
+        // Verify citation date is set for processed items
+        assertThat("Item 1 should have citation date",
+                getCitationMetadata(item1, "date"), notNullValue());
+        assertThat("Item 5 should have citation date",
+                getCitationMetadata(item5, "date"), notNullValue());
+
+        // Verify CSL JSON is set
+        assertThat("Item 1 should have cslitem",
+                getCitationMetadata(item1, "cslitem"), not(emptyOrNullString()));
+        assertThat("Item 5 should have cslitem",
+                getCitationMetadata(item5, "cslitem"), not(emptyOrNullString()));
+    }
+
     private void runScript(String... args) throws Exception {
         String[] fullArgs = new String[args.length + 1];
         fullArgs[0] = "citation-metadata";

@@ -87,27 +87,49 @@ public class CitationMetadataScript
             Iterator<Item> items = findItems(scopeObject);
 
             int processed = 0;
+            java.util.List<Item> batch = new java.util.ArrayList<>();
+            boolean needsReload = false;
+
             while (items.hasNext()) {
                 Item item = items.next();
                 if (item == null || !item.isArchived()) {
                     continue;
                 }
 
+                // After a commit, items from the iterator may be detached — reload from DB
+                if (needsReload) {
+                    item = itemService.find(context, item.getID());
+                    if (item == null || !item.isArchived()) {
+                        continue;
+                    }
+                }
+
                 if (!force && !needsUpdate(item)) {
+                    context.uncacheEntity(item);
                     continue;
                 }
 
                 saveCitationMetadata(item);
+                batch.add(item);
                 processed++;
 
                 if (processed % commitSize == 0) {
                     context.commit();
+                    for (Item cached : batch) {
+                        context.uncacheEntity(cached);
+                    }
+                    batch.clear();
+                    needsReload = true;
                     handler.logInfo("Committed after " + processed + " items");
                 }
             }
 
-            if (processed % commitSize != 0) {
+            if (!batch.isEmpty()) {
                 context.commit();
+                for (Item cached : batch) {
+                    context.uncacheEntity(cached);
+                }
+                batch.clear();
             }
 
             handler.logInfo("Citation metadata script completed. Total items processed: " + processed);
