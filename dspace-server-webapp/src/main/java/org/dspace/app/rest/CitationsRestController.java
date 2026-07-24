@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -386,11 +387,43 @@ public class CitationsRestController {
                                                   CitationsRequestRest citationsRequest) {
         String style = citationsRequest.getStyle();
         boolean isFullFormat = DISPLAY_FORMAT_FULL.equals(citationsRequest.getFormat());
+        boolean generateOnTheFly = configurationService.getBooleanProperty("citation-rest.generate", false);
 
-        // Generate citations one item at a time to guarantee correct UUID-to-citation mapping
+        // Resolve citations: either from pre-computed metadata or generated on the fly
         Map<UUID, String> citationsByUuid = new LinkedHashMap<>();
         Map<UUID, Object> parsedCslJsonByUuid = new LinkedHashMap<>();
 
+        if (generateOnTheFly) {
+            populateCitationsOnTheFly(context, items, style, citationsByUuid, parsedCslJsonByUuid);
+        } else {
+            populateCitationsFromMetadata(items, style, citationsByUuid, parsedCslJsonByUuid);
+        }
+
+        // Build the grouped result maintaining the original Solr sort order
+        Map<String, Map<String, List<CitationItem>>> citationItems = new LinkedHashMap<>();
+        for (Item item : items) {
+            UUID itemId = item.getID();
+            String citation = citationsByUuid.get(itemId);
+            if (citation == null) {
+                continue;
+            }
+            Object parsedCslJson = parsedCslJsonByUuid.get(itemId);
+
+            if (isFullFormat) {
+                addCitationItemFull(item, citation, parsedCslJson, citationItems, citationsRequest);
+            } else {
+                addCitationItemLight(item, citation, parsedCslJson, citationItems, citationsRequest);
+            }
+        }
+        return citationItems;
+    }
+
+    /**
+     * Generates citations on the fly using the CitationService.
+     */
+    private void populateCitationsOnTheFly(Context context, List<Item> items, String style,
+                                           Map<UUID, String> citationsByUuid,
+                                           Map<UUID, Object> parsedCslJsonByUuid) {
         for (Item item : items) {
             UUID itemId = item.getID();
             String entityType = itemService.getEntityType(item);
@@ -405,25 +438,36 @@ public class CitationsRestController {
                 parsedCslJsonByUuid.put(itemId, parseCslJsonObject(result.getCslJson()));
             }
         }
+    }
 
-        // Build the grouped result maintaining the original Solr sort order
-        Map<String, Map<String, List<CitationItem>>> citationItems = new LinkedHashMap<>();
+    /**
+     * Reads pre-computed citations from epfl.citation.* metadata fields.
+     */
+    private void populateCitationsFromMetadata(List<Item> items, String style,
+                                               Map<UUID, String> citationsByUuid,
+                                               Map<UUID, Object> parsedCslJsonByUuid) {
+        String styleQualifier = normalizeStyleQualifier(style);
         for (Item item : items) {
             UUID itemId = item.getID();
-            String citation = citationsByUuid.get(itemId);
-            if (citation == null) {
-                // Item was skipped (unsupported entity type)
+            String citation = itemService.getMetadataFirstValue(item, "epfl", "citation", styleQualifier, Item.ANY);
+            if (StringUtils.isBlank(citation)) {
                 continue;
             }
-            Object parsedCslJson = parsedCslJsonByUuid.get(itemId);
+            citationsByUuid.put(itemId, citation);
 
-            if (isFullFormat) {
-                addCitationItemFull(item, citation, parsedCslJson, citationItems, citationsRequest);
-            } else {
-                addCitationItemLight(item, citation, parsedCslJson, citationItems, citationsRequest);
+            String cslJson = itemService.getMetadataFirstValue(item, "epfl", "citation", "cslitem", Item.ANY);
+            if (StringUtils.isNotBlank(cslJson)) {
+                parsedCslJsonByUuid.put(itemId, parseCslJsonObject(cslJson));
             }
         }
-        return citationItems;
+    }
+
+    /**
+     * Normalizes the style name to match the metadata qualifier (lowercase, no .csl suffix).
+     */
+    private String normalizeStyleQualifier(String style) {
+        String normalized = style.trim();
+        return StringUtils.removeEndIgnoreCase(normalized, ".csl").toLowerCase(Locale.ROOT);
     }
 
     private void addCitationItemFull(Item item, String citation, Object parsedCslJson,

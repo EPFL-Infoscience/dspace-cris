@@ -15,16 +15,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.eperson.Group;
+import org.dspace.services.ConfigurationService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 /**
@@ -33,6 +40,9 @@ import org.springframework.http.MediaType;
  * @author  Daniele Ninfo (daniele.ninfo at 4science.com)
  */
 public class CitationsRestControllerIT extends AbstractControllerIntegrationTest {
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     private String loggedInToken;
 
@@ -43,6 +53,15 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
         context.turnOffAuthorisationSystem();
         loggedInToken = getAuthToken(eperson.getEmail(), password);
         context.restoreAuthSystemState();
+        // Force on-the-fly generation for these tests (no pre-computed metadata)
+        configurationService.setProperty("citation-rest.generate", true);
+    }
+
+    @After
+    @Override
+    public void destroy() throws Exception {
+        configurationService.setProperty("citation-rest.generate", false);
+        super.destroy();
     }
 
     @Test
@@ -1633,5 +1652,384 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[3].uuid").value(itemDelta.getID().toString()))
                 .andExpect(jsonPath("$.results[3].citation").value(
                         org.hamcrest.Matchers.containsString("York")));
+    }
+
+    // ===== Tests reading pre-computed citations from epfl.citation.* metadata =====
+
+    @Test
+    public void getCitationsFromMetadataReturnsPreComputedCitation() throws Exception {
+        configurationService.setProperty("citation-rest.generate", false);
+
+        context.turnOffAuthorisationSystem();
+
+        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Precomputed Collection")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Precomputed Publication")
+                .withAuthor("Smith, Jane")
+                .withIssueDate("2023-03-15")
+                .inArchive()
+                .build();
+
+        // Simulate pre-computed citation metadata
+        itemService.addMetadata(context, item, "epfl", "citation", "apa", null,
+                "<div>Smith, J. (2023). Precomputed Publication.</div>");
+        itemService.addMetadata(context, item, "epfl", "citation", "cslitem", null,
+                "{\"items\":[{\"id\":\"" + item.getID() + "\",\"type\":\"article-journal\","
+                + "\"title\":\"Precomputed Publication\"}]}");
+        itemService.update(context, item);
+
+        context.restoreAuthSystemState();
+
+        String body = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Precomputed Publication")))
+                .andExpect(jsonPath("$.results[0].type").value("article-journal"))
+                .andExpect(jsonPath("$.results[0].cslItem").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].cslItem.items[0].title").value("Precomputed Publication"));
+    }
+
+    @Test
+    public void getCitationsFromMetadataSkipsItemsWithoutPreComputedCitation() throws Exception {
+        configurationService.setProperty("citation-rest.generate", false);
+
+        context.turnOffAuthorisationSystem();
+
+        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Mixed Collection")
+                .build();
+
+        Item itemWithCitation = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("With Citation")
+                .withIssueDate("2023-01-01")
+                .inArchive()
+                .build();
+        itemService.addMetadata(context, itemWithCitation, "epfl", "citation", "apa", null,
+                "<div>With Citation. (2023).</div>");
+        itemService.addMetadata(context, itemWithCitation, "epfl", "citation", "cslitem", null,
+                "{\"items\":[{\"id\":\"" + itemWithCitation.getID()
+                + "\",\"type\":\"article-journal\",\"title\":\"With Citation\"}]}");
+        itemService.update(context, itemWithCitation);
+
+        Item itemWithoutCitation = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Without Citation")
+                .withIssueDate("2023-02-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String body = "{" +
+                "\"uuids\":[\"" + itemWithCitation.getID() + "\",\"" + itemWithoutCitation.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(itemWithCitation.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsFromMetadataWithGroupByTypeAndSort() throws Exception {
+        configurationService.setProperty("citation-rest.generate", false);
+
+        context.turnOffAuthorisationSystem();
+
+        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Grouped Collection")
+                .build();
+
+        Item article2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Article 2021")
+                .withIssueDate("2021-05-01")
+                .inArchive()
+                .build();
+        itemService.addMetadata(context, article2021, "epfl", "citation", "apa", null,
+                "<div>Article 2021 citation</div>");
+        itemService.addMetadata(context, article2021, "epfl", "citation", "cslitem", null,
+                "{\"items\":[{\"id\":\"" + article2021.getID()
+                + "\",\"type\":\"article-journal\",\"title\":\"Article 2021\"}]}");
+        itemService.update(context, article2021);
+
+        Item thesis2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Thesis 2020")
+                .withIssueDate("2020-03-01")
+                .inArchive()
+                .build();
+        itemService.addMetadata(context, thesis2020, "epfl", "citation", "apa", null,
+                "<div>Thesis 2020 citation</div>");
+        itemService.addMetadata(context, thesis2020, "epfl", "citation", "cslitem", null,
+                "{\"items\":[{\"id\":\"" + thesis2020.getID()
+                + "\",\"type\":\"thesis\",\"title\":\"Thesis 2020\"}]}");
+        itemService.update(context, thesis2020);
+
+        Item article2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Article 2019")
+                .withIssueDate("2019-01-01")
+                .inArchive()
+                .build();
+        itemService.addMetadata(context, article2019, "epfl", "citation", "apa", null,
+                "<div>Article 2019 citation</div>");
+        itemService.addMetadata(context, article2019, "epfl", "citation", "cslitem", null,
+                "{\"items\":[{\"id\":\"" + article2019.getID()
+                + "\",\"type\":\"article-journal\",\"title\":\"Article 2019\"}]}");
+        itemService.update(context, article2019);
+
+        context.restoreAuthSystemState();
+
+        // Group by type, sort by date:asc
+        String body = "{" +
+                "\"uuids\":[\"" + article2021.getID() + "\",\"" + thesis2020.getID()
+                + "\",\"" + article2019.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"date\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("type"))
+                .andExpect(jsonPath("$.results.article-journal").isArray())
+                .andExpect(jsonPath("$.results.article-journal", hasSize(2)))
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(article2019.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(article2021.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis").isArray())
+                .andExpect(jsonPath("$.results.thesis", hasSize(1)))
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(thesis2020.getID().toString()));
+
+        // Group by year
+        String bodyByYear = "{" +
+                "\"uuids\":[\"" + article2021.getID() + "\",\"" + thesis2020.getID()
+                + "\",\"" + article2019.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"groupBy\":\"year\"," +
+                "\"sort\":\"date\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyByYear))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year"))
+                .andExpect(jsonPath("$.results.2019", hasSize(1)))
+                .andExpect(jsonPath("$.results.2019[0].uuid").value(article2019.getID().toString()))
+                .andExpect(jsonPath("$.results.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.2020[0].uuid").value(thesis2020.getID().toString()))
+                .andExpect(jsonPath("$.results.2021", hasSize(1)))
+                .andExpect(jsonPath("$.results.2021[0].uuid").value(article2021.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsEndToEndWithScriptAndRestController() throws Exception {
+        configurationService.setProperty("citation-rest.generate", false);
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("E2E Collection")
+                .withEntityType("Publication")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("End-to-End Publication")
+                .withAuthor("Rossi, Mario")
+                .withIssueDate("2024-01-15")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Run the citation-metadata script to pre-compute citations
+        String[] scriptArgs = new String[] {
+            "citation-metadata", "-i", item.getID().toString(), "-f"
+        };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        ScriptLauncher.handleScript(scriptArgs, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl);
+        if (handler.getException() != null) {
+            throw handler.getException();
+        }
+
+        // Now query the REST controller — it should read from metadata
+        String body = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("End-to-End Publication")))
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Rossi")))
+                .andExpect(jsonPath("$.results[0].type").value("article-journal"))
+                .andExpect(jsonPath("$.results[0].year").value("2024"))
+                .andExpect(jsonPath("$.results[0].cslItem").isNotEmpty());
+    }
+
+    @Test
+    public void getCitationsGeneratesAllConfiguredStyles() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Styles Collection")
+                .withEntityType("Publication")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withTitle("Multi-Style Publication")
+                .withAuthor("Doe, John")
+                .withIssueDate("2023-06-01")
+                .withType("text::journal::journal article")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // citation-rest.generate is true from setUp — generates on the fly
+        String[] styles = {"apa", "chicago", "ieee", "vancouver", "harvard", "mla", "iso690"};
+
+        for (String style : styles) {
+            String body = "{" +
+                    "\"uuids\":[\"" + item.getID() + "\"]," +
+                    "\"style\":\"" + style + "\"," +
+                    "\"format\":\"light\"" +
+                    "}";
+
+            getClient(loggedInToken).perform(post("/api/integration/citations")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.results", hasSize(1)))
+                    .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                    .andExpect(jsonPath("$.results[0].citation").isNotEmpty());
+        }
+    }
+
+    @Test
+    public void getCitationsFullFormatContainsAllExpectedFields() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Full Fields Collection")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Fields Verification Publication")
+                .withAuthor("Einstein, Albert")
+                .withIssueDate("2022-11-20")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // citation-rest.generate is true from setUp — generates on the fly
+        String bodyFull = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyFull))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.style").value("apa"))
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                // CitationItemFull fields
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].handle").value(item.getHandle()))
+                .andExpect(jsonPath("$.results[0].type").value("article-journal"))
+                .andExpect(jsonPath("$.results[0].collection").value("Full Fields Collection"))
+                .andExpect(jsonPath("$.results[0].year").value("2022"))
+                .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Einstein")))
+                .andExpect(jsonPath("$.results[0].cslItem").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].cslItem.items").isArray())
+                .andExpect(jsonPath("$.results[0].cslItem.items[0].id").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].cslItem.items[0].type").value("article-journal"))
+                .andExpect(jsonPath("$.results[0].cslItem.items[0].title").value("Fields Verification Publication"));
+
+        // CitationItemLight fields — only uuid and citation
+        String bodyLight = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyLight))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.style").doesNotExist())
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                // CitationItemLight fields
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").isNotEmpty())
+                .andExpect(jsonPath("$.results[0].citation").value(
+                        org.hamcrest.Matchers.containsString("Einstein")))
+                // Fields NOT present in light format
+                .andExpect(jsonPath("$.results[0].handle").doesNotExist())
+                .andExpect(jsonPath("$.results[0].type").doesNotExist())
+                .andExpect(jsonPath("$.results[0].collection").doesNotExist())
+                .andExpect(jsonPath("$.results[0].year").doesNotExist())
+                .andExpect(jsonPath("$.results[0].cslItem").doesNotExist());
     }
 }
