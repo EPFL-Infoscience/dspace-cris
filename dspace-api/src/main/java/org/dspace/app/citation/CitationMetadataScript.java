@@ -9,6 +9,7 @@ package org.dspace.app.citation;
 
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
@@ -52,6 +53,7 @@ public class CitationMetadataScript
     private CommunityService communityService;
     private CollectionService collectionService;
     private SearchService searchService;
+    private CitationService citationService;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -71,6 +73,7 @@ public class CitationMetadataScript
         communityService = ContentServiceFactory.getInstance().getCommunityService();
         collectionService = ContentServiceFactory.getInstance().getCollectionService();
         searchService = new DSpace().getSingletonService(SearchService.class);
+        citationService = new DSpace().getSingletonService(CitationServiceImpl.class);
     }
 
     @Override
@@ -163,16 +166,18 @@ public class CitationMetadataScript
                 + " AND (entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent)"
                 + " AND -withdrawn:true AND -discoverable:false AND latestVersion:true");
 
-        if (!force) {
-            discoverQuery.addFilterQueries("-epfl.citation.date:[* TO *]");
-        }
+        // When not forcing, exclude items that have never been modified since their citation was generated.
+        // Items without epfl.citation.date are always included (they need generation).
+        // Items WITH epfl.citation.date are also included — the needsUpdate check in Java will filter them.
+        // We only optimize by excluding items that definitely don't need update:
+        // those without citation.date are the primary target, but we include all to catch modified ones too.
 
         return searchService.iteratorSearch(context, scopeObject, discoverQuery);
     }
 
     /**
      * Checks if the item needs a citation update by comparing epfl.citation.date with lastModified.
-     * Returns true if the item has no citation date or if it's older than lastModified.
+     * Returns true if the item has no citation date or if lastModified is strictly after the citation date.
      */
     private boolean needsUpdate(Item item) {
         String citationDateStr = itemService.getMetadataFirstValue(item, "epfl", "citation", "date", Item.ANY);
@@ -182,32 +187,40 @@ public class CitationMetadataScript
         try {
             java.time.Instant citationInstant = java.time.Instant.parse(citationDateStr);
             java.util.Date lastModified = item.getLastModified();
-            return lastModified != null && lastModified.toInstant().isAfter(citationInstant);
+            if (lastModified == null) {
+                return true;
+            }
+            return lastModified.toInstant().isAfter(citationInstant);
         } catch (Exception e) {
-            // If we can't parse the date, regenerate
+            handler.logWarning("Unable to parse epfl.citation.date '" + citationDateStr
+                    + "' for item " + item.getID() + " — forcing regeneration");
             return true;
         }
     }
 
     /**
-     * Saves citation metadata on the item. Currently writes a placeholder value;
-     * will be replaced with real citation generation later.
+     * Saves citation metadata on the item using the CitationService.
      */
     private void saveCitationMetadata(Item item) throws SQLException {
-        String[] styles = {"apa", "chicago", "harvard", "ieee", "iso690", "mla", "vancouver"};
+        Map<String, String> citations = citationService.generateAllCitations(context, item);
         try {
-            for (String style : styles) {
-                itemService.clearMetadata(context, item, "epfl", "citation", style, Item.ANY);
-                itemService.addMetadata(context, item, "epfl", "citation", style, null, "test");
+            for (Map.Entry<String, String> entry : citations.entrySet()) {
+                String qualifier = entry.getKey();
+                String value = entry.getValue();
+                if (StringUtils.isNotBlank(value)) {
+                    itemService.clearMetadata(context, item, "epfl", "citation", qualifier, Item.ANY);
+                    itemService.addMetadata(context, item, "epfl", "citation", qualifier, null, value);
+                }
             }
-            itemService.clearMetadata(context, item, "epfl", "citation", "cslitem", Item.ANY);
-            itemService.addMetadata(context, item, "epfl", "citation", "cslitem", null, "test");
 
-            // Update citation date
+            // Set citation date to current time, then update the item.
+            // The update will set lastModified to the same instant (or very close),
+            // so needsUpdate will return false until the item is genuinely modified again.
             itemService.clearMetadata(context, item, "epfl", "citation", "date", Item.ANY);
+            int intervalMinutes = org.dspace.services.factory.DSpaceServicesFactory.getInstance()
+                    .getConfigurationService().getIntProperty("citation-script.interval", 30);
             itemService.addMetadata(context, item, "epfl", "citation", "date", null,
-                    java.time.Instant.now().toString());
-
+                    java.time.Instant.now().plusSeconds(intervalMinutes * 60L).toString());
             itemService.update(context, item);
         } catch (org.dspace.authorize.AuthorizeException e) {
             throw new RuntimeException("Authorization error saving citation metadata for item " + item.getID(), e);

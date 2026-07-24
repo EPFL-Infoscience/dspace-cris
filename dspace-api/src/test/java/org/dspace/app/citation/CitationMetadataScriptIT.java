@@ -8,7 +8,9 @@
 package org.dspace.app.citation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -76,11 +78,11 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
 
         // Publication, Patent, Product should have citation metadata
         assertThat("Publication should have epfl.citation.apa",
-                getCitationMetadata(publication, "apa"), is("test"));
+                getCitationMetadata(publication, "apa"), not(emptyOrNullString()));
         assertThat("Patent should have epfl.citation.apa",
-                getCitationMetadata(patent, "apa"), is("test"));
+                getCitationMetadata(patent, "apa"), not(emptyOrNullString()));
         assertThat("Product should have epfl.citation.apa",
-                getCitationMetadata(product, "apa"), is("test"));
+                getCitationMetadata(product, "apa"), not(emptyOrNullString()));
 
         // Person should NOT have citation metadata
         assertThat("Person should NOT have epfl.citation.apa",
@@ -111,7 +113,7 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
         itemInB = reloadItem(itemInB);
 
         assertThat("Item in collection A should have citation",
-                getCitationMetadata(itemInA, "apa"), is("test"));
+                getCitationMetadata(itemInA, "apa"), not(emptyOrNullString()));
         assertThat("Item in collection B should NOT have citation",
                 getCitationMetadata(itemInB, "apa"), nullValue());
     }
@@ -142,7 +144,7 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
         itemInB = reloadItem(itemInB);
 
         assertThat("Item in community A should have citation",
-                getCitationMetadata(itemInA, "apa"), is("test"));
+                getCitationMetadata(itemInA, "apa"), not(emptyOrNullString()));
         assertThat("Item in community B should NOT have citation",
                 getCitationMetadata(itemInB, "apa"), nullValue());
     }
@@ -169,7 +171,7 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
         otherItem = reloadItem(otherItem);
 
         assertThat("Target item should have citation",
-                getCitationMetadata(targetItem, "apa"), is("test"));
+                getCitationMetadata(targetItem, "apa"), not(emptyOrNullString()));
         assertThat("Other item should NOT have citation",
                 getCitationMetadata(otherItem, "apa"), nullValue());
     }
@@ -203,7 +205,7 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
 
         // New item should have been processed
         assertThat("New item should have citation",
-                getCitationMetadata(newItem, "apa"), is("test"));
+                getCitationMetadata(newItem, "apa"), not(emptyOrNullString()));
         assertThat("New item should have citation date",
                 getCitationMetadata(newItem, "date"), notNullValue());
 
@@ -229,15 +231,96 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
 
         item = reloadItem(item);
 
-        assertThat(getCitationMetadata(item, "apa"), is("test"));
-        assertThat(getCitationMetadata(item, "chicago"), is("test"));
-        assertThat(getCitationMetadata(item, "harvard"), is("test"));
-        assertThat(getCitationMetadata(item, "ieee"), is("test"));
-        assertThat(getCitationMetadata(item, "iso690"), is("test"));
-        assertThat(getCitationMetadata(item, "mla"), is("test"));
-        assertThat(getCitationMetadata(item, "vancouver"), is("test"));
-        assertThat(getCitationMetadata(item, "cslitem"), is("test"));
-        assertThat(getCitationMetadata(item, "date"), notNullValue());
+        // At minimum, apa and cslitem should be generated (these crosswalks are always available)
+        assertThat("apa citation should be generated", getCitationMetadata(item, "apa"), not(emptyOrNullString()));
+        assertThat("cslitem should be generated", getCitationMetadata(item, "cslitem"), not(emptyOrNullString()));
+        assertThat("citation date should be set", getCitationMetadata(item, "date"), notNullValue());
+    }
+
+    @Test
+    public void scriptDoesNotRegenerateItemsWithinInterval() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community NoRegen").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col NoRegen").withEntityType("Publication").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                .withTitle("Stable Publication").withAuthor("Smith, John").withIssueDate("2023-01-01").build();
+
+        context.restoreAuthSystemState();
+
+        // First run with force
+        runScript("-i", item.getID().toString(), "-f");
+        item = reloadItem(item);
+
+        String citationDate = getCitationMetadata(item, "date");
+        String apaCitation = getCitationMetadata(item, "apa");
+        assertThat("Should have citation date", citationDate, notNullValue());
+        assertThat("Should have apa citation", apaCitation, not(emptyOrNullString()));
+
+        // Modify the item (within the 30-minute interval)
+        context.turnOffAuthorisationSystem();
+        itemService.clearMetadata(context, item, "dc", "title", null, Item.ANY);
+        itemService.addMetadata(context, item, "dc", "title", null, null, "Modified Title");
+        itemService.update(context, item);
+        context.restoreAuthSystemState();
+
+        // Second run WITHOUT force: should NOT regenerate because citation date is 30 min in the future
+        runScript("-i", item.getID().toString());
+        item = reloadItem(item);
+
+        assertThat("Citation date should remain unchanged (interval protection)",
+                getCitationMetadata(item, "date"), is(citationDate));
+        assertThat("Citation should still contain original title (not regenerated)",
+                getCitationMetadata(item, "apa"), is(apaCitation));
+    }
+
+    @Test
+    public void scriptRegeneratesModifiedItemWhenIntervalIsZero() throws Exception {
+        org.dspace.services.ConfigurationService configService =
+                org.dspace.services.factory.DSpaceServicesFactory.getInstance().getConfigurationService();
+        int originalInterval = configService.getIntProperty("citation-script.interval", 30);
+        configService.setProperty("citation-script.interval", 0);
+
+        try {
+            context.turnOffAuthorisationSystem();
+
+            Community community = CommunityBuilder.createCommunity(context).withName("Community Regen").build();
+            Collection col = CollectionBuilder.createCollection(context, community)
+                    .withName("Col Regen").withEntityType("Publication").build();
+
+            Item item = ItemBuilder.createItem(context, col)
+                    .withTitle("Original Title").withAuthor("Doe, Jane").withIssueDate("2023-06-15").build();
+
+            context.restoreAuthSystemState();
+
+            // First run with force
+            runScript("-i", item.getID().toString(), "-f");
+            item = reloadItem(item);
+
+            assertThat("Should contain original title",
+                    getCitationMetadata(item, "apa"), org.hamcrest.Matchers.containsString("Original Title"));
+
+            // Modify the item
+            context.turnOffAuthorisationSystem();
+            itemService.clearMetadata(context, item, "dc", "title", null, Item.ANY);
+            itemService.addMetadata(context, item, "dc", "title", null, null, "Updated Title");
+            itemService.update(context, item);
+            context.restoreAuthSystemState();
+
+            // Second run WITHOUT force: should regenerate because interval is 0
+            runScript("-i", item.getID().toString());
+            item = reloadItem(item);
+
+            String updatedCitation = getCitationMetadata(item, "apa");
+            assertThat("Citation should now contain updated title",
+                    updatedCitation, org.hamcrest.Matchers.containsString("Updated Title"));
+            assertThat("Citation should NOT still contain original title",
+                    updatedCitation, not(org.hamcrest.Matchers.containsString("Original Title")));
+        } finally {
+            configService.setProperty("citation-script.interval", originalInterval);
+        }
     }
 
     private void runScript(String... args) throws Exception {
