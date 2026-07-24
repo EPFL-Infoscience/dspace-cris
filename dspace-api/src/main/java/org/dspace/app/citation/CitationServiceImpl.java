@@ -7,7 +7,6 @@
  */
 package org.dspace.app.citation;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -22,7 +21,6 @@ import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMap
 import org.dspace.content.integration.crosswalks.csl.CSLPreparedItemData;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -39,9 +37,6 @@ public class CitationServiceImpl implements CitationService {
 
     @Autowired
     private StreamDisseminationCrosswalkMapper streamDisseminationCrosswalkMapper;
-
-    @Autowired
-    private ConfigurationService configurationService;
 
     @Override
     public String generateCitation(Context context, Item item, String style) {
@@ -73,28 +68,33 @@ public class CitationServiceImpl implements CitationService {
             return null;
         }
 
-        String entityPrefix = entityType.toLowerCase(Locale.ROOT) + "-";
-        String[] styles = getConfiguredStyles();
-
-        // Use the first available style crosswalk — prepareItemData produces the same
-        // CSL JSON regardless of which style crosswalk is used
-        for (String style : styles) {
-            CSLItemDataCrosswalk crosswalk = getCrosswalk(entityPrefix + style);
-            if (crosswalk != null) {
-                try {
-                    CSLPreparedItemData prepared = crosswalk.prepareItemData(context, item);
-                    return prepared.getJson();
-                } catch (CrosswalkException e) {
-                    log.error("Error generating CSL JSON for item {}", item.getID(), e);
-                    return null;
-                }
-            }
+        // Use "apa" as default — prepareItemData produces the same CSL JSON regardless of style
+        String crosswalkType = entityType.toLowerCase(Locale.ROOT) + "-apa";
+        CSLItemDataCrosswalk crosswalk = getCrosswalk(crosswalkType);
+        if (crosswalk == null) {
+            log.warn("No crosswalk found for '{}' - cannot generate CSL JSON", crosswalkType);
+            return null;
         }
-        return null;
+
+        try {
+            CSLPreparedItemData prepared = crosswalk.prepareItemData(context, item);
+            return prepared.getJson();
+        } catch (CrosswalkException e) {
+            log.error("Error generating CSL JSON for item {}", item.getID(), e);
+            return null;
+        }
     }
 
+    /**
+     * Generates all citations for the given styles, plus the CSL JSON.
+     *
+     * @param context the DSpace context
+     * @param item    the item
+     * @param styles  the style suffixes to generate (e.g. "apa", "chicago", "ieee")
+     * @return a map from qualifier name (style or "cslitem") to the generated value
+     */
     @Override
-    public Map<String, String> generateAllCitations(Context context, Item item) {
+    public Map<String, String> generateAllCitations(Context context, Item item, String[] styles) {
         Map<String, String> results = new LinkedHashMap<>();
 
         String entityType = itemService.getEntityType(item);
@@ -103,9 +103,8 @@ public class CitationServiceImpl implements CitationService {
         }
 
         String entityPrefix = entityType.toLowerCase(Locale.ROOT) + "-";
-        String[] styles = getConfiguredStyles();
 
-        if (styles.length == 0) {
+        if (styles == null || styles.length == 0) {
             return results;
         }
 
@@ -119,8 +118,9 @@ public class CitationServiceImpl implements CitationService {
                 if (citation != null) {
                     results.put(styles[0], citation);
                 }
-            } catch (CrosswalkException e) {
-                log.error("Error generating citation for item {} with style '{}'", item.getID(), styles[0], e);
+            } catch (Exception e) {
+                log.warn("Error generating citation for item {} with style '{}': {}",
+                        item.getID(), styles[0], e.getMessage());
             }
         }
 
@@ -135,29 +135,14 @@ public class CitationServiceImpl implements CitationService {
                     if (citation != null) {
                         results.put(style, citation);
                     }
-                } catch (CrosswalkException e) {
-                    log.error("Error generating citation for item {} with style '{}'", item.getID(), style, e);
+                } catch (Exception e) {
+                    log.warn("Error generating citation for item {} with style '{}': {}",
+                            item.getID(), style, e.getMessage());
                 }
             }
         }
 
         return results;
-    }
-
-    /**
-     * Returns the style suffixes configured for the citation script,
-     * from the "citation-script.filter" configuration property.
-     * Each suffix will be combined with the entity type prefix (e.g. "publication-apa").
-     */
-    private String[] getConfiguredStyles() {
-        String value = configurationService.getProperty("citation-script.filter");
-        if (StringUtils.isBlank(value)) {
-            return new String[0];
-        }
-        return Arrays.stream(value.split(","))
-                .map(String::trim)
-                .filter(StringUtils::isNotBlank)
-                .toArray(String[]::new);
     }
 
     private CSLItemDataCrosswalk getCrosswalk(String type) {

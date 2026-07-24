@@ -202,7 +202,15 @@ public class CitationMetadataScript
      * Saves citation metadata on the item using the CitationService.
      */
     private void saveCitationMetadata(Item item) throws SQLException {
-        Map<String, String> citations = citationService.generateAllCitations(context, item);
+        String[] styles = org.dspace.services.factory.DSpaceServicesFactory.getInstance()
+                .getConfigurationService().getArrayProperty("citation-script.filter");
+        // Trim whitespace from each style (getArrayProperty may leave leading/trailing spaces)
+        if (styles != null) {
+            for (int i = 0; i < styles.length; i++) {
+                styles[i] = styles[i].trim();
+            }
+        }
+        Map<String, String> citations = citationService.generateAllCitations(context, item, styles);
         try {
             for (Map.Entry<String, String> entry : citations.entrySet()) {
                 String qualifier = entry.getKey();

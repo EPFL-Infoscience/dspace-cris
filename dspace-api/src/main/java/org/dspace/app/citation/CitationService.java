@@ -44,14 +44,14 @@ public interface CitationService {
     String generateCslJson(Context context, Item item);
 
     /**
-     * Generates all citations configured for the item's entity type, plus the CSL JSON.
-     * The styles are read from the configuration keys "citation-filter.&lt;entityType&gt;".
+     * Generates all citations for the given styles, plus the CSL JSON intermediate representation.
      *
      * @param context the DSpace context
      * @param item    the item
+     * @param styles  the style suffixes to generate (e.g. "apa", "chicago", "ieee").
+     *                Each suffix is combined with the entity type prefix.
      * @return a map from qualifier name (style or "cslitem") to the generated value,
      *         or an empty map if the item's entity type is not supported.
-     *         The style keys match the qualifier in epfl.citation.&lt;qualifier&gt;.
      */
-    Map<String, String> generateAllCitations(Context context, Item item);
+    Map<String, String> generateAllCitations(Context context, Item item, String[] styles);
 }

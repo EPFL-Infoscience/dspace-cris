@@ -57,34 +57,32 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 .withName("People").withEntityType("Person").build();
 
         Item publication = ItemBuilder.createItem(context, pubCol)
-                .withTitle("A Publication").withIssueDate("2023-01-01").build();
+                .withTitle("A Publication").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
         Item patent = ItemBuilder.createItem(context, patCol)
-                .withTitle("A Patent").withIssueDate("2023-02-01").build();
+                .withTitle("A Patent").withIssueDate("2023-02-01")
+                .withType("patent").build();
         Item product = ItemBuilder.createItem(context, prodCol)
-                .withTitle("A Product").withIssueDate("2023-03-01").build();
+                .withTitle("A Product").withIssueDate("2023-03-01")
+                .withType("dataset").build();
         Item person = ItemBuilder.createItem(context, personCol)
                 .withTitle("John Doe").build();
 
         context.restoreAuthSystemState();
 
-        // Run the script with force and scoped to the community
         runScript("-i", community.getID().toString(), "-f");
 
-        // Reload items from DB
         publication = reloadItem(publication);
         patent = reloadItem(patent);
         product = reloadItem(product);
         person = reloadItem(person);
 
-        // Publication, Patent, Product should have citation metadata
         assertThat("Publication should have epfl.citation.apa",
                 getCitationMetadata(publication, "apa"), not(emptyOrNullString()));
         assertThat("Patent should have epfl.citation.apa",
                 getCitationMetadata(patent, "apa"), not(emptyOrNullString()));
         assertThat("Product should have epfl.citation.apa",
                 getCitationMetadata(product, "apa"), not(emptyOrNullString()));
-
-        // Person should NOT have citation metadata
         assertThat("Person should NOT have epfl.citation.apa",
                 getCitationMetadata(person, "apa"), nullValue());
     }
@@ -100,13 +98,14 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 .withName("Collection B").withEntityType("Publication").build();
 
         Item itemInA = ItemBuilder.createItem(context, colA)
-                .withTitle("Pub in A").withIssueDate("2023-01-01").build();
+                .withTitle("Pub in A").withIssueDate("2023-01-01")
+                .withType("text::report::technical report").build();
         Item itemInB = ItemBuilder.createItem(context, colB)
-                .withTitle("Pub in B").withIssueDate("2023-01-01").build();
+                .withTitle("Pub in B").withIssueDate("2023-01-01")
+                .withType("text::thesis::doctoral thesis").build();
 
         context.restoreAuthSystemState();
 
-        // Run scoped to collection A
         runScript("-i", colA.getID().toString(), "-f");
 
         itemInA = reloadItem(itemInA);
@@ -131,13 +130,14 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 .withName("Col in B").withEntityType("Publication").build();
 
         Item itemInA = ItemBuilder.createItem(context, colA)
-                .withTitle("Pub in Community A").withIssueDate("2023-01-01").build();
+                .withTitle("Pub in Community A").withIssueDate("2023-01-01")
+                .withType("text::book/monograph").build();
         Item itemInB = ItemBuilder.createItem(context, colB)
-                .withTitle("Pub in Community B").withIssueDate("2023-01-01").build();
+                .withTitle("Pub in Community B").withIssueDate("2023-01-01")
+                .withType("text::conference output::conference proceedings::conference paper").build();
 
         context.restoreAuthSystemState();
 
-        // Run scoped to community A
         runScript("-i", communityA.getID().toString(), "-f");
 
         itemInA = reloadItem(itemInA);
@@ -158,13 +158,14 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 .withName("Col").withEntityType("Publication").build();
 
         Item targetItem = ItemBuilder.createItem(context, col)
-                .withTitle("Target Pub").withIssueDate("2023-01-01").build();
+                .withTitle("Target Pub").withIssueDate("2023-01-01")
+                .withType("text::preprint").build();
         Item otherItem = ItemBuilder.createItem(context, col)
-                .withTitle("Other Pub").withIssueDate("2023-01-01").build();
+                .withTitle("Other Pub").withIssueDate("2023-01-01")
+                .withType("text::review::book review").build();
 
         context.restoreAuthSystemState();
 
-        // Run scoped to a single item
         runScript("-i", targetItem.getID().toString(), "-f");
 
         targetItem = reloadItem(targetItem);
@@ -185,11 +186,12 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 .withName("Col Force").withEntityType("Publication").build();
 
         Item newItem = ItemBuilder.createItem(context, col)
-                .withTitle("New Pub").withIssueDate("2023-01-01").build();
+                .withTitle("New Pub").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
 
-        // Simulate an item that already has citation date set (up-to-date)
         Item cachedItem = ItemBuilder.createItem(context, col)
-                .withTitle("Cached Pub").withIssueDate("2023-01-01").build();
+                .withTitle("Cached Pub").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
         itemService.addMetadata(context, cachedItem, "epfl", "citation", "date", null,
                 java.time.Instant.now().plusSeconds(3600).toString());
         itemService.addMetadata(context, cachedItem, "epfl", "citation", "apa", null, "old-value");
@@ -197,19 +199,15 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
 
         context.restoreAuthSystemState();
 
-        // Run without force, scoped to community
         runScript("-i", community.getID().toString());
 
         newItem = reloadItem(newItem);
         cachedItem = reloadItem(cachedItem);
 
-        // New item should have been processed
         assertThat("New item should have citation",
                 getCitationMetadata(newItem, "apa"), not(emptyOrNullString()));
         assertThat("New item should have citation date",
                 getCitationMetadata(newItem, "date"), notNullValue());
-
-        // Cached item should NOT have been overwritten
         assertThat("Cached item should keep its old citation value",
                 getCitationMetadata(cachedItem, "apa"), is("old-value"));
     }
@@ -223,7 +221,11 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 .withName("Col Styles").withEntityType("Publication").build();
 
         Item item = ItemBuilder.createItem(context, col)
-                .withTitle("Multi-style Pub").withIssueDate("2023-01-01").build();
+                .withTitle("Multi-style Pub")
+                .withType("text::journal::journal article")
+                .withAuthor("Smith, John")
+                .withIssueDate("2023-01-01")
+                .build();
 
         context.restoreAuthSystemState();
 
@@ -231,8 +233,17 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
 
         item = reloadItem(item);
 
-        // At minimum, apa and cslitem should be generated (these crosswalks are always available)
         assertThat("apa citation should be generated", getCitationMetadata(item, "apa"), not(emptyOrNullString()));
+        assertThat("chicago citation should be generated",
+                getCitationMetadata(item, "chicago"), not(emptyOrNullString()));
+        assertThat("ieee citation should be generated", getCitationMetadata(item, "ieee"), not(emptyOrNullString()));
+        assertThat("vancouver citation should be generated",
+                getCitationMetadata(item, "vancouver"), not(emptyOrNullString()));
+        assertThat("harvard citation should be generated",
+                getCitationMetadata(item, "harvard"), not(emptyOrNullString()));
+        assertThat("mla citation should be generated", getCitationMetadata(item, "mla"), not(emptyOrNullString()));
+        assertThat("iso690 citation should be generated",
+                getCitationMetadata(item, "iso690"), not(emptyOrNullString()));
         assertThat("cslitem should be generated", getCitationMetadata(item, "cslitem"), not(emptyOrNullString()));
         assertThat("citation date should be set", getCitationMetadata(item, "date"), notNullValue());
     }
@@ -246,11 +257,11 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 .withName("Col NoRegen").withEntityType("Publication").build();
 
         Item item = ItemBuilder.createItem(context, col)
-                .withTitle("Stable Publication").withAuthor("Smith, John").withIssueDate("2023-01-01").build();
+                .withTitle("Stable Publication").withAuthor("Smith, John").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
 
         context.restoreAuthSystemState();
 
-        // First run with force
         runScript("-i", item.getID().toString(), "-f");
         item = reloadItem(item);
 
@@ -259,20 +270,18 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
         assertThat("Should have citation date", citationDate, notNullValue());
         assertThat("Should have apa citation", apaCitation, not(emptyOrNullString()));
 
-        // Modify the item (within the 30-minute interval)
         context.turnOffAuthorisationSystem();
         itemService.clearMetadata(context, item, "dc", "title", null, Item.ANY);
         itemService.addMetadata(context, item, "dc", "title", null, null, "Modified Title");
         itemService.update(context, item);
         context.restoreAuthSystemState();
 
-        // Second run WITHOUT force: should NOT regenerate because citation date is 30 min in the future
         runScript("-i", item.getID().toString());
         item = reloadItem(item);
 
         assertThat("Citation date should remain unchanged (interval protection)",
                 getCitationMetadata(item, "date"), is(citationDate));
-        assertThat("Citation should still contain original title (not regenerated)",
+        assertThat("Citation should still contain original content (not regenerated)",
                 getCitationMetadata(item, "apa"), is(apaCitation));
     }
 
@@ -291,25 +300,23 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                     .withName("Col Regen").withEntityType("Publication").build();
 
             Item item = ItemBuilder.createItem(context, col)
-                    .withTitle("Original Title").withAuthor("Doe, Jane").withIssueDate("2023-06-15").build();
+                    .withTitle("Original Title").withAuthor("Doe, Jane").withIssueDate("2023-06-15")
+                    .withType("text::journal::journal article").build();
 
             context.restoreAuthSystemState();
 
-            // First run with force
             runScript("-i", item.getID().toString(), "-f");
             item = reloadItem(item);
 
             assertThat("Should contain original title",
                     getCitationMetadata(item, "apa"), org.hamcrest.Matchers.containsString("Original Title"));
 
-            // Modify the item
             context.turnOffAuthorisationSystem();
             itemService.clearMetadata(context, item, "dc", "title", null, Item.ANY);
             itemService.addMetadata(context, item, "dc", "title", null, null, "Updated Title");
             itemService.update(context, item);
             context.restoreAuthSystemState();
 
-            // Second run WITHOUT force: should regenerate because interval is 0
             runScript("-i", item.getID().toString());
             item = reloadItem(item);
 
