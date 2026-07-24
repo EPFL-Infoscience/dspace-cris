@@ -145,6 +145,38 @@ public class CitationServiceImpl implements CitationService {
         return results;
     }
 
+    @Override
+    public CitationResult generateCitationAndCslJson(Context context, Item item, String style) {
+        String entityType = itemService.getEntityType(item);
+        if (!isSupportedEntityType(entityType)) {
+            return null;
+        }
+
+        String crosswalkType = entityType.toLowerCase(Locale.ROOT) + "-" + normalizeStyle(style);
+        CSLItemDataCrosswalk crosswalk = getCrosswalk(crosswalkType);
+        if (crosswalk == null) {
+            log.warn("No crosswalk found for type '{}' - cannot generate citation", crosswalkType);
+            return null;
+        }
+
+        try {
+            CSLPreparedItemData prepared = crosswalk.prepareItemData(context, item);
+            String cslJson = prepared.getJson();
+            String citation = crosswalk.generateCitation(prepared);
+            return new CitationResult(citation, cslJson);
+        } catch (Exception e) {
+            log.warn("Error generating citation for item {} with style '{}': {}",
+                    item.getID(), style, e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public boolean isSupportedEntityType(String entityType) {
+        return StringUtils.isNotBlank(entityType)
+            && ("Publication".equals(entityType) || "Patent".equals(entityType) || "Product".equals(entityType));
+    }
+
     private CSLItemDataCrosswalk getCrosswalk(String type) {
         var crosswalk = streamDisseminationCrosswalkMapper.getByType(type);
         if (crosswalk instanceof CSLItemDataCrosswalk) {
@@ -156,10 +188,5 @@ public class CitationServiceImpl implements CitationService {
     private String normalizeStyle(String style) {
         String normalized = style.trim();
         return StringUtils.removeEndIgnoreCase(normalized, ".csl").toLowerCase(Locale.ROOT);
-    }
-
-    private boolean isSupportedEntityType(String entityType) {
-        return StringUtils.isNotBlank(entityType)
-            && ("Publication".equals(entityType) || "Patent".equals(entityType) || "Product".equals(entityType));
     }
 }

@@ -113,7 +113,4 @@
         <property name="converter" ref="xmlValueConverter" />
     </bean>
 
-    <!-- Citation Service -->
-    <bean class="org.dspace.app.citation.CitationServiceImpl" />
-
 </beans>

@@ -54,4 +54,24 @@ public interface CitationService {
      *         or an empty map if the item's entity type is not supported.
      */
     Map<String, String> generateAllCitations(Context context, Item item, String[] styles);
+
+    /**
+     * Generates a citation and the CSL JSON for the given item and style, in a single pass.
+     * This avoids preparing item data twice when both the citation and the JSON are needed.
+     *
+     * @param context the DSpace context
+     * @param item    the item
+     * @param style   the crosswalk style suffix (e.g. "apa", "chicago")
+     * @return a {@link CitationResult} containing both the formatted citation and the CSL JSON,
+     *         or null if the item's entity type is not supported or no crosswalk is found.
+     */
+    CitationResult generateCitationAndCslJson(Context context, Item item, String style);
+
+    /**
+     * Checks whether the given entity type is supported for citation generation.
+     *
+     * @param entityType the entity type string (e.g. "Publication", "Patent", "Product")
+     * @return true if citations can be generated for this entity type
+     */
+    boolean isSupportedEntityType(String entityType);
 }
