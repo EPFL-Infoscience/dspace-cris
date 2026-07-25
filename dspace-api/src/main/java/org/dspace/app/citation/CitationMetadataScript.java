@@ -8,6 +8,8 @@
 package org.dspace.app.citation;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -24,13 +26,14 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.discovery.IndexableObject;
-import org.dspace.discovery.SearchService;
-import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 
 /**
@@ -43,16 +46,20 @@ public class CitationMetadataScript
         extends DSpaceRunnable<CitationMetadataScriptConfiguration<CitationMetadataScript>> {
 
     private static final int DEFAULT_COMMIT_SIZE = 100;
+    private static final String[] DEFAULT_STYLES =
+        { "apa", "chicago", "ieee", "vancouver", "harvard", "mla", "iso690" };
 
     private Context context;
     private String index;
     private boolean force;
     private int commitSize;
 
+    private String[] styles;
+    private int intervalMinutes;
+
     private ItemService itemService;
     private CommunityService communityService;
     private CollectionService collectionService;
-    private SearchService searchService;
     private CitationService citationService;
 
     @SuppressWarnings("unchecked")
@@ -72,8 +79,10 @@ public class CitationMetadataScript
         itemService = ContentServiceFactory.getInstance().getItemService();
         communityService = ContentServiceFactory.getInstance().getCommunityService();
         collectionService = ContentServiceFactory.getInstance().getCollectionService();
-        searchService = new DSpace().getSingletonService(SearchService.class);
         citationService = new DSpace().getSingletonService(CitationServiceImpl.class);
+        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        styles = configurationService.getArrayProperty("citation-script.filter", DEFAULT_STYLES);
+        intervalMinutes = configurationService.getIntProperty("citation-script.interval", 10);
     }
 
     @Override
@@ -81,13 +90,11 @@ public class CitationMetadataScript
         try {
             context.turnOffAuthorisationSystem();
             handler.logInfo("Citation metadata script started");
-            handler.logInfo("Parameters: index=" + index + ", force=" + force + ", commitSize=" + commitSize);
 
             IndexableObject<?, ?> scopeObject = resolveScope();
             Iterator<Item> items = findItems(scopeObject);
 
             int processed = 0;
-            java.util.List<Item> batch = new java.util.ArrayList<>();
             boolean needsReload = false;
 
             while (items.hasNext()) {
@@ -105,31 +112,24 @@ public class CitationMetadataScript
                 }
 
                 if (!force && !needsUpdate(item)) {
+                    handler.logInfo("Skipped item " + item.getID() + " (no update needed)");
                     context.uncacheEntity(item);
                     continue;
                 }
 
                 saveCitationMetadata(item);
-                batch.add(item);
+                context.uncacheEntity(item);
                 processed++;
 
                 if (processed % commitSize == 0) {
                     context.commit();
-                    for (Item cached : batch) {
-                        context.uncacheEntity(cached);
-                    }
-                    batch.clear();
                     needsReload = true;
                     handler.logInfo("Committed after " + processed + " items");
                 }
             }
 
-            if (!batch.isEmpty()) {
+            if (processed % commitSize != 0) {
                 context.commit();
-                for (Item cached : batch) {
-                    context.uncacheEntity(cached);
-                }
-                batch.clear();
             }
 
             handler.logInfo("Citation metadata script completed. Total items processed: " + processed);
@@ -179,23 +179,21 @@ public class CitationMetadataScript
     }
 
     /**
-     * Finds items using a direct Solr query with the appropriate filters.
+     * Finds items using a paginated Solr query with the appropriate filters.
+     * Uses {@link DiscoverResultItemIterator} which handles pagination and entity uncaching automatically.
      */
-    private Iterator<Item> findItems(IndexableObject<?, ?> scopeObject) throws SearchServiceException {
+    private Iterator<Item> findItems(IndexableObject<?, ?> scopeObject) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
-        discoverQuery.setMaxResults(Integer.MAX_VALUE);
-        discoverQuery.setQuery("search.resourcetype:Item"
-                + " AND (entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent)"
-                + " AND -withdrawn:true AND -discoverable:false AND latestVersion:true");
-
-        // When not forcing, exclude items that have never been modified since their citation was generated.
-        // Items without epfl.citation.date are always included (they need generation).
-        // Items WITH epfl.citation.date are also included — the needsUpdate check in Java will filter them.
-        // We only optimize by excluding items that definitely don't need update:
-        // those without citation.date are the primary target, but we include all to catch modified ones too.
-
-        return searchService.iteratorSearch(context, scopeObject, discoverQuery);
+        discoverQuery.setMaxResults(commitSize);
+        discoverQuery.setSortField("search.resourceid", DiscoverQuery.SORT_ORDER.asc);
+        discoverQuery.addFilterQueries(
+                "entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent",
+                "-withdrawn:true",
+                "-discoverable:false",
+                "latestVersion:true"
+        );
+        return new DiscoverResultItemIterator(context, scopeObject, discoverQuery);
     }
 
     /**
@@ -208,8 +206,8 @@ public class CitationMetadataScript
             return true;
         }
         try {
-            java.time.Instant citationInstant = java.time.Instant.parse(citationDateStr);
-            java.util.Date lastModified = item.getLastModified();
+            Instant citationInstant = Instant.parse(citationDateStr);
+            Date lastModified = item.getLastModified();
             if (lastModified == null) {
                 return true;
             }
@@ -225,14 +223,7 @@ public class CitationMetadataScript
      * Saves citation metadata on the item using the CitationService.
      */
     private void saveCitationMetadata(Item item) throws SQLException {
-        String[] styles = org.dspace.services.factory.DSpaceServicesFactory.getInstance()
-                .getConfigurationService().getArrayProperty("citation-script.filter");
-        // Trim whitespace from each style (getArrayProperty may leave leading/trailing spaces)
-        if (styles != null) {
-            for (int i = 0; i < styles.length; i++) {
-                styles[i] = styles[i].trim();
-            }
-        }
+        handler.logInfo("Saving citation metadata for item " + item.getID());
         Map<String, String> citations = citationService.generateAllCitations(context, item, styles);
         try {
             for (Map.Entry<String, String> entry : citations.entrySet()) {
@@ -244,14 +235,10 @@ public class CitationMetadataScript
                 }
             }
 
-            // Set citation date to current time, then update the item.
-            // The update will set lastModified to the same instant (or very close),
-            // so needsUpdate will return false until the item is genuinely modified again.
+            // The citation date will be set slightly in the future to be after the update date of the item
             itemService.clearMetadata(context, item, "epfl", "citation", "date", Item.ANY);
-            int intervalMinutes = org.dspace.services.factory.DSpaceServicesFactory.getInstance()
-                    .getConfigurationService().getIntProperty("citation-script.interval", 30);
             itemService.addMetadata(context, item, "epfl", "citation", "date", null,
-                    java.time.Instant.now().plusSeconds(intervalMinutes * 60L).toString());
+                    Instant.now().plusSeconds(intervalMinutes * 60L).toString());
             itemService.update(context, item);
         } catch (org.dspace.authorize.AuthorizeException e) {
             throw new RuntimeException("Authorization error saving citation metadata for item " + item.getID(), e);
