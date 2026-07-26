@@ -55,7 +55,8 @@ public class CitationMetadataScript
     private int commitSize;
 
     private String[] styles;
-    private int intervalMinutes;
+    private int checkIntervalHours;
+    private int dateOffsetMinutes;
 
     private ItemService itemService;
     private CommunityService communityService;
@@ -82,7 +83,8 @@ public class CitationMetadataScript
         citationService = new DSpace().getSingletonService(CitationServiceImpl.class);
         ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         styles = configurationService.getArrayProperty("citation-script.filter", DEFAULT_STYLES);
-        intervalMinutes = configurationService.getIntProperty("citation-script.interval", 10);
+        checkIntervalHours = configurationService.getIntProperty("citation-script.check-interval", 25);
+        dateOffsetMinutes = configurationService.getIntProperty("citation-script.date-offset", 10);
     }
 
     @Override
@@ -181,6 +183,12 @@ public class CitationMetadataScript
     /**
      * Finds items using a paginated Solr query with the appropriate filters.
      * Uses {@link DiscoverResultItemIterator} which handles pagination and entity uncaching automatically.
+     *
+     * When not forcing, the Solr query only returns:
+     * - Items that have never been processed (no epfl.citation.date)
+     * - Items modified recently (lastModified within the configured interval)
+     *
+     * This avoids loading hundreds of thousands of unchanged items into memory.
      */
     private Iterator<Item> findItems(IndexableObject<?, ?> scopeObject) {
         DiscoverQuery discoverQuery = new DiscoverQuery();
@@ -193,6 +201,17 @@ public class CitationMetadataScript
                 "-discoverable:false",
                 "latestVersion:true"
         );
+
+        // When not forcing, narrow down to only items that likely need processing:
+        // 1. Items without epfl.citation.date -> never processed, need generation
+        // 2. Items whose lastModified is recent -> potentially modified since last run
+        // The needsUpdate check will do the precise lastModified > citationDate comparison.
+        if (!force) {
+            discoverQuery.addFilterQueries(
+                "(-epfl.citation.date:*) OR lastModified:[NOW-" + checkIntervalHours + "HOURS TO NOW]"
+            );
+        }
+
         return new DiscoverResultItemIterator(context, scopeObject, discoverQuery);
     }
 
@@ -235,10 +254,11 @@ public class CitationMetadataScript
                 }
             }
 
-            // The citation date will be set slightly in the future to be after the update date of the item
+            // Set citation date slightly in the future to ensure it's after the
+            // lastModified timestamp that itemService.update() will set.
             itemService.clearMetadata(context, item, "epfl", "citation", "date", Item.ANY);
             itemService.addMetadata(context, item, "epfl", "citation", "date", null,
-                    Instant.now().plusSeconds(intervalMinutes * 60L).toString());
+                    Instant.now().plusSeconds(dateOffsetMinutes * 60L).toString());
             itemService.update(context, item);
         } catch (org.dspace.authorize.AuthorizeException e) {
             throw new RuntimeException("Authorization error saving citation metadata for item " + item.getID(), e);

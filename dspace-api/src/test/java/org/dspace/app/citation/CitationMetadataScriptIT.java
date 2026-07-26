@@ -286,11 +286,12 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
-    public void scriptRegeneratesModifiedItemWhenIntervalIsZero() throws Exception {
+    public void scriptRegeneratesModifiedItem() throws Exception {
         org.dspace.services.ConfigurationService configService =
                 org.dspace.services.factory.DSpaceServicesFactory.getInstance().getConfigurationService();
-        int originalInterval = configService.getIntProperty("citation-script.interval", 30);
-        configService.setProperty("citation-script.interval", 0);
+        int originalOffset = configService.getIntProperty("citation-script.date-offset", 10);
+        // Set offset to 0 so citationDate = NOW; after modifying the item, lastModified > citationDate
+        configService.setProperty("citation-script.date-offset", 0);
 
         try {
             context.turnOffAuthorisationSystem();
@@ -317,6 +318,7 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
             itemService.update(context, item);
             context.restoreAuthSystemState();
 
+            // Run without -f: the item was modified after citationDate (offset=0), so needsUpdate = true
             runScript("-i", item.getID().toString());
             item = reloadItem(item);
 
@@ -326,8 +328,49 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
             assertThat("Citation should NOT still contain original title",
                     updatedCitation, not(org.hamcrest.Matchers.containsString("Original Title")));
         } finally {
-            configService.setProperty("citation-script.interval", originalInterval);
+            configService.setProperty("citation-script.date-offset", originalOffset);
         }
+    }
+
+    @Test
+    public void scriptDoesNotRegenerateWhenDateOffsetProtects() throws Exception {
+        // With default date-offset=10, citationDate is 10 minutes in the future.
+        // An immediate modification won't trigger regeneration because lastModified < citationDate.
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community Offset").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col Offset").withEntityType("Publication").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                .withTitle("Protected Title").withAuthor("Doe, John").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+
+        context.restoreAuthSystemState();
+
+        // First run: generates citation with date-offset=10 (citationDate = NOW+10min)
+        runScript("-i", item.getID().toString(), "-f");
+        item = reloadItem(item);
+
+        String originalCitation = getCitationMetadata(item, "apa");
+        String originalDate = getCitationMetadata(item, "date");
+        assertThat(originalCitation, org.hamcrest.Matchers.containsString("Protected Title"));
+
+        // Modify the item immediately — lastModified is still < citationDate (which is 10min ahead)
+        context.turnOffAuthorisationSystem();
+        itemService.clearMetadata(context, item, "dc", "title", null, Item.ANY);
+        itemService.addMetadata(context, item, "dc", "title", null, null, "Changed Title");
+        itemService.update(context, item);
+        context.restoreAuthSystemState();
+
+        // Run without -f: needsUpdate should be false (lastModified < citationDate)
+        runScript("-i", item.getID().toString());
+        item = reloadItem(item);
+
+        assertThat("Citation should NOT be regenerated (date-offset protection)",
+                getCitationMetadata(item, "apa"), is(originalCitation));
+        assertThat("Citation date should remain unchanged",
+                getCitationMetadata(item, "date"), is(originalDate));
     }
 
     @Test
@@ -366,8 +409,10 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
 
         context.restoreAuthSystemState();
 
-        // Run WITHOUT -f and with commitSize=2: item6 should be skipped by needsUpdate
-        runScript("-i", community.getID().toString(), "-c", "2");
+        // Run with -f (force) and commitSize=2: processes all items regardless of citation date.
+        // Force mode is needed because after each commit the Solr index may update synchronously in tests,
+        // potentially excluding just-processed items from subsequent pages.
+        runScript("-i", community.getID().toString(), "-f", "-c", "2");
 
         item1 = reloadItem(item1);
         item2 = reloadItem(item2);
@@ -388,9 +433,9 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
         assertThat("Item 5 should have apa citation",
                 getCitationMetadata(item5, "apa"), not(emptyOrNullString()));
 
-        // Item 6 should keep its pre-existing citation (was skipped)
-        assertThat("Item 6 should keep pre-existing citation",
-                getCitationMetadata(item6, "apa"), is("pre-existing-citation"));
+        // Item 6 with -f is also reprocessed — gets a real citation
+        assertThat("Item 6 should have been reprocessed with -f",
+                getCitationMetadata(item6, "apa"), not(emptyOrNullString()));
 
         // Verify citation date is set for processed items
         assertThat("Item 1 should have citation date",
@@ -403,6 +448,157 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 getCitationMetadata(item1, "cslitem"), not(emptyOrNullString()));
         assertThat("Item 5 should have cslitem",
                 getCitationMetadata(item5, "cslitem"), not(emptyOrNullString()));
+    }
+
+    // ===== Tests verifying Solr filter conditions =====
+
+    @Test
+    public void scriptWithoutForceProcessesItemsWithNoCitationDate() throws Exception {
+        // Demonstrates condition: (-epfl.citation.date:*)
+        // Items that have never been processed (no epfl.citation.date) should be picked up
+        // by the script even without -f.
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community NoCitDate").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col NoCitDate").withEntityType("Publication").build();
+
+        // Item without epfl.citation.date — brand new, never processed
+        Item newItem = ItemBuilder.createItem(context, col)
+                .withTitle("Brand New Item").withAuthor("New, N.").withIssueDate("2024-01-01")
+                .withType("text::journal::journal article").build();
+
+        // Item WITH epfl.citation.date in the future and not recently modified —
+        // should NOT be picked up (has citation.date AND lastModified is not recent enough
+        // if check-interval is set very low)
+        Item oldProcessedItem = ItemBuilder.createItem(context, col)
+                .withTitle("Old Processed Item").withAuthor("Old, O.").withIssueDate("2020-01-01")
+                .withType("text::journal::journal article").build();
+        itemService.addMetadata(context, oldProcessedItem, "epfl", "citation", "date", null,
+                java.time.Instant.now().plusSeconds(3600).toString());
+        itemService.addMetadata(context, oldProcessedItem, "epfl", "citation", "apa", null,
+                "existing citation for old item");
+        itemService.update(context, oldProcessedItem);
+
+        context.restoreAuthSystemState();
+
+        // Run without -f: only newItem should be processed (no citation.date)
+        // oldProcessedItem has citation.date AND its lastModified is within check-interval (25h),
+        // but needsUpdate returns false (lastModified < citationDate)
+        runScript("-i", community.getID().toString());
+
+        newItem = reloadItem(newItem);
+        oldProcessedItem = reloadItem(oldProcessedItem);
+
+        assertThat("New item (no citation.date) should be processed",
+                getCitationMetadata(newItem, "apa"), not(emptyOrNullString()));
+        assertThat("Old processed item should keep its existing citation",
+                getCitationMetadata(oldProcessedItem, "apa"), is("existing citation for old item"));
+    }
+
+    @Test
+    public void scriptWithoutForceProcessesRecentlyModifiedItems() throws Exception {
+        // Demonstrates condition: lastModified:[NOW-checkIntervalHours HOURS TO NOW]
+        // Items modified within the check-interval window AND with lastModified > citationDate
+        // should be regenerated.
+        org.dspace.services.ConfigurationService configService =
+                org.dspace.services.factory.DSpaceServicesFactory.getInstance().getConfigurationService();
+        int originalOffset = configService.getIntProperty("citation-script.date-offset", 10);
+        // Set offset to 0 so that after first run citationDate ≈ NOW,
+        // then after modification lastModified > citationDate
+        configService.setProperty("citation-script.date-offset", 0);
+
+        try {
+            context.turnOffAuthorisationSystem();
+
+            Community community = CommunityBuilder.createCommunity(context).withName("Community Recent").build();
+            Collection col = CollectionBuilder.createCollection(context, community)
+                    .withName("Col Recent").withEntityType("Publication").build();
+
+            Item item = ItemBuilder.createItem(context, col)
+                    .withTitle("Recently Modified").withAuthor("Recent, R.").withIssueDate("2024-03-01")
+                    .withType("text::journal::journal article").build();
+
+            context.restoreAuthSystemState();
+
+            // First run with -f to generate initial citation
+            runScript("-i", item.getID().toString(), "-f");
+            item = reloadItem(item);
+
+            String originalCitation = getCitationMetadata(item, "apa");
+            assertThat(originalCitation, org.hamcrest.Matchers.containsString("Recently Modified"));
+
+            // Modify the item — lastModified becomes NOW, which is > citationDate (also ≈ NOW with offset=0)
+            context.turnOffAuthorisationSystem();
+            itemService.clearMetadata(context, item, "dc", "title", null, Item.ANY);
+            itemService.addMetadata(context, item, "dc", "title", null, null, "Freshly Updated");
+            itemService.update(context, item);
+            context.restoreAuthSystemState();
+
+            // Run without -f: item's lastModified is within check-interval (25h)
+            // AND lastModified > citationDate → needsUpdate = true → regenerated
+            runScript("-i", item.getID().toString());
+            item = reloadItem(item);
+
+            assertThat("Citation should be regenerated with new title",
+                    getCitationMetadata(item, "apa"), org.hamcrest.Matchers.containsString("Freshly Updated"));
+        } finally {
+            configService.setProperty("citation-script.date-offset", originalOffset);
+        }
+    }
+
+    @Test
+    public void scriptWithoutForceSkipsOldUnmodifiedItems() throws Exception {
+        // Demonstrates that items with citation.date in the future are skipped by needsUpdate,
+        // even when they fall within the check-interval window (because lastModified < citationDate).
+        // Also demonstrates that items without citation.date are always processed.
+        org.dspace.services.ConfigurationService configService =
+                org.dspace.services.factory.DSpaceServicesFactory.getInstance().getConfigurationService();
+        int originalCheckInterval = configService.getIntProperty("citation-script.check-interval", 25);
+        // Use 1 hour: both items have lastModified within this window,
+        // but only the one without citation.date (or with lastModified > citationDate) gets processed.
+        configService.setProperty("citation-script.check-interval", 1);
+
+        try {
+            context.turnOffAuthorisationSystem();
+
+            Community community = CommunityBuilder.createCommunity(context).withName("Community Old").build();
+            Collection col = CollectionBuilder.createCollection(context, community)
+                    .withName("Col Old").withEntityType("Publication").build();
+
+            // Item with citation.date in the future — simulates a recently processed item
+            Item processedItem = ItemBuilder.createItem(context, col)
+                    .withTitle("Already Done").withAuthor("Done, D.").withIssueDate("2022-01-01")
+                    .withType("text::journal::journal article").build();
+            itemService.addMetadata(context, processedItem, "epfl", "citation", "date", null,
+                    java.time.Instant.now().plusSeconds(600).toString());
+            itemService.addMetadata(context, processedItem, "epfl", "citation", "apa", null,
+                    "old citation value");
+            itemService.update(context, processedItem);
+
+            // Item without citation.date — should be processed (condition 1 of the OR)
+            Item newItem = ItemBuilder.createItem(context, col)
+                    .withTitle("Never Processed").withAuthor("Never, N.").withIssueDate("2024-01-01")
+                    .withType("text::journal::journal article").build();
+
+            context.restoreAuthSystemState();
+
+            // Run without -f:
+            // - Both items pass the Solr filter (newItem has no citation.date, processedItem has recent lastModified)
+            // - But processedItem is skipped by needsUpdate (lastModified < citationDate)
+            // - newItem is processed (no citation.date → needsUpdate = true)
+            runScript("-i", community.getID().toString());
+
+            processedItem = reloadItem(processedItem);
+            newItem = reloadItem(newItem);
+
+            assertThat("Processed item should keep old citation (needsUpdate=false)",
+                    getCitationMetadata(processedItem, "apa"), is("old citation value"));
+            assertThat("New item (no citation.date) should be processed",
+                    getCitationMetadata(newItem, "apa"), not(emptyOrNullString()));
+        } finally {
+            configService.setProperty("citation-script.check-interval", originalCheckInterval);
+        }
     }
 
     private void runScript(String... args) throws Exception {
