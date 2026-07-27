@@ -31,14 +31,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dspace.app.citation.CitationResult;
+import org.dspace.app.citation.CitationService;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.model.CitationsRequestRest;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
-import org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk;
-import org.dspace.content.integration.crosswalks.StreamDisseminationCrosswalkMapper;
-import org.dspace.content.integration.crosswalks.csl.CSLPreparedItemData;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
@@ -120,7 +119,7 @@ public class CitationsRestController {
     private ConfigurationService configurationService;
 
     @Autowired
-    private StreamDisseminationCrosswalkMapper streamDisseminationCrosswalkMapper;
+    private CitationService citationService;
 
     @Autowired
     private org.dspace.app.rest.utils.RestDiscoverQueryBuilder restDiscoverQueryBuilder;
@@ -301,7 +300,7 @@ public class CitationsRestController {
 
         DiscoverQuery discoverQuery = restDiscoverQueryBuilder.buildQuery(context, scopeObject,
                 discoveryConfiguration, query, Collections.emptyList(), IndexableItem.TYPE, null);
-        applySort(discoverQuery, citationsRequest.getSort());
+        applySort(discoverQuery, citationsRequest.getSort(), citationsRequest.getGroupBy());
         discoverQuery.setMaxResults(configurationService.getIntProperty("rest.search.max.results", 100));
 
         Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
@@ -350,15 +349,44 @@ public class CitationsRestController {
         return null;
     }
 
-    private void applySort(DiscoverQuery discoverQuery, String sort) {
+    private void applySort(DiscoverQuery discoverQuery, String sort, String groupBy) {
         if (StringUtils.isBlank(sort)) {
             return;
         }
 
         String[] clauses = StringUtils.trim(sort).split(SORT_MULTI_SEPARATOR, -1);
         for (String clause : clauses) {
-            applySingleSortClause(discoverQuery, clause.trim());
+            String trimmedClause = clause.trim();
+            if (!isSortRedundantWithGroupBy(trimmedClause, groupBy)) {
+                applySingleSortClause(discoverQuery, trimmedClause);
+            }
         }
+    }
+
+    /**
+     * Checks if a sort clause is redundant given the groupBy parameter.
+     * A sort clause is redundant when its dimension is already covered by the groupBy:
+     * the grouping separates items into buckets on that dimension, so sorting by it
+     * has no effect within the bucket — only the remaining sort clauses determine within-group order.
+     */
+    private boolean isSortRedundantWithGroupBy(String sortClause, String groupBy) {
+        if (StringUtils.isBlank(groupBy)) {
+            return false;
+        }
+
+        String sortField = sortClause.split(SORT_SEPARATOR, -1)[0];
+
+        // date/year sort is redundant when groupBy includes "year"
+        if ((SORT_DATE.equals(sortField) || SORT_YEAR.equals(sortField))
+                && groupBy.contains(GROUP_BY_YEAR)) {
+            return true;
+        }
+
+        // title sort would be redundant when groupBy includes "type" — not currently
+        // a valid scenario since items within the same type still benefit from title ordering,
+        // but kept for symmetry if a "type" sort field is ever introduced.
+
+        return false;
     }
 
     private void applySingleSortClause(DiscoverQuery discoverQuery, String clause) {
@@ -387,53 +415,17 @@ public class CitationsRestController {
     private Map<String, Map<String, List<CitationItem>>> buildCitationItems(Context context, List<Item> items,
                                                   CitationsRequestRest citationsRequest) {
         String style = citationsRequest.getStyle();
-        String crosswalkType = normalizeStyleForCrosswalk(style);
-        CSLItemDataCrosswalk crosswalkPatent =
-                (CSLItemDataCrosswalk) streamDisseminationCrosswalkMapper.getByType("patent-" + crosswalkType);
-        CSLItemDataCrosswalk crosswalkProduct =
-                (CSLItemDataCrosswalk) streamDisseminationCrosswalkMapper.getByType("product-" + crosswalkType);
-        CSLItemDataCrosswalk crosswalkPublication =
-                (CSLItemDataCrosswalk) streamDisseminationCrosswalkMapper.getByType("publication-" + crosswalkType);
-        if (crosswalkPatent == null || crosswalkProduct == null || crosswalkPublication == null) {
-            throw new DSpaceBadRequestException("Unable to generate citations for style '" + style + "'");
-        }
         boolean isFullFormat = DISPLAY_FORMAT_FULL.equals(citationsRequest.getFormat());
+        boolean generateOnTheFly = configurationService.getBooleanProperty("citation-rest.generate", false);
 
-        // Generate citations one item at a time to guarantee correct UUID-to-citation mapping
+        // Resolve citations: either from pre-computed metadata or generated on the fly
         Map<UUID, String> citationsByUuid = new LinkedHashMap<>();
         Map<UUID, Object> parsedCslJsonByUuid = new LinkedHashMap<>();
 
-        for (Item item : items) {
-            UUID itemId = item.getID();
-            String entityType = itemService.getEntityType(item);
-            CSLItemDataCrosswalk crosswalk;
-            switch (entityType) {
-                case "Patent":
-                    crosswalk = crosswalkPatent;
-                    break;
-                case "Product":
-                    crosswalk = crosswalkProduct;
-                    break;
-                case "Publication":
-                    crosswalk = crosswalkPublication;
-                    break;
-                default:
-                    log.warn("Skipping item " + itemId + " as it is not a supported entity type: " + entityType);
-                    continue;
-            }
-
-            try {
-                // prepareItemData gives us the CSL JSON; generateCitation gives us the formatted citation
-                // Both use the same prepared data — one call to the library per item
-                CSLPreparedItemData prepared = crosswalk.prepareItemData(context, item);
-                String cslJson = prepared.getJson();
-                String citation = crosswalk.generateCitation(prepared);
-
-                citationsByUuid.put(itemId, citation);
-                parsedCslJsonByUuid.put(itemId, parseCslJsonObject(cslJson));
-            } catch (Exception e) {
-                log.error("Error generating citation for item " + itemId + " with style '" + style + "'", e);
-            }
+        if (generateOnTheFly) {
+            populateCitationsOnTheFly(context, items, style, citationsByUuid, parsedCslJsonByUuid);
+        } else {
+            populateCitationsFromMetadata(items, style, citationsByUuid, parsedCslJsonByUuid);
         }
 
         // Build the grouped result maintaining the original Solr sort order
@@ -442,7 +434,6 @@ public class CitationsRestController {
             UUID itemId = item.getID();
             String citation = citationsByUuid.get(itemId);
             if (citation == null) {
-                // Item was skipped (unsupported entity type)
                 continue;
             }
             Object parsedCslJson = parsedCslJsonByUuid.get(itemId);
@@ -454,6 +445,58 @@ public class CitationsRestController {
             }
         }
         return citationItems;
+    }
+
+    /**
+     * Generates citations on the fly using the CitationService.
+     */
+    private void populateCitationsOnTheFly(Context context, List<Item> items, String style,
+                                           Map<UUID, String> citationsByUuid,
+                                           Map<UUID, Object> parsedCslJsonByUuid) {
+        for (Item item : items) {
+            UUID itemId = item.getID();
+            String entityType = itemService.getEntityType(item);
+            if (!citationService.isSupportedEntityType(entityType)) {
+                log.warn("Skipping item " + itemId + " as it is not a supported entity type: " + entityType);
+                continue;
+            }
+
+            CitationResult result = citationService.generateCitationAndCslJson(context, item, style);
+            if (result != null && result.getCitation() != null) {
+                citationsByUuid.put(itemId, result.getCitation());
+                parsedCslJsonByUuid.put(itemId, parseCslJsonObject(result.getCslJson()));
+            }
+        }
+    }
+
+    /**
+     * Reads pre-computed citations from epfl.citation.* metadata fields.
+     */
+    private void populateCitationsFromMetadata(List<Item> items, String style,
+                                               Map<UUID, String> citationsByUuid,
+                                               Map<UUID, Object> parsedCslJsonByUuid) {
+        String styleQualifier = normalizeStyleQualifier(style);
+        for (Item item : items) {
+            UUID itemId = item.getID();
+            String citation = itemService.getMetadataFirstValue(item, "epfl", "citation", styleQualifier, Item.ANY);
+            if (StringUtils.isBlank(citation)) {
+                continue;
+            }
+            citationsByUuid.put(itemId, citation);
+
+            String cslJson = itemService.getMetadataFirstValue(item, "epfl", "citation", "cslitem", Item.ANY);
+            if (StringUtils.isNotBlank(cslJson)) {
+                parsedCslJsonByUuid.put(itemId, parseCslJsonObject(cslJson));
+            }
+        }
+    }
+
+    /**
+     * Normalizes the style name to match the metadata qualifier (lowercase, no .csl suffix).
+     */
+    private String normalizeStyleQualifier(String style) {
+        String normalized = style.trim();
+        return StringUtils.removeEndIgnoreCase(normalized, ".csl").toLowerCase(Locale.ROOT);
     }
 
     private void addCitationItemFull(Item item, String citation, Object parsedCslJson,
@@ -628,11 +671,6 @@ public class CitationsRestController {
 
         response.put("results", results);
         return response;
-    }
-
-    private String normalizeStyleForCrosswalk(String style) {
-        String normalized = style.trim();
-        return StringUtils.removeEndIgnoreCase(normalized, ".csl").toLowerCase(Locale.ROOT);
     }
 
     private String normalizeStyleForResponse(String style) {
