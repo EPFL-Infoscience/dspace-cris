@@ -208,7 +208,7 @@ public class CitationMetadataScript
         // The needsUpdate check will do the precise lastModified > citationDate comparison.
         if (!force) {
             discoverQuery.addFilterQueries(
-                "(-epfl.citation.date:*) OR lastModified:[NOW-" + checkIntervalHours + "HOURS TO NOW]"
+                "(*:* -epfl.citation.date:*) OR lastModified:[NOW-" + checkIntervalHours + "HOURS TO NOW]"
             );
         }
 
