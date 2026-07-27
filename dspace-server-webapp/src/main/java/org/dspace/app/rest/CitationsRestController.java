@@ -300,7 +300,7 @@ public class CitationsRestController {
 
         DiscoverQuery discoverQuery = restDiscoverQueryBuilder.buildQuery(context, scopeObject,
                 discoveryConfiguration, query, Collections.emptyList(), IndexableItem.TYPE, null);
-        applySort(discoverQuery, citationsRequest.getSort());
+        applySort(discoverQuery, citationsRequest.getSort(), citationsRequest.getGroupBy());
         discoverQuery.setMaxResults(configurationService.getIntProperty("rest.search.max.results", 100));
 
         Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
@@ -349,15 +349,44 @@ public class CitationsRestController {
         return null;
     }
 
-    private void applySort(DiscoverQuery discoverQuery, String sort) {
+    private void applySort(DiscoverQuery discoverQuery, String sort, String groupBy) {
         if (StringUtils.isBlank(sort)) {
             return;
         }
 
         String[] clauses = StringUtils.trim(sort).split(SORT_MULTI_SEPARATOR, -1);
         for (String clause : clauses) {
-            applySingleSortClause(discoverQuery, clause.trim());
+            String trimmedClause = clause.trim();
+            if (!isSortRedundantWithGroupBy(trimmedClause, groupBy)) {
+                applySingleSortClause(discoverQuery, trimmedClause);
+            }
         }
+    }
+
+    /**
+     * Checks if a sort clause is redundant given the groupBy parameter.
+     * A sort clause is redundant when its dimension is already covered by the groupBy:
+     * the grouping separates items into buckets on that dimension, so sorting by it
+     * has no effect within the bucket — only the remaining sort clauses determine within-group order.
+     */
+    private boolean isSortRedundantWithGroupBy(String sortClause, String groupBy) {
+        if (StringUtils.isBlank(groupBy)) {
+            return false;
+        }
+
+        String sortField = sortClause.split(SORT_SEPARATOR, -1)[0];
+
+        // date/year sort is redundant when groupBy includes "year"
+        if ((SORT_DATE.equals(sortField) || SORT_YEAR.equals(sortField))
+                && groupBy.contains(GROUP_BY_YEAR)) {
+            return true;
+        }
+
+        // title sort would be redundant when groupBy includes "type" — not currently
+        // a valid scenario since items within the same type still benefit from title ordering,
+        // but kept for symmetry if a "type" sort field is ever introduced.
+
+        return false;
     }
 
     private void applySingleSortClause(DiscoverQuery discoverQuery, String clause) {

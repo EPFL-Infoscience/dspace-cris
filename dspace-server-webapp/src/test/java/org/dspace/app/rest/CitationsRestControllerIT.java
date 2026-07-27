@@ -2293,6 +2293,522 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results.2022.thesis[0].uuid").value(thesisMu.getID().toString()));
     }
 
+    @Test
+    public void getCitationsGroupByYearSortTitleAscWithSameYearDifferentDates() throws Exception {
+        // Reproduces the scenario where items in the same year have different issue dates.
+        // With groupBy=year and sort=year:desc,title:asc, the user expects:
+        // - groups ordered by year descending
+        // - within each year group, items sorted by title ascending
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Sort Within Group Collection")
+                .build();
+
+        // Four items all in 2018 but with different months and different titles
+        Item itemCFeb = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Charlie Paper")
+                .withAuthor("Charlie, C.")
+                .withIssueDate("2018-02-15")
+                .inArchive()
+                .build();
+
+        Item itemAJun = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha Paper")
+                .withAuthor("Alpha, A.")
+                .withIssueDate("2018-06-01")
+                .inArchive()
+                .build();
+
+        Item itemDJan = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Delta Paper")
+                .withAuthor("Delta, D.")
+                .withIssueDate("2018-01-10")
+                .inArchive()
+                .build();
+
+        Item itemBApr = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Beta Paper")
+                .withAuthor("Beta, B.")
+                .withIssueDate("2018-04-20")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + itemCFeb.getID() + "\",\"" + itemAJun.getID()
+                + "\",\"" + itemDJan.getID() + "\",\"" + itemBApr.getID() + "\"";
+
+        // sort=year:desc,title:asc with groupBy=year
+        // Expected: within the 2018 group, items sorted by title: Alpha, Beta, Charlie, Delta
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year\"," +
+                "\"sort\":\"year:desc,title:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year"))
+                .andExpect(jsonPath("$.results.2018", hasSize(4)))
+                .andExpect(jsonPath("$.results.2018[0].uuid").value(itemAJun.getID().toString()))
+                .andExpect(jsonPath("$.results.2018[1].uuid").value(itemBApr.getID().toString()))
+                .andExpect(jsonPath("$.results.2018[2].uuid").value(itemCFeb.getID().toString()))
+                .andExpect(jsonPath("$.results.2018[3].uuid").value(itemDJan.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsGroupByYearSortDateAscIsRedundant() throws Exception {
+        // When groupBy=year, sort "date:asc" is redundant (same dimension) and should be ignored.
+        // The items within the same year should maintain Solr's default order (by resourceid or insertion).
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Redundant Sort Collection")
+                .build();
+
+        Item itemJan = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("January Paper")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-01-01")
+                .inArchive()
+                .build();
+
+        Item itemDec = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("December Paper")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-12-01")
+                .inArchive()
+                .build();
+
+        Item itemOther = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Other Year Paper")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2020-06-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + itemJan.getID() + "\",\"" + itemDec.getID() + "\",\"" + itemOther.getID() + "\"";
+
+        // sort=date:asc with groupBy=year: date sort is redundant, items in 2021 keep default order
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year\"," +
+                "\"sort\":\"date:asc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year"))
+                .andExpect(jsonPath("$.results.2020", hasSize(1)))
+                .andExpect(jsonPath("$.results.2020[0].uuid").value(itemOther.getID().toString()))
+                .andExpect(jsonPath("$.results.2021", hasSize(2)));
+        // We don't assert order within 2021 because date sort was dropped (redundant)
+    }
+
+    @Test
+    public void getCitationsGroupByTypeSortTitleDesc() throws Exception {
+        // groupBy=type with sort=title:desc — items within each type group are ordered by title descending
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("GroupBy Type Title Desc Collection")
+                .build();
+
+        Item articleAlpha = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha Article")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-01-01")
+                .inArchive()
+                .build();
+
+        Item articleZeta = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Zeta Article")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-06-01")
+                .inArchive()
+                .build();
+
+        Item thesisBeta = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Beta Thesis")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2022-01-01")
+                .inArchive()
+                .build();
+
+        Item thesisMu = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Mu Thesis")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2022-06-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + articleAlpha.getID() + "\",\"" + articleZeta.getID()
+                + "\",\"" + thesisBeta.getID() + "\",\"" + thesisMu.getID() + "\"";
+
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"title:desc\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("type"))
+                .andExpect(jsonPath("$.results.article-journal", hasSize(2)))
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(articleZeta.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(articleAlpha.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis", hasSize(2)))
+                .andExpect(jsonPath("$.results.thesis[0].uuid").value(thesisMu.getID().toString()))
+                .andExpect(jsonPath("$.results.thesis[1].uuid").value(thesisBeta.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsGroupByYearTypeSortDateAscTitleAsc() throws Exception {
+        // groupBy=year,type with sort=date:asc,title:asc
+        // date:asc is redundant (groupBy contains year), so only title:asc is applied to Solr
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("YearType DateTitle Collection")
+                .build();
+
+        Item articleZ2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Zulu")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-01-01")
+                .inArchive()
+                .build();
+
+        Item articleA2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-06-01")
+                .inArchive()
+                .build();
+
+        Item thesis2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Only Thesis")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-03-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + articleZ2021.getID() + "\",\"" + articleA2021.getID()
+                + "\",\"" + thesis2021.getID() + "\"";
+
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year,type\"," +
+                "\"sort\":\"date:asc,title:asc\"" +
+                "}";
+
+        // date:asc is dropped (redundant with year groupBy), title:asc remains
+        // Within 2021.article-journal: Alpha before Zulu
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year,type"))
+                .andExpect(jsonPath("$.results.2021.article-journal", hasSize(2)))
+                .andExpect(jsonPath("$.results.2021.article-journal[0].uuid")
+                        .value(articleA2021.getID().toString()))
+                .andExpect(jsonPath("$.results.2021.article-journal[1].uuid")
+                        .value(articleZ2021.getID().toString()))
+                .andExpect(jsonPath("$.results.2021.thesis", hasSize(1)))
+                .andExpect(jsonPath("$.results.2021.thesis[0].uuid").value(thesis2021.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsGroupByYearTypeSortTitleDesc() throws Exception {
+        // groupBy=year,type with sort=title:desc — title desc within sub-groups
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("YearType TitleDesc Collection")
+                .build();
+
+        Item articleA = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2022-01-01")
+                .inArchive()
+                .build();
+
+        Item articleM = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Mu")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2022-06-01")
+                .inArchive()
+                .build();
+
+        Item articleZ = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Zeta")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2022-03-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + articleA.getID() + "\",\"" + articleM.getID() + "\",\"" + articleZ.getID() + "\"";
+
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"year,type\"," +
+                "\"sort\":\"title:desc\"" +
+                "}";
+
+        // Within 2022.article-journal: Zeta, Mu, Alpha (title desc)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year,type"))
+                .andExpect(jsonPath("$.results.2022.article-journal", hasSize(3)))
+                .andExpect(jsonPath("$.results.2022.article-journal[0].uuid")
+                        .value(articleZ.getID().toString()))
+                .andExpect(jsonPath("$.results.2022.article-journal[1].uuid")
+                        .value(articleM.getID().toString()))
+                .andExpect(jsonPath("$.results.2022.article-journal[2].uuid")
+                        .value(articleA.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsGroupByTypeYearSortDateDesc() throws Exception {
+        // groupBy=type,year with sort=date:desc — date is redundant (groupBy contains year), dropped
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("TypeYear DateDesc Collection")
+                .build();
+
+        Item articleJan = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("January")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2023-01-15")
+                .inArchive()
+                .build();
+
+        Item articleDec = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("December")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2023-12-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + articleJan.getID() + "\",\"" + articleDec.getID() + "\"";
+
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type,year\"," +
+                "\"sort\":\"date:desc\"" +
+                "}";
+
+        // date:desc is redundant (groupBy contains year), so order within article-journal.2023 is default
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("type,year"))
+                .andExpect(jsonPath("$.results.article-journal.2023", hasSize(2)));
+        // We don't assert order within the group since the only sort was dropped
+    }
+
+    @Test
+    public void getCitationsGroupByYearSortTitleDesc() throws Exception {
+        // groupBy=year with sort=title:desc — items within each year group ordered by title descending
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Year TitleDesc Collection")
+                .build();
+
+        Item itemAlpha = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-03-01")
+                .inArchive()
+                .build();
+
+        Item itemZeta = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Zeta")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-09-01")
+                .inArchive()
+                .build();
+
+        Item itemMu = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Mu")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-06-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + itemAlpha.getID() + "\",\"" + itemZeta.getID() + "\",\"" + itemMu.getID() + "\"";
+
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"," +
+                "\"groupBy\":\"year\"," +
+                "\"sort\":\"title:desc\"" +
+                "}";
+
+        // Within 2021: Zeta, Mu, Alpha (title desc)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("year"))
+                .andExpect(jsonPath("$.results.2021", hasSize(3)))
+                .andExpect(jsonPath("$.results.2021[0].uuid").value(itemZeta.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[1].uuid").value(itemMu.getID().toString()))
+                .andExpect(jsonPath("$.results.2021[2].uuid").value(itemAlpha.getID().toString()));
+    }
+
+    @Test
+    public void getCitationsGroupByTypeSortYearAsc() throws Exception {
+        // groupBy=type with sort=year:asc — year sort is NOT redundant here (groupBy is type, not year)
+        // Items within each type group are sorted by date (year maps to dc.date.issued_dt)
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Type YearAsc Collection")
+                .build();
+
+        Item article2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Recent Article")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2023-01-01")
+                .inArchive()
+                .build();
+
+        Item article2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Old Article")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2019-01-01")
+                .inArchive()
+                .build();
+
+        Item article2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Middle Article")
+                .withAuthor("Doe, J.")
+                .withIssueDate("2021-01-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + article2023.getID() + "\",\"" + article2019.getID()
+                + "\",\"" + article2021.getID() + "\"";
+
+        String body = "{" +
+                "\"uuids\":[" + uuids + "]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"," +
+                "\"groupBy\":\"type\"," +
+                "\"sort\":\"year:asc\"" +
+                "}";
+
+        // Within article-journal: 2019, 2021, 2023 (year asc, NOT redundant since groupBy is type)
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupBy").value("type"))
+                .andExpect(jsonPath("$.results.article-journal", hasSize(3)))
+                .andExpect(jsonPath("$.results.article-journal[0].uuid").value(article2019.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[1].uuid").value(article2021.getID().toString()))
+                .andExpect(jsonPath("$.results.article-journal[2].uuid").value(article2023.getID().toString()));
+    }
+
     // ===== Tests reading pre-computed citations from epfl.citation.* metadata =====
 
     @Test
