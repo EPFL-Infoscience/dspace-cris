@@ -15,11 +15,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -116,6 +118,7 @@ public class ItemExportTypesController {
         for (ItemExportFormat format : formats) {
             restFormats.add(converter.toRest(format, utils.obtainProjection()));
         }
+        restFormats.sort(Comparator.comparing(ItemExportFormatRest::getId));
 
         return CollectionModel.of(restFormats);
     }
@@ -149,7 +152,8 @@ public class ItemExportTypesController {
                 byte[] exportBytes = exportItemByFormat(context, item, crosswalk, format.getId());
                 allExports.put(format.getId(), new String(exportBytes, StandardCharsets.UTF_8));
             }
-            byte[] body = new ObjectMapper().writeValueAsString(allExports).getBytes(StandardCharsets.UTF_8);
+            Map<String, String> sortedAllExports = new TreeMap<>(allExports);
+            byte[] body = new ObjectMapper().writeValueAsString(sortedAllExports).getBytes(StandardCharsets.UTF_8);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             return new ResponseEntity<>(body, headers, HttpStatus.OK);

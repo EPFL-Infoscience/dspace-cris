@@ -251,4 +251,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.app.policy.PolicyMetadataScript"/>
     </bean>
 
+    <bean id="citation-metadata" class="org.dspace.app.citation.CitationMetadataScriptConfiguration">
+        <property name="description" value="Pre-compute citation metadata for Publication, Patent and Product items"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.citation.CitationMetadataScript"/>
+    </bean>
+
 </beans>
