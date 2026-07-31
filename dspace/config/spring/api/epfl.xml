@@ -253,4 +253,7 @@
 
     <bean class="org.dspace.epfl.script.service.impl.ItemsImportModificationDateDaoImpl">
     </bean>
+
+    <!-- Citation Service -->
+    <bean class="org.dspace.app.citation.CitationServiceImpl" />
 </beans>
