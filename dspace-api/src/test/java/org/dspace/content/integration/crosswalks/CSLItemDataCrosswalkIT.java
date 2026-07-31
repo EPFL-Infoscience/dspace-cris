@@ -332,6 +332,116 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    public void testEditorialDirectorIsPresentWhenTypeResolvesToThesis() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::thesis")
+            .withTitle("Thesis title")
+            .withIssueDate("2021-07-01")
+            .withMetadata("dc", "contributor", "advisor", "Doe, Jane")
+            .withHandle("123456789/0100")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"editorial-director\""));
+        assertThat(citation, containsString("\"family\": \"Doe\""));
+        assertThat(citation, containsString("\"given\": \"Jane\""));
+    }
+
+    @Test
+    public void testEditorialDirectorIsNotPresentWhenTypeDoesNotResolveToThesis() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::report")
+            .withTitle("Report title")
+            .withIssueDate("2021-07-01")
+            .withMetadata("dc", "contributor", "advisor", "Doe, Jane")
+            .withHandle("123456789/0101")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, not(containsString("\"editorial-director\"")));
+    }
+
+    @Test
+    public void testContainerTitleForReviewUsesRelationJournal() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::review")
+            .withTitle("Review title")
+            .withIssueDate("2021-07-01")
+            .withRelationJournal("Journal for Reviews", null)
+            .withIsPartOf("IsPartOf fallback value")
+            .withHandle("123456789/0102")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"container-title\": \"Journal for Reviews\""));
+        assertThat(citation, not(containsString("\"container-title\": \"IsPartOf fallback value\"")));
+    }
+
+    @Test
+    public void testISSNRulesPreferRelationIssnOverRelationSerieIssn() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::report")
+            .withTitle("ISSN precedence title")
+            .withIssueDate("2021-07-01")
+            .withRelationIssn("1111-2222")
+            .withMetadata("dc", "relation", "serieissn", "3333-4444")
+            .withHandle("123456789/0103")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"ISSN\": \"1111-2222\""));
+        assertThat(citation, not(containsString("\"ISSN\": \"3333-4444\"")));
+    }
+
+    @Test
     public void testSingleItemApaNoGenreDisseminate() throws Exception {
         context.turnOffAuthorisationSystem();
 
