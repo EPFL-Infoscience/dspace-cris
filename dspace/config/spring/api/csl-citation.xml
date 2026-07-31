@@ -16,7 +16,7 @@
         <property name="publisherPlace" value="dc.publisher.place"/>
         <property name="volume" value="oaire.citation.volume"/>
         <property name="issue" value="oaire.citation.issue"/>
-        <property name="eventTitle" value="dc.relation.conference"/>
+        <property name="event" value="dc.relation.conference"/>
         <property name="title" value="dc.title"/>
         <property name="issued" value="dc.date.issued"/>
         <property name="author" value="dc.contributor.author"/>
@@ -77,6 +77,11 @@
                         <value>dc.relation.journal</value>
                     </list>
                 </entry>
+                <entry key="review">
+                    <list>
+                        <value>dc.relation.journal</value>
+                    </list>
+                </entry>
                 <entry key="default">
                     <list>
                         <value>dc.relation.ispartof</value>
@@ -119,6 +124,7 @@
         <property name="fields">
             <list>
                 <value>dc.identifier.issn</value>
+                <value>dc.relation.issn</value>
                 <value>dc.relation.serieissn</value>
             </list>
         </property>
