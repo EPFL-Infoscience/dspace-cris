@@ -125,6 +125,94 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
+    public void getCitationsWorksWithPasswordAuthToken() throws Exception {
+        // Demonstrates that a standard password-based auth token works correctly
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Password Auth Collection")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Password Auth Publication")
+                .withAuthor("Doe, John")
+                .withIssueDate("2023-01-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Use the standard password-based token (from setUp)
+        String body = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").isNotEmpty());
+    }
+
+    @Test
+    public void getCitationsWorksWithMachineToken() throws Exception {
+        // Demonstrates that a machine token (as used by OIDC/SSO) also works.
+        // Machine tokens use ePerson.getMachineSessionSalt() for validation.
+        // If machineSessionSalt is not initialized, the token would be invalid → 401.
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Machine Token Collection")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Machine Token Publication")
+                .withAuthor("Smith, Jane")
+                .withIssueDate("2023-06-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // First get a normal token, then use it to generate a machine token
+        String normalToken = getAuthToken(eperson.getEmail(), password);
+
+        // Generate a machine token via the machinetokens endpoint
+        String machineTokenValue = getClient(normalToken).perform(post("/api/authn/machinetokens"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String machineToken = com.jayway.jsonpath.JsonPath.read(machineTokenValue, "$.token");
+
+        // Use the machine token to call the citations endpoint
+        String body = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        getClient(machineToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").isNotEmpty());
+    }
+
+    @Test
     public void getCitationsWithGrouping() throws Exception {
         context.turnOffAuthorisationSystem();
 
