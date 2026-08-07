@@ -303,9 +303,17 @@ public class CitationsRestController {
         applySort(discoverQuery, citationsRequest.getSort(), citationsRequest.getGroupBy());
         discoverQuery.setMaxResults(configurationService.getIntProperty("rest.search.max.results", 100));
 
+        // For relational configurations (e.g. RELATION.Person.researchoutputs), the scope item's UUID
+        // is already embedded in the filter queries via the {0} placeholder substitution.
+        // We must NOT pass scopeObject to iteratorSearch, because that would add an extra filter
+        // restricting results to only the scope item itself (e.g. the Person), returning 0 results.
+        IndexableObject<?, ?> searchScope = (discoveryConfiguration
+                instanceof org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration)
+                ? null : scopeObject;
+
         Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
         try {
-            Iterator<Item> iterator = searchService.iteratorSearch(context, scopeObject, discoverQuery);
+            Iterator<Item> iterator = searchService.iteratorSearch(context, searchScope, discoverQuery);
             while (iterator.hasNext()) {
                 Item item = iterator.next();
                 if (item != null) {

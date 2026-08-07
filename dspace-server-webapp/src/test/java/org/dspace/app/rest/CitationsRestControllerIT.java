@@ -15,6 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.UUID;
+
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -2895,6 +2897,172 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results.article-journal[0].uuid").value(article2019.getID().toString()))
                 .andExpect(jsonPath("$.results.article-journal[1].uuid").value(article2021.getID().toString()))
                 .andExpect(jsonPath("$.results.article-journal[2].uuid").value(article2023.getID().toString()));
+    }
+
+    // ===== Tests for RELATION configurations (Person/OrgUnit scope) =====
+    // These tests demonstrate a known bug: when using DiscoveryRelatedItemConfiguration
+    // with scope=Person/OrgUnit UUID, the iteratorSearch adds a filter that restricts
+    // results to only the scope item itself, returning 0 results.
+
+    @Test
+    public void getCitationsWithRelationPersonConfigurationReturnsResults() throws Exception {
+        // RELATION.Person.researchoutputs uses author_authority:{0} filter.
+        // The scope should be the Person UUID — the query should find publications authored by that person.
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("People")
+                .withEntityType("Person")
+                .build();
+        Collection publicationCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Publications")
+                .withEntityType("Publication")
+                .build();
+
+        // Create a Person item
+        Item person = ItemBuilder.createItem(context, personCollection)
+                .withTitle("John Doe")
+                .inArchive()
+                .build();
+
+        // Create publications with author_authority pointing to the person's UUID
+        Item publication1 = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Publication by John")
+                .withAuthor("Doe, John", person.getID().toString())
+                .withIssueDate("2023-01-01")
+                .inArchive()
+                .build();
+
+        Item publication2 = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Another Publication by John")
+                .withAuthor("Doe, John", person.getID().toString())
+                .withIssueDate("2023-06-01")
+                .inArchive()
+                .build();
+
+        // Publications NOT associated with this person — should NOT appear in results
+        Item unrelatedPublication = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Unrelated Publication")
+                .withAuthor("Smith, Jane")
+                .withIssueDate("2023-03-01")
+                .inArchive()
+                .build();
+
+        Item otherAuthorPublication = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Other Author Publication")
+                .withAuthor("Roe, Richard", UUID.randomUUID().toString())
+                .withIssueDate("2023-09-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Use RELATION.Person.researchoutputs with scope = person UUID
+        String body = "{" +
+                "\"configuration\":\"RELATION.Person.researchoutputs\"," +
+                "\"scope\":\"" + person.getID() + "\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        // BUG: This currently returns 0 results because iteratorSearch adds
+        // a filter limiting results to the Person item itself (which is not a Publication).
+        // After the fix, it should return only the 2 publications authored by this person.
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(2)))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication1.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", hasItem(publication2.getID().toString())))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(unrelatedPublication.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(otherAuthorPublication.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(person.getID().toString()))));
+    }
+
+    @Test
+    public void getCitationsWithRelationOrgUnitConfigurationReturnsResults() throws Exception {
+        // RELATION.OrgUnit.publications uses dc.description.sponsorship_authority:{0} filter.
+        // The scope should be the OrgUnit UUID — the query should find publications sponsored by that orgunit.
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection orgUnitCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("OrgUnits")
+                .withEntityType("OrgUnit")
+                .build();
+        Collection publicationCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Publications")
+                .withEntityType("Publication")
+                .build();
+
+        // Create an OrgUnit item
+        Item orgUnit = ItemBuilder.createItem(context, orgUnitCollection)
+                .withTitle("EPFL Lab")
+                .inArchive()
+                .build();
+
+        // Create a publication with sponsorship pointing to the OrgUnit
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Sponsored Publication")
+                .withAuthor("Doe, John")
+                .withIssueDate("2023-03-15")
+                .inArchive()
+                .build();
+        // Add sponsorship with authority pointing to orgUnit
+        ItemService is = ContentServiceFactory.getInstance().getItemService();
+        is.addMetadata(context, publication, "dc", "description", "sponsorship", null,
+                "EPFL Lab", orgUnit.getID().toString(), 600);
+        is.update(context, publication);
+
+        // Publications NOT sponsored by this OrgUnit — should NOT appear in results
+        Item unrelatedPublication = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Not Sponsored")
+                .withAuthor("Smith, Jane")
+                .withIssueDate("2023-05-01")
+                .inArchive()
+                .build();
+
+        Item otherOrgUnitPublication = ItemBuilder.createItem(context, publicationCollection)
+                .withType("text::journal::journal article")
+                .withTitle("Other OrgUnit Publication")
+                .withAuthor("Roe, Richard")
+                .withIssueDate("2023-07-01")
+                .inArchive()
+                .build();
+        is.addMetadata(context, otherOrgUnitPublication, "dc", "description", "sponsorship", null,
+                "Other Lab", UUID.randomUUID().toString(), 600);
+        is.update(context, otherOrgUnitPublication);
+
+        context.restoreAuthSystemState();
+
+        // Use RELATION.OrgUnit.publications with scope = orgUnit UUID
+        String body = "{" +
+                "\"configuration\":\"RELATION.OrgUnit.publications\"," +
+                "\"scope\":\"" + orgUnit.getID() + "\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        // BUG: This currently returns 0 results because iteratorSearch adds
+        // a filter limiting results to the OrgUnit item itself (which is not a Publication).
+        // After the fix, it should return only the sponsored publication.
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(publication.getID().toString()))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(unrelatedPublication.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(otherOrgUnitPublication.getID().toString()))))
+                .andExpect(jsonPath("$.results[*].uuid", not(hasItem(orgUnit.getID().toString()))));
     }
 
     // ===== Tests reading pre-computed citations from epfl.citation.* metadata =====
