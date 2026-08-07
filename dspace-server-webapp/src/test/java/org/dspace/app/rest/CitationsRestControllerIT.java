@@ -15,8 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -2897,6 +2902,964 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results.article-journal[0].uuid").value(article2019.getID().toString()))
                 .andExpect(jsonPath("$.results.article-journal[1].uuid").value(article2021.getID().toString()))
                 .andExpect(jsonPath("$.results.article-journal[2].uuid").value(article2023.getID().toString()));
+    }
+
+    // ===== Tests for group key ordering (TASK 4) =====
+
+    @Test
+    public void getCitationsGroupByYearKeysOrderedDescWhenSortYearDesc() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Key Order Collection")
+                .build();
+
+        Item item2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Paper 2020").withAuthor("Doe, J.").withIssueDate("2020-06-01")
+                .inArchive().build();
+        Item item2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Paper 2019").withAuthor("Doe, J.").withIssueDate("2019-03-15")
+                .inArchive().build();
+        Item item2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Paper 2021").withAuthor("Doe, J.").withIssueDate("2021-11-20")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + item2020.getID() + "\",\"" + item2019.getID() + "\",\"" + item2021.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\",\"sort\":\"year:desc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2021", "2020", "2019"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByYearKeysOrderedAscWhenSortYearAsc() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Key Order Asc Collection")
+                .build();
+
+        // Titles are intentionally in reverse order of year to force Solr to return them
+        // in a different order than the expected key ordering
+        Item item2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha Paper").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+        Item item2018 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Zulu Paper").withAuthor("Doe, J.").withIssueDate("2018-06-01")
+                .inArchive().build();
+        Item item2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Middle Paper").withAuthor("Doe, J.").withIssueDate("2020-09-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + item2022.getID() + "\",\"" + item2018.getID() + "\",\"" + item2020.getID() + "\"";
+        // sort year:asc is redundant with groupBy=year, gets removed, items come in default Solr order
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\",\"sort\":\"year:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2018", "2020", "2022"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByYearKeysOrderedAscByDefault() throws Exception {
+        // No sort specified — default for year/date is asc
+        // Titles intentionally in reverse year order to ensure keys wouldn't accidentally be ordered
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Key Order Default Collection")
+                .build();
+
+        Item item2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Beta Paper").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+        Item item2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Zeta Paper").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+        Item item2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Alpha Paper").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + item2021.getID() + "\",\"" + item2019.getID() + "\",\"" + item2023.getID() + "\"";
+        // No sort field — default for year is asc. Items may come from Solr in any order.
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2019", "2021", "2023"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeKeysOrderedAlphabetically() throws Exception {
+        // Type keys should always be ordered alphabetically (asc) — no sort field for type exists
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Key Type Order Collection")
+                .build();
+
+        Item thesis = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("A Thesis").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+        Item article = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("An Article").withAuthor("Doe, J.").withIssueDate("2021-06-01")
+                .inArchive().build();
+        Item report = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::report::technical report")
+                .withTitle("A Report").withAuthor("Doe, J.").withIssueDate("2021-03-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis.getID() + "\",\"" + article.getID() + "\",\"" + report.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keys = extractResultKeys(json);
+        // Types from CSL: article-journal, report, thesis — alphabetical
+        org.junit.Assert.assertEquals(List.of("article-journal", "report", "thesis"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeYearKeysOrdered() throws Exception {
+        // groupBy=type,year with sort=year:desc
+        // Level 1 keys (type): alphabetical
+        // Level 2 keys (year): descending
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Two Level Key Order Collection")
+                .build();
+
+        Item article2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Article 2019").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+        Item article2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Article 2022").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+        Item thesis2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Thesis 2020").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+        Item thesis2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Thesis 2021").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + article2019.getID() + "\",\"" + article2022.getID()
+                + "\",\"" + thesis2020.getID() + "\",\"" + thesis2021.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type,year\",\"sort\":\"year:desc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Level 1: type keys alphabetical
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), outerKeys);
+
+        // Level 2: year keys descending within each type
+        List<String> articleYearKeys = extractInnerKeys(json, "article-journal");
+        org.junit.Assert.assertEquals(List.of("2022", "2019"), articleYearKeys);
+
+        List<String> thesisYearKeys = extractInnerKeys(json, "thesis");
+        org.junit.Assert.assertEquals(List.of("2021", "2020"), thesisYearKeys);
+    }
+
+    @Test
+    public void getCitationsGroupByYearTypeKeysOrdered() throws Exception {
+        // groupBy=year,type with sort=year:asc
+        // Level 1 keys (year): ascending
+        // Level 2 keys (type): alphabetical
+        // Titles intentionally in reverse order to prevent accidental ordering
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("YearType Key Order Collection")
+                .build();
+
+        Item thesis2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Zulu Thesis").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+        Item article2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Yankee Article").withAuthor("Doe, J.").withIssueDate("2020-06-01")
+                .inArchive().build();
+        Item thesis2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Alpha Thesis").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+        Item article2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Beta Article").withAuthor("Doe, J.").withIssueDate("2022-06-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis2020.getID() + "\",\"" + article2020.getID()
+                + "\",\"" + thesis2022.getID() + "\",\"" + article2022.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year,type\",\"sort\":\"year:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Level 1: year keys ascending
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2020", "2022"), outerKeys);
+
+        // Level 2: type keys alphabetical within each year
+        List<String> types2020 = extractInnerKeys(json, "2020");
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), types2020);
+
+        List<String> types2022 = extractInnerKeys(json, "2022");
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), types2022);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeYearKeysOrderedByDefault() throws Exception {
+        // groupBy=type,year with NO sort specified
+        // Level 1 keys (type): alphabetical
+        // Level 2 keys (year): default asc
+        // The thesis item is created first and the articles are ordered with 2023 before 2020
+        // to force Solr to return them in an order where keys would NOT be naturally sorted
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Default Two Level Key Collection")
+                .build();
+
+        // thesis first — forces "thesis" key to appear first in insertion order
+        Item thesis2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("AAA Thesis").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+        // article 2023 before article 2020 — inner keys would be 2023,2020 without sorting
+        Item article2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB Article").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+        Item article2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC Article").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis2021.getID() + "\",\"" + article2023.getID()
+                + "\",\"" + article2020.getID() + "\"";
+        // No sort — defaults apply
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type,year\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Level 1: type keys alphabetical — article-journal before thesis
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), outerKeys);
+
+        // Level 2: year keys ascending (default for year/date) — 2020 before 2023
+        List<String> articleYearKeys = extractInnerKeys(json, "article-journal");
+        org.junit.Assert.assertEquals(List.of("2020", "2023"), articleYearKeys);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeSortDateDescKeysOrdered() throws Exception {
+        // groupBy=type with sort=date:desc — date sort applies within groups (not redundant)
+        // but type keys should still be alphabetical
+        // Dates are set so that date:desc produces thesis first, then report, then article
+        // (opposite of alphabetical type order)
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Type DateDesc Keys Collection")
+                .build();
+
+        Item thesis = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("Recent Thesis").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+        Item report = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::report::technical report")
+                .withTitle("Middle Report").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+        Item article = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Old Article").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis.getID() + "\",\"" + report.getID() + "\",\"" + article.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type\",\"sort\":\"date:desc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // date:desc → Solr returns thesis(2023), report(2021), article(2019)
+        // Keys inserted in that order: thesis, report, article-journal
+        // But we expect alphabetical: article-journal, report, thesis
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("article-journal", "report", "thesis"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeSortTitleAscKeysOrdered() throws Exception {
+        // groupBy=type with sort=title:asc — title sort applies within groups
+        // Type keys should still be alphabetical
+        // Items ordered so that thesis appears first from Solr
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Type TitleAsc Keys Collection")
+                .build();
+
+        Item thesis = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("AAA Item").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+        Item report = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::report::technical report")
+                .withTitle("BBB Item").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+        Item article = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC Item").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis.getID() + "\",\"" + report.getID() + "\",\"" + article.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type\",\"sort\":\"title:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // title:asc sort means thesis (AAA) comes first from Solr → key "thesis" inserted first
+        // But we expect alphabetical: article-journal, report, thesis
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("article-journal", "report", "thesis"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeYearSortYearAscKeysOrdered() throws Exception {
+        // groupBy=type,year with sort=year:asc
+        // Level 1: type keys alphabetical
+        // Level 2: year keys ascending
+        // Items ordered to force wrong insertion order
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("TypeYear YearAsc Keys Collection")
+                .build();
+
+        // thesis 2023 first, then article 2019, then thesis 2020, then article 2022
+        Item thesis2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("AAA").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+        Item article2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+        Item thesis2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("CCC").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+        Item article2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("DDD").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis2023.getID() + "\",\"" + article2019.getID()
+                + "\",\"" + thesis2020.getID() + "\",\"" + article2022.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type,year\",\"sort\":\"year:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), outerKeys);
+
+        List<String> articleYears = extractInnerKeys(json, "article-journal");
+        org.junit.Assert.assertEquals(List.of("2019", "2022"), articleYears);
+
+        List<String> thesisYears = extractInnerKeys(json, "thesis");
+        org.junit.Assert.assertEquals(List.of("2020", "2023"), thesisYears);
+    }
+
+    @Test
+    public void getCitationsGroupByYearTypeSortYearDescKeysOrdered() throws Exception {
+        // groupBy=year,type with sort=year:desc
+        // Level 1: year keys descending
+        // Level 2: type keys alphabetical
+        // Items ordered to force wrong insertion order
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("YearType YearDesc Keys Collection")
+                .build();
+
+        // 2019 item first, then 2022, then 2020 — forces wrong year order
+        Item article2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("AAA").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+        Item thesis2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("BBB").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+        Item article2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC").withAuthor("Doe, J.").withIssueDate("2022-06-01")
+                .inArchive().build();
+        Item thesis2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("DDD").withAuthor("Doe, J.").withIssueDate("2019-06-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + article2019.getID() + "\",\"" + thesis2022.getID()
+                + "\",\"" + article2022.getID() + "\",\"" + thesis2019.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year,type\",\"sort\":\"year:desc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Level 1: year desc
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2022", "2019"), outerKeys);
+
+        // Level 2: type alphabetical
+        List<String> types2022 = extractInnerKeys(json, "2022");
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), types2022);
+
+        List<String> types2019 = extractInnerKeys(json, "2019");
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), types2019);
+    }
+
+    @Test
+    public void getCitationsGroupByYearTypeSortMultiKeysOrdered() throws Exception {
+        // groupBy=year,type with sort=year:desc,title:asc
+        // year:desc is redundant → removed from Solr query but used for key ordering
+        // title:asc applied as within-group sort
+        // Level 1: year keys descending
+        // Level 2: type keys alphabetical
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("YearType Multi Keys Collection")
+                .build();
+
+        // Create in order that forces wrong key ordering without fix
+        Item thesis2018 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("AAA").withAuthor("Doe, J.").withIssueDate("2018-01-01")
+                .inArchive().build();
+        Item article2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+        Item article2018 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC").withAuthor("Doe, J.").withIssueDate("2018-06-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis2018.getID() + "\",\"" + article2023.getID()
+                + "\",\"" + article2018.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year,type\",\"sort\":\"year:desc,title:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Level 1: year desc → 2023 before 2018
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2023", "2018"), outerKeys);
+
+        // Level 2: type alphabetical
+        List<String> types2018 = extractInnerKeys(json, "2018");
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), types2018);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeYearSortMultiKeysOrdered() throws Exception {
+        // groupBy=type,year with sort=date:desc,title:asc
+        // date:desc is redundant (groupBy has year) → removed from Solr but used for inner key ordering
+        // Level 1: type keys alphabetical
+        // Level 2: year keys descending (from date:desc direction)
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("TypeYear Multi Keys Collection")
+                .build();
+
+        // Create in order that forces wrong key ordering
+        Item article2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("AAA").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+        Item thesis2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("BBB").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+        Item article2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+        Item thesis2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("DDD").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + article2019.getID() + "\",\"" + thesis2023.getID()
+                + "\",\"" + article2022.getID() + "\",\"" + thesis2020.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type,year\",\"sort\":\"date:desc,title:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Level 1: type alphabetical
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), outerKeys);
+
+        // Level 2: year descending (from date:desc)
+        List<String> articleYears = extractInnerKeys(json, "article-journal");
+        org.junit.Assert.assertEquals(List.of("2022", "2019"), articleYears);
+
+        List<String> thesisYears = extractInnerKeys(json, "thesis");
+        org.junit.Assert.assertEquals(List.of("2023", "2020"), thesisYears);
+    }
+
+    @Test
+    public void getCitationsGroupByYearSortDateDescKeysOrdered() throws Exception {
+        // groupBy=year with sort=date:desc — "date" is a synonym for "year" regarding key ordering
+        // Items ordered to force wrong insertion order
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Year DateDesc Keys Collection")
+                .build();
+
+        Item item2018 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("AAA Paper").withAuthor("Doe, J.").withIssueDate("2018-01-01")
+                .inArchive().build();
+        Item item2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB Paper").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+        Item item2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC Paper").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + item2018.getID() + "\",\"" + item2023.getID() + "\",\"" + item2020.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\",\"sort\":\"date:desc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2023", "2020", "2018"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByYearSortDateAscKeysOrdered() throws Exception {
+        // groupBy=year with sort=date:asc — "date" is a synonym for "year" regarding key ordering
+        // Items ordered to force wrong insertion order
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Year DateAsc Keys Collection")
+                .build();
+
+        Item item2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("AAA Paper").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+        Item item2017 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB Paper").withAuthor("Doe, J.").withIssueDate("2017-01-01")
+                .inArchive().build();
+        Item item2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC Paper").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + item2022.getID() + "\",\"" + item2017.getID() + "\",\"" + item2020.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\",\"sort\":\"date:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2017", "2020", "2022"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByYearSortTitleAscKeysDefaultOrder() throws Exception {
+        // groupBy=year with sort=title:asc — title sort does NOT affect key ordering
+        // Year keys should follow the default order (asc) since no year/date sort is specified
+        // Items titles force Solr to return them in anti-year order
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Year TitleAsc Keys Collection")
+                .build();
+
+        // title:asc will order: AAA(2023), BBB(2019), CCC(2021)
+        // So year keys would be inserted as 2023, 2019, 2021 without sorting
+        Item item2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("AAA Paper").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+        Item item2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB Paper").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+        Item item2021 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC Paper").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + item2023.getID() + "\",\"" + item2019.getID() + "\",\"" + item2021.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\",\"sort\":\"title:asc\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Year keys should be in default asc order regardless of title sort
+        List<String> keys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2019", "2021", "2023"), keys);
+    }
+
+    @Test
+    public void getCitationsGroupByYearTypeNoSortKeysDefaultOrder() throws Exception {
+        // groupBy=year,type with no sort specified
+        // Level 1 (year): default asc
+        // Level 2 (type): alphabetical
+        // Items ordered to force wrong insertion order
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("YearType NoSort Keys Collection")
+                .build();
+
+        // Create thesis 2022 first, then article 2019, then article 2022
+        Item thesis2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("AAA").withAuthor("Doe, J.").withIssueDate("2022-01-01")
+                .inArchive().build();
+        Item article2019 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB").withAuthor("Doe, J.").withIssueDate("2019-01-01")
+                .inArchive().build();
+        Item article2022 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC").withAuthor("Doe, J.").withIssueDate("2022-06-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + thesis2022.getID() + "\",\"" + article2019.getID()
+                + "\",\"" + article2022.getID() + "\"";
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year,type\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // Level 1: year default asc → 2019 before 2022
+        List<String> outerKeys = extractResultKeys(json);
+        org.junit.Assert.assertEquals(List.of("2019", "2022"), outerKeys);
+
+        // Level 2: type alphabetical
+        List<String> types2022 = extractInnerKeys(json, "2022");
+        org.junit.Assert.assertEquals(List.of("article-journal", "thesis"), types2022);
+    }
+
+    @Test
+    public void getCitationsGroupByYearUnknownKeyAlwaysLast() throws Exception {
+        // Items without dc.date.issued get year key "Unknown" — it should always be last
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Unknown Year Collection")
+                .build();
+
+        // Item without issue date → "Unknown" year key
+        Item itemNoDate = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("AAA No Date Item").withAuthor("Doe, J.")
+                .inArchive().build();
+        Item item2020 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("BBB Paper").withAuthor("Doe, J.").withIssueDate("2020-01-01")
+                .inArchive().build();
+        Item item2023 = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("CCC Paper").withAuthor("Doe, J.").withIssueDate("2023-01-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + itemNoDate.getID() + "\",\"" + item2020.getID() + "\",\"" + item2023.getID() + "\"";
+
+        // sort year:asc — Unknown should still be last (after 2023)
+        String bodyAsc = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\",\"sort\":\"year:asc\"}";
+
+        String jsonAsc = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(bodyAsc))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keysAsc = extractResultKeys(jsonAsc);
+        org.junit.Assert.assertEquals(List.of("2020", "2023", "Unknown"), keysAsc);
+
+        // sort year:desc — Unknown should still be last (after 2020)
+        String bodyDesc = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"year\",\"sort\":\"year:desc\"}";
+
+        String jsonDesc = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(bodyDesc))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keysDesc = extractResultKeys(jsonDesc);
+        org.junit.Assert.assertEquals(List.of("2023", "2020", "Unknown"), keysDesc);
+    }
+
+    @Test
+    public void getCitationsGroupByTypeUnknownKeyAlwaysLast() throws Exception {
+        // Items without a resolvable CSL type get type key "Unknown" — it should always be last
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Unknown Type Collection")
+                .build();
+
+        Item article = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("ZZZ Article").withAuthor("Doe, J.").withIssueDate("2021-01-01")
+                .inArchive().build();
+        Item thesis = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::thesis")
+                .withTitle("YYY Thesis").withAuthor("Doe, J.").withIssueDate("2021-06-01")
+                .inArchive().build();
+        // Item without dc.type — CSL won't resolve a type → "Unknown"
+        Item noType = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withTitle("AAA No Type Item").withAuthor("Doe, J.").withIssueDate("2021-03-01")
+                .inArchive().build();
+
+        context.restoreAuthSystemState();
+
+        String uuids = "\"" + article.getID() + "\",\"" + thesis.getID() + "\",\"" + noType.getID() + "\"";
+
+        String body = "{\"uuids\":[" + uuids + "],\"style\":\"apa\",\"format\":\"light\","
+                + "\"groupBy\":\"type\"}";
+
+        String json = getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> keys = extractResultKeys(json);
+        // "Unknown" must be last, other types alphabetical
+        org.junit.Assert.assertEquals("Unknown", keys.get(keys.size() - 1));
+        // The non-Unknown keys should be alphabetical
+        List<String> nonUnknownKeys = keys.subList(0, keys.size() - 1);
+        List<String> sortedNonUnknown = new ArrayList<>(nonUnknownKeys);
+        java.util.Collections.sort(sortedNonUnknown);
+        org.junit.Assert.assertEquals(sortedNonUnknown, nonUnknownKeys);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> extractResultKeys(String json) throws Exception {
+        Map<String, Object> response = new ObjectMapper().readValue(json, LinkedHashMap.class);
+        Map<String, Object> results = (Map<String, Object>) response.get("results");
+        return new ArrayList<>(results.keySet());
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> extractInnerKeys(String json, String outerKey) throws Exception {
+        Map<String, Object> response = new ObjectMapper().readValue(json, LinkedHashMap.class);
+        Map<String, Object> results = (Map<String, Object>) response.get("results");
+        Map<String, Object> inner = (Map<String, Object>) results.get(outerKey);
+        return new ArrayList<>(inner.keySet());
     }
 
     // ===== Tests for RELATION configurations (Person/OrgUnit scope) =====

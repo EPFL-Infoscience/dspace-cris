@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -148,6 +149,7 @@ public class CitationsRestController {
 
         Map<String, Map<String, List<CitationItem>>> citationItems =
                 buildCitationItems(context, items, citationsRequest);
+        citationItems = sortGroupKeys(citationItems, citationsRequest.getSort(), citationsRequest.getGroupBy());
         return ResponseEntity.ok(buildResponse(citationsRequest, citationItems));
     }
 
@@ -418,6 +420,115 @@ public class CitationsRestController {
 
     private SORT_ORDER getDefaultSortOrder(String sortField) {
         return SORT_TITLE.equals(sortField) ? SORT_ORDER.desc : SORT_ORDER.asc;
+    }
+
+    /**
+     * Reorders the keys of the grouped citation map so that:
+     * - Year keys follow the direction specified by the date/year sort clause (or default asc)
+     * - Type keys are always alphabetically ordered
+     * For two-level grouping, both levels are independently sorted.
+     */
+    private Map<String, Map<String, List<CitationItem>>> sortGroupKeys(
+            Map<String, Map<String, List<CitationItem>>> citationItems,
+            String sort, String groupBy) {
+
+        if (StringUtils.isBlank(groupBy)) {
+            return citationItems;
+        }
+
+        SORT_ORDER yearOrder = extractYearSortOrder(sort);
+
+        // Determine comparators for each level based on groupBy structure
+        Comparator<String> outerComparator;
+        Comparator<String> innerComparator;
+
+        switch (groupBy) {
+            case GROUP_BY_YEAR:
+                outerComparator = yearComparator(yearOrder);
+                innerComparator = null; // single level
+                break;
+            case GROUP_BY_TYPE:
+                outerComparator = unknownLast(Comparator.naturalOrder());
+                innerComparator = null; // single level
+                break;
+            case GROUP_BY_YEAR_TYPE:
+                outerComparator = yearComparator(yearOrder);
+                innerComparator = unknownLast(Comparator.naturalOrder()); // type alphabetical
+                break;
+            case GROUP_BY_TYPE_YEAR:
+                outerComparator = unknownLast(Comparator.naturalOrder()); // type alphabetical
+                innerComparator = yearComparator(yearOrder);
+                break;
+            default:
+                return citationItems;
+        }
+
+        // Sort outer keys
+        Map<String, Map<String, List<CitationItem>>> sorted = new LinkedHashMap<>();
+        citationItems.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(outerComparator))
+                .forEach(entry -> {
+                    if (innerComparator != null) {
+                        // Sort inner keys
+                        Map<String, List<CitationItem>> innerSorted = new LinkedHashMap<>();
+                        entry.getValue().entrySet().stream()
+                                .sorted(Map.Entry.comparingByKey(innerComparator))
+                                .forEach(inner -> innerSorted.put(inner.getKey(), inner.getValue()));
+                        sorted.put(entry.getKey(), innerSorted);
+                    } else {
+                        sorted.put(entry.getKey(), entry.getValue());
+                    }
+                });
+
+        return sorted;
+    }
+
+    /**
+     * Extracts the sort order for year/date keys from the sort string.
+     * If the sort contains a date or year clause, returns its direction.
+     * If not specified, returns the default (asc).
+     */
+    private SORT_ORDER extractYearSortOrder(String sort) {
+        if (StringUtils.isBlank(sort)) {
+            return SORT_ORDER.asc;
+        }
+
+        String[] clauses = sort.split(SORT_MULTI_SEPARATOR, -1);
+        for (String clause : clauses) {
+            String trimmed = clause.trim();
+            String[] tokens = trimmed.split(SORT_SEPARATOR, -1);
+            String field = tokens[0];
+            if (SORT_DATE.equals(field) || SORT_YEAR.equals(field)) {
+                if (tokens.length == 2) {
+                    return SORT_DESC.equals(tokens[1]) ? SORT_ORDER.desc : SORT_ORDER.asc;
+                }
+                return getDefaultSortOrder(field);
+            }
+        }
+        return SORT_ORDER.asc; // default when no year/date sort specified
+    }
+
+    private Comparator<String> yearComparator(SORT_ORDER order) {
+        Comparator<String> base = order == SORT_ORDER.desc ? Comparator.reverseOrder() : Comparator.naturalOrder();
+        return unknownLast(base);
+    }
+
+    /**
+     * Wraps a comparator so that the "Unknown" key is always sorted last.
+     */
+    private Comparator<String> unknownLast(Comparator<String> base) {
+        return (a, b) -> {
+            if (UNKNOWN_GROUP.equals(a) && UNKNOWN_GROUP.equals(b)) {
+                return 0;
+            }
+            if (UNKNOWN_GROUP.equals(a)) {
+                return 1;
+            }
+            if (UNKNOWN_GROUP.equals(b)) {
+                return -1;
+            }
+            return base.compare(a, b);
+        };
     }
 
     private Map<String, Map<String, List<CitationItem>>> buildCitationItems(Context context, List<Item> items,
