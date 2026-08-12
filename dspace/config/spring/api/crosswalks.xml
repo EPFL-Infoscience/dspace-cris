@@ -22,8 +22,13 @@
 				<entry key="publication-json" value-ref="cslItemDataCrosswalkJson"></entry>
 				<entry key="publication-csv" value-ref="csvCrosswalkPublication"></entry>
 				<entry key="publication-xls" value-ref="xlsCrosswalkPublication"></entry>
-				<entry key="publication-apa" value-ref="cslItemDataCrosswalkApa"></entry>
-				<entry key="publication-chicago" value-ref="cslItemDataCrosswalkChicago"></entry>
+				<entry key="publication-apa" value-ref="cslItemDataCrosswalkApaPublication"></entry>
+				<entry key="publication-chicago" value-ref="cslItemDataCrosswalkChicagoPublication"></entry>
+				<entry key="publication-ieee" value-ref="cslItemDataCrosswalkIEEEPublication"></entry>
+				<entry key="publication-harvard" value-ref="cslItemDataCrosswalkHarvardPublication"></entry>
+				<entry key="publication-iso690" value-ref="cslItemDataCrosswalkISO690Publication"></entry>
+				<entry key="publication-mla" value-ref="cslItemDataCrosswalkMLAPublication"></entry>
+				<entry key="publication-vancouver" value-ref="cslItemDataCrosswalkVancouverPublication"></entry>
 				<entry key="publication-datacite-xml" value-ref="referCrosswalkPublicationDataciteXml"></entry>
                 <entry key="oai-openaire-publication-xml" value-ref="oaiOpenairePublicationXml"></entry>
 
@@ -67,6 +72,13 @@
 				<entry key="patent-csv" value-ref="csvCrosswalkPatent"></entry>
 				<entry key="patent-xls" value-ref="xlsCrosswalkPatent"></entry>
 				<entry key="patent-datacite-xml" value-ref="referCrosswalkPatentDataciteXml"></entry>
+				<entry key="patent-apa" value-ref="cslItemDataCrosswalkApaPatent"></entry>
+				<entry key="patent-chicago" value-ref="cslItemDataCrosswalkChicagoPatent"></entry>
+				<entry key="patent-ieee" value-ref="cslItemDataCrosswalkIEEEPatent"></entry>
+				<entry key="patent-harvard" value-ref="cslItemDataCrosswalkHarvardPatent"></entry>
+				<entry key="patent-iso690" value-ref="cslItemDataCrosswalkISO690Patent"></entry>
+				<entry key="patent-mla" value-ref="cslItemDataCrosswalkMLAPatent"></entry>
+				<entry key="patent-vancouver" value-ref="cslItemDataCrosswalkVancouverPatent"></entry>
                 <entry key="oai-openaire-patent-xml" value-ref="oaiOpenairePatentXml"></entry>
 
 				<entry key="product-cerif-xml" value-ref="referCrosswalkDatasetCerifXml"></entry>
@@ -74,6 +86,13 @@
 				<entry key="product-json" value-ref="referCrosswalkProductJson"></entry>
 				<entry key="product-csv" value-ref="csvCrosswalkProduct"></entry>
 				<entry key="product-xls" value-ref="xlsCrosswalkProduct"></entry>
+				<entry key="product-apa" value-ref="cslItemDataCrosswalkApaProduct"></entry>
+				<entry key="product-chicago" value-ref="cslItemDataCrosswalkChicagoProduct"></entry>
+				<entry key="product-ieee" value-ref="cslItemDataCrosswalkIEEEProduct"></entry>
+				<entry key="product-harvard" value-ref="cslItemDataCrosswalkHarvardProduct"></entry>
+				<entry key="product-iso690" value-ref="cslItemDataCrosswalkISO690Product"></entry>
+				<entry key="product-mla" value-ref="cslItemDataCrosswalkMLAProduct"></entry>
+				<entry key="product-vancouver" value-ref="cslItemDataCrosswalkVancouverProduct"></entry>
                 <entry key="oai-openaire-product-xml" value-ref="oaiOpenaireProductXml"></entry>
 
 				<entry key="event-cerif-xml" value-ref="referCrosswalkEventCerifXml"></entry>
@@ -91,55 +110,591 @@
 				<entry key="json" value-ref="referCrosswalkJson"></entry>
 				<entry key="csv" value-ref="csvCrosswalk"></entry>
 				<entry key="xls" value-ref="xlsCrosswalk"></entry>
+
+				<entry key="researchoutput-xls" value-ref="xlsCrosswalkResearchOutput"></entry>
+				<entry key="researchoutput-csv" value-ref="csvCrosswalkResearchOutput"></entry>
+				<entry key="researchoutput-json" value-ref="referCrosswalkResearchOutputJson"></entry>
+				<entry key="researchoutput-xml" value-ref="referCrosswalkResearchOutputXml"></entry>
+				<entry key="researchoutput-apa" value-ref="cslItemDataCrosswalkApaResearchOutput"></entry>
+				<entry key="researchoutput-chicago" value-ref="cslItemDataCrosswalkChicagoResearchOutput"></entry>
+				<entry key="researchoutput-ieee" value-ref="cslItemDataCrosswalkIEEEResearchOutput"></entry>
+				<entry key="researchoutput-harvard" value-ref="cslItemDataCrosswalkHarvardResearchOutput"></entry>
+				<entry key="researchoutput-iso690" value-ref="cslItemDataCrosswalkISO690ResearchOutput"></entry>
+				<entry key="researchoutput-mla" value-ref="cslItemDataCrosswalkMLAResearchOutput"></entry>
+				<entry key="researchoutput-vancouver" value-ref="cslItemDataCrosswalkVancouverResearchOutput"></entry>
+
+				<entry key="researchoutputsoa-xls" value-ref="xlsCrosswalkResearchOutputOA"></entry>
+				<entry key="researchoutputsoa-csv" value-ref="csvCrosswalkResearchOutputOA"></entry>
+				<entry key="researchoutputsoa-json" value-ref="referCrosswalkResearchOutputOAJson"></entry>
+				<entry key="researchoutputsoa-xml" value-ref="referCrosswalkResearchOutputOAXml"></entry>
+				<entry key="researchoutputsoa-apa" value-ref="cslItemDataCrosswalkApaResearchOutputsOA"></entry>
+				<entry key="researchoutputsoa-chicago" value-ref="cslItemDataCrosswalkChicagoResearchOutputsOA"></entry>
+				<entry key="researchoutputsoa-ieee" value-ref="cslItemDataCrosswalkIEEEResearchOutputsOA"></entry>
+				<entry key="researchoutputsoa-harvard" value-ref="cslItemDataCrosswalkHarvardResearchOutputsOA"></entry>
+				<entry key="researchoutputsoa-iso690" value-ref="cslItemDataCrosswalkISO690ResearchOutputsOA"></entry>
+				<entry key="researchoutputsoa-mla" value-ref="cslItemDataCrosswalkMLAResearchOutputsOA"></entry>
+				<entry key="researchoutputsoa-vancouver" value-ref="cslItemDataCrosswalkVancouverResearchOutputsOA"></entry>
 			</map>
 		</constructor-arg>
 	</bean>
 	
 	<bean class="org.dspace.content.integration.crosswalks.CustomMapConverterCSLItemDataCrosswalk" id="cslItemDataCrosswalkBibtex">
-		<property name="style" value="bibtex.csl"/>
+		<property name="style" value="crosswalks/csl/bibtex.csl"/>
 		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="mapConverter" ref="mapConverterPublicationToBibtexTypes"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.CustomMapConverterCSLItemDataCrosswalk" id="cslItemDataCrosswalkPatentBibtex">
-		<property name="style" value="bibtex.csl"/>
+		<property name="style" value="crosswalks/csl/bibtex.csl"/>
 		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="mapConverter" ref="mapConverterPublicationToBibtexTypes"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 
 	<bean class="org.dspace.content.integration.crosswalks.CustomMapConverterCSLItemDataCrosswalk" id="cslItemDataCrosswalkProductBibtex">
-		<property name="style" value="bibtex.csl"/>
+		<property name="style" value="crosswalks/csl/bibtex.csl"/>
 		<property name="mimeType" value="application/x-bibtex; charset=UTF-8"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="references.bib"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="mapConverter" ref="mapConverterPublicationToBibtexTypes"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
-	
-	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkApa">
-		<property name="style" value="crosswalks/csl/apa.csl"/>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkApaPublication">
+		<property name="style" value="crosswalks/csl/apa-zotero.csl"/>
 		<property name="mimeType" value="text/plain"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="publications.txt"/>
+		<property name="entityType" value="Publication" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkApaPatent">
+		<property name="style" value="crosswalks/csl/apa-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="patents.txt"/>
+		<property name="entityType" value="Patent" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkApaProduct">
+		<property name="style" value="crosswalks/csl/apa-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="products.txt"/>
+		<property name="entityType" value="Product" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkApaResearchOutput">
+		<property name="style" value="crosswalks/csl/apa-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputs.txt"/>
 		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkApaResearchOutputsOA">
+		<property name="style" value="crosswalks/csl/apa-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputsoa.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 	
-	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkChicago">
-		<property name="style" value="chicago-library-list.csl"/>
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkChicagoPublication">
+		<property name="style" value="crosswalks/csl/chicago-shortened-notes-bibliography.csl"/>
 		<property name="mimeType" value="text/plain"/>
 		<property name="format" value="text"/>
 		<property name="fileName" value="publications.txt"/>
+		<property name="entityType" value="Publication" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkChicagoProduct">
+		<property name="style" value="crosswalks/csl/chicago-shortened-notes-bibliography.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="products.txt"/>
+		<property name="entityType" value="Product" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkChicagoPatent">
+		<property name="style" value="crosswalks/csl/chicago-shortened-notes-bibliography.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="patents.txt"/>
+		<property name="entityType" value="Patent" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkChicagoResearchOutput">
+		<property name="style" value="crosswalks/csl/chicago-shortened-notes-bibliography.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputs.txt"/>
 		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkChicagoResearchOutputsOA">
+		<property name="style" value="crosswalks/csl/chicago-shortened-notes-bibliography.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputsoa.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkIEEEPublication">
+		<property name="style" value="crosswalks/csl/ieee-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="publications.txt"/>
+		<property name="entityType" value="Publication" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkIEEEPatent">
+		<property name="style" value="crosswalks/csl/ieee-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="patents.txt"/>
+		<property name="entityType" value="Patent" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkIEEEProduct">
+		<property name="style" value="crosswalks/csl/ieee-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="products.txt"/>
+		<property name="entityType" value="Product" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkIEEEResearchOutput">
+		<property name="style" value="crosswalks/csl/ieee-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputs.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkIEEEResearchOutputsOA">
+		<property name="style" value="crosswalks/csl/ieee-zotero.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputsoa.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkHarvardPublication">
+		<property name="style" value="crosswalks/csl/elsevier-harvard.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="publications.txt"/>
+		<property name="entityType" value="Publication" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkHarvardPatent">
+		<property name="style" value="crosswalks/csl/elsevier-harvard.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="patents.txt"/>
+		<property name="entityType" value="Patent" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkHarvardProduct">
+		<property name="style" value="crosswalks/csl/elsevier-harvard.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="products.txt"/>
+		<property name="entityType" value="Product" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkHarvardResearchOutput">
+		<property name="style" value="crosswalks/csl/elsevier-harvard.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputs.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkHarvardResearchOutputsOA">
+		<property name="style" value="crosswalks/csl/elsevier-harvard.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputsoa.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkISO690Publication">
+		<property name="style" value="crosswalks/csl/haute-ecole-de-gestion-de-geneve-iso-690.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="publications.txt"/>
+		<property name="entityType" value="Publication" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkISO690Patent">
+		<property name="style" value="crosswalks/csl/haute-ecole-de-gestion-de-geneve-iso-690.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="patents.txt"/>
+		<property name="entityType" value="Patent" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkISO690Product">
+		<property name="style" value="crosswalks/csl/haute-ecole-de-gestion-de-geneve-iso-690.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="products.txt"/>
+		<property name="entityType" value="Product" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkISO690ResearchOutput">
+		<property name="style" value="crosswalks/csl/haute-ecole-de-gestion-de-geneve-iso-690.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputs.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkISO690ResearchOutputsOA">
+		<property name="style" value="crosswalks/csl/haute-ecole-de-gestion-de-geneve-iso-690.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputsoa.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkMLAPublication">
+		<property name="style" value="crosswalks/csl/modern-language-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="publications.txt"/>
+		<property name="entityType" value="Publication" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkMLAPatent">
+		<property name="style" value="crosswalks/csl/modern-language-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="patents.txt"/>
+		<property name="entityType" value="Patent" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkMLAProduct">
+		<property name="style" value="crosswalks/csl/modern-language-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="products.txt"/>
+		<property name="entityType" value="Product" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkMLAResearchOutput">
+		<property name="style" value="crosswalks/csl/modern-language-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputs.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkMLAResearchOutputsOA">
+		<property name="style" value="crosswalks/csl/modern-language-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputsoa.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkVancouverPublication">
+		<property name="style" value="crosswalks/csl/american-medical-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="publications.txt"/>
+		<property name="entityType" value="Publication" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkVancouverPatent">
+		<property name="style" value="crosswalks/csl/american-medical-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="patents.txt"/>
+		<property name="entityType" value="Patent" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkVancouverProduct">
+		<property name="style" value="crosswalks/csl/american-medical-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="products.txt"/>
+		<property name="entityType" value="Product" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkVancouverResearchOutput">
+		<property name="style" value="crosswalks/csl/american-medical-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputs.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="cslItemDataCrosswalkVancouverResearchOutputsOA">
+		<property name="style" value="crosswalks/csl/american-medical-association.csl"/>
+		<property name="mimeType" value="text/plain"/>
+		<property name="format" value="text"/>
+		<property name="fileName" value="researchoutputsoa.txt"/>
+		<property name="entityType" value="all" />
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 	
@@ -154,6 +709,11 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="person.xml"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -165,6 +725,11 @@
         <property name="mimeType" value="application/xml; charset=UTF-8"/>
         <property name="fileName" value="person.xml"/>
         <property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
         <property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-xml.template"/>
         <property name="converter" ref="xmlValueConverter" />
@@ -176,6 +741,11 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="person.xml"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-cerif-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -187,6 +757,11 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="person.json"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/persons-json.template"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -198,6 +773,12 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="publication.xml"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/publications-xml.template"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -238,6 +819,12 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
 	</bean>
@@ -251,6 +838,12 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
 	</bean>
@@ -264,6 +857,13 @@
 		<property name="findRelatedItems" value="true"/>
 		<property name="fastMetadataSecurity" value="true"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
 	</bean>
@@ -273,6 +873,12 @@
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
 		<property name="fileName" value="publication.ris"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 
@@ -281,6 +887,12 @@
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
 		<property name="fileName" value="product.ris"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 
@@ -289,6 +901,13 @@
 		<property name="mimeType" value="application/x-endnote-refer; charset=UTF-8"/>
 		<property name="fileName" value="patent.ris"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 	</bean>
 
@@ -341,6 +960,15 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="orgUnit.xml"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -352,6 +980,15 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="orgUnit.xml"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -363,6 +1000,15 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="orgUnit.json"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/orgUnits-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -396,6 +1042,13 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="patent.xml"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/patents-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -407,6 +1060,13 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="patent.json"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/patents-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -418,6 +1078,12 @@
 		<property name="mimeType" value="application/json; charset=UTF-8"/>
 		<property name="fileName" value="product.json"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/products-json.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="jsonValueConverter" />
@@ -453,6 +1119,12 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="product.xml"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/products-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -464,6 +1136,12 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="datacite44.xml"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
@@ -474,6 +1152,11 @@
 		<property name="mimeType" value="application/xml; charset=UTF-8"/>
 		<property name="fileName" value="event.xml"/>
 		<property name="entityType" value="Event"/>
+		<property name="configurations">
+			<list>
+				<value>event</value>
+			</list>
+		</property>
 		<property name="multipleItemsTemplateFileName" value="crosswalks/template/events-xml.template"/>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 		<property name="converter" ref="xmlValueConverter" />
@@ -502,6 +1185,11 @@
 		<property name="fileName" value="person.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
 
@@ -510,6 +1198,11 @@
         <property name="fileName" value="person-cv.pdf"/>
         <property name="mimeType" value="application/pdf"/>
         <property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
         <property name="referCrosswalk" ref="referCrosswalkPersonCvXml"/>
     </bean>
 
@@ -518,6 +1211,11 @@
 		<property name="fileName" value="person.rtf"/>
 		<property name="mimeType" value="application/rtf"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
 
@@ -526,6 +1224,11 @@
 		<property name="fileName" value="person.doc"/>
 		<property name="mimeType" value="application/rtf"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPersonXml"/>
 	</bean>
 
@@ -534,6 +1237,12 @@
 		<property name="fileName" value="publication.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPublicationCerifXml"/>
 	</bean>
 
@@ -542,6 +1251,12 @@
 		<property name="fileName" value="product.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkDatasetCerifXml"/>
 	</bean>
 
@@ -558,6 +1273,12 @@
         <property name="mimeType" value="application/xml; charset=UTF-8"/>
         <property name="fileName" value="datacite44.xml"/>
         <property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
@@ -568,6 +1289,13 @@
         <property name="mimeType" value="application/xml; charset=UTF-8"/>
         <property name="fileName" value="datacite44.xml"/>
         <property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
         <property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE}"/>
         <property name="converter" ref="xmlValueConverter" />
         <property name="addXmlSignature" value="true"/>
@@ -586,6 +1314,15 @@
 		<property name="fileName" value="orgUnit.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkOrgUnitXml"/>
 	</bean>
 
@@ -602,6 +1339,13 @@
 		<property name="fileName" value="patent.pdf"/>
 		<property name="mimeType" value="application/pdf"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="referCrosswalk" ref="referCrosswalkPatentCerifXml"/>
 	</bean>
 
@@ -609,6 +1353,11 @@
 		<property name="templateFileName" value="crosswalks/template/person-table.template"/>
 		<property name="fileName" value="persons.csv"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 	
@@ -617,6 +1366,11 @@
 		<property name="fileName" value="persons.xls"/>
 		<property name="sheetName" value="Persons"/>
 		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 	
@@ -624,6 +1378,12 @@
 		<property name="templateFileName" value="crosswalks/template/publication-table.template"/>
 		<property name="fileName" value="publications.csv"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
@@ -638,6 +1398,12 @@
 		<property name="templateFileName" value="crosswalks/template/product-table.template"/>
 		<property name="fileName" value="products.csv"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
@@ -646,6 +1412,12 @@
 		<property name="fileName" value="publications.xls"/>
 		<property name="sheetName" value="Publications"/>
 		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -662,6 +1434,12 @@
 		<property name="fileName" value="products.xls"/>
 		<property name="sheetName" value="Products"/>
 		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -684,6 +1462,15 @@
 		<property name="templateFileName" value="crosswalks/template/orgUnit-table.template"/>
 		<property name="fileName" value="orgUnits.csv"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -692,6 +1479,15 @@
 		<property name="fileName" value="orgUnits.xls"/>
 		<property name="sheetName" value="OrgUnits"/>
 		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
@@ -729,6 +1525,13 @@
 		<property name="templateFileName" value="crosswalks/template/patent-table.template"/>
 		<property name="fileName" value="patents.csv"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
 	</bean>
 
@@ -737,11 +1540,132 @@
 		<property name="fileName" value="patents.xls"/>
 		<property name="sheetName" value="Patents"/>
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
 	</bean>
 
+	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkResearchOutput">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-table.template"/>
+		<property name="fileName" value="researchoutput.xls"/>
+		<property name="sheetName" value="ResearchOutputs"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkResearchOutput">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-table.template"/>
+		<property name="fileName" value="researchoutput.csv"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputJson">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-json.template"/>
+		<property name="mimeType" value="application/json; charset=UTF-8"/>
+		<property name="fileName" value="researchoutput.json"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputs-json.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="jsonValueConverter" />
+		<property name="linesPostProcessor" ref="jsonPostProcessor" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputXml">
+		<property name="templateFileName" value="crosswalks/template/researchoutput-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="researchoutput.xml"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputs-xml.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="addXmlSignature" value="true"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCrosswalk" id="xlsCrosswalkResearchOutputOA">
+		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-table.template"/>
+		<property name="fileName" value="researchoutputsoa.xls"/>
+		<property name="sheetName" value="ResearchOutputsSoa"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.CsvCrosswalk" id="csvCrosswalkResearchOutputOA">
+		<property name="templateFileName" value="crosswalks/template/researchoutputsoa-table.template"/>
+		<property name="fileName" value="researchoutputsoa.csv"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputOAJson">
+		<property name="templateFileName" value="crosswalks/template/researchoutputoa-json.template"/>
+		<property name="mimeType" value="application/json; charset=UTF-8"/>
+		<property name="fileName" value="researchoutputsoa.json"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputsoa-json.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="jsonValueConverter" />
+		<property name="linesPostProcessor" ref="jsonPostProcessor" />
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.ReferCrosswalk" id="referCrosswalkResearchOutputOAXml">
+		<property name="templateFileName" value="crosswalks/template/researchoutputoa-xml.template"/>
+		<property name="mimeType" value="application/xml; charset=UTF-8"/>
+		<property name="fileName" value="researchoutputsoa.xml"/>
+		<property name="entityType" value="all"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="multipleItemsTemplateFileName" value="crosswalks/template/researchoutputsoa-xml.template"/>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).SINGLE_AND_MULTIPLE}"/>
+		<property name="converter" ref="xmlValueConverter" />
+		<property name="addXmlSignature" value="true"/>
+	</bean>
+
 	<bean class="org.dspace.content.integration.crosswalks.CSLItemDataCrosswalk" id="referCrosswalkPublicationIeeeHtml">
-		<property name="style" value="ieee.csl"/>
+		<property name="style" value="ieee"/>
 		<property name="mimeType" value="text/html; charset=UTF-8"/>
 		<property name="format" value="html"/>
 		<property name="fileName" value="publications-ieee.html"/>
@@ -750,6 +1674,13 @@
 	
 	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollection">
 		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
 	</bean>
 
     <bean class="org.dspace.content.integration.crosswalks.ZipItemExportCrosswalk" id="zipCrosswalk">
@@ -1135,6 +2066,19 @@
 		<property name="converterNameFile" value="mapConverter-publicationToBibtexTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value=""/>
+	</bean>
+
+	<bean name="mapConverterPublicationCSLTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-dcTypesToClsTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="document"/>
+	</bean>
+
+	<bean name="mapConverterCoarToGenre" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-coarToGenre.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value=""/>
+		<property name="allowEmptyValue" value="true"/>
 	</bean>
 
 

@@ -82,6 +82,19 @@ public class ItemExportFormatRestRepository extends DSpaceRestRepository<ItemExp
         return converter.toRestPage(formats, pageable, utils.obtainProjection());
     }
 
+    @SearchRestMethod(name = "byConfigurationAndMolteplicity")
+    @PreAuthorize("permitAll()")
+    public Page<ItemExportFormatRest> byConfigurationAndMolteplicity(
+            @Parameter(value = "configuration") String configuration,
+            @Parameter(value = "molteplicity") String molteplicity,
+            Pageable pageable) {
+
+        List<ItemExportFormat> formats = this.itemExportFormatService
+                .byConfigurationAndMolteplicity(obtainContext(), configuration, getCrosswalkMode(molteplicity));
+
+        return converter.toRestPage(formats, pageable, utils.obtainProjection());
+    }
+
     private CrosswalkMode getCrosswalkMode(String molteplicity) {
         if (StringUtils.isBlank(molteplicity)) {
             return CrosswalkMode.SINGLE_AND_MULTIPLE;

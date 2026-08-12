@@ -7,6 +7,7 @@
  */
 package org.dspace.content.integration.crosswalks;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.dspace.content.crosswalk.CrosswalkMode;
@@ -30,6 +31,17 @@ public interface ItemExportCrosswalk extends StreamDisseminationCrosswalk, FileN
      * @return the entity type, if configured, or an empty Optional
      */
     public default Optional<String> getEntityType() {
+        return Optional.empty();
+    }
+
+    /**
+     * Returns a list of all the discovery configurations that the specific
+     * ItemExportCrosswalk is associated with. This means that the crosswalk
+     * will be used with the entities that are related to the configurations.
+     *
+     * @return the list of discovery configurations, if any, or an empty Optional
+     */
+    public default Optional<List<String>> getConfigurations() {
         return Optional.empty();
     }
 

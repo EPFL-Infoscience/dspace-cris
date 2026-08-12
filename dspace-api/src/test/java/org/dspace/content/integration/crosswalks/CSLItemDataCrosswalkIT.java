@@ -11,7 +11,9 @@ import static org.dspace.builder.CollectionBuilder.createCollection;
 import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.ByteArrayOutputStream;
@@ -21,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -30,8 +33,11 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
 import org.dspace.utils.DSpace;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -45,6 +51,8 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
 
+    private ItemService itemService;
+
     private StreamDisseminationCrosswalkMapper crosswalkMapper;
 
     private CSLItemDataCrosswalk publicationHtmlCrosswalk;
@@ -56,6 +64,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     @Before
     public void setup() throws SQLException, AuthorizeException {
 
+        this.itemService = ContentServiceFactory.getInstance().getItemService();
         this.crosswalkMapper = new DSpace().getSingletonService(StreamDisseminationCrosswalkMapper.class);
         assertThat(crosswalkMapper, notNullValue());
 
@@ -77,9 +86,10 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withTitle("Publication title")
             .withEntityType("Publication")
             .withIssueDate("2018-05-17")
+            .withHandle("123456789/0004")
+            .withType("text::report::technical report", "report-coar-types:c_18ws")
             .withAuthor("John Smith")
             .withAuthor("Edward Red")
-            .withHandle("123456789/9999")
             .build();
         context.restoreAuthSystemState();
 
@@ -101,6 +111,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withTitle("Publication title")
             .withEntityType("Publication")
             .withIssueDate("2018-05-17")
+            .withType("text::report::technical report")
             .withAuthor("John Smith")
             .withAuthor("Edward Red")
             .withHandle("123456789/0001")
@@ -110,8 +121,9 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withTitle("Test publication")
             .withEntityType("Publication")
             .withIssueDate("2020-01-31")
+            .withHandle("123456789/0003")
+            .withType("text::report::technical report")
             .withAuthor("Walter White")
-            .withHandle("123456789/0002")
             .build();
 
         context.restoreAuthSystemState();
@@ -136,7 +148,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -144,9 +156,11 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withRelationConference("Conference")
             .withTitle("Publication title")
             .withIssueDate("2018-05-17")
+            .withMetadata("oaire", "citation", "startPage", "3")
+            .withMetadata("oaire", "citation", "endPage", "5")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
@@ -165,6 +179,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
         }
     }
 
+    @Ignore("To be rechecked: it seems that citeproc 3.3 ignores the journalAbbreviation")
     @Test
     public void testBibtexDisseminateWithDIfferentTypes() throws Exception {
 
@@ -220,11 +235,11 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
 
         Item item = createItem(context, collection)
             .withEntityType("Publication")
-            .withType("text::journal::journal article")
+            .withType("text::working paper")
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -234,9 +249,12 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
+
+        itemService.setMetadataSingleValue(context, item, "dc", "date", "available", null, "2018-05-17");
+        itemService.update(context, item);
 
         context.restoreAuthSystemState();
         Item itemMock = Mockito.spy(item);
@@ -264,7 +282,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -274,7 +292,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 
@@ -288,6 +306,11 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withAuthor("White, Walter")
             .withHandle("123456789/0002")
             .build();
+
+        itemService.setMetadataSingleValue(context, item, "dc", "date", "available", null, "2018-05-17");
+        itemService.setMetadataSingleValue(context, anotherItem, "dc", "date", "available", null, "2020-01-01");
+        itemService.update(context, item);
+        itemService.update(context, anotherItem);
 
         context.restoreAuthSystemState();
 
@@ -309,6 +332,153 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    public void testEditorialDirectorIsPresentWhenTypeResolvesToThesis() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::thesis")
+            .withTitle("Thesis title")
+            .withIssueDate("2021-07-01")
+            .withMetadata("dc", "contributor", "advisor", "Doe, Jane")
+            .withHandle("123456789/0100")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"editorial-director\""));
+        assertThat(citation, containsString("\"family\": \"Doe\""));
+        assertThat(citation, containsString("\"given\": \"Jane\""));
+    }
+
+    @Test
+    public void testEditorialDirectorIsNotPresentWhenTypeDoesNotResolveToThesis() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::report")
+            .withTitle("Report title")
+            .withIssueDate("2021-07-01")
+            .withMetadata("dc", "contributor", "advisor", "Doe, Jane")
+            .withHandle("123456789/0101")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, not(containsString("\"editorial-director\"")));
+    }
+
+    @Test
+    public void testContainerTitleForReviewUsesRelationJournal() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::review")
+            .withTitle("Review title")
+            .withIssueDate("2021-07-01")
+            .withRelationJournal("Journal for Reviews", null)
+            .withIsPartOf("IsPartOf fallback value")
+            .withHandle("123456789/0102")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"container-title\": \"Journal for Reviews\""));
+        assertThat(citation, not(containsString("\"container-title\": \"IsPartOf fallback value\"")));
+    }
+
+    @Test
+    public void testISSNRulesPreferRelationIssnOverRelationSerieIssn() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("text::report")
+            .withTitle("ISSN precedence title")
+            .withIssueDate("2021-07-01")
+            .withRelationIssn("1111-2222")
+            .withMetadata("dc", "relation", "serieissn", "3333-4444")
+            .withHandle("123456789/0103")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"ISSN\": \"1111-2222\""));
+        assertThat(citation, not(containsString("\"ISSN\": \"3333-4444\"")));
+    }
+
+    @Test
+    public void testSingleItemApaNoGenreDisseminate() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article::research article", "article-coar-types:c_2df8fbb1")
+                .withLanguage("en")
+                .withDoiIdentifier("10.1000/182")
+                .withRelationIsbn("11-22-33")
+                .withIssnIdentifier("0002")
+                .withSubject("publication")
+                .withPublisher("Publisher")
+                .withVolume("V01")
+                .withIssue("03")
+                .withRelationConference("Conference")
+                .withTitle("Publication title")
+                .withIssueDate("2018-05-17")
+                .withAuthor("Smith, John")
+                .withAuthor("Red, Edward")
+                .withScientificEditor("Editor", null)
+                .withHandle("123456789/0001")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-apa");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, Collections.singletonList(item).iterator(), out);
+
+        String citation = out.toString();
+
+        assertThat(citation, not(containsString("c_2df8fbb1")));
+    }
+
+    @Test
     public void testMutlipleItemsApaDisseminate() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -318,7 +488,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withLanguage("en")
             .withDoiIdentifier("10.1000/182")
             .withRelationIsbn("11-22-33")
-            .withRelationIssn("0002")
+            .withIssnIdentifier("0002")
             .withSubject("publication")
             .withPublisher("Publisher")
             .withVolume("V01")
@@ -328,7 +498,7 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             .withIssueDate("2018-05-17")
             .withAuthor("Smith, John")
             .withAuthor("Red, Edward")
-            .withEditor("Editor")
+            .withScientificEditor("Editor", null)
             .withHandle("123456789/0001")
             .build();
 

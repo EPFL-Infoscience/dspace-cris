@@ -1,0 +1,93 @@
+<item>
+	<Title>@dc.title@</Title>
+	<Subtitle>@dc.title.alternative@</Title>
+	<identifiers>
+		<DOI>@dc.identifier.doi@</DOI>
+		<ISBN>@dc.identifier.isbn@</ISBN>
+		<ISSN>@dc.identifier.issn@<ISSN>
+		<URL>@dc.identifier.uri@</URL>
+		<ISI-Number>@dc.identifier.isi@</ISI-Number>
+		<SCP-Number>@dc.identifier.scopus@</SCP-Number>
+		<PMID>@dc.identifier.pmid@</PMID>
+		<ARXIV>@dc.identifier.arxiv@</ARXIV>
+		<EPO-Number>@dc.identifier.epo@</EPO-Number>
+		<PatentNumber>@dc.identifier.patentno@</PatentNumber>
+		<ReportNumber>@dc.identifier.reportno@</ReportNumber>
+		<StandardNumber>@dc.identifier.standardno@</StandardNumber>
+	</identifiers>
+	<Language>@dc.language.iso@</Language>
+	<dates>
+		<Publication date>@dc.date.issued@</Publication date>
+		<Publication Year>@virtual.date.dc-date-issued.YYYY@</Publication Year>
+		<Approval date>@dcterms.dateAccepted@</Approval date>
+	<dates>
+	<Subjects>@dc.subject@</Subjects>
+	<Part of>@dc.relation.ispartof@</Part of>
+	<Journal>@dc.relation.journal@</Journal>
+	<Volume>@oaire.citation.volume@</Volume>
+	<Issue>@oaire.citation.issue@</Issue>
+	<Start page>@oaire.citation.startPage@</Start page>
+	<End page>@oaire.citation.endPage@</End page>
+	<ArticleNumber>@oaire.citation.articlenumber@</ArticleNumber>
+	<ISBN-container>@dc.relation.isbn@</ISBN-container>
+	<ISSN-container>@dc.relation.issn@</ISSN-container>
+	<DOI-container>@dc.relation.doi@</DOI-container>
+	<Publisher>@dc.publisher@</Publisher>
+	<PublisherPlace>@dc.publisher.place@</PublisherPlace>
+	<Authors>
+		@group.dc-contributor-author.start@
+		<Author>
+			<Name>@dc.contributor.author@</Name>
+			<Orcid>@virtual.orcid.dc-contributor-author@</Orcid>
+			<Sciper>@virtual.sciperId.dc-contributor-author@<Sciper>
+			<Affiliation>@oairecerif.author.affiliation@<Affiliation>
+		</Author>
+		@group.dc-contributor-author.end@
+	</Authors>
+	<Editors>
+		@group.dc-contributor-scientificeditor.start@
+		<Editor>
+			<Name>@dc.contributor.scientificeditor@</Name>
+			<Orcid>@virtual.orcid.dc-contributor-scientificeditor@</Orcid>
+			<Sciper>@virtual.sciperId.dc-contributor-scientificeditor@<Sciper>
+			<Affiliation>@oairecerif.scientificeditor.affiliation@<Affiliation>
+		</Editor>
+		@group.dc-contributor-scientificeditor.end@
+	</Editors>
+	<Advisors>
+		@group.epfl-contributor-advisor.start@
+		<Advisor>
+			<Name>@epfl.contributor.advisor@</Name>
+			<Orcid>@person.identifier.orcid@</Orcid>
+			<Sciper>@virtual.sciperId.dc-contributor-advisor@<Sciper>
+			<Affiliation>@oairecerif.advisor.affiliation@<Affiliation>
+		</Advisor>
+		 @group.epfl-contributor-advisor.end@
+	</Advisors>
+	<Abstract>@dc.description.abstract@</Abstract>
+	<Description>@ dc.description@</Description>
+	<Notes>@dc.description.notes@</Notes>
+	<IsProducedAtEpfl>@virtual.mapConverter.writtenAtEpfl.epfl-writtenAt@</IsProducedAtEpfl>
+	<Reviewed>@epfl.peerreviewed@</Reviewed>
+	<Status>@oaire.version@</Status>
+	<Version>@dc.description.version@</Version>
+	<Conferences>
+		<ConferenceName>@dc.relation.conference@</ConferenceName>
+		<ConferencePlace>@oaire.citation.conferencePlace@</ConferencePlace>
+		<ConferenceDate>@oaire.citation.conferenceDate@</ConferenceDate>
+	</Conferences>
+	<ThesisWorkType>@epfl.thesis.degreelevel@</ThesisWorkType>
+	<ThesisNumber>@epfl.thesis.number@</ThesisNumber>
+	<Faculty>@epfl.thesis.faculty@</Faculty>
+	<Section>@epfl.thesis.section@</Section>
+	<Institute>@epfl.thesis.institute@</Institute>
+	<DoctoralSchool>@epfl.thesis.doctoralSchool@</DoctoralSchool>
+	<EPFLUnit>@epfl.thesis.originalUnit@</EPFLUnit>
+	<Product>@dc.relation.product@</Product>
+	<License>@virtual.mapConverter.right2licenseUrl.oaire-licenseCondition@</License>
+	<Rights>@virtual.mapConverter.right2conceptUrl.datacite-rights@</Rights>
+	<Holder>@dcterms.rightsHolder@</Holder>
+	<Funding>@dc.relation.funding@</Funding>
+	<Predecessor>@dc.relation.patent@</Predecessor>
+	<Reference>@dc.relation.reference@</Reference>
+</item>

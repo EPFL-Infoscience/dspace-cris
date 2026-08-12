@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -25,6 +26,7 @@ import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkMode;
 import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
 import org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory;
+import org.dspace.content.integration.crosswalks.csl.CSLPreparedItemData;
 import org.dspace.content.integration.crosswalks.csl.CSLResult;
 import org.dspace.content.integration.crosswalks.csl.DSpaceListItemDataProvider;
 import org.dspace.content.service.ItemService;
@@ -64,6 +66,8 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
 
     private String entityType;
 
+    private List<String> configurations;
+
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
         return dso.getType() == Constants.ITEM && isPublication((Item) dso);
@@ -94,21 +98,54 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
 
     }
 
+    /**
+     * Phase 1 of a two-phase dissemination: processes the given item and returns
+     * prepared item data containing both the CSL JSON and the provider that can be
+     * used to generate the final citation.
+     *
+     * @param context the DSpace context
+     * @param dso     the DSpace item to process
+     * @return the prepared item data holding the JSON and the provider
+     * @throws CrosswalkException if the item cannot be crosswalked
+     */
+    public CSLPreparedItemData prepareItemData(Context context, DSpaceObject dso) throws CrosswalkException {
+        DSpaceListItemDataProvider itemDataProvider = createItemDataProvider(context, Arrays.asList(dso).iterator());
+        return new CSLPreparedItemData(itemDataProvider.toJson(), itemDataProvider);
+    }
+
+    /**
+     * Phase 2 of a two-phase dissemination: generates the citation string from
+     * prepared item data that was previously obtained via {@link #prepareItemData}.
+     *
+     * @param preparedItemData the prepared item data from phase 1
+     * @return the formatted citation string, or null if generation fails
+     */
+    public String generateCitation(CSLPreparedItemData preparedItemData) {
+        CSLResult result = cslGeneratorFactory.getCSLGenerator()
+            .generate(preparedItemData.getProvider(), style, format);
+        return result != null ? result.getCitation() : null;
+    }
+
     private DSpaceListItemDataProvider createItemDataProvider(Context context,
         Iterator<? extends DSpaceObject> dsoIterator) throws CrosswalkObjectNotSupported {
 
         DSpaceListItemDataProvider dSpaceListItemDataProvider = getDSpaceListItemDataProviderInstance();
 
+        int itemCount = 0;
         while (dsoIterator.hasNext()) {
             DSpaceObject dso = dsoIterator.next();
-
+            dSpaceListItemDataProvider.setCitationLanguage(
+                    itemService.getMetadataFirstValue((Item)dso, "dc", "language", "iso",
+                            Item.ANY));
             if (!canDisseminate(context, dso)) {
                 throw new CrosswalkObjectNotSupported("CSLItemDataCrosswalk can only crosswalk a Publication item.");
             }
-
+            itemCount++;
             dSpaceListItemDataProvider.processItem((Item) dso);
         }
-
+        if (itemCount > 1) {
+            dSpaceListItemDataProvider.setCitationLanguage(null);
+        }
         return dSpaceListItemDataProvider;
     }
 
@@ -176,5 +213,14 @@ public class CSLItemDataCrosswalk implements ItemExportCrosswalk {
 
     public void setEntityType(String entityType) {
         this.entityType = entityType;
+    }
+
+    public void setConfigurations(List<String> configurations) {
+        this.configurations = configurations;
+    }
+
+    @Override
+    public Optional<List<String>> getConfigurations() {
+        return Optional.ofNullable(configurations);
     }
 }
