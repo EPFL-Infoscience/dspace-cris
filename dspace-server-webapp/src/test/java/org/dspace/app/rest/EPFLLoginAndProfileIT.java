@@ -44,11 +44,15 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.MockEpflApiClientFactory;
+import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
+import org.dspace.epfl.service.impl.PersonApiServiceImpl;
 import org.dspace.profile.ResearcherProfile;
 import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -56,7 +60,6 @@ import org.junit.Test;
  * via the {@link ProfileInitializer}
  *
  */
-@Ignore("Temporarily ignored at class level")
 public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
     private ResearcherProfileService researcherProfileService = new DSpace()
             .getSingletonService(ResearcherProfileService.class);
@@ -69,6 +72,15 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+
+    private PersonApiServiceImpl personApiService = new DSpace().getServiceManager()
+        .getServicesByType(PersonApiServiceImpl.class).get(0);
+
+    private OrgUnitApiServiceImpl orgUnitApiService = new DSpace().getServiceManager()
+        .getServicesByType(OrgUnitApiServiceImpl.class).get(0);
+
+    private EpflApiClient apiClient = new DSpace().getServiceManager()
+        .getServicesByType(EpflApiClient.class).get(0);
 
     private Collection profiles;
 
@@ -98,6 +110,16 @@ public class EPFLLoginAndProfileIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
 
+        EpflApiClient mockApiClient = MockEpflApiClientFactory.createMockApiClient();
+        personApiService.setApiClient(mockApiClient);
+        orgUnitApiService.setApiClient(mockApiClient);
+
+    }
+
+    @After
+    public void after() throws Exception {
+        personApiService.setApiClient(apiClient);
+        orgUnitApiService.setApiClient(apiClient);
     }
 
     @Test

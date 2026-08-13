@@ -61,6 +61,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.MockEpflApiClientFactory;
 import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
 import org.dspace.epfl.service.impl.PersonApiServiceImpl;
 import org.dspace.profile.ResearcherProfile;
@@ -68,10 +69,8 @@ import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore("Temporarily ignored at class level")
 public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWithDatabase {
 
     private ResearcherProfileService researcherProfileService = new DSpace()
@@ -131,6 +130,10 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         }
         context.commit();
         context.restoreAuthSystemState();
+
+        EpflApiClient mockApiClient = MockEpflApiClientFactory.createMockApiClient();
+        personApiService.setApiClient(mockApiClient);
+        orgUnitApiService.setApiClient(mockApiClient);
 
     }
 

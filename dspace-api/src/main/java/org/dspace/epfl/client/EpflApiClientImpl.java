@@ -42,7 +42,7 @@ public class EpflApiClientImpl implements EpflApiClient {
 
     private static final Logger LOGGER = LogManager.getLogger(EpflApiClientImpl.class);
 
-    private static final String PERSONAL_PICTURE_URL = "https://people.epfl.ch/private/common/photos/links/%s.jpg";
+    private static final String PERSONAL_PICTURE_URL = "https://people.epfl.ch/%s/photo";
 
     @Autowired
     private ConfigurationService configurationService;
@@ -130,9 +130,9 @@ public class EpflApiClientImpl implements EpflApiClient {
     }
 
     @Override
-    public Optional<InputStream> getPersonalPicture(String sciper) {
+    public Optional<InputStream> getPersonalPicture(String emailLocalPart) {
 
-        String url = String.format(PERSONAL_PICTURE_URL, sciper);
+        String url = String.format(PERSONAL_PICTURE_URL, emailLocalPart);
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
 
