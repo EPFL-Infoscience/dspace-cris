@@ -42,8 +42,6 @@ public class EpflApiClientImpl implements EpflApiClient {
 
     private static final Logger LOGGER = LogManager.getLogger(EpflApiClientImpl.class);
 
-    private static final String PERSONAL_PICTURE_URL = "https://people.epfl.ch/%s/photo";
-
     @Autowired
     private ConfigurationService configurationService;
 
@@ -132,7 +130,7 @@ public class EpflApiClientImpl implements EpflApiClient {
     @Override
     public Optional<InputStream> getPersonalPicture(String emailLocalPart) {
 
-        String url = String.format(PERSONAL_PICTURE_URL, emailLocalPart);
+        String url = String.format(getPersonalPictureUrl(), emailLocalPart);
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
 
@@ -223,6 +221,10 @@ public class EpflApiClientImpl implements EpflApiClient {
 
     private String getPersonApiUrl() {
         return configurationService.getProperty("epfl.person-import.api-url");
+    }
+
+    private String getPersonalPictureUrl() {
+        return configurationService.getProperty("epfl.personal-picture.url");
     }
 
 }
