@@ -340,6 +340,10 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             String filterValue = substringBeforeLast(filterSections[1], FILTER_OPERATOR_SEPARATOR);
             String operator = substringAfterLast(filterSections[1], FILTER_OPERATOR_SEPARATOR);
 
+            if (StringUtils.isBlank(operator) && filterValue.matches("\\[.*TO.*\\]")) {
+                operator = "equals";
+            }
+
             queryBuilderSearchFilters.add(new QueryBuilderSearchFilter(name, operator, filterValue));
 
         }
