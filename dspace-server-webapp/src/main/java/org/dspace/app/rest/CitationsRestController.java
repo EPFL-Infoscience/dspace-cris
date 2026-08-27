@@ -509,11 +509,11 @@ public class CitationsRestController {
     /**
      * Extracts the sort order for year/date keys from the sort string.
      * If the sort contains a date or year clause, returns its direction.
-     * If not specified, returns the default (asc).
+     * If not specified, returns descending (most recent first) as agreed with the client.
      */
     private SORT_ORDER extractYearSortOrder(String sort) {
         if (StringUtils.isBlank(sort)) {
-            return SORT_ORDER.asc;
+            return SORT_ORDER.desc;
         }
 
         String[] clauses = sort.split(SORT_MULTI_SEPARATOR, -1);
@@ -528,7 +528,7 @@ public class CitationsRestController {
                 return getDefaultSortOrder(field);
             }
         }
-        return SORT_ORDER.asc; // default when no year/date sort specified
+        return SORT_ORDER.desc; // default: most recent first
     }
 
     private Comparator<String> yearComparator(SORT_ORDER order) {
