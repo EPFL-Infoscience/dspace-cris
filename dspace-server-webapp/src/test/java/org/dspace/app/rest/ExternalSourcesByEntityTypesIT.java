@@ -55,9 +55,10 @@ public class ExternalSourcesByEntityTypesIT extends AbstractControllerIntegratio
                                 ExternalSourceMatcher.matchExternalSource("crossref", "crossref", false),
                                 ExternalSourceMatcher.matchExternalSource("orcidWorks", "orcidWorks", false),
                                 ExternalSourceMatcher.matchExternalSource("scopus", "scopus", false),
-                                ExternalSourceMatcher.matchExternalSource("scopus", "scopus", false)
+                                ExternalSourceMatcher.matchExternalSource("scopus", "scopus", false),
+                                ExternalSourceMatcher.matchExternalSource("datacite", "datacite", false)
                                 )))
-                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(10)));
+                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(11)));
         // mock and ORCID are configured without any entity type
         getClient(token)
                 .perform(get("/api/integration/externalsources/search/findByEntityType").param("entityType", "Funding"))
@@ -81,7 +82,7 @@ public class ExternalSourcesByEntityTypesIT extends AbstractControllerIntegratio
                                 ExternalSourceMatcher.matchExternalSource("mock3", "mock3", false),
                                 ExternalSourceMatcher.matchExternalSource("pubmed", "pubmed", false)
                             )))
-                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(10)));
+                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(11)));
     }
     @Test
     public void findAllByAuthorizedExternalSource() throws Exception {
