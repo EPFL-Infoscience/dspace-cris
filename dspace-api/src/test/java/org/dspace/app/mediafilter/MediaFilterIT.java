@@ -361,6 +361,13 @@ public class MediaFilterIT extends AbstractIntegrationTestWithDatabase {
         checkItemHasBeenProcessedAndDateModifiedIsNotChanged(item1_2_2_b);
     }
 
+    @Test
+    public void mediaFilterScriptTextBundleCreatedTest() throws Exception {
+        performMediaFilterScript(item1_1_b, true);
+        checkItemHasBeenProcessedAndDateModifiedUpdated(item1_1_b);
+        checkItemHasBeenNotProcessed(item1_1_a);
+    }
+
     private void checkItemHasBeenNotProcessed(Item item) throws IOException, SQLException, AuthorizeException {
         List<Bundle> textBundles = item.getBundles("TEXT");
         assertTrue("The item " + item.getName() + " should NOT have the TEXT bundle", textBundles.size() == 0);
