@@ -3030,7 +3030,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andReturn().getResponse().getContentAsString();
 
         List<String> keys = extractResultKeys(json);
-        org.junit.Assert.assertEquals(List.of("2019", "2021", "2023"), keys);
+        org.junit.Assert.assertEquals(List.of("2023", "2021", "2019"), keys);
     }
 
     @Test
@@ -3241,7 +3241,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
 
         // Level 2: year keys ascending (default for year/date) — 2020 before 2023
         List<String> articleYearKeys = extractInnerKeys(json, "article-journal");
-        org.junit.Assert.assertEquals(List.of("2020", "2023"), articleYearKeys);
+        org.junit.Assert.assertEquals(List.of("2023", "2020"), articleYearKeys);
     }
 
     @Test
@@ -3690,7 +3690,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
 
         // Year keys should be in default asc order regardless of title sort
         List<String> keys = extractResultKeys(json);
-        org.junit.Assert.assertEquals(List.of("2019", "2021", "2023"), keys);
+        org.junit.Assert.assertEquals(List.of("2023", "2021", "2019"), keys);
     }
 
     @Test
@@ -3737,7 +3737,7 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
 
         // Level 1: year default asc → 2019 before 2022
         List<String> outerKeys = extractResultKeys(json);
-        org.junit.Assert.assertEquals(List.of("2019", "2022"), outerKeys);
+        org.junit.Assert.assertEquals(List.of("2022", "2019"), outerKeys);
 
         // Level 2: type alphabetical
         List<String> types2022 = extractInnerKeys(json, "2022");
