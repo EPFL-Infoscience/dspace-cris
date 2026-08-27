@@ -162,6 +162,7 @@
         <property name="recordIdMetadata" value="dc.identifier.doi"/>
         <property name="supportedEntityTypes">
             <list>
+                <value>Publication</value>
                 <value>Product</value>
                 <value>none</value>
             </list>

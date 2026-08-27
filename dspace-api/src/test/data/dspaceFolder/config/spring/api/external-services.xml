@@ -156,4 +156,25 @@
     <bean id="crossRefLiveImportDataProviderProcess" parent="crossRefLiveImportDataProvider" scope="prototype"/>
     <bean id="scopusLiveImportDataProviderProcess" parent="scopusLiveImportDataProvider" scope="prototype"/>
 
+    <bean id="dataciteLiveImportDataProvider" class="org.dspace.external.provider.impl.LiveImportDataProvider">
+        <property name="metadataSource" ref="DataCiteImportService"/>
+        <property name="sourceIdentifier" value="datacite"/>
+        <property name="recordIdMetadata" value="dc.identifier.doi"/>
+        <property name="supportedEntityTypes">
+            <list>
+                <value>Publication</value>
+                <value>Product</value>
+                <value>none</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="DataCiteImportService"
+          class="org.dspace.importer.external.datacite.DataCiteImportMetadataSourceServiceImpl" scope="singleton">
+        <property name="metadataFieldMapping" ref="DataCiteMetadataFieldMapping"/>
+    </bean>
+    <bean id="DataCiteMetadataFieldMapping"
+          class="org.dspace.importer.external.datacite.DataCiteFieldMapping">
+    </bean>
+
 </beans>
