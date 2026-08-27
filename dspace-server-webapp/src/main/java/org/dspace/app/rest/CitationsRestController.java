@@ -46,6 +46,7 @@ import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
+import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -141,8 +142,12 @@ public class CitationsRestController {
             return badRequestResponse(e.getMessage());
         }
 
-
-        List<Item> items = resolveItems(context, citationsRequest);
+        List<Item> items;
+        try {
+            items = resolveItems(context, citationsRequest);
+        } catch (DSpaceBadRequestException e) {
+            return badRequestResponse(e.getMessage());
+        }
         if (items.isEmpty()) {
             return ResponseEntity.ok(buildResponse(citationsRequest, EMPTY_RESULT));
         }
@@ -312,6 +317,24 @@ public class CitationsRestController {
         IndexableObject<?, ?> searchScope = (discoveryConfiguration
                 instanceof org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration)
                 ? null : scopeObject;
+
+        // Check total result count before iterating — reject if above configured maximum
+        int maxAllowed = configurationService.getIntProperty("citation-rest.max-results", 5000);
+        try {
+            DiscoverQuery countQuery = restDiscoverQueryBuilder.buildQuery(context, scopeObject,
+                    discoveryConfiguration, query, Collections.emptyList(), IndexableItem.TYPE, null);
+            countQuery.setMaxResults(0);
+            DiscoverResult countResult = searchService.search(context, searchScope, countQuery);
+            long totalFound = countResult.getTotalSearchResults();
+            if (totalFound > maxAllowed) {
+                throw new DSpaceBadRequestException(
+                        "Query returns " + totalFound + " items, exceeding the maximum allowed ("
+                                + maxAllowed + "). Please narrow the query using scope, filters,"
+                                + " or a more specific query.");
+            }
+        } catch (SearchServiceException e) {
+            throw new DSpaceBadRequestException("Unable to count query results", e);
+        }
 
         Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
         try {
@@ -552,9 +575,17 @@ public class CitationsRestController {
         for (Item item : items) {
             UUID itemId = item.getID();
             String citation = citationsByUuid.get(itemId);
+
             if (citation == null) {
+                // Item exists but has no cached citation — return minimal info
+                if (isFullFormat) {
+                    addUncachedItemFull(item, citationItems, citationsRequest);
+                } else {
+                    addUncachedItemLight(item, citationItems, citationsRequest);
+                }
                 continue;
             }
+
             Object parsedCslJson = parsedCslJsonByUuid.get(itemId);
 
             if (isFullFormat) {
@@ -616,6 +647,56 @@ public class CitationsRestController {
     private String normalizeStyleQualifier(String style) {
         String normalized = style.trim();
         return StringUtils.removeEndIgnoreCase(normalized, ".csl").toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Adds an uncached item in full format — only uuid and handle are available.
+     * Year is extracted from dc.date.issued for correct groupBy placement.
+     */
+    private void addUncachedItemFull(Item item,
+                                     Map<String, Map<String, List<CitationItem>>> citationItems,
+                                     CitationsRequestRest citationsRequest) {
+        CitationItemFull citationItem = new CitationItemFull();
+        citationItem.uuid = item.getID().toString();
+        citationItem.handle = item.getHandle();
+        citationItem.citation = null;
+        citationItem.collection = Optional.ofNullable(item.getOwningCollection())
+                .map(Collection::getName)
+                .orElse(null);
+        final String year = getYear(item);
+        citationItem.year = year;
+        citationItem.type = null;
+        citationItem.parsedCslItem = null;
+
+        List<CitationItem> destinationList =
+                getGroupedCitationItemList(citationItems, citationsRequest.getGroupBy(), year, null);
+        destinationList.add(citationItem);
+    }
+
+    /**
+     * Adds an uncached item in light format — only uuid is guaranteed.
+     * Year/type extracted from item metadata for correct groupBy placement.
+     */
+    private void addUncachedItemLight(Item item,
+                                      Map<String, Map<String, List<CitationItem>>> citationItems,
+                                      CitationsRequestRest citationsRequest) {
+        CitationItemLight citationItem = new CitationItemLight();
+        citationItem.uuid = item.getID().toString();
+        citationItem.citation = null;
+
+        List<CitationItem> destinationList;
+        String groupBy = citationsRequest.getGroupBy();
+        if (StringUtils.isBlank(groupBy)) {
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, null, null);
+        } else if (GROUP_BY_YEAR.equals(groupBy)) {
+            final String year = getYear(item);
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, year, null);
+        } else {
+            final String year = getYear(item);
+            // No CSL type available without cache — will go into "Unknown" type group
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, year, null);
+        }
+        destinationList.add(citationItem);
     }
 
     private void addCitationItemFull(Item item, String citation, Object parsedCslJson,

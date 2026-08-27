@@ -37,6 +37,7 @@ import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -4082,6 +4083,12 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[0].cslItem.items[0].title").value("Precomputed Publication"));
     }
 
+
+    // Ignored: this test verified the old behavior where items without pre-computed citation
+    // metadata were silently skipped. Uncached items are now returned
+    // with citation=null instead of being omitted. See getCitationsReturnsNullCitationForUncachedItemFull
+    // and getCitationsReturnsNullCitationForUncachedItemLight for the new expected behavior.
+    @Ignore
     @Test
     public void getCitationsFromMetadataSkipsItemsWithoutPreComputedCitation() throws Exception {
         configurationService.setProperty("citation-rest.generate", false);
@@ -4405,5 +4412,143 @@ public class CitationsRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.results[0].collection").doesNotExist())
                 .andExpect(jsonPath("$.results[0].year").doesNotExist())
                 .andExpect(jsonPath("$.results[0].cslItem").doesNotExist());
+    }
+
+    @Test
+    public void getCitationsReturnsNullCitationForUncachedItemFull() throws Exception {
+        // When citation-rest.generate=false and an item has no pre-computed citation metadata,
+        // the endpoint should still return the item with citation=null and minimal info (uuid, handle, year).
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Uncached Collection")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Uncached Publication")
+                .withAuthor("Doe, John")
+                .withIssueDate("2024-03-15")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // Disable on-the-fly generation — simulate reading from (empty) cache
+        configurationService.setProperty("citation-rest.generate", false);
+
+        String body = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"full\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].handle").value(item.getHandle()))
+                .andExpect(jsonPath("$.results[0].year").value("2024"))
+                .andExpect(jsonPath("$.results[0].collection").value("Uncached Collection"))
+                .andExpect(jsonPath("$.results[0].citation").isEmpty())
+                .andExpect(jsonPath("$.results[0].type").isEmpty())
+                .andExpect(jsonPath("$.results[0].cslItem").isEmpty());
+
+        // Restore on-the-fly generation for other tests
+        configurationService.setProperty("citation-rest.generate", true);
+    }
+
+    @Test
+    public void getCitationsReturnsNullCitationForUncachedItemLight() throws Exception {
+        // Light format: uncached items should return uuid + citation=null, no extra fields.
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Uncached Collection Light")
+                .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+                .withEntityType("Publication")
+                .withType("text::journal::journal article")
+                .withTitle("Uncached Light Publication")
+                .withAuthor("Smith, Jane")
+                .withIssueDate("2023-07-01")
+                .inArchive()
+                .build();
+
+        context.restoreAuthSystemState();
+
+        configurationService.setProperty("citation-rest.generate", false);
+
+        String body = "{" +
+                "\"uuids\":[\"" + item.getID() + "\"]," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results").isArray())
+                .andExpect(jsonPath("$.results", hasSize(1)))
+                .andExpect(jsonPath("$.results[0].uuid").value(item.getID().toString()))
+                .andExpect(jsonPath("$.results[0].citation").isEmpty())
+                // Light format should NOT include extra fields
+                .andExpect(jsonPath("$.results[0].handle").doesNotExist())
+                .andExpect(jsonPath("$.results[0].type").doesNotExist())
+                .andExpect(jsonPath("$.results[0].collection").doesNotExist())
+                .andExpect(jsonPath("$.results[0].year").doesNotExist());
+
+        configurationService.setProperty("citation-rest.generate", true);
+    }
+
+    @Test
+    public void getCitationsReturnsBadRequestWhenMaxResultsExceeded() throws Exception {
+        // When the query matches more items than citation-rest.max-results, the endpoint
+        // should return 400 with an explanatory message instead of timing out.
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Max Results Collection")
+                .build();
+
+        // Create 3 items
+        for (int i = 0; i < 3; i++) {
+            ItemBuilder.createItem(context, collection)
+                    .withEntityType("Publication")
+                    .withTitle("Max Results Test " + i)
+                    .withIssueDate("2024-01-01")
+                    .inArchive()
+                    .build();
+        }
+
+        context.restoreAuthSystemState();
+
+        // Set the limit to 2 — our 3 items should exceed it
+        configurationService.setProperty("citation-rest.max-results", 2);
+
+        String body = "{" +
+                "\"scope\":\"" + collection.getID() + "\"," +
+                "\"style\":\"apa\"," +
+                "\"format\":\"light\"" +
+                "}";
+
+        getClient(loggedInToken).perform(post("/api/integration/citations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        org.hamcrest.Matchers.containsString("exceeding the maximum allowed")));
+
+        // Restore default
+        configurationService.setProperty("citation-rest.max-results", 5000);
     }
 }
