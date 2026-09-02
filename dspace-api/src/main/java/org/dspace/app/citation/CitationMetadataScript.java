@@ -10,7 +10,7 @@ package org.dspace.app.citation;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,8 +26,11 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResultItemIterator;
+import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
@@ -81,6 +84,10 @@ public class CitationMetadataScript
         communityService = ContentServiceFactory.getInstance().getCommunityService();
         collectionService = ContentServiceFactory.getInstance().getCollectionService();
         citationService = new DSpace().getSingletonService(CitationServiceImpl.class);
+        if (citationService == null) {
+            throw new IllegalStateException(
+                "CitationServiceImpl bean not found. Check Spring configuration.");
+        }
         ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         styles = configurationService.getArrayProperty("citation-script.filter", DEFAULT_STYLES);
         checkIntervalHours = configurationService.getIntProperty("citation-script.check-interval", 25);
@@ -94,53 +101,136 @@ public class CitationMetadataScript
             handler.logInfo("Citation metadata script started");
 
             IndexableObject<?, ?> scopeObject = resolveScope();
-            Iterator<Item> items = findItems(scopeObject);
 
             int processed = 0;
-            boolean needsReload = false;
+            int errors = 0;
+            int skipped = 0;
+            // Forward-only cursor: tracks the last processed/seen item ID.
+            // Each Solr query fetches items with resourceid > lastSeenId.
+            String lastSeenId = null;
+            boolean hasMore = true;
 
-            while (items.hasNext()) {
-                Item item = items.next();
-                if (item == null || !item.isArchived()) {
-                    continue;
+            while (hasMore) {
+                List<Item> page = fetchPage(scopeObject, lastSeenId);
+
+                if (page.isEmpty()) {
+                    break;
                 }
 
-                // After a commit, items from the iterator may be detached — reload from DB
-                if (needsReload) {
-                    item = itemService.find(context, item.getID());
+                int processedInPage = 0;
+
+                for (Item item : page) {
                     if (item == null || !item.isArchived()) {
                         continue;
                     }
+
+                    // Always track last seen ID for cursor advancement
+                    lastSeenId = item.getID().toString();
+
+                    if (!force && !needsUpdate(item)) {
+                        skipped++;
+                        context.uncacheEntity(item);
+                        continue;
+                    }
+
+                    try {
+                        saveCitationMetadata(item);
+                        processedInPage++;
+                        processed++;
+                    } catch (Exception e) {
+                        errors++;
+                        handler.logError("Error processing item " + item.getID() + ": "
+                                + e.getClass().getName() + " - " + e.getMessage());
+                    } finally {
+                        context.uncacheEntity(item);
+                    }
                 }
 
-                if (!force && !needsUpdate(item)) {
-                    handler.logInfo("Skipped item " + item.getID() + " (no update needed)");
-                    context.uncacheEntity(item);
-                    continue;
-                }
-
-                saveCitationMetadata(item);
-                context.uncacheEntity(item);
-                processed++;
-
-                if (processed % commitSize == 0) {
-                    context.commit();
-                    needsReload = true;
-                    handler.logInfo("Committed after " + processed + " items");
-                }
-            }
-
-            if (processed % commitSize != 0) {
                 context.commit();
+
+                if (processedInPage > 0) {
+                    handler.logInfo("Committed after " + processed + " items processed so far");
+                }
+
+                // Cursor always advances forward (lastSeenId tracks the last item in the page).
+                // In force mode: items still match the query, cursor skips past them.
+                // In non-force mode: cursor advances past skipped items; processed items
+                // will still match the Solr time filter but needsUpdate() will skip them
+                // if they reappear in a future page. No reset needed.
+                // Termination: when the page is empty (no more items beyond lastSeenId).
             }
 
-            handler.logInfo("Citation metadata script completed. Total items processed: " + processed);
+            handler.logInfo("Citation metadata script completed. Total items processed: " + processed
+                    + ", skipped: " + skipped + ", errors: " + errors);
             context.restoreAuthSystemState();
             context.complete();
         } catch (Exception e) {
             handler.handleException(e);
             context.abort();
         }
+    }
+
+    /**
+     * Fetches a single page of items from Solr.
+     *
+     * <p>Uses cursor-based pagination: the {@code lastSeenId} filter skips all items with
+     * resourceid &lt;= lastSeenId. The cursor always advances forward through the result set.</p>
+     */
+    @SuppressWarnings("rawtypes")
+    private List<Item> fetchPage(IndexableObject<?, ?> scopeObject, String lastSeenId)
+            throws SearchServiceException {
+        DiscoverQuery discoverQuery = buildDiscoverQuery(lastSeenId);
+        SearchService searchService = SearchUtils.getSearchService();
+
+        DiscoverResult result;
+        if (scopeObject == null) {
+            result = searchService.search(context, discoverQuery);
+        } else {
+            result = searchService.search(context, scopeObject, discoverQuery);
+        }
+
+        List<IndexableObject> indexableObjects = result.getIndexableObjects();
+        return indexableObjects.stream()
+                .filter(obj -> obj instanceof IndexableItem)
+                .map(obj -> ((IndexableItem) obj).getIndexedObject())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Builds the Solr discovery query. Always starts from offset 0.
+     *
+     * @param lastSeenId if not null, adds a range filter to skip past this ID (cursor advancement)
+     */
+    private DiscoverQuery buildDiscoverQuery(String lastSeenId) {
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.setMaxResults(commitSize);
+        discoverQuery.setStart(0);
+        discoverQuery.setSortField("search.resourceid", DiscoverQuery.SORT_ORDER.asc);
+        discoverQuery.addFilterQueries(
+                "entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent",
+                "-withdrawn:true",
+                "-discoverable:false",
+                "latestVersion:true"
+        );
+
+        // When not forcing, narrow down to only items that likely need processing:
+        // 1. Items without epfl.citation.date -> never processed, need generation
+        // 2. Items whose lastModified is recent -> potentially modified since last run
+        // The needsUpdate check will do the precise lastModified > citationDate comparison.
+        if (!force) {
+            discoverQuery.addFilterQueries(
+                "(*:* -epfl.citation.date:*) OR lastModified:[NOW-" + checkIntervalHours + "HOURS TO NOW]"
+            );
+        }
+
+        // Cursor-based advancement: skip past items already seen in the current run.
+        // The cursor always moves forward, ensuring O(n) total work across all pages.
+        if (lastSeenId != null) {
+            discoverQuery.addFilterQueries("search.resourceid:{" + lastSeenId + " TO *}");
+        }
+
+        return discoverQuery;
     }
 
     /**
@@ -181,41 +271,6 @@ public class CitationMetadataScript
     }
 
     /**
-     * Finds items using a paginated Solr query with the appropriate filters.
-     * Uses {@link DiscoverResultItemIterator} which handles pagination and entity uncaching automatically.
-     *
-     * When not forcing, the Solr query only returns:
-     * - Items that have never been processed (no epfl.citation.date)
-     * - Items modified recently (lastModified within the configured interval)
-     *
-     * This avoids loading hundreds of thousands of unchanged items into memory.
-     */
-    private Iterator<Item> findItems(IndexableObject<?, ?> scopeObject) {
-        DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
-        discoverQuery.setMaxResults(commitSize);
-        discoverQuery.setSortField("search.resourceid", DiscoverQuery.SORT_ORDER.asc);
-        discoverQuery.addFilterQueries(
-                "entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent",
-                "-withdrawn:true",
-                "-discoverable:false",
-                "latestVersion:true"
-        );
-
-        // When not forcing, narrow down to only items that likely need processing:
-        // 1. Items without epfl.citation.date -> never processed, need generation
-        // 2. Items whose lastModified is recent -> potentially modified since last run
-        // The needsUpdate check will do the precise lastModified > citationDate comparison.
-        if (!force) {
-            discoverQuery.addFilterQueries(
-                "(*:* -epfl.citation.date:*) OR lastModified:[NOW-" + checkIntervalHours + "HOURS TO NOW]"
-            );
-        }
-
-        return new DiscoverResultItemIterator(context, scopeObject, discoverQuery);
-    }
-
-    /**
      * Checks if the item needs a citation update by comparing epfl.citation.date with lastModified.
      * Returns true if the item has no citation date or if lastModified is strictly after the citation date.
      */
@@ -240,6 +295,7 @@ public class CitationMetadataScript
 
     /**
      * Saves citation metadata on the item using the CitationService.
+     * Throws an exception if processing fails, allowing the caller to handle it per-item.
      */
     private void saveCitationMetadata(Item item) throws SQLException {
         handler.logInfo("Saving citation metadata for item " + item.getID());
