@@ -90,7 +90,12 @@ public class PersonApiServiceImpl implements PersonApiService {
 
     @Override
     public Optional<InputStream> getPersonalPicture(String sciper) {
-        return apiClient.getPersonalPicture(sciper);
+        return getPerson(sciper)
+            .map(PersonDTO::getEmail)
+            .map(email -> email.contains("@") ? email.substring(0, email.indexOf('@')) : email)
+            .filter(StringUtils::isNotBlank)
+            .filter(localPart -> localPart.contains("."))
+            .flatMap(apiClient::getPersonalPicture);
     }
 
     @Override

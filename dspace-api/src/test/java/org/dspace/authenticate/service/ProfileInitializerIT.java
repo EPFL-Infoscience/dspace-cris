@@ -50,6 +50,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.MockEpflApiClientFactory;
 import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
 import org.dspace.epfl.service.impl.PersonApiServiceImpl;
 import org.dspace.profile.ResearcherProfile;
@@ -57,10 +58,8 @@ import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore("Temporarily ignored at class level")
 public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     private ProfileInitializer profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
@@ -86,7 +85,6 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
 
     private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
     private EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
-//    private EpflApiClient mockApiClient;
 
     private Collection profiles;
 
@@ -123,10 +121,9 @@ public class ProfileInitializerIT extends AbstractIntegrationTestWithDatabase {
         }
         context.restoreAuthSystemState();
 
-//        mockApiClient = mock(EpflApiClient.class);
-
-//        personApiService.setApiClient(mockApiClient);
-//        orgUnitApiService.setApiClient(mockApiClient);
+        EpflApiClient mockApiClient = MockEpflApiClientFactory.createMockApiClient();
+        personApiService.setApiClient(mockApiClient);
+        orgUnitApiService.setApiClient(mockApiClient);
 
     }
 

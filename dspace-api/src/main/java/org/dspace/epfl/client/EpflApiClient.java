@@ -24,7 +24,7 @@ public interface EpflApiClient {
 
     Optional<PersonDTO> getPerson(String sciper, Language language);
 
-    Optional<InputStream> getPersonalPicture(String sciper);
+    Optional<InputStream> getPersonalPicture(String emailLocalPart);
 
     public enum Language {
         EN,
