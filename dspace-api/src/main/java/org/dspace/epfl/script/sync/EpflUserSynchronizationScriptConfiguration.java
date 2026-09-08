@@ -70,6 +70,12 @@ public class EpflUserSynchronizationScriptConfiguration<T extends EpflUserSynchr
             options.getOption("dq").setType(Boolean.class);
             options.getOption("dq").setRequired(false);
 
+            options.addOption("fp", "forcePictureRefresh", false,
+                    "optional parameter to force the refresh of the personal picture from the EPFL API even when" +
+                            " no other metadata change is required for the profile");
+            options.getOption("fp").setType(Boolean.class);
+            options.getOption("fp").setRequired(false);
+
             super.options = options;
         }
         return options;
