@@ -54,6 +54,7 @@ public class EpflUserSynchronizationScript
     private String query;
     private String log;
     private boolean allowDeactivationOnQuery;
+    private boolean forcePictureRefresh;
     private int createdPersonCount = 0;
     private int updatedPersonCount = 0;
 
@@ -90,6 +91,7 @@ public class EpflUserSynchronizationScript
         query = commandLine.getOptionValue('q');
         email = commandLine.getOptionValue('e');
         allowDeactivationOnQuery = commandLine.hasOption("dq");
+        forcePictureRefresh = commandLine.hasOption("fp");
 
         try {
             this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -149,6 +151,13 @@ public class EpflUserSynchronizationScript
                                 logInfo(
                                         "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get()
                                                 + " was updated");
+                            } else if (forcePictureRefresh
+                                    && profileInitializer.refreshPersonalPicture(context, ePerson, sciper.get())) {
+                                updatedPersonCount++;
+                                logInfo(
+                                        "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get()
+                                                + " did not need a metadata update but its personal picture"
+                                                + " was refreshed");
                             } else {
                                 logInfo(
                                         "EPerson with uuid: " + ePerson.getID() + ", sciperId: " + sciper.get() +
@@ -238,7 +247,17 @@ public class EpflUserSynchronizationScript
                             "EPerson with sciperId " + epflPerson.getSciper() + " was not created: 0 accreds");
                 }
             } else {
-                profileInitializer.syncEPerson(context, epflPerson, ePerson);
+                boolean updated = profileInitializer.syncEPerson(context, epflPerson, ePerson);
+                if (updated) {
+                    updatedPersonCount++;
+                    logInfo("EPerson with uuid: " + ePerson.getID() + ", sciperId: " + epflPerson.getSciper()
+                            + " was updated");
+                } else if (forcePictureRefresh
+                        && profileInitializer.refreshPersonalPicture(context, ePerson, epflPerson.getSciper())) {
+                    updatedPersonCount++;
+                    logInfo("EPerson with uuid: " + ePerson.getID() + ", sciperId: " + epflPerson.getSciper()
+                            + " did not need a metadata update but its personal picture was refreshed");
+                }
             }
         } catch (Exception e) {
             logError("Unable to sync profile " + epflPerson.getSciper() + ": " + e.getMessage());
