@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -45,6 +46,7 @@ import org.dspace.core.Context;
 import org.dspace.core.Context.Mode;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
+import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -140,14 +142,19 @@ public class CitationsRestController {
             return badRequestResponse(e.getMessage());
         }
 
-
-        List<Item> items = resolveItems(context, citationsRequest);
+        List<Item> items;
+        try {
+            items = resolveItems(context, citationsRequest);
+        } catch (DSpaceBadRequestException e) {
+            return badRequestResponse(e.getMessage());
+        }
         if (items.isEmpty()) {
             return ResponseEntity.ok(buildResponse(citationsRequest, EMPTY_RESULT));
         }
 
         Map<String, Map<String, List<CitationItem>>> citationItems =
                 buildCitationItems(context, items, citationsRequest);
+        citationItems = sortGroupKeys(citationItems, citationsRequest.getSort(), citationsRequest.getGroupBy());
         return ResponseEntity.ok(buildResponse(citationsRequest, citationItems));
     }
 
@@ -303,9 +310,35 @@ public class CitationsRestController {
         applySort(discoverQuery, citationsRequest.getSort(), citationsRequest.getGroupBy());
         discoverQuery.setMaxResults(configurationService.getIntProperty("rest.search.max.results", 100));
 
+        // For relational configurations (e.g. RELATION.Person.researchoutputs), the scope item's UUID
+        // is already embedded in the filter queries via the {0} placeholder substitution.
+        // We must NOT pass scopeObject to iteratorSearch, because that would add an extra filter
+        // restricting results to only the scope item itself (e.g. the Person), returning 0 results.
+        IndexableObject<?, ?> searchScope = (discoveryConfiguration
+                instanceof org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration)
+                ? null : scopeObject;
+
+        // Check total result count before iterating — reject if above configured maximum
+        int maxAllowed = configurationService.getIntProperty("citation-rest.max-results", 5000);
+        try {
+            DiscoverQuery countQuery = restDiscoverQueryBuilder.buildQuery(context, scopeObject,
+                    discoveryConfiguration, query, Collections.emptyList(), IndexableItem.TYPE, null);
+            countQuery.setMaxResults(0);
+            DiscoverResult countResult = searchService.search(context, searchScope, countQuery);
+            long totalFound = countResult.getTotalSearchResults();
+            if (totalFound > maxAllowed) {
+                throw new DSpaceBadRequestException(
+                        "Query returns " + totalFound + " items, exceeding the maximum allowed ("
+                                + maxAllowed + "). Please narrow the query using scope, filters,"
+                                + " or a more specific query.");
+            }
+        } catch (SearchServiceException e) {
+            throw new DSpaceBadRequestException("Unable to count query results", e);
+        }
+
         Map<UUID, Item> itemsByUuid = new LinkedHashMap<>();
         try {
-            Iterator<Item> iterator = searchService.iteratorSearch(context, scopeObject, discoverQuery);
+            Iterator<Item> iterator = searchService.iteratorSearch(context, searchScope, discoverQuery);
             while (iterator.hasNext()) {
                 Item item = iterator.next();
                 if (item != null) {
@@ -412,6 +445,115 @@ public class CitationsRestController {
         return SORT_TITLE.equals(sortField) ? SORT_ORDER.desc : SORT_ORDER.asc;
     }
 
+    /**
+     * Reorders the keys of the grouped citation map so that:
+     * - Year keys follow the direction specified by the date/year sort clause (or default asc)
+     * - Type keys are always alphabetically ordered
+     * For two-level grouping, both levels are independently sorted.
+     */
+    private Map<String, Map<String, List<CitationItem>>> sortGroupKeys(
+            Map<String, Map<String, List<CitationItem>>> citationItems,
+            String sort, String groupBy) {
+
+        if (StringUtils.isBlank(groupBy)) {
+            return citationItems;
+        }
+
+        SORT_ORDER yearOrder = extractYearSortOrder(sort);
+
+        // Determine comparators for each level based on groupBy structure
+        Comparator<String> outerComparator;
+        Comparator<String> innerComparator;
+
+        switch (groupBy) {
+            case GROUP_BY_YEAR:
+                outerComparator = yearComparator(yearOrder);
+                innerComparator = null; // single level
+                break;
+            case GROUP_BY_TYPE:
+                outerComparator = unknownLast(Comparator.naturalOrder());
+                innerComparator = null; // single level
+                break;
+            case GROUP_BY_YEAR_TYPE:
+                outerComparator = yearComparator(yearOrder);
+                innerComparator = unknownLast(Comparator.naturalOrder()); // type alphabetical
+                break;
+            case GROUP_BY_TYPE_YEAR:
+                outerComparator = unknownLast(Comparator.naturalOrder()); // type alphabetical
+                innerComparator = yearComparator(yearOrder);
+                break;
+            default:
+                return citationItems;
+        }
+
+        // Sort outer keys
+        Map<String, Map<String, List<CitationItem>>> sorted = new LinkedHashMap<>();
+        citationItems.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(outerComparator))
+                .forEach(entry -> {
+                    if (innerComparator != null) {
+                        // Sort inner keys
+                        Map<String, List<CitationItem>> innerSorted = new LinkedHashMap<>();
+                        entry.getValue().entrySet().stream()
+                                .sorted(Map.Entry.comparingByKey(innerComparator))
+                                .forEach(inner -> innerSorted.put(inner.getKey(), inner.getValue()));
+                        sorted.put(entry.getKey(), innerSorted);
+                    } else {
+                        sorted.put(entry.getKey(), entry.getValue());
+                    }
+                });
+
+        return sorted;
+    }
+
+    /**
+     * Extracts the sort order for year/date keys from the sort string.
+     * If the sort contains a date or year clause, returns its direction.
+     * If not specified, returns descending (most recent first) as agreed with the client.
+     */
+    private SORT_ORDER extractYearSortOrder(String sort) {
+        if (StringUtils.isBlank(sort)) {
+            return SORT_ORDER.desc;
+        }
+
+        String[] clauses = sort.split(SORT_MULTI_SEPARATOR, -1);
+        for (String clause : clauses) {
+            String trimmed = clause.trim();
+            String[] tokens = trimmed.split(SORT_SEPARATOR, -1);
+            String field = tokens[0];
+            if (SORT_DATE.equals(field) || SORT_YEAR.equals(field)) {
+                if (tokens.length == 2) {
+                    return SORT_DESC.equals(tokens[1]) ? SORT_ORDER.desc : SORT_ORDER.asc;
+                }
+                return getDefaultSortOrder(field);
+            }
+        }
+        return SORT_ORDER.desc; // default: most recent first
+    }
+
+    private Comparator<String> yearComparator(SORT_ORDER order) {
+        Comparator<String> base = order == SORT_ORDER.desc ? Comparator.reverseOrder() : Comparator.naturalOrder();
+        return unknownLast(base);
+    }
+
+    /**
+     * Wraps a comparator so that the "Unknown" key is always sorted last.
+     */
+    private Comparator<String> unknownLast(Comparator<String> base) {
+        return (a, b) -> {
+            if (UNKNOWN_GROUP.equals(a) && UNKNOWN_GROUP.equals(b)) {
+                return 0;
+            }
+            if (UNKNOWN_GROUP.equals(a)) {
+                return 1;
+            }
+            if (UNKNOWN_GROUP.equals(b)) {
+                return -1;
+            }
+            return base.compare(a, b);
+        };
+    }
+
     private Map<String, Map<String, List<CitationItem>>> buildCitationItems(Context context, List<Item> items,
                                                   CitationsRequestRest citationsRequest) {
         String style = citationsRequest.getStyle();
@@ -433,9 +575,17 @@ public class CitationsRestController {
         for (Item item : items) {
             UUID itemId = item.getID();
             String citation = citationsByUuid.get(itemId);
+
             if (citation == null) {
+                // Item exists but has no cached citation — return minimal info
+                if (isFullFormat) {
+                    addUncachedItemFull(item, citationItems, citationsRequest);
+                } else {
+                    addUncachedItemLight(item, citationItems, citationsRequest);
+                }
                 continue;
             }
+
             Object parsedCslJson = parsedCslJsonByUuid.get(itemId);
 
             if (isFullFormat) {
@@ -497,6 +647,56 @@ public class CitationsRestController {
     private String normalizeStyleQualifier(String style) {
         String normalized = style.trim();
         return StringUtils.removeEndIgnoreCase(normalized, ".csl").toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Adds an uncached item in full format — only uuid and handle are available.
+     * Year is extracted from dc.date.issued for correct groupBy placement.
+     */
+    private void addUncachedItemFull(Item item,
+                                     Map<String, Map<String, List<CitationItem>>> citationItems,
+                                     CitationsRequestRest citationsRequest) {
+        CitationItemFull citationItem = new CitationItemFull();
+        citationItem.uuid = item.getID().toString();
+        citationItem.handle = item.getHandle();
+        citationItem.citation = null;
+        citationItem.collection = Optional.ofNullable(item.getOwningCollection())
+                .map(Collection::getName)
+                .orElse(null);
+        final String year = getYear(item);
+        citationItem.year = year;
+        citationItem.type = null;
+        citationItem.parsedCslItem = null;
+
+        List<CitationItem> destinationList =
+                getGroupedCitationItemList(citationItems, citationsRequest.getGroupBy(), year, null);
+        destinationList.add(citationItem);
+    }
+
+    /**
+     * Adds an uncached item in light format — only uuid is guaranteed.
+     * Year/type extracted from item metadata for correct groupBy placement.
+     */
+    private void addUncachedItemLight(Item item,
+                                      Map<String, Map<String, List<CitationItem>>> citationItems,
+                                      CitationsRequestRest citationsRequest) {
+        CitationItemLight citationItem = new CitationItemLight();
+        citationItem.uuid = item.getID().toString();
+        citationItem.citation = null;
+
+        List<CitationItem> destinationList;
+        String groupBy = citationsRequest.getGroupBy();
+        if (StringUtils.isBlank(groupBy)) {
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, null, null);
+        } else if (GROUP_BY_YEAR.equals(groupBy)) {
+            final String year = getYear(item);
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, year, null);
+        } else {
+            final String year = getYear(item);
+            // No CSL type available without cache — will go into "Unknown" type group
+            destinationList = getGroupedCitationItemList(citationItems, groupBy, year, null);
+        }
+        destinationList.add(citationItem);
     }
 
     private void addCitationItemFull(Item item, String citation, Object parsedCslJson,

@@ -233,6 +233,14 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
                                                  metadataValue.getAuthority(),
                                                  metadataValue.getConfidence());
                 }
+
+                // update native bitstream resource policies to reflect access type changes
+                // (e.g. Open Access -> Restricted) made during the correction workflow step
+                authorizeService.removeAllPoliciesByDSOAndType(c, nativeBitstream, ResourcePolicy.TYPE_CUSTOM);
+                List<ResourcePolicy> correctedPolicies =
+                    authorizeService.findPoliciesByDSOAndType(c, bitstreamCorrected, ResourcePolicy.TYPE_CUSTOM);
+                authorizeService.addPolicies(c, correctedPolicies, nativeBitstream);
+
                 bitstreamService.update(c, nativeBitstream);
             } else {
                 // Add new bitstram to native bundle
@@ -247,14 +255,14 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
                 // So, we need to REMOVE any inherited TYPE_CUSTOM policies before copying over the correct ones.
                 authorizeService.removeAllPoliciesByDSOAndType(c, bitstreamNew, ResourcePolicy.TYPE_CUSTOM);
 
-                // Now, we need to copy the TYPE_CUSTOM resource policies from old bitstream
-                // to the new bitstream, like we did above for bundles
+                // Copy the TYPE_CUSTOM resource policies from the corrected bitstream to the new bitstream,
+                // preserving any access type changes made during the correction workflow step.
                 List<ResourcePolicy> bitstreamPolicies =
-                    authorizeService.findPoliciesByDSOAndType(c, nativeBitstream, ResourcePolicy.TYPE_CUSTOM);
+                    authorizeService.findPoliciesByDSOAndType(c, bitstreamCorrected, ResourcePolicy.TYPE_CUSTOM);
                 authorizeService.addPolicies(c, bitstreamPolicies, bitstreamNew);
 
                 if (correctedBundle.getPrimaryBitstream() != null && correctedBundle.getPrimaryBitstream()
-                                                                              .equals(nativeBitstream)) {
+                                                                              .equals(bitstreamCorrected)) {
                     nativeBundle.setPrimaryBitstreamID(bitstreamNew);
                 }
 

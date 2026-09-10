@@ -344,7 +344,7 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     @Override
     public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter)
             throws Exception {
-        return false;
+        return processBitstream(context, item, source, formatFilter, true);
     }
 
     public boolean processBitstream(Context context, Item item, Bitstream source, FormatFilter formatFilter,

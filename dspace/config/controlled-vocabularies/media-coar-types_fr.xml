@@ -2,7 +2,7 @@
 <!-- This XML was automatically generated from the SKOS sources for the COAR Vocabulary. It follows the schema developed by 4Science (https://www.4science.it/) for DSpace -->
 <node id="http://purl.org/coar/resource_type/scheme" label="Resource Types">
   <isComposedBy>
-    <node id="c_18cf" label="text">
+    <node id="c_18cf" label="texte">
       <hasNote>A resource consisting primarily of words for reading. Examples include books, letters, dissertations, poems, newspapers, articles, archives of mailing lists. Note that facsimiles or images of texts are still of the genre Text. [Source: http://purl.org/dc/dcmitype/Text]
       </hasNote>
         <isComposedBy>

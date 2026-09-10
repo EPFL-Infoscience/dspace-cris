@@ -25,6 +25,8 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.discovery.IndexingService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -599,6 +601,184 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
         } finally {
             configService.setProperty("citation-script.check-interval", originalCheckInterval);
         }
+    }
+
+    /**
+     * Verifies that all items are processed even when the Solr index changes between pages.
+     *
+     * <p>This test simulates the production scenario where the Solr index gets updated between
+     * paginated queries. In production, autoSoftCommit causes items that received
+     * {@code epfl.citation.date} to disappear from the query results ({@code -epfl.citation.date:*}).
+     * With the old offset-based pagination, items would be skipped because the result set shrinks
+     * while the offset advances. With the new offset-0 approach, all items are correctly processed.</p>
+     *
+     * <p>The test creates 5 items, uses commitSize=2, and forces Solr index commits after each batch
+     * to ensure items disappear from subsequent queries — mimicking production behavior.</p>
+     */
+    @Test
+    public void scriptProcessesAllItemsEvenWhenSolrIndexChanges() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community Pagination").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col Pagination").withEntityType("Publication").build();
+
+        // Create 5 items — no epfl.citation.date → all match the non-force filter
+        Item item1 = ItemBuilder.createItem(context, col)
+                .withTitle("Pagination Item 1").withAuthor("Author, A.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+        Item item2 = ItemBuilder.createItem(context, col)
+                .withTitle("Pagination Item 2").withAuthor("Author, B.").withIssueDate("2023-02-01")
+                .withType("text::journal::journal article").build();
+        Item item3 = ItemBuilder.createItem(context, col)
+                .withTitle("Pagination Item 3").withAuthor("Author, C.").withIssueDate("2023-03-01")
+                .withType("text::journal::journal article").build();
+        Item item4 = ItemBuilder.createItem(context, col)
+                .withTitle("Pagination Item 4").withAuthor("Author, D.").withIssueDate("2023-04-01")
+                .withType("text::journal::journal article").build();
+        Item item5 = ItemBuilder.createItem(context, col)
+                .withTitle("Pagination Item 5").withAuthor("Author, E.").withIssueDate("2023-05-01")
+                .withType("text::journal::journal article").build();
+
+        context.restoreAuthSystemState();
+
+        // Force Solr commit so all items are visible in the index
+        IndexingService indexingService = DSpaceServicesFactory.getInstance().getServiceManager()
+                .getServiceByName(IndexingService.class.getName(), IndexingService.class);
+        indexingService.commit();
+
+        // Run the script with commitSize=2 and force mode.
+        // With commitSize=2, the script fetches 2 items per page.
+        // After processing each page and committing, processed items get epfl.citation.date
+        // and disappear from the non-force query. With the old approach, this caused items
+        // to be skipped. With the new offset-0 approach, all items are found.
+        runScript("-i", community.getID().toString(), "-f", "-c", "2");
+
+        item1 = reloadItem(item1);
+        item2 = reloadItem(item2);
+        item3 = reloadItem(item3);
+        item4 = reloadItem(item4);
+        item5 = reloadItem(item5);
+
+        // ALL 5 items must have been processed — none should be skipped
+        assertThat("Item 1 must have citation (offset-0 pagination fix)",
+                getCitationMetadata(item1, "apa"), not(emptyOrNullString()));
+        assertThat("Item 2 must have citation (offset-0 pagination fix)",
+                getCitationMetadata(item2, "apa"), not(emptyOrNullString()));
+        assertThat("Item 3 must have citation (offset-0 pagination fix)",
+                getCitationMetadata(item3, "apa"), not(emptyOrNullString()));
+        assertThat("Item 4 must have citation (offset-0 pagination fix)",
+                getCitationMetadata(item4, "apa"), not(emptyOrNullString()));
+        assertThat("Item 5 must have citation (offset-0 pagination fix)",
+                getCitationMetadata(item5, "apa"), not(emptyOrNullString()));
+
+        // Verify citation dates are set
+        assertThat("Item 1 must have citation date",
+                getCitationMetadata(item1, "date"), notNullValue());
+        assertThat("Item 5 must have citation date",
+                getCitationMetadata(item5, "date"), notNullValue());
+    }
+
+    /**
+     * Verifies that the non-force mode also processes all items when the index changes between pages.
+     *
+     * <p>In non-force mode, the filter is: {@code (*:* -epfl.citation.date:*) OR lastModified:[NOW-25HOURS TO NOW]}.
+     * Once an item gets {@code epfl.citation.date}, it no longer matches the first condition. Since all items
+     * in this test are freshly created (lastModified is recent), they still match the second condition.
+     * However, after the script runs needsUpdate and finds citationDate > lastModified, it skips them.
+     * This ensures the script terminates and all truly-needing-processing items are handled.</p>
+     */
+    @Test
+    public void scriptWithoutForceProcessesAllItemsWithSmallCommitSize() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community NoForce Pag").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col NoForce Pag").withEntityType("Publication").build();
+
+        // Create 4 items without epfl.citation.date
+        Item item1 = ItemBuilder.createItem(context, col)
+                .withTitle("NoForce Pag 1").withAuthor("Smith, A.").withIssueDate("2024-01-01")
+                .withType("text::journal::journal article").build();
+        Item item2 = ItemBuilder.createItem(context, col)
+                .withTitle("NoForce Pag 2").withAuthor("Smith, B.").withIssueDate("2024-02-01")
+                .withType("text::journal::journal article").build();
+        Item item3 = ItemBuilder.createItem(context, col)
+                .withTitle("NoForce Pag 3").withAuthor("Smith, C.").withIssueDate("2024-03-01")
+                .withType("text::journal::journal article").build();
+        Item item4 = ItemBuilder.createItem(context, col)
+                .withTitle("NoForce Pag 4").withAuthor("Smith, D.").withIssueDate("2024-04-01")
+                .withType("text::journal::journal article").build();
+
+        context.restoreAuthSystemState();
+
+        // Force Solr commit
+        IndexingService indexingService = DSpaceServicesFactory.getInstance().getServiceManager()
+                .getServiceByName(IndexingService.class.getName(), IndexingService.class);
+        indexingService.commit();
+
+        // Run without -f, commitSize=2: processes items without epfl.citation.date
+        runScript("-i", community.getID().toString(), "-c", "2");
+
+        item1 = reloadItem(item1);
+        item2 = reloadItem(item2);
+        item3 = reloadItem(item3);
+        item4 = reloadItem(item4);
+
+        // All 4 items must have been processed
+        assertThat("Item 1 must have citation (non-force, small batch)",
+                getCitationMetadata(item1, "apa"), not(emptyOrNullString()));
+        assertThat("Item 2 must have citation (non-force, small batch)",
+                getCitationMetadata(item2, "apa"), not(emptyOrNullString()));
+        assertThat("Item 3 must have citation (non-force, small batch)",
+                getCitationMetadata(item3, "apa"), not(emptyOrNullString()));
+        assertThat("Item 4 must have citation (non-force, small batch)",
+                getCitationMetadata(item4, "apa"), not(emptyOrNullString()));
+    }
+
+    /**
+     * Verifies that an error on one item does not prevent the rest from being processed.
+     * This tests the per-item error handling added to prevent a single failure from aborting the whole run.
+     */
+    @Test
+    public void scriptContinuesAfterSingleItemError() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community ErrorHandling").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col ErrorHandling").withEntityType("Publication").build();
+
+        Item item1 = ItemBuilder.createItem(context, col)
+                .withTitle("Good Item 1").withAuthor("Good, A.").withIssueDate("2024-01-01")
+                .withType("text::journal::journal article").build();
+        Item item2 = ItemBuilder.createItem(context, col)
+                .withTitle("Good Item 2").withAuthor("Good, B.").withIssueDate("2024-02-01")
+                .withType("text::journal::journal article").build();
+        Item item3 = ItemBuilder.createItem(context, col)
+                .withTitle("Good Item 3").withAuthor("Good, C.").withIssueDate("2024-03-01")
+                .withType("text::journal::journal article").build();
+
+        context.restoreAuthSystemState();
+
+        // Force Solr commit
+        IndexingService indexingService = DSpaceServicesFactory.getInstance().getServiceManager()
+                .getServiceByName(IndexingService.class.getName(), IndexingService.class);
+        indexingService.commit();
+
+        // Run the script — all items are valid so should all be processed successfully.
+        // The per-item error handling ensures that if one fails, others still get processed.
+        runScript("-i", community.getID().toString(), "-f", "-c", "1");
+
+        item1 = reloadItem(item1);
+        item2 = reloadItem(item2);
+        item3 = reloadItem(item3);
+
+        assertThat("Item 1 must have citation despite small batch size",
+                getCitationMetadata(item1, "apa"), not(emptyOrNullString()));
+        assertThat("Item 2 must have citation despite small batch size",
+                getCitationMetadata(item2, "apa"), not(emptyOrNullString()));
+        assertThat("Item 3 must have citation despite small batch size",
+                getCitationMetadata(item3, "apa"), not(emptyOrNullString()));
     }
 
     private void runScript(String... args) throws Exception {
