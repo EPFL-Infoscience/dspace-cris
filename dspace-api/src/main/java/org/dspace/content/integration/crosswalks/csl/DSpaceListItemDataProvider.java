@@ -135,6 +135,13 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
     private String volume;
     private String yearSuffix;
     private String contributor;
+    private String chair;
+    private String compiler;
+    private String curator;
+    private String executiveProducer;
+    private String organizer;
+    private String performer;
+    private String producer;
     private String eventTitle;
     private String availableDate;
     private String partTitle;
@@ -279,6 +286,13 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
         consumeCSLNamesIfNotBlank(composer, item, names -> itemBuilder.composer(names));
         consumeCSLNamesIfNotBlank(containerAuthor, item, names -> itemBuilder.containerAuthor(names));
         consumeCSLNamesIfNotBlank(contributor, item, names -> itemBuilder.contributor(names));
+        consumeCSLNamesIfNotBlank(chair, item, names -> itemBuilder.chair(names));
+        consumeCSLNamesIfNotBlank(compiler, item, names -> itemBuilder.compiler(names));
+        consumeCSLNamesIfNotBlank(curator, item, names -> itemBuilder.curator(names));
+        consumeCSLNamesIfNotBlank(executiveProducer, item, names -> itemBuilder.executiveProducer(names));
+        consumeCSLNamesIfNotBlank(organizer, item, names -> itemBuilder.organizer(names));
+        consumeCSLNamesIfNotBlank(performer, item, names -> itemBuilder.performer(names));
+        consumeCSLNamesIfNotBlank(producer, item, names -> itemBuilder.producer(names));
         consumeCSLNamesIfNotBlank(director, item, names -> itemBuilder.director(names));
         consumeCSLNamesIfNotBlank(editor, item, names -> itemBuilder.editor(names));
         consumeCSLNamesIfNotBlank(interviewer, item, names -> itemBuilder.interviewer(names));
@@ -1152,6 +1166,62 @@ public class DSpaceListItemDataProvider extends ListItemDataProvider {
 
     public void setContributor(String contributor) {
         this.contributor = contributor;
+    }
+
+    public String getChair() {
+        return chair;
+    }
+
+    public void setChair(String chair) {
+        this.chair = chair;
+    }
+
+    public String getCompiler() {
+        return compiler;
+    }
+
+    public void setCompiler(String compiler) {
+        this.compiler = compiler;
+    }
+
+    public String getCurator() {
+        return curator;
+    }
+
+    public void setCurator(String curator) {
+        this.curator = curator;
+    }
+
+    public String getExecutiveProducer() {
+        return executiveProducer;
+    }
+
+    public void setExecutiveProducer(String executiveProducer) {
+        this.executiveProducer = executiveProducer;
+    }
+
+    public String getOrganizer() {
+        return organizer;
+    }
+
+    public void setOrganizer(String organizer) {
+        this.organizer = organizer;
+    }
+
+    public String getPerformer() {
+        return performer;
+    }
+
+    public void setPerformer(String performer) {
+        this.performer = performer;
+    }
+
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
     }
 
     public String getEventTitle() {
