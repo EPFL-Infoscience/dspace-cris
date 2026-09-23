@@ -147,6 +147,37 @@ public class SimpleMapConverterTest {
     }
 
     @Test
+    public void testPropertiesParsingWithEncoding() throws IOException {
+
+        // The key contains "é", which is stored as the two bytes 0xC3 0xA9 (its UTF-8 form).
+        // When read as UTF-8 those bytes decode to a single "é"; with the default behaviour
+        // (ISO-8859-1) they decode to the two characters "Ã©" instead. This proves that
+        // setEncoding actually changes how the file bytes are decoded.
+        when(configurationService.getProperty("dspace.dir")).thenReturn(dspaceDir.getAbsolutePath());
+        createFileInFolder(crosswalksDir, "test.properties", "café=value");
+
+        SimpleMapConverter withoutEncoding = new SimpleMapConverter();
+        withoutEncoding.setConfigurationService(configurationService);
+        withoutEncoding.setConverterNameFile("test.properties");
+        withoutEncoding.init();
+
+        SimpleMapConverter withUtf8Encoding = new SimpleMapConverter();
+        withUtf8Encoding.setConfigurationService(configurationService);
+        withUtf8Encoding.setConverterNameFile("test.properties");
+        withUtf8Encoding.setEncoding("UTF-8");
+        withUtf8Encoding.init();
+
+        // With UTF-8 the key is decoded correctly and matches "café".
+        assertThat(withUtf8Encoding.getValue("café"), is("value"));
+
+        // Without an explicit encoding the same bytes are decoded differently, so "café"
+        // does not match (the key was stored as the mojibake "cafÃ©").
+        assertThat(withoutEncoding.getValue("café"), is("café"));
+        assertThat(withoutEncoding.getValue("caf\u00c3\u00a9"), is("value"));
+
+    }
+
+    @Test
     public void testPropertiesParsingWithEmptyFile() throws IOException {
 
         when(configurationService.getProperty("dspace.dir")).thenReturn(dspaceDir.getAbsolutePath());

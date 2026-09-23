@@ -414,6 +414,60 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    public void testTypeResolvesToPaperConferenceForFrenchConferenceProceedingsPaper() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("texte::objet présenté à une conférence::actes de conférence"
+                + "::article dans une conférence/papier de conférence")
+            .withTitle("Conference paper title")
+            .withIssueDate("2021-07-01")
+            .withHandle("123456789/0104")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"type\": \"paper-conference\""));
+        assertThat(citation, not(containsString("\"type\": \"document\"")));
+    }
+
+    @Test
+    public void testTypeResolvesToPaperConferenceForFrenchUnpublishedConferencePaper() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withType("texte::objet présenté à une conférence"
+                + "::article dans une conférence non publié dans les actes")
+            .withTitle("Unpublished conference paper title")
+            .withIssueDate("2021-07-01")
+            .withHandle("123456789/0105")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, item, out);
+
+        String citation = out.toString();
+
+        assertThat(citation, containsString("\"type\": \"paper-conference\""));
+        assertThat(citation, not(containsString("\"type\": \"document\"")));
+    }
+
+    @Test
     public void testISSNRulesPreferRelationIssnOverRelationSerieIssn() throws Exception {
         context.turnOffAuthorisationSystem();
 
