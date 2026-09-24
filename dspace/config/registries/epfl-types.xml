@@ -540,4 +540,61 @@
         <element>author</element>
         <qualifier>corresponding</qualifier>
     </dc-type>
+
+    <!-- Citation metadata (pre-computed by citation-metadata script) -->
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>apa</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>chicago</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>harvard</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>ieee</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>iso690</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>mla</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>vancouver</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>cslitem</qualifier>
+    </dc-type>
+
+    <dc-type>
+        <schema>epfl</schema>
+        <element>citation</element>
+        <qualifier>date</qualifier>
+    </dc-type>
+
 </dspace-dc-types>

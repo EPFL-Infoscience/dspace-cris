@@ -502,6 +502,17 @@ public class ExternalSourcesRestControllerIT extends AbstractControllerIntegrati
     }
 
     @Test
+    public void dataciteAppearsForPublicationEntityTypeTest() throws Exception {
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/integration/externalsources/search/findByEntityType")
+                .param("entityType", "Publication"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.externalsources",
+                        Matchers.hasItem(ExternalSourceMatcher.matchExternalSource("datacite", "datacite", false))));
+    }
+
+    @Test
     public void findSupportedEntityTypesOfAnExternalDataProviderEmptyResponseTest() throws Exception {
         ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("mock"))
                                                            .setSupportedEntityTypes(null);

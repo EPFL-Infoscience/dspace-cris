@@ -25,16 +25,19 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
+import org.dspace.authenticate.service.ProfileInitializer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.ResourcePolicyService;
@@ -61,6 +64,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.epfl.client.EpflApiClient;
+import org.dspace.epfl.client.MockEpflApiClientFactory;
 import org.dspace.epfl.service.impl.OrgUnitApiServiceImpl;
 import org.dspace.epfl.service.impl.PersonApiServiceImpl;
 import org.dspace.profile.ResearcherProfile;
@@ -68,10 +72,8 @@ import org.dspace.profile.service.ResearcherProfileService;
 import org.dspace.utils.DSpace;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore("Temporarily ignored at class level")
 public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWithDatabase {
 
     private ResearcherProfileService researcherProfileService = new DSpace()
@@ -83,6 +85,8 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
 
     private PersonApiServiceImpl personApiService = new DSpace().getServiceManager()
         .getServicesByType(PersonApiServiceImpl.class).get(0);
+
+    private ProfileInitializer profileInitializer = new DSpace().getSingletonService(ProfileInitializer.class);
 
     private OrgUnitApiServiceImpl orgUnitApiService = new DSpace().getServiceManager()
         .getServicesByType(OrgUnitApiServiceImpl.class).get(0);
@@ -131,6 +135,10 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         }
         context.commit();
         context.restoreAuthSystemState();
+
+        EpflApiClient mockApiClient = MockEpflApiClientFactory.createMockApiClient();
+        personApiService.setApiClient(mockApiClient);
+        orgUnitApiService.setApiClient(mockApiClient);
 
     }
 
@@ -810,6 +818,137 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
         // The profile picture should have been removed
         Bitstream picture = bitstreamService.getBitstreamByName(researcherProfile.getItem(), "ORIGINAL", "1.jpg");
         assertThat(picture, nullValue());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testForcePictureRefreshUpdatesPictureWhenProfileIsUpToDate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
+            .build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("Laboratory of Sensing and Networking Systems")
+                   .withAcronym("SENS").build();
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("SSC - Teaching")
+                   .withAcronym("SSC-ENS").build();
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("SIN - Teaching")
+                   .withAcronym("SIN-ENS").build();
+
+        context.restoreAuthSystemState();
+
+        // run the script to fully synchronize the profile (metadata, affiliations and picture)
+        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail()};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+
+        eperson = context.reloadEntity(eperson);
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+        Item profile = researcherProfile.getItem();
+
+        Bitstream initialPicture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(initialPicture, notNullValue());
+
+        // replace the picture with a recognizable dummy so we can detect a real refresh
+        byte[] dummyPicture = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xD9};
+        context.turnOffAuthorisationSystem();
+        bitstreamService.replacePersonalPicture(context, profile, "352234.jpg",
+                new ByteArrayInputStream(dummyPicture));
+        itemService.update(context, profile);
+        context.commit();
+        context.restoreAuthSystemState();
+
+        // sanity check: the stored picture is now the dummy one
+        profile = context.reloadEntity(profile);
+        Bitstream dummy = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(readBitstream(dummy), equalTo(dummyPicture));
+
+        // force the picture refresh: the picture must be fetched again from the EPFL API (mock)
+        context.turnOffAuthorisationSystem();
+        boolean refreshed = profileInitializer.refreshPersonalPicture(context, eperson, "352234");
+        context.restoreAuthSystemState();
+        assertThat(refreshed, is(true));
+
+        profile = context.reloadEntity(profile);
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+        assertThat(readBitstream(picture), equalTo(fakeApiPicture()));
+
+        context.turnOffAuthorisationSystem();
+        itemService.delete(context, profile);
+        context.restoreAuthSystemState();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testForcePictureRefreshLogsRefreshedPictureFromScript() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson eperson = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("Test", "User")
+            .withEmail("test@user.it")
+            .withNetId("352234@epfl.ch")
+            .build();
+
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("Laboratory of Sensing and Networking Systems")
+                   .withAcronym("SENS").build();
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("SSC - Teaching")
+                   .withAcronym("SSC-ENS").build();
+        ItemBuilder.createItem(context, orgUnits)
+                   .withTitle("SIN - Teaching")
+                   .withAcronym("SIN-ENS").build();
+
+        context.restoreAuthSystemState();
+
+        // run the script with the -fp flag: the profile is created/synchronized and its picture is fetched
+        String[] args = new String[] { "epfl-user-synchronization", "-e", admin.getEmail(), "-fp"};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        eperson = context.reloadEntity(eperson);
+        ResearcherProfile researcherProfile = researcherProfileService.findById(context, eperson.getID());
+        assertThat(researcherProfile, notNullValue());
+        Item profile = researcherProfile.getItem();
+
+        // the picture is present and matches the one returned by the EPFL API (mock)
+        Bitstream picture = bitstreamService.getBitstreamByName(profile, "ORIGINAL", "352234.jpg");
+        assertThat(picture, notNullValue());
+        assertThat(picture.getMetadata(), hasItem(with("dc.type", "personal picture")));
+        assertThat(readBitstream(picture), equalTo(fakeApiPicture()));
+
+        context.turnOffAuthorisationSystem();
+        itemService.delete(context, profile);
+        context.restoreAuthSystemState();
+    }
+
+    private byte[] readBitstream(Bitstream bitstream) throws Exception {
+        try (InputStream inputStream = bitstreamService.retrieve(context, bitstream)) {
+            return IOUtils.toByteArray(inputStream);
+        }
+    }
+
+    private byte[] fakeApiPicture() {
+        // must match MockEpflApiClientFactory.createFakeImageStream()
+        return new byte[] {
+            (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0,
+            0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
+            0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00
+        };
     }
 
     private void assertVisible(ResearcherProfile researcherProfile) throws SQLException {

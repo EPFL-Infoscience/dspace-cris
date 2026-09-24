@@ -58,8 +58,30 @@ public class DiscoverQuery {
         asc
     }
 
+    /**
+     * Represents a single sort criterion with a field and an order.
+     */
+    public static class SortClause {
+        private final String field;
+        private final SORT_ORDER order;
+
+        public SortClause(String field, SORT_ORDER order) {
+            this.field = field;
+            this.order = order;
+        }
+
+        public String getField() {
+            return field;
+        }
+
+        public SORT_ORDER getOrder() {
+            return order;
+        }
+    }
+
     private String sortField;
     private SORT_ORDER sortOrder;
+    private final List<SortClause> sortClauses = new ArrayList<>();
 
     /**
      * Attributes required for the faceting of values
@@ -126,6 +148,31 @@ public class DiscoverQuery {
 
     public SORT_ORDER getSortOrder() {
         return sortOrder;
+    }
+
+    /**
+     * Adds a sort criterion to the ordered list of sort clauses.
+     * Multiple sort clauses are applied in the order they are added.
+     *
+     * @param sortField the field to sort by
+     * @param sortOrder the sort direction
+     */
+    public void addSortField(String sortField, SORT_ORDER sortOrder) {
+        this.sortClauses.add(new SortClause(sortField, sortOrder));
+        // Maintain backward compatibility: the first sort also populates the legacy fields
+        if (this.sortField == null) {
+            this.sortField = sortField;
+            this.sortOrder = sortOrder;
+        }
+    }
+
+    /**
+     * Returns the ordered list of sort clauses.
+     *
+     * @return the sort clauses, empty if none were added via {@link #addSortField}
+     */
+    public List<SortClause> getSortClauses() {
+        return sortClauses;
     }
 
     /**

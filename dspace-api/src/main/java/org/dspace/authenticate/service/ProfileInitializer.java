@@ -13,6 +13,7 @@ import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.dspace.core.I18nUtil.getEmailFilename;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -165,6 +166,30 @@ public class ProfileInitializer {
             }
         }
         return needsToBEUpdated;
+    }
+
+    /**
+     * Refreshes the personal picture of the given EPerson's profile from the EPFL API, regardless of whether any
+     * other metadata needs to be updated. This is meant to be used to reflect on an existing profile a picture that
+     * has been updated on the EPFL side.
+     *
+     * @param context the DSpace context
+     * @param ePerson the EPerson whose profile picture must be refreshed
+     * @param sciper  the sciper identifier used to retrieve the picture from the EPFL API
+     * @return {@code true} if a new picture was fetched from the EPFL API and stored, {@code false} otherwise
+     */
+    public boolean refreshPersonalPicture(Context context, EPerson ePerson, String sciper)
+            throws SQLException, AuthorizeException {
+        Optional<ResearcherProfile> researcherProfile = findProfile(context, ePerson);
+        if (researcherProfile.isEmpty()) {
+            return false;
+        }
+        Item item = researcherProfile.get().getItem();
+        boolean updated = refreshPersonalPicture(context, item, sciper);
+        if (updated) {
+            itemService.update(context, item);
+        }
+        return updated;
     }
 
     /**
@@ -556,8 +581,7 @@ public class ProfileInitializer {
 
         String sciper = person.getSciper();
 
-        personApiService.getPersonalPicture(sciper)
-            .ifPresent(content -> bitstreamService.replacePersonalPicture(context, item, sciper + ".jpg", content));
+        refreshPersonalPicture(context, item, sciper);
 
         try {
             itemService.update(context, item);
@@ -565,6 +589,21 @@ public class ProfileInitializer {
             throw new RuntimeException(e);
         }
 
+    }
+
+    /**
+     * Fetches the personal picture from the EPFL API for the given sciper and replaces the one currently
+     * stored on the profile item (if any). This is a no-op when the API does not return a picture.
+     *
+     * @param context the DSpace context
+     * @param item    the researcher profile item to update
+     * @param sciper  the sciper identifier used to retrieve the picture
+     * @return {@code true} if a picture was fetched from the EPFL API and stored, {@code false} otherwise
+     */
+    private boolean refreshPersonalPicture(Context context, Item item, String sciper) {
+        Optional<InputStream> picture = personApiService.getPersonalPicture(sciper);
+        picture.ifPresent(content -> bitstreamService.replacePersonalPicture(context, item, sciper + ".jpg", content));
+        return picture.isPresent();
     }
 
     private void sendEmailForNoAffiliations(Context context, PersonDTO person) {
