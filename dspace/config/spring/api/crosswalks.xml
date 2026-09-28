@@ -2072,6 +2072,8 @@
 		<property name="converterNameFile" value="mapConverter-dcTypesToClsTypes.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value="document"/>
+		<!-- The mapping file stores accented dc.type keys as raw UTF-8 bytes -->
+		<property name="encoding" value="UTF-8"/>
 	</bean>
 
 	<bean name="mapConverterCoarToGenre" class="org.dspace.util.SimpleMapConverter" init-method="init">
