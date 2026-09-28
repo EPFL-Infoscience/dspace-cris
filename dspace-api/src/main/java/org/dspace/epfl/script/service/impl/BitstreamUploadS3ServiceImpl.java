@@ -8,26 +8,25 @@
 package org.dspace.epfl.script.service.impl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.PostConstruct;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
-import com.amazonaws.services.s3.transfer.Upload;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.util.IOUtils;
 import org.dspace.epfl.script.service.BitstreamUploadS3Service;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class BitstreamUploadS3ServiceImpl implements BitstreamUploadS3Service {
 
@@ -36,28 +35,29 @@ public class BitstreamUploadS3ServiceImpl implements BitstreamUploadS3Service {
     @Autowired
     private ConfigurationService configurationService;
 
-    private TransferManager transferManager = null;
+    private S3Client s3Service = null;
 
     @PostConstruct
     private void setup() {
+        var builder = S3Client.builder()
+            .region(getAwsRegion());
 
-        BasicAWSCredentials credentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
+        String accessKey = getAwsAccessKey();
+        String secretKey = getAwsSecretKey();
 
-        AmazonS3 s3Service = AmazonS3ClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(credentials))
-            .withRegion(getAwsRegion())
-            .build();
+        if (StringUtils.isNotBlank(accessKey) && StringUtils.isNotBlank(secretKey)) {
+            builder.credentialsProvider(
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(accessKey, secretKey)
+                )
+            );
+        }
 
-        transferManager = TransferManagerBuilder.standard()
-            .withAlwaysCalculateMultipartMd5(true)
-            .withS3Client(s3Service)
-            .build();
-
+        s3Service = builder.build();
     }
 
     @Override
     public void upload(InputStream source, String name) {
-
         String key = getAwsDirectory() + File.separator + name;
         String bucketName = getBucketName();
 
@@ -68,44 +68,50 @@ public class BitstreamUploadS3ServiceImpl implements BitstreamUploadS3Service {
         File scratchFile = createTempFile(name, source);
 
         try {
-
-            Upload upload = transferManager.upload(bucketName, key, scratchFile);
-            upload.waitForUploadResult();
-
-        } catch (AmazonClientException | InterruptedException e) {
+            s3Service.putObject(
+                PutObjectRequest.builder().bucket(bucketName).key(key).build(),
+                scratchFile.toPath()
+            );
+        } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
             scratchFile.delete();
         }
-
     }
 
     private boolean isObjectAlreadyPresent(String key, String bucketName) {
-        return transferManager.getAmazonS3Client().doesObjectExist(bucketName, key);
+        try {
+            s3Service.headObject(HeadObjectRequest.builder().bucket(bucketName).key(key).build());
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        }
     }
 
     private File createTempFile(String name, InputStream source) {
         try {
             File scratchFile = File.createTempFile(name, "s3");
             scratchFile.deleteOnExit();
-            IOUtils.copy(source, scratchFile);
+            try (FileOutputStream fos = new FileOutputStream(scratchFile)) {
+                IOUtils.copy(source, fos);
+            }
             return scratchFile;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Regions getAwsRegion() {
-        Regions regions = Regions.DEFAULT_REGION;
+    private Region getAwsRegion() {
+        Region region = Region.US_EAST_1;
         String awsRegionName = getAwsAccessRegion();
         if (StringUtils.isNotBlank(awsRegionName)) {
             try {
-                regions = Regions.fromName(awsRegionName);
+                region = Region.of(awsRegionName);
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("Invalid aws_region: " + awsRegionName);
             }
         }
-        return regions;
+        return region;
     }
 
     private String getBucketName() {

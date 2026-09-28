@@ -1,9 +1,15 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd" default-lazy-init="true">
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+    default-lazy-init="true"
+>
 
-    <bean name="org.dspace.storage.bitstore.BitstreamStorageService" class="org.dspace.storage.bitstore.BitstreamStorageServiceImpl">
+  <bean
+      name="org.dspace.storage.bitstore.BitstreamStorageService"
+      class="org.dspace.storage.bitstore.BitstreamStorageServiceImpl"
+  >
         <!-- assetstore.index.primary will be 2 in test and 1 in prod -->
         <property name="incoming" value="${assetstore.index.primary}"/>
         <property name="stores">
@@ -16,53 +22,156 @@
         </property>
     </bean>
 
-    <bean name="localStore" class="org.dspace.storage.bitstore.DSBitStoreService" scope="singleton">
+    <bean name="localStore" class="org.dspace.storage.bitstore.DSBitStoreService">
         <property name="baseDir" value="${assetstore.dir}"/>
     </bean>
 
     <bean name="s3StoreTEST" class="org.dspace.storage.bitstore.S3BitStoreService" scope="singleton" lazy-init="true">
-        <property name="enabled" value="${assetstore.s3.enabled_TEST}"/>
-        <!-- AWS Security credentials, with policies for specified bucket -->
-        <property name="awsAccessKey" value="${assetstore.s3.awsAccessKey_TEST}"/>
-        <property name="awsSecretKey" value="${assetstore.s3.awsSecretKey_TEST}"/>
-        <property name="awsSessionToken" value="${assetstore.s3.awsToken_TEST}"/>
-        <property name="useRelativePath" value="${assetstore.s3.useRelativePath_TEST}"/>
+        <property name="enabled" value="${assetstore.s3.TEST.enabled}"/>
+        <property name="useRelativePath" value="${assetstore.s3.TEST.useRelativePath}"/>
 
         <!-- S3 bucket name to store assets in. example: longsight-dspace-auk -->
-        <property name="bucketName" value="${assetstore.s3.bucketName_TEST}"/>
-
-        <!-- AWS S3 Region to use: {us-east-1, us-west-1, eu-west-1, eu-central-1, ap-southeast-1, ... } -->
-        <!-- Optional, sdk default is us-east-1 -->
-        <property name="awsRegionName" value="${assetstore.s3.awsRegionName_TEST}"/>
+        <property name="bucketName" value="${assetstore.s3.TEST.bucketName}"/>
 
         <!-- Subfolder to organize assets within the bucket, in case this bucket is shared  -->
         <!-- Optional, default is root level of bucket -->
-        <property name="subfolder" value="${assetstore.s3.subfolder_TEST}"/>
+        <property name="subfolder" value="${assetstore.s3.TEST.subfolder}"/>
+
+        <!-- The algorithm the S3 client will use to create a checksum when doing putObject. -->
+        <property name="s3ChecksumAlgorithm" value="${assetstore.s3.s3ChecksumAlgorithm}"/>
+
+        <property name="builder" ref="testClientBuilder"/>
+        <property name="presignedUrlStrategy" ref="presignedUrlTESTStrategy"/>
     </bean>
 
     <bean name="s3StorePROD" class="org.dspace.storage.bitstore.S3BitStoreService" scope="singleton" lazy-init="true">
-        <property name="enabled" value="${assetstore.s3.enabled_PROD}"/>
-        <!-- AWS Security credentials, with policies for specified bucket -->
-        <property name="awsAccessKey" value="${assetstore.s3.awsAccessKey_PROD}"/>
-        <property name="awsSecretKey" value="${assetstore.s3.awsSecretKey_PROD}"/>
-        <property name="awsSessionToken" value="${assetstore.s3.awsToken_PROD}"/>
-        <property name="useRelativePath" value="${assetstore.s3.useRelativePath_PROD}"/>
+      <property name="enabled" value="${assetstore.s3.PROD.enabled}"/>
+      <property name="useRelativePath" value="${assetstore.s3.PROD.useRelativePath}"/>
 
-        <!-- S3 bucket name to store assets in. example: longsight-dspace-auk -->
-        <property name="bucketName" value="${assetstore.s3.bucketName_PROD}"/>
+      <!-- S3 bucket name to store assets in. example: longsight-dspace-auk -->
+      <property name="bucketName" value="${assetstore.s3.PROD.bucketName}"/>
 
-        <!-- AWS S3 Region to use: {us-east-1, us-west-1, eu-west-1, eu-central-1, ap-southeast-1, ... } -->
-        <!-- Optional, sdk default is us-east-1 -->
-        <property name="awsRegionName" value="${assetstore.s3.awsRegionName_PROD}"/>
+      <!-- Subfolder to organize assets within the bucket, in case this bucket is shared  -->
+      <!-- Optional, default is root level of bucket -->
+      <property name="subfolder" value="${assetstore.s3.PROD.subfolder}"/>
 
-        <!-- Subfolder to organize assets within the bucket, in case this bucket is shared  -->
-        <!-- Optional, default is root level of bucket -->
-        <property name="subfolder" value="${assetstore.s3.subfolder_PROD}"/>
-        <property name="maxConnections" value="${assetstore.s3.maxConnections}"/>
-        <property name="connectionTimeout" value="${assetstore.s3.connectionTimeout}"/>
-        <property name="endpoint" value="${assetstore.s3.endpoint}"/>
+      <!-- The algorithm the S3 client will use to create a checksum when doing putObject. -->
+      <property name="s3ChecksumAlgorithm" value="${assetstore.s3.s3ChecksumAlgorithm}"/>
+
+      <property name="builder" ref="prodClientBuilder"/>
+      <property name="presignedUrlStrategy" ref="presignedUrlPRODStrategy"/>
     </bean>
+
+    <bean name="awsCredentialsFactory"
+          class="org.dspace.storage.bitstore.factory.AWSFactory"/>
+
+    <!-- Default client builder -->
+    <bean name="defaultClientBuilder"
+          factory-bean="awsCredentialsFactory"
+          factory-method="clientBuilder"/>
+
+    <!-- TEST client builder -->
+    <bean name="testClientBuilder"
+          factory-bean="awsCredentialsFactory"
+          factory-method="clientBuilder">
+      <constructor-arg name="storeSuffix" value="TEST"/>
+    </bean>
+
+    <!-- PROD client builder -->
+    <bean name="prodClientBuilder"
+          factory-bean="awsCredentialsFactory"
+          factory-method="clientBuilder">
+      <constructor-arg name="storeSuffix" value="PROD"/>
+    </bean>
+
+    <!-- Temp client builder -->
+    <bean name="tempClientBuilder"
+          factory-bean="awsCredentialsFactory"
+          factory-method="clientBuilder">
+        <constructor-arg name="storeSuffix" value="temp"/>
+    </bean>
+
+    <!-- Presigned URL strategy: uses CloudFront if distribution domain is configured, otherwise falls back to S3 -->
+
+    <bean name="presignedUrlTESTStrategy" class="org.dspace.storage.bitstore.PresignedUrlStrategyFactoryBean">
+          <property name="distributionDomain" value="${assetstore.s3.cloudfront.distribution.domain_TEST:}"/>
+          <property name="keyPairId" value="${assetstore.s3.cloudfront.key.id:}"/>
+          <property name="privateKeyPath" value="${assetstore.s3.cloudfront.private.key.path:}"/>
+          <property name="s3ClientBuilder" ref="defaultClientBuilder"/>
+      </bean>
+
+    <bean name="presignedUrlPRODStrategy" class="org.dspace.storage.bitstore.PresignedUrlStrategyFactoryBean">
+      <property name="distributionDomain" value="${assetstore.s3.cloudfront.distribution.domain_PROD:}"/>
+      <property name="keyPairId" value="${assetstore.s3.cloudfront.key.id:}"/>
+      <property name="privateKeyPath" value="${assetstore.s3.cloudfront.private.key.path:}"/>
+      <property name="s3ClientBuilder" ref="defaultClientBuilder"/>
+    </bean>
+
+
 
     <!-- <bean name="localStore2 ... -->
     <!-- <bean name="s3Store2 ... -->
+
+    <!-- Custom credentialsProvider; uncomment to use -->
+    <!--
+    <bean name="credentialsProvider" class="org.dspace.storage.bitstore.AWSCredentialsProviderBuilder" scope="singleton">
+        <property name="stsRole" value="${assetstore.s3.sts.role}"/>
+        <property name="stsSessionName" value="${assetstore.s3.sts.sessionname}"/>
+        <property name="stsRegion" value="${assetstore.s3.sts.region}"/>
+        <property name="stsExternalId" value="${assetstore.s3.sts.externalid}"/>
+        <property name="stsSessionDuration" value="${assetstore.s3.sts.sessionduration}"/>
+        <property name="stsEndpoint" value="${assetstore.s3.sts.endpoint}"/>
+        <property name="irsaRole" value="${assetstore.s3.irsa.role}"/>
+        <property name="irsaRoleSessionName" value="${assetstore.s3.irsa.session}"/>
+        <property name="webIdentityTokenFile" value="${assetstore.s3.irsa.tokenfile}"/>
+        <property name="awsAccessKey" value="${assetstore.s3.awsAccessKey}"/>
+        <property name="awsSecretKey" value="${assetstore.s3.awsSecretKey}"/>
+        <property name="awsSessionToken" value="${assetstore.s3.awsToken}"/>
+    </bean
+    >-->
+
+    <!-- Custom stsCredentials; uncomment to use -->
+    <!--
+    <bean name="stsCredentials" factory-bean="credentialsProvider" factory-method="build" scope="singleton"
+          lazy-init="true">
+        <constructor-arg name="type" value="STS"/>
+    </bean>
+    -->
+
+    <!-- Custom irsaCredentials; uncomment to use -->
+    <!--
+    <bean name="irsaCredentials" factory-bean="credentialsProvider" factory-method="build" scope="singleton"
+          lazy-init="true">
+        <constructor-arg name="type" value="IRSA"/>
+    </bean>
+    -->
+
+    <!-- Custom staticCredentials; uncomment to use -->
+    <!--
+    <bean name="staticCredentials" factory-bean="credentialsProvider" factory-method="build" scope="singleton"
+          lazy-init="true">
+        <constructor-arg name="type" value="STATIC"/>
+    </bean>
+    -->
+
+    <!-- Default credentialsProvider; uncomment to use -->
+    <!--
+    <bean name="defaultCredentials" factory-bean="credentialsProvider" factory-method="build" scope="singleton"
+          lazy-init="true">
+        <constructor-arg name="type" value="DEFAULT"/>
+    </bean>
+    -->
+
+    <!-- Default asyncClientBuilder; uncomment to use -->
+    <!--
+    <bean name="asyncClientBuilder" class="org.dspace.storage.bitstore.AWSS3ClientBuilder">
+        <property name="region" value="${assetstore.s3.region}"/>
+        <property name="endpoint" value="${assetstore.s3.endpoint}"/>
+        <property name="maxConcurrency" value="${assetstore.s3.maxConcurrency}"/>
+        <property name="targetThroughput" value="${assetstore.s3.targetThroughput}"/>
+        <property name="minPartSize" value="${assetstore.s3.minPartSize}"/>
+        <property name="credentialsProvider" ref="defaultCredentials"/>
+    </bean>
+    -->
+
 </beans>

@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.dto.MetadataValueDTO;
@@ -51,6 +50,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 public class ItemsS3ServiceImpl implements ItemsS3Service {
 
@@ -76,13 +76,13 @@ public class ItemsS3ServiceImpl implements ItemsS3Service {
     @Override
     public Stream<String> getAllItemsKeys() {
         return streamOf(itemsClient.iterateObjects())
-            .map(S3ObjectSummary::getKey);
+            .map(S3Object::key);
     }
 
     @Override
     public Stream<String> getItemsKeys(Integer limit, String startAfter) {
         return itemsClient.getObjects(limit, startAfter).stream()
-            .map(S3ObjectSummary::getKey);
+            .map(S3Object::key);
     }
 
     @Override

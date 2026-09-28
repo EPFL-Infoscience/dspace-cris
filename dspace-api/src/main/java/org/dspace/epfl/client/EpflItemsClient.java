@@ -11,13 +11,13 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 public interface EpflItemsClient {
 
-    Iterator<S3ObjectSummary> iterateObjects();
+    Iterator<S3Object> iterateObjects();
 
-    List<S3ObjectSummary> getObjects(Integer limit, String startAfter);
+    List<S3Object> getObjects(Integer limit, String startAfter);
 
     File get(String key);
 
@@ -25,6 +25,6 @@ public interface EpflItemsClient {
 
     String getCreationDateByKey(String key);
 
-    Iterator<S3ObjectSummary> iterateCreationDate();
+    Iterator<S3Object> iterateCreationDate();
 
 }

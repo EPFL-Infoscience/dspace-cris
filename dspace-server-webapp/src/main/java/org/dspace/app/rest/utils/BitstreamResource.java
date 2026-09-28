@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
@@ -45,17 +44,18 @@ public class BitstreamResource extends AbstractResource {
     protected final UUID uuid;
     protected final UUID currentUserUUID;
     protected final boolean shouldGenerateCoverPage;
-    protected boolean skipAuthCheck;
-    protected byte[] file;
+    protected final boolean skipAuthCheck;
     protected final Set<UUID> currentSpecialGroups;
 
     protected final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
     protected final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
     protected final CitationDocumentService citationDocumentService =
-            new DSpace().getServiceManager()
-                    .getServicesByType(CitationDocumentService.class).get(0);
+        new DSpace().getServiceManager()
+            .getServicesByType(CitationDocumentService.class).get(0);
 
-    protected BitstreamDocument document;
+    protected String documentEtag;
+    protected long documentLength;
+    protected InputStream documentInputStream = null;
 
     public BitstreamResource(String name, UUID uuid, UUID currentUserUUID, Set<UUID> currentSpecialGroups,
         boolean shouldGenerateCoverPage, boolean skipAuth) {
@@ -77,16 +77,13 @@ public class BitstreamResource extends AbstractResource {
      */
     byte[] getCoverpageByteArray(Context context, Bitstream bitstream)
         throws IOException, SQLException, AuthorizeException {
-        if (file == null) {
-            try {
-                Pair<byte[], Long> citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
-                this.file = citedDocument.getLeft();
-            } catch (Exception e) {
-                // Return the original bitstream without the cover page
-                this.file = IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
-            }
+        try {
+            var citedDocument = citationDocumentService.makeCitedDocument(context, bitstream);
+            return citedDocument.getLeft();
+        } catch (Exception e) {
+            LOG.warn("Could not generate cover page. Will fallback to original document", e);
+            return IOUtils.toByteArray(bitstreamService.retrieve(context, bitstream));
         }
-        return file;
     }
 
     @Override
@@ -98,7 +95,7 @@ public class BitstreamResource extends AbstractResource {
     public InputStream getInputStream() throws IOException {
         fetchDocument();
 
-        return document.getInputStream();
+        return this.documentInputStream;
     }
 
     @Override
@@ -107,20 +104,20 @@ public class BitstreamResource extends AbstractResource {
     }
 
     @Override
-    public long contentLength() throws IOException {
+    public long contentLength() {
         fetchDocument();
 
-        return document.getLength();
+        return this.documentLength;
     }
 
     public String getChecksum() {
         fetchDocument();
 
-        return document.getEtag();
+        return this.documentEtag;
     }
 
     void fetchDocument() {
-        if (document != null) {
+        if (this.documentInputStream != null) {
             return;
         }
 
@@ -132,19 +129,19 @@ public class BitstreamResource extends AbstractResource {
             if (shouldGenerateCoverPage) {
                 var coverPage = getCoverpageByteArray(context, bitstream);
 
-                this.document = new BitstreamDocument(etag(bitstream),
-                        coverPage.length,
-                        new ByteArrayInputStream(coverPage));
+                this.documentEtag = etag(bitstream);
+                this.documentLength = coverPage.length;
+                this.documentInputStream = new ByteArrayInputStream(coverPage);
             } else {
-                this.document = new BitstreamDocument(bitstream.getChecksum(),
-                        bitstream.getSizeBytes(),
-                        bitstreamService.retrieve(context, bitstream));
+                this.documentEtag = bitstream.getChecksum();
+                this.documentLength = bitstream.getSizeBytes();
+                this.documentInputStream = bitstreamService.retrieve(context, bitstream);
             }
         } catch (SQLException | AuthorizeException | IOException e) {
             throw new RuntimeException(e);
         }
 
-        LOG.debug("fetched document {} {}", shouldGenerateCoverPage, document);
+        LOG.debug("fetched document {} {} {}", shouldGenerateCoverPage, this.documentEtag, this.documentLength);
     }
 
     String etag(Bitstream bitstream) {
