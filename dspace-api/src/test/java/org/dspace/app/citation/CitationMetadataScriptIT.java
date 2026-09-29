@@ -14,6 +14,10 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -909,6 +913,108 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 getCitationMetadata(archived, "apa"), not(emptyOrNullString()));
         assertThat("Workflow item must NOT receive a citation",
                 getCitationMetadata(wfiItem, "apa"), nullValue());
+    }
+
+    /**
+     * The -u option processes exactly the item UUIDs listed in the CSV file, generating citations
+     * for those and leaving items not in the file untouched.
+     */
+    @Test
+    public void scriptProcessesOnlyItemsInUuidList() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community Uuids").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col Uuids").withEntityType("Publication").build();
+
+        Item item1 = ItemBuilder.createItem(context, col)
+                .withTitle("Uuid Pub 1").withAuthor("Author, A.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+        Item item2 = ItemBuilder.createItem(context, col)
+                .withTitle("Uuid Pub 2").withAuthor("Author, B.").withIssueDate("2023-02-01")
+                .withType("text::journal::journal article").build();
+        Item excluded = ItemBuilder.createItem(context, col)
+                .withTitle("Excluded Pub").withAuthor("Author, C.").withIssueDate("2023-03-01")
+                .withType("text::journal::journal article").build();
+
+        context.restoreAuthSystemState();
+
+        String csv = writeUuidCsv(item1.getID() + System.lineSeparator() + item2.getID());
+        runScript("-u", csv, "-f");
+
+        item1 = reloadItem(item1);
+        item2 = reloadItem(item2);
+        excluded = reloadItem(excluded);
+
+        assertThat("Item 1 in the list should have a citation",
+                getCitationMetadata(item1, "apa"), not(emptyOrNullString()));
+        assertThat("Item 2 in the list should have a citation",
+                getCitationMetadata(item2, "apa"), not(emptyOrNullString()));
+        assertThat("Item not in the list should NOT have a citation",
+                getCitationMetadata(excluded, "apa"), nullValue());
+    }
+
+    /**
+     * A workspace item listed in the -u file must never receive a citation.
+     */
+    @Test
+    public void scriptWithUuidListDoesNotGenerateCitationForWorkspaceItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community Uuids WSI").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col Uuids WSI").withEntityType("Publication").build();
+
+        Item archived = ItemBuilder.createItem(context, col)
+                .withTitle("Archived Uuid Pub").withAuthor("Author, A.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, col)
+                .withTitle("Draft Uuid Pub").withAuthor("Author, W.").withIssueDate("2023-02-01")
+                .withType("text::journal::journal article").withEntityType("Publication").build();
+        Item wsiItem = workspaceItem.getItem();
+
+        context.restoreAuthSystemState();
+
+        String csv = writeUuidCsv(archived.getID() + System.lineSeparator() + wsiItem.getID());
+        runScript("-u", csv, "-f");
+
+        archived = reloadItem(archived);
+        wsiItem = reloadItem(wsiItem);
+
+        assertThat("Archived item should have a citation",
+                getCitationMetadata(archived, "apa"), not(emptyOrNullString()));
+        assertThat("Workspace item must NOT receive a citation",
+                getCitationMetadata(wsiItem, "apa"), nullValue());
+    }
+
+    /**
+     * The -i and -u options are mutually exclusive: providing both aborts the script during setup,
+     * so no item is processed.
+     */
+    @Test
+    public void scriptFailsWhenBothIndexAndUuidsProvided() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Community community = CommunityBuilder.createCommunity(context).withName("Community Excl").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col Excl").withEntityType("Publication").build();
+        Item item = ItemBuilder.createItem(context, col)
+                .withTitle("Excl Pub").withAuthor("Author, X.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+        context.restoreAuthSystemState();
+
+        String csv = writeUuidCsv(item.getID().toString());
+        runScript("-i", community.getID().toString(), "-u", csv, "-f");
+
+        item = reloadItem(item);
+        assertThat("No citation should be generated when both -i and -u are provided",
+                getCitationMetadata(item, "apa"), nullValue());
+    }
+
+    private String writeUuidCsv(String content) throws Exception {
+        File file = File.createTempFile("citation-uuids", ".csv");
+        file.deleteOnExit();
+        Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
+        return file.getAbsolutePath();
     }
 
     private void runScript(String... args) throws Exception {

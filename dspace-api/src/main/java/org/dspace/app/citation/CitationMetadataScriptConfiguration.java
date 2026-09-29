@@ -7,6 +7,7 @@
  */
 package org.dspace.app.citation;
 
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -48,6 +49,11 @@ public class CitationMetadataScriptConfiguration<T extends CitationMetadataScrip
                     "UUID of an item, collection, or community to use as scope for the generation");
             options.getOption("i").setType(String.class);
             options.getOption("i").setRequired(false);
+
+            options.addOption("u", "uuid-list", true,
+                    "CSV file with the UUIDs of the items to process (alternative to -i)");
+            options.getOption("u").setType(InputStream.class);
+            options.getOption("u").setRequired(false);
 
             options.addOption("f", "force", false,
                     "Force regeneration of citations regardless of modification date");
