@@ -20,13 +20,21 @@ import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.VersionBuilder;
+import org.dspace.builder.WorkflowItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.discovery.IndexingService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.versioning.Version;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,10 +46,14 @@ import org.junit.Test;
 public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabase {
 
     private ItemService itemService;
+    private InstallItemService installItemService;
+    private WorkspaceItemService workspaceItemService;
 
     @Before
     public void setup() {
         itemService = ContentServiceFactory.getInstance().getItemService();
+        installItemService = ContentServiceFactory.getInstance().getInstallItemService();
+        workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
     }
 
     @Test
@@ -779,6 +791,124 @@ public class CitationMetadataScriptIT extends AbstractIntegrationTestWithDatabas
                 getCitationMetadata(item2, "apa"), not(emptyOrNullString()));
         assertThat("Item 3 must have citation despite small batch size",
                 getCitationMetadata(item3, "apa"), not(emptyOrNullString()));
+    }
+
+    /**
+     * A previous version that is still visible/searchable but no longer the latest version
+     * (a newer version exists) must still get a citation.
+     */
+    @Test
+    public void scriptGeneratesCitationForVisibleNonLatestVersion() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community Versioning").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col Versioning").withEntityType("Publication").build();
+
+        // First version: archived and publicly visible
+        Item firstVersion = ItemBuilder.createItem(context, col)
+                .withTitle("Versioned Publication").withAuthor("Author, V.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+
+        // Create and install a newer version so isLatestVersion(firstVersion) becomes false
+        // while the first version stays visible/searchable.
+        Version newVersion =
+                VersionBuilder.createVersion(context, firstVersion, "new version").build();
+        installItemService.installItem(context,
+                workspaceItemService.findByItem(context, newVersion.getItem()));
+
+        context.dispatchEvents();
+
+        IndexingService indexingService = DSpaceServicesFactory.getInstance().getServiceManager()
+                .getServiceByName(IndexingService.class.getName(), IndexingService.class);
+        indexingService.commit();
+
+        context.restoreAuthSystemState();
+
+        firstVersion = reloadItem(firstVersion);
+
+        assertThat("First version should no longer be the latest version",
+                itemService.isLatestVersion(context, firstVersion), is(false));
+
+        // Run the script directly on the first (still visible and searchable) version.
+        runScript("-i", firstVersion.getID().toString(), "-f");
+
+        firstVersion = reloadItem(firstVersion);
+
+        assertThat("Non-latest but still-visible item should still get a citation",
+                getCitationMetadata(firstVersion, "apa"), not(emptyOrNullString()));
+    }
+
+    /**
+     * A workspace item (in-progress submission) must never get a citation. An archived item in the
+     * same community acts as a canary to confirm the script actually ran.
+     */
+    @Test
+    public void scriptDoesNotGenerateCitationForWorkspaceItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community WSI").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col WSI").withEntityType("Publication").build();
+
+        // Archived, published publication — should be processed (canary)
+        Item archived = ItemBuilder.createItem(context, col)
+                .withTitle("Archived Pub").withAuthor("Author, A.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+
+        // Workspace item (in-progress submission) — must NOT be processed
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, col)
+                .withTitle("Draft Pub in Workspace").withAuthor("Author, W.").withIssueDate("2023-02-01")
+                .withType("text::journal::journal article").withEntityType("Publication").build();
+        Item wsiItem = workspaceItem.getItem();
+
+        context.restoreAuthSystemState();
+
+        runScript("-i", community.getID().toString(), "-f");
+
+        archived = reloadItem(archived);
+        wsiItem = reloadItem(wsiItem);
+
+        assertThat("Archived publication should be processed (canary)",
+                getCitationMetadata(archived, "apa"), not(emptyOrNullString()));
+        assertThat("Workspace item must NOT receive a citation",
+                getCitationMetadata(wsiItem, "apa"), nullValue());
+    }
+
+    /**
+     * A workflow item (in-progress submission in the workflow) must never get a citation. An archived
+     * item in the same community acts as a canary to confirm the script actually ran.
+     */
+    @Test
+    public void scriptDoesNotGenerateCitationForWorkflowItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Community community = CommunityBuilder.createCommunity(context).withName("Community WFI").build();
+        Collection col = CollectionBuilder.createCollection(context, community)
+                .withName("Col WFI").withWorkflowGroup(1, admin).withEntityType("Publication").build();
+
+        // Archived, published publication — should be processed (canary)
+        Item archived = ItemBuilder.createItem(context, col)
+                .withTitle("Archived Pub WFI").withAuthor("Author, A.").withIssueDate("2023-01-01")
+                .withType("text::journal::journal article").build();
+
+        // Workflow item (in-progress submission in the workflow) — must NOT be processed
+        XmlWorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, col)
+                .withTitle("Draft Pub in Workflow").withAuthor("Author, F.").withIssueDate("2023-02-01")
+                .withEntityType("Publication").build();
+        Item wfiItem = workflowItem.getItem();
+
+        context.restoreAuthSystemState();
+
+        runScript("-i", community.getID().toString(), "-f");
+
+        archived = reloadItem(archived);
+        wfiItem = reloadItem(wfiItem);
+
+        assertThat("Archived publication should be processed (canary)",
+                getCitationMetadata(archived, "apa"), not(emptyOrNullString()));
+        assertThat("Workflow item must NOT receive a citation",
+                getCitationMetadata(wfiItem, "apa"), nullValue());
     }
 
     private void runScript(String... args) throws Exception {

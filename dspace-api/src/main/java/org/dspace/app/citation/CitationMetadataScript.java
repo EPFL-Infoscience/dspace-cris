@@ -120,12 +120,21 @@ public class CitationMetadataScript
                 int processedInPage = 0;
 
                 for (Item item : page) {
-                    if (item == null || !item.isArchived()) {
+                    if (item == null) {
                         continue;
                     }
 
-                    // Always track last seen ID for cursor advancement
+                    // Advance the cursor before any skip below, otherwise a skipped item would
+                    // not move the cursor and the same page would be fetched forever.
                     lastSeenId = item.getID().toString();
+
+                    // Skip in-progress submissions (workspace/workflow): not published, must never
+                    // receive a citation. We do not skip on isArchived() alone, so that an unarchived
+                    // previous version that is still visible keeps its citation.
+                    if (isInProgressSubmission(item)) {
+                        context.uncacheEntity(item);
+                        continue;
+                    }
 
                     if (!force && !needsUpdate(item)) {
                         skipped++;
@@ -207,11 +216,13 @@ public class CitationMetadataScript
         discoverQuery.setMaxResults(commitSize);
         discoverQuery.setStart(0);
         discoverQuery.setSortField("search.resourceid", DiscoverQuery.SORT_ORDER.asc);
+        // Eligibility is based on public visibility (-withdrawn:true, -discoverable:false), not on
+        // latestVersion:true: a previous version that is unarchived while a newer version is still in
+        // workspace/workflow is still visible/searchable and must keep a cached citation.
         discoverQuery.addFilterQueries(
                 "entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent",
                 "-withdrawn:true",
-                "-discoverable:false",
-                "latestVersion:true"
+                "-discoverable:false"
         );
 
         // When not forcing, narrow down to only items that likely need processing:
@@ -268,6 +279,20 @@ public class CitationMetadataScript
 
         handler.logError("UUID does not match any item, collection, or community: " + uuid);
         throw new IllegalArgumentException("UUID not found: " + uuid);
+    }
+
+    /**
+     * Returns true if the item is an in-progress submission (workspace/workflow item).
+     * On error, returns true so the item is skipped (never cited when in doubt).
+     */
+    private boolean isInProgressSubmission(Item item) {
+        try {
+            return itemService.isInProgressSubmission(context, item);
+        } catch (SQLException e) {
+            handler.logWarning("Unable to determine submission state for item " + item.getID()
+                    + " — skipping it to be safe: " + e.getMessage());
+            return true;
+        }
     }
 
     /**
