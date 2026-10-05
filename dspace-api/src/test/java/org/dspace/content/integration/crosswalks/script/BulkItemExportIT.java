@@ -444,6 +444,116 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
             "Items exported successfully into file named person.xml"));
     }
 
+    /**
+     * When no entity type (-t) is provided, the export must NOT restrict the results to any
+     * entity type: items of every entity type (Publication, Person, OrgUnit, Event, ...) must be
+     * exported.
+     */
+    @Test
+    public void testBulkItemExportWithoutEntityTypeExportsEveryEntityType() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        createItem(collection, "A Publication", "Science", "Publication");
+        createItem(collection, "A Person", "Science", "Person");
+        createItem(collection, "An OrgUnit", "Science", "OrgUnit");
+        createItem(collection, "An Event", "Science", "Event");
+        context.restoreAuthSystemState();
+        context.commit();
+
+        File xml = new File("cerif.xml");
+        xml.deleteOnExit();
+
+        String[] args = new String[] { "bulk-item-export", "-f", "cerif-xml" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Found 4 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        try (FileInputStream fis = new FileInputStream(xml)) {
+            String content = IOUtils.toString(fis, Charset.defaultCharset());
+            assertThat(content, containsString("<Title>A Publication</Title>"));
+            assertThat(content, containsString("<Title>A Person</Title>"));
+            assertThat(content, containsString("<Title>An OrgUnit</Title>"));
+            assertThat(content, containsString("<Title>An Event</Title>"));
+        }
+    }
+
+    /**
+     * A typed export of a non-bibliographic entity (e.g. Event) must work exactly like for the
+     * bibliographic ones: only the items of the requested entity type are exported.
+     */
+    @Test
+    public void testBulkItemExportWithEntityTypeEvent() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        createItem(collection, "First Event", "Science", "Event");
+        createItem(collection, "Second Event", "Science", "Event");
+        createItem(collection, "A Publication", "Science", "Publication");
+        createItem(collection, "A Person", "Science", "Person");
+        context.restoreAuthSystemState();
+        context.commit();
+
+        File xml = new File("cerif.xml");
+        xml.deleteOnExit();
+
+        String[] args = new String[] { "bulk-item-export", "-t", "Event", "-f", "cerif-xml" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Found 2 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        try (FileInputStream fis = new FileInputStream(xml)) {
+            String content = IOUtils.toString(fis, Charset.defaultCharset());
+            assertThat(content, containsString("<Title>First Event</Title>"));
+            assertThat(content, containsString("<Title>Second Event</Title>"));
+            assertThat(content, not(containsString("<Title>A Publication</Title>")));
+            assertThat(content, not(containsString("<Title>A Person</Title>")));
+        }
+    }
+
+    /**
+     * Without an entity type (-t) the result set is bounded only by the other criteria (here the
+     * scope): all items inside the scope are exported regardless of their entity type, and items
+     * outside the scope are excluded.
+     */
+    @Test
+    public void testBulkItemExportWithoutEntityTypeIsBoundedByScope() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Collection anotherCollection = createCollection(context, community).withAdminGroup(eperson).build();
+        createItem(collection, "In Scope Publication", "Science", "Publication");
+        createItem(collection, "In Scope Event", "Science", "Event");
+        createItem(anotherCollection, "Out Of Scope Person", "Science", "Person");
+        context.restoreAuthSystemState();
+        context.commit();
+
+        File xml = new File("cerif.xml");
+        xml.deleteOnExit();
+
+        String[] args = new String[] { "bulk-item-export", "-f", "cerif-xml",
+            "-s", collection.getID().toString() };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Found 2 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        try (FileInputStream fis = new FileInputStream(xml)) {
+            String content = IOUtils.toString(fis, Charset.defaultCharset());
+            assertThat(content, containsString("<Title>In Scope Publication</Title>"));
+            assertThat(content, containsString("<Title>In Scope Event</Title>"));
+            assertThat(content, not(containsString("<Title>Out Of Scope Person</Title>")));
+        }
+    }
+
     @Test
     @SuppressWarnings("deprecation")
     public void testBulkItemExportWithWorkspaceAndWorkflowItemsAndDefaultConfiguration() throws Exception {
