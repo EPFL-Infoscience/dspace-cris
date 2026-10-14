@@ -7,6 +7,10 @@
  */
 package org.dspace.app.citation;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Date;
@@ -54,6 +58,7 @@ public class CitationMetadataScript
 
     private Context context;
     private String index;
+    private String uuidListFileName;
     private boolean force;
     private int commitSize;
 
@@ -77,6 +82,10 @@ public class CitationMetadataScript
     public void setup() throws ParseException {
         context = new Context(Mode.BATCH_EDIT);
         index = commandLine.getOptionValue('i');
+        uuidListFileName = commandLine.getOptionValue('u');
+        if (StringUtils.isNotBlank(index) && StringUtils.isNotBlank(uuidListFileName)) {
+            throw new ParseException("Options -i and -u are mutually exclusive");
+        }
         force = commandLine.hasOption('f');
         commitSize = Integer.parseInt(commandLine.getOptionValue("c", String.valueOf(DEFAULT_COMMIT_SIZE)));
 
@@ -100,74 +109,142 @@ public class CitationMetadataScript
             context.turnOffAuthorisationSystem();
             handler.logInfo("Citation metadata script started");
 
-            IndexableObject<?, ?> scopeObject = resolveScope();
-
-            int processed = 0;
-            int errors = 0;
-            int skipped = 0;
-            // Forward-only cursor: tracks the last processed/seen item ID.
-            // Each Solr query fetches items with resourceid > lastSeenId.
-            String lastSeenId = null;
-            boolean hasMore = true;
-
-            while (hasMore) {
-                List<Item> page = fetchPage(scopeObject, lastSeenId);
-
-                if (page.isEmpty()) {
-                    break;
-                }
-
-                int processedInPage = 0;
-
-                for (Item item : page) {
-                    if (item == null || !item.isArchived()) {
-                        continue;
-                    }
-
-                    // Always track last seen ID for cursor advancement
-                    lastSeenId = item.getID().toString();
-
-                    if (!force && !needsUpdate(item)) {
-                        skipped++;
-                        context.uncacheEntity(item);
-                        continue;
-                    }
-
-                    try {
-                        saveCitationMetadata(item);
-                        processedInPage++;
-                        processed++;
-                    } catch (Exception e) {
-                        errors++;
-                        handler.logError("Error processing item " + item.getID() + ": "
-                                + e.getClass().getName() + " - " + e.getMessage());
-                    } finally {
-                        context.uncacheEntity(item);
-                    }
-                }
-
-                context.commit();
-
-                if (processedInPage > 0) {
-                    handler.logInfo("Committed after " + processed + " items processed so far");
-                }
-
-                // Cursor always advances forward (lastSeenId tracks the last item in the page).
-                // In force mode: items still match the query, cursor skips past them.
-                // In non-force mode: cursor advances past skipped items; processed items
-                // will still match the Solr time filter but needsUpdate() will skip them
-                // if they reappear in a future page. No reset needed.
-                // Termination: when the page is empty (no more items beyond lastSeenId).
+            Counters counters = new Counters();
+            if (StringUtils.isNotBlank(uuidListFileName)) {
+                runForUuidList(counters);
+            } else {
+                runForScope(counters);
             }
 
-            handler.logInfo("Citation metadata script completed. Total items processed: " + processed
-                    + ", skipped: " + skipped + ", errors: " + errors);
+            handler.logInfo("Citation metadata script completed. Total items processed: " + counters.processed
+                    + ", skipped: " + counters.skipped + ", errors: " + counters.errors);
             context.restoreAuthSystemState();
             context.complete();
         } catch (Exception e) {
             handler.handleException(e);
             context.abort();
         }
+    }
+
+    /**
+     * Processes the items matching the discovery query (optionally restricted to the -i scope),
+     * paging through Solr with a forward-only cursor on the resource id.
+     */
+    private void runForScope(Counters counters) throws Exception {
+        IndexableObject<?, ?> scopeObject = resolveScope();
+
+        // Forward-only cursor: each query fetches items with resourceid > lastSeenId.
+        String lastSeenId = null;
+
+        List<Item> page = fetchPage(scopeObject, lastSeenId);
+        while (!page.isEmpty()) {
+            for (Item item : page) {
+                if (item == null) {
+                    continue;
+                }
+                // Advance the cursor before any skip, otherwise a skipped item would not move
+                // the cursor and the same page would be fetched forever.
+                lastSeenId = item.getID().toString();
+                processItem(item, counters);
+            }
+
+            context.commit();
+            page = fetchPage(scopeObject, lastSeenId);
+        }
+    }
+
+    /**
+     * Processes the items whose UUIDs are listed in the CSV file passed via the -u option.
+     * Tokens are separated by commas and/or newlines; blank tokens are ignored.
+     */
+    private void runForUuidList(Counters counters) throws Exception {
+        InputStream inputStream = handler.getFileStream(context, uuidListFileName)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Could not find the UUID list file: " + uuidListFileName));
+
+        int sinceCommit = 0;
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                for (String token : line.split(",")) {
+                    String value = token.trim();
+                    if (value.isEmpty()) {
+                        continue;
+                    }
+                    if (processUuid(value, counters) && ++sinceCommit >= commitSize) {
+                        context.commit();
+                        sinceCommit = 0;
+                    }
+                }
+            }
+        }
+        context.commit();
+    }
+
+    /**
+     * Resolves a single UUID string to an item and processes it.
+     * Logs and counts an error for invalid UUIDs or items not found.
+     *
+     * @return true if the token was resolved to an existing item (and thus processed)
+     */
+    private boolean processUuid(String value, Counters counters) throws SQLException {
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(value);
+        } catch (IllegalArgumentException e) {
+            counters.errors++;
+            handler.logError("Invalid UUID: " + value);
+            return false;
+        }
+        Item item = itemService.find(context, uuid);
+        if (item == null) {
+            counters.errors++;
+            handler.logError("No item found for UUID: " + value);
+            return false;
+        }
+        processItem(item, counters);
+        return true;
+    }
+
+    /**
+     * Processes a single item: skips in-progress submissions, applies the needsUpdate check
+     * (unless force), generates and saves the citation metadata, and updates the counters.
+     */
+    private void processItem(Item item, Counters counters) throws SQLException {
+        // Skip in-progress submissions (workspace/workflow): not published, must never receive a
+        // citation. We do not skip on isArchived() alone, so that an unarchived previous version
+        // that is still visible keeps its citation.
+        if (isInProgressSubmission(item)) {
+            context.uncacheEntity(item);
+            return;
+        }
+
+        if (!force && !needsUpdate(item)) {
+            counters.skipped++;
+            context.uncacheEntity(item);
+            return;
+        }
+
+        try {
+            saveCitationMetadata(item);
+            counters.processed++;
+        } catch (Exception e) {
+            counters.errors++;
+            handler.logError("Error processing item " + item.getID() + ": "
+                    + e.getClass().getName() + " - " + e.getMessage());
+        } finally {
+            context.uncacheEntity(item);
+        }
+    }
+
+    /**
+     * Simple mutable holder for the run statistics.
+     */
+    private static final class Counters {
+        private int processed;
+        private int skipped;
+        private int errors;
     }
 
     /**
@@ -207,11 +284,13 @@ public class CitationMetadataScript
         discoverQuery.setMaxResults(commitSize);
         discoverQuery.setStart(0);
         discoverQuery.setSortField("search.resourceid", DiscoverQuery.SORT_ORDER.asc);
+        // Eligibility is based on public visibility (-withdrawn:true, -discoverable:false), not on
+        // latestVersion:true: a previous version that is unarchived while a newer version is still in
+        // workspace/workflow is still visible/searchable and must keep a cached citation.
         discoverQuery.addFilterQueries(
                 "entityType_keyword:Publication OR entityType_keyword:Product OR entityType_keyword:Patent",
                 "-withdrawn:true",
-                "-discoverable:false",
-                "latestVersion:true"
+                "-discoverable:false"
         );
 
         // When not forcing, narrow down to only items that likely need processing:
@@ -268,6 +347,20 @@ public class CitationMetadataScript
 
         handler.logError("UUID does not match any item, collection, or community: " + uuid);
         throw new IllegalArgumentException("UUID not found: " + uuid);
+    }
+
+    /**
+     * Returns true if the item is an in-progress submission (workspace/workflow item).
+     * On error, returns true so the item is skipped (never cited when in doubt).
+     */
+    private boolean isInProgressSubmission(Item item) {
+        try {
+            return itemService.isInProgressSubmission(context, item);
+        } catch (SQLException e) {
+            handler.logWarning("Unable to determine submission state for item " + item.getID()
+                    + " — skipping it to be safe: " + e.getMessage());
+            return true;
+        }
     }
 
     /**

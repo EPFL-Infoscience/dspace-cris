@@ -3765,7 +3765,8 @@
             <list>
                 <ref bean="searchFilterTitle" />
                 <ref bean="searchFilterEventPlace" />
-                <ref bean="searchFilterEventDate" />                
+                <ref bean="searchFilterEventDate" />
+                <ref bean="searchFilterEntityType" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->

@@ -13,7 +13,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,25 +36,28 @@ import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.HttpHeadersInitializer;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
-import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 import org.dspace.disseminate.service.CitationDocumentService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.EventService;
+import org.dspace.storage.bitstore.service.BitstreamStorageService;
 import org.dspace.usage.UsageEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -80,11 +86,16 @@ public class BitstreamRestController {
     //Most file systems are configured to use block sizes of 4096 or 8192 and our buffer should be a multiple of that.
     private static final int BUFFER_SIZE = 4096 * 10;
 
-    @Autowired
-    private BitstreamService bitstreamService;
+    private static final String PRESIGNED_REDIRECT_DURATION_PROPERTY =
+        "bitstream.content.presigned-redirect.duration.seconds";
+    private static final long DEFAULT_PRESIGNED_REDIRECT_DURATION = 5;
+
+    private static final String MAX_TTL_PROPERTY =
+        "assetstore.s3.presigned.url.max.ttl.seconds";
+    private static final long DEFAULT_MAX_TTL = 3600;
 
     @Autowired
-    BitstreamFormatService bitstreamFormatService;
+    private BitstreamService bitstreamService;
 
     @Autowired
     private EventService eventService;
@@ -104,6 +115,12 @@ public class BitstreamRestController {
     @Autowired
     Utils utils;
 
+    @Autowired
+    private BitstreamStorageService bitstreamStorageService;
+
+    @Autowired
+    private AuthorizeService authorizeService;
+
     /**
      * Retrieve bitstream. An access token (created by request a copy for some files, if enabled) can optionally
      * be used for authorization instead of current user/group
@@ -120,9 +137,10 @@ public class BitstreamRestController {
     @PreAuthorize("#accessToken != null|| hasPermission(#uuid, 'BITSTREAM', 'READ')")
     @RequestMapping( method = {RequestMethod.GET, RequestMethod.HEAD}, value = "content")
     public ResponseEntity retrieve(@PathVariable UUID uuid,
-                                   @Parameter(value = "accessToken", required = false) String accessToken,
-                                   HttpServletResponse response,
-                                   HttpServletRequest request) throws IOException, SQLException, AuthorizeException {
+           @Parameter(value = "accessToken", required = false) String accessToken,
+           @RequestParam(name = "authenticationMethod", required = false) String authenticationMethod,
+           HttpServletResponse response,
+           HttpServletRequest request) throws IOException, SQLException, AuthorizeException {
 
         // Obtain context
         Context context = ContextUtil.obtainContext(request);
@@ -171,6 +189,24 @@ public class BitstreamRestController {
                     bit));
         }
 
+        // Check for presigned URL redirect (skip for HEAD requests and admin bypass)
+        boolean isAdmin = authorizeService.isAdmin(context);
+        boolean adminBypass = "direct".equals(authenticationMethod) && isAdmin;
+
+        if (!adminBypass && !RequestMethod.HEAD.name().equals(request.getMethod())) {
+            long redirectDuration = configurationService.getLongProperty(
+                PRESIGNED_REDIRECT_DURATION_PROPERTY, DEFAULT_PRESIGNED_REDIRECT_DURATION);
+            String presignedUrl = bitstreamStorageService.getPresignedUrl(
+                context, bit, Duration.ofSeconds(redirectDuration));
+            if (StringUtils.isNotBlank(presignedUrl)) {
+                log.debug("Redirecting bitstream {} to presigned URL", uuid);
+                context.complete();
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .header(HttpHeaders.LOCATION, presignedUrl)
+                        .build();
+            }
+        }
+
         // Begin actual bitstream delivery
         try {
             // Check if a citation coverpage is valid for this download
@@ -198,13 +234,13 @@ public class BitstreamRestController {
 
             // Set http headers
             HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
-                    .withBufferSize(BUFFER_SIZE)
-                    .withFileName(name)
-                    .withChecksum(bitstreamResource.getChecksum())
-                    .withLength(bitstreamResource.contentLength())
-                    .withMimetype(mimetype)
-                    .with(request)
-                    .with(response);
+                .withBufferSize(BUFFER_SIZE)
+                .withFileName(name)
+                .withChecksum(bitstreamResource.getChecksum())
+                .withLength(bitstreamResource.contentLength())
+                .withMimetype(mimetype)
+                .with(request)
+                .with(response);
 
             // Set last modified in headers
             if (lastModified != null) {
@@ -368,5 +404,81 @@ public class BitstreamRestController {
 
         BitstreamRest bitstreamRest = converter.toRest(context.reloadEntity(bitstream), utils.obtainProjection());
         return converter.toResource(bitstreamRest);
+    }
+
+    /**
+     * This method will retrieve the presigned URL for the bitstream that corresponds to the provided UUID.
+     * The presigned URL allows direct download from the storage (S3 or local) without going through DSpace.
+     *
+     * @param uuid The UUID of the bitstream for which to retrieve the presigned URL
+     * @param ttl Optional number of seconds for the URL to stay valid, capped by max config
+     * @param request  The request object
+     * @param response The response object
+     * @return ResponseEntity containing the presigned URL as JSON, or null if an error occurred
+     * @throws SQLException       If something goes wrong in the database
+     * @throws IOException        If something goes wrong accessing the storage
+     * @throws AuthorizeException If the user is not authorized to access the bitstream
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "signedurl")
+    @PreAuthorize("hasPermission(#uuid, 'BITSTREAM','READ')")
+    public ResponseEntity<?> getPresignedUrl(@PathVariable UUID uuid,
+                                           @RequestParam(required = false) Integer ttl,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response)
+            throws SQLException, IOException, AuthorizeException {
+
+        Context context = obtainContext(request);
+
+        Bitstream bitstream = bitstreamService.find(context, uuid);
+
+        if (bitstream == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+
+        // Fire a download/view event for Solr statistics
+        eventService.fireEvent(
+            new UsageEvent(
+                UsageEvent.Action.VIEW,
+                request,
+                context,
+                bitstream));
+
+        // Validate TTL before the try/catch — DSpaceBadRequestException must
+        // NOT be caught by the catch(Exception) block which maps to 500
+        if (ttl != null && ttl <= 0) {
+            throw new DSpaceBadRequestException("TTL must be a positive integer");
+        }
+
+        try {
+            String presignedUrl;
+            if (ttl != null) {
+                long maxTtl = configurationService.getLongProperty(MAX_TTL_PROPERTY, DEFAULT_MAX_TTL);
+                long effectiveSeconds = Math.min(ttl, maxTtl);
+                log.debug("Presigned URL requested with TTL={}s, effective={}s (max={}s)",
+                          ttl, effectiveSeconds, maxTtl);
+                presignedUrl = bitstreamStorageService.getPresignedUrl(
+                    context, bitstream, Duration.ofSeconds(effectiveSeconds));
+            } else {
+                presignedUrl = bitstreamStorageService.getPresignedUrl(context, bitstream);
+            }
+            if (StringUtils.isBlank(presignedUrl)) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return null;
+            }
+
+            // Return the presigned URL as JSON
+            Map<String, String> result = new HashMap<>();
+            result.put("presignedUrl", presignedUrl);
+
+            log.info("Generated presigned URL for bitstream: {}, StoreNumber: {}, FormatId: {}",
+                     bitstream.getID(), bitstream.getStoreNumber(), bitstream.getFormat(context).getID());
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            log.error("Unable to get presigned url for Bitstream with id: " + uuid, e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return null;
+        }
     }
 }

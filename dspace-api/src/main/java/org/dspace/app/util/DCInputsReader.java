@@ -893,7 +893,7 @@ public class DCInputsReader {
             })
             .findFirst();
         if (dcInputMetadata.isPresent()) {
-            dcInputMetadata.get().getAllLanguageValues();
+            return dcInputMetadata.get().getAllLanguageValues();
         }
         return List.of();
 

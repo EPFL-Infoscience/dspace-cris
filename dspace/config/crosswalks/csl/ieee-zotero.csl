@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" demote-non-dropping-particle="sort-only">
+<!-- This file has been customised by 4Science for EPFL as follows:    -->
+<!--   1) We comment the use of 'citation-number' variable             -->  
   <info>
     <title>IEEE Reference Guide version 11.29.2023</title>
     <title-short>Institute of Electrical and Electronics Engineers</title-short>
@@ -337,7 +339,7 @@
   <bibliography entry-spacing="0" second-field-align="flush">
     <layout>
       <!-- Citation Number -->
-      <text variable="citation-number" prefix="[" suffix="] "/>
+      <!-- <text variable="citation-number" prefix="[" suffix="] "/> -->
       <!-- Author(s) -->
       <text macro="author" suffix=", "/>
       <!-- Rest of Citation -->

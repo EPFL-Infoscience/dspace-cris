@@ -4,7 +4,11 @@ definitions:
   docker:
     memory: 4096  # increase memory for docker-in-docker from 1GB to 4GB
   caches:
+    gradle: ~/.gradle/caches
     gradlewrapper: ~/.gradle/wrapper
+    maven: ~/.m2/repository
+  mvnVars:
+    &setEnv export MAVEN_ARGS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss,SSS"
   steps:
     - step: &unit-test-code-checks
         runs-on: self.hosted
@@ -37,8 +41,10 @@ definitions:
 
     - step: &integration-tests
         runs-on: self.hosted
-        name: integration-tests
+        name: integration-tests-dspace-api
         size: 4x
+        services:
+          - docker
         caches:
           - gradle
           - gradlewrapper
@@ -69,8 +75,10 @@ definitions:
 
     - step: &integration-tests-slow
         runs-on: self.hosted
-        name: integration-tests-slow
+        name: integration-tests-with-test-jars
         size: 4x
+        services:
+          - docker
         caches:
           - gradle
           - gradlewrapper
@@ -102,6 +110,8 @@ definitions:
         runs-on: self.hosted
         name: integration-tests-dspace-api
         size: 4x
+        services:
+          - docker
         caches:
           - gradle
           - gradlewrapper

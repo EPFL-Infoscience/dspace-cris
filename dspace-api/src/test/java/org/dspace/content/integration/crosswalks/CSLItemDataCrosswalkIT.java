@@ -12,6 +12,7 @@ import static org.dspace.builder.CommunityBuilder.createCommunity;
 import static org.dspace.builder.ItemBuilder.createItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -22,8 +23,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -50,6 +55,14 @@ import org.mockito.Mockito;
 public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
+
+    /**
+     * Every dc.type value configured in mapConverter-dcTypesToClsTypes.properties mapped to the
+     * CSL type it is expected to produce. Kept in sync with that file: any entry that is not
+     * mapped as expected (e.g. because of a malformed key in the properties file) makes
+     * {@link #testEveryDcTypeResolvesToExpectedCslType()} fail listing the offending values.
+     */
+    private static final Map<String, String> DC_TYPE_TO_CSL_TYPE = buildDcTypeToCslTypeMap();
 
     private ItemService itemService;
 
@@ -414,6 +427,48 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
     }
 
     @Test
+    public void testEveryDcTypeResolvesToExpectedCslType() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Item item = createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Type mapping title")
+            .withIssueDate("2021-07-01")
+            .withHandle("123456789/1000")
+            .build();
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("publication-json");
+        assertThat(crosswalk, notNullValue());
+
+        List<String> failures = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : DC_TYPE_TO_CSL_TYPE.entrySet()) {
+            String dcType = entry.getKey();
+            String expectedCslType = entry.getValue();
+
+            // Reuse the same item, only swapping its dc.type, to avoid the cost of creating
+            // one item per mapping entry. Clear any existing dc.type (regardless of language)
+            // before setting the new one, so values do not accumulate across iterations.
+            context.turnOffAuthorisationSystem();
+            itemService.clearMetadata(context, item, "dc", "type", null, Item.ANY);
+            itemService.addMetadata(context, item, "dc", "type", null, null, dcType);
+            itemService.update(context, item);
+            context.restoreAuthSystemState();
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            crosswalk.disseminate(context, item, out);
+
+            if (!out.toString().contains("\"type\": \"" + expectedCslType + "\"")) {
+                failures.add(dcType + " -> expected " + expectedCslType);
+            }
+        }
+
+        assertThat("dc.type values not mapped to the expected CSL type: " + failures,
+            failures, empty());
+    }
+
+    @Test
     public void testISSNRulesPreferRelationIssnOverRelationSerieIssn() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -525,6 +580,281 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
             String expectedContent = IOUtils.toString(fis, Charset.defaultCharset());
             compareEachLine(out.toString(), expectedContent, true);
         }
+    }
+
+    private static Map<String, String> buildDcTypeToCslTypeMap() {
+        Map<String, String> map = new LinkedHashMap<>();
+        String[][] entries = {
+            {"text", "document"},
+            {"texte", "document"},
+            {"text::annotation", "document"},
+            {"texte::annotation", "document"},
+            {"text::bibliography", "document"},
+            {"texte::bibliographie", "document"},
+            {"text::blog post", "post-weblog"},
+            {"texte::article de blog", "post-weblog"},
+            {"text::book/monograph", "book"},
+            {"texte::ouvrage/monographie", "book"},
+            {"text::book/monograph::book part or chapter", "chapter"},
+            {"texte::ouvrage/monographie::chapitre de livre", "chapter"},
+            {"texte::ouvrage/monographie::chapitre de livre/partie d'ouvrage", "chapter"},
+            {"text::conference output", "paper-conference"},
+            {"texte::objet présenté à une conférence", "paper-conference"},
+            {"text::conference output::conference paper not in proceedings", "paper-conference"},
+            {"texte::objet présenté à une conférence::article dans une conférence non publié dans les actes",
+                "paper-conference"},
+            {"text::conference output::conference poster not in proceedings", "paper-conference"},
+            {"texte::objet présenté à une conférence::poster dans une conférence non publié dans les actes",
+                "paper-conference"},
+            {"texte::objet présenté à une conférence::poster de conférence hors actes", "paper-conference"},
+            {"text::conference output::conference presentation", "speech"},
+            {"texte::objet présenté à une conférence::support de présentation à une conférence", "speech"},
+            {"texte::objet présenté à une conférence::support de présentation", "speech"},
+            {"text::conference output::conference proceedings", "book"},
+            {"texte::objet présenté à une conférence::actes de conférence", "book"},
+            {"text::conference output::conference proceedings::conference paper", "paper-conference"},
+            {"texte::objet présenté à une conférence::actes de conférence::article dans une conférence/papier "
+                + "de conférence", "paper-conference"},
+            {"texte::objet présenté à une conférence::actes de conférence::article de conférence", "paper-conference"},
+            {"text::conference output::conference proceedings::conference poster", "paper-conference"},
+            {"texte::objet présenté à une conférence::actes de conférence::poster dans une conférence",
+                "paper-conference"},
+            {"texte::objet présenté à une conférence::actes de conférence::poster de conférence", "paper-conference"},
+            {"text::journal", "periodical"},
+            {"texte::revue", "periodical"},
+            {"text::journal::editorial", "article-journal"},
+            {"texte::revue::éditorial", "article-journal"},
+            {"text::journal::journal article", "article-journal"},
+            {"texte::revue::article", "article-journal"},
+            {"texte::revue::article de revue", "article-journal"},
+            {"texte::revue::article de revue::article de revue scientifique", "article-journal"},
+            {"texte::revue::article de revue::article de synthèse", "review"},
+            {"texte::revue::article de revue::data paper", "article-journal"},
+            {"texte::revue::article de revue::software paper", "article-journal"},
+            {"text::journal::journal article::corrigendum", "article-journal"},
+            {"texte::revue::article::erratum", "article-journal"},
+            {"text::journal::journal article::data paper", "article-journal"},
+            {"texte::revue::article::data paper", "article-journal"},
+            {"text::journal::journal article::research article", "article-journal"},
+            {"texte::revue::article::article scientifique", "article-journal"},
+            {"text::journal::journal article::review article", "review"},
+            {"texte::revue::article::article de synthèse", "review"},
+            {"text::journal::journal article::software paper", "article-journal"},
+            {"texte::revue::article::article sur un logiciel", "article-journal"},
+            {"text::journal::letter to the editor", "article-journal"},
+            {"texte::revue::lettre à l'éditeur", "article-journal"},
+            {"text::lecture/talk", "speech"},
+            {"texte::cours", "speech"},
+            {"text::letter", "personal_communication"},
+            {"texte::lettre", "personal_communication"},
+            {"text::magazine", "article-magazine"},
+            {"texte::magazine", "article-magazine"},
+            {"text::manuscript", "manuscript"},
+            {"texte::manuscrit", "manuscript"},
+            {"text::musical notation", "musical_score"},
+            {"texte::partition", "musical_score"},
+            {"text::newspaper", "periodical"},
+            {"texte::journal", "periodical"},
+            {"text::newspaper::newspaper article", "article-newspaper"},
+            {"texte::journal::article de journal", "article-newspaper"},
+            {"text::other periodical", "periodical"},
+            {"texte::autre périodique", "periodical"},
+            {"text::preprint", "article"},
+            {"texte::preprint", "article"},
+            {"text::report", "report"},
+            {"texte::rapport", "report"},
+            {"text::report::clinical study", "report"},
+            {"texte::rapport::étude clinique", "report"},
+            {"text::report::data management plan", "report"},
+            {"texte::rapport::plan de gestion de données", "report"},
+            {"text::report::memorandum", "report"},
+            {"texte::rapport::mémo", "report"},
+            {"text::report::policy report", "report"},
+            {"texte::rapport::rapport stratégique", "report"},
+            {"text::report::project deliverable", "report"},
+            {"texte::rapport::projet de semestre", "report"},
+            {"text::report::research protocol", "report"},
+            {"texte::rapport::protocole de recherche", "report"},
+            {"text::report::research report", "report"},
+            {"texte::rapport::rapport de recherche", "report"},
+            {"text::report::technical report", "report"},
+            {"texte::rapport::rapport technique", "report"},
+            {"text::research proposal", "report"},
+            {"texte::projet de recherche", "report"},
+            {"text::review", "review"},
+            {"texte::synthèse", "review"},
+            {"text::review::book review", "review-book"},
+            {"texte::synthèse::note de lecture", "review-book"},
+            {"text::review::commentary", "review"},
+            {"texte::synthèse::commentaire", "review"},
+            {"text::review::peer review", "review"},
+            {"texte::synthèse::évaluation par les pairs", "review"},
+            {"text::technical documentation or standard", "standard"},
+            {"texte::manuel technique/documentation technique", "standard"},
+            {"text::thesis", "thesis"},
+            {"texte::thèse", "thesis"},
+            {"text::thesis::bachelor thesis", "thesis"},
+            {"texte::thèse::mémoire de stage", "thesis"},
+            {"text::thesis::doctoral thesis", "thesis"},
+            {"texte::thèse::thèse de doctorat", "thesis"},
+            {"text::thesis::master thesis", "thesis"},
+            {"texte::thèse::mémoire de master", "thesis"},
+            {"text::transcription", "document"},
+            {"texte::transcription", "document"},
+            {"text::working paper", "article"},
+            {"texte::working paper", "article"},
+            {"other", "document"},
+            {"autre", "document"},
+            {"patent", "patent"},
+            {"brevet", "patent"},
+            {"patent::PCT application", "patent"},
+            {"brevet::demande PCT", "patent"},
+            {"patent::design patent", "patent"},
+            {"brevet::brevet de conception", "patent"},
+            {"patent::plant patent", "patent"},
+            {"brevet::brevet de plante", "patent"},
+            {"patent::plant variety protection", "patent"},
+            {"brevet::certificat d'obtention végétale", "patent"},
+            {"patent::software patent", "patent"},
+            {"brevet::brevet de logiciel", "patent"},
+            {"patent::utility model", "patent"},
+            {"brevet::modèle d'utilité", "patent"},
+            {"cartographic material", "map"},
+            {"matériel cartographique", "map"},
+            {"cartographic material::map", "map"},
+            {"matériel cartographique::carte géographique", "map"},
+            {"dataset", "dataset"},
+            {"jeu de données", "dataset"},
+            {"dataset::aggregated data", "dataset"},
+            {"jeu de données::données agrégées", "dataset"},
+            {"dataset::clinical trial data", "dataset"},
+            {"jeu de données::données d'essai clinique", "dataset"},
+            {"dataset::compiled data", "dataset"},
+            {"jeu de données::données compilées", "dataset"},
+            {"dataset::encoded data", "dataset"},
+            {"jeu de données::données encodées", "dataset"},
+            {"dataset::experimental data", "dataset"},
+            {"jeu de données::données expérimentales", "dataset"},
+            {"dataset::genomic data", "dataset"},
+            {"jeu de données::données génomiques", "dataset"},
+            {"dataset::geospatial data", "dataset"},
+            {"jeu de données::données géospatiales", "dataset"},
+            {"dataset::laboratory notebook", "dataset"},
+            {"jeu de données::carnet de laboratoire", "dataset"},
+            {"dataset::measurement and test data", "dataset"},
+            {"jeu de données::données de mesure et d'essai", "dataset"},
+            {"dataset::observational data", "dataset"},
+            {"jeu de données::données d'observation", "dataset"},
+            {"dataset::recorded data", "dataset"},
+            {"jeu de données::données enregistrées", "dataset"},
+            {"dataset::simulation data", "dataset"},
+            {"jeu de données::données de simulation", "dataset"},
+            {"dataset::survey data", "dataset"},
+            {"jeu de données::données d'enquête", "dataset"},
+            {"design", "document"},
+            {"schéma", "document"},
+            {"design::industrial design", "document"},
+            {"schéma::schéma industriel", "document"},
+            {"design::layout design", "document"},
+            {"schéma::schéma de configuration", "document"},
+            {"image", "graphic"},
+            {"image::moving image", "motion_picture"},
+            {"image::image animée", "motion_picture"},
+            {"image::moving image::video", "motion_picture"},
+            {"image::image animée::vidéo", "motion_picture"},
+            {"image::still image", "graphic"},
+            {"image::image fixe", "graphic"},
+            {"interactive resource", "webpage"},
+            {"ressource interactive", "webpage"},
+            {"interactive resource::website", "webpage"},
+            {"ressource interactive::site web", "webpage"},
+            {"Teaching material", "document"},
+            {"ressource pédagogique ou d'enseignement", "document"},
+            {"software", "software"},
+            {"logiciel", "software"},
+            {"software::research software", "software"},
+            {"logiciel::logiciel de recherche", "software"},
+            {"software::source code", "software"},
+            {"logiciel::code source", "software"},
+            {"sound", "song"},
+            {"son", "song"},
+            {"sound::musical composition", "song"},
+            {"son::composition musicale", "song"},
+            {"trademark", "patent"},
+            {"marque déposée", "patent"},
+            {"workflow", "document"},
+            {"thesis", "thesis"},
+            {"thèses", "thesis"},
+            {"thesis::doctoral thesis", "thesis"},
+            {"thèses::thèse de doctorat", "thesis"},
+            {"student work", "thesis"},
+            {"projet étudiant", "thesis"},
+            {"student work::doctoral thesis", "thesis"},
+            {"projet étudiant::thèse de doctorat", "thesis"},
+            {"student work::bachelor thesis", "thesis"},
+            {"projet étudiant::mémoire de bachelor", "thesis"},
+            {"student work::master thesis", "thesis"},
+            {"projet étudiant::mémoire de master", "thesis"},
+            {"student work::semester or other student projects", "report"},
+            {"projet étudiant::projet de semestre ou autres projets d'étudiants", "report"},
+            {"text::newspaper article", "article-newspaper"},
+            {"texte::article de presse", "article-newspaper"},
+            {"texte::article de revue spécialisée ou de vulgarisation", "article-magazine"},
+            {"texte::documentation technique ou norme", "standard"},
+            {"dataset::données agrégées", "dataset"},
+            {"dataset::données d'essai clinique", "dataset"},
+            {"dataset::données compilées", "dataset"},
+            {"dataset::données encodées", "dataset"},
+            {"dataset::données expérimentales", "dataset"},
+            {"dataset::données génomiques", "dataset"},
+            {"dataset::données géospatiales", "dataset"},
+            {"dataset::carnet de laboratoire", "dataset"},
+            {"dataset::données de mesure et d'essai", "dataset"},
+            {"dataset::données d'observation", "dataset"},
+            {"dataset::données enregistrées", "dataset"},
+            {"dataset::données de simulation", "dataset"},
+            {"dataset::données d'enquête", "dataset"},
+            {"design::design industriel", "document"},
+            {"design::design de configuration", "document"},
+            {"image::image animée::video", "motion_picture"},
+            {"document sonore", "song"},
+            {"texte::Preprint", "article"},
+            {"texte::document de travail", "article"},
+            {"rapport", "report"},
+            {"article", "article-journal"},
+            {"présentation de conférence", "speech"},
+            {"poster de conférence", "paper-conference"},
+            {"article de conférence", "paper-conference"},
+            {"texte::conférence::article de conférence", "paper-conference"},
+            {"report", "report"},
+            {"journal article", "article-journal"},
+            {"conference presentation", "speech"},
+            {"Conference poster", "paper-conference"},
+            {"conference paper", "paper-conference"},
+            {"Controlled Vocabulary for Resource Type Genres::other", "document"},
+            {"text::conference::conference paper", "paper-conference"},
+            {"text::lecture", "speech"},
+            {"texte::objet présenté à une conférence::article de conférence hors actes", "paper-conference"},
+            {"book part or chapter", "chapter"},
+            {"conference paper not in proceedings", "paper-conference"},
+            {"master thesis", "thesis"},
+            {"preprint", "article"},
+            {"research article", "article-journal"},
+            {"resource pédagogique ou d'enseignement", "document"},
+            {"teaching material", "document"},
+            {"working paper", "article"},
+            {"mémoire ou projet étudiant", "thesis"},
+            {"mémoire ou projet étudiant::mémoire ou projet de bachelor", "thesis"},
+            {"mémoire ou projet étudiant::mémoire ou projet de master", "thesis"},
+            {"mémoire ou projet étudiant::projet de semestre ou autres projets d'étudiants", "report"},
+            {"texte::livre/monographie", "book"},
+            {"texte::livre/monographie::chapitre de livre/partie d'ouvrage", "chapter"},
+            {"texte::rapport::research protocol", "report"},
+        };
+        for (String[] entry : entries) {
+            map.putIfAbsent(entry[0], entry[1]);
+        }
+        return map;
     }
 
     private void compareEachLine(String result, String expectedResult, boolean skipId) {

@@ -9,6 +9,9 @@ package org.dspace.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -41,6 +44,14 @@ public class SimpleMapConverter {
     private Boolean allowEmptyValue = false;
 
     /**
+     * Charset used to read the properties file. When left null, the file is loaded with
+     * the original {@link Properties#load(java.io.InputStream)} behaviour. Set it to a
+     * different charset (e.g. UTF-8) when the mapping file stores non-ASCII keys as raw
+     * bytes in that encoding.
+     */
+    private Charset encoding;
+
+    /**
      * This flag would inform the caller of the converter that it expects to deal
      * with authority values instead than text value
      */
@@ -65,7 +76,15 @@ public class SimpleMapConverter {
         try (FileInputStream fis = new FileInputStream(new File(mappingFile))) {
 
             Properties mapConfig = new Properties();
-            mapConfig.load(fis);
+            if (encoding == null) {
+                mapConfig.load(fis);
+            } else {
+                // A charset was explicitly configured: read the file through it. Needed when
+                // the mapping file stores non-ASCII keys as raw bytes (e.g. UTF-8).
+                try (Reader reader = new InputStreamReader(fis, encoding)) {
+                    mapConfig.load(reader);
+                }
+            }
 
             this.mapping = parseProperties(mapConfig);
 
@@ -145,5 +164,20 @@ public class SimpleMapConverter {
 
     public Boolean getAllowEmptyValue() {
         return allowEmptyValue;
+    }
+
+    /**
+     * Sets the charset used to read the properties file, given its name (e.g. "UTF-8").
+     * When not set, the file is loaded with the original Properties.load(InputStream)
+     * behaviour.
+     *
+     * @param encoding the charset name
+     */
+    public void setEncoding(String encoding) {
+        this.encoding = Charset.forName(encoding);
+    }
+
+    public String getEncoding() {
+        return encoding != null ? encoding.name() : null;
     }
 }
