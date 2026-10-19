@@ -71,6 +71,7 @@ import org.dspace.submit.model.UploadConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.format.datetime.DateFormatter;
 
 /**
@@ -95,6 +96,7 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
     private CollectionService collectionService;
 
     @Autowired
+    @Qualifier("xlsCrosswalkCollection")
     private XlsCollectionCrosswalk xlsCollectionCrosswalk;
 
     private DCInputsReader reader;

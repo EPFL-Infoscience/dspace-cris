@@ -192,6 +192,77 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    public void testCrosswalkModeIsSingleAndMultiple() {
+        // The full-metadata (XLS) dump must be available both at item level (SINGLE)
+        // and at search level (MULTIPLE), i.e. SINGLE_AND_MULTIPLE.
+        assertThat(xlsCollectionCrosswalk.getCrosswalkMode(),
+            is(org.dspace.content.crosswalk.CrosswalkMode.SINGLE_AND_MULTIPLE));
+    }
+
+    @Test
+    public void testCanDisseminateItemAndCollection() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("A Publication")
+            .withEntityType("Publication")
+            .withIssueDate("2020-01-01")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        assertThat(xlsCollectionCrosswalk.canDisseminate(context, collection), is(true));
+        assertThat(xlsCollectionCrosswalk.canDisseminate(context, item), is(true));
+    }
+
+    @Test
+    public void testSingleItemDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Single Item Publication")
+            .withEntityType("Publication")
+            .withAuthor("Test, User")
+            .withIssueDate("2020-01-01")
+            .build();
+
+        // create a second item in the same collection to make sure that the
+        // single-item dissemination exports only the requested item.
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Another Publication")
+            .withEntityType("Publication")
+            .withIssueDate("2021-01-01")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        xlsCollectionCrosswalk.disseminate(context, item, out);
+
+        byte[] content = out.toByteArray();
+        assertThat(content.length, Matchers.greaterThan(0));
+
+        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(content))) {
+            Sheet mainSheet = workbook.getSheetAt(0);
+            // header row + exactly one data row for the single requested item
+            assertThat(mainSheet.getPhysicalNumberOfRows(), is(2));
+            List<String> dataRow = getRowValues(mainSheet.getRow(1), mainSheet.getRow(0).getLastCellNum());
+            assertThat(dataRow, Matchers.hasItem(containsString("Single Item Publication")));
+        }
+    }
+
+    @Test
     @Ignore
     public void testCollectionDisseminate() throws Exception {
 
