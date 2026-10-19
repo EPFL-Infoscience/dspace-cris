@@ -263,6 +263,52 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    public void testSingleItemDisseminatePerson() throws Exception {
+        assertSingleItemDumpContainsTitle("person", "Person", "John Smith");
+    }
+
+    @Test
+    public void testSingleItemDisseminateOrgUnit() throws Exception {
+        assertSingleItemDumpContainsTitle("orgunit", "OrgUnit", "Test Organization");
+    }
+
+    /**
+     * Helper that builds a single item of the given entity type in a collection with the given
+     * submission definition, disseminates it as a full-metadata (XLS) dump and asserts that the
+     * generated workbook is non-empty and contains the item title.
+     */
+    private void assertSingleItemDumpContainsTitle(String submissionDefinition, String entityType, String title)
+            throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition(submissionDefinition)
+            .withAdminGroup(eperson)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle(title)
+            .withEntityType(entityType)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        xlsCollectionCrosswalk.disseminate(context, item, out);
+
+        byte[] content = out.toByteArray();
+        assertThat(content.length, Matchers.greaterThan(0));
+
+        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(content))) {
+            Sheet mainSheet = workbook.getSheetAt(0);
+            // header row + exactly one data row for the single requested item
+            assertThat(mainSheet.getPhysicalNumberOfRows(), is(2));
+            List<String> dataRow = getRowValues(mainSheet.getRow(1), mainSheet.getRow(0).getLastCellNum());
+            assertThat(dataRow, Matchers.hasItem(containsString(title)));
+        }
+    }
+
+    @Test
     @Ignore
     public void testCollectionDisseminate() throws Exception {
 
