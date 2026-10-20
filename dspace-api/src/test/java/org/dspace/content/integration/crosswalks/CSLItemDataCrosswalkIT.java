@@ -192,6 +192,86 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
         }
     }
 
+    /**
+     * Requirement: exporting several Patents as BibTeX must produce one BibTeX record per item.
+     * Input: two Patent items disseminated together (bulk export) through the patent-bibtex
+     * crosswalk.
+     * Expected output: a single BibTeX file containing one entry per item (two "@" entry markers)
+     * and both item titles.
+     */
+    @Test
+    public void testPatentBibtexMultipleItemsDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Item first = createItem(context, collection)
+            .withEntityType("Patent")
+            .withType("patent")
+            .withTitle("First Patent")
+            .withIssueDate("2020-01-01")
+            .withAuthor("Smith, John")
+            .build();
+        Item second = createItem(context, collection)
+            .withEntityType("Patent")
+            .withType("patent")
+            .withTitle("Second Patent")
+            .withIssueDate("2021-01-01")
+            .withAuthor("Red, Edward")
+            .build();
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("patent-bibtex");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, Arrays.asList(first, second).iterator(), out);
+
+        String result = out.toString();
+        // The bulk export must contain one BibTeX entry per item (multi-record output).
+        assertThat(countOccurrences(result, "@"), equalTo(2));
+        assertThat(result, containsString("First Patent"));
+        assertThat(result, containsString("Second Patent"));
+    }
+
+    /**
+     * Requirement: exporting several Products as BibTeX must produce one BibTeX record per item.
+     * Input: two Product items disseminated together (bulk export) through the product-bibtex
+     * crosswalk.
+     * Expected output: a single BibTeX file containing one entry per item (two "@" entry markers)
+     * and both item titles.
+     */
+    @Test
+    public void testProductBibtexMultipleItemsDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Item first = createItem(context, collection)
+            .withEntityType("Product")
+            .withType("dataset")
+            .withTitle("First Product")
+            .withIssueDate("2020-01-01")
+            .withAuthor("Smith, John")
+            .build();
+        Item second = createItem(context, collection)
+            .withEntityType("Product")
+            .withType("dataset")
+            .withTitle("Second Product")
+            .withIssueDate("2021-01-01")
+            .withAuthor("Red, Edward")
+            .build();
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk crosswalk = crosswalkMapper.getByType("product-bibtex");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, Arrays.asList(first, second).iterator(), out);
+
+        String result = out.toString();
+        // The bulk export must contain one BibTeX entry per item (multi-record output).
+        assertThat(countOccurrences(result, "@"), equalTo(2));
+        assertThat(result, containsString("First Product"));
+        assertThat(result, containsString("Second Product"));
+    }
+
     @Ignore("To be rechecked: it seems that citeproc 3.3 ignores the journalAbbreviation")
     @Test
     public void testBibtexDisseminateWithDIfferentTypes() throws Exception {
@@ -876,5 +956,15 @@ public class CSLItemDataCrosswalkIT extends AbstractIntegrationTestWithDatabase 
 
     private FileInputStream getFileInputStream(String name) throws FileNotFoundException {
         return new FileInputStream(new File(BASE_OUTPUT_DIR_PATH, name));
+    }
+
+    private int countOccurrences(String text, String token) {
+        int count = 0;
+        int index = text.indexOf(token);
+        while (index != -1) {
+            count++;
+            index = text.indexOf(token, index + token.length());
+        }
+        return count;
     }
 }
