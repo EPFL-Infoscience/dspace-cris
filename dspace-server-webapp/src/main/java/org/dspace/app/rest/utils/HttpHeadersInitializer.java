@@ -9,7 +9,6 @@ package org.dspace.app.rest.utils;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static javax.mail.internet.MimeUtility.encodeText;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.FastHttpDateFormat;
+import org.dspace.util.ContentDispositionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -171,9 +171,8 @@ public class HttpHeadersInitializer {
 
         // distposition may be null here if contentType is null
         if (!isNullOrEmpty(disposition)) {
-            httpHeaders.put(CONTENT_DISPOSITION, Collections.singletonList(String.format(CONTENT_DISPOSITION_FORMAT,
-                                                                                         disposition,
-                                                                                         encodeText(fileName))));
+            String headerValue = ContentDispositionUtils.buildContentDisposition(disposition, this.fileName);
+            httpHeaders.put(CONTENT_DISPOSITION, Collections.singletonList(headerValue));
         }
         log.debug("Content-Disposition : {}", disposition);
 
