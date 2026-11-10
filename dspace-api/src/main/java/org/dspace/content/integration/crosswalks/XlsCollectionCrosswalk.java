@@ -64,11 +64,11 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private DSpaceRunnableHandler handler;
 
-    private CrosswalkMode crosswalkMode = CrosswalkMode.SINGLE_AND_MULTIPLE;
+    private CrosswalkMode crosswalkMode = CrosswalkMode.MULTIPLE;
 
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
-        return dso.getType() == Constants.COLLECTION || dso.getType() == Constants.ITEM;
+        return dso.getType() == Constants.COLLECTION;
     }
 
     @Override
@@ -94,14 +94,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
             throws CrosswalkException, IOException, SQLException, AuthorizeException {
 
         if (!canDisseminate(context, dso)) {
-            throw new CrosswalkObjectNotSupported("Can only crosswalk a Collection or an Item");
-        }
-
-        if (dso.getType() == Constants.ITEM) {
-            Item item = (Item) dso;
-            Collection collection = findCollection(context, item);
-            writeWorkbook(context, collection, singletonListIterator(item), out);
-            return;
+            throw new CrosswalkObjectNotSupported("Can only crosswalk a Collection");
         }
 
         Collection collection = (Collection) dso;

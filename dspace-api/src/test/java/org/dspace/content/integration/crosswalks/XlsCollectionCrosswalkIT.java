@@ -192,15 +192,15 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
-    public void testCrosswalkModeIsSingleAndMultiple() {
-        // The full-metadata (XLS) dump must be available both at item level (SINGLE)
-        // and at search level (MULTIPLE), i.e. SINGLE_AND_MULTIPLE.
+    public void testCrosswalkModeIsMultiple() {
+        // XlsCollectionCrosswalk now handles only the search/collection level export (MULTIPLE).
+        // The single-item (SINGLE) export is handled by XlsItemCrosswalk.
         assertThat(xlsCollectionCrosswalk.getCrosswalkMode(),
-            is(org.dspace.content.crosswalk.CrosswalkMode.SINGLE_AND_MULTIPLE));
+            is(org.dspace.content.crosswalk.CrosswalkMode.MULTIPLE));
     }
 
     @Test
-    public void testCanDisseminateItemAndCollection() throws Exception {
+    public void testCanDisseminateOnlyCollection() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Collection collection = createCollection(context, community)
@@ -217,95 +217,8 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         context.restoreAuthSystemState();
 
         assertThat(xlsCollectionCrosswalk.canDisseminate(context, collection), is(true));
-        assertThat(xlsCollectionCrosswalk.canDisseminate(context, item), is(true));
-    }
-
-    @Test
-    public void testSingleItemDisseminate() throws Exception {
-
-        context.turnOffAuthorisationSystem();
-
-        Collection collection = createCollection(context, community)
-            .withSubmissionDefinition("publication")
-            .withAdminGroup(eperson)
-            .build();
-
-        Item item = ItemBuilder.createItem(context, collection)
-            .withTitle("Single Item Publication")
-            .withEntityType("Publication")
-            .withAuthor("Test, User")
-            .withIssueDate("2020-01-01")
-            .build();
-
-        // create a second item in the same collection to make sure that the
-        // single-item dissemination exports only the requested item.
-        ItemBuilder.createItem(context, collection)
-            .withTitle("Another Publication")
-            .withEntityType("Publication")
-            .withIssueDate("2021-01-01")
-            .build();
-
-        context.restoreAuthSystemState();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        xlsCollectionCrosswalk.disseminate(context, item, out);
-
-        byte[] content = out.toByteArray();
-        assertThat(content.length, Matchers.greaterThan(0));
-
-        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(content))) {
-            Sheet mainSheet = workbook.getSheetAt(0);
-            // header row + exactly one data row for the single requested item
-            assertThat(mainSheet.getPhysicalNumberOfRows(), is(2));
-            List<String> dataRow = getRowValues(mainSheet.getRow(1), mainSheet.getRow(0).getLastCellNum());
-            assertThat(dataRow, Matchers.hasItem(containsString("Single Item Publication")));
-        }
-    }
-
-    @Test
-    public void testSingleItemDisseminatePerson() throws Exception {
-        assertSingleItemDumpContainsTitle("person", "Person", "John Smith");
-    }
-
-    @Test
-    public void testSingleItemDisseminateOrgUnit() throws Exception {
-        assertSingleItemDumpContainsTitle("orgunit", "OrgUnit", "Test Organization");
-    }
-
-    /**
-     * Helper that builds a single item of the given entity type in a collection with the given
-     * submission definition, disseminates it as a full-metadata (XLS) dump and asserts that the
-     * generated workbook is non-empty and contains the item title.
-     */
-    private void assertSingleItemDumpContainsTitle(String submissionDefinition, String entityType, String title)
-            throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        Collection collection = createCollection(context, community)
-            .withSubmissionDefinition(submissionDefinition)
-            .withAdminGroup(eperson)
-            .build();
-
-        Item item = ItemBuilder.createItem(context, collection)
-            .withTitle(title)
-            .withEntityType(entityType)
-            .build();
-
-        context.restoreAuthSystemState();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        xlsCollectionCrosswalk.disseminate(context, item, out);
-
-        byte[] content = out.toByteArray();
-        assertThat(content.length, Matchers.greaterThan(0));
-
-        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(content))) {
-            Sheet mainSheet = workbook.getSheetAt(0);
-            // header row + exactly one data row for the single requested item
-            assertThat(mainSheet.getPhysicalNumberOfRows(), is(2));
-            List<String> dataRow = getRowValues(mainSheet.getRow(1), mainSheet.getRow(0).getLastCellNum());
-            assertThat(dataRow, Matchers.hasItem(containsString(title)));
-        }
+        // the single item is now handled by XlsItemCrosswalk, not by the collection crosswalk
+        assertThat(xlsCollectionCrosswalk.canDisseminate(context, item), is(false));
     }
 
     @Test
