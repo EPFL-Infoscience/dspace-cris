@@ -38,7 +38,7 @@ public class ItemExportFormatRestRepositoryIT extends AbstractControllerIntegrat
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.itemexportformats.length()", Matchers.equalTo(15)))
                 .andExpect(jsonPath("$._embedded.itemexportformats[*].id",
-                        Matchers.hasItem("publication-collection-xls")));
+                        Matchers.hasItem("publication-item-xls")));
     }
 
     @Test
