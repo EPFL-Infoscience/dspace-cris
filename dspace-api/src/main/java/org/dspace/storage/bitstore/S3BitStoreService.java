@@ -42,6 +42,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
+import org.dspace.util.ContentDispositionUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -584,6 +585,14 @@ public class S3BitStoreService extends BaseBitStoreService {
     /**
      * Resolves the content disposition with filename from the bitstream.
      * Falls back to the bitstream ID + format extension if no name is set.
+     * <p>
+     * The filename is encoded according to RFC 6266 / RFC 5987 via
+     * {@link ContentDispositionUtils}, providing both an ASCII-only fallback
+     * and a percent-encoded UTF-8 value. This is required because S3 rejects
+     * the {@code response-content-disposition} query parameter of presigned
+     * URLs when it contains raw non-Latin-1 characters (e.g. Cyrillic, Greek,
+     * Korean, or Unicode punctuation such as U+2010), returning
+     * {@code HTTP 400 InvalidArgument}.
      *
      * @param bitstream the bitstream
      * @return the content-disposition value, or null if not resolvable
@@ -603,7 +612,7 @@ public class S3BitStoreService extends BaseBitStoreService {
                     name += "." + format.getExtensions().get(0);
                 }
             }
-            return "attachment; filename=\"" + name + "\"";
+            return ContentDispositionUtils.buildContentDisposition("attachment", name);
         } catch (SQLException e) {
             log.warn("Could not resolve content disposition for bitstream {}", bitstream.getID(), e);
         }
