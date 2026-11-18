@@ -58,7 +58,6 @@ import org.dspace.content.dto.BitstreamDTO;
 import org.dspace.content.dto.ItemDTO;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.dto.ResourcePolicyDTO;
-import org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -93,9 +92,6 @@ public class BulkImportWorkbookBuilderImpl implements BulkImportWorkbookBuilder 
 
     @Autowired
     private CollectionService collectionService;
-
-    @Autowired
-    private XlsCollectionCrosswalk xlsCollectionCrosswalk;
 
     private DCInputsReader reader;
     private DSpaceRunnableHandler handler;

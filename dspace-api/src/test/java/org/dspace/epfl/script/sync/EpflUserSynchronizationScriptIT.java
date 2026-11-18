@@ -532,9 +532,9 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
                               .withTitle("Prof. Ablasser Group")
                               .withAcronym("UPABLASSER").build();
 
-        Item lvg = ItemBuilder.createItem(context, orgUnits)
-                              .withTitle("Laboratory of Virology and Genetics")
-                              .withAcronym("LVG").build();
+        Item edbb = ItemBuilder.createItem(context, orgUnits)
+                              .withTitle("Doctoral Program in Biotechnology and Bioengineering")
+                              .withAcronym("EDBB").build();
 
         EPerson eperson = EPersonBuilder.createEPerson(context)
                                         .withNameInMetadata("Test", "User")
@@ -583,8 +583,8 @@ public class EpflUserSynchronizationScriptIT extends AbstractIntegrationTestWith
             with("oairecerif.person.affiliation", "UPABLASSER", upa.getID().toString(), 0, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 0),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 0),
-            with("oairecerif.affiliation.role", "Doctoral Assistant", 1),
-            with("oairecerif.person.affiliation", "LVG", lvg.getID().toString(), 1, Choices.CF_ACCEPTED),
+            with("oairecerif.affiliation.role", "Student", 1),
+            with("oairecerif.person.affiliation", "EDBB", edbb.getID().toString(), 1, Choices.CF_ACCEPTED),
             with("oairecerif.affiliation.startDate", yesterday, 1),
             with("oairecerif.affiliation.endDate", PLACEHOLDER_PARENT_METADATA_VALUE, 1)));
 

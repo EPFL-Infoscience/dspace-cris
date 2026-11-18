@@ -64,6 +64,8 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private DSpaceRunnableHandler handler;
 
+    private CrosswalkMode crosswalkMode = CrosswalkMode.MULTIPLE;
+
     @Override
     public boolean canDisseminate(Context context, DSpaceObject dso) {
         return dso.getType() == Constants.COLLECTION;
@@ -80,7 +82,11 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     }
 
     public CrosswalkMode getCrosswalkMode() {
-        return CrosswalkMode.MULTIPLE;
+        return crosswalkMode;
+    }
+
+    public void setCrosswalkMode(CrosswalkMode crosswalkMode) {
+        this.crosswalkMode = crosswalkMode;
     }
 
     @Override

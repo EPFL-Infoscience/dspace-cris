@@ -192,6 +192,36 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     }
 
     @Test
+    public void testCrosswalkModeIsMultiple() {
+        // XlsCollectionCrosswalk now handles only the search/collection level export (MULTIPLE).
+        // The single-item (SINGLE) export is handled by XlsItemCrosswalk.
+        assertThat(xlsCollectionCrosswalk.getCrosswalkMode(),
+            is(org.dspace.content.crosswalk.CrosswalkMode.MULTIPLE));
+    }
+
+    @Test
+    public void testCanDisseminateOnlyCollection() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("A Publication")
+            .withEntityType("Publication")
+            .withIssueDate("2020-01-01")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        assertThat(xlsCollectionCrosswalk.canDisseminate(context, collection), is(true));
+        // the single item is now handled by XlsItemCrosswalk, not by the collection crosswalk
+        assertThat(xlsCollectionCrosswalk.canDisseminate(context, item), is(false));
+    }
+
+    @Test
     @Ignore
     public void testCollectionDisseminate() throws Exception {
 
