@@ -130,7 +130,50 @@ public class S3BitStoreServiceTest {
 
         String expectedUrl = "https://s3.amazonaws.com/bucket/abc123?sig=xyz";
         when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), isNull(),
-                                                        eq("attachment; filename=\"report.pdf\"")))
+                eq("attachment; filename=\"report.pdf\"; filename*=UTF-8''report.pdf")))
+            .thenReturn(expectedUrl);
+
+        String result = s3BitStoreService.getPresignedUrl(bitstream);
+
+        assertEquals(expectedUrl, result);
+    }
+
+    @Test
+    public void testGetPresignedUrl_ContentDispositionWithNonLatin1Filename() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("cyrillic-id");
+        // Cyrillic filename, as reported in UXP-667 (non-Latin-1 characters)
+        when(bitstream.getName()).thenReturn("Путівник.pdf");
+
+        String expectedUrl = "https://s3.amazonaws.com/bucket/cyrillic-id?sig=cyr";
+        // ASCII fallback strips all non-ASCII characters; filename* carries the
+        // RFC 5987 percent-encoded UTF-8 value so S3 accepts the header.
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), isNull(),
+                eq("attachment; filename=\".pdf\"; filename*=UTF-8''%D0%9F%D1%83%D1%82%D1%96%D0%B2%D0%BD"
+                    + "%D0%B8%D0%BA.pdf")))
+            .thenReturn(expectedUrl);
+
+        String result = s3BitStoreService.getPresignedUrl(bitstream);
+
+        assertEquals(expectedUrl, result);
+    }
+
+    @Test
+    public void testGetPresignedUrl_ContentDispositionWithUnicodeDash() throws Exception {
+        ReflectionTestUtils.setField(s3BitStoreService, "initialized", true);
+        s3BitStoreService.setBucketName("test-bucket");
+
+        Bitstream bitstream = mock(Bitstream.class);
+        when(bitstream.getInternalId()).thenReturn("dash-id");
+        // U+2010 HYPHEN, as reported in UXP-667 (non-Latin-1 characters)
+        when(bitstream.getName()).thenReturn("Fiber\u2010Format.pdf");
+
+        String expectedUrl = "https://s3.amazonaws.com/bucket/dash-id?sig=dash";
+        when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), isNull(),
+                eq("attachment; filename=\"FiberFormat.pdf\"; filename*=UTF-8''Fiber%E2%80%90Format.pdf")))
             .thenReturn(expectedUrl);
 
         String result = s3BitStoreService.getPresignedUrl(bitstream);
@@ -231,7 +274,7 @@ public class S3BitStoreServiceTest {
 
         String expectedUrl = "https://s3.amazonaws.com/bucket/file-001?dur=15";
         when(presignedUrlStrategy.generatePresignedUrl(any(), any(), any(Duration.class), isNull(),
-                                                         eq("attachment; filename=\"report.pdf\"")))
+                eq("attachment; filename=\"report.pdf\"; filename*=UTF-8''report.pdf")))
             .thenReturn(expectedUrl);
 
         String result = s3BitStoreService.getPresignedUrl(bitstream, Duration.ofSeconds(15));

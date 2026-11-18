@@ -98,6 +98,19 @@
 				<entry key="event-cerif-xml" value-ref="referCrosswalkEventCerifXml"></entry>
 				
 				<entry key="collection-xls" value-ref="xlsCrosswalkCollection"></entry>
+				<entry key="publication-collection-xls" value-ref="xlsCrosswalkCollectionPublication"></entry>
+				<entry key="product-collection-xls" value-ref="xlsCrosswalkCollectionProduct"></entry>
+				<entry key="person-collection-xls" value-ref="xlsCrosswalkCollectionPerson"></entry>
+				<entry key="orgUnit-collection-xls" value-ref="xlsCrosswalkCollectionOrgUnit"></entry>
+				<entry key="event-collection-xls" value-ref="xlsCrosswalkCollectionEvent"></entry>
+				<entry key="journal-collection-xls" value-ref="xlsCrosswalkCollectionJournal"></entry>
+				<entry key="patent-item-xls" value-ref="xlsCrosswalkItemPatent"></entry>
+				<entry key="publication-item-xls" value-ref="xlsCrosswalkItemPublication"></entry>
+				<entry key="product-item-xls" value-ref="xlsCrosswalkItemProduct"></entry>
+				<entry key="person-item-xls" value-ref="xlsCrosswalkItemPerson"></entry>
+				<entry key="orgUnit-item-xls" value-ref="xlsCrosswalkItemOrgUnit"></entry>
+				<entry key="event-item-xls" value-ref="xlsCrosswalkItemEvent"></entry>
+				<entry key="journal-item-xls" value-ref="xlsCrosswalkItemJournal"></entry>
         		<entry key="item-zip" value-ref="zipCrosswalk"></entry>
         		<entry key="METS-zip" value-ref="zipCrosswalk"></entry>
 
@@ -1687,6 +1700,150 @@
 				<value>researchoutputs</value>
 				<value>researchoutputsoa</value>
 				<value>patent</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<!-- Full-metadata dumps exposed at SEARCH level (MULTIPLE): one entityType-scoped bean per
+	     entity, because the search level is filtered per entityType by the frontend. The matching
+	     single-item (SINGLE) export is provided by the xlsCrosswalkItem* beans below. -->
+	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollectionPublication">
+		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollectionProduct">
+		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollectionPerson">
+		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollectionOrgUnit">
+		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollectionEvent">
+		<property name="entityType" value="Event"/>
+		<property name="configurations">
+			<list>
+				<value>event</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsCollectionCrosswalk" id="xlsCrosswalkCollectionJournal">
+		<property name="entityType" value="Journal"/>
+		<property name="configurations">
+			<list>
+				<value>journal</value>
+			</list>
+		</property>
+		<property name="crosswalkMode" value="#{T(org.dspace.content.crosswalk.CrosswalkMode).MULTIPLE}"/>
+	</bean>
+
+	<!-- Full-metadata dumps exposed at ITEM level (SINGLE): one entityType-scoped bean per entity.
+	     These handle the single-item export only; the matching search-level (MULTIPLE) export is
+	     provided by the xlsCrosswalkCollection* beans above. -->
+	<bean class="org.dspace.content.integration.crosswalks.XlsItemCrosswalk" id="xlsCrosswalkItemPatent">
+		<property name="entityType" value="Patent"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+				<value>patent</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsItemCrosswalk" id="xlsCrosswalkItemPublication">
+		<property name="entityType" value="Publication"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsItemCrosswalk" id="xlsCrosswalkItemProduct">
+		<property name="entityType" value="Product"/>
+		<property name="configurations">
+			<list>
+				<value>researchoutputs</value>
+				<value>researchoutputsoa</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsItemCrosswalk" id="xlsCrosswalkItemPerson">
+		<property name="entityType" value="Person"/>
+		<property name="configurations">
+			<list>
+				<value>person</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsItemCrosswalk" id="xlsCrosswalkItemOrgUnit">
+		<property name="entityType" value="OrgUnit"/>
+		<property name="configurations">
+			<list>
+				<value>schoolsAndColleges</value>
+				<value>researchCentersAndPlatforms</value>
+				<value>doctoralSchools</value>
+				<value>sections</value>
+				<value>orgunit</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsItemCrosswalk" id="xlsCrosswalkItemEvent">
+		<property name="entityType" value="Event"/>
+		<property name="configurations">
+			<list>
+				<value>event</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.integration.crosswalks.XlsItemCrosswalk" id="xlsCrosswalkItemJournal">
+		<property name="entityType" value="Journal"/>
+		<property name="configurations">
+			<list>
+				<value>journal</value>
 			</list>
 		</property>
 	</bean>

@@ -9,7 +9,6 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static java.util.UUID.randomUUID;
-import static javax.mail.internet.MimeUtility.encodeText;
 import static org.apache.commons.codec.CharEncoding.UTF_8;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.io.IOUtils.toInputStream;
@@ -434,10 +433,16 @@ public class BitstreamRestControllerIT extends AbstractControllerIntegrationTest
         getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
             //** THEN **
             .andExpect(status().isOk())
-            //We expect the content disposition to have the encoded bitstream name
+            //We expect the content disposition to carry the RFC 6266 / RFC 5987 encoded
+            //bitstream name: an (empty) ASCII fallback plus the UTF-8 percent-encoded
+            //filename*, safe for S3 presigned URLs. The expected value is spelled out
+            //explicitly (not recomputed from production code) so the assertion encodes
+            //the required behaviour independently of the implementation.
+            //"ภาษาไทย" has no Latin-1 fallback, hence filename="".
             .andExpect(header().string(
                 "Content-Disposition",
-                "attachment;filename=\"" + encodeText(bitstreamName) + "\""
+                "attachment; filename=\"\"; "
+                    + "filename*=UTF-8''%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97%E0%B8%A2"
             ));
     }
 
