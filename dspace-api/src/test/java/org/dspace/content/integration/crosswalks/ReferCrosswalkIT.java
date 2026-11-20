@@ -3854,4 +3854,100 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     private String getExpectedContent(FileInputStream fis) throws IOException {
         return IOUtils.toString(fis, Charset.defaultCharset()).replace("\\/", "/");
     }
+
+    /**
+     * Requirement: exporting several Patents as RIS must produce one well-terminated RIS record
+     * per item.
+     * Input: two Patent items disseminated together (bulk export) through the Patent RIS (EndNote)
+     * crosswalk.
+     * Expected output: a single RIS file containing one record per item - two "TY  -" start markers
+     * and two "ER  -" end-of-record markers - plus both item titles.
+     */
+    @Test
+    public void testPatentRisMultipleItemsDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Item first = createItem(context, collection)
+            .withEntityType("Patent")
+            .withType("Resource Types::text")
+            .withTitle("First Patent")
+            .withIssueDate("2020-01-01")
+            .withAuthor("Smith, John")
+            .build();
+        Item second = createItem(context, collection)
+            .withEntityType("Patent")
+            .withType("Resource Types::text")
+            .withTitle("Second Patent")
+            .withIssueDate("2021-01-01")
+            .withAuthor("Red, Edward")
+            .build();
+        context.restoreAuthSystemState();
+
+        ReferCrosswalk crosswalk = (ReferCrosswalk) crosswalkMapper.getByType("RIS  (Endnote)");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, Arrays.asList(first, second).iterator(), out);
+
+        String result = out.toString();
+        // The bulk RIS export must contain one record per item: each record starts with TY and
+        // ends with the ER terminator.
+        assertThat(countOccurrences(result, "TY  -"), equalTo(2));
+        assertThat(countOccurrences(result, "ER  -"), equalTo(2));
+        assertThat(result, containsString("First Patent"));
+        assertThat(result, containsString("Second Patent"));
+    }
+
+    /**
+     * Requirement: exporting several Products as RIS must produce one well-terminated RIS record
+     * per item.
+     * Input: two Product items disseminated together (bulk export) through the Product RIS (EndNote)
+     * crosswalk.
+     * Expected output: a single RIS file containing one record per item - two "TY  -" start markers
+     * and two "ER  -" end-of-record markers - plus both item titles.
+     */
+    @Test
+    public void testProductRisMultipleItemsDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Item first = createItem(context, collection)
+            .withEntityType("Product")
+            .withType("Resource Types::text")
+            .withTitle("First Product")
+            .withIssueDate("2020-01-01")
+            .withAuthor("Smith, John")
+            .build();
+        Item second = createItem(context, collection)
+            .withEntityType("Product")
+            .withType("Resource Types::text")
+            .withTitle("Second Product")
+            .withIssueDate("2021-01-01")
+            .withAuthor("Red, Edward")
+            .build();
+        context.restoreAuthSystemState();
+
+        ReferCrosswalk crosswalk = (ReferCrosswalk) crosswalkMapper.getByType("RIS(Endnote)");
+        assertThat(crosswalk, notNullValue());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        crosswalk.disseminate(context, Arrays.asList(first, second).iterator(), out);
+
+        String result = out.toString();
+        // The bulk RIS export must contain one record per item: each record starts with TY and
+        // ends with the ER terminator.
+        assertThat(countOccurrences(result, "TY  -"), equalTo(2));
+        assertThat(countOccurrences(result, "ER  -"), equalTo(2));
+        assertThat(result, containsString("First Product"));
+        assertThat(result, containsString("Second Product"));
+    }
+
+    private int countOccurrences(String text, String token) {
+        int count = 0;
+        int index = text.indexOf(token);
+        while (index != -1) {
+            count++;
+            index = text.indexOf(token, index + token.length());
+        }
+        return count;
+    }
 }
